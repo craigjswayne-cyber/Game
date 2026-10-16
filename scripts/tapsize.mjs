@@ -33,25 +33,23 @@ const MIN = 44
 /**
  * The documented exceptions, and the reason each is one.
  *
- * A floor list is how a probe like this gets quietly neutered, so every entry
- * names a class rather than a screen, carries its geometry argument, and is a
- * floor rather than a skip - a chip that shrinks back to 28px still fails.
- * Anything NEW answers to MIN.
+ * There were three, all at 36px: .preset-chip, .form-chip and .chip, each
+ * because wrapped rows sat 6-7px apart and two 44px expanders would have met
+ * in the gap. The WCAG pass gave those rows an 8px row gap and each chip a
+ * 4px expander above and below, and grew the formation pitch so its closest
+ * shirts are 44px apart, so every family now answers to MIN like everything
+ * else. A floor list is how a probe like this gets quietly neutered: if one
+ * has to come back, it names a class, carries its geometry argument, and is a
+ * floor rather than a skip.
  */
 const FLOOR = [
-  { cls: 'preset-chip', min: 36, why: 'six across a 412px filter row, live chip rows above and below' },
-  // measured for the first time when Roles became the Tactics screen's opening
-  // tab (25B): the 15 chips sit on a pitch whose tightest pairs are ~41px apart
-  // centre to centre vertically, so growing the hit area to 44px would overlap
-  // the neighbour's and turn a tap into a coin flip between two shirts
-  { cls: 'form-chip', min: 36, why: 'fifteen chips on one half-pitch; 44px hit areas would overlap the closest pairs' },
-  // measured by scripts/geosweep.mjs on the mentoring picker, which is the first
-  // harness ever to look at the Training screen: an ::after expander on a chip
-  // in a 7px-gapped wrapping row buys ~3.5px, not 14, because every neighbour
-  // has one too and they meet in the middle of the gap. Reach was 34px. So the
-  // box carries the floor instead, and 36 is the same number the two chip
-  // families above settled on for the same reason.
-  { cls: 'chip', min: 36, why: 'wrapping rows with a 7px gap; a 44px expander steals the neighbouring chip taps' },
+  // A sortable column header (WCAG pass: it became a real <button>, so it is
+  // measured for the first time). Its height reaches 44 or close to it, but its
+  // width IS the column's: the eight-column market table's numeric columns are
+  // 28-31px wide at 320-430px, and widening them pushes the table off a phone
+  // (sidescroll.mjs). 28 is the narrowest measured; WCAG 2.2's AA target floor
+  // (2.5.8) is 24.
+  { cls: 'th-btn', min: 28, why: 'a column header is as wide as its column in a table that must fit a 320px phone' },
 ]
 
 const server = await startPreview('4196', 3000)
