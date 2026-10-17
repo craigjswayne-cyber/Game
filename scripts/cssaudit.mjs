@@ -26,7 +26,12 @@ const CSS = 'src/ui/theme.css'
 // file only READS tokens now. Harvest definitions from both, or every
 // semantic token reads as dead (44 false positives, caught the first time
 // this audit ran after the split).
-const css = readFileSync(CSS, 'utf8') + '\n' + readFileSync('src/ui/tokens.css', 'utf8')
+// theme.css is a list of @imports since it was split into src/ui/styles/
+// partials; each import is read in place, in order, so the text audited (and
+// the line a finding points at) is the theme as the build inlines it.
+const theme = readFileSync(CSS, 'utf8').replace(/^@import '\.\/(styles\/[^']+)';$/gm,
+  (_, p) => readFileSync(join('src/ui', p), 'utf8').replace(/\n$/, ''))
+const css = theme + '\n' + readFileSync('src/ui/tokens.css', 'utf8')
 
 // A definition is `--name:` anywhere, not only at the start of a line: the theme
 // has one-liners like `:root { --pick: #9fc2e8; }`, and the first cut of this
