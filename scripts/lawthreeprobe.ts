@@ -20,7 +20,7 @@
 // as one that always does:
 //   - a knock to a named front-rower must NOT raise it while cover exists
 //   - a squad that genuinely cannot cover a shirt MUST still raise it
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { frontRowCover, repairSheet } from '../src/game/matchEngine'
 import { splitFor } from '../src/game/bench'
@@ -115,7 +115,9 @@ console.log('\na squad that genuinely cannot cover a front-row shirt:\n')
 // So read the screen and check, because a probe that would pass through a revert of
 // the fix is not guarding the fix.
 {
-  const src = readFileSync(new URL('../src/ui/screens/MatchDay.tsx', import.meta.url), 'utf8')
+  // the match screen is split across src/ui/screens/matchday/; read all of it
+  const dir = new URL('../src/ui/screens/matchday/', import.meta.url)
+  const src = readdirSync(dir).map(f => readFileSync(new URL(f, dir), 'utf8')).join('\n')
   const calls = [...src.matchAll(/frontRowCover\(([^)]*\)?[^)]*)\)/g)].map(m => m[1])
   console.log(`\nfrontRowCover call sites on the match screen: ${calls.length}`)
   for (const c of calls) console.log(`  frontRowCover(${c.replace(/\s+/g, ' ').slice(0, 70)})`)
