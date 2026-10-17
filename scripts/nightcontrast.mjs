@@ -146,6 +146,18 @@ const MEASURE = `(() => {
 
 async function look(label) {
   await page.waitForTimeout(350)
+  // SETTLED COLOURS, NOT A FRAME OF A TRANSITION (1.9.1). A line fading in, or
+  // a try flash easing back over its last fifth, passes through mixtures of
+  // its two colour pairs that last a few frames; caught mid-way they read as
+  // 4.17:1 or white on white and failed the run one time in two. Contrast is
+  // judged on the colours a reader settles on, so every finite animation is
+  // run to its end first. Endless ones (a pulse, a spinner) are left alone.
+  await page.evaluate(() => {
+    for (const a of document.getAnimations()) {
+      const t = a.effect && a.effect.getComputedTiming ? a.effect.getComputedTiming() : null
+      if (t && Number.isFinite(t.endTime)) { try { a.finish() } catch { /* already done */ } }
+    }
+  })
   let rows = []
   // NO SILENT CATCH. This swallowed a syntax error in MEASURE and every screen
   // returned early, so the harness measured 0 runs of text and printed
