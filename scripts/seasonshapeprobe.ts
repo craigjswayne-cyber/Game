@@ -1,4 +1,5 @@
-// Round 25C probe: the season-structure batch, checked at engine level.
+// Season shape probe (Round 25C): the season-structure batch, checked at
+// engine level.
 //
 //   - the European calendar (user: "European qtr finals are usually early
 //     april. Semis early may and final end of may. The final of the
@@ -14,6 +15,9 @@
 //   - the summer sponsorship decision (user: "you should be able to choose
 //     between deals... short term for lower amounts or bigger deals for
 //     longer"): when a deal lapses, the office asks, and answering signs
+//
+// Was scripts/round25c.ts until 1.9.2, named for the feedback round that asked
+// for it; renamed for what it holds. Nothing else asserts these properties.
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { answerPress } from '../src/game/media'
@@ -21,7 +25,7 @@ import { offersFor } from '../src/game/commercial'
 import { OBJECTIVE_DEFS } from '../src/game/objectives'
 import { weekDate } from '../src/game/model'
 import type { GameState } from '../src/game/model'
-import { ok, failures } from './lib/probe'
+import { ok, done } from './lib/probe'
 
 /** Hold the board off.
  *
@@ -182,5 +186,4 @@ console.log('\nthe expectations decision and the annual stamp:\n')
   ok(g.stance === undefined, 'and the stance died with the old season')
 }
 
-if (failures()) { console.error(`\nROUND 25C PROBE: ${failures()} failures`); process.exit(1) }
-console.log('\nROUND 25C PROBE PASSED: the season has its real shape')
+done('SEASON SHAPE PROBE', 'the season has its real shape')

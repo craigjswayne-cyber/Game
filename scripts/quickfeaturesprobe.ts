@@ -1,4 +1,5 @@
-// Round 25B probe: the live-feedback quick features, checked at engine level.
+// Quick features probe (Round 25B): the live-feedback quick features, checked
+// at engine level.
 //
 //   - mentoring: cap of four (five with a strong Centre of Excellence),
 //     two-kid seniors at three-quarter speed, and pairings that end themselves
@@ -15,6 +16,9 @@
 //   - international weeks produce a report on how your men got on
 //   - the terrace pulse speaks once per streak, not weekly
 //   - the recruitment meeting carries the scout tag for the Scout Reports pile
+//
+// Was scripts/round25b.ts until 1.9.2, named for the feedback round that asked
+// for it; renamed for what it holds. Nothing else asserts these properties.
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { autoSelect } from '../src/game/matchEngine'
@@ -22,7 +26,7 @@ import { jobChance } from '../src/game/jobs'
 import { MENTOR_MAX_KIDS, mentorCap, mentorGraduations, mentorLoad } from '../src/game/mentoring'
 import type { GameState, PressItem } from '../src/game/model'
 import { OFFICE_OUTLET } from '../src/game/media'
-import { ok, failures } from './lib/probe'
+import { ok, done } from './lib/probe'
 
 // ---- mentoring: cap, load, graduation ---------------------------------------
 console.log('mentoring:\n')
@@ -274,5 +278,4 @@ console.log('\nthe terrace on seed 11 (three pulses, close together):\n')
   ok(pulsing >= 20, `the terraces still get their say across the world, not on one lucky seed (${pulsing}/39 seasons pulse)`)
 }
 
-if (failures()) { console.error(`\nROUND 25B PROBE: ${failures()} failures`); process.exit(1) }
-console.log('\nROUND 25B PROBE PASSED: the quick-feature batch holds')
+done('QUICK FEATURES PROBE', 'the quick-feature batch holds')

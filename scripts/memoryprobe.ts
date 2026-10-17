@@ -304,7 +304,7 @@ const leagueRival = (g: GameState) => {
           if (sale && sale.clubId === g.userClubId) executeTransfer(g, sale, rivals[s % rivals.length].id, Math.max(100_000, sale.value))
         }
         // the job is kept, so the career is the manager's all the way through
-        // (the trick round25c.ts and deepsave.ts use: a sacked manager makes no
+        // (the trick seasonshapeprobe.ts and deepsave.ts use: a sacked manager makes no
         // decisions and the log would be testing employment, not memory)
         if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
         const wk = g.week
