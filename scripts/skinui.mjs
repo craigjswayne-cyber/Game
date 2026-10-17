@@ -115,7 +115,8 @@ try {
   ok(iSet >= 0 && iBug >= 0 && iSet < iBug, `Settings sits ABOVE Report a Bug (${iSet} < ${iBug})`)
 
   await page.locator('.submenu-item', { hasText: 'Settings' }).click()
-  await page.waitForSelector('.content')
+  // screens load on demand (1.9.1): wait for Settings, not the frame around it
+  await page.waitForSelector('.content[data-screen="settings"] .skin-card', { timeout: 15000 }).catch(() => {})
   const body = await page.locator('.content').innerText()
   ok(/Skin/i.test(body), 'the page leads with the skin picker')
   for (const s of SKINS) ok(body.includes(s.label), `${s.label} is offered by name`)
@@ -189,18 +190,25 @@ try {
   }
   const canvasNow = () => page.evaluate(() =>
     getComputedStyle(document.querySelector('.app')).getPropertyValue('--canvas').trim())
+  // the floodlights by state, not by time: a loaded runner repaints late, and
+  // a fixed wait read the canvas before the class had changed (CI, 1.9.1)
+  const isNight = () => page.evaluate(() => document.querySelector('.app')?.classList.contains('night') ?? false)
+  const setNight = async (want) => {
+    if (await isNight() === want) return
+    await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
+    await page.waitForFunction(w => document.querySelector('.app')?.classList.contains('night') === w, want, { timeout: 5000 }).catch(() => {})
+    await page.waitForTimeout(100)
+  }
   for (const s of [...SKINS, { key: 'default', label: 'Clubhouse' }]) {
     await page.locator('.skin-card', { hasText: s.label }).click()
-    await page.waitForTimeout(200)
-    // start from night, whatever the previous loop left behind
-    let cls = await page.locator('.app').first().getAttribute('class')
-    if (!/\bnight\b/.test(cls ?? '')) {
-      await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
-      await page.waitForTimeout(250)
+    if (s.key !== 'default') {
+      await page.waitForFunction(k => document.querySelector('.app')?.classList.contains(`skin-${k}`), s.key, { timeout: 5000 }).catch(() => {})
     }
+    await page.waitForTimeout(100)
+    // start from night, whatever the previous loop left behind
+    await setNight(true)
     const dark = lumOf(await canvasNow())
-    await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
-    await page.waitForTimeout(250)
+    await setNight(false)
     const light = lumOf(await canvasNow())
     ok(dark !== null && light !== null && light > dark,
       `${s.label}: daylight actually lightens the page (canvas luminance ${dark?.toFixed(3)} to ${light?.toFixed(3)})`)
@@ -211,8 +219,7 @@ try {
     ok(inkLum !== null && light !== null && (Math.max(inkLum, light) + 0.05) / (Math.min(inkLum, light) + 0.05) >= 4.5,
       `${s.label}: and body text still clears 4.5:1 on it (${ink})`)
     // back to night for the next card
-    await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
-    await page.waitForTimeout(200)
+    await setNight(true)
   }
 
   // ---- 5. and it can be taken back off ----
