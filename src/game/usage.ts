@@ -31,7 +31,6 @@
  * 1.9.0: "push the feedback report til the first season is completed so we
  * have enough data." It is offered automatically once, ever, on this device.
  */
-import { cmpStr } from './rng'
 
 /** The actions worth counting. Each maps to a real thing the manager does,
  *  recorded where the store or the screen already does it. */
@@ -296,7 +295,7 @@ export function buildFeedbackReport(i: FeedbackInput): string {
   out += line('matches', `${u.matches} competitive`)
   out += '\n'
 
-  const screens = Object.entries(u.screens).sort((a, b) => b[1] - a[1] || cmpStr(a[0], b[0]))
+  const screens = Object.entries(u.screens).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
   out += 'SCREENS OPENED\n'
   out += screens.length ? screens.map(([k, n]) => `${SCREEN_NAMES[k] ?? k} ${n}`).join(', ') + '\n\n' : 'none yet\n\n'
 
