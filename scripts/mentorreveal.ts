@@ -29,12 +29,7 @@ import { t, tIn } from '../src/game/i18n'
 import { useStore } from '../src/store'
 import MentoringPanel from '../src/ui/screens/MentoringPanel'
 import { readFileSync } from 'node:fs'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const FIT_KEYS = ['training.fitInseparable', 'training.fitWorkingWell', 'training.fitComingAlong',
   'training.fitPolite', 'training.fitNotTaking', 'training.fitWaste']
@@ -162,5 +157,4 @@ console.log('--- the picker')
   ok(hb.includes('20 or under') && hb.includes('28 or more') && /first month/.test(hb), 'the handbook carries the ages and the month')
 }
 
-console.log(fails ? `\nMENTOR REVEAL FAILED (${fails})` : '\nMENTOR REVEAL PASSED: a pairing is a gamble for a month, then the page says how it is going')
-process.exit(fails ? 1 : 0)
+done('MENTOR REVEAL', 'a pairing is a gamble for a month, then the page says how it is going', { exit: true })

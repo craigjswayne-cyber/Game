@@ -5,6 +5,7 @@ import { luma } from './kit'
 import { t } from '../game/i18n'
 import { visitsTo22, shirtNumber, type LiveCtx, type SideCtx } from '../game/matchEngine'
 import { moodOf } from './MoodTable'
+import { Veil } from './Veil'
 
 /**
  * ---- THE MATCH MENU (1.8.0) ----
@@ -34,42 +35,40 @@ export function MatchPanels({ onClose }: { onClose: () => void }) {
   const shown = ctx.events.slice(0, live.cursor)
   const panel = PANELS[i]
   return (
-    <div className={`modal-veil${panel === 'lineups' ? ' mp-clear' : ''}`} onClick={onClose}>
-      <div className={`modal mpanels${panel === 'lineups' ? ' tele-mode' : ''}`} onClick={e => e.stopPropagation()}>
-        <div className="mp-head">
-          <button className="btn ghost tiny" aria-label={t('mpanel.prev')} disabled={i === 0} onClick={() => setI(i - 1)}>◀</button>
-          <b>{t(`mpanel.${panel}`)}</b>
-          <button className="btn ghost tiny" aria-label={t('mpanel.next')} disabled={i === PANELS.length - 1} onClick={() => setI(i + 1)}>▶</button>
-        </div>
-        <div className="mp-dots">
-          {PANELS.map((p, k) => (
-            <button key={p} className={k === i ? 'on' : ''} aria-label={t(`mpanel.${p}`)} onClick={() => setI(k)} />
-          ))}
-        </div>
-        <div className="mp-body">
-          {panel === 'lineups' && <Telemetry ctx={ctx} shown={shown} opp={opp} />}
-          {panel === 'room' && <Room ctx={ctx} />}
-          {panel === 'players' && <PlayerLines ctx={ctx} shown={shown} />}
-          {panel === 'zones' && <Zones ctx={ctx} shown={shown} />}
-          {panel === 'visits' && <Visits ctx={ctx} shown={shown} />}
-        </div>
-        {/* THE OTHER SIDE'S 23 RIDES BESIDE BACK (1.9.0), on the row that is
-            already 44px tall, so the toggle costs the strip no height: the
-            whole point of the strip is all 23 on one phone screen. */}
-        {panel === 'lineups' ? (
-          <div className="tele-foot">
-            <button className="btn gold block" onClick={onClose}>{t('mpanel.back')}</button>
-            <button className="btn ghost tele-toggle" aria-pressed={opp}
-              aria-label={t('tele.showSide', { team: sideName(game, opp ? mineOf(ctx, game.userClubId) : theirsOf(ctx, game.userClubId)) })}
-              onClick={() => setOpp(!opp)}>
-              {sideName(game, opp ? mineOf(ctx, game.userClubId) : theirsOf(ctx, game.userClubId))}
-            </button>
-          </div>
-        ) : (
-          <button className="btn gold block" onClick={onClose}>{t('mpanel.back')}</button>
-        )}
+    <Veil onClose={onClose} className={`modal-veil${panel === 'lineups' ? ' mp-clear' : ''}`} boxClassName={`modal mpanels${panel === 'lineups' ? ' tele-mode' : ''}`}>
+      <div className="mp-head">
+        <button className="btn ghost tiny" aria-label={t('mpanel.prev')} disabled={i === 0} onClick={() => setI(i - 1)}>◀</button>
+        <b>{t(`mpanel.${panel}`)}</b>
+        <button className="btn ghost tiny" aria-label={t('mpanel.next')} disabled={i === PANELS.length - 1} onClick={() => setI(i + 1)}>▶</button>
       </div>
-    </div>
+      <div className="mp-dots">
+        {PANELS.map((p, k) => (
+          <button key={p} className={k === i ? 'on' : ''} aria-label={t(`mpanel.${p}`)} onClick={() => setI(k)} />
+        ))}
+      </div>
+      <div className="mp-body">
+        {panel === 'lineups' && <Telemetry ctx={ctx} shown={shown} opp={opp} />}
+        {panel === 'room' && <Room ctx={ctx} />}
+        {panel === 'players' && <PlayerLines ctx={ctx} shown={shown} />}
+        {panel === 'zones' && <Zones ctx={ctx} shown={shown} />}
+        {panel === 'visits' && <Visits ctx={ctx} shown={shown} />}
+      </div>
+      {/* THE OTHER SIDE'S 23 RIDES BESIDE BACK (1.9.0), on the row that is
+          already 44px tall, so the toggle costs the strip no height: the
+          whole point of the strip is all 23 on one phone screen. */}
+      {panel === 'lineups' ? (
+        <div className="tele-foot">
+          <button className="btn gold block" onClick={onClose}>{t('mpanel.back')}</button>
+          <button className="btn ghost tele-toggle" aria-pressed={opp}
+            aria-label={t('tele.showSide', { team: sideName(game, opp ? mineOf(ctx, game.userClubId) : theirsOf(ctx, game.userClubId)) })}
+            onClick={() => setOpp(!opp)}>
+            {sideName(game, opp ? mineOf(ctx, game.userClubId) : theirsOf(ctx, game.userClubId))}
+          </button>
+        </div>
+      ) : (
+        <button className="btn gold block" onClick={onClose}>{t('mpanel.back')}</button>
+      )}
+    </Veil>
   )
 }
 
@@ -276,7 +275,7 @@ function PlayerLines({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
 
 /** The field in three: where the lines revealed so far were played, from each
  *  side's point of view (its own third, the middle, the opposition's). */
-export function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
+function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
   const game = useStore(s => s.game)!
   const f = shown.map(e => e.fld).filter((x): x is number => x != null)
   const n = f.length || 1
@@ -302,7 +301,7 @@ export function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
 /** Visits to the 22 and what each side made of them: the rugby version of
  *  "attack areas", and the number coaches actually quote. A visit starts on the
  *  first line inside the opposition 22 after a line outside it. */
-export function Visits({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
+function Visits({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
   const game = useStore(s => s.game)!
   // the engine's count, the same one the live stats read (visitsTo22)
   const tally = (home: boolean) => {

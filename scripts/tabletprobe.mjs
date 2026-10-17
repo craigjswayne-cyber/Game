@@ -25,14 +25,14 @@ import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4249', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 mkdirSync('shots', { recursive: true })
 
 async function career(page) {
-  await page.goto('http://localhost:4249/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.click('text=English Premier Division')
@@ -166,7 +166,7 @@ try {
       await page.click('.bottom-nav button[title="Home"]').catch(() => {})
       for (let tap = 0; tap < 8; tap++) {
         if (await page.locator('text=Kick Off ▸').count()) break
-        await page.click('.continue-btn')
+        await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
         await page.waitForTimeout(450)
       }
       await page.locator('text=Kick Off ▸').first().click()
@@ -229,7 +229,7 @@ try {
   // phone layout and no zoom, but no bars down the sides either
   {
     const page = await browser.newPage({ viewport: { width: 600, height: 960 }, hasTouch: true, isMobile: true })
-    await page.goto('http://localhost:4249/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
     const s = await page.evaluate(() => ({ tablet: document.querySelector('.app')?.classList.contains('tablet'), zoom: parseFloat(document.documentElement.style.zoom) || 1, w: Math.round(document.querySelector('.app').getBoundingClientRect().width) }))
     ok(!s.tablet && s.zoom === 1 && s.w >= 598, `small tablet 600x960: the phone layout, filling the glass (tablet ${s.tablet}, zoom ${s.zoom}, ${s.w}px)`)
@@ -242,7 +242,7 @@ try {
     ['desktop 1280x800 mouse', { viewport: { width: 1280, height: 800 } }],
   ]) {
     const page = await browser.newPage(opts)
-    await page.goto('http://localhost:4249/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
     const s = await page.evaluate(() => ({ tablet: document.querySelector('.app')?.classList.contains('tablet'), zoom: parseFloat(document.documentElement.style.zoom) || 1 }))
     ok(!s.tablet && s.zoom === 1, `${name}: left as it was (tablet ${s.tablet}, zoom ${s.zoom})`)

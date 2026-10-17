@@ -33,9 +33,8 @@ import { buildReport, reportAccuracy } from '../src/game/oppreport'
 import { adaptMap, tapeLine } from '../src/game/armsrace'
 import { playbookOf } from '../src/game/playbook'
 import { roomKind, TEAM_NIGHT, TEAM_NIGHT_LIFT } from '../src/game/room'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const clone = (g: GameState): GameState => JSON.parse(JSON.stringify(g))
 
 /** Run a favour with Math.random poisoned: any draw at all fails the probe. */
@@ -352,5 +351,5 @@ console.log('\n--- 6. a sleepwalker\'s world is the same world\n')
     `and eight weeks on, the two saves differ in the ledger alone (${diffPaths(A, B, '', [], ['rewarded']).slice(0, 6).join(', ')})`)
 }
 
-if (fails) { console.error(`\nREWARDED 1.8.2 PROBE FAILED (${fails})`); process.exit(1) }
+if (failures()) { console.error(`\nREWARDED 1.8.2 PROBE FAILED (${failures()})`); process.exit(1) }
 console.log('\nREWARDED 1.8.2 PROBE PASSED: four more favours, each a fee or a wait replaced, on a leash')

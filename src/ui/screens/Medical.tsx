@@ -10,6 +10,8 @@ import { rewardedAvailable } from '../../game/monetise'
 import { PosBadge, SectionTitle, RewardedButton, Stars } from '../components'
 import FullFitness from '../FullFitness'
 import { t } from '../../game/i18n'
+import { rowNav } from '../rowNav'
+import { Veil } from '../Veil'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
 export default function Medical() {
@@ -57,7 +59,6 @@ export default function Medical() {
       if (inj && !inj.seen) { inj.seen = true; fresh++ }
     }
     if (fresh) touch()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // empty sections say nothing at all - six headers of "nobody" was noise.
@@ -78,7 +79,7 @@ export default function Medical() {
             const { pill, info, extra, act, note } = render(p)
             const acts = (act ?? []).filter(Boolean)
             return (
-              <div key={p.id} className="card med-card" onClick={() => go('player', p.id)}>
+              <div key={p.id} className="card med-card" {...rowNav(() => go('player', p.id))}>
                 <div className="med-head">
                   <PosBadge pos={p.pos} />
                   <span className="med-name">{p.name}</span>
@@ -116,7 +117,7 @@ export default function Medical() {
           box in the way. Kept while something is typed, so it can be cleared. */}
       {(hurtCount > 6 || !!q) && (
         <div className="med-search">
-          <input className="inline-input" placeholder={t('medical.findPlayer')} value={query}
+          <input className="inline-input" placeholder={t('medical.findPlayer')} aria-label={t('medical.findPlayer')} value={query}
             onChange={e => setQuery(e.target.value)} />
         </div>
       )}
@@ -130,7 +131,7 @@ export default function Medical() {
 
       {allClear && (
         <div className="card center bar-sq" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 16 }}>{t(q ? 'medical.nothingOnHim' : 'medical.quietRoom')}</h3>
+          <h3 style={{ fontSize: '1rem' }}>{t(q ? 'medical.nothingOnHim' : 'medical.quietRoom')}</h3>
           <div className="meta">{t(q ? 'medical.nothingOnHimSub' : 'medical.quietRoomSub')}</div>
         </div>
       )}
@@ -259,48 +260,46 @@ export default function Medical() {
       }))}
       <div className="spacer" />
       {jokerHurt && (
-        <div className="modal-veil" onClick={() => setJokerHurt(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="grab" />
-            <div style={{ padding: '0 16px' }}>
-            <h3 style={{ fontSize: 16, margin: '2px 0 6px' }}>{t('medical.jokerTitle', { hurt: jokerHurt.name })}</h3>
-            <div className="meta" style={{ marginBottom: 8 }}>
-              {t('medical.jokerExplain', { n: weeksOut(game, jokerHurt), hurt: jokerHurt.name })}
-            </div>
-            {(() => {
-              const pool = jokerCandidates(game, jokerHurt)
-              if (!pool.length) return <div className="meta">{t('medical.jokerNone')}</div>
-              return (
-                <div className="tblwrap">
-                  <table className="dtable"><tbody>
-                    {pool.map(c => (
-                      <tr key={c.id}>
-                        <td><PosBadge pos={c.pos} /></td>
-                        <td className="name">{c.name} <span className="muted">{c.age}</span></td>
-                        <td><Stars ca={fuzzedCa(game, c)} /></td>
-                        <td>
-                          <button className="btn gold rowact"
-                            onClick={() => {
-                              const r = signMedicalJoker(game, jokerHurt.id, c.id)
-                              setMsg({ id: jokerHurt.id, text: r.msg })
-                              setJokerHurt(null)
-                              touch()
-                            }}>
-                            {t('medical.jokerSign', { wage: fmtWage(jokerWage(c)) })}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody></table>
-                </div>
-              )
-            })()}
-            <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setJokerHurt(null)}>
-              {t('medical.jokerClose')}
-            </button>
-            </div>
+        <Veil onClose={() => setJokerHurt(null)}>
+          <div className="grab" />
+          <div style={{ padding: '0 16px' }}>
+          <h3 style={{ fontSize: '1rem', margin: '2px 0 6px' }}>{t('medical.jokerTitle', { hurt: jokerHurt.name })}</h3>
+          <div className="meta" style={{ marginBottom: 8 }}>
+            {t('medical.jokerExplain', { n: weeksOut(game, jokerHurt), hurt: jokerHurt.name })}
           </div>
-        </div>
+          {(() => {
+            const pool = jokerCandidates(game, jokerHurt)
+            if (!pool.length) return <div className="meta">{t('medical.jokerNone')}</div>
+            return (
+              <div className="tblwrap">
+                <table className="dtable"><tbody>
+                  {pool.map(c => (
+                    <tr key={c.id}>
+                      <td><PosBadge pos={c.pos} /></td>
+                      <td className="name">{c.name} <span className="muted">{c.age}</span></td>
+                      <td><Stars ca={fuzzedCa(game, c)} /></td>
+                      <td>
+                        <button className="btn gold rowact"
+                          onClick={() => {
+                            const r = signMedicalJoker(game, jokerHurt.id, c.id)
+                            setMsg({ id: jokerHurt.id, text: r.msg })
+                            setJokerHurt(null)
+                            touch()
+                          }}>
+                          {t('medical.jokerSign', { wage: fmtWage(jokerWage(c)) })}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody></table>
+              </div>
+            )
+          })()}
+          <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setJokerHurt(null)}>
+            {t('medical.jokerClose')}
+          </button>
+          </div>
+        </Veil>
       )}
     </>
   )

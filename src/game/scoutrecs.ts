@@ -34,8 +34,8 @@ import type { GameState, Player } from './model'
 import { tIn } from './i18n'
 import { subjectVar } from './gender'
 import { clamp, hashString, mulberry32 } from './rng'
-import { fuzzedCa, knowledge, scoutPa } from './scout'
-import { noteFor, type NoteRef } from './commission'
+import { fuzzedCa, knowledge, scoutPa } from './scoutknow'
+import { noteFor, type NoteRef } from './scoutnote'
 
 export type RecSource = 'brief' | 'road' | 'meeting'
 
@@ -56,7 +56,7 @@ export interface ScoutRec {
 }
 
 /** How many recommendations the Scouting page remembers. */
-export const REC_CAP = 40
+const REC_CAP = 40
 
 /** The same worth the scout has always ranked on (commission.ts), here read
  *  off his estimate rather than the truth. */
@@ -129,7 +129,7 @@ export function recFor(state: GameState, playerId: number): ScoutRec | null {
 
 /** In hindsight, once the man is fully known: did the call hold up? Read on
  *  the present level against what the scout said it was. */
-export type Hindsight = 'better' | 'held' | 'worse'
+type Hindsight = 'better' | 'held' | 'worse'
 export function hindsight(state: GameState, rec: ScoutRec): Hindsight | null {
   const p = state.players[rec.playerId]
   if (!p || knowledge(state, p) < 95) return null

@@ -37,12 +37,11 @@ const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const PORT = process.env.PORT ?? '4237'
-const URL = `http://localhost:${PORT}/`
 const SHOTS = process.env.SHOTS ?? ''
 if (SHOTS) mkdirSync(SHOTS, { recursive: true })
 
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
+const URL = server.url
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 const FRESH = { v: 1, firstPromptShown: false, firstOfferShown: false, firstOfferAccepted: false, firstOfferDeclined: false, played: 0, offerDueAt: 1, remindAt: 0, lastShownAt: -1, seen: [] }
@@ -166,7 +165,9 @@ async function playOne(page) {
       const screen = st.nav[st.nav.length - 1]?.screen
       if (screen === 'annual') { st.game.annual = undefined; st.touch(); st.back(); continue }
       if (st.liveMatch || screen === 'matchday') {
-        st.instantResult()
+        // the week it ends turns in slices (1.9.1), and the round-up is on
+        // top once that lands: instantResult hands back the settle to wait on
+        await st.instantResult()
         const top = s.getState().nav[s.getState().nav.length - 1]
         return top?.screen === 'results' ? String(top.param).split(':')[0] : 'none'
       }

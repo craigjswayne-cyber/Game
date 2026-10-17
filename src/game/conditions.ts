@@ -132,7 +132,7 @@ export function goalPenaltyOf(w: Weather | null | undefined): number {
 // ---------------------------------------------------------------- injuries
 
 /** what the surface does to the knocks: artificial is harder underfoot */
-export const SURF_INJ: Record<Surface, number> = { grass: 0.97, hybrid: 1.0, artificial: 1.1 }
+const SURF_INJ: Record<Surface, number> = { grass: 0.97, hybrid: 1.0, artificial: 1.1 }
 /** The world's mean of the raw factor below over every AI fixture of a season
  *  in three worlds (scripts/depthprobe.ts measures it), so the world's count
  *  of injuries stays where it was: the styles and the ground shift who is
@@ -153,7 +153,6 @@ export function injuryF(own: SideStyle | undefined, opp: SideStyle | undefined, 
 
 // ---------------------------------------------------------------- the words
 
-export const wxKey = (w: Weather) => `matchday.wx${w}`
 export const surfKey = (s: Surface) => `matchday.surf_${s}`
 
 /** One line for the conditions card: what the sky will do to the rugby. */
@@ -163,7 +162,7 @@ export function wxEffectKey(w: Weather): string {
 
 /** What the referee's opinions are, for anything that wants them without the
  *  whole engine: the fields the card and the half-time read use. */
-export interface RefRead { name: string; scrum: number; breakdown: number; patience: number; flow: number }
+interface RefRead { name: string; scrum: number; breakdown: number; patience: number; flow: number }
 
 /** What the assistant says at half time, off what has happened so far: at
  *  most two lines, each an i18n key and its values, the most pressing first.
@@ -183,7 +182,7 @@ export interface HalfSide {
   turnWon: number
   score: number
 }
-export interface HalfLine {
+interface HalfLine {
   k: string
   v?: Record<string, string | number>
   tag?: 'work' | 'hurt'

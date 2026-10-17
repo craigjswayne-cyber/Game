@@ -31,6 +31,8 @@ import { Glyph } from '../glyphs'
 import { plainNews } from '../NewsBody'
 import ScoutReportCard from '../ScoutReport'
 import { offerFocus } from './PlayerScreen'
+import { rowNav } from '../rowNav'
+import { Veil } from '../Veil'
 
 /** The verdict's colour, the same ladder the old table used. */
 const gradeColour = (g: number) =>
@@ -89,7 +91,7 @@ export function ScoutRecList({ onOpen, limit }: { onOpen: (id: number) => void; 
   return (
     <>
       <SectionTitle sub={t('transfers.scoutsReportSub', { g: game.staffPeople?.scout?.g ?? 'm' })}>{t('transfers.scoutsReport')}</SectionTitle>
-      {!list.length && <div className="muted" style={{ padding: '4px 14px 10px', fontSize: 13 }}>{t('scouting.empty')}</div>}
+      {!list.length && <div className="muted" style={{ padding: '4px 14px 10px', fontSize: '0.8125rem' }}>{t('scouting.empty')}</div>}
       {list.length > 0 && (
         <div className="scout-list">
           {list.slice(0, cap).map(r => <ScoutRow key={r.playerId} game={game} p={game.players[r.playerId]} rec={r} onOpen={() => onOpen(r.playerId)} />)}
@@ -124,51 +126,49 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
     go('player', p.id)
   }
   return (
-    <div className="modal-veil" onClick={onClose}>
-      <div className="modal scout-sheet" onClick={e => e.stopPropagation()} role="dialog" aria-label={p.name}>
-        <div className="grab" />
-        <div className="scout-sheet-head">
-          <PosBadge pos={p.pos} />
-          <div style={{ minWidth: 0 }}>
-            <div className="scout-sheet-name">{p.name}</div>
-            <div className="meta">{posName(p.pos)} · {t('scouting.age', { n: p.age })} · {club ? club.name : t('transfers.freeAgent')}</div>
-          </div>
-        </div>
-        {rec && (
-          <div className="card scout-verdict">
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
-              <span className="fact-label">{t('scouting.verdict')}</span>
-              <span className="meta muted" style={{ fontSize: 11 }}>{t('scouting.filed', { date: weekDate(rec.season, rec.week) })}</span>
-            </div>
-            <div className="scout-verdict-word" style={{ color: gradeColour(rec.grade) }}>{gradeWord(rec.grade)}</div>
-            {/* his words without the opener: the verdict is the headline above it */}
-            <div className="scout-verdict-quote">{`${t(rec.note.body_k)}${t(rec.note.growth_k)}`.trim()}</div>
-            {hs && <div className="meta" style={{ marginTop: 6, fontWeight: 700, color: hs === 'worse' ? 'var(--text-negative)' : hs === 'better' ? 'var(--text-positive)' : undefined }}>{t(`scouting.hs_${hs}`)}</div>}
-          </div>
-        )}
-        <div className="card scout-facts">
-          <div className="scout-fact"><span className="muted">{t('scouting.current')}</span><Stars ca={cur} /></div>
-          <div className="scout-fact"><span className="muted">{t('scouting.potential')}</span><Stars ca={pot} /></div>
-          {!ours && <div className="scout-fact"><span className="muted">{t('scouting.value')}</span><b>{t('scouting.about', { fee: fmtMoney(seenValue(game, p)) })}</b></div>}
-          <div className="scout-fact"><span className="muted">{t('scouting.wage')}</span><b>{fmtWage(p.wage)}{t('common.perWeek')}</b></div>
-          <div className="meta muted" style={{ fontSize: 11, marginTop: 4 }}>{t(rec ? 'scouting.starsNote' : 'scouting.starsFile')}</div>
-        </div>
-        {!ours && <div style={{ margin: '0 0 0' }}><ScoutReportCard game={game} p={p} onMsg={setMsg} /></div>}
-        {msg && <div className="meta" style={{ margin: '6px 14px', color: 'var(--gold)', fontWeight: 700 }}>{msg}</div>}
-        <div className="btn-row" style={{ margin: '12px 14px 4px' }}>
-          {!ours && (
-            <button className={`btn ${listed ? '' : 'ghost'}`} onClick={() => toggleShortlist(p.id)}>
-              {t(listed ? 'scouting.unlist' : 'scouting.shortlist')}
-            </button>
-          )}
-          {!ours && <button className="btn gold" onClick={() => toPlayer(true)}>{t('scouting.makeOffer')}</button>}
-        </div>
-        <div className="btn-row" style={{ margin: '4px 14px 4px' }}>
-          <button className="btn ghost" onClick={onClose}>{t('scouting.close')}</button>
-          <button className="btn ghost" onClick={() => toPlayer(false)}>{t('scouting.toPlayer')}</button>
+    <Veil onClose={onClose} boxClassName="modal scout-sheet" role="dialog" label={p.name}>
+      <div className="grab" />
+      <div className="scout-sheet-head">
+        <PosBadge pos={p.pos} />
+        <div style={{ minWidth: 0 }}>
+          <div className="scout-sheet-name">{p.name}</div>
+          <div className="meta">{posName(p.pos)} · {t('scouting.age', { n: p.age })} · {club ? club.name : t('transfers.freeAgent')}</div>
         </div>
       </div>
-    </div>
+      {rec && (
+        <div className="card scout-verdict">
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <span className="fact-label">{t('scouting.verdict')}</span>
+            <span className="meta muted" style={{ fontSize: '0.6875rem' }}>{t('scouting.filed', { date: weekDate(rec.season, rec.week) })}</span>
+          </div>
+          <div className="scout-verdict-word" style={{ color: gradeColour(rec.grade) }}>{gradeWord(rec.grade)}</div>
+          {/* his words without the opener: the verdict is the headline above it */}
+          <div className="scout-verdict-quote">{`${t(rec.note.body_k)}${t(rec.note.growth_k)}`.trim()}</div>
+          {hs && <div className="meta" style={{ marginTop: 6, fontWeight: 700, color: hs === 'worse' ? 'var(--text-negative)' : hs === 'better' ? 'var(--text-positive)' : undefined }}>{t(`scouting.hs_${hs}`)}</div>}
+        </div>
+      )}
+      <div className="card scout-facts">
+        <div className="scout-fact"><span className="muted">{t('scouting.current')}</span><Stars ca={cur} /></div>
+        <div className="scout-fact"><span className="muted">{t('scouting.potential')}</span><Stars ca={pot} /></div>
+        {!ours && <div className="scout-fact"><span className="muted">{t('scouting.value')}</span><b>{t('scouting.about', { fee: fmtMoney(seenValue(game, p)) })}</b></div>}
+        <div className="scout-fact"><span className="muted">{t('scouting.wage')}</span><b>{fmtWage(p.wage)}{t('common.perWeek')}</b></div>
+        <div className="meta muted" style={{ fontSize: '0.6875rem', marginTop: 4 }}>{t(rec ? 'scouting.starsNote' : 'scouting.starsFile')}</div>
+      </div>
+      {!ours && <div style={{ margin: '0 0 0' }}><ScoutReportCard game={game} p={p} onMsg={setMsg} /></div>}
+      {msg && <div className="meta" style={{ margin: '6px 14px', color: 'var(--gold)', fontWeight: 700 }}>{msg}</div>}
+      <div className="btn-row" style={{ margin: '12px 14px 4px' }}>
+        {!ours && (
+          <button className={`btn ${listed ? '' : 'ghost'}`} onClick={() => toggleShortlist(p.id)}>
+            {t(listed ? 'scouting.unlist' : 'scouting.shortlist')}
+          </button>
+        )}
+        {!ours && <button className="btn gold" onClick={() => toPlayer(true)}>{t('scouting.makeOffer')}</button>}
+      </div>
+      <div className="btn-row" style={{ margin: '4px 14px 4px' }}>
+        <button className="btn ghost" onClick={onClose}>{t('scouting.close')}</button>
+        <button className="btn ghost" onClick={() => toPlayer(false)}>{t('scouting.toPlayer')}</button>
+      </div>
+    </Veil>
   )
 }
 
@@ -258,17 +258,17 @@ function ScoutCommission() {
             {/* THE BRIEF ON ONE ROW, THE THREE TRIPS ON THE NEXT (owner, 1.5.8:
                 "all three buttons should be below on the same line"). Each
                 trip takes a third of the row, so they compare at a glance. */}
-            <select className="inline-input" style={{ margin: '0 0 8px', width: '100%' }} value={pos}
+            <select className="inline-input" style={{ margin: '0 0 8px', width: '100%' }} value={pos} aria-label={t('transfers.filterPosition')}
               onChange={e => setPos(e.target.value as Pos | 'any')}>
               <option value="any">{t('transfers.anyPosition')}</option>
               {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
             </select>
             <div style={{ display: 'flex', gap: 8 }}>
               {([3, 6, 9] as SearchMonths[]).map(m => (
-                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 12, lineHeight: 1.25 }}
+                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: '0.75rem', lineHeight: 1.25 }}
                   onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
                   {t('transfers.months', { n: m })}<br />
-                  <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
+                  <span style={{ fontSize: '0.6875rem', fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
                 </button>
               ))}
             </div>
@@ -299,11 +299,11 @@ function ScoutReports() {
       <div className="card" style={{ padding: '2px 10px' }}>
         {reports.map((n, i) => (
           <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}
-            onClick={() => setOpenId(openId === n.id ? null : n.id)}>
-            <div className="meta" style={{ fontSize: 11 }}>{weekDate(n.season, n.week)}</div>
-            <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{newsSubject(n)}</div>
+            {...rowNav(() => setOpenId(openId === n.id ? null : n.id))} aria-expanded={openId === n.id}>
+            <div className="meta" style={{ fontSize: '0.6875rem' }}>{weekDate(n.season, n.week)}</div>
+            <div style={{ fontWeight: 700, fontSize: '0.8125rem', lineHeight: 1.3 }}>{newsSubject(n)}</div>
             {openId === n.id && (
-              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 12, marginTop: 3 }}>{plainNews(newsBody(n))}</div>
+              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: '0.75rem', marginTop: 3 }}>{plainNews(newsBody(n))}</div>
             )}
           </div>
         ))}

@@ -5,9 +5,8 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const PORT = process.env.PORT ?? '5341'
 const OUT = process.env.OUT ?? null
-const server = await startPreview(PORT, 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 let fails = 0
 const ok = (c, m) => { console.log(`${c ? 'ok  ' : 'FAIL'}  ${m}`); if (!c) fails++ }
@@ -16,7 +15,7 @@ const open = async (w, h) => {
   const p = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true })
   p.setDefaultTimeout(9000)
   await p.addInitScript(() => { localStorage.setItem('rm-night', '1'); localStorage.setItem('rm-lang', 'en') })
-  await p.goto(`http://localhost:${PORT}/`)
+  await p.goto(`${server.origin}/`)
   await p.waitForSelector('text=RUGBY', { timeout: 20000 })
   await p.evaluate(() => window.rugbyStore.getState().start('leicester', 'Tidy Probe'))
   await p.waitForTimeout(700)

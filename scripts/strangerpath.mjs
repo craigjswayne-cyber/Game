@@ -29,17 +29,16 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, failures } from './lib/probe.mjs'
 
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 // A stranger has patience, but not infinite patience. If the walk from the title
 // screen to a live match takes more than this many taps, something in the middle
 // is asking too much of somebody who has not read anything.
 const TAP_BUDGET = 30
 
-const server = await startPreview(4256, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /**
@@ -62,7 +61,7 @@ const freshPhone = async () => {
   const ctx = await browser.newContext({ viewport: { width: 412, height: 740 } })
   await ctx.addInitScript(() => localStorage.setItem('rm-night', '1'))
   page = await ctx.newPage()
-  await page.goto('http://localhost:4256/')
+  await page.goto(`${server.origin}/`)
   await page.waitForTimeout(1200)
 }
 
@@ -302,5 +301,5 @@ try {
   server.stop()
 }
 
-say(fails ? `\n${fails} FAILURES` : '\nSTRANGER PATH PASSED: the first ten minutes explain themselves')
-done(fails)
+say(failures() ? `\n${failures()} FAILURES` : '\nSTRANGER PATH PASSED: the first ten minutes explain themselves')
+done(failures())

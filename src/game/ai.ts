@@ -1,51 +1,33 @@
-import type { Club, GameState, NewsItem, PendingDeal, Player, TransferOffer } from './model'
-import { MARQUEE_SLOTS } from './cap'
+import type { GameState, NewsItem, Player, TransferOffer } from './model'
+import { MARQUEE_SLOTS, capBill, capWage } from './cap'
 import { t, tIn, type Vars } from './i18n'
-import { clubIntent } from './living'
 import { userCap, userWageBudget } from './grants'
-import { offerSigning } from './records'
-import { transferReaction } from './terraces'
-import {absWeek, SEASON_WEEKS, addGrudge, fmtMoney, fmtWage, isMyClub } from './model'
+import {absWeek, pledgeDue, addGrudge, fmtMoney, fmtWage, isMyClub } from './model'
 import { aiPayRate, aiWageRooms } from './aiecon'
-import { ensureCaptains } from './analysis'
 import { rivalsOf } from './rivalries'
 import { interestPremium, transferInterest } from './interest'
-import { playerValue, playerWage } from './attributes'
+import { playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { book } from './books'
-import { identitySigning } from './identity'
-import { rememberDeparture } from './memory'
 import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
 import { chooseBetween, liveRivalBid, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
 import { noteBlocked } from './arcbook'
 import { requestLocked } from './handshake'
-import { bidRefused, flattered, saleFelt } from './fallout'
+import { bidRefused, flattered } from './fallout'
 import { isDeadlineWeek, nextOpening, nextWeek, openDate, windowOpen } from './window'
+
+import { FREE_RESALE, INK_WEEKS, SQUAD_LIMIT, askingPrice, embargoed, freeDeal, pendingDeal, promisedElsewhere, squadFull } from './transferRules'
+
+import { executeTransfer, realMoney } from './transfer'
+import { aiShoppingTarget } from './aishop'
+
+export { capWage, capBill } from './cap'
+export { executeTransfer } from './transfer'
+export { embargoed, pendingDeal, askingPrice, INK_WEEKS, SQUAD_LIMIT, squadFull, seniorsOf } from './transferRules'
 
 // ------------------------------------------------------------------
 // Transfer market
 // ------------------------------------------------------------------
-
-/** Past any legitimate figure in the sport, and far short of losing precision. */
-const MONEY_CEILING = 1_000_000_000_000
-
-/**
- * Is this a figure the club can actually act on?
- *
- * Every guard in this file is a comparison, and every comparison with NaN is
- * false. A wage of NaN therefore walked straight through "exceeds your transfer
- * budget", "would break your wage budget" AND "below his demands", executed the
- * transfer, and left both the club balance and the player's wage as NaN for the
- * rest of the save - a save that can never recover, because NaN spreads through
- * every sum it touches. It also filed a signing story reading "£NaN/week".
- *
- * Found by scripts/marketfuzz.ts. The lesson is not "write the comparisons the
- * other way round" - there are a dozen of them and one will always get missed.
- * It is to refuse the figure at the door.
- */
-function realMoney(...vals: number[]): boolean {
-  return vals.every(v => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= MONEY_CEILING)
-}
 
 /** The refusal a nonsense figure gets, in words a player can read. */
 const notAFigure = () => ({ ok: false as const, msg: t('reply.notAFigure') })
@@ -80,12 +62,6 @@ export function capBreak(state: GameState, clubId: string, wage: number, replaci
   return t(k, { over: fmtMoney(after - cap), cap: fmtMoney(cap) })
 }
 
-/** Is the club barred from signing anybody for a cap breach? */
-export function embargoed(state: GameState, clubId: string): boolean {
-  const until = state.clubs[clubId]?.capEmbargoUntil
-  return typeof until === 'number' && state.season <= until
-}
-
 /**
  * THE TRANSFER WINDOW, ONE RULE FOR EVERYBODY (1.8.1).
  *
@@ -103,17 +79,6 @@ export function windowShut(state: GameState): string {
   return t(nextOpening(state.week) === 'january' ? 'reply.windowShut' : 'reply.windowShutSummer', openDate(state))
 }
 
-/** The deal agreed for this man while the window was shut, if there is one. */
-export function pendingDeal(state: GameState, playerId: number): PendingDeal | undefined {
-  return (state.pendingDeals ?? []).find(d => d.playerId === playerId)
-}
-
-/** Spoken for: a pre-contract elsewhere, or a deal agreed and waiting on the
- *  window. AI clubs leave such a man alone. */
-export function promisedElsewhere(state: GameState, playerId: number): boolean {
-  return (state.preContracts ?? []).some(pc => pc.playerId === playerId) || !!pendingDeal(state, playerId)
-}
-
 /** What an AI club bids for one of the user's men. A listed man or one who
  *  has asked to leave comes in near value; anybody else at a premium, drawn,
  *  less the same graded slice for a low mood that askingPrice takes
@@ -122,61 +87,6 @@ export function promisedElsewhere(state: GameState, playerId: number): boolean {
 export function aiBidFee(p: Player, rng: () => number, deadline: boolean): number {
   const f = p.transferListed ? 0.95 : (p.wantsOut ?? 0) > 0 ? 1.05 : (1.2 + rng() * 0.4) * unsettledFee(p)
   return Math.round((p.value * f * (deadline ? 1.15 : 1)) / 10_000) * 10_000
-}
-
-/**
- * THE FREE-AGENT FLIP (1.8.5 career QA). The ink gate (INK_WEEKS) stopped a
- * man signed for nothing being sold on at once, but not at all: sign every
- * free agent worth a fee, list each once the ink is dry, and the bids came
- * in at his value. Measured on a manager who did only that (Leicester, eight
- * to twelve seasons, two worlds): 18 to 37 million a season clear in 1.8.4
- * and in this release alike, against about half a million for the same club
- * left alone. The AI clubs taking the 85-rated stars from the pool changed
- * nothing: the manager has first pick of the pool every week.
- *
- * A market that let a man sit in the pool for nothing does not pay his full
- * value to have him back while he is still on the deal he signed for
- * nothing: until that deal's term is out (freeUntil, fixed when he signs, so
- * an early renewal does not wash it) bids for him come in at FREE_RESALE of
- * the usual fee. Measured at a half, a flipper still cleared 17-24 million a
- * season, because he simply sold more men; asking the bidders to carry his
- * wage (the free-agent test) took nothing off at all. At a quarter the same
- * manager clears 0 to 17 million a season over four runs (selling at once,
- * or holding each man to the end of his free deal; one was sacked inside a
- * season and cleared nothing). What is left is mostly the holding: after the
- * term he is an ordinary player again, two seasons of wages and a squad
- * place later, and sells at his value.
- */
-export const FREE_RESALE = 0.25
-export function freeDeal(state: GameState, p: Player): boolean {
-  return p.freeUntil != null && state.season < p.freeUntil
-}
-
-/** Asking price for a player from his current club's perspective. */
-export function askingPrice(state: GameState, p: Player): number {
-  const club = p.clubId ? state.clubs[p.clubId] : null
-  if (!club) return 0
-  let f = 1.15
-  if (p.transferListed) f = 0.8
-  // ranked against the SENIOR squad: the key-man test asks whether he is one of
-  // the eight a club builds its side on, and a scholar is never that man
-  const squadCa = club.players.map(id => state.players[id]).filter(q => q && !q.acad)
-    .map(q => q.ca).sort((a, b) => b - a)
-  const isKey = p.ca >= (squadCa[7] ?? 70) // top-8 player at the club
-  if (isKey && !p.transferListed) f = 1.7
-  // SURPLUS IS PRICED AS SURPLUS (1.8.14). A club's 28th man cost 1.15 times his
-  // value, the same as a regular starter, so a mid-table club with £2-3M found
-  // about one man a window it could afford who would walk into its side, and a
-  // "moneyball" approach had nothing to buy. Outside his club's best 23 he is
-  // offered at 0.8 of his value, and outside its best 30 at 0.65 - the men a
-  // big squad carries and would rather have off the wage bill.
-  else if (!p.transferListed && p.ca < (squadCa[29] ?? -1)) f = 0.65
-  else if (!p.transferListed && p.ca < (squadCa[22] ?? -1)) f = 0.8
-  // an unsettled man is cheaper (recruit.ts unsettledFee): up to 15% off for
-  // one who has asked to leave or whose mood has gone, graded rather than the
-  // old single step at morale 3.5
-  f *= unsettledFee(p)
-  return Math.round((p.value * f) / 10_000) * 10_000
 }
 
 /**
@@ -199,7 +109,7 @@ export function askingPrice(state: GameState, p: Player): number {
  * a solvent club - still gets you nothing off, which is what keeps the market and
  * the salary cap where they were calibrated.
  */
-export interface Willingness {
+interface Willingness {
   /** fraction off the asking price the club would accept, 0 to MAX_HAGGLE */
   discount: number
   /** fraction ON TOP of the asking price before they will even nod (owner,
@@ -221,9 +131,6 @@ export interface Willingness {
  *  take a third off is a club giving players away, and the squad you could
  *  assemble on those terms is not the squad the cap was balanced against. */
 export const MAX_HAGGLE = 0.3
-
-/** no AI club bids for a man the manager signed fewer weeks ago than this */
-export const INK_WEEKS = 22
 
 export function sellerWillingness(state: GameState, p: Player): Willingness {
   const club = p.clubId ? state.clubs[p.clubId] : null
@@ -288,156 +195,6 @@ export function floorPrice(state: GameState, p: Player): number {
   // still rounded to a clean figure, because a counter of £1,847,300 reads like
   // a spreadsheet rather than a negotiation
   return Math.round((ask * (1 + premium - discount)) / 50_000) * 50_000
-}
-
-export function executeTransfer(state: GameState, p: Player, toClubId: string, fee: number) {
-  // the last line of defence: this is what actually moves the money, and it is
-  // reached from the AI paths too, so it refuses a nonsense fee outright rather
-  // than trusting every caller to have checked
-  if (!realMoney(fee)) return
-  const from = p.clubId ? state.clubs[p.clubId] : null
-  const to = state.clubs[toClubId]
-  // TRANSFER-01 (1.6.5): a destination that does not exist, or is the seller,
-  // used to be discovered at `to.players.push` - after the seller had lost the
-  // player and banked the fee. Refuse before anything moves.
-  if (!to || to === from) return
-  if (from) rememberDeparture(state, p, 'sold', from.id, to.id, fee) // memory.ts: only ever the user's club
-  p.reqLock = undefined // a request over a broken handshake leaves with him (handshake.ts)
-  // read before the move clears it: the terraces judge a departure partly on
-  // whether the club had said out loud that he was for sale (terraces.ts)
-  const wasListed = !!p.transferListed
-  // losing a star you didn't want to sell leaves a mark on the fixture list
-  if (from && p.ca >= 80 && !p.transferListed && fee > 0) {
-    addGrudge(state, from.id, toClubId, 'news.grudgeTookHim', { player: p.name })
-  }
-  // a man out on loan comes home before he is sold: the flag used to travel
-  // with him to the buyer until the rollover (1.6.3, scripts/qa/p3_loans.ts)
-  if (p.onLoan) { p.onLoan = false; p.loanClub = undefined; p.loanSince = undefined }
-  // the dressing room's reaction, read while he is still one of them (fallout.ts)
-  if (from) saleFelt(state, from, p)
-  if (from) {
-    from.players = from.players.filter(id => id !== p.id)
-    if (from.marquee) from.marquee = from.marquee.filter(id => id !== p.id)
-    from.balance += fee
-    // the manager's balance sheet carries the fee as a line (books.ts)
-    if (from.id === state.userClubId) book(state, 'sales', fee)
-    from.budget += Math.round(fee * 0.7)
-    from.tactic.lineup = from.tactic.lineup.map(id => (id === p.id ? null : id))
-    // the armband doesn't travel: reappoint leaders if he wore it
-    if (from.captain === p.id) from.captain = null
-    if (from.vice === p.id) from.vice = null
-  }
-  // a mid-window move voids any pre-contract: the new employer takes over
-  const pc = (state.preContracts ?? []).find(x => x.playerId === p.id)
-  if (pc) {
-    state.preContracts = state.preContracts!.filter(x => x.playerId !== p.id)
-    if (pc.toClubId === state.userClubId) {
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-        subject: `Pre-contract void: ${p.name}`,
-        body: `${p.name} has been sold before his deal expired, and the move voids the pre-contract he signed with you. Your summer signing is off - the lawyers say there is nothing to be done.`,
-        k: 'news.preVoid', v: { player: p.name },
-        playerId: p.id,
-      })
-    }
-  }
-  // a medical joker who moves on is not covering anybody any more (joker.ts)
-  p.joker = undefined
-  to.players.push(p.id)
-  to.balance -= fee
-  if (to.id === state.userClubId) book(state, 'buys', -fee)
-  to.budget = Math.max(0, to.budget - fee)
-  p.clubId = toClubId
-  p.morale = clamp(p.morale + 1, 1, 10)
-  p.transferListed = false
-  p.freeUntil = undefined
-  p.debutPending = 'signing'
-  // the arrival is stamped: the buy-back gate in agreeFee reads it, and the
-  // game-time ledger's availability counter starts fresh at the new club
-  p.joinedAt = absWeek(state.season, state.week)
-  p.avail = 0
-  if (toClubId === state.userClubId) {
-    state.mgr.signings += 1
-    state.mgr.spent += fee
-    // and the biggest cheque of the era goes in the book (records.ts)
-    offerSigning(state, p.id, fee)
-    p.sc = 100
-    identitySigning(state, p, fee) // an academy club's crowd has a view on a big fee (identity.ts)
-  }
-  // an AI buyer offers what it can pay (aiecon.ts aiPayRate), and a man
-  // stepping down to a club that cannot match his wage takes the cut to play
-  p.wage = isMyClub(state, toClubId)
-    ? Math.max(p.wage, playerWage(p.ca, p.age))
-    : Math.round(Math.max(p.wage, playerWage(p.ca, p.age)) * aiPayRate(state, to) / 50) * 50
-  p.contractEnds = state.season + 2 + (p.age < 30 ? 1 : 0)
-  // a free agent has no selling club, and 'free agency' is a phrase, not a
-  // name: it cannot ride in through {from} or it reaches a French screen in
-  // English. The clubless case gets its own sentence instead.
-  const k = from ? 'news.transferDone' : 'news.transferDoneFree'
-  const v: Record<string, string | number> = {
-    player: p.name, to: to.name,
-    fee: fmtMoney(fee), age: p.age, wage: fmtMoney(p.wage), until: 2026 + p.contractEnds,
-  }
-  if (from) v.from = from.name
-  // SIGNINGS AROUND THE LEAGUE ARE RUCK'S (owner, 1.8.7): a move between two
-  // other clubs, or another club signing a free agent, carries the byline. A
-  // move the manager's club is party to keeps the neutral voice.
-  const theirs = !isMyClub(state, to.id) && !isMyClub(state, from?.id)
-  state.news.push({
-    id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-    subject: `${p.name} joins ${to.name}`,
-    body: tIn('en', k, v),
-    k, v,
-    playerId: p.id,
-    ...(theirs ? { src: 'ruck' as const } : {}),
-  })
-  ensureCaptains(state) // reappoint leaders wherever the move vacated an armband
-  // THE TERRACES GET A SAY (terraces.ts). A transfer is the loudest thing a
-  // club does between matches and the support had no voice in it at all:
-  // selling a man they loved cost nothing, signing one bought nothing, and
-  // the dressing room did not so much as look up. All three now move.
-  transferReaction(state, p, from?.id ?? null, toClubId, fee, wasListed)
-}
-
-/**
- * What this AI club would buy this week if the market let it: its thinnest
- * position, and the best man there its stance and money allow. A PURE LENS on
- * the choosing half of aiTransfers, which draws the rng around it (whether the
- * club shops at all, and whether the deal goes through) and calls this for the
- * rest. Pulled out (1.8.2) so the scouting report can say "they are genuinely
- * keen" and mean exactly the club that would do it: real interest is real
- * because it is the same call. Returns null when the club is not shopping.
- */
-export function aiShoppingTarget(state: GameState, buyer: Club): { intent: ReturnType<typeof clubIntent>; need: string; target: Player | undefined } | null {
-  // find thinnest position by count of quality bodies
-  const byPos: Record<string, number> = {}
-  for (const id of buyer.players) {
-    const p = state.players[id]
-    if (p && p.ca >= 68) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
-  }
-  const NEED_MIN: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 3, N8: 2, SH: 2, FH: 2, CE: 3, WG: 3, FB: 2 }
-  const need = Object.entries(NEED_MIN).find(([pos, min]) => (byPos[pos] ?? 0) < min)?.[0]
-  if (!need) return null
-  // WHAT THIS CLUB IS ACTUALLY TRYING TO DO (living.ts). Without it a hundred
-  // clubs behave like one club with a hundred names: thinnest position, best
-  // body available, every time. A rebuilding side will not buy a thirty-year-
-  // old and a side going for it will not settle for a squad man.
-  const intent = clubIntent(state, buyer)
-  if (intent === 'breakup') return null // they are selling, not shopping
-  const targets = Object.values(state.players).filter(p =>
-    p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
-    p.pos === need && p.ca >= (intent === 'allin' ? 76 : 70) && !p.onLoan && !p.loanFrom &&
-    // (1.8.14) nobody pays a fee for a man whose deal runs out this season and
-    // who has already agreed to join somebody else - once surplus was priced
-    // as surplus, AI clubs began buying exactly those men and voiding the
-    // manager's pre-contracts in the last week of the season
-    !promisedElsewhere(state, p.id) &&
-    (intent === 'rebuild' ? p.age <= 25 : true) &&
-    (state.clubs[p.clubId]?.rep ?? 99) <= buyer.rep + 6 &&
-    askingPrice(state, p) <= buyer.budget)
-    // a rebuilding club buys for the future, everybody else buys the best now
-    .sort((a, b) => intent === 'rebuild' ? (b.pa - a.pa) || (b.ca - a.ca) : b.ca - a.ca)
-  return { intent, need, target: targets[0] }
 }
 
 /** Weekly AI transfer activity + bids for user players. */
@@ -834,7 +591,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (promiseMinutes) {
     ;(state.pledges ??= []).push({
       playerId: p.id, kind: 'plans', week: state.week, season: state.season,
-      due: Math.min(state.week + 6, 44), baseApps: p.stats.apps,
+      due: pledgeDue(state.week, 6), baseApps: p.stats.apps,
     })
   }
   return { ok: true, msg: t('reply.signsFor', { name: p.name, club: user.name, fee: fmtMoney(fee), wage: fmtWage(wage), bonus: signOn > 0 ? t('reply.signsBonus', { bonus: fmtMoney(signOn) }) : '', promise: promiseMinutes ? t('reply.signsPromise') : '' }) }
@@ -1014,53 +771,6 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
 // the same conversation, and the uncapped one made squad-wide praise a free
 // morale faucet. Retired v1.1.4 - the office (chats.ts: two a week,
 // deterministic, real costs) is the one way to talk to a player.
-
-/** The registration limit every AI club is held to at the rollover (46
- *  seniors, rollover.ts) applied to the user's signings as well (1.6.3): the
- *  user could sign free agents to 73 while the world was culled at 46. */
-export const SQUAD_LIMIT = 46
-export function squadFull(state: GameState, club: { players: number[] }): boolean {
-  return seniorsOf(state, club) >= SQUAD_LIMIT
-}
-
-/** The men who count against the 46. A hand-demoted senior is one of them: the
- *  demotion moves him to the academy LIST, the same way it leaves him on the
- *  cap bill, or the button is a way round the limit. */
-export function seniorsOf(state: GameState, club: { players: number[] }): number {
-  return club.players.reduce((n, id) => {
-    const p = state.players[id]
-    return n + (p && (!p.acad || p.demoted) ? 1 : 0)
-  }, 0)
-}
-
-/** What one man costs against the cap, or 0 where he sits outside it. The
- *  single reading capBill sums and every "replacing" figure must match. */
-export function capWage(state: GameState, club: { marquee?: number[] }, p: Player | undefined): number {
-  if (!p) return 0
-  if ((club.marquee ?? []).slice(0, MARQUEE_SLOTS).includes(p.id)) return 0
-  // Academy men sit outside the senior cap, as they do in the real game: a
-  // club is not punished for developing its own. It also matters mechanically
-  // now the academy is 27 strong rather than four - counting them would have
-  // put every club in the world over the cap overnight.
-  // a hand-demoted senior still counts (v1.1.18): demotion moves a man to
-  // the academy LIST, not out of the wage bill - or the button is a cap dodge
-  if (p.acad && !p.demoted) return 0
-  // a medical joker's wage is outside the cap while he covers (joker.ts):
-  // the club still pays him, the cap just does not count him
-  if (p.joker != null) return 0
-  // A BORROWED MAN COUNTS AT WHAT THE CLUB PAYS HIM (1.8.1). The weekly
-  // ledger charges a loan-in at his share of the wage (season.ts), and the
-  // cap counted all of it, so the share the parent carried was on nobody's
-  // books but this club's. A man out on loan is still paid in full from here
-  // and still counts in full.
-  if (p.loanFrom) return Math.round(p.wage * (p.loanShare ?? 0.5))
-  return p.wage
-}
-
-/** The wage bill that counts against the cap - marquee men sit outside it. */
-export function capBill(state: GameState, club: { players: number[]; marquee?: number[] }): number {
-  return club.players.reduce((s, id) => s + capWage(state, club, state.players[id]), 0)
-}
 
 /** Agree a pre-contract with an out-of-contract player at another club:
  *  no fee, he arrives on a free when the season ends. Binding once signed. */

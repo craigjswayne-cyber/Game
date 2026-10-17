@@ -24,7 +24,7 @@
 //   than merely spared.
 
 import type { Club, GameState, Player } from './model'
-import {absWeek, SEASON_WEEKS } from './model'
+import {absWeek } from './model'
 import { clamp } from './rng'
 import { tIn } from './i18n'
 import { REQUEST_ANSWER_WEEKS } from './chats'
@@ -32,7 +32,7 @@ import { requestLocked } from './handshake'
 
 export type SquadStatus = 'key' | 'rotation' | 'squad' | 'prospect' | 'fringe'
 
-export interface StatusDef {
+interface StatusDef {
   id: SquadStatus
   name: string
   /** what he was told, in words */
@@ -93,7 +93,7 @@ export function clubMatchesPlayed(state: GameState, clubId: string): number {
   return n
 }
 
-export interface LedgerRow {
+interface LedgerRow {
   p: Player
   status: SquadStatus
   /** appearances he was entitled to expect by now */

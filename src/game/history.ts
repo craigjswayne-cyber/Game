@@ -68,7 +68,7 @@ function closeTenure(state: GameState, cur: Tenure | null, exit: Tenure['exit'])
 
 /** How the old club will greet you, from how you left it. */
 export type Welcome = 'hero' | 'warm' | 'cool' | 'hostile' | 'jeer'
-export function welcomeOf(state: GameState, x: Tenure): Welcome {
+function welcomeOf(state: GameState, x: Tenure): Welcome {
   if ((state.legendOf ?? []).includes(x.clubId)) return 'hero'
   const m = x.w + x.d + x.l
   const good = x.cups > 0 || (m >= 20 && x.w / m >= 0.55)

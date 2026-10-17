@@ -26,8 +26,7 @@ import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
 import { startPreview, done } from './lib/preview.mjs'
 
-const PORT = 4281
-const server = await startPreview(PORT, 2500)
+const server = await startPreview(0, 2500)
 const SHOTS = 'shots/telemetry'
 mkdirSync(SHOTS, { recursive: true })
 
@@ -68,7 +67,7 @@ const clearInjury = async () => {
 }
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.click('text=English Premier Division')
@@ -122,7 +121,7 @@ try {
   // ---- TO THE MATCH
   for (let tap = 0; tap < 8; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn'); await page.waitForTimeout(450)
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(450)
   }
   await page.locator('text=Kick Off ▸').first().click()
   await page.locator('.talk-modal').waitFor({ timeout: 5000 }); await page.click('.talk-modal .speech-tile >> nth=0')

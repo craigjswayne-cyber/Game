@@ -24,14 +24,14 @@
 import type { GameState } from './model'
 import type { Vars } from './i18n'
 import { tIn } from './i18n'
-import { noteMemory } from './memory'
+import { noteMemory } from './memorylog'
 import { fileHeldNews } from './heldnews'
 
 /** A sentence kept as a key and its values, so it reads in any language. */
 export interface Line { k: string; v?: Vars }
 
 /** A season's defining moment, waiting for the year end to judge it. */
-export interface Moment extends Line { clubId: string; season: number; w: number }
+interface Moment extends Line { clubId: string; season: number; w: number }
 
 export interface Rivalry {
   a: string

@@ -17,7 +17,7 @@
  * is sea level, and the interesting cases are the two grounds on the highveld.
  */
 
-export type Climate = 'temperate' | 'mediterranean' | 'subtropical' | 'tropical'
+type Climate = 'temperate' | 'mediterranean' | 'subtropical' | 'tropical'
 
 export interface Venue {
   lat: number
@@ -27,7 +27,7 @@ export interface Venue {
 }
 
 /** City -> where it is. Keyed on the city string the club data already carries. */
-export const VENUES: Record<string, Venue> = {
+const VENUES: Record<string, Venue> = {
   // ---- United States (the MRC, 1.7.3)
   Bridgeview: { lat: 41.7, lon: -87.8, alt: 185 },
   Charlotte: { lat: 35.2, lon: -80.8, alt: 229 },
@@ -146,7 +146,7 @@ export const VENUES: Record<string, Venue> = {
  *  reads as "no travel at all" - the least honest possible answer for a ground
  *  nobody has placed. The country centroid is wrong by a few hundred kilometres
  *  and right by ten thousand, which is the scale that matters here. */
-export const COUNTRY_CENTRES: Record<string, Venue> = {
+const COUNTRY_CENTRES: Record<string, Venue> = {
   ENG: { lat: 52.5, lon: -1.5, alt: 60 },
   WAL: { lat: 52.1, lon: -3.6, alt: 100 },
   SCO: { lat: 56.5, lon: -4.2, alt: 100 },

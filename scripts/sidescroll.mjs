@@ -27,7 +27,7 @@ import { startPreview } from './lib/preview.mjs'
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview(4258, 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** Every scrollable table on the screen, and how far past the edge it runs. */
@@ -59,7 +59,7 @@ try {
     const p = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2 })
     p.setDefaultTimeout(9000)
     await p.addInitScript(l => { localStorage.setItem('rm-night', '1'); localStorage.setItem('rm-lang', l) }, lang)
-    await p.goto('http://localhost:4258/')
+    await p.goto(`${server.origin}/`)
     await p.waitForSelector('text=RUGBY', { timeout: 20000 })
     // Northampton: the longest club name in the game
     await p.evaluate(() => window.rugbyStore.getState().start('northampton', 'Side Scroll'))

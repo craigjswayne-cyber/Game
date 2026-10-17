@@ -12,6 +12,7 @@ import { t, localeTag, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { listSaves, type SaveMeta } from '../../game/save'
 import { SLOTS as SAVE_SLOTS, slotName } from './Saves'
+import { rowNav } from '../rowNav'
 
 // Guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
@@ -134,6 +135,11 @@ export default function NewGame() {
     // the ambition is stamped on the save the moment the career begins, and
     // never moves again: it is what this save is FOR
     if (g && ambitions.length) setAmbitions(g, ambitions)
+    // AND SAVED (1.9.1). start() has already asked for its first write, so
+    // the plan and the ambition reached the disk only because that write
+    // happened to wait a tick for the database. Marked here, they go in the
+    // next write whatever its timing.
+    if (g) void useStore.getState().persist()
   }
   const prev = () => {
     if (step === 0) { back(); return }
@@ -152,7 +158,7 @@ export default function NewGame() {
           The step number drops the step NAME with them: the lit crumb says it. */}
       <header className="masthead wizard-head">
         <div className="masthead-row">
-          <button className="back-btn" onClick={prev}>‹</button>
+          <button className="back-btn" onClick={prev} aria-label={t('common.backLabel')}><span aria-hidden="true">‹</span></button>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1>{t('wizard.title')}</h1>
             <div className="date">{t('wizard.step', { step: step + 1, total: 4 })}<span className="step-name"> · {t(STEPS[step])}</span></div>
@@ -184,7 +190,7 @@ export default function NewGame() {
             <div className="crumbs">
               {trail.map((c, i) => (
                 <span key={c.at} className={`crumb${i === trail.length - 1 ? ' on' : ' done'}`}
-                  onClick={() => setStep(c.at)}>
+                  {...rowNav(() => setStep(c.at))}>
                   {c.label}
                 </span>
               ))}
@@ -228,7 +234,7 @@ export default function NewGame() {
               {defs.map((d, i) => (
                 <button key={d.id} data-league={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}
                   onClick={() => { setLeagueIdx(i); setClubId(null); setStep(1) }}>
-                  <span style={{ fontSize: 16, color: 'var(--gold)' }}><Glyph name="trophy" /></span>
+                  <span style={{ fontSize: '1rem', color: 'var(--gold)' }}><Glyph name="trophy" /></span>
                   <span className="cname">{compLabel(d.name)}</span>
                   <span className="muted">{t('wizard.clubCount', { n: d.clubs.length })}</span>
                 </button>
@@ -251,8 +257,8 @@ export default function NewGame() {
                   <button key={ch.id} className="card challenge-card" style={{ margin: 0 }} onClick={() => pickChallenge(ch.id)}>
                     {chClub && <Crest club={chClub} size={28} mr={10} />}
                     <span style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
-                      <b style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--text-primary)' }}>{t(ch.title)}</b>
-                      <span className="meta" style={{ fontSize: 12, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{t(ch.desc)}</span>
+                      <b style={{ fontFamily: 'var(--serif)', fontSize: '0.875rem', color: 'var(--text-primary)' }}>{t(ch.title)}</b>
+                      <span className="meta" style={{ fontSize: '0.75rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{t(ch.desc)}</span>
                     </span>
                   </button>
                 )
@@ -315,7 +321,7 @@ export default function NewGame() {
             <div className="wizard-hint">{t('wizard.profileAt', { club: club.name })}</div>
             {challenge && (
               <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                <h3 style={{ fontSize: 16 }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
+                <h3 style={{ fontSize: '1rem' }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
                 <div className="meta">{t(challenge.desc)}</div>
               </div>
             )}
@@ -323,8 +329,8 @@ export default function NewGame() {
                 the tiles at the bottom of it sat below the fold on a phone */}
             <div className="wiz-split narrow-left">
             <div className="card">
-              <label className="fact-label">{t('wizard.yourName')}</label>
-              <input className="inline-input" placeholder={t('wizard.namePlaceholder')}
+              <label className="fact-label" htmlFor="mgr-name">{t('wizard.yourName')}</label>
+              <input id="mgr-name" className="inline-input" placeholder={t('wizard.namePlaceholder')}
                 value={name} onChange={e => setName(e.target.value)}
                 onFocus={e => {
                   // keep the field visible above the software keyboard
@@ -406,7 +412,7 @@ export default function NewGame() {
       <div className="action-bar wiz-bar">
         {needed && <div className="wiz-need">{needed}</div>}
         <button className="btn ghost" onClick={prev}>{step === 0 ? t('wizard.mainMenu') : t('wizard.back')}</button>
-        <button className="btn gold" style={{ flex: 1.6, fontSize: 16 }} disabled={!canNext} onClick={next}
+        <button className="btn gold" style={{ flex: 1.6, fontSize: '1rem' }} disabled={!canNext} onClick={next}
           title={needed ?? undefined}>
           {step === 3 ? t('wizard.startCareer') : t('wizard.confirm')}
         </button>

@@ -119,7 +119,7 @@ export function challengesFor(gender: Gender): Challenge[] {
   return CHALLENGES.filter(c => (c.gender ?? 'm') === gender)
 }
 
-export interface LeagueDef {
+interface LeagueDef {
   id: string
   name: string
   short: string
@@ -272,12 +272,14 @@ export function wizardAim(defs: LeagueDef[], clubId: string, seed: number): stri
       const club = {
         id: rc.id, rep: rc.rep, leagueId: def.id, capacity: rc.capacity, capacity0: rc.capacity,
         budget, balance: Math.round(budget * 0.6), players: rc.players.length ? [0] : [],
-      } as unknown as Club
+      } as Club
       club.facilities = initFacilities(club, seed)
       clubs[rc.id] = club
     }
   }
   const def = defs.find(d => d.clubs.some(c => c.id === clubId))
+  // a sketch of a world, holding only what demandedFinish reads: not a GameState
+  // by type, and never saved or simulated
   const state = { seed, season: 0, week: 1, userClubId: clubId, clubs, history: [], comps: {}, mgr: { trophies: [], finishes: [] } } as unknown as GameState
   return demandedFinish(state, clubId, def?.clubs.length ?? 14).text
 }
@@ -990,8 +992,6 @@ function squadAssessment(state: GameState): NewsItem {
   const avgAge = senior ? squad.reduce((s, p) => s + p.age, 0) / senior : 0
   const avgCa = senior ? squad.reduce((s, p) => s + p.ca, 0) / senior : 0
   const best = [...squad].sort((a, b) => b.ca - a.ca).slice(0, 3)
-  const under23 = squad.filter(p => p.age <= 22).length
-  const over32 = squad.filter(p => p.age >= 32).length
   // the thin shirts: any position with fewer than two men who can play it
   const FORWARDS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
   const BACKS: Pos[] = ['SH', 'FH', 'CE', 'WG', 'FB']

@@ -18,12 +18,7 @@ import { LEAGUE_DEFS } from '../src/game/newgame'
 import { W } from '../src/game/gender'
 import { mulberry32 } from '../src/game/rng'
 import { BASE_YEAR } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 // ---- 1. the cycle -------------------------------------------------------
 console.log('--- 1. every fourth year, two off a World Championship')
@@ -184,6 +179,6 @@ n.week = TOUR_WEEKS[0]
 ok(!assistantNatFixture(n), 'a manager who did not take the tour keeps his own country')
 
 console.log('')
-if (fails === 0) console.log('TOUR PROBE PASSED: both games tour, ten matches each, three Tests, and the country left in other hands')
-else console.log(`TOUR PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('TOUR PROBE PASSED: both games tour, ten matches each, three Tests, and the country left in other hands')
+else console.log(`TOUR PROBE FAILED (${failures()})`)
+process.exit(failures())

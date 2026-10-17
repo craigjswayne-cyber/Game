@@ -32,13 +32,12 @@
 // Run: node scripts/dramaprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
 import { writeSync, readFileSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview(4257, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
@@ -61,7 +60,7 @@ await page.addInitScript(() => {
 })
 
 try {
-  await page.goto('http://localhost:4257/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -79,7 +78,7 @@ try {
 
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
@@ -252,7 +251,7 @@ try {
   // be slow, and this line failed for no reason except that it had memorised
   // the old one. A rout gets no tension stretch, so the tick a rout runs at IS
   // the base; the 15% is measurement slack, not a tolerance on the pacing.
-  const slowMs = Number(readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
+  const slowMs = Number(readFileSync('src/ui/screens/matchday/Live.tsx', 'utf8')
     .match(/matchday\.spdSlow['"],\s*ms:\s*(\d+)/)?.[1] ?? 0)
   ok(slowMs > 0, `MatchDay still names the Slow tick (${slowMs}ms)`)
   ok(rout.per < slowMs * 1.15, `and the rout keeps the speed the manager chose (${rout.per?.toFixed(0)}ms, Slow is ${slowMs})`)
@@ -277,5 +276,4 @@ try {
   server.stop()
 }
 
-say(fails ? `\nDRAMA PROBE FAILED (${fails})` : '\nDRAMA PROBE PASSED: the pitch reads the match, and the clock knows when to slow down')
-done(fails)
+done('DRAMA PROBE', 'the pitch reads the match, and the clock knows when to slow down', { exit: true })

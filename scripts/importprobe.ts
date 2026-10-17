@@ -21,12 +21,7 @@ import { migrate, safeColours } from '../src/game/save'
 import { recover, RECOVER_MAX } from '../src/game/pressmigrate'
 import type { GameState } from '../src/game/model'
 import { chunkEnd } from '../src/game/nativeshare'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const fresh = () => newGame('leicester', 'Import Probe', 4242)
 const roundTrip = (g: GameState) => JSON.parse(JSON.stringify(g)) as GameState
@@ -95,5 +90,5 @@ console.log('\nan exported save crosses the native bridge whole')
   ok(pieces.join('') === text, 'and the pieces put back together are the save, byte for byte')
 }
 
-console.log(fails ? `\n${fails} FAILED` : '\nIMPORT PROBE PASSED: a stranger\'s save can neither hang the game nor make it call out')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILED` : '\nIMPORT PROBE PASSED: a stranger\'s save can neither hang the game nor make it call out')
+process.exit(failures() ? 1 : 0)

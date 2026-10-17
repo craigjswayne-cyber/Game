@@ -96,7 +96,7 @@ export function devNewsWeek(state: GameState) {
 }
 
 /** The development staff's inbox items (this file and rollover's review). */
-export const DEV_NEWS_KEYS = new Set(['news.intakePicks', 'news.devReview', 'news.devBreakthrough', 'news.devStalled', 'news.devStalledMins'])
+const DEV_NEWS_KEYS = new Set(['news.intakePicks', 'news.devReview', 'news.devBreakthrough', 'news.devStalled', 'news.devStalledMins'])
 
 /**
  * Over the inbox's ceiling, the development notes the manager has already

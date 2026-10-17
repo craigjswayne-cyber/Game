@@ -20,8 +20,7 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 
-const PORT = 4188
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -59,7 +58,7 @@ const openHub = async (item) => {
 }
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 
   // ---- a career, because Back on the title screen is a different question ----
@@ -201,7 +200,7 @@ try {
   // longer than this probe has existed
   for (let tap = 0; tap < 12; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn').catch(() => {})
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(500)
   }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })

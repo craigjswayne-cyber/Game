@@ -57,23 +57,23 @@ import { archetypeOf, type Archetype } from './oppcoach'
 import { clamp } from './rng'
 
 /** ticks in a match (matchEngine plays twenty of four minutes) */
-export const MATCH_TICKS = 20
+const MATCH_TICKS = 20
 /** what is left of the tape on a strike after each further match */
-export const TAPE_FADE = 0.8
+const TAPE_FADE = 0.8
 /** how predictable the tape (the sum of its squared shares) can be before
  *  anybody sets up for it: three strikes in equal parts read as nothing */
-export const ADAPT_FROM = 0.35
+const ADAPT_FROM = 0.35
 /** and the predictability past that at which a coach is fully set */
-export const ADAPT_SPAN = 0.4
+const ADAPT_SPAN = 0.4
 /** the share of the tape at which a call is planned for in full; below it,
  *  in proportion */
 export const ADAPT_COVER = 0.4
 /** what is left of the wear on a call after each match (a half-life of six) */
-export const WEAR_FADE = Math.pow(0.5, 1 / 6)
+const WEAR_FADE = Math.pow(0.5, 1 / 6)
 /** the furthest a defence moves: the matchup pulled 55% of the way to the worst */
 export const ADAPT_MAX = 0.55
 /** first-phase possessions of tape before a coach trusts what he has */
-export const TAPE_FULL = 12
+const TAPE_FULL = 12
 /** how far each kind of coach sets his defence for what he has seen */
 export const SHARP: Record<Archetype, number> = { stubborn: 0.25, analyst: 1, reactive: 0.65 }
 

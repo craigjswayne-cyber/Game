@@ -25,9 +25,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { answerPress, OFFICE_OUTLET } from '../src/game/media'
 import { FIT, fitFor, talkbackWeek } from '../src/game/talkback'
 import type { GameState, Personality, Player, PressItem } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const PERS: Personality[] = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader']
 const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x))
@@ -253,7 +251,9 @@ console.log('--- 7. the scale')
   // attributes run 1-20; a comparison against 21 or more can never be true,
   // which is how a leadership check sat dead in chats.ts and talkback.ts
   const bad: string[] = []
-  for (const f of readdirSync('src/game')) {
+  // recursive since season.ts and matchEngine.ts were split into src/game/season/
+  // and src/game/match/
+  for (const f of readdirSync('src/game', { recursive: true }).map(String).sort()) {
     if (!f.endsWith('.ts')) continue
     const src = readFileSync(`src/game/${f}`, 'utf8')
     for (const m of src.matchAll(/\.a\.(tac|str|scr|lin|ruc|han|pas|kic|goa|pac|sta|agi|vis|dec|pos|agg|lea|wor)\s*(>=|>|<=|<)\s*(\d+)/g)) {
@@ -276,5 +276,4 @@ console.log('--- 8. its own dice')
   ok(!/Math\.random|weekRng|\brng\s*:\s*Rng/.test(src), 'talk-back never touches Math.random or the week\'s shared stream')
 }
 
-console.log(fails ? `\nTALK PROBE FAILED (${fails})` : '\nTALK PROBE PASSED: who he is decides how it lands, the room hears it, and every word is in six languages')
-process.exit(fails ? 1 : 0)
+done('TALK PROBE', 'who he is decides how it lands, the room hears it, and every word is in six languages', { exit: true })

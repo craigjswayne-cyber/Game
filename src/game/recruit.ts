@@ -33,31 +33,37 @@ import type { Attrs, GameState, Personality, Player, Pos } from './model'
 import { ATTR_KEYS, absWeek } from './model'
 import { attrWeight } from './attributes'
 import { isForward } from './bench'
-import { aiShoppingTarget, askingPrice, embargoed } from './ai'
+import { aiShoppingTarget } from './aishop'
+import { askingPrice, embargoed } from './transferRules'
 import { recall } from './memory'
 import { attrRange, fuzzedCa, knowledge, margin, paRange, persKnown, reportStage, type ReportStage } from './scout'
-import { clamp, hashString, mulberry32 } from './rng'
+import { clamp, hashString, mulberry32, cmpStr } from './rng'
 import { atkName, defName, stylesOf, type AtkStyle, type DefStyle } from './styles'
+import { unsettledLevel, unsettledRead, type Unsettled } from './unsettled'
+
+// "An unsettled man is cheaper" lives in unsettled.ts (a leaf) so askingPrice
+// can read it without a cycle; re-exported here for every existing import.
+export { unsettledLevel, unsettledFee, unsettledTerms } from './unsettled'
 
 type Key = keyof Attrs
 export type Confidence = 'high' | 'medium' | 'low'
 export type Fit = 'excellent' | 'good' | 'doubtful'
-export type AgentTone = 'warm' | 'neutral' | 'cool'
-export type TalkRead = 'genuine' | 'unsure' | 'agent'
-export type Upside = 'limited' | 'some' | 'big'
-export type Risk = 'low' | 'medium' | 'high'
+type AgentTone = 'warm' | 'neutral' | 'cool'
+type TalkRead = 'genuine' | 'unsure' | 'agent'
+type Upside = 'limited' | 'some' | 'big'
+type Risk = 'low' | 'medium' | 'high'
 
 /** A note in the report: the attribute (or a record-based concern) it is about. */
 export type Note = Key | 'highBall' | 'discipline' | 'durability'
 
-export interface RivalTalk {
+interface RivalTalk {
   clubId: string
   /** what our scout makes of it */
   read: TalkRead
 }
 
 /** What the scouts say they cannot tell yet. */
-export type Unknown = 'character' | 'conditions' | 'paceFade' | 'durability' | 'ceiling' | 'fit'
+type Unknown = 'character' | 'conditions' | 'paceFade' | 'durability' | 'ceiling' | 'fit'
 
 export interface ScoutReport {
   stage: ReportStage
@@ -179,18 +185,18 @@ function relevant(pos: Pos, k: Key): boolean {
  * above what the position usually has; a concern stands well below. The two
  * record-based concerns read what is public: his injury history and his cards.
  */
-export function notesFrom(
+function notesFrom(
   pos: Pos, vals: Record<Key, number>, base: Record<Key, number>, maxS: number, maxC: number,
   record?: { durability: boolean; discipline: boolean },
 ): { strengths: Note[]; concerns: Note[] } {
   const devs = ATTR_KEYS.filter(k => relevant(pos, k))
     .map(k => ({ k, d: (vals[k] - base[k]) * (0.6 + 0.4 * attrWeight(pos, k)) }))
-  const strengths = devs.filter(x => x.d >= 1.2).sort((a, b) => b.d - a.d || a.k.localeCompare(b.k))
+  const strengths = devs.filter(x => x.d >= 1.2).sort((a, b) => b.d - a.d || cmpStr(a.k, b.k))
     .slice(0, maxS).map(x => x.k as Note)
   const concerns: Note[] = []
   if (record?.durability) concerns.push('durability')
   if (record?.discipline || (vals.agg >= 16 && vals.agg - base.agg >= 3)) concerns.push('discipline')
-  for (const x of devs.filter(x => x.d <= -1.2 && x.k !== 'agg').sort((a, b) => a.d - b.d || a.k.localeCompare(b.k))) {
+  for (const x of devs.filter(x => x.d <= -1.2 && x.k !== 'agg').sort((a, b) => a.d - b.d || cmpStr(a.k, b.k))) {
     if (concerns.length >= maxC) break
     concerns.push(x.k === 'han' && !isForward(pos) ? 'highBall' : x.k)
   }
@@ -288,7 +294,7 @@ export function fitScore(pos: Pos, vals: Record<Key, number>, base: Record<Key, 
   return w > 0.3 ? sc / w : 0
 }
 
-export const FIT_CUT = 0.45
+const FIT_CUT = 0.45
 export const fitWord = (score: number): Fit => score >= FIT_CUT ? 'excellent' : score <= -FIT_CUT ? 'doubtful' : 'good'
 
 // ---------------------------------------------------------------------------
@@ -311,7 +317,7 @@ const DEALING: Partial<Record<string, number>> = {
  * Recent dealings weigh more than old ones, and a broken promise to anybody in
  * the last year travels (agents talk to each other: memory.ts agentWariness).
  */
-export function agentScore(state: GameState, p: Player): number {
+function agentScore(state: GameState, p: Player): number {
   const stable = agentStable(p.id)
   let sc = 0
   for (const e of recall(state, {})) {
@@ -350,7 +356,7 @@ function shoppingMap(state: GameState): Map<number, string> {
   const map = new Map<number, string>()
   const clubs = Object.values(state.clubs)
     .filter(c => c.id !== state.userClubId && c.budget >= 800_000 && !embargoed(state, c.id))
-    .sort((a, b) => b.rep - a.rep || a.id.localeCompare(b.id))
+    .sort((a, b) => b.rep - a.rep || cmpStr(a.id, b.id))
   for (const c of clubs) {
     const t = aiShoppingTarget(state, c)?.target
     if (t && !map.has(t.id)) map.set(t.id, c.id)
@@ -365,7 +371,7 @@ function shoppingMap(state: GameState): Map<number, string> {
  * target this week, or he is unsettled (listed, unhappy, or out of contract)
  * and a club could afford him. If you wait, the next window can take him.
  */
-export function realSuitor(state: GameState, p: Player): string | null {
+function realSuitor(state: GameState, p: Player): string | null {
   if (!p.clubId || p.clubId === state.userClubId || p.onLoan || p.loanFrom || p.retiring) return null
   const shop = shoppingMap(state).get(p.id)
   if (shop) return shop
@@ -374,7 +380,7 @@ export function realSuitor(state: GameState, p: Player): string | null {
   const c = Object.values(state.clubs)
     .filter(c => c.id !== state.userClubId && c.id !== p.clubId && c.budget >= 200_000 && !embargoed(state, c.id) &&
       p.ca <= c.rep + 12 && ask <= c.budget)
-    .sort((a, b) => b.budget - a.budget || a.id.localeCompare(b.id))[0]
+    .sort((a, b) => b.budget - a.budget || cmpStr(a.id, b.id))[0]
   return c?.id ?? null
 }
 
@@ -401,7 +407,7 @@ export function insideWord(state: GameState, p: Player): boolean {
  * Keyed on the man, the season and the six-week spell, so it lasts a while
  * and then fades if nobody bites. Not everybody's agent does it.
  */
-export function agentTalkClub(state: GameState, p: Player): string | null {
+function agentTalkClub(state: GameState, p: Player): string | null {
   if (!p.clubId || p.clubId === state.userClubId || p.ca < 60 || p.onLoan || p.loanFrom || p.retiring) return null
   const seller = state.clubs[p.clubId]
   if (!seller) return null
@@ -413,7 +419,7 @@ export function agentTalkClub(state: GameState, p: Player): string | null {
   if (rand(`talk|${p.id}|${state.season}|${ph}`) >= 0.12 + pushy) return null
   const pool = Object.values(state.clubs)
     .filter(c => c.id !== state.userClubId && c.id !== seller.id && c.rep >= seller.rep - 6 && c.rep <= seller.rep + 15)
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => cmpStr(a.id, b.id))
   if (!pool.length) return null
   return pool[Math.floor(rand(`talkclub|${p.id}|${state.season}|${ph}`) * pool.length) % pool.length].id
 }
@@ -471,53 +477,11 @@ export function talkPremium(state: GameState, p: Player): number {
 }
 
 // ---------------------------------------------------------------------------
-// an unsettled man is cheaper
-// ---------------------------------------------------------------------------
-
-/** How low his mood is, 0 when content. Starts at 4.5 (a quarter) and is full
- *  at 3, which is where the old flat 15% off the asking price sat. */
-const moraleLevel = (p: Player): number => p.morale <= 4.5 ? clamp((5 - p.morale) / 2, 0.25, 1) : 0
-const askedLevel = (p: Player): number => (p.wantsOut ?? 0) > 0 ? 1 : 0
-
-/** How unsettled he is, 0 to 1, from reads the game already keeps: a formal
- *  transfer request (1), a place on the list (0.6), or low morale (up to 1).
- *  The worst of them counts; they are one grievance seen three ways. Pure
- *  arithmetic on the player, no draws. */
-export function unsettledLevel(p: Player): number {
-  return Math.max(askedLevel(p), p.transferListed ? 0.6 : 0, moraleLevel(p))
-}
-
-/** His club's asking fee: up to 15% off for a man who has asked to leave or
- *  whose mood has gone. The listing is left out on purpose: askingPrice
- *  already prices a listed man at the club's own markdown (0.8 against 1.15),
- *  and counting it twice would halve a listed player overnight. */
-export function unsettledFee(p: Player): number {
-  return 1 - 0.15 * Math.max(askedLevel(p), moraleLevel(p))
-}
-
-/** His own terms: up to 7% off for a man who wants out, 4% for a listed one,
- *  less for a merely low mood. A man who wants a move asks for less to get it. */
-export function unsettledTerms(p: Player): number {
-  return 1 - 0.07 * unsettledLevel(p)
-}
-
-/** What the report can say about his mood, and only what the club could know:
- *  a listing or a request is public at any stage, a low mood only once the
- *  scouts have a proper report and have talked to people around him. */
-export type Unsettled = 'asked' | 'listed' | 'unhappy'
-export function unsettledRead(stage: ReportStage, p: Player): Unsettled | null {
-  if (askedLevel(p)) return 'asked'
-  if (p.transferListed) return 'listed'
-  if (stage >= 2 && moraleLevel(p) > 0) return 'unhappy'
-  return null
-}
-
-// ---------------------------------------------------------------------------
 // the report
 // ---------------------------------------------------------------------------
 
 /** The level band: his current standard as the scouts would put it. */
-export function levelBand(state: GameState, p: Player): [number, number] {
+function levelBand(state: GameState, p: Player): [number, number] {
   const m = margin(knowledge(state, p)) * 1.5
   const c = fuzzedCa(state, p)
   return [clamp(Math.round(c - m), 1, 99), clamp(Math.round(c + m), 1, 99)]

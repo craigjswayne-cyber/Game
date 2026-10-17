@@ -87,8 +87,8 @@ export interface ClubIdentity {
 export const ALPHA = 0.035
 /** Hysteresis: an axis must pass ON to earn its label and fall under OFF to
  *  lose it, so a label near the line does not flicker week to week. */
-export const ON = 35
-export const OFF = 22
+const ON = 35
+const OFF = 22
 /** A club seen for the first time (a new career, an old save, a new job) is
  *  seeded at this share of its raw read: the reputation is half-formed. */
 const SEED = 0.5
@@ -202,7 +202,7 @@ export function identityOf(state: GameState): ClubIdentity {
 }
 const seedMemo = new WeakMap<GameState, { key: string; id: ClubIdentity }>()
 
-export const hasLabel = (state: GameState, l: IdLabel): boolean =>
+const hasLabel = (state: GameState, l: IdLabel): boolean =>
   !state.unemployed && identityOf(state).labels.includes(l)
 
 /**
@@ -290,7 +290,7 @@ function fitsLabel(p: Player, l: IdLabel): boolean {
 
 /** A label the club has held long enough to be KNOWN for it (repute.ts):
  *  read straight off the arc, so this file does not import its reader. */
-export const REPUTE_GAP = 2
+const REPUTE_GAP = 2
 function reputeLabel(state: GameState): IdLabel | null {
   const r = state.arc?.repute
   return !state.unemployed && r && r.c === state.userClubId ? (r.l as IdLabel) : null

@@ -35,21 +35,14 @@ import { genderOf, W } from './gender'
 import type { Competition } from './model'
 
 /** The four unions the touring side draws from. */
-export const HOME_UNIONS = ['ENG', 'IRE', 'SCO', 'WAL'] as const
+const HOME_UNIONS = ['ENG', 'IRE', 'SCO', 'WAL'] as const
 
 /** The reputation the unions want. It is the top of the scale, deliberately. */
-export const ISLES_REP = 95
+const ISLES_REP = 95
 
 /** The week the letter arrives - late enough to have been earned, early enough
  *  to be a decision rather than an ambush. */
-export const ISLES_OFFER_WEEK = 36
-
-export interface IslesState {
-  /** the season the offer was made in */
-  season: number
-  /** accepted, declined, or still sitting in the inbox */
-  answer: 'open' | 'yes' | 'no'
-}
+const ISLES_OFFER_WEEK = 36
 
 /**
  * Would the unions consider him at all? Every clause of the owner's sentence,

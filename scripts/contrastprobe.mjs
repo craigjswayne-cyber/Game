@@ -33,7 +33,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4199', 2500)
+const server = await startPreview(0, 2500)
 
 let fails = 0
 const ok = (cond, what) => { console.log(`${cond ? '  ok' : 'FAIL'} ${what}`); if (!cond) fails++ }
@@ -120,7 +120,7 @@ async function sweep(label, { night, systemScheme }) {
   }
 
   try {
-    await page.goto('http://localhost:4199/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
     await page.click('text=New Career')
     await page.waitForSelector('[data-league="prem"]')

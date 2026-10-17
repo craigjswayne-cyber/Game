@@ -1,0 +1,110 @@
+name: Release check
+
+# A RELEASE IS CUT ONLY AFTER THIS IS GREEN (1.9.2).
+#
+# The soaks (soak.yml) are weekly and advisory, and the full browser list runs
+# on main and overnight: by the time a release was tagged, nothing had run all
+# of them on the commit being shipped. This runs both on one ref, by hand,
+# from the Actions tab ("Run workflow", then the tag, branch or SHA):
+#
+#   soak     the SLOW list (suite.sh soak) in seven shards, at most two of the
+#            90-minute soaks in each, inside the 300-minute ceiling
+#   browser  every harness in BROWSER (suite.sh browser) in four shards
+#
+# The Gate (ci.yml) must also be green on the same commit; it runs the engine
+# probes and the unit tests on every push. docs/release-readiness.md has the
+# checklist this belongs to.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag, branch or commit SHA to check'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# one release check per ref at a time; a second run waits rather than
+# throwing away a soak hours in
+concurrency:
+  group: release-check-${{ inputs.ref }}
+  cancel-in-progress: false
+
+jobs:
+  soak:
+    name: Soaks (shard ${{ matrix.sshard }} of 7)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        sshard: [1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # pinned to playwright-core's own version for the reason given in ci.yml
+      - name: Install Chromium
+        run: npx "playwright@$(node -p "require('playwright-core/package.json').version")" install --with-deps chromium
+      - name: Locate Chromium
+        run: echo "PW_CHROMIUM=$(node -e "console.log(require('playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
+      - name: Soaks
+        env:
+          SSHARDS: 7
+          SSHARD: ${{ matrix.sshard }}
+        run: bash scripts/suite.sh soak
+      - name: Keep the screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-soak-shots-${{ matrix.sshard }}
+          path: |
+            shots/
+            shots-*/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  browser:
+    name: Browser harnesses (shard ${{ matrix.bshard }} of 4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        bshard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx "playwright@$(node -p "require('playwright-core/package.json').version")" install --with-deps chromium
+      - name: Locate Chromium
+        run: echo "PW_CHROMIUM=$(node -e "console.log(require('playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
+      - name: Build
+        run: npm run build
+      - name: Browser harnesses
+        env:
+          BSHARDS: 4
+          BSHARD: ${{ matrix.bshard }}
+        run: bash scripts/suite.sh browser
+      - name: Keep the screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-shots-${{ matrix.bshard }}
+          path: |
+            shots/
+            shots-*/
+          if-no-files-found: ignore
+          retention-days: 14

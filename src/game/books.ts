@@ -18,7 +18,7 @@
 // every line always equals the cash in the bank - without a hook in every file.
 import type { GameState } from './model'
 
-export type BookLine =
+type BookLine =
   | 'deals' | 'bonus' | 'central' | 'gate' | 'shop' | 'sales' | 'prize'
   | 'wages' | 'staff' | 'upkeep' | 'works' | 'buys'
 
@@ -36,8 +36,8 @@ export interface SeasonBooks {
 }
 
 /** The order the sheet prints them in. Income first, then spending. */
-export const INCOME_LINES: BookLine[] = ['deals', 'bonus', 'central', 'gate', 'shop', 'sales', 'prize']
-export const SPEND_LINES: BookLine[] = ['wages', 'staff', 'upkeep', 'works', 'buys']
+const INCOME_LINES: BookLine[] = ['deals', 'bonus', 'central', 'gate', 'shop', 'sales', 'prize']
+const SPEND_LINES: BookLine[] = ['wages', 'staff', 'upkeep', 'works', 'buys']
 
 function open(state: GameState): SeasonBooks | null {
   const club = state.clubs[state.userClubId]

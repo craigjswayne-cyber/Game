@@ -116,7 +116,7 @@ function starSold(state: GameState, p: Player, fee: number, toName: string, wasL
  * the top end, because that is what the owner asked for and because it is also
  * true: people really do name children after a signing.
  */
-function starSigned(state: GameState, p: Player, fee: number) {
+function starSigned(state: GameState, p: Player, _fee: number) {
   const club = state.clubs[state.userClubId]
   if (!club) return
   const standing = terraceStanding(state, p, club.id)
@@ -166,7 +166,7 @@ export function transferReaction(
 const TERRACE_FLOOR = 40
 
 /** How angry the terraces are, 0 (content) to 3 (a plane over the ground). */
-export type CampaignStage = 0 | 1 | 2 | 3
+type CampaignStage = 0 | 1 | 2 | 3
 
 /**
  * WHERE A SUPPORT'S ANGER HAS GOT TO.

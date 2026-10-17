@@ -17,13 +17,12 @@
 // Run: npx vite-node scripts/keyprobe.ts
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
+import { ok, done } from './lib/probe'
 
 /** ONLY EVER DECREASE. */
 const BUDGET = 0
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 /** Accessors that hand back a key rather than words. Add to this list whenever
  *  a new one appears - the name should end in Key, and then it is obvious. */
@@ -72,5 +71,4 @@ const missing = keys.filter(k => typeof look(EN, k) !== 'string' || typeof look(
 for (const m of missing) say(`  ${m}`)
 ok(missing.length === 0, `${keys.length} objective keys, all of them in both languages`)
 
-say(fails ? `\nKEY PROBE FAILED (${fails})` : '\nKEY PROBE PASSED: a key never reaches a screen as a key')
-process.exitCode = fails ? 1 : 0
+done('KEY PROBE', 'a key never reaches a screen as a key')

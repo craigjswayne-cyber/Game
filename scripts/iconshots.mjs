@@ -45,8 +45,7 @@ TEMP_NAMESPACES.forEach(ns => collect(EN[ns]))
 const excuse = (text) => excused.reduce((t, re) => t.replace(re, ''), text)
 // ---- END TEMPORARY EXCEPTIONS ----
 
-const PORT = 4266
-const server = await startPreview(String(PORT), 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 async function walk(width, night) {
@@ -60,7 +59,7 @@ async function walk(width, night) {
       buy: async () => 'owned', reason: () => null, owned: async () => [], consume: async () => {},
     }
   })
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

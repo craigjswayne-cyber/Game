@@ -34,8 +34,7 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 
-const PORT = 4179
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -64,7 +63,10 @@ const snapshot = () => page.evaluate(() => {
     // and the failure read as "the match never reached the second half", which
     // sounds like a resume bug and is not one. It surfaced when the AI economy
     // changed which players AI clubs were carrying, and so which men got hurt.
-    hurt: body.includes('Change it before play restarts'),
+    // AND THE 1.9.1 WAIT: the match holds until a man is named, and that sheet
+    // has no "Change it" note because nobody has gone on yet. Its columns are
+    // the sign either way (subsprobe drives the same two taps).
+    hurt: body.includes('Change it before play restarts') || !!document.querySelector('.sheet-col'),
     interval: /Start Second Half|Play the Final Quarter/.test(body),
     // IS IT PAUSED? The first control is Play/Pause and it says so in
     // data-playing. Read rather than assumed, because pressing
@@ -160,7 +162,7 @@ const drive = async (wants, ms, what) => {
 }
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -178,7 +180,7 @@ try {
 
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })

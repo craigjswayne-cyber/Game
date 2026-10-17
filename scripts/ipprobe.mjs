@@ -184,9 +184,13 @@ const maskMigration = (text) => {
   let out = text
   let n = 0
   for (const [was, now] of Object.entries(MIGRATION_PAIRS)) {
-    // the minified table renders as ["was","now"] - mask the pair, not the mark
-    const pair = `"${was}","${now}"`
-    while (out.includes(pair)) { out = out.replace(pair, ' '.repeat(pair.length)); n++ }
+    // the minified table renders as ["was","now"] - mask the pair, not the mark.
+    // Vite 8's minifier writes string literals in backticks, so the same pair
+    // can arrive as [`was`,`now`] (1.9.1); both quotings are the table.
+    for (const q of ['"', '`', "'"]) {
+      const pair = `${q}${was}${q},${q}${now}${q}`
+      while (out.includes(pair)) { out = out.replace(pair, ' '.repeat(pair.length)); n++ }
+    }
   }
   maskedPairs += n
   return out

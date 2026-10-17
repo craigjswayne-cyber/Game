@@ -242,7 +242,7 @@ export function fitReason(senior: Player, kid: Player): string {
 }
 
 /** The same line, pinned to English, for anything written into a save. */
-export function fitReasonEn(senior: Player, kid: Player): string {
+function fitReasonEn(senior: Player, kid: Player): string {
   const r = reasonOf(senior, kid)
   return tIn('en', r.key, r.vars)
 }
@@ -296,7 +296,7 @@ export const POS_RATE: Record<PosLink, number> = { same: 1.2, related: 1.05, oth
 
 /** 0 to 1: how much a man has seen. Half of it is years past the mentoring
  *  age, half is Test caps - a 34-year-old with forty caps is the full set. */
-export function mentorExperience(senior: Pick<Player, 'age' | 'caps'>): number {
+function mentorExperience(senior: Pick<Player, 'age' | 'caps'>): number {
   const yrs = clamp((senior.age - MENTOR_MIN_AGE) / 6, 0, 1)
   const caps = clamp((senior.caps ?? 0) / 40, 0, 1)
   return (yrs + caps) / 2
@@ -344,7 +344,7 @@ export function mentorRate(state: GameState, senior: Player, kid: Player): numbe
  * so the close season counts: two men who spent the summer in touch are
  * further on in August than two who have just met.
  */
-export const RAMP_SCALE = 1.05
+const RAMP_SCALE = 1.05
 
 /** The pair's chemistry against an average pair (1.0): the character fit and
  *  how close their jobs are. This, not the load or his caps, decides how fast
@@ -372,7 +372,7 @@ export function mentorBond(senior: Player, kid: Player, weeks: number): number {
  * goes past the old flat rate. This is the stall and the flourish; the pace
  * above is only how soon they get there.
  */
-export function bondCeiling(chem: number): number {
+function bondCeiling(chem: number): number {
   return clamp(0.4 + 0.6 * chem, 0.55, 1.15)
 }
 
@@ -409,11 +409,11 @@ export function pairRevealed(state: GameState, mp: { since?: number }): boolean 
   return mp.since == null || absWeek(state.season, state.week) - mp.since >= REVEAL_WEEKS
 }
 
-export type MentorStage = 'early' | 'growing' | 'flourishing' | 'settled' | 'stalled'
+type MentorStage = 'early' | 'growing' | 'flourishing' | 'settled' | 'stalled'
 /** Below this chemistry a pairing does not click: it creeps to a low ceiling. */
-export const STALL_CHEM = 0.75
+const STALL_CHEM = 0.75
 /** At or above it, a settled pairing is a flourishing one. */
-export const FLOURISH_CHEM = 1.15
+const FLOURISH_CHEM = 1.15
 
 /**
  * Where the relationship is, in a word for the page and the reports:

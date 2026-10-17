@@ -16,12 +16,7 @@ import { mulberry32 } from '../src/game/rng'
 import { attrLevel } from '../src/game/ageing'
 import { agePlayers } from '../src/game/rollover'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const g: GameState = newGame('northampton', 'Plans', 33)
 const club = g.clubs[g.userClubId]
@@ -153,5 +148,5 @@ const rate = (p: Player, seed: number, weeks = 4000) => {
   ok(!rollPlan(g, p, mulberry32(9)), 'a man with no plan gets nothing from this system')
 }
 
-if (fails) { console.error(`\nPLAN PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nPLAN PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nPLAN PROBE PASSED: individual programmes with real levers')

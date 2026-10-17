@@ -1,0 +1,1364 @@
+/* ---- one clean screen in landscape ----
+   Measured 2.92 screenfuls on a 844x390 phone, which is three swipes before
+   the first headline. The contextual cards sit two-up and the dashboard
+   panels share a single row instead of wrapping a fourth onto its own.
+   display:contents keeps portrait exactly as it was. */
+.card-grid { display: contents; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 8px;
+    padding: 8px 14px 0;
+    align-items: start;
+  }
+  .card-grid > .card { margin: 0; width: auto; }
+  .dash-row { grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); }
+  /* the inbox is the tallest block on Home: one preview line, not two, so
+     three headlines fit where two did. Tapping still opens the full story. */
+  .news-item { padding: 9px 14px 8px; }
+  .news-item .body { -webkit-line-clamp: 1; margin-top: 2px; }
+}
+
+/* the team sheet reads across, not down: forwards left, backs right.
+   Portrait keeps one column, where two tbody-only tables stack seamlessly. */
+.xv-split { display: block; }
+/* The two tables of a team sheet must AGREE on their first two columns.
+   They are separate tables, so auto layout sizes each one from its own contents:
+   the forwards' table sized the shirt column for "1" to "8" and the backs' table
+   sized it for "10" to "15", one character wider. Side by side in landscape nobody
+   noticed. Stacked in portrait it put a visible step in the list from number 9
+   down, which is exactly what the user reported ("numbers and names have shifted
+   to the right from number 9 on team pre match").
+
+   Only these two columns are pinned, deliberately. Fixing the whole table would
+   need a different set of widths per screen - MatchDay's rows have five cells and
+   Selection's have six - and the name column has to stay elastic either way. */
+.xv-split .dtable td:first-child { width: 26px; }
+.xv-split .dtable td:nth-child(2) { width: 40px; }
+@media (orientation: landscape) and (min-width: 640px) {
+  /* minmax(0, 1fr), NOT 1fr. A bare 1fr is minmax(auto, 1fr), and auto refuses
+     to shrink a track below its content's min-content width - so the two team
+     sheet tables kept their full natural width and the right-hand one hung off
+     the screen, clipping the form pill and losing the fitness column entirely
+     (user screenshot). minmax(0, ...) lets the track shrink and the name cell's
+     existing ellipsis takes up the slack. */
+  .xv-split {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 10px; align-items: start;
+    /* the right column's fitness figure sat flush against the screen edge */
+    padding-right: 5px;
+  }
+  /* and a little tighter, so the fitness column has somewhere to live */
+  .xv-split .dtable td { padding: 7px 4px; }
+  .xv-split .dtable td.name { max-width: 112px; }
+}
+
+/* the handbook is a question list: the heading IS the summary, so a preview
+   line of the answer underneath it was pure height. Eleven topics went from
+   2.45 screenfuls to well inside two by dropping it. */
+.qa-list .news-item .body { display: none; }
+.qa-list .news-item.open .body { display: block; margin-top: 5px; }
+.qa-list .news-item { padding: 9px 14px 8px; }
+.qa-list .news-item .subj { font-size: 0.875rem; }
+
+/* MatchDay header in landscape: badges left, fixture details right. Centred and
+   stacked it ran to 280px on a 390px screen, which pushed the team sheet - the
+   thing you opened the screen to do - below the fold. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .mday-head {
+    display: grid; grid-template-columns: auto minmax(0, 1fr);
+    gap: 0 16px; align-items: center; text-align: left;
+    padding: 8px 14px;
+  }
+  .mday-head .mday-badges { margin-bottom: 0 !important; }
+  .mday-head h3 { margin-bottom: 2px; }
+}
+
+
+/* ---- controls that ride along with a long list ----
+   The squad is a 38-man table, four screenfuls deep. Its view tabs and filter
+   chips used to sail off the top, so switching to the Stats columns meant
+   scrolling up, tapping, and scrolling back down. The block publishes its own
+   height as --stickyh (the chips wrap, so it is not a constant) and the table's
+   sticky column header sits directly beneath it. */
+.sticky-controls {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--surface-1);
+  box-shadow: 0 4px 8px -7px rgba(0, 0, 0, .55);
+}
+.sticky-controls ~ .tblwrap .dtable th { top: var(--stickyh, 0px); }
+/* A table that has been told its column widths does not need a scrollport, and
+   must not have one: the wrapper's implied overflow-y made every sticky heading
+   in it park itself --stickyh pixels down the page, among the rows. See the
+   colgroup note in Squad.tsx. */
+/* ---- the league table fits the phone ------------------------------------
+   Nine columns - rank, team, P W D L +/- BP Pts - at the shared .dtable padding
+   comes to more than 412px, and the column that fell off the right-hand edge was
+   POINTS. The one number anybody opens a league table to read, reachable only by
+   dragging the table sideways, on a screen where nothing else scrolls sideways.
+   The numeric columns give up their padding, which is spare: they hold one or two
+   digits and are right-aligned, so they read fine tight. */
+@media (max-width: 560px) {
+  .ltable th, .ltable td { padding-left: 4px; padding-right: 4px; }
+  .ltable td.name { max-width: 120px; }
+  .ltable th:first-child, .ltable td:first-child { padding-left: 8px; }
+  .ltable th:last-child, .ltable td:last-child { padding-right: 9px; }
+  /* THE RANK AND THE BADGE WERE TOUCHING. The rank is right-aligned and the
+     badge is the first thing in the very next cell, so at the tightened phone
+     padding above they met in the middle: "9(badge)Kenilworth" with no gap to
+     tell a position from a crest. Reported off a real table screenshot. The
+     rank column keeps its own right padding rather than taking the shared 4px,
+     which is the one place on this row where the space is not spare. */
+  .ltable th:first-child, .ltable td:first-child { padding-right: 9px; }
+}
+.tblwrap.fitwrap { overflow: visible; }
+.dtable.fit { table-layout: fixed; }
+.dtable.fit td.name { max-width: none; }
+/* the squad tables' name cell, one line (1.8.9): only the name ellipsises */
+.dtable td.name .nm-line { display: flex; align-items: center; gap: 4px; min-width: 0; white-space: nowrap; }
+.nm-line > * { flex: none; }
+.nm-line > .nm { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-loan { color: var(--loan); }
+.loan-key { display: flex; align-items: center; gap: 6px; margin: 6px 16px 0; font-size: 0.75rem; color: var(--text-secondary); }
+.loan-swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--loan); flex: none; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+/* the last column breathes: flush against the bezel it read as cut off
+   (user: "squad cover needs to be better fitted") */
+.dtable.fit th:last-child, .dtable.fit td:last-child { padding-right: 16px; }
+.filter-row {
+  display: flex; gap: 6px; padding: 7px 14px 6px;
+  flex-wrap: wrap; align-items: center;
+}
+.filter-note {
+  font-family: var(--sans); font-size: 0.6875rem; font-weight: 600;
+  letter-spacing: .2px; color: var(--text-muted);
+  margin-left: auto; text-align: right;
+}
+
+/* a section's own action, on the section's own heading row */
+.section-title .sect-act { margin-left: auto; }
+/* A tiny button looks tiny and TAPS BIG.
+ *
+ * Found in the studio audit: at 11px text with 3px padding these render about
+ * 19px tall, against a 44pt iOS / 48dp Android guideline, and they carry the
+ * inbox reader's older/newer arrows - the control used most often outside a
+ * match. Growing the box would wreck the density the whole UI is tuned for.
+ *
+ * So the visual box is untouched and an invisible ::after extends the hit area
+ * past it. The pseudo-element belongs to the button, so a tap anywhere in it
+ * counts as a tap on the button, and because it is absolutely positioned it
+ * changes no layout at all. Vertical expansion is generous because toolbar rows
+ * have space above and below; horizontal is deliberately small so two adjacent
+ * tiny buttons cannot steal each other's taps.
+ *
+ * scripts/tapsize.mjs measures the result in a real browser and fails the build
+ * on anything under 44px, which is the tripwire that did not exist before. */
+.btn.tiny {
+  padding: 3px 9px; font-size: 0.6875rem; letter-spacing: .6px;
+  border-radius: 6px; min-height: 0;
+  position: relative;
+}
+.btn.tiny::after {
+  content: ''; position: absolute; inset: -13px -3px;
+}
+/* A rewarded spot offered on a line of text (1.8.2: the inside word, the
+   second opinion, tape room night). It sits in the line it answers rather than
+   in a block of its own, so its box is no taller than the text around it and
+   the page is not one pixel deeper for it (scrollaudit); the ::after carries
+   the tap out to 46px as it does for every tiny button (tapsize). */
+/* a rewarded-advert button: the store's gold with near-black ink, in every
+   theme and skin (1.8.9, components.tsx RewardedButton) */
+.btn.spot-ad, .btn.ghost.spot-ad {
+  background: var(--gold-fill); color: var(--on-gold-fill);
+  border: 1.5px solid var(--gold-fill);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+.btn.spot-ad:disabled { opacity: .7; }
+.btn.tiny.spot { padding: 0 8px; line-height: 15px; }
+.btn.tiny.spot::after { inset: -15px -3px; }
+/* A control that sits in a table row (the Medical Centre's specialist, favour,
+   knock and joker buttons). Tapped on a phone like any other button, so it is
+   36px of box and 5px of reach either side: 46px, clear of the 44 floor.
+   Rows of them wrap 10px apart, so neighbouring reaches meet and never overlap
+   - a .btn.tiny's 13px reach would steal the tap from the button below it
+   (tapsize, release audit 1.7.1). */
+.btn.rowact {
+  padding: 6px 10px; font-size: 0.75rem; letter-spacing: .3px;
+  min-height: 36px; border-radius: 8px; position: relative;
+}
+.btn.rowact::after { content: ''; position: absolute; inset: -5px 0; }
+
+/* ---- two columns where one column was two swipes ----
+   Both of these were measured, not guessed: the club picker ran 639px into a
+   288px content area with the badge grid and the club's card stacked, and the
+   Selection tab ran 827px with the bench sitting under a team sheet that had
+   already filled the screen. Portrait keeps the original single column. */
+.wiz-split, .sel-split { display: block; }
+@media (orientation: landscape) and (min-width: 640px) {
+  /* minmax(0, 1fr), never a bare 1fr: a bare 1fr is minmax(auto, 1fr), and
+     auto will not shrink a track below its content's min-content width, so
+     the right-hand column walks off the edge of the screen instead of fitting */
+  .wiz-split {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px; align-items: start;
+  }
+  .wiz-split > .card { margin: 0; width: auto; }
+  /* .sel-split is DELIBERATELY not a grid any more. Putting the bench beside
+     the Leadership card saved 154px of height and broke the bench: .xv-split
+     already splits it two-up, so nesting one inside the other gave four columns
+     of team-sheet data across a 756px content area - 191px each, which is less
+     than the six columns need, so the tables painted over each other. A bench
+     you cannot read is worse than one more swipe. The class stays so the markup
+     and the reasoning stay together. */
+  .sel-split { display: block; }
+}
+/* one card per row inside a card-grid that shares a column with a table */
+.card-grid.one { display: block; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .card-grid.one { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 0 14px; }
+  .card-grid.one > .card { margin: 0; width: auto; }
+}
+/* the manager step: a narrow identity card, and the philosophy tiles wide
+   enough to stay three-up. Split 50/50 the tiles dropped to two columns and
+   the card grew taller than the one card it replaced. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .wiz-split.narrow-left { grid-template-columns: minmax(0, 1fr) minmax(0, 1.9fr); }
+}
+/* captain and vice on one line each, inside one card */
+.lead-row {
+  display: flex; align-items: center; gap: 8px; padding: 3px 0;
+}
+.lead-row .lead-tag {
+  font-family: var(--cond); font-weight: 800; font-size: 0.8125rem;
+  min-width: 22px; text-align: center; color: var(--info);
+}
+.lead-row .fact-label { min-width: 52px; }
+/* a leadership job is a button that opens a sheet (owner: the native select
+   drew the whole squad as a full-screen list) */
+.lead-btn {
+  width: 100%; background: none; border: 0; border-bottom: 1px solid var(--border);
+  color: inherit; font: inherit; text-align: left; cursor: pointer; min-height: 44px;
+}
+.lead-btn:last-child { border-bottom: 0; }
+.lead-btn .lead-tag svg { width: 18px; height: 18px; vertical-align: middle; }
+.lead-btn .lead-who { flex: 1; min-width: 0; text-align: right; font-weight: 600; font-size: 0.8125rem; overflow-wrap: anywhere; line-height: 1.3; }
+.lead-btn .lead-chev svg { width: 16px; height: 16px; color: var(--text-muted); vertical-align: middle; }
+.lead-sheet .lead-list { max-height: min(56vh, 460px); max-height: min(calc(56dvh / var(--zoom, 1)), 460px); overflow-y: auto; margin: 0 -2px 10px; }
+.lead-sheet tr { cursor: pointer; }
+.lead-sheet tr.sel td { background: color-mix(in srgb, var(--gold) 14%, transparent); }
+.lead-sheet .lead-bar { width: 34%; }
+.lead-sheet .lead-bar span { display: block; height: 6px; border-radius: 3px; background: var(--info); }
+.lead-row .inline-input { margin: 0; flex: 1; min-width: 0; }
+
+/* ---- the sticky column header was never sticky ----
+   .tblwrap sets overflow-x: auto. CSS computes the other axis to auto with it,
+   so the wrapper became the table's scrollport - and it never scrolls
+   vertically, which means `position: sticky` on the th had nothing to stick
+   to. Measured: at scrollTop 700 the header's top was -469, i.e. gone. Every
+   table screen in the game had been scrolling its own headings away, and the
+   scroll audit waved the long lists through on the assumption that it did not.
+
+   The fix removes the wrapper's scrollport in landscape at phone width and up,
+   which is how this game is played. It is the DEFAULT, not an opt-in: a table
+   that keeps its heading is what a reader expects, and the first pass at this
+   only converted six of thirty wrappers, which left the same bug live
+   everywhere else. A table too wide to fit opts out with .wide and gets its
+   sideways scroll back - scripts/stickyaudit.mjs measures every wrapper on
+   every screen and names any that need it.
+
+   Portrait keeps the horizontal scroller throughout: six columns will not fit
+   390px, and a column cut off with no way to reach it is worse than a heading
+   that scrolls. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .tblwrap { overflow: visible; }
+  .tblwrap.wide { overflow-x: auto; }
+}
+
+/* ---- nothing sits on top of anything else ----
+   A device screenshot showed the Replacements bench painted over itself: shirt
+   16's form and fitness drawn across shirt 20's number and name, and 122x154px
+   of it. Measured afterwards, it was happening at every width including the one
+   everything was tuned at, and no test had ever looked - they all measure how
+   TALL a screen is, never whether two things share the same pixels.
+
+   This is the bare-1fr trap for the third time, in its nastiest form.
+   minmax(0, 1fr) lets the grid TRACK shrink, which is what stopped the page
+   scrolling sideways two rounds ago. But a table will not shrink below its
+   min-content width and it does not clip, so it simply paints over its
+   neighbour: the track got smaller and the table did not. Letting the track
+   shrink was half a fix.
+
+   The whole fix has to make the CONTENT shrink too, which for a table means
+   table-layout: fixed and columns that are told what they are worth. Then the
+   name cell's ellipsis takes the strain, which is what it is there for.
+   scripts/overlapaudit.mjs measures it at three widths now. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .xv-split .dtable {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 0;
+  }
+  /* shirt, position, name, stars, form, fitness - the name gets the slack */
+  .xv-split .dtable td:nth-child(1) { width: 26px; }
+  .xv-split .dtable td:nth-child(2) { width: 34px; }
+  .xv-split .dtable td:nth-child(3) { width: auto; }
+  .xv-split .dtable td:nth-child(4) { width: 64px; }
+  .xv-split .dtable td:nth-child(5) { width: 38px; }
+  .xv-split .dtable td:nth-child(6) { width: 40px; }
+  .xv-split .dtable td.name {
+    max-width: none; /* fixed layout owns the width now */
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+}
+
+/* ---- a selected tile is the same size as an unselected one ----
+   .tile.sel had `box-shadow: 0 0 0 1.5px var(--gold)`, a ring painted OUTSIDE
+   the tile's border. It costs no layout, so the grid stays even, but it reads as
+   a bigger tile than its neighbours - on the night theme it renders as a pale
+   halo and the picked club looks like it belongs to a different row (user:
+   "selection squares arent consistent"). An inset ring says the same thing
+   inside the tile's own edges. */
+.tile.sel {
+  box-shadow: inset 0 0 0 2px var(--row-selected-border);
+}
+/* a long club name should truncate, not set the tile's width for everyone */
+.tile b {
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ---- Space Grotesk, applied by job ----
+   One family, three voices, separated by weight and tracking. Space Grotesk is
+   a wider face than Montserrat at the same size, so the tracking matters more
+   than it used to: left alone, a 44-man squad table would need another 40px it
+   does not have.
+
+   Tables and rosters   medium weight, tight tracking, to buy back landscape
+   Scores and ratings   bold and tabular, so columns of numbers line up
+   Nav and buttons      semi-bold caps, kept short (SQUAD, TACTICS, TRANSFERS) */
+
+/* tables: the tightest thing in the game, and where the space is won */
+.dtable {
+  letter-spacing: -0.2px;
+  font-variant-numeric: tabular-nums;
+}
+.dtable td.name, .dtable th { letter-spacing: -0.1px; }
+.dtable td { font-weight: 500; }
+/* a name is the one thing in the row you read rather than scan */
+.dtable td.name { font-weight: 600; letter-spacing: -0.15px; }
+
+/* the numbers that get compared: scores, ratings, form, fitness, money */
+.form-pill, .scoreboard, .hub-widget b, .dash-line b, .fact-grid span,
+.num, .attr-val, .stat-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+.scoreboard { letter-spacing: -0.5px; font-weight: 700; }
+.form-pill { font-weight: 700; letter-spacing: -0.3px; }
+
+/* nav and buttons: semi-bold caps. Space Grotesk's caps are wide and want
+   positive tracking to stop them reading as one long word */
+.bottom-nav button, .tab-bar button, .btn, .preset-chip, .submenu-item {
+  font-weight: 600;
+}
+.tab-bar button { letter-spacing: 0.6px; }
+.btn { letter-spacing: 0.7px; font-weight: 700; }
+.section-title { letter-spacing: 1.3px; font-weight: 700; }
+.fact-label, .dash-head { letter-spacing: 0.9px; }
+
+/* headlines: the display voice, tight and heavy, which is where a grotesque
+   earns its keep against a geometric sans */
+.masthead h1 { letter-spacing: -0.8px; font-weight: 700; }
+.card h3, .news-item .subj { letter-spacing: -0.3px; }
+.title-screen h1 { letter-spacing: -1.5px; font-weight: 700; }
+
+/* the dressing room opens itself on match day, so it has to fit a short
+   landscape screen without scrolling: four speeches two-up, not four-up */
+.talk-modal { max-height: 92vh; max-height: calc(92dvh / var(--zoom, 1)); }
+@media (orientation: landscape) and (min-width: 640px) {
+  .talk-modal .speech-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 6px; padding: 4px 0 0;
+  }
+  .talk-modal .speech-tile { padding: 7px 9px; gap: 1px; }
+  .talk-modal .speech-tile .d { font-size: 0.6875rem; line-height: 1.3; }
+  .talk-modal .section-title { padding: 6px 2px 4px; }
+}
+
+/* the squad summary rides the tab bar, which scrolls horizontally - so it needs
+   its own right margin or the last word sits under the screen edge */
+.tab-bar .filter-note {
+  padding-right: 14px; padding-left: 10px;
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ---- Live match settings sheet (feedback 9-4) --------------------------
+   The control row was seven buttons wide, and one of the three speed buttons
+   was labelled '▶' - the same glyph play/pause shows when paused. Speed and
+   sound now live in here, so the row is four buttons and none of them repeat. */
+.set-label {
+  font-family: var(--cond); font-size: 0.6875rem; letter-spacing: 1.2px;
+  text-transform: uppercase; opacity: .62; margin: 8px 2px 5px;
+}
+/* The match settings sheet: its title and section labels sat on the glass at
+   x=0 while every button below them is inset 14px by .btn-row and .btn.block
+   (release audit 1.7.1, seen at 360px). Same inset, so the labels line up
+   with the buttons they name. */
+.settings-sheet > .set-label { margin-left: 16px; margin-right: 16px; }
+
+/* ---- Match-day squad sheet (feedback 9-2) ------------------------------
+   Two columns, the XV and the bench, so a change is two taps and several
+   changes are one visit. Tuned for a 300px-tall landscape phone: the columns
+   scroll, the header and the Done button do not. */
+.squad-sheet { max-height: 94vh; max-height: calc(94dvh / var(--zoom, 1)); display: flex; flex-direction: column; }
+/* STICKY, and it is the whole brief that sticks: the title, the casualty and the
+   line telling you what to tap next.
+   A phone screenshot showed the sheet scrolled down to reach the bench with the
+   title off the top of the screen: the manager was being asked to replace
+   somebody the screen was no longer naming. "It wasn't clear who it is." So the
+   title was pinned - and only the title, which left the instruction to scroll
+   away with the list. Reported from a live game: "she could see the team xv but
+   couldnt see the text above it". The hint is the line that changes when a man is
+   armed, so losing it means tapping a shirt and getting no answer at all.
+   The block is 3 short lines at most, and it earns every one of them. */
+.sheet-top {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--canvas);
+  padding-bottom: 2px;
+  box-shadow: 0 6px 8px -6px rgba(0, 0, 0, .35);
+}
+.sheet-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  padding: 4px 0 3px;
+}
+.sheet-head h3 { font-size: 1rem; margin: 2px 0; }
+.sheet-hint { margin: 2px 0 4px; }
+/* the casualty, on his own line and impossible to miss */
+.sheet-casualty {
+  font-size: 0.8125rem; font-weight: 600;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  padding: 5px 8px;
+  margin: 2px 0 5px;
+}
+.sheet-cols {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px; flex: 1; min-height: 0;
+}
+/* PORTRAIT. This whole sheet was built for a 300px-tall landscape phone and the
+   probe that drives it runs at 844x390, so nobody had ever seen it on the screen
+   the game is actually played on: two columns of "Danilo Fis... 6.0 100%" inside
+   412px, in a .modal that has no side padding at all. The rows ran off both edges
+   and the bench ratings were cut in half (user screenshot).
+
+   One column, and give the modal the padding every other card on the screen has. */
+.sheet-col { min-width: 0; overflow-y: auto; overscroll-behavior-y: contain; }
+
+/* PORTRAIT OVERRIDES SIT HERE, AFTER THE BASE RULES.
+   They were above them, and lost: `.sheet-col { overflow-y: auto }` came later in
+   the file, so at equal specificity the base rule won and the two nested
+   scrollers survived the fix. The probe measured 2 inner scrollers and said so.
+   CSS order is not a detail when the override is the bug fix. */
+@media (orientation: portrait), (max-width: 639px) {
+  .sheet-cols { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .squad-sheet { padding-left: 12px; padding-right: 12px; }
+  /* the two column captions become section dividers rather than table headings */
+  .sheet-col .fact-label { padding-top: 8px; }
+
+  /* ---- AND IT HAS TO SCROLL AS ONE PAGE ----
+     Reported from a real phone: "when she tried to make subs in game she
+     couldn't scroll". In portrait the two columns stack, and each .sheet-col
+     kept its own overflow-y: auto - so the 23 rows were split across two
+     independent scrollers, each a couple of hundred pixels tall, nested inside
+     a .squad-sheet whose flex column stopped the modal itself from scrolling.
+     The bench was there, and unreachable.
+     Landscape genuinely wants two side-by-side scrollers. Portrait wants one
+     document. So portrait hands the scrolling back to the sheet. */
+  .sheet-cols { display: block; flex: none; min-height: 0; overflow: visible; }
+  .sheet-col { overflow: visible; max-height: none; }
+  .squad-sheet {
+    display: block;
+    /* the portrait sheet is the one the bug was reported against */
+    max-height: 88vh;
+    max-height: calc(88dvh / var(--zoom, 1));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.sheet-row {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+  /* 29px, stacked 3px apart, 23 of them in one portrait column - on the
+     control that spends a substitution, under a running clock. The scrolling
+     half of this screen was fixed when a player reported it; the target half
+     was never measured. */
+  min-height: 44px;
+  padding: 6px 8px; margin-bottom: 4px;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--surface-1); color: inherit;
+  font-size: 0.75rem; text-align: left; cursor: pointer;
+}
+.sheet-row:disabled { opacity: .4; cursor: default; }
+.sheet-row.armed { border-color: var(--row-selected-border); box-shadow: inset 0 0 0 2px var(--row-selected-border); }
+.sheet-row.cover { border-color: var(--primary); }
+.sh-num {
+  flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 0.6875rem;
+  letter-spacing: .5px; opacity: .7;
+}
+/* what a man is, next to what number he wears (Round 27) */
+.sh-pos {
+  flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 0.6875rem;
+  letter-spacing: .5px; text-transform: uppercase; opacity: .9; color: var(--info);
+}
+.sh-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sh-flag { flex: 0 0 auto; font-size: 0.6875rem; }
+.sh-rate { flex: 0 0 26px; text-align: right; font-variant-numeric: tabular-nums; opacity: .75; }
+/* nowrap, because this column is 32px and a four-line wrap tears the whole row
+   open - which is exactly what a long condition phrase did here (Round 27) */
+.sh-nrg { flex: 0 0 32px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sh-nrg.amber { color: var(--gold); }
+.sh-nrg.red { color: var(--danger); font-weight: 700; }
+.sheet-log { margin-top: 4px; }
+
+/* ---- the tactics pitch was the wrong way round (feedback 9-5) ----------
+   A vertical half-pitch, 430px tall, on a phone whose content area is about
+   320px: the pitch filled the whole screenful and every slider on the page -
+   the reason you opened Tactics - sat below the fold. densityaudit measured 12%
+   ink on the first screenful, the lowest score in the game.
+   Landscape has width to spare and no height, so the pitch turns on its side.
+   The SPOTS numbers stay in one orientation and the axes swap here, so there is
+   still only one formation to reason about. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .form-pitch { height: 232px; margin: 6px 14px; }
+  .form-chip { left: var(--fy); top: var(--fx); }
+  /* halfway and the 22 run down the pitch now, not across it */
+  .form-pitch::before {
+    left: 40%; right: auto; top: 0; bottom: 0;
+    border-top: none; border-left: 1px dashed rgba(255, 255, 255, .16);
+  }
+  .form-pitch::after {
+    left: 5%; right: auto; top: 0; bottom: 0;
+    border-top: none; border-left: 1px solid rgba(255, 255, 255, .2);
+  }
+}
+
+/* ---- landscape density trim (feedback 9-5) -----------------------------
+   "i still think there is far too much space wasted in this game with boxes."
+   densityaudit puts the average first-screenful ink at about 50%: half the
+   phone's short side is padding, margin and gap. A card on a 390px-tall screen
+   was paying 9px of margin top and bottom plus 11px of padding, so four stacked
+   cards spent 160px on nothing before a word was written.
+   This is deliberately small and uniform rather than clever. Anything bigger
+   starts breaking the tap targets, and the last four times a layout got smart
+   about landscape it produced a bug the audits had to find. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .card { margin: 6px 12px; padding: 8px 11px; }
+  .card h3 { font-size: 1rem; margin-bottom: 1px; }
+  .fact-grid label, .fact-label { margin-bottom: 1px; }
+  .section-title { padding-top: 6px; padding-bottom: 4px; }
+}
+
+/* ---- title screen: the Continue tile fits on one line -------------------
+   "'continue - [manager], northampton saints' should be on one line - so widen the
+   box." The column was capped at 300px. The longest club name in the game is
+   "Montpellier Hérault Rugby" at 25 characters and a manager can call himself
+   anything, so widening alone is not a guarantee: the line also refuses to wrap
+   and ellipsises if someone really does type a paragraph. */
+/* 460px fitted "Manager, Northampton Saints" exactly and nothing longer, and the
+   title screen has 844px to play with, so it gets real headroom instead. */
+.title-screen .menu-btns { max-width: 540px; }
+.continue-tile { font-size: 1rem; padding: 12px 14px; }
+
+/* WHICH GAME (v1.5). The two doors onto a new career, plus the line that says
+   why there are two. A column rather than a row: on the 360px floor device two
+   side-by-side buttons would each be about 165px wide, and "Nouvelle carrière"
+   and "Nuova carriera maschile" do not fit in that - the French and Italian
+   labels are half again as long as the English, which is the usual way a
+   two-across menu breaks in a game that ships in five languages. Stacked, every
+   label has the full width whatever it says. */
+.new-career-pick { display: flex; flex-direction: column; gap: 6px; }
+
+/* WHICH GAME: one segmented control, not two doors (v1.5.2).
+ *
+ * The two games are the same size as each other and sit on one track, so
+ * neither reads as the other's footnote, and the single New Career button
+ * below starts whichever is lit. The lit half uses the selection colours the
+ * rest of the game uses for a chosen row (--row-selected-bg / -border) rather
+ * than the green of the button under it: two greens stacked would read as two
+ * buttons again, which is the shape this replaced.
+ *
+ * 44px inside the track, not 40: tapsize.mjs measures the real reach of every
+ * button and the track's own padding is not part of it (an ancestor does not
+ * count as the target). Sentence case rather than the condensed caps this
+ * screen uses elsewhere, because "GIOCO FEMMINILE" in caps does not fit half
+ * of a 300px column and wrapping a segment label makes the track two lines
+ * deep on one side only. */
+.game-pick {
+  display: flex; gap: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+}
+.game-pick button {
+  flex: 1 1 0; min-width: 0;
+  min-height: 44px;
+  padding: 8px 6px;
+  border-radius: 7px;
+  font-family: var(--sans);
+  font-size: 0.8125rem; font-weight: 700;
+  letter-spacing: .2px; line-height: 1.2;
+  color: var(--text-secondary);
+  transition: background .15s, color .15s;
+}
+.game-pick button.sel {
+  background: var(--row-selected-bg);
+  color: var(--primary);
+  box-shadow: inset 0 0 0 1.5px var(--row-selected-border);
+}
+.game-pick button:active { transform: translateY(1px); }
+.ct-line {
+  font-size: 1rem; letter-spacing: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ct-sub { font-size: 0.6875rem; opacity: .85; }
+
+/* ---- new career wizard: the steps ride the title row -------------------
+   "competition, club, manager and summary should be where the green line is.
+   more space for leagues." They were on their own row under the title, and that
+   row was the difference between three leagues visible and four. Landscape puts
+   them beside the title, in the empty half of the header.
+   The step meter goes: four crumbs with the current one lit already IS a
+   progress meter, and its 64px is better spent on the crumbs. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .wizard-head { display: flex; align-items: center; gap: 14px; }
+  .wizard-head .masthead-row { flex: 0 1 auto; min-width: 0; }
+  .wizard-head .crumbs { flex: 1 1 auto; margin-top: 0; min-width: 0; }
+  .wizard-head .step-meter { display: none; }
+  /* the lit crumb names the step, so the title line does not need to as well */
+  .wizard-head .step-name { display: none; }
+}
+
+/* ---- the club picker (feedback: "all teams should be here on two lines,
+   logos and shirts arent as polished like there were") -------------------
+   Three separate faults in one screen.
+
+   Width: the badges sat in a .wiz-split whose right-hand column was reserved for
+   a detail panel that does not exist until you have picked somebody. So four
+   tiles across the left half, half the screen blank, a ten-club league needing a
+   scroll, and "Northampton" ellipsised to "Northamp...". The split is now only
+   applied once there is a panel to put in it.
+
+   Polish: the tile was flat var(--surface-1) with a crest sitting on it. Every club
+   in the game HAS two colours and they were going unused here of all places -
+   the screen whose entire job is choosing between clubs. The tile now wears them
+   as a deep wash behind its own crest, which is what made the earlier crest work
+   look finished.
+
+   Fit: auto-fit at a width that gives ten clubs two rows and fourteen clubs
+   three, rather than a fixed column count that only suits one league size. */
+.club-tiles.wide { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+/* Club identity on the tile, without the tile looking broken.
+ *
+ *  User: "some clubs have a weird red around them". It was literal - the border
+ *  was 55% of the club's primary colour, so Saracens, Exeter, Gloucester and
+ *  Newcastle each sat inside a red ring, and a red ring around a control reads
+ *  as an error everywhere else in software. The 34% fill made it worse on the
+ *  dark theme: red over a near-black paper comes out a muddy maroon.
+ *
+ *  So the colour moves off the frame and onto a strip along the top: unmistakably
+ *  the club's, at full strength rather than washed out, and impossible to read as
+ *  a warning. The fill keeps a hint of the primary and the border stays neutral. */
+/*  Second pass. Dropping the coloured border was not enough: the user says "weird
+ *  red thing is back", and it was still there in the FILL. Even a 14% wash of a
+ *  red primary over a near-black paper comes out a dirty maroon, and five of the
+ *  ten top-flight clubs have red in their first two colours. There is no
+ *  percentage of red-over-black that looks deliberate.
+ *
+ *  So the fill is now plain paper, exactly like every other tile in the game, and
+ *  the club's colours live only in the strip along the top where they are shown at
+ *  full strength. A tile that is identical to its neighbours until you look at its
+ *  strip and its crest cannot read as an error state. */
+.club-tile {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-1);
+  border-color: var(--border);
+}
+.club-tile::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3.5px;
+  background: linear-gradient(90deg, var(--c1, var(--surface-3)) 0%, var(--c1, var(--surface-3)) 50%, var(--c2, var(--border-strong)) 50%, var(--c2, var(--border-strong)) 100%);
+}
+.club-tile b {
+  font-size: 0.75rem;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.club-tile.sel {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 2px var(--row-selected-border);
+}
+@media (orientation: landscape) and (min-width: 640px) {
+  /* short screen: the crest and the name, nothing else, two rows for a league */
+  .club-tiles { padding: 8px 14px; gap: 7px; }
+  .club-tile { padding: 7px 6px; gap: 3px; }
+  /* and once a club IS picked the tiles share the width with its card, so they
+     go narrower rather than dropping to four fat columns */
+  .wiz-split .club-tiles { grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); }
+  .wiz-split .club-tile b { font-size: 0.6875rem; }
+}
+
+/* ---- a selection you can actually see (feedback: "when you select one of the
+   boxes it needs to be highlighted as its unclear if you've selected it") ----
+   Every selectable box in the game marks itself with var(--gold), and --gold is
+   #5c6470: a slate grey, left over from when the palette went blue. So "selected"
+   was a grey 1.5px border plus a 10% grey wash over a navy tile - a luminance
+   change of about three percent, which is nothing on a phone in a lit room.
+   --pick is the accent selection actually uses: the theme's bright blue, at a
+   strength you cannot miss. It is a separate name from --gold-bright on purpose,
+   so that the next person to retint the palette can see that selection depends
+   on it. densityaudit's sibling, pickaudit, now measures the difference. */
+:root, .app { --pick: var(--primary-hover); --pick-ink: var(--on-primary); }
+.tile.sel, .club-tile.sel, .speech-tile.sel {
+  border-color: var(--pick);
+  box-shadow: inset 0 0 0 2px var(--pick);
+}
+.tile.sel, .speech-tile.sel {
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
+}
+/* selected is the same blue wash every other tile gets: no club colour in it, so
+   picking a red club cannot look like picking a broken one */
+.club-tile.sel {
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
+}
+/* and the words brighten with the box, so the change is legible even to someone
+   who cannot pick the ring out from the border */
+/* The bold line on a selected tile takes the ordinary ink, NOT the pick colour.
+   As var(--pick) it was accent-on-accent-wash, which measured 1.4:1 the moment the
+   accent changed. The ring and the wash are what say "selected"; the name just has
+   to be readable. Kept from the crimson pass because it is true in any palette. */
+.tile.sel b, .club-tile.sel b, .speech-tile.sel b { color: var(--text-primary); }
+.tile.sel b, .club-tile.sel b, .speech-tile.sel b { color: var(--text-primary); }
+/* a tick, because a colour change alone is a poor signal if you cannot see the
+   unselected tiles next to it - on a narrow screen the picked one may be alone */
+.tile.sel, .club-tile.sel, .speech-tile.sel { position: relative; }
+.tile.sel::after, .club-tile.sel::after, .speech-tile.sel::after {
+  content: '✓';
+  position: absolute; top: 3px; right: 5px;
+  font-size: 0.6875rem; font-weight: 800; line-height: 1;
+  color: var(--pick-ink);
+  background: var(--pick);
+  border-radius: 50%;
+  width: 15px; height: 15px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* the badges get the slightly larger half once a club is picked, so the longest
+   name in the league still fits beside its own detail card */
+@media (orientation: landscape) and (min-width: 640px) {
+  .wiz-split { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  /* "Northampton" is the longest short name that has to fit a tile sharing the
+     screen with a detail card. Measured: it needed 71px in a 68px box, so the
+     tile gives back its side padding and a touch of tracking rather than the
+     label giving up three characters to an ellipsis. */
+  .wiz-split .club-tile { padding: 7px 3px; }
+  .wiz-split .club-tile b { letter-spacing: -0.2px; }
+}
+/* a picked league row was styled exactly like an unpicked one - it advances to
+   the next step immediately, so it was never noticed, but it belongs in the same
+   family as every other selectable box */
+.club-pick.sel {
+  border-color: var(--pick);
+  box-shadow: inset 0 0 0 2px var(--pick);
+  background: color-mix(in srgb, var(--pick) 18%, var(--surface-1));
+}
+/* muted ink on the picked tint fell under 4.5:1 in every palette (AA pass) */
+.club-pick.sel .muted { color: var(--text-primary); }
+
+/* the one line of the inbox that stays on Home: whether there is anything to read */
+.inbox-cue { border-left: 4px solid var(--pick); display: block; width: auto; text-align: left; }
+.inbox-cue h3 { font-size: 1rem; }
+/* seven rail buttons instead of six, on a screen that is 390px tall: they still
+   need a thumb-sized target, so the icon gives up two pixels rather than the row
+   giving up a button */
+@media (orientation: landscape) and (min-width: 640px) {
+  .bottom-nav button svg { width: 24px; height: 24px; }
+}
+
+/* ---- the set-piece playbook (F2) ---------------------------------------
+   Six lineout calls and four scrum calls, each needing a name, a line of why,
+   a drilled bar and a worth-it readout. Two-up on a phone, more when there is
+   room, because ten tiles in one column is a scroll nobody will do twice. */
+.routine-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 7px; padding: 6px 14px;
+}
+.rt-bar {
+  display: block; width: 100%; height: 4px; margin: 4px 0 2px;
+  background: var(--border-strong); border-radius: 2px; overflow: hidden;
+}
+.rt-bar i {
+  display: block; height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--pick), color-mix(in srgb, var(--pick) 55%, var(--primary)));
+}
+.rt-bar { background: var(--border-strong); }
+/* the chosen exit strategy and penalty instruction have to look chosen */
+.preset-chip.on {
+  background: var(--pick); color: var(--pick-ink); font-weight: 800;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--pick) 60%, var(--text-primary));
+}
+
+/* ---- the bench economy (F4) ---------------------------------------------
+   Eight seats, each with four possible briefs, on a 390px screen. A row per
+   seat with the chips wrapping underneath keeps every man's instruction
+   readable without a modal per player. */
+.brief-list { padding: 3px 14px; display: grid; gap: 4px; }
+.brief-row {
+  background: var(--surface-2); border-radius: 8px; padding: 5px 8px;
+
+}
+/* Landscape has 844px to play with, so the man and his four options share one
+   line: stacked, eight seats came to 1080px of scrolling on a 390px-tall
+   screen. Portrait falls back to the stack, where there is no room to share. */
+@media (orientation: landscape) and (min-width: 700px) {
+  .brief-row { display: flex; align-items: center; gap: 10px; padding: 3px 8px; }
+  .brief-who { flex: 0 0 190px; min-width: 0; }
+  .brief-row .preset-row { margin-top: 0; flex: 1; justify-content: flex-end; }
+}
+
+.brief-who { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; }
+.brief-who .num {
+  font-family: monospace; font-weight: 700; min-width: 18px;
+  color: var(--text-secondary); font-size: 0.75rem;
+}
+.brief-who .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brief-row .preset-row { margin-top: 5px; gap: 5px; }
+.brief-row .preset-chip { padding: 5px 9px; font-size: 0.6875rem; }
+
+/* ---- the set piece and the bench, drawn (1.8.0) -------------------------
+   Owner: "I want to work on Set Piece / Bench & Prep... I want them to be
+   more visual." Every call carries its whiteboard picture (src/ui/tacticsArt
+   .tsx), drawn on the highlight pitch's grass so the two read as one game.
+   The picture goes on top, two tiles to a row on a phone: beside the words
+   it was 112px wide and a lineout's jumper was a four-pixel dot. The
+   four-way calls (exit, kick, penalty) are two by two, like the grid they
+   replaced. */
+.dg { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; border-radius: 6px; }
+.routine-grid.sp-routines { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sp-call { align-items: stretch; gap: 6px; padding: 7px; }
+.sp-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 0 2px 2px; }
+.sp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 6px; }
+.sp-card { align-items: stretch; gap: 6px; padding: 7px; }
+.sp-card b { text-align: center; line-height: 1.25; }
+@media (min-width: 700px) {
+  .sp-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* six lineout calls as three and three, four scrum calls in a row: an
+     auto-fill grid left the last two lineouts alone on their own line */
+  .routine-grid.sp-lineout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .routine-grid.sp-scrum { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* THE SET PIECE TAB, IN THREE (1.8.2, screens/Tactics.tsx). The lineout and
+   scrum calls, the attacking moves and the kicking each get a view, picked on
+   the new-career screen's segmented track (.game-pick above) rather than a
+   second .tab-bar: two rows of underlined caps read as two levels of the same
+   thing, and every probe that walks the screen's tabs by position would have
+   counted the three views as tabs. Same card margins, so the track lines up
+   with the cards under it; same 820px cap as a card on a wide screen. */
+.game-pick.sp-sub { margin: 9px 12px 2px; }
+.game-pick.sp-sub button { font-size: 0.7812rem; }
+@media (orientation: landscape) and (min-width: 640px) { .content > .sp-sub { max-width: 820px; } }
+.app.tablet .content > .sp-sub { max-width: none; }
+/* A landscape phone is 390px tall, and at 844 wide a three-across lineout
+   tile's picture was 172px of it on its own: split in three, the calls view
+   still came to 2.9 screenfuls there and the kicking view to 3.2. Holding the
+   picture's height down only left it floating in a wide empty tile, so on a
+   short landscape screen the picture moves BESIDE the words instead, the way
+   the attacking moves card already lays out its own: a tile loses the height
+   of its picture and the words use the width the picture left over. A tablet
+   and every portrait phone draw them exactly as before. */
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 560px) {
+  .sp-call, .sp-card { flex-direction: row; align-items: center; gap: 8px; }
+  .sp-call .dg { flex: 0 0 44%; width: 44%; }
+  .sp-call .sp-txt { flex: 1 1 0; }
+  /* four scrum tiles in a row left each picture 80px wide beside a column of
+     words two short words across: two by two, they are the lineout's width */
+  .routine-grid.sp-scrum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sp-card .dg { flex: 0 0 56%; width: 56%; }
+  .sp-card b { flex: 1 1 0; min-width: 0; text-align: left; }
+}
+
+/* ---- the attack and defence styles (1.8.2, ui/StylesSection.tsx) --------
+   Five drawn tiles a side, three to a row on a phone held upright and five
+   across once there is room, each a picture and a name; then one card for
+   the style that is picked, its picture large beside the words. On a short
+   landscape screen the tiles are already big enough to read, so the card
+   drops its copy of the picture and gives the words the whole width: the
+   Game Plan tab has to stay inside three screenfuls there (scrollaudit). */
+.routine-grid.st-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.st-tile { align-items: stretch; gap: 4px; padding: 5px; }
+.st-tile b { font-size: 0.75rem; line-height: 1.2; text-align: center; hyphens: auto; overflow-wrap: anywhere; }
+/* "Blitsverdediging" is one 95px word in an 81px tile at 320 (1.8.6 sweep) */
+.st-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
+.st-body .sp-txt { gap: 4px; }
+.st-body b { font-size: 0.8438rem; color: var(--text-primary); }
+.st-body .st-tag { font-size: 0.7188rem; font-weight: 700; color: var(--text-secondary); }
+.st-body .d { font-size: 0.7188rem; color: var(--text-muted); line-height: 1.4; }
+.st-body .mv-warn { color: var(--text-negative); font-weight: 600; }
+@media (min-width: 700px) {
+  .routine-grid.st-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .st-body { grid-template-columns: minmax(0, 240px) minmax(0, 1fr); }
+}
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 560px) {
+  .st-body { grid-template-columns: minmax(0, 1fr); }
+  .st-body > .dg { display: none; }
+}
+
+/* ---- the playbook (1.8.1 moves, 1.8.2 playbook, ui/MovesSection.tsx) -----
+   One card, one flow (owner, 1.8.2: "preview and then the slots are filled"):
+   the five slots compact at the top, the picked move playing on a loop under
+   them with one line and one button, and the moves as chips below. */
+.mv-card { display: flex; flex-direction: column; gap: 8px; }
+.mv-calls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+/* five slots since round 6 (the penalty play): on a phone the odd one out
+   takes the whole row rather than leaving a hole */
+.mv-calls > .mv-callchip:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 480px) {
+  .mv-calls { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .mv-calls > .mv-callchip:last-child:nth-child(odd) { grid-column: auto; }
+}
+.mv-mixlabel { font-size: 0.6875rem; }
+/* an empty slot tapped: the moves that fit it, and the way back to them all */
+.mv-want { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mv-want .meta { font-size: 0.7188rem; min-width: 0; }
+.mv-want .preset-chip { flex: none; min-height: 36px; margin: 0; }
+.mv-callchip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  border-radius: 10px; min-height: 44px; text-align: left; min-width: 0;
+}
+.mv-callchip b { font-size: 0.6875rem; line-height: 1.2; }
+.mv-callchip span { font-size: 0.6875rem; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.mv-chips { margin-top: 0; }
+.mv-chips .preset-chip { min-height: 36px; }
+/* a move already in the playbook */
+.mv-chips .preset-chip.mv-in { box-shadow: inset 0 0 0 1.5px var(--gold); }
+.mv-preview { display: flex; flex-direction: column; gap: 7px; }
+.mv-preview .dg { max-height: 210px; }
+.mv-anim { aspect-ratio: 16 / 9; }
+.mv-preview .sp-txt { display: flex; flex-direction: column; gap: 3px; }
+.mv-preview .d { font-size: 0.7188rem; color: var(--text-muted); line-height: 1.35; }
+.mv-preview b { font-size: 0.8125rem; color: var(--text-primary); }
+.mv-hint { font-size: 0.7188rem; }
+/* the slot picker: one row a slot in the main menu's save-row look, the
+   slot's name and what it holds now; one the move cannot go in is greyed */
+.mv-slots { display: flex; flex-direction: column; gap: 6px; }
+.mv-slots .mv-slot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 44px; padding: 6px 12px; background: var(--surface-3); text-align: left;
+}
+.mv-slots .mv-slot b { font-size: 0.7812rem; flex: none; }
+.mv-slots .mv-slot span { font-size: 0.6875rem; opacity: .8; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mv-slots .mv-slot:disabled { opacity: .4; }
+
+/* the replacements: the eight on a bench, each with his brief */
+.b23 { margin: 6px 14px; }
+/* each shirt on a dark disc with a light rim: a bottle-green or black kit
+   (Northampton's is both) otherwise vanishes into the grass at this size */
+.b23-kit {
+  position: relative; display: block; line-height: 0;
+  padding: 3px; border-radius: 50%;
+  background: rgba(8, 12, 18, .55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .35);
+}
+.b23-seat .b23-kit { background: var(--surface-3); box-shadow: 0 0 0 1px var(--border-strong); }
+.b23-num {
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
+  padding: 0 2px; border-radius: 3px; background: rgba(8, 12, 18, .58);
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800; line-height: 12px; color: var(--on-hero);
+}
+.b23-bench { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+.b23-seats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 6px;
+  padding-bottom: 8px; border-bottom: 4px solid var(--border-strong);
+}
+.b23-seat {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0;
+  padding: 6px 2px; border-radius: 8px; background: var(--surface-2); text-align: center;
+}
+.b23-sname { font-size: 0.6875rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.b23-seat .pos-badge { font-size: 0.6875rem; padding: 1px 4px; }
+.b23-brief { display: inline-flex; align-items: center; gap: 3px; font-size: 0.6875rem; line-height: 1.2; color: var(--text-muted); }
+.b23-brief.on { color: var(--gold); font-weight: 700; }
+
+/* a split, as the eight seats: filled for a forward, open for a back */
+.split-pips { display: flex; gap: 4px; margin: 3px 0 1px; }
+.split-pips i {
+  width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box;
+  border: 1.5px solid var(--text-secondary);
+}
+.split-pips i.fw { background: var(--text-primary); border-color: var(--text-primary); }
+
+/* the bench's clock: the two rules the engine keeps, on the eighty minutes */
+.bclock { margin-top: 8px; }
+.bclock-bar { position: relative; height: 10px; margin: 6px 10px 0; border-radius: 5px; background: var(--surface-2); }
+.bclock-late { position: absolute; left: 80%; right: 0; top: 0; bottom: 0; border-radius: 0 5px 5px 0; background: var(--gold-fill); }
+.bclock-ht { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--border-strong); }
+.bclock-mark { position: absolute; left: 80%; top: -4px; bottom: -4px; width: 2px; background: var(--gold); }
+.bclock-axis { position: relative; height: 14px; margin: 3px 10px 0; font-size: 0.6875rem; color: var(--text-muted); }
+.bclock-axis span { position: absolute; transform: translateX(-50%); }
+
+/* a brief's icon, sized to the words beside it (bench page and live sheet) */
+.brief-ico { display: inline-flex; line-height: 0; vertical-align: -0.25em; }
+.brief-ico svg { width: 1.3em; height: 1.3em; }
+.brief-key { margin: 8px 14px 0; display: grid; gap: 6px; font-size: 0.75rem; color: var(--text-secondary); }
+.brief-key-row { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
+.brief-key-row .brief-ico svg { width: 18px; height: 18px; }
+.brief-key b { color: var(--text-primary); }
+@media (min-width: 700px) {
+  .brief-key { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+/* the week's preparation: five cards, the odd one out spanning on a phone */
+.prep-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 0 14px; }
+.prep-grid .prep-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 700px) {
+  .prep-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .prep-grid .prep-card:last-child:nth-child(odd) { grid-column: auto; }
+}
+.prep-ico {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--surface-2); color: var(--text-secondary);
+}
+.prep-ico svg { width: 20px; height: 20px; }
+.prep-card.sel .prep-ico { background: var(--pick); color: var(--pick-ink); }
+/* 1.8.3, owner: "just a few options to select". The cards lost their sums
+   and became chips: icon and name on one row, the sums in one line under
+   the grid (.prep-line) for the chosen focus only. */
+.prep-grid .prep-card { flex-direction: row; align-items: center; gap: 8px; padding: 7px 10px; position: relative; min-width: 0; }
+.prep-grid .prep-card b { min-width: 0; overflow-wrap: anywhere; hyphens: auto; line-height: 1.2; }
+.prep-grid .prep-card .prep-ico { flex: 0 0 auto; width: 28px; height: 28px; }
+.prep-grid .prep-card .prep-ico svg { width: 17px; height: 17px; }
+.prep-tag {
+  position: absolute; top: -7px; right: 8px;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 8px;
+  background: var(--gold-fill, var(--gold)); color: var(--on-gold);
+}
+@media (min-width: 700px) {
+  .prep-grid .prep-card { flex-direction: column; align-items: flex-start; }
+}
+.prep-line { margin: 8px 16px 0; font-size: 0.75rem; }
+.prep-plans { padding: 0 14px; }
+.prep-plans .preset-row { margin-top: 0; }
+/* the plans stacked (round 6, owner: "make these options stacked"): one
+   full-width option a plan, its name and a short grey line under it, picked
+   the way a tile is (the pick ring and wash) */
+.plan-stack { display: flex; flex-direction: column; gap: 6px; }
+.plan-opt {
+  display: flex; align-items: center; width: 100%; min-height: 48px; padding: 8px 12px;
+  text-align: left; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-primary); cursor: pointer;
+}
+.plan-opt:active { background: var(--row-hover-bg); }
+.plan-opt .opt-main { font-size: 0.875rem; font-weight: 700; line-height: 1.25; }
+.plan-opt.on {
+  border-color: var(--pick); box-shadow: inset 0 0 0 2px var(--pick);
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
+}
+/* the grey line on the picked one's wash takes the secondary ink, so it reads */
+.plan-opt.on .opt-detail { color: var(--text-secondary); }
+.prep-plans .prep-line { margin: 6px 2px 0; }
+.prep-info {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border-strong); background: var(--surface-1); color: var(--text-secondary);
+  font-family: var(--sans); font-weight: 700; font-style: italic; font-size: 0.875rem; line-height: 1;
+}
+.prep-info.on { background: var(--pick); color: var(--pick-ink); border-color: var(--pick); }
+/* a 26px circle is the look; the finger gets 44px (1.8.4 m12) */
+.prep-info { position: relative; }
+.prep-info::after { content: ''; position: absolute; inset: -9px; }
+.prep-detail { margin-top: 10px; }
+/* the Game Plan's pointer to the Playbook (1.8.3): one line and a chip */
+.plan-xref { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 14px 4px; }
+.plan-xref .meta { font-size: 0.75rem; min-width: 0; }
+.plan-xref .preset-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; }
+.plan-xref svg { width: 12px; height: 12px; }
+
+/* ---- the game-time ledger's status picker (F18) --------------------------
+   .inline-input is a form control built for a card: 11px padding and a 6px
+   margin. Dropped into a table row it made each row 140px tall, which put
+   fewer than three of a 38-man squad on a landscape screen. Inside a row it
+   has to be a row-height control. */
+.gt-sel {
+  width: auto; max-width: 148px;
+  padding: 3px 6px; margin: 0;
+  font-size: 0.75rem; font-weight: 700;
+  border-width: 1px; border-radius: 6px;
+}
+
+/* ---- the leadership card, compacted -------------------------------------
+   Six select rows at .inline-input's 11px padding plus 6px margin is 276px in a
+   card that shares the page with a team sheet and a bench. It pushed Selection
+   to 3.05 screenfuls, which is the "too many squad pages" complaint wearing a
+   different hat. Row-height controls, and the four portfolios two-up where
+   there is width for it. */
+.lead-row .inline-input {
+  width: auto; flex: 1; min-width: 0;
+  padding: 3px 6px; margin: 0;
+  font-size: 0.75rem; border-width: 1px; border-radius: 6px;
+}
+.lead-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.lead-row .fact-label { flex: 0 0 auto; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .lead-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2px 10px; }
+}
+
+/* ---- the inbox reader (feedback 10D) ------------------------------------
+   One message at a time, filling the screen, with a recall window behind it.
+   The old inbox was sixty collapsed grey bars, so the thing you had just been
+   sent looked exactly like the fifty-nine before it. */
+.reader-bar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 6px 14px; border-bottom: 1px solid var(--border);
+}
+/* the pair wraps under itself rather than off the edge: "Respuestas
+   pendientes (3)" beside "Siguiente sin leer" is 312px at 320 (1.8.4 m12) */
+.reader-acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin-left: auto; min-width: 0; max-width: 100%; }
+.reader-acts .btn.tiny { white-space: nowrap; }
+/* ON A PHONE, TWO DELIBERATE ROWS (owner, 1.8.7, iOS simulator: "Formating
+   has gone out here?"). Left to wrap on its own, the arrows sat at the left
+   with the position between them and the two actions dropped to a ragged
+   right-hand second row. Now the arrows hold the ends of the first row with
+   the position centred between them, and the actions share the second row
+   in equal halves. A tablet keeps the single row. */
+@media (max-width: 599px) {
+  .reader-bar .reader-pos { flex: 1 1 0; text-align: center; }
+  .reader-acts { flex: 1 0 100%; margin-left: 0; flex-wrap: nowrap; }
+  .reader-acts > * { flex: 1 1 0; min-width: 0; }
+  .reader-bar .reader-acts .btn.tiny { white-space: normal; line-height: 1.2; }
+}
+/* The older/newer arrows are the control a manager uses most often outside a
+   match, and they were 30x24. Here they get real size rather than an invisible
+   expander: the bar's siblings are 6px away, so an expander big enough to reach
+   44px would have been reaching into the button next to it. */
+.reader-bar .btn.tiny { padding: 3px 9px; min-width: 44px; min-height: 44px; }
+.reader-bar .btn.tiny::after { content: none; }
+.reader-bar .btn.tiny:disabled { opacity: .35; }
+.reader-pos {
+  flex: 0 1 auto; min-width: 0; font-family: var(--cond); font-size: 0.6875rem; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.reader { padding: 8px 16px 4px; }
+.reader .when {
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase; color: var(--gold);
+}
+/* THE SOURCE'S NAME (1.8.7): Ruck is the named source for the news about the
+   rest of the league, "RUCK.CO.UK" in the game's own type (1.8.9); the logo
+   sits at the foot of the story, not here. It sits in front of the date on the date lines and in front
+   of the headline in the day room's list, in the primary ink so it reads as a
+   name rather than as more of the date. */
+.byline {
+  font-family: var(--cond); font-weight: 800; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-primary); white-space: nowrap;
+}
+.ds-subj .byline { font-size: 0.6875rem; margin-right: 2px; }
+/* THE PARTNER'S WORDMARK at the foot of a Ruck story (1.8.9, owner). The file
+   is white on transparent for the night theme; under the day theme it is
+   turned black with a filter, so no second file and no colour literal. */
+.ruck-foot { margin: 14px 0 4px; line-height: 0; }
+.ruck-mark { display: inline-block; height: 20px; width: auto; max-width: 120px; }
+.app:not(.night) .ruck-mark { filter: brightness(0); }
+.reader h2 {
+  font-family: var(--serif); font-size: 1.125rem; line-height: 1.2;
+  margin: 3px 0 7px; color: var(--text-primary);
+}
+/* Paragraph air, matched to the Wire so a story reads the same in both places. */
+.reader p { font-size: 0.875rem; line-height: 1.6; margin: 0 0 10px; color: var(--text-primary); }
+.reader p:last-of-type { margin-bottom: 2px; }
+
+/* ---- a story that carries data (NewsBody, 1.8.2) --------------------------
+   Owner: "news stories are messy and hard to read". Facts as rows, lists as
+   lists, voices as quotes; the reader and the Wire share all three. */
+.news-facts {
+  margin: 0 0 10px; padding: 0;
+  border-top: 1px solid var(--border);
+}
+.news-fact {
+  display: flex; gap: 12px; align-items: baseline;
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  font-size: 0.875rem; line-height: 1.4;
+}
+.news-fact dt {
+  flex: 0 0 38%; max-width: 150px; margin: 0;
+  color: var(--text-muted); font-size: 0.7812rem; font-weight: 600;
+}
+.news-fact dd { flex: 1 1 auto; min-width: 0; margin: 0; color: var(--text-primary); overflow-wrap: anywhere; }
+.news-fact dd::first-letter, .news-fact dt::first-letter { text-transform: uppercase; }
+.news-list { margin: 0 0 10px; padding: 0; list-style: none; border-top: 1px solid var(--border); }
+.news-list li {
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  font-size: 0.875rem; line-height: 1.4; color: var(--text-primary);
+}
+.news-quotes { margin: 0 0 10px; }
+.news-quotes blockquote {
+  margin: 0 0 6px; padding: 2px 0 2px 10px;
+  border-left: 3px solid var(--gold);
+  font-size: 0.875rem; line-height: 1.5; font-style: italic; color: var(--text-secondary);
+}
+.wire-body .news-fact, .wire-body .news-list li, .wire-body .news-quotes blockquote { font-size: 0.875rem; }
+/* and no button label breaks mid-word ("E-/mail" at 360px): the row wraps instead */
+.bug-send { flex-wrap: wrap; }
+.bug-send .btn { flex: 1 1 auto; white-space: nowrap; }
+.news-go { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 10px 0 0; padding: 0 14px; font-size: 0.8125rem; }
+/* the answer to a bid, under the story that brings it (Inbox OfferAnswer): the
+   reader carries its own gutter, so the button spans it rather than insetting */
+.btn.block.offer-answer { width: 100%; margin: 14px 0 0; }
+
+/* ---- people named in a story (feedback 10F) -----------------------------
+   A story already knows who it is about; it just never offered them. */
+/* The people named in a story, as one row (user: "all clickable names with
+   buttons below should be in one row"). It used to wrap, so eight names became a
+   four-line block of stacked two-line chips underneath every article - the single
+   messiest thing on the news screen. Now the row scrolls sideways and each chip
+   is one line, which fits three or four at a glance and keeps the article the
+   thing you are reading. */
+.who-row {
+  display: flex; flex-wrap: nowrap; gap: 6px; margin-top: 10px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.who-row::-webkit-scrollbar { display: none; }
+.who-chip {
+  display: flex; flex-direction: row; align-items: baseline; gap: 5px;
+  flex: 0 0 auto; white-space: nowrap;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: 7px; padding: 6px 10px; text-align: left;
+
+}
+.who-chip b { font-size: 0.8125rem; color: var(--text-primary); }
+.who-chip span { font-size: 0.6875rem; color: var(--text-muted); font-weight: 700; }
+.who-chip:active { background: var(--row-hover-bg); }
+
+/* The one-line core-loop hint, first three weeks of a first career only. Sized
+   to read as guidance rather than as an alert: no icon, no border, no dismiss
+   button, because a thing that disappears on its own does not need one. */
+.first-hint {
+  margin: 8px 14px 2px;
+  padding: 9px 12px;
+  border-left: 3px solid var(--gold);
+  border-radius: 7px;
+  background: var(--gold-tint);
+  font-size: 0.8125rem; line-height: 1.45; color: var(--text-secondary);
+}
+.first-hint b { color: var(--text-primary); }
+
+/* The two fixes on the full-time verdict (13A). A numbered list rather than a
+   paragraph, because the point is that these are two discrete jobs. */
+.fix-row {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 5px 0; border-bottom: 1px solid var(--border);
+}
+.fix-row:last-of-type { border-bottom: 0; }
+.fix-no {
+  flex: 0 0 18px; height: 18px; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 5px; background: var(--surface-3); color: var(--text-primary);
+  font-family: var(--cond); font-size: 0.75rem; font-weight: 700;
+}
+
+/* a dressing-room rift and the button that might end it (10H) */
+.rift-row { padding: 5px 0; border-bottom: 1px solid var(--border); }
+.rift-row:last-of-type { border-bottom: 0; }
+
+/* ---- the crash screen (blocker A1) --------------------------------------
+   Deliberately theme-independent: whatever went wrong, this has to render, so
+   it leans on literal colours rather than the custom properties a broken tree
+   might not have applied. */
+.crash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px;
+  background: var(--canvas);
+  color: var(--text-primary);
+  font-family: var(--sans, system-ui, sans-serif);
+  overflow-y: auto;
+}
+.crash-box {
+  max-width: 460px; width: 100%;
+  max-height: calc(100vh - 36px);
+  max-height: calc(calc(100dvh / var(--zoom, 1)) - 36px);
+  overflow-y: auto;
+  background: var(--surface-1);
+  border: 2px solid var(--gold);
+  border-radius: 11px;
+  padding: 18px 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
+}
+.crash-box h2 { font-size: 1.125rem; font-weight: 700; color: var(--gold); margin: 0 0 8px; }
+.crash-box p { font-size: 0.8125rem; line-height: 1.55; margin: 0 0 10px; color: var(--text-secondary); }
+.crash-err {
+  font-family: ui-monospace, monospace; font-size: 0.75rem; line-height: 1.4;
+  white-space: pre-wrap; word-break: break-word;
+  background: rgba(0, 0, 0, .35); border-radius: 7px;
+  padding: 9px 10px; margin: 0 0 12px; color: var(--danger);
+  max-height: 28vh; max-height: calc(28dvh / var(--zoom, 1)); overflow-y: auto;
+}
+.crash-btns { display: flex; gap: 9px; flex-wrap: wrap; }
+.crash-btns .btn { flex: 1; min-width: 150px; padding: 12px 10px; font-size: 0.8125rem; }
+.crash-btns .btn.ghost { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
+.crash-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 11px; line-height: 1.45; }
+
+/* ---- the save-failed banner (blocker A4) --------------------------------
+   Top of the screen, above everything except the crash screen and the portrait
+   veil: a silent save failure is the one bug that eats a whole evening. */
+.save-warn {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 400;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px calc(8px + var(--safe-area-inset-bottom) * 0);
+  padding-left: max(12px, var(--safe-area-inset-left));
+  padding-right: max(12px, var(--safe-area-inset-right));
+  background: var(--danger-tint);
+  color: var(--text-primary);
+  font-family: var(--sans, system-ui, sans-serif);
+  font-size: 0.75rem; line-height: 1.45;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+}
+.save-warn > div:first-child { flex: 1; min-width: 190px; }
+.save-warn b { color: var(--danger); }
+.save-warn-why { display: block; opacity: .75; font-size: 0.6875rem; margin-top: 2px; }
+.save-warn-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.save-warn-btns .btn.ghost { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+
+/* ---- the update pill (main.tsx) -----------------------------------------
+   A new build took over mid-session: one tap reloads into it, never forced,
+   because a reload mid-match would lose the live match. It is put on the body,
+   outside .app, so it reads the night tokens from :root. The wrapper is the
+   polite status region a screen reader hears it through; the button is the
+   pill. */
+.upd-pill {
+  position: fixed; left: 50%; bottom: 1.125rem; transform: translateX(-50%);
+  z-index: 200;
+}
+.upd-pill button {
+  display: block;
+  padding: 0.625rem 1.125rem; border-radius: 1.375rem; border: none;
+  background: var(--surface-2); color: var(--gold);
+  font-weight: 700; font-size: 0.875rem;
+  box-shadow: 0 0.375rem 1.5rem var(--pill-shadow); cursor: pointer;
+}

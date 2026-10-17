@@ -18,9 +18,7 @@ import { TANK_K, availablePlayers, beginMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import { KNOCK_ENERGY, KNOCK_MAX_WEEKS, canPlayThrough, flareChance, playThrough, restKnock, settleKnocks } from '../src/game/knock'
 import type { Fixture, GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const g0 = (): GameState => newGame('bath', 'Knock Probe', 17)
 const mine = (g: GameState) => g.clubs[g.userClubId].players.map(id => g.players[id]).filter((p): p is Player => !!p && !p.acad)
@@ -125,5 +123,4 @@ console.log('--- 5. he reaches the physio\'s date')
   ok(!a.knock && !a.injury, 'the knock is gone on the day he was due back')
 }
 
-console.log(fails ? `\nKNOCK PROBE FAILED (${fails})` : '\nKNOCK PROBE PASSED: never the head, the risk as stated, and the knock ends on the day')
-process.exit(fails ? 1 : 0)
+done('KNOCK PROBE', 'never the head, the risk as stated, and the knock ends on the day', { exit: true })

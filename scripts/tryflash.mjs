@@ -17,13 +17,13 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { tapPast } from './lib/sheet.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const PORT = process.env.TF_PORT ?? '4231'
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 860 }, locale: 'en-GB' })
 // ONE KNOWN MATCH. Everything here needs tries, and a career's seed was a
@@ -53,7 +53,7 @@ const answer = async () => {
 }
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -167,7 +167,7 @@ try {
   const after = await page.evaluate(() => Object.keys(globalThis.__tf.lines).length)
   const scored = await page.evaluate(() => document.querySelector('.scoreboard')?.textContent)
   ok(after === before, `skipping to half time flashed nothing (${after - before} new, score ${scored?.replace(/\s+/g, ' ')})`)
-  await page.click('text=▸ Start Second Half')
+  await tapPast(page, 'text=▸ Start Second Half')
   await page.waitForSelector('.comm-line', { timeout: 5000 })
   await page.waitForTimeout(100)
   ok((await page.locator('.comm-line.try-flash').count()) === 0, 'coming back from half time does not replay old flashes')
@@ -204,7 +204,7 @@ try {
   let still = null, staged = false
   for (let i = 0; i < 600 && !still; i++) {
     if (await answer()) continue
-    if (await page.locator('text=Play the Final Quarter').count()) await page.click('text=▸ Play the Final Quarter')
+    if (await page.locator('text=Play the Final Quarter').count()) await tapPast(page, 'text=▸ Play the Final Quarter')
     if (await page.locator('text=Continue to Results').count()) break
     still = await measure(false)
     if (!still) await page.waitForTimeout(100)

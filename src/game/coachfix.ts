@@ -42,9 +42,9 @@ import { LEVERS, WHY_MIN, buildEvidence, htHurt, pointsAfter, possPct, sidesOf, 
  *  engine's cap again. Falls back to digits if the cap ever outgrows the list. */
 const capWord = () => MAX_SUBS <= 10 ? t(`coachfix.num${MAX_SUBS}`) : String(MAX_SUBS)
 
-export type UnitKey = 'scrum' | 'lineout' | 'breakdown'
+type UnitKey = 'scrum' | 'lineout' | 'breakdown'
 
-export interface UnitBattle {
+interface UnitBattle {
   key: UnitKey
   label: string
   /** share of the contest won, 22-78 */
@@ -108,7 +108,7 @@ export function unitBattles(ctx: LiveCtx, mine: SideCtx, opp: SideCtx): UnitBatt
   })
 }
 
-export interface CoachFix {
+interface CoachFix {
   /** what happened, with the number that proves it */
   head: string
   /** the change, naming a real control */
@@ -258,7 +258,7 @@ export function gradeLine(fixed: readonly FixTag[], missed: readonly FixTag[]): 
  *  and head assessments told him "No replacements used out of eight" under a
  *  header reading five changes left (first-time-player pass). Fresh legs are
  *  fresh legs whoever sent them on. */
-export function benchOn(ctx: LiveCtx, mine: SideCtx): number {
+function benchOn(ctx: LiveCtx, mine: SideCtx): number {
   const played = mine.lineup.slice(15).filter(id => id != null && mine.ratings.has(id)).length
   return Math.max(ctx.subsUsed, played)
 }

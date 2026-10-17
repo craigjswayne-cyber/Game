@@ -9,7 +9,7 @@ import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
-const server = await startPreview(4244, 2500)
+const server = await startPreview(0, 2500)
 const say = s => writeSync(1, s + '\n')
 let fails = 0
 const ok = (cond, what) => { say(`${cond ? '  ok  ' : 'FAIL  '}${what}`); if (!cond) fails++ }
@@ -45,7 +45,7 @@ const step = async (what, fn) => {
 }
 
 try {
-  await page.goto('http://localhost:4244/')
+  await page.goto(`${server.origin}/`)
   await step('title screen appears', () => page.waitForSelector('text=RUGBY', { timeout: 15000 }))
   await step('tap New Career', () => page.click('text=New Career', { timeout: 15000 }))
   await step('league list appears', () => page.waitForSelector('text=English Premier Division', { timeout: 15000 }))

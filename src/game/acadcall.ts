@@ -34,14 +34,14 @@ import type { Club, GameState, Player, PressItem, PressOption } from './model'
 import { LEDGER_WEEKS, fmtMoney, logDecision } from './model'
 import { firstProWage, playerWage } from './attributes'
 import { tIn, type Vars } from './i18n'
-import { OFFICE_OUTLET } from './media'
+import { OFFICE_OUTLET } from './office'
 import { planAcademyLoan } from './room'
 import { remember, rememberDeparture } from './memory'
 
 /** Asked in the settle of the last ledger week: on the desk from week 46. */
 export const ACAD_CALL_WEEK = LEDGER_WEEKS
 
-export type AcadCall = 'first' | 'gate'
+type AcadCall = 'first' | 'gate'
 
 /** Which decision this man is owed this summer, if any. */
 export function acadCall(state: GameState, p: Player | undefined): AcadCall | null {
@@ -81,7 +81,7 @@ export function acadAdvice(state: GameState, p: Player): boolean {
 
 /** The wage the button quotes: the academy scale for a first-year, the
  *  professional scale for a lad signing his first senior deal. */
-export function acadCallWage(p: Player, call: AcadCall): number {
+function acadCallWage(p: Player, call: AcadCall): number {
   return playerWage(p.ca, p.age, call === 'first')
 }
 
@@ -138,7 +138,7 @@ export function acadCallLive(state: GameState, item: PressItem): boolean {
 }
 
 /** Let him go: off the books, into the free-agent pool, no longer a scholar. */
-function releaseScholar(state: GameState, club: Club, p: Player) {
+function releaseScholar(_state: GameState, club: Club, p: Player) {
   club.players = club.players.filter(id => id !== p.id)
   club.tactic.lineup = club.tactic.lineup.map(id => (id === p.id ? null : id))
   if (club.captain === p.id) club.captain = null

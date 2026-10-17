@@ -4,9 +4,12 @@
 // Follow a correct read and you get a real edge; follow a wrong one and you
 // have spent the week preparing for a problem they do not have.
 import { logDecision, type GameState, type MatchPrep } from './model'
-import { teamUnits, lineupFor } from './matchEngine'
+import { teamUnits, lineupFor } from './match/selection'
 import { t } from './i18n'
 import { subjectVar } from './gender'
+import { analystSkill } from './analystskill'
+
+export { analystSkill } from './analystskill'
 
 export interface AnalystRead {
   /** absolute week (season*100+week) this read was filed for */
@@ -57,22 +60,6 @@ export const EXPLOITED_BY: Record<AnalystRead['unit'], AnalystRead['unit']> = {
   kicking: 'attack',
 }
 
-/** How good his homework is: the analysis suite, the assistant, and knowing them. */
-export function analystSkill(state: GameState): number {
-  const club = state.clubs[state.userClubId]
-  const suite = club?.facilities?.briefing ?? 0
-  const assistant = state.staff.assistant ?? 0
-  // (The cap is a guard: a level-5 suite and a level-3 assistant reach 0.75,
-  // so today it never binds.)
-  // Capped at 0.78, not 0.92. Measured over 20 seasons the analyst was right
-  // 221 times against 50 wrong - 82% - which with a maxed briefing suite made
-  // following him close to free. The feature exists to create a judgement
-  // ("he helps, but he is not a given"), and a read you can trust four times
-  // in five is not a judgement. A good setup now lands near three in four,
-  // which is worth having and still worth doubting.
-  return Math.min(0.78, 0.3 + suite * 0.06 + assistant * 0.05)
-}
-
 function hash(seed: number, abs: number, oppId: string): number {
   let h = (seed ^ Math.imul(abs, 2654435761)) >>> 0
   for (let i = 0; i < oppId.length; i++) h = Math.imul(h ^ oppId.charCodeAt(i), 16777619) >>> 0
@@ -119,7 +106,7 @@ const CLARITY_GAP = 0.06
 const CLARITY_K = 0.36
 const CLARITY_MEAN = 0.5
 
-export interface ReadOdds {
+interface ReadOdds {
   /** the units weakest first, by strength against their average */
   sorted: [AnalystRead['unit'], number][]
   clarity: number
@@ -276,11 +263,3 @@ export function analystClaim(r: AnalystRead): string {
 export const unitLabel = (u: AnalystRead['unit']) => t(`analyst.unit${u[0].toUpperCase()}${u.slice(1)}`)
 export const prepLabel = (p: MatchPrep) => t(`analyst.prep${p[0].toUpperCase()}${p.slice(1)}`)
 
-/** Slot labels, for the UI. */
-export const UNIT_LABEL: Record<AnalystRead['unit'], string> = {
-  scrum: 'Scrum', lineout: 'Lineout', defence: 'Defence', attack: 'Attack', kicking: 'Kicking game',
-}
-export const PREP_LABEL: Record<MatchPrep, string> = {
-  attack: 'Attacking Shapes', defence: 'Defensive Drills', setpiece: 'Set-Piece Work',
-  fitness: 'Conditioning', recovery: 'Recovery Week',
-}

@@ -15,12 +15,7 @@
 // exactly what two queued touch events do.
 import { newGame } from '../src/game/newgame'
 import { TAP_GUARD_MS, useStore } from '../src/store'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const st = useStore
 const where = () => {
@@ -103,5 +98,4 @@ const where = () => {
   ok(hitMatch, 'Continue still reaches a matchday')
 }
 
-console.log(fails ? `\nTAP PROBE FAILED (${fails})` : '\nTAP PROBE PASSED: one tap is one week')
-process.exit(fails ? 1 : 0)
+done('TAP PROBE', 'one tap is one week', { exit: true })

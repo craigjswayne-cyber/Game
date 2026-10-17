@@ -27,7 +27,7 @@ import type { Club, GameState, Playbook } from './model'
 import { standing } from './authority'
 import { clamp } from './rng'
 
-export interface Routine {
+interface Routine {
   id: string
   name: string
   kind: 'lineout' | 'scrum'
@@ -115,7 +115,7 @@ export const DEFAULT_LINEOUT = 'lo_middle'
 export const DEFAULT_SCRUM = 'sc_hold'
 
 /** Everyone starts knowing the orthodox calls and nothing exotic. */
-export function freshPlaybook(rep: number): Playbook {
+function freshPlaybook(rep: number): Playbook {
   const base = 34 + Math.round(rep * 0.28) // an Elite 14 pack starts better drilled
   const drilled: Record<string, number> = {}
   for (const r of ROUTINES) {

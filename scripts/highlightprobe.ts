@@ -15,9 +15,7 @@ import { newGame } from '../src/game/newgame'
 import { simMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import { isHighlight, tensionAt } from '../src/game/highlights'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const rate = { close: [0, 0], normal: [0, 0], rout: [0, 0] } as Record<string, [number, number]>
 let scores = 0, scoresShown = 0, routExtras = 0, buildUp = 0, matches = 0
@@ -44,5 +42,4 @@ ok(rate.rout[1] > 0 && pct('close') > pct('rout') * 1.5, 'a close game stops the
 ok(pct('close') > pct('normal'), 'and more often than a game in between')
 ok(routExtras === 0, `a rout shows no build-up, conversions or injuries (${routExtras})`)
 ok(buildUp > matches, `a close game shows its build-up (${buildUp} build-up lines)`)
-console.log(fails ? `\nHIGHLIGHT PROBE FAILED (${fails})` : '\nHIGHLIGHT PROBE PASSED: the closer the game, the more of it you see')
-process.exit(fails ? 1 : 0)
+done('HIGHLIGHT PROBE', 'the closer the game, the more of it you see', { exit: true })

@@ -17,16 +17,12 @@
 //   3. The club's afternoon still counts in full - the board reacts and the
 //      report files - and the manager's own record counts only the match his
 //      hands were on.
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import type { Fixture } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
+import { storeSource } from './lib/storefiles'
 
 const g = newGame('northampton', 'TestWeek', 61)
 // take the Scotland job and walk to a week with a club fixture
@@ -91,10 +87,12 @@ const routing: [string, string][] = [
   ['src/game/days.ts', 'userMatchThisWeek'],
 ]
 for (const [file, needle] of routing) {
-  const src = readFileSync(file, 'utf8')
+  const src = file === 'src/store.ts' ? storeSource() : readFileSync(file, 'utf8')
   ok(src.includes(needle), `${file} decides the week's match through ${needle}`)
 }
-const md = readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
+// the match screen is MatchDay.tsx and the parts it is split into under matchday/
+const md = ['src/ui/screens/MatchDay.tsx', ...readdirSync('src/ui/screens/matchday').map(f => `src/ui/screens/matchday/${f}`)]
+  .map(f => readFileSync(f, 'utf8')).join('\n')
 ok(!/const fx = live\?\.fixture \?\? clubFx/.test(md),
   'MatchDay no longer prefers the club fixture over the Test')
 ok(md.includes('assistantFixtureThisWeek'),
@@ -103,5 +101,4 @@ const home = readFileSync('src/ui/screens/Home.tsx', 'utf8')
 ok(home.includes('assistantFixtureThisWeek') && home.includes('home.assistantTakesIt'),
   'the Home card says the assistant takes the club game on a Test week')
 
-console.log(fails ? `\nTEST WEEK PROBE FAILED (${fails})` : '\nTEST WEEK PROBE PASSED: the pinnacle is on the touchline, not in the round-up')
-process.exit(fails ? 1 : 0)
+done('TEST WEEK PROBE', 'the pinnacle is on the touchline, not in the round-up', { exit: true })

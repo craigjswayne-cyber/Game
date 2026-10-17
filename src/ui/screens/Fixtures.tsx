@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
-import { venueBadge, venueEffect } from '../../game/venue'
 import { MIDWEEK_OFF, fixtureDate, fxDate, tieWinner, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageShort } from './Home'
 import { t, compLabel } from '../../game/i18n'
 import { arrangeMidweekFriendly, friendlyDate, friendlySuggestions, friendlyWeeks } from '../../game/season'
+import { rowNav } from '../rowNav'
+import { Veil } from '../Veil'
 
 export default function Fixtures() {
   const game = useStore(s => s.game)!
@@ -55,7 +56,7 @@ export default function Fixtures() {
   // one filter, shown on both pages, because the alternative is a table page
   // that tells you to go to the other page to change which table you are on
   const chips = (
-    <div style={{ display: 'flex', gap: 6, padding: '0 14px 6px', flexWrap: 'wrap', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '8px 6px', padding: '0 14px 6px', flexWrap: 'wrap', alignItems: 'center' }}>
       <button className="preset-chip" style={comp === 'ALL' ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
         onClick={() => setComp('ALL')}>{t(page === 'table' ? 'fixtures.myLeague' : 'fixtures.allComps')}</button>
       {comps.map(cid => (
@@ -96,7 +97,7 @@ export default function Fixtures() {
         <>
       {weekend.length > 0 && (
         <div className="card" style={{ padding: '10px 0' }}>
-          <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: 16 }}>{t('fixtures.thisWeekend')}</h3>
+          <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: '1rem' }}>{t('fixtures.thisWeekend')}</h3>
           <div className="meta" style={{ textAlign: 'center', marginBottom: 4 }}>{weekDate(game.season, game.week)} · {compLabel(game.comps[leagueId!]?.short)}</div>
           {weekend.map(f => (
             /* YOUR game is marked by tinting the row and bolding YOUR name, and the V
@@ -121,7 +122,7 @@ export default function Fixtures() {
             const isNext = !f.played && f.week === game.week
             return (
               <tr key={f.id} className={isNext ? 'next-fx' : undefined}
-                onClick={() => f.played && f.events?.length ? setReplayId(f.id) : undefined}
+                {...(f.played && f.events?.length ? rowNav(() => setReplayId(f.id)) : {})}
                 style={f.played && f.events?.length ? { cursor: 'pointer' } : undefined}>
                 <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fixtureDate(game.season, f.week, f.id, f.midweek ? MIDWEEK_OFF : undefined).replace(/day /, " ")}</td>
                 <td className="name">
@@ -133,7 +134,7 @@ export default function Fixtures() {
                         (user: "on the fixture graphic the sea level isnt
                         needed"). The trip's difficulty still shows where the
                         decision is made: the match-day venue panel. */}
-                    {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}>▸</span> : null}
+                    {f.played && f.events?.length ? <span className="muted" style={{ fontSize: '0.6875rem' }}>▸</span> : null}
                   </span>
                 </td>
                 <td className="muted" style={{ whiteSpace: 'nowrap' }}>{compLabel(game.comps[f.compId]?.short) ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
@@ -185,14 +186,14 @@ export default function Fixtures() {
                           {teamShort(game, id)}
                         </span>
                       </td>
-                      <td className="muted" style={{ whiteSpace: 'nowrap', fontSize: 11 }}>
+                      <td className="muted" style={{ whiteSpace: 'nowrap', fontSize: '0.6875rem' }}>
                         {compLabel(game.comps[game.clubs[id]?.leagueId ?? '']?.short) ?? ''}
                       </td>
                       <td>
                         {/* a real tap target: geosweep holds every button to 44px
                             and this one shipped at 28, which on a phone is a
                             button you miss rather than a button you press */}
-                        <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
+                        <button className="btn ghost" style={{ fontSize: '0.75rem', padding: '12px 14px', minHeight: 44 }}
                           onClick={() => { setFrMsg(arrangeMidweekFriendly(game, id, wk)); touch() }}>
                           {t('fixtures.friendlyPlay')}
                         </button>
@@ -209,22 +210,20 @@ export default function Fixtures() {
         </>
       )}
       {replay && (
-        <div className="modal-veil" onClick={() => setReplayId(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="grab" />
-            <SectionTitle sub={`${fxDate(game.season, replay)}${replay.att ? t('fixtures.replaySub', { att: replay.att, venue: replay.venue?.name ?? game.clubs[replay.homeId]?.stadium ?? t('fixtures.neutralVenueLower') }) : ''}`}>
-              {teamShort(game, replay.homeId)} {replay.homeScore} – {replay.awayScore} {teamShort(game, replay.awayId)}
-            </SectionTitle>
-            <div style={{ padding: '0 4px' }}>
-              {(replay.events ?? []).filter(e => e.type !== 'SUB' || /replaces/.test(e.text)).map((e: MatchEvent, i: number) => (
-                <div key={i} className={`tick-event ${e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big' : e.type === 'YC' ? 'card-y' : e.type === 'RC' ? 'card-r' : e.type === 'INJ' ? 'inj' : ''}`}>
-                  <span className="min">{e.min}'</span>
-                  <span className="txt">{e.text}</span>
-                </div>
-              ))}
-            </div>
+        <Veil onClose={() => setReplayId(null)}>
+          <div className="grab" />
+          <SectionTitle sub={`${fxDate(game.season, replay)}${replay.att ? t('fixtures.replaySub', { att: replay.att, venue: replay.venue?.name ?? game.clubs[replay.homeId]?.stadium ?? t('fixtures.neutralVenueLower') }) : ''}`}>
+            {teamShort(game, replay.homeId)} {replay.homeScore} – {replay.awayScore} {teamShort(game, replay.awayId)}
+          </SectionTitle>
+          <div style={{ padding: '0 4px' }}>
+            {(replay.events ?? []).filter(e => e.type !== 'SUB' || /replaces/.test(e.text)).map((e: MatchEvent, i: number) => (
+              <div key={i} className={`tick-event ${e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big' : e.type === 'YC' ? 'card-y' : e.type === 'RC' ? 'card-r' : e.type === 'INJ' ? 'inj' : ''}`}>
+                <span className="min">{e.min}'</span>
+                <span className="txt">{e.text}</span>
+              </div>
+            ))}
           </div>
-        </div>
+        </Veil>
       )}
       <div className="spacer" />
     </>

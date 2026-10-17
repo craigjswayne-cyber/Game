@@ -21,17 +21,16 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, failures } from './lib/probe.mjs'
 
-const server = await startPreview(4179, 2500)
+const server = await startPreview(0, 2500)
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (cond, what) => { say(`${cond ? '  ok  ' : 'FAIL  '}${what}`); if (!cond) fails++ }
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 
 try {
-  await page.goto('http://localhost:4179/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -50,7 +49,7 @@ try {
   // walk to match day
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
@@ -95,8 +94,15 @@ try {
     const club = g.clubs[g.userClubId]
     return {
       inXV: club.tactic.lineup.slice(0, 15).includes(hurtId),
+      // hurt BEFORE kick-off: a man hurt in the warm-up (lateWithdrawal, 2%
+      // a side) or in play since is logged this week, and is the match's
+      // business, not the gate's - one CI run caught a warm-up withdrawal
       anyInjuredIn23: club.tactic.lineup
-        .some(id => id != null && g.players[id]?.injury),
+        .some(id => {
+          const p = id != null ? g.players[id] : null
+          const last = p?.injLog?.[p.injLog.length - 1]
+          return !!p?.injury && !(last && last.s === g.season && last.w === g.week)
+        }),
       lineup: [...club.tactic.lineup],
     }
   }, hurt.id)
@@ -114,6 +120,6 @@ try {
   server.stop()
 }
 
-if (fails) { say(`\nINJURY GATE PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { say(`\nINJURY GATE PROBE: ${failures()} failures`); process.exit(1) }
 say('\nINJURY GATE PROBE PASSED: no unfit shirt goes down the tunnel')
 done(0)

@@ -116,7 +116,7 @@ export default function Infrastructure() {
             {/* THE GROUND IS A LADDER TOO (owner, v1.6.8): six grounds from a
                 village pitch to a stadium, read off the seats. Same pips as
                 the nine facilities, because it is the same kind of thing. */}
-            <h3 style={{ fontSize: 16, margin: 0 }}>
+            <h3 style={{ fontSize: '1rem', margin: 0 }}>
               <Glyph name="stadium" /> {club.stadium} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(groundLevel(club.capacity))}</span>
             </h3>
             <div className="meta">
@@ -125,7 +125,7 @@ export default function Infrastructure() {
             </div>
             {/* the board will not build seats it cannot sell, so say out loud
                 how many this club could shift on its name alone */}
-            <div className="meta" style={{ fontSize: 11 }}>
+            <div className="meta" style={{ fontSize: '0.6875rem' }}>
               {t('world.infCatchment', {
                 n: demandCeiling(club).toLocaleString(localeTag()),
                 rest: club.capacity >= demandCeiling(club) * 0.95
@@ -134,7 +134,7 @@ export default function Infrastructure() {
               })}
             </div>
             {standBuild && (
-              <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>
+              <div className="meta" style={{ fontSize: '0.6875rem', color: 'var(--gold)', fontWeight: 700 }}>
                 {t(standWeeks === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: standWeeks })}
                 {' '}({standBuild.seats.toLocaleString(localeTag())})
               </div>
@@ -143,22 +143,22 @@ export default function Infrastructure() {
           <div style={{ textAlign: 'right' }}>
             <div className="fact-label">{t('world.infEstate')}</div>
             <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{t(grade.label)}</div>
-            <div className="meta" style={{ fontSize: 11 }}>{t('world.infRankLine', { sum: grade.sum, max: grade.max, ord, n: peers.length })}</div>
+            <div className="meta" style={{ fontSize: '0.6875rem' }}>{t('world.infRankLine', { sum: grade.sum, max: grade.max, ord, n: peers.length })}</div>
           </div>
           {groundLevel(club.capacity) >= GROUND_TIERS.length - 1 && (
             <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>
           )}
           {groundLevel(club.capacity) < GROUND_TIERS.length - 1 && (
-          <button className="btn gold" style={{ padding: '5px 10px', fontSize: 12, lineHeight: 1.25 }}
+          <button className="btn gold" style={{ padding: '5px 10px', fontSize: '0.75rem', lineHeight: 1.25 }}
             disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || plan.seats < 100 || busy}
             onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
             {t('world.infAskExpand')}<br />
-            <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(localeTag()), cost: fmtMoney(plan.cost) })}</span>
+            <span style={{ fontSize: '0.6875rem', fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(localeTag()), cost: fmtMoney(plan.cost) })}</span>
           </button>
           )}
         </div>
         {msg?.key === 'expand' && (
-          <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+          <div className="meta" style={{ fontSize: '0.75rem', fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
             {msg.text}
           </div>
         )}
@@ -181,29 +181,29 @@ export default function Infrastructure() {
             <div className="card" key={fid} id={`fac-${fid}`} style={{ margin: 0, padding: '8px 10px', ...ring(fid) }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
-                  <h3 style={{ fontSize: 14, margin: 0 }}>
+                  <h3 style={{ fontSize: '0.875rem', margin: 0 }}>
                     <Glyph name={info.icon} /> {t(info.name)} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(lvl)}</span>
                   </h3>
-                  <div className="meta" style={{ fontSize: 11 }}>{t(info.desc)}</div>
-                  <div className="meta" style={{ fontSize: 11, fontWeight: 700 }}>
+                  <div className="meta" style={{ fontSize: '0.6875rem' }}>{t(info.desc)}</div>
+                  <div className="meta" style={{ fontSize: '0.6875rem', fontWeight: 700 }}>
                     {lvl === 0 && fid !== 'pitch'
                       ? t('world.infNothing')
                       : t('world.infLevelIs', { n: lvl, effect: EFFECT[fid](lvl) })}
                   </div>
-                  {building && <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>{t(weeksLeft === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: weeksLeft })}</div>}
+                  {building && <div className="meta" style={{ fontSize: '0.6875rem', color: 'var(--gold)', fontWeight: 700 }}>{t(weeksLeft === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: weeksLeft })}</div>}
                 </div>
                 {!building && lvl < MAX_FACILITY && (
-                  <button className="btn gold" style={{ padding: '5px 9px', fontSize: 11, lineHeight: 1.25, flexShrink: 0 }}
+                  <button className="btn gold" style={{ padding: '5px 9px', fontSize: '0.6875rem', lineHeight: 1.25, flexShrink: 0 }}
                     disabled={busy}
                     onClick={() => { setMsg({ key: fid, text: requestFacility(game, fid) }); touch() }}>
                     {t('world.infAskBoard')}<br />
-                    <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infLevelCost', { n: lvl + 1, cost: fmtMoney(cost) })}</span>
+                    <span style={{ fontSize: '0.6875rem', fontWeight: 600 }}>{t('world.infLevelCost', { n: lvl + 1, cost: fmtMoney(cost) })}</span>
                   </button>
                 )}
                 {lvl >= MAX_FACILITY && <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>}
               </div>
               {msg?.key === fid && (
-                <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                <div className="meta" style={{ fontSize: '0.75rem', fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
                   {msg.text}
                 </div>
               )}

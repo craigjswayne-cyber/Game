@@ -21,12 +21,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { loanApproachable, loanBuyOffer, loanIn, loanRival, loanTargets, loanTerms, isApproach, LOAN_BUY_MIN_WEEKS } from '../src/game/loans'
 import { rivalsOf } from '../src/game/rivalries'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const g = newGame('bath', 'Test', 4242)
 
@@ -123,6 +118,6 @@ ok(pct >= 50, `the parent club "will likely sell" - and likely means likely (${p
 ok(crucial < n, 'but not every one of them: "crucial" is a real exception, not a formality')
 
 console.log('')
-if (fails === 0) console.log('LOAN ASK PROBE PASSED: you may ask about anyone young, a rival always says no, and a trial ends in an option')
-else console.log(`LOAN ASK PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('LOAN ASK PROBE PASSED: you may ask about anyone young, a rival always says no, and a trial ends in an option')
+else console.log(`LOAN ASK PROBE FAILED (${failures()})`)
+process.exit(failures())

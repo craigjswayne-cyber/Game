@@ -22,12 +22,7 @@ import { newGame } from '../src/game/newgame'
 import { simMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const base = newGame('northampton', 'Blow', 17)
 const clubs = Object.values(base.clubs)
@@ -125,5 +120,4 @@ const RATE = 1 / 500
   ok(over < N * RATE, `two top clubs never approach three figures: past 60 in ${over} of ${N} (under 1 in 500 is ${N * RATE})`)
 }
 
-console.log(fails ? `\nBLOWPROBE FAILED (${fails})` : '\nBLOWPROBE PASSED')
-process.exit(fails ? 1 : 0)
+done('BLOWPROBE', '', { exit: true })

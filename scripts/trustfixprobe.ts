@@ -34,14 +34,10 @@ import { lineText } from '../src/game/matchfindings'
 import { windowOpen } from '../src/game/ai'
 import { userWageBudget } from '../src/game/grants'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
+import { ok, failures } from './lib/probe'
 
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'af', 'ja']
 for (const l of LANGS) await ensureLang(l)
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const raw = (s: string) => /[{}]|\b[a-z]+\.[a-zA-Z_]+\b/.test(s.replace(/\d+\.\d+/g, ''))
 
 const g = newGame('leicester', 'Trust Tester', 18_585)
@@ -155,5 +151,5 @@ const week0 = g.week
   ok(!!th && (th.lines.some(l => /Homework/.test(deskText(l))) || th.go?.screen !== 'tactics'), `a new job is (or the thread has something stronger to say): ${th ? th.lines.map(l => deskText(l)).join(' ') : 'none'}`)
 }
 
-if (fails) { console.log(`\n${fails} FAILED`); process.exit(1) }
+if (failures()) { console.log(`\n${failures()} FAILED`); process.exit(1) }
 console.log('\nTRUST FIX PROBE PASSED')

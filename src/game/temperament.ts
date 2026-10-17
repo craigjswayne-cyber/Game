@@ -21,15 +21,15 @@
 import type { GameState, Player } from './model'
 import { careerRows } from './model'
 import { benchDrag, bigMatchTemper, consistency } from './attributes'
-import { analystSkill } from './analyst'
+import { analystSkill } from './analystskill'
 import { reportStage } from './scout'
 
 export const KNOWN_APPS = 10
 export const FAIR_APPS = 4
 
-export type ReadLevel = 'none' | 'pending' | 'vague' | 'full'
-export type ConsBand = 'steady' | 'mid' | 'erratic'
-export type BigBand = 'thrive' | 'mid' | 'freeze'
+type ReadLevel = 'none' | 'pending' | 'vague' | 'full'
+type ConsBand = 'steady' | 'mid' | 'erratic'
+type BigBand = 'thrive' | 'mid' | 'freeze'
 
 /** The bands, on the hidden numbers. consistency runs 0.02-0.07 uniform, so
  *  each end is three players in ten; bigMatchTemper runs -1..1 uniform, same. */
@@ -44,14 +44,14 @@ export function bigBand(seed: number, id: number): BigBand {
 
 /** Appearances for the manager's club: every past season there, and this one
  *  while he is still on the books. */
-export function appsForUser(state: GameState, p: Player): number {
+function appsForUser(state: GameState, p: Player): number {
   let n = p.clubId === state.userClubId ? p.stats.apps : 0
   for (const r of careerRows(p)) if (r.clubId === state.userClubId) n += r.apps
   return n
 }
 
 /** Matches' worth of knowing him that the analyst's homework is worth. */
-export function analystApps(state: GameState): number {
+function analystApps(state: GameState): number {
   const s = analystSkill(state)
   return s >= 0.6 ? KNOWN_APPS : s >= 0.48 ? FAIR_APPS : 0
 }
@@ -66,7 +66,7 @@ export function readLevel(state: GameState, p: Player): ReadLevel {
   return st >= 3 ? 'full' : st >= 2 ? 'vague' : 'none'
 }
 
-export interface TemperRead {
+interface TemperRead {
   level: ReadLevel
   /** i18n keys, in the order the screen shows them (the player screen adds
    *  _f for a woman through its own gendered t) */

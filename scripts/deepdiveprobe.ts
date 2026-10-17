@@ -27,12 +27,7 @@ import { agencyCanSee, agencyKids } from '../src/game/agency'
 import { mulberry32 } from '../src/game/rng'
 import { tIn } from '../src/game/i18n'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const unread = (g: GameState, p: Player) => p.clubId !== g.userClubId && knowledge(g, p) < WATCH_KNOW
 const noReading = (g: GameState, p: Player) => p.clubId !== g.userClubId && paRange(g, p) === null
@@ -170,5 +165,4 @@ console.log('--- 5. a pure lens')
   ok(JSON.stringify(g) === before, 'reading the fog leaves the save byte-identical')
 }
 
-console.log(fails ? `\nDEEP DIVE PROBE FAILED (${fails})` : '\nDEEP DIVE PROBE PASSED: no unscouted ceiling leaks, and scouting is the way in')
-if (fails) process.exit(1)
+done('DEEP DIVE PROBE', 'no unscouted ceiling leaks, and scouting is the way in')

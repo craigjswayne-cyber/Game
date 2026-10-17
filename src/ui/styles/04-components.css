@@ -1,0 +1,212 @@
+/* ================= Cards ================= */
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin: 9px 12px;
+  padding: 11px 13px;
+
+}
+/* a card that is also a button: the width used to be an inline
+   calc(100% - 28px) on every one of them, which no grid could override */
+button.card { display: block; width: calc(100% - 28px); text-align: left; }
+.card h3 { font-family: var(--sans); font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; letter-spacing: .1px; }
+.fx-line { font-size: 1.125rem; margin: 4px 0; }
+.card .meta { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+
+/* ================= News ================= */
+.news-item {
+  display: block; width: 100%; text-align: left;
+  padding: 12px 16px 11px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.news-item .subj {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  letter-spacing: .1px;
+  line-height: 1.3;
+}
+.news-item.unread .subj::before {
+  content: '';
+  display: inline-block;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--gold-fill);
+  margin-right: 7px;
+  vertical-align: 2px;
+}
+.news-item .body {
+  font-size: 0.8125rem; color: var(--text-secondary); margin-top: 3px; font-weight: 500;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; white-space: pre-line; line-height: 1.5;
+}
+.news-item .when {
+  font-family: var(--cond);
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--gold);
+}
+.news-item.open .body { display: block; -webkit-line-clamp: unset; }
+
+/* ================= Bottom nav ================= */
+/* --ad-inset is 0px everywhere the game runs on its own. A packaged shell with
+   an advert provider (packaging/shell/ads-bridge.js) sets it to the height of
+   the native banner it has drawn over the bottom of the web view, and to 0px
+   again when the banner goes, so the banner sits UNDER the nav in room the nav
+   has made for it - never over content, never over a button. Declared here
+   rather than in tokens.css because it is room, not colour. */
+:root {
+  --ad-inset: 0px;
+  /* THE SAFE AREA, AS A TOKEN. Browsers answer env(safe-area-inset-*) and that
+     is the default here. Android's WebView does not: on Android 15 the app is
+     drawn edge to edge under the status bar and the gesture or button bar, and
+     env() reads 0px, so the game's bottom edge sat under the system bar and
+     "Continue to Results" could not be reached (owner, 1.2.9 on a real phone).
+     Capacitor's built-in SystemBars plugin measures the bars and writes these
+     four variables INLINE on <html>, which beats this rule, so every read below
+     goes through the token and gets the right answer on both. */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+/* ---- THE BOTTOM NAV (1.8.0) ----
+   Owner: "I really like the Sainsbury's bottom menu selection - can we
+   incorporate that into the add for our buttons down the bottom". So it is
+   the same shape: a rounded bar floating clear of the screen edge, every
+   button an icon over its name, and the one you are on sitting in a soft pill
+   in the club colour. Badges stay on the icons. The FM-style icon-only rail
+   it replaces made a new manager guess what a clipboard meant.
+   The floor under it (home indicator, the ad banner) is a margin now, so the
+   bar floats above the banner rather than stretching down behind it. */
+.bottom-nav {
+  display: flex; gap: 2px;
+  margin: 0 10px calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 8px);
+  padding: 5px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .32);
+}
+.bottom-nav button {
+  flex: 1 1 0; min-width: 0;
+  position: relative;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: .2px;
+  padding: 6px 2px 5px;
+  border-radius: 19px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: color .15s ease, background-color .2s ease;
+}
+.bottom-nav button.active {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+.bottom-nav .nlbl {
+  display: block; max-width: 100%; line-height: 1.15;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bottom-nav .ico { width: 26px; height: 26px; display: block; }
+.bottom-nav .ico svg { width: 100%; height: 100%; display: block; }
+.bottom-nav .nbadge { position: relative; }
+.bottom-nav .dot {
+  position: absolute; top: -3px; right: -9px;
+  background: var(--danger);
+  color: var(--on-danger); font-size: 0.6875rem; font-weight: 800;
+  min-width: 15px; height: 15px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; padding: 0 4px;
+  border: 1.5px solid var(--surface-1);
+}
+
+/* ================= Buttons ================= */
+.btn {
+  display: inline-block;
+  background: var(--surface-3);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: .3px;
+  padding: 9px 13px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+.btn.gold {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  box-shadow: none;
+}
+.btn.danger { background: var(--danger); color: var(--on-danger); }
+/* A full-width button is always a primary action, so it gets the full target.
+   Deliberately not put on .btn itself: nineteen small buttons live inside live
+   table rows, and growing those to 44px would both undo the density pass and
+   push the row they sit in around. Those are covered by an explicit, narrower
+   floor in scripts/tapsize.mjs instead. */
+.btn.block { display: block; width: calc(100% - 28px); margin: 12px 14px; min-height: 44px; }
+.btn:disabled { opacity: .4; }
+.btn:active { transform: translateY(1px); }
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 14px; }
+.btn-row .btn { flex: 1; }
+/* THE NEWS READER'S BUTTONS (27 Sep 2026): one line each, never three */
+.wire-actions .btn { white-space: nowrap; min-height: 44px; }
+/* ONE TYPE SCALE (owner, 27 Sep 2026, beside FM26 screenshots: "make sure
+   there is a consistent text sizing and the way its shown"). Thirty sizes,
+   half of them half-pixels (10.5, 11.5, 12.5...), became eight steps: 11
+   captions, 12 labels, 13 small body and buttons, 14 body, 16 subheads and
+   big buttons, 18 and 20 headings, 22 titles. Display type (the title,
+   scores, the pitch's own labels) keeps its own sizes. */
+
+/* ================= Attributes ================= */
+.attr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; padding: 10px 16px; background: var(--surface-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.attr {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary);
+  padding: 4.5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.attr span:first-child { flex: 1; }
+.attr .bar {
+  width: 52px; height: 4px; border-radius: 2px;
+  background: var(--surface-2);
+  overflow: hidden; flex-shrink: 0;
+}
+.attr .bar i {
+  display: block; height: 100%;
+  border-radius: 2px;
+}
+.attr .v {
+  font-family: var(--cond);
+  font-weight: 700; font-size: 1rem;
+  width: 22px; text-align: right; color: var(--text-primary);
+}
+.attr .v.elite { color: var(--gold); }
+.attr .v.good { color: var(--primary); }
+.attr .v.poor { color: var(--text-muted); }
+
+/* ================= Chips ================= */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 10px 16px; }
+.chip {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 4.5px 9px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+
+}
+.chip b { font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+

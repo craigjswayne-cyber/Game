@@ -26,8 +26,7 @@ import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
-const PORT = 4251
-const server = await startPreview(PORT, 2500)
+const server = await startPreview(0, 2500)
 
 let fails = 0
 const seen = new Set()
@@ -44,7 +43,9 @@ function say(s) { writeSync(1, s + '\n') }
 // The same target and the same two documented floors tapsize.mjs polices, kept
 // deliberately in step with it: two probes that disagree about how big a button
 // has to be will eventually be resolved by loosening one of them.
-const MIN_TAP = { MIN: 44, FLOOR: ['preset-chip', 'form-chip', 'chip'] }
+// (the three chip floors went in the WCAG pass: every family reaches 44 now)
+// th-btn is the sortable column header, held to its column's width (see tapsize)
+const MIN_TAP = { MIN: 44, FLOOR: [['th-btn', 28]] }
 
 // the floor, the phone it is played on, and a big one.
 //
@@ -84,7 +85,7 @@ try {
     // NIGHT MODE, because that is the theme the game is played in and the theme
     // two of the last three layout bugs only existed in.
     await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
-    await page.goto(`http://localhost:${PORT}/`)
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 
     // a career, quickly, the way every other browser harness starts one
@@ -221,7 +222,7 @@ try {
           }
           const w = reach(-1, 0) + reach(1, 0) + 1
           const h = reach(0, -1) + reach(0, 1) + 1
-          const need = MIN_TAP.FLOOR.find(f => e.classList.contains(f)) ? 36 : MIN_TAP.MIN
+          const need = MIN_TAP.FLOOR.find(([f]) => e.classList.contains(f))?.[1] ?? MIN_TAP.MIN
           if (Math.min(w, h) < need) {
             out.small.push(`${label(e)} reaches ${w}x${h}, needs ${need}`)
           }

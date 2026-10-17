@@ -39,12 +39,7 @@ import { replayMatch, stampedRecord, type MatchResume } from '../src/game/resume
 import { applyPreTalk, beginMatch, playHalf, resolveDecision, stepTick } from '../src/game/matchEngine'
 import { matchRng } from '../src/game/season'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const st = useStore
 const SLOT = 'slot1'
@@ -351,5 +346,5 @@ for (const seed of [4242, 34]) {
 console.log('')
 for (const [p, n] of Object.entries(reached)) ok(n > 0, `reopened at "${p}" ${n} times`)
 
-if (fails) { console.error(`\nNOSCUM PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nNOSCUM PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nNOSCUM PROBE PASSED: a match that has kicked off is finished once, never replayed')

@@ -1,5 +1,5 @@
 import type { GameState, Player, TrainingFocus } from './model'
-import { planCap } from './season'
+import { planCap } from './season/training'
 
 /**
  * ---- WHO CAN BE PICKED FOR DEVELOPMENT FOCUS AND PERSONAL PLANS ----

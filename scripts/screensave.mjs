@@ -33,16 +33,17 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 
-const PORT = 4193
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const say = s => console.log(s)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
+// bypassCSP: onDisk() reads a save with new Function, which the page's CSP
+// (no unsafe-eval, 1.9.1) refuses. The rest of the browser list runs under it.
 
 async function career(page, club = 'Leicester') {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.click('text=English Premier Division')
@@ -72,7 +73,7 @@ const onDisk = (page, pick) => page.evaluate(async (pick) => {
 const go = (page, screen, param) => page.evaluate(([s, p]) => window.rugbyStore.getState().go(s, p), [screen, param])
 
 try {
-  const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
+  const page = await browser.newPage({ viewport: { width: 412, height: 915 }, bypassCSP: true })
   const errors = []
   page.on('pageerror', e => errors.push(String(e).slice(0, 200)))
   await career(page)
@@ -140,7 +141,9 @@ try {
   ok(now !== was, `the training focus changed on screen (${was} to ${now}, "${picked}")`)
   const mid = await stats(page)
   ok(mid.marks > before.marks, `and the tap marked the save (${mid.marks - before.marks} mark)`)
-  await page.waitForTimeout(1500)
+  // the queue writes 600ms after the last mark and then waits for an idle
+  // moment, two seconds at most (1.9.1): give a busy runner the whole window
+  for (let t = 0; t < 60 && (await stats(page)).writes <= before.writes; t++) await page.waitForTimeout(100)
   ok((await stats(page)).writes > before.writes, 'and the queue wrote it')
   ok(await onDisk(page, s => s.training) === now, 'the new focus is on the disk without a Continue')
   // the phone's way out: change it again and leave at once
@@ -228,7 +231,7 @@ try {
   say('\n--- the game plan, applied once')
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
   const onMd = await page.locator('text=Kick Off ▸').count() > 0
@@ -321,7 +324,7 @@ try {
 
   say('\n--- a save shaped file with nothing to play is refused on import')
   {
-    const p2 = await browser.newPage({ viewport: { width: 412, height: 915 } })
+    const p2 = await browser.newPage({ viewport: { width: 412, height: 915 }, bypassCSP: true })
     await career(p2, 'Bath')
     await p2.evaluate(() => window.rugbyStore.getState().go('saves'))
     await p2.waitForTimeout(400)
@@ -368,7 +371,7 @@ try {
 
   say('\n--- a till with no advert bridge locks no skin')
   {
-    const p3 = await browser.newPage({ viewport: { width: 412, height: 915 } })
+    const p3 = await browser.newPage({ viewport: { width: 412, height: 915 }, bypassCSP: true })
     await p3.addInitScript(() => {
       globalThis.rmBilling = {
         details: async (sku) => ({ sku }), buy: async () => 'cancelled', owned: async () => [], consume: async () => {},

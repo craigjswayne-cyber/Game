@@ -18,14 +18,11 @@
 //
 // Run: node scripts/ftprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { startPreview, done } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, done } from './lib/probe.mjs'
 
-const say = (s) => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
-
-const server = await startPreview('4233', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 393, height: 852 }, locale: 'en-GB' })
 page.setDefaultTimeout(15000)
@@ -48,7 +45,7 @@ const answer = async () => {
 
 try {
   // ---- the title ----
-  await page.goto('http://localhost:4233/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.waitForTimeout(400)
   const title = await page.evaluate(() => {
@@ -75,7 +72,8 @@ try {
     if (await page.locator('text=Kick Off ▸').count()) break
     const rej = page.locator('.btn.danger >> text=Reject')
     if (await rej.count()) { await rej.first().click(); await page.waitForTimeout(200); continue }
-    await page.click('.continue-btn'); await page.waitForTimeout(450)
+    // a turning week covers the button for a moment: try again next tap
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(450)
   }
   await page.locator('text=Kick Off ▸').first().click()
   try { await page.locator('.talk-modal').waitFor({ timeout: 3000 }); await page.click('.talk-modal .speech-tile >> nth=0') } catch {}
@@ -85,13 +83,20 @@ try {
   // ---- skip to full time ----
   for (let i = 0; i < 160; i++) {
     if (await page.locator('.ft-continue').count()) break
+    // the injury-wait sheet (1.9.1) covers the controls until a change is made
+    if (await page.locator('.sheet-col').first().isVisible().catch(() => false)) {
+      await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.btn', { hasText: /Back to the Match|Done|Close/ }).first().click({ timeout: 3000 }).catch(() => {})
+      continue
+    }
     if (await answer()) continue
     for (const label of ['▸ Start Second Half', '▸ Play the Final Quarter']) {
       const b = page.locator(`text=${label}`)
-      if (await b.count()) await b.first().click().catch(() => {})
+      if (await b.count()) await b.first().click({ timeout: 3000 }).catch(() => {})
     }
     const s = page.locator('.speed-controls [data-ctl=skip]:not([disabled])')
-    if (await s.count()) await s.first().click().catch(() => {})
+    if (await s.count()) await s.first().click({ timeout: 3000 }).catch(() => {})
     await page.waitForTimeout(400)
   }
   await page.waitForSelector('.ft-continue', { timeout: 25000 })
@@ -149,5 +154,4 @@ try {
 if (errors.length) ok(false, `page errors: ${[...new Set(errors)].join(' | ').slice(0, 200)}`)
 await browser.close()
 await server.stop?.()
-say(fails ? `\nFT PROBE FAILED (${fails})` : '\nFT PROBE PASSED: the title meets the floor, Continue comes before the stats, and no advert covers a button')
-done(fails)
+done('FT PROBE', 'the title meets the floor, Continue comes before the stats, and no advert covers a button', { exit: true })

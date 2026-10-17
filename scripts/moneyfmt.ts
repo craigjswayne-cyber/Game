@@ -26,12 +26,7 @@
 import { readFileSync } from 'node:fs'
 import { readdirSync } from 'node:fs'
 import { fmtMoney, fmtWage } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 console.log('--- 1. every figure either formatter can produce has one of the game\'s shapes\n')
 
@@ -78,8 +73,8 @@ for (const f of files) {
   const src = readFileSync(f, 'utf8')
   src.split('\n').forEach((line, i) => {
     if (line.trimStart().startsWith('*') || line.trimStart().startsWith('//')) return
-    // model.ts IS the ladder - it is the one file allowed to build the strings
-    if (f === 'src/game/model.ts') return
+    // model/money.ts IS the ladder - it is the one file allowed to build the strings
+    if (f === 'src/game/model/money.ts') return
     // £ immediately followed by an interpolation is a hand-built figure
     if (/£\$\{|£\{/.test(line)) handmade.push(`${f}:${i + 1}  ${line.trim().slice(0, 90)}`)
   })
@@ -104,5 +99,4 @@ for (const f of files) {
 ok(perWeek.length === 0,
   `every /wk figure is a wage${perWeek.length ? `:\n        ${perWeek.join('\n        ')}` : ''}`)
 
-console.log(fails ? `\nMONEY FORMAT PROBE FAILED (${fails})` : '\nMONEY FORMAT PROBE PASSED: one ladder, two units, no commas')
-process.exit(fails ? 1 : 0)
+done('MONEY FORMAT PROBE', 'one ladder, two units, no commas', { exit: true })

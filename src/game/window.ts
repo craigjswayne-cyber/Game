@@ -104,7 +104,7 @@ export function openDate(state: GameState): Record<string, string> {
  * simulated without the day walk still carries every notice, in order. A
  * stamp in the save (windowNote) makes each one post once, reload or not.
  */
-export type WindowNote = 'open' | 'left3' | 'left2' | 'left1' | 'shut'
+type WindowNote = 'open' | 'left3' | 'left2' | 'left1' | 'shut'
 
 /** The notice due on this day of this week, if any. Pure. */
 export function windowNoteOn(week: number, day: number): WindowNote | null {

@@ -26,10 +26,9 @@ import { chromium } from 'playwright-core'
 import { readFileSync, readdirSync } from 'node:fs'
 import { writeSync } from 'node:fs'
 import { done, startPreview } from './lib/preview.mjs'
+import { ok, failures } from './lib/probe.mjs'
 
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (cond, what) => { say(`${cond ? '  ok  ' : 'FAIL  '}${what}`); if (!cond) fails++ }
 
 // ---- every key the UI actually puts in a sub ----
 const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap(e =>
@@ -108,10 +107,10 @@ for (const { title, sub } of [...pairs.values()].sort((a, b) => (a.sub > b.sub ?
 }
 say(`  ${lines.length} headings to measure (both languages, both plural forms)`)
 
-const server = await startPreview(4247, 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625 })
-await page.goto('http://localhost:4247/', { waitUntil: 'networkidle' })
+await page.goto(`${server.origin}/`, { waitUntil: 'networkidle' })
 await page.waitForTimeout(400)
 
 // AND AT EVERY TEXT SIZE THE GAME OFFERS. The zoom control (store.textScale)
@@ -204,10 +203,10 @@ await browser.close()
 // it: every run left a vite preview holding port 4247, so the next run could not
 // bind it
 server.stop()
-say(fails === 0
+say(failures() === 0
   ? '\nSUBLINE PASSED: one line under a title, everywhere, in six languages'
-  : `\nSUBLINE FAILED: ${fails}`)
+  : `\nSUBLINE FAILED: ${failures()}`)
 // done() takes the FAILURE COUNT and exits with it - it is not a server
 // shutdown. Handing it the server object exited 1 on a clean run, which is how
 // this probe reported red while printing every ok.
-done(fails)
+done(failures())

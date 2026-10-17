@@ -63,7 +63,7 @@ export const MIN_WINS = 2
  */
 export const AWARD_EVERY = 6
 
-export interface MonthRun {
+interface MonthRun {
   clubId: string
   matches: number
   wins: number

@@ -47,15 +47,11 @@ import { legendsFacing, service } from '../src/game/legends'
 import { madeBy } from '../src/game/records'
 import { playerStory } from '../src/game/stories'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
+import { ok, failures } from './lib/probe'
 
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'af', 'ja']
 for (const l of LANGS) await ensureLang(l)
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const SEASONS = Number(process.env.SEASONS ?? 9)
 const CAREERS = Number(process.env.CAREERS ?? 3)
 const say = (k: string, v: Record<string, string | number> = {}) => tIn('en', k, v)
@@ -352,5 +348,5 @@ if (formerOf) {
   const nag = top(deskWeeks).filter(([, n]) => n / weeksSeen > 0.25)
   ok(nag.length === 0, `no desk line on show in more than a week in four${nag.length ? `: ${nag.map(([s, n]) => `${s} ${Math.round(n / weeksSeen * 100)}%`).join('; ')}` : ''}`)
 }
-if (fails) { console.log(`\n${fails} FAILED`); process.exit(1) }
+if (failures()) { console.log(`\n${failures()} FAILED`); process.exit(1) }
 console.log('\nMEMORY AUDIT PROBE PASSED')

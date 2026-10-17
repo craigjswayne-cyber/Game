@@ -46,13 +46,13 @@
 
 import type { Attrs, Club, GameState, Player, Pos, TrainingFocus } from './model'
 import { absWeek, XV_SLOTS } from './model'
-import { attrWeight, benchDrag, isLateBloomer } from './attributes'
+import { attrWeight, benchDrag, isLateBloomer } from './attrtemplates'
 import { clamp, mulberry32 } from './rng'
 
 type K = keyof Attrs
 
 export type Group = 'defence' | 'attack' | 'physical' | 'setpiece' | 'kicking' | 'reading'
-export const GROUPS: Group[] = ['defence', 'attack', 'physical', 'setpiece', 'kicking', 'reading']
+const GROUPS: Group[] = ['defence', 'attack', 'physical', 'setpiece', 'kicking', 'reading']
 export const GROUP_ATTRS: Record<Group, K[]> = {
   defence: ['tac', 'pos', 'ruc'],
   attack: ['han', 'pas'],
@@ -62,13 +62,13 @@ export const GROUP_ATTRS: Record<Group, K[]> = {
   reading: ['vis', 'dec'],
 }
 /** Which learning group a training programme works on. */
-export const FOCUS_GROUP: Record<TrainingFocus, Group | null> = {
+const FOCUS_GROUP: Record<TrainingFocus, Group | null> = {
   balanced: null, scrum: 'setpiece', lineout: 'setpiece', attack: 'attack',
   defence: 'defence', fitness: 'physical', kicking: 'kicking',
 }
 
 export type Tempo = 'early' | 'steady' | 'late'
-export interface Learning { tempo: Tempo; quick: Group | null; slow: Group | null }
+interface Learning { tempo: Tempo; quick: Group | null; slow: Group | null }
 
 /** One uniform 0..1 per (seed, id, salt, n): no rng draw is spent. */
 export function devHash(seed: number, id: number, salt: number, n = 0): number {
@@ -120,7 +120,7 @@ export function tempoF(t: Tempo, age: number): number {
 // ------------------------------------------------------------------
 
 /** The position a man is in on his club's current team sheet (XV only), or null. */
-export function sheetPos(state: GameState, p: Player): Pos | null {
+function sheetPos(state: GameState, p: Player): Pos | null {
   const club = p.clubId ? state.clubs[p.clubId] : null
   const lu = club?.tactic?.lineup
   if (!lu) return null
@@ -131,7 +131,7 @@ export function sheetPos(state: GameState, p: Player): Pos | null {
 /** The mean match rating the world plays to: confidence reads a man's last
  *  three against it. Measured, not assumed: every rating in every man's last
  *  ten at the end of three seasons, seed 777, averaged 6.09, 6.08 and 6.09. */
-export const CONF_CENTRE = 6.1
+const CONF_CENTRE = 6.1
 
 /**
  * Confidence, -1..1, from what he has actually done lately: his last three
@@ -162,7 +162,7 @@ export function heavyLoad(p: Player): boolean {
  *  rewards. A forward-oriented, physical side rewards the set piece and the
  *  body; an expansive, fast one the hands and the reading of the game; a
  *  kicking side the boot; a rush defence the defensive system. */
-export function styleGroups(club: Club | null | undefined): Group[] {
+function styleGroups(club: Club | null | undefined): Group[] {
   const tc = club?.tactic
   if (!tc) return []
   const out: Group[] = []
@@ -192,7 +192,7 @@ export function styleFit(state: GameState, p: Player): -1 | 0 | 1 {
  *  centres the academy estate on). */
 export const COE_MEAN = 1.9
 
-export interface DriveParts {
+interface DriveParts {
   minutes: number
   conf: number
   position: number
@@ -300,10 +300,10 @@ export const TL = {
 export const TL_MAX = 12
 
 /** Is a man still young enough for his ceiling to be in question? */
-export const driftAge = (seed: number, p: Pick<Player, 'id' | 'age'>) =>
+const driftAge = (seed: number, p: Pick<Player, 'id' | 'age'>) =>
   p.age <= (isLateBloomer(seed, p.id) ? 25 : 22)
 
-export interface ReviewOut { d: number; gain: number; flags: number }
+interface ReviewOut { d: number; gain: number; flags: number }
 
 /**
  * One man's season, reviewed at the stats archive (rollover.ts), before the
@@ -390,7 +390,7 @@ export function markSights(p: Player, before: number | null, after: number | nul
  *  when the staff's read of the squad he inherited is written, so it is
  *  learned over that season rather than handed over on day one); plus a
  *  week for every match for the club. */
-export function staffWeeks(state: GameState, p: Player): number {
+function staffWeeks(state: GameState, p: Player): number {
   if (p.clubId !== state.userClubId) return 0
   const now = absWeek(state.season, state.week)
   const since = p.joinedAt != null ? now - p.joinedAt : now - absWeek(0, 1)
@@ -399,7 +399,7 @@ export function staffWeeks(state: GameState, p: Player): number {
 
 /** How much quicker the staff read him: the assistant's badge and, for the
  *  under-21s the Centre of Excellence works with, its level. */
-export function staffSight(state: GameState, p: Player): number {
+function staffSight(state: GameState, p: Player): number {
   const club = state.clubs[state.userClubId]
   const coe = p.age <= 21 ? (club?.facilities?.academy ?? 0) : 0
   return 1 + (state.staff?.assistant ?? 0) * 0.15 + coe * 0.1
@@ -412,7 +412,7 @@ function needWeeks(seed: number, id: number, what: number): number {
   return what === 0 ? 10 + u * 16 : what === 1 ? 18 + u * 22 : 24 + u * 16
 }
 
-export interface DevLine { k: string; v?: Record<string, string | number> }
+interface DevLine { k: string; v?: Record<string, string | number> }
 
 /**
  * The staff's read of how he learns, in plain words. The manager's own men

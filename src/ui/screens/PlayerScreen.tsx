@@ -4,10 +4,10 @@ import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, inj
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
-import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
+import { FormPill, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
-import { firstProWage, fineAttr, playerWage } from '../../game/attributes'
+import { firstProWage, fineAttr } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
@@ -141,7 +141,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h3 style={{ fontSize: 20 }}>{p.name}</h3>
+            <h3 style={{ fontSize: '1.25rem' }}>{p.name}</h3>
             <div className="meta">
               <PosBadge pos={p.pos} /> {posName(p.pos)}
               {p.alt.length > 0 && <span className="muted">{t('player.alsoPlays', { pos: p.alt.join(', ') })}</span>}
@@ -183,7 +183,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           clearer"). The verdict line reads them out loud first, and every chip
           below now carries a plain-language title so a long-press explains it. */}
       <div className="card" style={{ borderLeft: `4px solid ${p.injury || p.bans > 0 ? 'var(--danger)' : p.form >= 7 ? 'var(--text-positive)' : 'var(--gold)'}` }}>
-        <div className="meta" style={{ fontSize: 13, lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
+        <div className="meta" style={{ fontSize: '0.8125rem', lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
       </div>
 
       {/* THE READ AND THE CHARACTER, SIDE BY SIDE WHERE THERE IS ROOM (1.9.0):
@@ -359,7 +359,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               <>
                 <div className="fact-label" style={{ marginTop: (p.ratings?.length ?? 0) > 0 ? 8 : 0 }}>{t('player.injuryRecord')}</div>
                 <div className="meta">{t('player.injuryTally', { n: log.length })}, {t('player.injuryWeeksOut', { n: weeks })} · <b>{t(read)}</b></div>
-                <div className="meta muted" style={{ fontSize: 12 }}>
+                <div className="meta muted" style={{ fontSize: '0.75rem' }}>
                   {log.slice(-3).reverse().map((e, i) => (
                     <span key={i}>{i > 0 ? ' · ' : ''}{injuryDesc({ desc: e.dk, dk: e.dk })} ({t('player.injWeeks', { n: e.weeks })})</span>
                   ))}
@@ -372,13 +372,13 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 
       <div className="chips">
         <span className="chip" title={t('player.overallTitle')}>
-          {t('player.overall')} <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
+          {t('player.overall')} <b style={{ fontSize: '0.8125rem' }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
         {(p.caps ?? 0) > 0 && <span className="chip"><Glyph name="nations" /> <b>{p.caps}</b> {t('player.caps')}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: 'var(--gold)' } : undefined}>
           {t('player.scouted')} <b>{Math.round(know)}%</b></span>}
       </div>
       {!mine && (
-        <div className="meta" style={{ padding: '2px 16px 4px', fontSize: 12 }}>
+        <div className="meta" style={{ padding: '2px 16px 4px', fontSize: '0.75rem' }}>
           <Glyph name="agency" /> {t(`scoutStage.${reportStage(game, p)}`)}
         </div>
       )}
@@ -581,7 +581,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 <span className="tl-moments" />
               </div>
             )}
-            {!(p.tl?.length) && <div className="meta muted" style={{ fontSize: 12 }}>{t('dev.tlEmpty')}</div>}
+            {!(p.tl?.length) && <div className="meta muted" style={{ fontSize: '0.75rem' }}>{t('dev.tlEmpty')}</div>}
           </div>
         </>
       )}
@@ -636,7 +636,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 
       {termsFee != null && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 16 }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
+          <h3 style={{ fontSize: '1rem' }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
           <div className="meta" style={{ margin: '4px 0' }}>{t('player.campOpensAt')}<b>{fmtWage(personalTermsDemand(game, p))}{t('common.perWeek')}</b>{t('player.campOpensRest')}</div>
           {/* a rival that agreed the same fee (rivalbids.ts): who, and what they offer */}
           {(() => {
@@ -706,7 +706,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   touch()
                 }} />
             ) : (
-              <div className="muted" style={{ fontSize: 12 }}>
+              <div className="muted" style={{ fontSize: '0.75rem' }}>
                 {t(buy.k, { fee: fmtMoney(buy.fee), club: p.loanFrom ? game.clubs[p.loanFrom]?.short ?? '' : '' })}
               </div>
             )}
@@ -868,7 +868,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               ) : (
                 <>
                   <div className="meta">{t('player.campWants', { demand: fmtWage(renewalDemand(p)), wage: fmtWage(p.wage) })}</div>
-                  <input className="inline-input" type="text" inputMode="numeric" value={wageText}
+                  <input className="inline-input" type="text" inputMode="numeric" value={wageText} aria-label={t('player.yourOfferWage')}
                     onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
                   <div className="btn-row" style={{ margin: '10px 0 0' }}>
                     <button className="btn gold" onClick={() => {
@@ -926,7 +926,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   title={block ? t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 }) : undefined}
                   label={t('player.release', { cost: fmtMoney(cost) })} confirm={t('player.releaseConfirm', { cost: fmtMoney(cost) })}
                   onConfirm={() => { const r = releasePlayer(game, p.id); setMsg(t(r.k, r.v)); touch() }} />
-                {block && <div className="meta muted" style={{ fontSize: 12, marginTop: 3 }}>{t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 })}</div>}
+                {block && <div className="meta muted" style={{ fontSize: '0.75rem', marginTop: 3 }}>{t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 })}</div>}
               </div>
             )
           })()}
@@ -1020,7 +1020,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             </>
             : (
               <div className="card">
-                <h3 style={{ fontSize: 16 }}>{t('player.yourOffer', { club: club.short })}</h3>
+                <h3 style={{ fontSize: '1rem' }}>{t('player.yourOffer', { club: club.short })}</h3>
                 <div className="meta">{t('player.askAndBudget', { ask: fmtMoney(ask), budget: fmtMoney(game.clubs[game.userClubId].budget) })}</div>
                 {floorPrice(game, p) < ask - 50_000 && (
                   <div className="meta muted">{t('player.asLowAs', { floor: fmtMoney(floorPrice(game, p)) })}</div>

@@ -23,9 +23,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { agreeFee, askingPrice, callOffDeal, pendingDeal, personalTermsDemand, respondToOffer, signOnTerms, windowOpen } from '../src/game/ai'
 import { migrate } from '../src/game/save'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const g: GameState = newGame('northampton', 'Deal Window', 31)
 g.boardGrace = 999_999
@@ -89,5 +87,4 @@ ok(news.some(n => n.k === 'news.dealOff' && n.playerId === b.id), `and the inbox
 ok(mine.clubId === bidder.id, `the agreed sale went through (${mine.name} to ${bidder.short})`)
 ok((g.pendingDeals ?? []).length === 0, 'and nothing is left waiting')
 
-console.log(fails ? `\nDEAL WINDOW PROBE FAILED (${fails})` : '\nDEAL WINDOW PROBE PASSED: agreed while shut, paid when open, cancelled when it cannot be paid')
-process.exit(fails ? 1 : 0)
+done('DEAL WINDOW PROBE', 'agreed while shut, paid when open, cancelled when it cannot be paid', { exit: true })

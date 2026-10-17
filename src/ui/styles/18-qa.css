@@ -1,0 +1,156 @@
+/* ==================================================================
+   UI QA SWEEP (1.8.0)
+   ==================================================================
+   The owner: "Check alignment of all menus" and "Identify any areas which
+   feel unfinished". Every screen and tab photographed at four sizes in both
+   themes (scripts/uiqa.mjs); these are the layout faults the pictures showed,
+   kept together here rather than threaded through the file. */
+
+/* The room before the team talk: "Happy to be in the matchday squad" is
+   longer than the column, the chip would not wrap, and the table ran under
+   the card's right edge with every long mood cut off mid-word. The chip
+   wraps inside its own pill now and the table fits the phone. */
+.mood-table .mood-chip { white-space: nowrap; line-height: 1.3; }
+
+/* The team sheet is four tables (forwards, backs, two halves of the bench)
+   sharing one row renderer. Auto layout shared each table's slack out across
+   every column, so the stars sat 8px further right under the backs than under
+   the forwards. Fixed layout takes the pinned widths at their word and gives
+   the name column what is left, in all four. */
+.dtable.xvsheet { table-layout: fixed; }
+.dtable.xvsheet td.name { max-width: none; }
+
+/* The handbook's search box sat flush against both edges of the glass while
+   everything under it kept the 14px gutter. */
+.preset-row.hb-search { padding: 0 14px; }
+
+/* A title longer than the row beside the back arrow ("The Manager's
+   Handbook") used to drop the whole title block onto a line of its own,
+   leaving the arrow alone on the first. The block now takes the room beside
+   the arrow and only the date moves under the title when both will not fit. */
+@media (orientation: portrait) {
+  .mast-text { flex: 1 1 0; flex-wrap: wrap; row-gap: 0; }
+}
+/* In landscape and on a tablet the row's space-between floated the title into
+   the middle of the gap between the back arrow and the controls, a different
+   place on every screen depending on the title's length. It sits beside the
+   arrow, as it does in portrait. */
+@media (orientation: landscape) {
+  .masthead-row > .mast-text { flex: 1 1 auto; min-width: 0; }
+}
+
+/* Challenge cards on the first wizard step already sit in a padded grid, and
+   took the card's own 28px off again, so they stopped short of the league
+   list's right edge above them. */
+button.card.challenge-card { width: 100%; }
+
+/* A link dressed as a button reads as a button: E-mail sat underlined between
+   Copy and Save file, and About's two boxes were underlined text in a frame. */
+a.btn { text-decoration: none; }
+/* and its label sits where a <button>'s does: centred in the box, not riding
+   3px high at the top of it beside a stretched neighbour */
+.btn-row a.btn { display: inline-flex; align-items: center; justify-content: center; }
+
+/* The ideas box on Report a Bug put its heading 14px further in than the text
+   under it; inside a card the card's padding is the gutter. */
+.bug-ideas > .section-title { padding-left: 0; padding-right: 0; padding-top: 2px; }
+.ideas-discord { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; text-decoration: none; }
+.bug-ideas > .ideas-discord { margin: 2px 0 12px; width: 100%; }
+.ideas-discord .glyph { font-size: 1.2em; }
+
+/* Settings titles are sentence case; the language label is shared with the
+   title screen, where it is capitals. */
+.set-title-case { text-transform: lowercase; }
+.set-title-case::first-letter { text-transform: uppercase; }
+
+/* Day theme: a forward's position badge was --surface-3, which in daylight is
+   the same white as the row under it, so LK and HK lost their box while FH
+   and WG kept theirs. And the grey form band carried white figures on a light
+   grey. Both keep their night look. */
+.app:not(.night) .pos-badge:not(.back) { background: var(--surface-2); }
+.app:not(.night) .form-pill.mid { color: var(--text-primary); }
+
+/* Day theme, the same fault at larger scale: --surface-3 is white in daylight,
+   which is right for a control on the grey canvas and invisible on a white
+   card. The Save buttons on Game Status, Export Career, the depth chart's
+   names and the Copy button on Report a Bug all showed as bare text. A
+   hairline gives them back their edge; night is untouched. */
+.app:not(.night) .btn:not(.gold):not(.ghost):not(.danger),
+.app:not(.night) .depth-man,
+.app:not(.night) .record-card .rating-dot,
+.app:not(.night) .fix-no { box-shadow: inset 0 0 0 1px var(--border-strong); }
+
+/* The development list's Add / Remove: 29px of box on a 52px row, which
+   geosweep failed at every phone size. The box keeps its size; the reach
+   grows into the row's own padding, the way the Medical Centre's row
+   buttons do. */
+.btn.dev-act { position: relative; }
+.btn.dev-act::after { content: ''; position: absolute; inset: -8px -4px; }
+
+/* THE COMMUNITY LINK (1.8.1): a link in the manager's menu and at the foot of
+   Home. A menu row that is an <a> must not pick up a link's underline or its
+   visited colour, and the Home one sits its speech-bubble icon beside the
+   words, centred, the way a button's label does. */
+a.submenu-item { text-decoration: none; box-sizing: border-box; }
+a.btn.home-community {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-sizing: border-box; color: var(--text-primary); border-color: var(--border-strong);
+}
+.home-community svg { width: 18px; height: 18px; flex: none; }
+
+/* ================= SQUARE LEFT BARS (owner, round 2) =================
+   The owner likes the bar on the desk's next-match block: flat, flush with the
+   box's edge, square at both ends. Every other coloured left bar sat on a box
+   with rounded corners, so the border bent round them into a curved bar (the
+   Dream card on Home, the news chips, the staff and medical banners). One rule
+   squares the LEFT corners of every box that carries a bar, the same way
+   .desk-match does, whether the bar comes from a class here or from an inline
+   style on a screen; the right-hand corners keep their radius. A class whose
+   bar is transparent until it is switched on (.depth-row, .inbox-li) is only
+   squared while the bar shows. */
+[style*="border-left"],
+.tick-event, .store-card, .challenge-card, .wire-card.unread, .desk-match,
+.resume-note, .comm-line, .sheet-casualty, .inbox-cue, .news-quotes blockquote,
+.who-chip, .first-hint, .talk-said, .day-draw, .draw-verdict, .fix-grade,
+.respect-line, .temper-card .bench-note, .dev-card,
+.inbox-li.on, .feed-line {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Finances: decided board questions, one line each (1.8.3) */
+.board-done { display: flex; flex-direction: column; gap: 8px; font-size: 0.875rem; }
+.board-done-row .opt-detail { display: inline; }
+
+/* A NAME IN A TABLE IS NEVER CUT ON THE SMALLEST PHONE (1.8.4 m12). At 320px
+   the team sheet's name column is 100px and "Emmanuel Iyo..." was every other
+   row; the name takes a second line instead. break-word, not anywhere, so a
+   table's columns still size to whole words. Every phone width since 1.8.6:
+   "P. Bourdon Sansus" lost 4px in the market at 360-412. A name that fits
+   keeps its one line. */
+@media (max-width: 480px) {
+  .dtable td.name, .xv-fixed .dtable td.name, .dtable.codefirst td.name { white-space: normal; overflow-wrap: break-word; }
+  /* in a table that scrolls sideways anyway, the name keeps room for an
+     initial and a surname on one line rather than the table squeezing it */
+  .tblwrap .dtable td.name { min-width: 7.5em; }
+}
+/* a vacancy's odds and the quiet answer on one row (1.8.6, Jobs.tsx) */
+.job-foot { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+
+/* ---- THE LAST SMALL CONTROLS (1.8.15) ----
+ * Found by the release hardening play-through, measured on a 412px phone:
+ * the contract steppers were 33x36, the two contract checkboxes sat in 30px
+ * rows, the filter toggles in 40px rows, and every slider in the game was a
+ * 16px strip. scripts/tapsize.mjs never saw form controls, so nothing held
+ * them; scripts/tapcontrols.mjs does now. */
+.btn.stepper { min-width: 44px; min-height: 44px; }
+.check-row { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 0.8125rem; cursor: pointer; }
+.check-row input, .fs-toggle input { width: 22px; height: 22px; accent-color: var(--primary); flex: none; }
+.fs-toggle { min-height: 44px; }
+/* A slider's reach is its own box, so the box is 44px tall. Inside a
+   .slider-row the extra sits over the label and the readout, neither of
+   which is a control, so the row keeps its height. */
+input[type=range] { height: 44px; }
+.slider-row input[type=range] { display: block; margin: -14px 0; position: relative; }
+.dial-row { min-height: 44px; }
+

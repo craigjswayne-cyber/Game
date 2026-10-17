@@ -53,6 +53,7 @@ import { tendencyProfile } from './tendency'
 import { identityOf } from './identity'
 import { ARC_CAPS, ARC_OFF, arcFile, arcHash, arcOf, type Conduct } from './arcbook'
 import { userWageBudget } from './grants'
+import { cmpStr } from './rng'
 
 export type Trait = 'youth' | 'youthBacks' | 'youthPack' | 'youthIntl' | 'innovator' | 'tactician' | 'spender' | 'seller' | 'prudent' |
   'hard' | 'players' | 'turnaround' | 'defence' | 'attack'
@@ -61,7 +62,7 @@ export type Trait = 'youth' | 'youthBacks' | 'youthPack' | 'youthIntl' | 'innova
 const WINDOW = 8
 const MIN_SEASONS = 2
 /** a label held this many summers running becomes the club's reputation */
-export const REPUTE_AT = 4
+const REPUTE_AT = 4
 /** and a reputation unheld this many summers fades */
 const REPUTE_FADE = 3
 
@@ -295,8 +296,8 @@ function readTraits(state: GameState, rows: Conduct[], turned: number): { id: Tr
 export const TREND_GAP = 3
 /** how much stronger a trait must read now than then to be growing */
 const TREND_RISE = 1.12
-export type TraitFamily = 'youth' | Exclude<Trait, 'youthBacks' | 'youthPack' | 'youthIntl'>
-export type Trend = { id: TraitFamily; dir: 'new' | 'rise' | 'fade'; now: number; then: number }
+type TraitFamily = 'youth' | Exclude<Trait, 'youthBacks' | 'youthPack' | 'youthIntl'>
+type Trend = { id: TraitFamily; dir: 'new' | 'rise' | 'fade'; now: number; then: number }
 
 const familyOf = (id: Trait): TraitFamily => id.startsWith('youth') ? 'youth' : id as TraitFamily
 
@@ -389,7 +390,7 @@ export function reputeYearEnd(state: GameState): void {
     }
     return
   }
-  const best = Object.entries(a.idRun).filter(([, n]) => n >= REPUTE_AT).sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))[0]
+  const best = Object.entries(a.idRun).filter(([, n]) => n >= REPUTE_AT).sort((x, y) => y[1] - x[1] || cmpStr(x[0], y[0]))[0]
   if (!best) return
   a.repute = { c: club.id, l: best[0], s: state.season, miss: 0 }
   arcFile(state, 'arc.reputeForms', { club: club.short, label_k: `arc.repute.${best[0]}` }, { summer: true })

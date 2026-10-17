@@ -542,19 +542,13 @@ function takeJob(state: GameState, clubId: string): string {
 }
 
 /** Walk away from the current job. */
-/** The era in one line: years served, record, silverware, legend status.
- *  Used by both exits - the resignation and the sack. */
-export function eraSummary(state: GameState): string {
-  const e = eraParts(state)
-  return e ? t(e.k, e.v) : ''
-}
 
 /** The era as a story stores it (1.8.5 save QA): the English line under the
  *  plain name, as data, and the line itself as a key and its variables under
  *  a _j twin so the reader's language tells it (i18n fill). eraSummary used
  *  to be rendered in the screen's language and saved, so a career sacked in
  *  French carried a French sentence inside every later English reading. */
-export function eraVars(state: GameState): { era: string; era_j?: string } {
+function eraVars(state: GameState): { era: string; era_j?: string } {
   const e = eraParts(state)
   return e ? { era: tIn('en', e.k, e.v), era_j: JSON.stringify({ k: e.k, ...e.v }) } : { era: '' }
 }

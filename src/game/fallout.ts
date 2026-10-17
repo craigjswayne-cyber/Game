@@ -39,11 +39,11 @@ import { remember } from './memory'
 
 /** At or below this a man reads as unsettled: half a point above the band the
  *  bid generator already treats as gettable (ai.ts, morale 4 or under). */
-export const UNSETTLED = 4.5
+const UNSETTLED = 4.5
 /** What turning down a move he wanted costs him: a broken promise's worth. */
 export const BLOCKED_HIT = 1.5
 /** The squad's share of it when he is someone they follow (captain = 1). */
-export const BLOCKED_ROOM = 0.25
+const BLOCKED_ROOM = 0.25
 /** The squad's mood when the man they follow most is sold: about one defeat. */
 export const SOLD_ROOM = 0.4
 /** How much of that is left when the move was one he wanted. */
@@ -51,13 +51,13 @@ const WANTED_SHARE = 0.35
 /** A content man told he is wanted. */
 const FLATTERED = 0.2
 
-export function unsettled(p: Player): boolean {
+function unsettled(p: Player): boolean {
   return (p.wantsOut ?? 0) > 0 || p.morale <= UNSETTLED
 }
 
 /** How much the dressing room follows him: 1 for the captain, down to 0 for
  *  a man who is simply one of the squad. Pure, and read before he leaves. */
-export function standingOf(state: GameState, club: Club, p: Player): number {
+function standingOf(state: GameState, club: Club, p: Player): number {
   if (club.captain === p.id) return 1
   if (club.vice === p.id) return 0.75
   if (seniorVoices(state, club.id).some(v => v.id === p.id)) return 0.7

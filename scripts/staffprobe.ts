@@ -140,5 +140,13 @@ const pct = (pass / n) * 100
 console.log(`course pass rate over ${n} sittings: ${pct.toFixed(1)}% (target ${EXAM_PASS_PCT}%)`)
 if (Math.abs(pct - EXAM_PASS_PCT) > 4) bad(`pass rate ${pct.toFixed(1)}% is off target`)
 
+// EXIT ON THE VERDICT. The passing path used to end here and leave node to
+// exit when its event loop drained. The probe holds nothing open itself, but
+// vite-node still has its Vite server to tear down after the module returns
+// (an empty script under vite-node ends with live Timeout handles), and under
+// a four-shard suite load that teardown sat past the 900 s timeout: suite.sh
+// recorded FAIL against a last line of STAFF PROBE PASSED. The verdict is the
+// exit code, so give it now rather than when the loop happens to drain.
 if (fails) { console.error(`STAFF PROBE: ${fails} failures`); process.exit(1) }
 console.log('STAFF PROBE PASSED')
+process.exit(0)

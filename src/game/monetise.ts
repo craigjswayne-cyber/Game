@@ -56,7 +56,7 @@ export type Edition = 'free' | 'paid'
 export function edition(): Edition {
   // import.meta.env exists under Vite and not under the probes' plain node, so
   // this is read defensively rather than destructured
-  const env = (import.meta as unknown as { env?: Record<string, string> }).env
+  const env: ImportMetaEnv | undefined = import.meta.env
   return env?.VITE_EDITION === 'paid' ? 'paid' : 'free'
 }
 
@@ -751,7 +751,7 @@ const KEY = 'rm-ent'
 /** The bridge, if a shell put one there. Read on every call rather than cached,
  *  because a wrapper may inject it after the first paint. */
 export function bridge(): BillingBridge | null {
-  const b = (globalThis as unknown as { rmBilling?: BillingBridge }).rmBilling
+  const b = (globalThis as { rmBilling?: BillingBridge }).rmBilling
   return b && typeof b.buy === 'function' && typeof b.owned === 'function' ? b : null
 }
 
@@ -1320,7 +1320,7 @@ export async function showAdPrivacy(): Promise<boolean> {
 }
 
 export function adBridge(): AdBridge | null {
-  const a = (globalThis as unknown as { rmAds?: AdBridge }).rmAds
+  const a = (globalThis as { rmAds?: AdBridge }).rmAds
   return a && typeof a.mount === 'function' ? a : null
 }
 

@@ -40,7 +40,9 @@
  * same match always reads the same.
  */
 import type { GameState } from './model'
-import { EV_CAUSES, evOf, matchStats, type EvCause, type LiveCtx, type SideCtx } from './matchEngine'
+import { EV_CAUSES, evOf, type EvCause, type SideCtx } from './match/side'
+import { matchStats } from './match/stats'
+import type { LiveCtx } from './match/live'
 import { sayKey } from './moves'
 import { atkSay, defSay } from './styles'
 import type { HalfSide } from './conditions'
@@ -64,7 +66,7 @@ export function possPct(ctx: LiveCtx, side: SideCtx): number {
 
 /** A side's score at a minute, read off the commentary: the last line
  *  stamped at or before it (the whistle lines are not scores). */
-export function scoreAt(ctx: LiveCtx, min: number, side: SideCtx): number {
+function scoreAt(ctx: LiveCtx, min: number, side: SideCtx): number {
   let at: { homeScore: number; awayScore: number } | null = null
   for (const e of ctx.events) {
     if (e.type === 'FT') continue
@@ -492,12 +494,12 @@ export function marginLeader(ev: CausalEvidence): EvCause | null {
 
 /** what an evidence line at half time is about, so the half-time word does
  *  not say the same thing twice (conditions.ts halfTimeHints) */
-export const HT_ABOUT: Partial<Record<WhyCause, 'pens' | 'ball' | 'set'>> = { pen: 'pens', turn: 'ball', set: 'set' }
+const HT_ABOUT: Partial<Record<WhyCause, 'pens' | 'ball' | 'set'>> = { pen: 'pens', turn: 'ball', set: 'set' }
 
 /** a first half's cause has to be this big to be called working or hurting */
-export const HT_MIN = 5
+const HT_MIN = 5
 
-export interface HtEvidence {
+interface HtEvidence {
   k: string
   v: Record<string, string | number>
   /** weighed against the assistant's other half-time reads */
@@ -543,7 +545,7 @@ export function htEvidence(ev: CausalEvidence | null): HtEvidence[] {
  *  more often), and their time in our 22 with more Kicking. The ball lost
  *  comes from the attacking style and the set piece from the men in the
  *  shirts, neither of which a dial at half time reaches, so they name none. */
-export type LeverDial = 'style' | 'tempo' | 'kicking' | 'aggression'
+type LeverDial = 'style' | 'tempo' | 'kicking' | 'aggression'
 export const LEVER_DIALS: readonly LeverDial[] = ['style', 'tempo', 'kicking', 'aggression']
 export const LEVERS: Partial<Record<WhyCause, { dial: LeverDial; dir: 1 | -1 }>> = {
   pen: { dial: 'aggression', dir: -1 },

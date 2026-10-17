@@ -15,12 +15,7 @@
  * Run: npx vite-node scripts/shelllint.ts
  */
 import { readFileSync, existsSync } from 'node:fs'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 // the night ground, from the one file allowed to say it
 const tokens = readFileSync('src/ui/tokens.css', 'utf8')
@@ -134,5 +129,4 @@ ok(/rel="apple-touch-icon"\s+sizes="180x180"\s+href="\.\/icon-180\.png"/.test(ht
   ok(new Set(fps).size === fps.length, 'with no duplicates')
 }
 
-console.log(fails ? `SHELL LINT FAILED (${fails})` : 'SHELL LINT PASSED: the shell matches the game inside it')
-if (fails) process.exit(1)
+done('SHELL LINT', 'the shell matches the game inside it', { blank: false })

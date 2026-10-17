@@ -21,6 +21,8 @@ import { OppReportCard, ResponsePlans, usePrepOpponent } from '../OppReport'
 import MovesSection from '../MovesSection'
 import StylesSection from '../StylesSection'
 import { atkName, defName, stylesOf } from '../../game/styles'
+import { rowNavTr } from '../rowNav'
+import { Veil } from '../Veil'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -112,8 +114,9 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
     <div className="slider-row" key={info.key}>
       <div className="lbls"><span>{t(info.lo)}</span><b style={{ color: 'var(--info)' }}>{t(info.label)}</b><span>{t(info.hi)}</span></div>
       <input type="range" min={0} max={100} value={tac[info.key]}
+        aria-label={t(info.label)} aria-valuetext={`${tac[info.key]}: ${sliderReadout(info.key, tac[info.key])}`}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
-      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{sliderReadout(info.key, tac[info.key])}</div>
+      <div className="meta" style={{ fontSize: '0.6875rem', marginTop: 2 }}>{sliderReadout(info.key, tac[info.key])}</div>
     </div>
   )
 
@@ -124,8 +127,9 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
     <div className="slider-row" key={info.key}>
       <div className="lbls"><span>{t(info.lo)}</span><b style={{ color: 'var(--info)' }}>{t(info.label)}</b><span>{t(info.hi)}</span></div>
       <input type="range" min={0} max={100} value={tac[info.key] ?? 50}
+        aria-label={t(info.label)} aria-valuetext={`${tac[info.key] ?? 50}: ${brkSliderReadout(info.key, tac[info.key] ?? 50)}`}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
-      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{brkSliderReadout(info.key, tac[info.key] ?? 50)}</div>
+      <div className="meta" style={{ fontSize: '0.6875rem', marginTop: 2 }}>{brkSliderReadout(info.key, tac[info.key] ?? 50)}</div>
     </div>
   )
 
@@ -137,8 +141,9 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
           who scrolled to Without the Ball (owner screenshot, 25 Aug). */}
       <div className="lbls"><span>{t(info.lo)}</span><b style={{ color: 'var(--info)' }}>{t(info.label)}</b><span>{t(info.hi)}</span></div>
       <input type="range" min={0} max={100} value={tac[info.key] ?? 50}
+        aria-label={t(info.label)} aria-valuetext={`${tac[info.key] ?? 50}: ${defSliderReadout(info.key, tac[info.key] ?? 50)}`}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
-      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{defSliderReadout(info.key, tac[info.key] ?? 50)}</div>
+      <div className="meta" style={{ fontSize: '0.6875rem', marginTop: 2 }}>{defSliderReadout(info.key, tac[info.key] ?? 50)}</div>
     </div>
   )
 
@@ -177,34 +182,32 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
     const roles = rolesForSlot(roleSlot)
     const current = tac.roles?.[roleSlot] ?? null
     return (
-      <div className="modal-veil" onClick={() => setRoleSlot(null)}>
-        <div className="modal" onClick={e => e.stopPropagation()}>
-          <div className="grab" />
-          <div style={{ padding: '0 14px 10px' }}>
-            <SectionTitle sub={t('tacticsScreen.roleSheetSub', { shirt: XV_SLOTS[roleSlot].shirt, n: roles.length + 1 })}>
-              {p ? p.name : t('tacticsScreen.emptySlot')}
-            </SectionTitle>
-            <button className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = null; setRoleSlot(null); touch() }}>
-              <span style={{ fontSize: 16 }}>{current == null ? '●' : '○'}</span>
-              <span className="cname">{t('tacticsScreen.natural')}</span>
-              <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t('tacticsScreen.noInstruction')}</span>
+      <Veil onClose={() => setRoleSlot(null)}>
+        <div className="grab" />
+        <div style={{ padding: '0 14px 10px' }}>
+          <SectionTitle sub={t('tacticsScreen.roleSheetSub', { shirt: XV_SLOTS[roleSlot].shirt, n: roles.length + 1 })}>
+            {p ? p.name : t('tacticsScreen.emptySlot')}
+          </SectionTitle>
+          <button className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = null; setRoleSlot(null); touch() }}>
+            <span style={{ fontSize: '1rem' }}>{current == null ? '●' : '○'}</span>
+            <span className="cname">{t('tacticsScreen.natural')}</span>
+            <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t('tacticsScreen.noInstruction')}</span>
+          </button>
+          {roles.map(r => (
+            <button key={r.id} className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = r.id; setRoleSlot(null); touch() }}>
+              <span style={{ fontSize: '1rem' }}>{current === r.id ? '●' : '○'}</span>
+              <span className="cname">{t(r.name)}</span>
+              <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t(r.desc)}</span>
             </button>
-            {roles.map(r => (
-              <button key={r.id} className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = r.id; setRoleSlot(null); touch() }}>
-                <span style={{ fontSize: 16 }}>{current === r.id ? '●' : '○'}</span>
-                <span className="cname">{t(r.name)}</span>
-                <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t(r.desc)}</span>
-              </button>
-            ))}
-            {p && (
-              <button className="btn ghost block" style={{ marginTop: 8 }}
-                onClick={() => { setRoleSlot(null); go('player', p.id) }}>
-                {t('tacticsScreen.openProfile', { name: p.name.split(' ').slice(-1)[0] })}
-              </button>
-            )}
-          </div>
+          ))}
+          {p && (
+            <button className="btn ghost block" style={{ marginTop: 8 }}
+              onClick={() => { setRoleSlot(null); go('player', p.id) }}>
+              {t('tacticsScreen.openProfile', { name: p.name.split(' ').slice(-1)[0] })}
+            </button>
+          )}
         </div>
-      </div>
+      </Veil>
     )
   }
 
@@ -238,7 +241,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
       {repPct > 0 && worstDial && (
         <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
           <div className="fact-label">{t('tacticsScreen.condCoach')}</div>
-          <div style={{ fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>
+          <div style={{ fontSize: '0.8125rem', lineHeight: 1.45, marginTop: 4 }}>
             {t('tacticsScreen.condLine', {
               n: worstDial.n,
               dial: t(worstDial.k === 'defLine' ? 'tacticsScreen.dialDefLine'
@@ -389,25 +392,23 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
           const cur = (tac.kickers ?? [])[kickSlot] ?? null
           const title = t(kickSlot === 0 ? 'tacticsScreen.first' : 'tacticsScreen.second')
           return (
-            <div className="modal-veil" onClick={() => setKickSlot(null)}>
-              <div className="modal lead-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
-                <div className="grab" />
-                <SectionTitle sub={t('tacticsScreen.kickerSheetSub')}>{t('tacticsScreen.goalKickers')}: {title}</SectionTitle>
-                <div className="lead-list">
-                  <table className="dtable"><tbody>
-                    {squad.map(p => (
-                      <tr key={p.id} className={p.id === cur ? 'sel' : undefined} onClick={() => setKicker(p.id)}>
-                        <td><PosBadge pos={p.pos} /></td>
-                        <td className="name">{p.name}</td>
-                        <td className="lead-bar"><span style={{ width: `${p.a.goa * 5}%` }} /></td>
-                        <td className="num"><b>{p.a.goa}</b></td>
-                      </tr>
-                    ))}
-                  </tbody></table>
-                </div>
-                <button className="btn ghost block" onClick={() => setKicker(null)}>{t('tacticsScreen.assistantPicks')}</button>
+            <Veil onClose={() => setKickSlot(null)} boxClassName="modal lead-sheet" role="dialog" label={title}>
+              <div className="grab" />
+              <SectionTitle sub={t('tacticsScreen.kickerSheetSub')}>{t('tacticsScreen.goalKickers')}: {title}</SectionTitle>
+              <div className="lead-list">
+                <table className="dtable"><tbody>
+                  {squad.map(p => (
+                    <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNavTr(() => setKicker(p.id))}>
+                      <td><PosBadge pos={p.pos} /></td>
+                      <td className="name">{p.name}</td>
+                      <td className="lead-bar"><span style={{ width: `${p.a.goa * 5}%` }} /></td>
+                      <td className="num"><b>{p.a.goa}</b></td>
+                    </tr>
+                  ))}
+                </tbody></table>
               </div>
-            </div>
+              <button className="btn ghost block" onClick={() => setKicker(null)}>{t('tacticsScreen.assistantPicks')}</button>
+            </Veil>
           )
         })()}
 
@@ -647,7 +648,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
                 const on = game.matchPrep === k
                 const I = PREP_ICON[k]
                 return (
-                  <button key={k} className={`speech-tile prep-card${on ? ' sel' : ''}`} role="radio" aria-checked={on} aria-pressed={on} data-prep={k}
+                  <button key={k} className={`speech-tile prep-card${on ? ' sel' : ''}`} role="radio" aria-checked={on} data-prep={k}
                     onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
                     <span className="prep-ico"><I /></span>
                     <b>{prepLabel(k)}</b>
@@ -803,7 +804,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
                   </button>
                 ))}
               </div>
-              <div className="meta" style={{ fontSize: 11, marginTop: 3 }}>{t(cur.desc)}</div>
+              <div className="meta" style={{ fontSize: '0.6875rem', marginTop: 3 }}>{t(cur.desc)}</div>
             </div>
           )
         })}
@@ -856,7 +857,7 @@ function AnalystCard() {
     <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <div className="fact-label">{t('analyst.analystOn', { club: opp.short })}</div>
-        <div className="meta" style={{ fontSize: 11 }}>{analystForm(game)}</div>
+        <div className="meta" style={{ fontSize: '0.6875rem' }}>{analystForm(game)}</div>
       </div>
       <div className="meta" style={{ marginTop: 2 }}>
         <b style={{ color: 'var(--gold)' }}>{unitLabel(read.unit)}.</b> {analystClaim(read)}

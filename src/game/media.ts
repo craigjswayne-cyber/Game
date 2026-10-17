@@ -1,19 +1,24 @@
-import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './model'
+import type { GameState, Player, PressItem, PressOption } from './model'
 import { subjectVar } from './gender'
-import {absWeek, careerRows, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
+import {absWeek, careerRows, SEASON_WEEKS, pledgeDue, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
 import { loanOut } from './loans'
 import { academyCalls, acadCallLive, resolveAcadCall } from './acadcall'
 import { resolveRoom, roomLive } from './room'
 import { remember } from './memory'
 import { dropSlotQuestion, offersFor, signOffer, slotSignable, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
-import { nationByCode, nationNameIn, nationVars } from './nations'
+import { nationByCode, nationVars } from './nations'
 import { applyResponse } from './authority'
 import { settleTalk } from './talkback'
 import { applyMoodAnswer, moodRoom, settlePressMood, userResults, trailingRun } from './pressmood'
-import { clamp, pick, type Rng } from './rng'
+import { clamp, pick, type Rng, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
 import { clubGamesPlayed, competitiveMatchIn } from './handshake'
+import { OFFICE_OUTLET, isBoardroom, askedRecently, rememberAsk } from './office'
+
+// The office outlet and its ask memory live in office.ts (a leaf) so the
+// office's conversation modules need not import media back.
+export { OFFICE_OUTLET, isBoardroom } from './office'
 
 const OUTLETS = [
   'The Rugby Chronicle', 'Oval Times', 'The Breakdown Podcast', 'Rugby World Weekly',
@@ -23,53 +28,6 @@ const OUTLETS = [
 /** How long an answered press question stays in the room. Two weeks: the
  *  owner's rule, and about as long as anyone remembers a quote for. */
 export const PRESS_KEEP_WEEKS = 2
-
-/** Not an outlet at all: player conversations behind a closed door. */
-export const OFFICE_OUTLET = "The Manager's Office"
-/** BOARDROOM, NOT PRESS ROOM (owner, 28 Sep 2026: "anything that is financial
- *  related like this and goal setting should be in [the board room section of
- *  finances] not the press"). The pre-season camp, the season's expectations
- *  and the sponsor slot deals are still PressItems underneath, so they answer
- *  through the same path and the same saves load, but they are asked and
- *  answered on Finances > The Board, and the press room never shows them. */
-export function isBoardroom(p: { options: { camp?: unknown; stance?: unknown; deal?: unknown }[] }): boolean {
-  return p.options.some(o => o.camp != null || o.stance != null || o.deal != null)
-}
-
-/**
- * How long the office remembers a conversation.
- *
- * A live report: a prospect asked to go out on loan, the manager agreed, and
- * the same lad knocked again with the same speech seven days later. The office
- * was generating from squad state alone, so any player who still matched the
- * filter could be picked again the very next week - and agreeing to something
- * never changed the filter, because agreeing did nothing.
- *
- * Fourteen weeks is a third of a season: long enough that the repeat reads as
- * a man whose patience has run out rather than a bug, and short enough that
- * he does get to come back if you left him in the stand all year.
- */
-export const OFFICE_COOLDOWN = 14
-
-
-/** Has this player raised this subject recently enough that raising it again
- *  would read as the game forgetting the last conversation? */
-export function askedRecently(state: GameState, pid: number, topic: OfficeTopic): boolean {
-  const now = absWeek(state.season, state.week)
-  return (state.officeMemo ?? []).some(m =>
-    m.pid === pid && m.topic === topic && now - absWeek(m.season, m.week) < OFFICE_COOLDOWN)
-}
-
-/** Record that he came in about it. Written when the conversation is raised,
- *  not when it is answered: ignoring a player is also an answer, and it does
- *  not entitle him to ask again next week. */
-export function rememberAsk(state: GameState, pid: number, topic: OfficeTopic) {
-  ;(state.officeMemo ??= []).push({ pid, topic, season: state.season, week: state.week })
-  // two seasons of memos is far more than the cooldown needs, and keeps the
-  // save from carrying a list that only ever grows
-  const cutoff = absWeek(state.season - 2, state.week)
-  state.officeMemo = state.officeMemo.filter(m => absWeek(m.season, m.week) >= cutoff).slice(-200)
-}
 
 /** A question the press ask, as a key and the variables it needs.
  *
@@ -885,7 +843,7 @@ export function generatePress(state: GameState, rng: Rng) {
       // the best man in the side, and a club at least as big as this one
       const star = squad.filter(q => xvIds.includes(q.id) && !q.onLoan).sort((a, b) => b.ca - a.ca)[0]
       const suitors = Object.values(state.clubs).filter(c => c.id !== club.id && c.rep >= club.rep && c.leagueId)
-        .sort((a, b) => a.id.localeCompare(b.id))
+        .sort((a, b) => cmpStr(a.id, b.id))
       const suitor = suitors.length ? suitors[(state.season * 7 + state.week) % suitors.length] : null
       if (star && suitor) pool.push(() => mk(state,
         { k: voice(52 + star.id, ['press.baroSuitorQ1', 'press.baroSuitorQ2']), v: { player: star.name, club: suitor.name } },
@@ -1324,7 +1282,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       if (opt.pledge && !(state.pledges ?? []).some(pl => pl.playerId === p.id && pl.kind === opt.pledge)) {
         ;(state.pledges ??= []).push({
           playerId: p.id, kind: opt.pledge, week: state.week, season: state.season,
-          due: opt.pledge === 'start' ? state.week : Math.min(state.week + (opt.pledge === 'deal' ? 8 : 6), 44),
+          due: opt.pledge === 'start' ? state.week : pledgeDue(state.week, opt.pledge === 'deal' ? 8 : 6),
           baseApps: p.stats.apps,
           // a start is owed at the next match played, not by a date (handshake.ts)
           ...(opt.pledge === 'start' ? { baseStarts: p.stats.starts, baseGames: clubGamesPlayed(state, state.userClubId) } : {}),

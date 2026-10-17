@@ -135,7 +135,7 @@ export function proMatchPlayed(f: Funnel, key: string): Funnel {
 
 // ---- the device ledger ----
 
-export const FUNNEL_KEY = 'rm-pro'
+const FUNNEL_KEY = 'rm-pro'
 
 export function readFunnel(): Funnel {
   try { return parseFunnel(globalThis.localStorage?.getItem(FUNNEL_KEY) ?? null) } catch { return { ...FRESH, seen: [] } }

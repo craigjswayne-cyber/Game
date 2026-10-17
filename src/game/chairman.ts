@@ -101,7 +101,7 @@ export function jobProfile(state: GameState, clubId: string): JobProfile {
 /** The profile of the job the manager holds: the one he took, not whatever
  *  it has drifted into since (a club in the red is still the fallen giant he
  *  went to rebuild). Any other club reads live. */
-export function profileOf(state: GameState, clubId: string): JobProfile {
+function profileOf(state: GameState, clubId: string): JobProfile {
   const cur = state.arc?.cur
   if (cur && cur.c === clubId && clubId === state.userClubId && cur.prof) return cur.prof as JobProfile
   return jobProfile(state, clubId)
@@ -187,7 +187,7 @@ function nameAim(state: GameState, clubId: string, aim: { text: string; pos: num
 
 /** Where a club's squad stands in its league on paper: the mean current
  *  ability of its best 23 senior men, ranked. Null outside a league. */
-export function squadRank(state: GameState, clubId: string): number | null {
+function squadRank(state: GameState, clubId: string): number | null {
   const club = state.clubs[clubId]
   const ids = state.comps[club?.leagueId ?? '']?.teamIds
   if (!club || !ids?.includes(clubId)) return null
@@ -238,7 +238,7 @@ export function chairWish(state: GameState): string | null {
 }
 
 /** Was the wish met? Read at the year end, before anything is wiped. */
-export function wishMet(state: GameState, wish: string, row: { pos: number; deb: number } | null): boolean {
+function wishMet(state: GameState, wish: string, row: { pos: number; deb: number } | null): boolean {
   const club = state.clubs[state.userClubId]
   if (!club) return false
   const comp = state.comps[club.leagueId]
@@ -418,9 +418,6 @@ export function chairMemoRow(state: GameState): Vars | null {
   return { k: `arc.memo.${ch}${good ? 'Good' : 'Poor'}`, wish_k: `arc.wish.${chairWish(state) ?? 'steady'}` }
 }
 
-/** Is the chairman's type one a probe can read? Only for the probe and the arc. */
-export const chairOf = (state: GameState): ChairType | null =>
-  state.unemployed || !state.clubs[state.userClubId] ? null : chairmanOf(state, state.userClubId)
 
 /** A takeover seats a different kind of man in the chair (arc.ts, weekly). */
 export function newChairman(state: GameState, clubId: string): void {

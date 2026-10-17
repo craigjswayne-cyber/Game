@@ -44,12 +44,7 @@ import { SEASON_WEEKS, XV_SLOTS } from '../src/game/model'
 import { sortTable } from '../src/game/schedule'
 import { effAt } from '../src/game/attributes'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 // NINE WORLDS, NOT THREE. The optimise-minus-sleepwalk gap is the headline
 // number here and at three seeds it swung between 4.0 and 17.3 points a season
@@ -357,5 +352,5 @@ ok(minnowSleep.filter(r => r.sacked).length === 0,
 ok(worstMin(minnowSleep) >= CRISIS + 5,
   `and its board never gets anywhere near crisis range (worst seed bottomed at ${worstMin(minnowSleep)})`)
 
-console.log(fails ? `\n${fails} FAILURES` : '\nAUTOPILOT PROBE PASSED: the team sheet is wired to the pitch, and Continue does not win titles')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nAUTOPILOT PROBE PASSED: the team sheet is wired to the pitch, and Continue does not win titles')
+process.exit(failures() ? 1 : 0)

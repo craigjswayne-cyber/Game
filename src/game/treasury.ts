@@ -67,7 +67,7 @@ export function cashReserve(state: GameState): number {
  * reserve is measured against the balance as it always was: the manager can
  * still take the club below its reserve, and still pays for it in confidence.
  */
-export function releasedSoFar(state: GameState): number {
+function releasedSoFar(state: GameState): number {
   return state.releasedThisSeason ?? 0
 }
 

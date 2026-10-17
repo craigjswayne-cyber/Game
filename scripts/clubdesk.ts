@@ -29,12 +29,7 @@ import { requestFacility } from '../src/game/season'
 import { absWeek, boardObjective, fmtMoney, SEASON_WEEKS, type GameState, type Player } from '../src/game/model'
 import { t, tIn } from '../src/game/i18n'
 import { openDate } from '../src/game/window'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const fresh = (seed = 18101): GameState => newGame('northampton', 'Desk Tester', seed)
 const userOf = (g: GameState) => g.clubs[g.userClubId]
@@ -374,5 +369,4 @@ console.log('--- the war chest and the survival aim fit the club')
     'clear of the bottom two means tenth of twelve, eighth of ten, twelfth of fourteen')
 }
 
-console.log(fails ? `CLUB DESK PROBE FAILED (${fails})` : 'CLUB DESK PROBE PASSED: every door on the desk asks the same questions')
-if (fails) process.exit(1)
+done('CLUB DESK PROBE', 'every door on the desk asks the same questions', { blank: false })
