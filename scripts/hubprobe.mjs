@@ -18,6 +18,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { tapPast } from './lib/sheet.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
 let fails = 0
@@ -168,8 +169,8 @@ try {
           return { lines: [...card.querySelectorAll('.meta')].map(m => ({ tag: m.getAttribute('data-ht-tag'), text: (m.textContent ?? '').trim() })) }
         })
       }
-      await page.click('text=▸ Start Second Half')
-        .catch(() => page.click('text=▸ Play the Final Quarter').catch(() => {}))
+      await tapPast(page, 'text=▸ Start Second Half')
+        .catch(() => tapPast(page, 'text=▸ Play the Final Quarter').catch(() => {}))
     } else {
       await page.click('.speed-controls [data-ctl=skip]').catch(() => {})
     }

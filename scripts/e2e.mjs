@@ -2,6 +2,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview, until } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
+import { tapPast } from './lib/sheet.mjs'
 
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
@@ -92,10 +93,10 @@ async function playMatch(speech = 'Calm the nerves') {
   } catch { /* no modal - straight to the tunnel */ }
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
   await skipTo('Start Second Half')
-  await page.click('text=▸ Start Second Half')
+  await tapPast(page, 'text=▸ Start Second Half')
   await page.waitForTimeout(300)
   await skipTo('Play the Final Quarter')
-  await page.click('text=▸ Play the Final Quarter')
+  await tapPast(page, 'text=▸ Play the Final Quarter')
   await page.waitForTimeout(300)
   await skipTo('Continue to Results')
 }

@@ -18,6 +18,7 @@ import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 import { ok, failures } from './lib/probe.mjs'
+import { tapPast } from './lib/sheet.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
 const raw = s => /[{}]|\b(mem|oppreport|matchday)\.[a-zA-Z_]+/.test(s)
@@ -111,8 +112,8 @@ try {
     if (s.ft) break
     if (s.call) await page.click('text=Take the Points').catch(() => {})
     else if (s.interval) {
-      await page.click('text=▸ Start Second Half')
-        .catch(() => page.click('text=▸ Play the Final Quarter').catch(() => {}))
+      await tapPast(page, 'text=▸ Start Second Half')
+        .catch(() => tapPast(page, 'text=▸ Play the Final Quarter').catch(() => {}))
     } else await page.click('.speed-controls [data-ctl=skip]').catch(() => {})
     await page.waitForTimeout(250)
   }
