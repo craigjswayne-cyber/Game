@@ -115,9 +115,11 @@ export const saveQueue = (() => {
   return {
     hold(g: GameState) { heldFor = g; if (timer) { clearTimeout(timer); timer = null } },
     release() { heldFor = null; dirty = false },
-    /** End a hold that a settle in progress took, keeping what is marked:
-     *  the week has turned whole and the next write should carry it. */
-    resume() { heldFor = null },
+    /** End the hold this settle took on this career, keeping what is marked:
+     *  the week has turned whole and the next write should carry it. A hold
+     *  on any other career, or one a failure took, is not this settle's to
+     *  lift (1.9.1 bug hunt). */
+    resume(g: GameState) { if (heldFor === g) heldFor = null },
     /** soft: restart the idle timer rather than keep the first one, so a
      *  stream of marks (a slider dragged through twenty steps) is one write
      *  after the last of them, not one write in the middle of the drag */
@@ -144,6 +146,15 @@ export const saveQueue = (() => {
     async flush(): Promise<boolean> {
       if (timer) { clearTimeout(timer); timer = null }
       await run()
+      // A CALLER THAT JOINED A WRITE IN FLIGHT CAME BACK TOO EARLY (1.9.1 bug
+      // hunt). run() waited for the write already going, whose owner then
+      // started the re-write carrying this caller's change and cleared dirty,
+      // so this answered "on disk" from the earlier write while the change was
+      // still on its way. Wait for whatever write is running now, then answer.
+      while (inFlight) {
+        await inFlight
+        if (dirty && !inFlight) await run()
+      }
       return !dirty && lastOk
     },
     /** Best effort on the way out: no await to give, so it starts the write and

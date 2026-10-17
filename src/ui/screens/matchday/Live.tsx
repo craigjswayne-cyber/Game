@@ -391,7 +391,7 @@ export function Live() {
   // points from commentary, make it super clean"). The line is the words;
   // its kind is carried by cls(): gold for a score, the card colours, the TMO.
 
-  const kits = kitColours(pageSpares(tokenColor), game.clubs[fixture.homeId]?.colors, game.clubs[fixture.awayId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)'])
+  const kits = kitColours(pageSpares(tokenColor), game.clubs[fixture.homeId]?.colors, game.clubs[fixture.awayId]?.colors)
   // Half-time and the 60' break are the two states where the match is stopped
   // waiting for the manager rather than paused. The control row treats them as
   // one thing: Play means "get back out there".
