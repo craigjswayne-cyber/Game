@@ -1,3 +1,4 @@
+import type { StoreApi } from 'zustand'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from '../game/model'
 import type { Gender } from '../game/gender'
 import type { Lang } from '../game/i18n'
@@ -255,3 +256,7 @@ export interface Store {
   /** The draw is watched: put it away and carry on. */
   closeDraw: () => void
 }
+
+/** What create() hands each action slice (src/store/slices). */
+export type SetState = StoreApi<Store>['setState']
+export type GetState = () => Store
