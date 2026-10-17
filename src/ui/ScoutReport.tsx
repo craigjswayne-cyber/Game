@@ -60,12 +60,12 @@ export default function ScoutReportCard({ game, p, onMsg }: { game: GameState; p
     <div className="card scout-report">
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
         <span className="fact-label">{t('recruit.title')}</span>
-        <span style={{ fontSize: 12, ...(r.confPct < 30 ? tone('gold') : { fontWeight: 700 }) }}>{t('recruit.confPct', { n: r.confPct })}</span>
+        <span style={{ fontSize: '0.75rem', ...(r.confPct < 30 ? tone('gold') : { fontWeight: 700 }) }}>{t('recruit.confPct', { n: r.confPct })}</span>
       </div>
-      <div className="muted" style={{ fontSize: 11, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.4 }}>{t('recruit.known')}</div>
+      <div className="muted" style={{ fontSize: '0.6875rem', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.4 }}>{t('recruit.known')}</div>
       {/* two columns of rows where the screen is wide enough (a landscape
           phone), one on a portrait phone: the card stays one glance tall */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '3px 16px', fontSize: 13, marginTop: 2 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '3px 16px', fontSize: '0.8125rem', marginTop: 2 }}>
         {rows.map(([label, value], i) => (
           <div key={i} style={{ display: 'flex', gap: 10, minWidth: 0 }}>
             <span className="muted" style={{ flex: '0 0 96px' }}>{label}</span>
@@ -74,7 +74,7 @@ export default function ScoutReportCard({ game, p, onMsg }: { game: GameState; p
         ))}
       </div>
       {r.unknown.length > 0 && (
-        <div style={{ display: 'flex', gap: 10, fontSize: 13, marginTop: 6 }}>
+        <div style={{ display: 'flex', gap: 10, fontSize: '0.8125rem', marginTop: 6 }}>
           <span className="muted" style={{ flex: '0 0 96px' }}>{t('recruit.unknownTitle')}</span>
           <span style={{ minWidth: 0 }}>{r.unknown.map(u => t(`recruit.u_${u}`)).join(' · ')}</span>
         </div>

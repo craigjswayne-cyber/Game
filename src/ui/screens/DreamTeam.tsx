@@ -123,7 +123,7 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
           </tr>
         ))}
       </tbody></table></div>
-      {leads.length > 0 && <div className="meta" style={{ fontSize: 12, padding: '4px 16px' }}>{t('world.dtLeadHow')}</div>}
+      {leads.length > 0 && <div className="meta" style={{ fontSize: '0.75rem', padding: '4px 16px' }}>{t('world.dtLeadHow')}</div>}
     </>
   )
 }

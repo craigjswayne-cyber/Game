@@ -239,7 +239,7 @@ export function Stars({ ca }: { ca: number }) {
   // number 20" - row 20 was the one three-star man in a list of halves).
   // Every glyph gets the same 1em cell, so five cells is five ems on every row.
   return (
-    <span style={{ color: 'var(--gold)', fontSize: 11 }}>
+    <span style={{ color: 'var(--gold)', fontSize: '0.6875rem' }}>
       {Array.from({ length: 5 }, (_, i) => {
         const lit = i < full
         const isHalf = i === full && half
@@ -346,7 +346,7 @@ export function AvailTag({ p, g }: { p: Player; g: GameState }) {
   // `tag`, not `t`: t() is the translator
   const tag = availabilityTag(p, g.week)
   if (!tag) return null
-  return <span style={{ color: tag.color, fontWeight: 700, fontSize: 11 }}>{tag.txt}</span>
+  return <span style={{ color: tag.color, fontWeight: 700, fontSize: '0.6875rem' }}>{tag.txt}</span>
 }
 
 

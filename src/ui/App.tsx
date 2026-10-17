@@ -27,45 +27,66 @@ import { FeedbackPrompt } from './FeedbackPrompt'
 import { bigTablet, useTablet } from './tablet'
 import { COMMUNITY_URL } from '../game/community'
 
+/* A SCREEN WHOSE FILE IS GONE RELOADS THE GAME ONCE (1.9.1 re-audit). After
+   a new build replaces the old one, a tab still running the old build asks
+   for screen files that no longer exist, and a failed lazy import took the
+   whole game down to the crash screen. The first failure reloads onto the
+   new build instead; a second, in the same session, is a real fault and is
+   thrown. The packaged apps read their own files and never reach this. */
+const CHUNK_RELOAD = 'rm-chunk-reload'
+// React.lazy's own constraint is ComponentType<any>; nothing narrower satisfies it
+function lazyScreen<T extends { default: React.ComponentType<any> }>(load: () => Promise<T>) {
+  return lazy(() => load().then(m => {
+    try { sessionStorage.removeItem(CHUNK_RELOAD) } catch { /* private mode */ }
+    return m
+  }, (e: unknown) => {
+    let tried = true
+    try { tried = sessionStorage.getItem(CHUNK_RELOAD) === '1'; sessionStorage.setItem(CHUNK_RELOAD, '1') } catch { /* private mode */ }
+    if (tried) throw e
+    location.reload()
+    return new Promise<T>(() => {})
+  }))
+}
+
 /* SCREENS ON DEMAND (1.9.1). Every screen used to be in the boot chunk, so a
    phone parsed the Handbook, the Finances, the highlight clip and forty more
    before it could draw the title. The screens a session opens on (the title,
    the wizard, Home, the day, the Wire, the inbox, the match) stay in it; the
    rest load the first time they are opened, which on a phone reading its own
    files is a few milliseconds. */
-const Offers = lazy(() => import('./screens/Offers'))
-const Squad = lazy(() => import('./screens/Squad'))
-const PlayerScreen = lazy(() => import('./screens/PlayerScreen'))
-const Tactics = lazy(() => import('./screens/Tactics'))
-const Fixtures = lazy(() => import('./screens/Fixtures'))
-const Tables = lazy(() => import('./screens/Tables'))
-const Transfers = lazy(() => import('./screens/Transfers'))
-const Training = lazy(() => import('./screens/Training'))
-const Scouting = lazy(() => import('./screens/Scouting'))
-const Finances = lazy(() => import('./screens/Finances'))
-const ClubScreen = lazy(() => import('./screens/ClubScreen'))
-const Press = lazy(() => import('./screens/Press'))
-const Nations = lazy(() => import('./screens/Nations'))
-const History = lazy(() => import('./screens/History'))
-const Legacy = lazy(() => import('./screens/Legacy'))
-const Handbook = lazy(() => import('./screens/Handbook'))
-const Settings = lazy(() => import('./screens/Settings'))
-const BugReport = lazy(() => import('./screens/BugReport'))
-const About = lazy(() => import('./screens/About'))
-const Supporter = lazy(() => import('./screens/Supporter'))
-const Jobs = lazy(() => import('./screens/Jobs'))
-const Medical = lazy(() => import('./screens/Medical'))
-const TeamReport = lazy(() => import('./screens/TeamReport'))
-const Profile = lazy(() => import('./screens/Profile'))
-const DrawRoom = lazy(() => import('./screens/DrawRoom'))
-const Annual = lazy(() => import('./screens/Annual'))
-const DreamTeam = lazy(() => import('./screens/DreamTeam'))
-const WeekResults = lazy(() => import('./screens/WeekResults'))
-const SeasonReview = lazy(() => import('./screens/SeasonReview'))
-const Agency = lazy(() => import('./screens/Agency'))
-const Country = lazy(() => import('./screens/Country'))
-const Infrastructure = lazy(() => import('./screens/Infrastructure'))
-const Academy = lazy(() => import('./screens/Academy'))
+const Offers = lazyScreen(() => import('./screens/Offers'))
+const Squad = lazyScreen(() => import('./screens/Squad'))
+const PlayerScreen = lazyScreen(() => import('./screens/PlayerScreen'))
+const Tactics = lazyScreen(() => import('./screens/Tactics'))
+const Fixtures = lazyScreen(() => import('./screens/Fixtures'))
+const Tables = lazyScreen(() => import('./screens/Tables'))
+const Transfers = lazyScreen(() => import('./screens/Transfers'))
+const Training = lazyScreen(() => import('./screens/Training'))
+const Scouting = lazyScreen(() => import('./screens/Scouting'))
+const Finances = lazyScreen(() => import('./screens/Finances'))
+const ClubScreen = lazyScreen(() => import('./screens/ClubScreen'))
+const Press = lazyScreen(() => import('./screens/Press'))
+const Nations = lazyScreen(() => import('./screens/Nations'))
+const History = lazyScreen(() => import('./screens/History'))
+const Legacy = lazyScreen(() => import('./screens/Legacy'))
+const Handbook = lazyScreen(() => import('./screens/Handbook'))
+const Settings = lazyScreen(() => import('./screens/Settings'))
+const BugReport = lazyScreen(() => import('./screens/BugReport'))
+const About = lazyScreen(() => import('./screens/About'))
+const Supporter = lazyScreen(() => import('./screens/Supporter'))
+const Jobs = lazyScreen(() => import('./screens/Jobs'))
+const Medical = lazyScreen(() => import('./screens/Medical'))
+const TeamReport = lazyScreen(() => import('./screens/TeamReport'))
+const Profile = lazyScreen(() => import('./screens/Profile'))
+const DrawRoom = lazyScreen(() => import('./screens/DrawRoom'))
+const Annual = lazyScreen(() => import('./screens/Annual'))
+const DreamTeam = lazyScreen(() => import('./screens/DreamTeam'))
+const WeekResults = lazyScreen(() => import('./screens/WeekResults'))
+const SeasonReview = lazyScreen(() => import('./screens/SeasonReview'))
+const Agency = lazyScreen(() => import('./screens/Agency'))
+const Country = lazyScreen(() => import('./screens/Country'))
+const Infrastructure = lazyScreen(() => import('./screens/Infrastructure'))
+const Academy = lazyScreen(() => import('./screens/Academy'))
 
 /* The masthead title for every screen that is not Home (Home shows the club).
  *
@@ -806,7 +827,7 @@ export default function App() {
       <header className="masthead">
         <div className="masthead-row">
           {nav.length > 1
-            ? <button className="back-btn" onClick={back}>‹</button>
+            ? <button className="back-btn" onClick={back} aria-label={t('common.backLabel')}><span aria-hidden="true">‹</span></button>
             : null}
           {/* named, not an inline style, so portrait can give it the whole width
               and drop the controls onto a second row - at 412px the back button,

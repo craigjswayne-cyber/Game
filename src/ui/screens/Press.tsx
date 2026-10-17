@@ -85,7 +85,7 @@ export default function Press() {
                   else setSpotNote({ id: item.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
                 }} />
             )}
-            {spotNote?.id === item.id && <div className="meta muted" style={{ fontSize: 12 }}>{spotNote.text}</div>}
+            {spotNote?.id === item.id && <div className="meta muted" style={{ fontSize: '0.75rem' }}>{spotNote.text}</div>}
           </div>
           <hr style={{ border: 'none', borderTop: '2px solid var(--border-strong)', margin: '0 14px' }} />
         </div>
@@ -98,7 +98,7 @@ export default function Press() {
               <div className="when">{item.outlet === OFFICE_OUTLET ? t('world.prPrivate') : item.outlet} · {weekDate(item.season, item.week)}</div>
               <div className="subj" style={{ fontWeight: 400 }}>{prose(pressQuestion(item))}</div>
               <div className="body">{youSaid(item)}</div>
-              {teamNightOn(game, item.id) && <div className="meta muted" style={{ fontSize: 12 }}>{t('till.teamNightDone')}</div>}
+              {teamNightOn(game, item.id) && <div className="meta muted" style={{ fontSize: '0.75rem' }}>{t('till.teamNightDone')}</div>}
               {/* what the answer did, in words (pressmood.effectLines) */}
               {item.fx && (
                 <div className="press-fx">

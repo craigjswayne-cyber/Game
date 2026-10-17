@@ -80,12 +80,12 @@ export default function Menu() {
             answers to it. This screen offers the door; what is behind it is
             chosen once you are through. */}
         <button className={saves.length ? 'btn ghost' : 'btn gold'}
-          style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 16 } : { fontSize: 16, padding: '13px' }}
+          style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: '1rem' } : { fontSize: '1rem', padding: '13px' }}
           onClick={() => go('newgame')}>
           {t('menu.newCareer')}
         </button>
         {saves.length > 0 && (
-          <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 16 }}
+          <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: '1rem' }}
             onClick={() => setShowLoad(!showLoad)}>
             {t('menu.loadCareer')}
           </button>
@@ -113,8 +113,8 @@ export default function Menu() {
           <div key={s.slot} style={{ display: 'flex', gap: 6 }}>
             <button className="btn" style={{ flex: 1, background: 'var(--surface-3)' }} onClick={() => void load(s.slot)}>
               {s.managerName} - {s.club}
-              <div style={{ fontSize: 11, opacity: .8 }}>{t('menu.savedAt', { season: seasonLabel(s.season), week: s.week })}</div>
-              {liveFor(s) && <div style={{ fontSize: 11, opacity: .8 }}>{t('menu.matchLive', { opp: liveFor(s)! })}</div>}
+              <div style={{ fontSize: '0.6875rem', opacity: .8 }}>{t('menu.savedAt', { season: seasonLabel(s.season), week: s.week })}</div>
+              {liveFor(s) && <div style={{ fontSize: '0.6875rem', opacity: .8 }}>{t('menu.matchLive', { opp: liveFor(s)! })}</div>}
             </button>
             {/* TWO TAPS TO DELETE A CAREER (1.8.1), as on Game Status. One tap
                 on a cross beside the Load button threw a whole career away,
@@ -140,7 +140,7 @@ export default function Menu() {
           "French"): somebody hunting for their language is scanning for the
           word they would use for it. */}
       <div className="lang-row" style={{ marginTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <span className="muted" style={{ fontSize: 12, letterSpacing: 1 }}>{t('menu.language')}</span>
+        <span className="muted" style={{ fontSize: '0.75rem', letterSpacing: 1 }}>{t('menu.language')}</span>
         {/* a dropdown, not a button row (owner, v1.2.0: "languages to be a
             drop down menu"): five names no longer fit across a phone, and a
             native select is the one control every platform renders well at
@@ -149,7 +149,7 @@ export default function Menu() {
             日本語 in Japanese. */}
         <select className="inline-input lang-select" value={lang}
           aria-label={t('menu.language')}
-          style={{ fontSize: 13, padding: '4px 10px', lineHeight: 1.2 }}
+          style={{ fontSize: '0.8125rem', padding: '4px 10px', lineHeight: 1.2 }}
           onChange={ev => setLang(ev.target.value as typeof lang)}>
           {LANGS.map(l => (
             <option key={l.code} value={l.code} lang={l.code}>{l.label}</option>
@@ -165,7 +165,7 @@ export default function Menu() {
       {/* two lines (owner, 27 Sep 2026: "unofficial and independent on a
           single line, then the not affiliated on the line below"): split
           after the first sentence, in every language */}
-      <div style={{ marginTop: 22, fontSize: 11, opacity: .65 }}>
+      <div style={{ marginTop: 22, fontSize: '0.6875rem', opacity: .65 }}>
         {(() => {
           const d = t('menu.disclaimer'), m = /^(.+?[.。])\s*(.+)$/.exec(d)
           return m ? <><div>{m[1]}</div><div>{m[2]}</div></> : d

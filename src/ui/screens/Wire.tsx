@@ -54,7 +54,7 @@ export default function Wire() {
           <span><Byline n={n} sep />{t('week.wireDateNews', { date: weekDate(n.season, n.week) })}</span>
           <span>{t('week.wirePos', { i: idx + 1, n: items.length })}</span>
         </div>
-        <h2 style={{ fontSize: 18, lineHeight: 1.3, margin: '8px 0 10px' }}>
+        <h2 style={{ fontSize: '1.125rem', lineHeight: 1.3, margin: '8px 0 10px' }}>
           {newsGlyph(n.type)} {newsSubject(n)}
         </h2>
         {/* PARAGRAPHS, not a wall (user: "news graphics seem so messy, tidy them

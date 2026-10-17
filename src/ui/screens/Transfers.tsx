@@ -206,7 +206,7 @@ export default function Transfers() {
                       two lines behind a long name on a narrow phone. */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                    <div className="muted" style={{ fontSize: 12 }}>
+                    <div className="muted" style={{ fontSize: '0.75rem' }}>
                       {t('transfers.dealLine', { age: p.age, wage: fmtWage(p.wage), demand: fmtWage(demand), morale: p.morale.toFixed(0) })}
                     </div>
                   </div>
@@ -221,7 +221,7 @@ export default function Transfers() {
               )
             })}
             {expiring.length > 0 && (
-              <div className="muted" style={{ padding: '8px 14px', fontSize: 12 }}>
+              <div className="muted" style={{ padding: '8px 14px', fontSize: '0.75rem' }}>
                 {t('transfers.renewNote')}
               </div>
             )}
@@ -234,7 +234,7 @@ export default function Transfers() {
                     <PosBadge pos={p.pos} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700 }}>{p.name}</div>
-                      <div className="muted" style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div className="muted" style={{ fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t('transfers.incomingLine', { age: p.age, from_k: p.clubId ? 'transfers.fromClub' : 'transfers.fromFree', club: p.clubId ? game.clubs[p.clubId]?.short ?? '?' : '' })}
                       </div>
                     </div>
@@ -277,7 +277,7 @@ export default function Transfers() {
                   <button className="btn danger" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, false) }); touch() }}>{t('transfers.reject')}</button>
                 </div>
                 {msg?.key === `offer:${o.id}` && (
-                  <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>{msg.text}</div>
+                  <div className="meta" style={{ fontSize: '0.75rem', fontWeight: 600, marginTop: 6 }}>{msg.text}</div>
                 )}
               </div>
             )

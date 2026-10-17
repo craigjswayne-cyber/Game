@@ -33,7 +33,7 @@ export default function Legacy() {
     <>
       <div className="card" style={{ textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center' }}><Crest club={club} size={44} mr={0} /></div>
-        <h3 style={{ fontSize: 22, marginTop: 6 }}>{game.managerName}</h3>
+        <h3 style={{ fontSize: '1.375rem', marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">{t('legacy.lgDirectorOf', { club: club.name })}</div>
         {/* THE CLUB'S NAME FOR ITSELF (repute.ts): an identity held for years */}
         {(() => {
@@ -49,7 +49,7 @@ export default function Legacy() {
           <div className="meta" style={{ marginTop: 3 }}>
             {game.licensed && <span title={t('till.stampLicensed')}><Glyph name="academy" /> </span>}
             {game.uncapped && <span title={t('till.stampCharter')}><Glyph name="pen" /> </span>}
-            <span className="muted" style={{ fontSize: 12 }}>
+            <span className="muted" style={{ fontSize: '0.75rem' }}>
               {[game.licensed && t('till.stampLicensed'), game.uncapped && t('till.stampCharter')].filter(Boolean).join(' · ')}
             </span>
           </div>
@@ -72,7 +72,7 @@ export default function Legacy() {
           <>
             <SectionTitle sub={t(d.progress.done ? 'legacy.lgRealised' : 'legacy.lgWhatFor')}>{t('legacy.lgTheDream')}</SectionTitle>
             <div className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>{dreamTitle(d.def, d.ctx)}</div>
+              <div style={{ fontWeight: 700, fontSize: '1rem' }}>{dreamTitle(d.def, d.ctx)}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
                 <div style={{ width: `${dreamPct(d.progress)}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
               </div>
@@ -117,9 +117,9 @@ export default function Legacy() {
               <div className="meta" style={{ letterSpacing: 1 }}>
                 {t('legacy.lgRetiredLine', { how: t(game.retired.forced ? 'legacy.lgForced' : 'legacy.lgOwnTerms'), age: game.retired.age })}
               </div>
-              <h3 style={{ fontSize: 18, marginTop: 4 }}>{v.title}</h3>
+              <h3 style={{ fontSize: '1.125rem', marginTop: 4 }}>{v.title}</h3>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '8px 0' }}>
-                <b style={{ fontSize: 34, color: 'var(--gold)', lineHeight: 1 }}>{v.grade}</b>
+                <b style={{ fontSize: '2.125rem', color: 'var(--gold)', lineHeight: 1 }}>{v.grade}</b>
                 <span className="muted">{t('legacy.lgCareerGrade')}</span>
               </div>
               {v.lines.map((l, i) => <div key={i} className="meta" style={{ marginTop: 4 }}>{l}</div>)}
@@ -245,7 +245,7 @@ export default function Legacy() {
                   <span className="dl-t" style={{ minWidth: 0 }}>
                     <b style={rival ? { color: 'var(--danger)' } : undefined}>{c.n}</b>
                     {rival && <span className="muted"> · {t('arc.rivalTag')}</span>}
-                    <div className="muted" style={{ fontSize: 11 }}>{[at || t('arc.outOfWork'), idea].filter(Boolean).join(' · ')}</div>
+                    <div className="muted" style={{ fontSize: '0.6875rem' }}>{[at || t('arc.outOfWork'), idea].filter(Boolean).join(' · ')}</div>
                   </span>
                   <b>{t('arc.wdl', { w: c.w, d: c.d, l: c.l })}</b>
                 </div>
@@ -275,7 +275,7 @@ export default function Legacy() {
       <div className="card">
         {horizon(game).map((h, i, all) => (
           <div key={h.label} style={{ marginBottom: i === all.length - 1 ? 0 : 9 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
               <b>{h.label}</b>
               <span className="muted">{h.note}</span>
             </div>
@@ -320,13 +320,13 @@ export default function Legacy() {
                     <td className="name">
                       {compLabel(game.comps[f.leagueId]?.name) ?? f.leagueId}
                       {cups.map((t, j) => (
-                        <div key={j} style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}>
+                        <div key={j} style={{ color: 'var(--gold)', fontSize: '0.6875rem', fontWeight: 700 }}>
                           <Glyph name="trophy" /> {compLabel(game.comps[t.compId]?.name) ?? t.compId}
                         </div>
                       ))}
                       {/* the annals: the season's story in a line or three (history.ts) */}
                       {annalsFor(game, f.season, f.clubId).map((line, j) => (
-                        <div key={`a${j}`} className="muted" style={{ fontSize: 11, fontWeight: 400, whiteSpace: 'normal' }}>{line}</div>
+                        <div key={`a${j}`} className="muted" style={{ fontSize: '0.6875rem', fontWeight: 400, whiteSpace: 'normal' }}>{line}</div>
                       ))}
                     </td>
                     <td className="num" style={{ fontWeight: 700, color: won(f) ? 'var(--gold)' : undefined }}>

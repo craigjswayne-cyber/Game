@@ -22,6 +22,7 @@ import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { SEASON_WEEKS, type GameState } from '../src/game/model'
+import { adminPenalty } from '../src/game/insolvency'
 import { ok, check, done } from './lib/probe'
 
 const SEASONS = Number(process.argv[2] ?? (process.env.PROBE_QUICK ? 1 : 2))
@@ -50,7 +51,9 @@ function summer(g: GameState, label: string) {
 
   // 2
   const leagues = Object.values(g.comps).filter(c => c.type === 'league')
-  const dirty = leagues.filter(c => c.table.some(r => r.p !== 0 || r.pts !== 0))
+  // zero, except the points an administration takes off a club from round
+  // one of the new season (insolvency.ts, settled before the tables rebuild)
+  const dirty = leagues.filter(c => c.table.some(r => r.p !== 0 || r.pts !== -adminPenalty(g.clubs[r.teamId], g.season)))
   check(leagues.length > 0 && dirty.length === 0, `${label}: ${leagues.length} league tables reset to zero`,
     () => `not reset: ${dirty.map(c => c.id).join(' ')}`)
 

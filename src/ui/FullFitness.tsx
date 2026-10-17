@@ -99,9 +99,9 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="medical" /></span>
+        <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name="medical" /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>{t('store.heal')}</div>
+          <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{t('store.heal')}</div>
           {!compact && <div className="meta" style={{ marginTop: 1 }}>{t('store.healLine')}</div>}
         </div>
         {/* flexShrink on the button and minWidth:0 on the column above it are

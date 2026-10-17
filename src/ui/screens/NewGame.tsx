@@ -158,7 +158,7 @@ export default function NewGame() {
           The step number drops the step NAME with them: the lit crumb says it. */}
       <header className="masthead wizard-head">
         <div className="masthead-row">
-          <button className="back-btn" onClick={prev}>‹</button>
+          <button className="back-btn" onClick={prev} aria-label={t('common.backLabel')}><span aria-hidden="true">‹</span></button>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1>{t('wizard.title')}</h1>
             <div className="date">{t('wizard.step', { step: step + 1, total: 4 })}<span className="step-name"> · {t(STEPS[step])}</span></div>
@@ -234,7 +234,7 @@ export default function NewGame() {
               {defs.map((d, i) => (
                 <button key={d.id} data-league={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}
                   onClick={() => { setLeagueIdx(i); setClubId(null); setStep(1) }}>
-                  <span style={{ fontSize: 16, color: 'var(--gold)' }}><Glyph name="trophy" /></span>
+                  <span style={{ fontSize: '1rem', color: 'var(--gold)' }}><Glyph name="trophy" /></span>
                   <span className="cname">{compLabel(d.name)}</span>
                   <span className="muted">{t('wizard.clubCount', { n: d.clubs.length })}</span>
                 </button>
@@ -257,8 +257,8 @@ export default function NewGame() {
                   <button key={ch.id} className="card challenge-card" style={{ margin: 0 }} onClick={() => pickChallenge(ch.id)}>
                     {chClub && <Crest club={chClub} size={28} mr={10} />}
                     <span style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
-                      <b style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--text-primary)' }}>{t(ch.title)}</b>
-                      <span className="meta" style={{ fontSize: 12, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{t(ch.desc)}</span>
+                      <b style={{ fontFamily: 'var(--serif)', fontSize: '0.875rem', color: 'var(--text-primary)' }}>{t(ch.title)}</b>
+                      <span className="meta" style={{ fontSize: '0.75rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{t(ch.desc)}</span>
                     </span>
                   </button>
                 )
@@ -321,7 +321,7 @@ export default function NewGame() {
             <div className="wizard-hint">{t('wizard.profileAt', { club: club.name })}</div>
             {challenge && (
               <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                <h3 style={{ fontSize: 16 }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
+                <h3 style={{ fontSize: '1rem' }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
                 <div className="meta">{t(challenge.desc)}</div>
               </div>
             )}
@@ -412,7 +412,7 @@ export default function NewGame() {
       <div className="action-bar wiz-bar">
         {needed && <div className="wiz-need">{needed}</div>}
         <button className="btn ghost" onClick={prev}>{step === 0 ? t('wizard.mainMenu') : t('wizard.back')}</button>
-        <button className="btn gold" style={{ flex: 1.6, fontSize: 16 }} disabled={!canNext} onClick={next}
+        <button className="btn gold" style={{ flex: 1.6, fontSize: '1rem' }} disabled={!canNext} onClick={next}
           title={needed ?? undefined}>
           {step === 3 ? t('wizard.startCareer') : t('wizard.confirm')}
         </button>

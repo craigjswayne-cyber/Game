@@ -130,7 +130,7 @@ export default function Medical() {
 
       {allClear && (
         <div className="card center bar-sq" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 16 }}>{t(q ? 'medical.nothingOnHim' : 'medical.quietRoom')}</h3>
+          <h3 style={{ fontSize: '1rem' }}>{t(q ? 'medical.nothingOnHim' : 'medical.quietRoom')}</h3>
           <div className="meta">{t(q ? 'medical.nothingOnHimSub' : 'medical.quietRoomSub')}</div>
         </div>
       )}
@@ -265,7 +265,7 @@ export default function Medical() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <div style={{ padding: '0 16px' }}>
-            <h3 style={{ fontSize: 16, margin: '2px 0 6px' }}>{t('medical.jokerTitle', { hurt: jokerHurt.name })}</h3>
+            <h3 style={{ fontSize: '1rem', margin: '2px 0 6px' }}>{t('medical.jokerTitle', { hurt: jokerHurt.name })}</h3>
             <div className="meta" style={{ marginBottom: 8 }}>
               {t('medical.jokerExplain', { n: weeksOut(game, jokerHurt), hurt: jokerHurt.name })}
             </div>
