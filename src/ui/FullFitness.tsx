@@ -62,6 +62,7 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
     await bankReceipts(HEAL_SKU)
     if (creditCount(HEAL_SKU) < 1) { setPending(false); setMsg(t('store.creditGone')); return }
     const spent = await spendCredit(HEAL_SKU, healSquad)
+    if (spent === 'none') { setPending(false); setMsg(t('store.creditGone')); return }
     if (spent === 'storage') { setPending(true); setMsg(t('store.creditNotSpent')); return }
     if (spent === 'done') {
       setPending(creditCount(HEAL_SKU) > 0)

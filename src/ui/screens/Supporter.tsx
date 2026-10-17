@@ -228,7 +228,8 @@ export default function Supporter() {
     await bankReceipts(HEAL_SKU)
     if (creditCount(HEAL_SKU) < 1) { setHealPending(false); say(HEAL_SKU, t('store.creditGone')); return }
     const spent = await spendCredit(HEAL_SKU, healSquad)
-    if (spent === 'storage') { setHealPending(true); say(HEAL_SKU, t('store.creditNotSpent')) }
+    if (spent === 'none') { setHealPending(false); say(HEAL_SKU, t('store.creditGone')) }
+    else if (spent === 'storage') { setHealPending(true); say(HEAL_SKU, t('store.creditNotSpent')) }
     else if (spent === 'done') {
       setHealPending(creditCount(HEAL_SKU) > 0)
       say(HEAL_SKU, t('store.healDone'))
@@ -263,7 +264,8 @@ export default function Supporter() {
     if (creditCount(sku) < 1) { setPendingInj(p => p.filter(x => x !== tier)); say(sku, t('store.creditGone')); return }
     const amount = fmtMoney(injectionCash(game, tier))
     const spent = await spendCredit(sku, () => boardInject(tier))
-    if (spent === 'storage') { setPendingInj(p => (p.includes(tier) ? p : [...p, tier])); say(sku, t('store.creditNotSpent')) }
+    if (spent === 'none') { setPendingInj(p => p.filter(x => x !== tier)); say(sku, t('store.creditGone')) }
+    else if (spent === 'storage') { setPendingInj(p => (p.includes(tier) ? p : [...p, tier])); say(sku, t('store.creditNotSpent')) }
     else if (spent === 'done') {
       setPendingInj(p => (creditCount(sku) > 0 ? p : p.filter(x => x !== tier)))
       say(sku, t('till.injLanded', { amount }))
@@ -297,7 +299,7 @@ export default function Supporter() {
       // the thank-you is the grant; the credit is burned saying it
       let n = 0
       const spent = await spendCredit(SUPPORT_SKU, () => { n = recordSupport(); return true })
-      say(SUPPORT_SKU, spent === 'done' ? t('store.supportDone', { n }) : t('store.creditNotSpent'))
+      say(SUPPORT_SKU, spent === 'done' ? t('store.supportDone', { n }) : spent === 'none' ? t('store.creditGone') : t('store.creditNotSpent'))
     } else say(SUPPORT_SKU, endingText(out))
   })
 
@@ -327,7 +329,7 @@ export default function Supporter() {
       if (creditCount(GROUND_SKU) < 1) { say(ESTATE_SKU, t('till.owedHeld')); return }
       // unbuilt stays banked for the next club
       const spent = await spendCredit(GROUND_SKU, buildEstate)
-      say(ESTATE_SKU, spent === 'done' ? t('store.estateDone') : spent === 'refused' ? t('store.estateRefused') : t('store.creditNotSpent'))
+      say(ESTATE_SKU, spent === 'done' ? t('store.estateDone') : spent === 'refused' ? t('store.estateRefused') : spent === 'none' ? t('store.creditGone') : t('store.creditNotSpent'))
     } else say(ESTATE_SKU, endingText(out))
   })
 
