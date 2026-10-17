@@ -54,7 +54,7 @@ type WithDigitalGoods = {
  * browser this game has ever run in.
  */
 export async function playBridge(): Promise<BillingBridge | null> {
-  const w = globalThis as unknown as WithDigitalGoods
+  const w = globalThis as WithDigitalGoods
   if (typeof w.getDigitalGoodsService !== 'function' || typeof w.PaymentRequest !== 'function') return null
 
   let svc: DigitalGoodsService
@@ -493,7 +493,7 @@ export async function playBridge(): Promise<BillingBridge | null> {
  * knows more about its own store than this does.
  */
 export async function attachPlayBilling(): Promise<boolean> {
-  const g = globalThis as unknown as { rmBilling?: BillingBridge }
+  const g = globalThis as { rmBilling?: BillingBridge }
   if (g.rmBilling) return false
   const b = await playBridge()
   if (!b) return false
