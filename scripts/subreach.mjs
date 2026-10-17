@@ -101,6 +101,14 @@ async function sweep(label, height, stopAt, width = 412) {
           await page.waitForTimeout(300)
           continue
         }
+        // any injury stop has to be answered before play goes on, and before
+        // the panel under it: the sheet covers the panel's buttons, so a loop
+        // that tried Resume first tapped a covered button until time ran out
+        if (await page.locator('.squad-sheet').count()) {
+          await answerSheet(page)
+          await page.waitForTimeout(300)
+          continue
+        }
         const panel = page.locator('.ticker.panel-area .card h3')
         if (await panel.count()) {
           const t = (await panel.first().textContent()) ?? ''
@@ -110,14 +118,8 @@ async function sweep(label, height, stopAt, width = 412) {
           const resume = page.locator('.ticker.panel-area .btn.gold')
           if (await resume.count()) { await resume.first().click({ timeout: 5000 }).catch(() => {}); await page.waitForTimeout(400); continue }
         }
-        // any injury stop has to be answered before play goes on
-        if (await page.locator('.squad-sheet').count()) {
-          await answerSheet(page)
-          await page.waitForTimeout(300)
-          continue
-        }
         const skip = page.locator('.speed-controls .btn').nth(1)
-        if (await skip.count()) await skip.click().catch(() => {})
+        if (await skip.count()) await skip.click({ timeout: 3000 }).catch(() => {})
         await page.waitForTimeout(500)
       }
       return false
