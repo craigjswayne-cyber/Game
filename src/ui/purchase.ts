@@ -1,4 +1,5 @@
-import { billingCause, billingReason, bridge, type PurchaseOutcome } from '../game/monetise'
+import { billingCause, billingReason, bridge, creditAdd, creditTake, type PurchaseOutcome } from '../game/monetise'
+import { useStore } from '../store'
 import { t } from '../game/i18n'
 
 /** Every way a tap on Buy can end, including the ones the store never reaches. */
@@ -22,7 +23,7 @@ export type Ending = PurchaseOutcome | 'error'
  * what is true of every cause behind that word. "No store attached to this
  * build" is kept for the one case it describes: no bridge at all.
  */
-export const endingKey = (out: Ending, cause = billingCause(), hasStore = !!bridge()): string => {
+const endingKey = (out: Ending, cause = billingCause(), hasStore = !!bridge()): string => {
   if (out === 'cancelled') return 'supporter.cancelled'
   if (out === 'pending') return 'supporter.pending'
   if (out === 'owned') return 'supporter.error' // never shown: an owned ending is a sale
@@ -54,4 +55,34 @@ export const endingText = (out: Ending) => {
   const line = t(endingKey(out))
   const why = out === 'refused' ? billingReason() : null
   return why ? `${line} (${why})` : line
+}
+
+/**
+ * SPEND ONE BANKED CREDIT ON ONE EFFECT, IN THE ORDER THAT CANNOT GIVE IT TWICE
+ * (1.9.1).
+ *
+ * Every door used to grant first and call creditTake after, and none of them
+ * read its answer. creditTake refuses when the ledger write fails, so a phone
+ * with full storage got the effect and kept the credit: the same purchase
+ * granted again on the next tap. And the grant reached the disk only on the
+ * save queue's idle timer, so a phone that killed the app inside that window
+ * had spent the credit on an effect that never saved.
+ *
+ * Now: take the credit first and stop if the ledger would not record it (the
+ * credit is still there, nothing is lost); grant; give the credit back if the
+ * career refused the grant; and wait for the career to be on disk before
+ * saying it landed.
+ */
+export async function spendCredit(sku: string, grant: () => boolean): Promise<'done' | 'refused' | 'storage'> {
+  if (!creditTake(sku)) return 'storage'
+  let landed = false
+  try {
+    landed = grant()
+  } catch (e) {
+    creditAdd(sku)
+    throw e
+  }
+  if (!landed) { creditAdd(sku); return 'refused' }
+  await useStore.getState().persistNow()
+  return 'done'
 }

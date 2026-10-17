@@ -46,7 +46,7 @@ import { clubIntent } from './living'
 import { agentTone, unsettledFee } from './recruit'
 import { rivalsOf } from './rivalries'
 import { rivalCoach } from './rivalcoach'
-import { clamp, hashString, mulberry32 } from './rng'
+import { clamp, hashString, mulberry32, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
 import { JANUARY_OPEN, SUMMER_OPEN, SUMMER_SHUT, nextWeek } from './window'
 
@@ -59,7 +59,7 @@ const rand = (s: string): number => mulberry32(hashString(s))()
  * A club in the black with a real reserve (ten weeks of its wage bill) can
  * still move; one that is short and paying under the scale cannot.
  */
-export function canSpend(state: GameState, c: Club): boolean {
+function canSpend(state: GameState, c: Club): boolean {
   if (c.admin || c.balance <= 0) return false
   const bill = c.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
   return c.balance > 10 * bill || aiPayRate(state, c) >= 0.85
@@ -102,7 +102,7 @@ const POS_NOUN: Record<string, string> = {
 export const posNounKey = (pos: string): string => POS_NOUN[pos] ?? 'posNoun.player'
 
 /** How many men at this club are at least as good as him in his position. */
-export function betterAt(state: GameState, club: Club, p: Player): number {
+function betterAt(state: GameState, club: Club, p: Player): number {
   let n = 0
   for (const id of club.players) {
     if (id === p.id) continue
@@ -226,7 +226,7 @@ export function rivalFor(state: GameState, p: Player, fee: number): { club: Club
     cands.push({ club: c, keen, wage })
   }
   if (!cands.length) return null
-  cands.sort((a, b) => b.keen - a.keen || a.club.id.localeCompare(b.club.id))
+  cands.sort((a, b) => b.keen - a.keen || cmpStr(a.club.id, b.club.id))
   const top = cands[0]
   // not every signing is a fight: a star, a prized prospect and a club going
   // for it make one likelier
@@ -319,11 +319,11 @@ const NEED_MIN: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 3, N8
 const HUNT_WEEKS = [2, 4, 6, JANUARY_OPEN + 1]
 
 /** Is this one of the best young prospects in the world? */
-export const isProspect = (p: Player): boolean =>
+const isProspect = (p: Player): boolean =>
   p.age <= 21 && p.pa >= 82 && p.pa >= p.ca + 5 && !p.retiring && !p.onLoan && !p.loanFrom
 
 /** The prospect this AI club would go for this week, or null. Pure. */
-export function youthTarget(state: GameState, club: Club, pool?: Player[]): Player | null {
+function youthTarget(state: GameState, club: Club, pool?: Player[]): Player | null {
   if (isMyClub(state, club.id) || club.admin || club.balance <= 0 || embargoed(state, club.id)) return null
   const intent = clubIntent(state, club)
   if (intent !== 'allin' && intent !== 'rebuild') return null
@@ -358,7 +358,7 @@ export function aiYouthHunt(state: GameState): void {
   if (!windowOpen(state.week) || !HUNT_WEEKS.includes(state.week)) return
   const pool = Object.values(state.players).filter(isProspect)
   if (!pool.length) return
-  const clubs = Object.values(state.clubs).sort((a, b) => b.rep - a.rep || a.id.localeCompare(b.id))
+  const clubs = Object.values(state.clubs).sort((a, b) => b.rep - a.rep || cmpStr(a.id, b.id))
   for (const club of clubs) {
     const p = youthTarget(state, club, pool)
     if (!p) continue
@@ -497,7 +497,7 @@ export function aiSummerMarket(state: GameState): void {
   if (!(state.week >= SUMMER_OPEN || state.week <= SUMMER_SHUT)) return
   const key = `${state.seed}|${state.season}|${state.week}`
   const clubs = Object.values(state.clubs).filter(c => !isMyClub(state, c.id))
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => cmpStr(a.id, b.id))
   const leaving = (p: Player) => state.week >= SUMMER_OPEN && p.contractEnds <= state.season
   const free = (p: Player) => !p.acad && !p.youth && !p.onLoan && !p.loanFrom && !p.retiring &&
     !leaving(p) && !promisedElsewhere(state, p.id)
@@ -629,7 +629,7 @@ function posStrength(state: GameState, club: Club): Record<string, number> {
 }
 
 /** Where the manager's side outclassed theirs most: the position to buy. */
-export function beatenAt(state: GameState, club: Club): Pos {
+function beatenAt(state: GameState, club: Club): Pos {
   const mine = posStrength(state, state.clubs[state.userClubId])
   const theirs = posStrength(state, club)
   let best = 'FL', gap = -Infinity
@@ -669,7 +669,7 @@ export function respondersTo(state: GameState, order: string[], champion?: strin
     if (!close && !humbled && !named) return
     scored.push({ id, s: (id === rivalClub ? 3 : 0) + (derby.has(id) ? 1.5 : 0) + (close ? 2 - i * 0.3 : 0) + (humbled ? 1 : 0) })
   })
-  return scored.sort((a, b) => b.s - a.s || a.id.localeCompare(b.id)).slice(0, 3).map(x => x.id)
+  return scored.sort((a, b) => b.s - a.s || cmpStr(a.id, b.id)).slice(0, 3).map(x => x.id)
 }
 
 /** After the summer budgets are set: the boards that answer him. */

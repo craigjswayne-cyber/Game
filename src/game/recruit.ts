@@ -36,7 +36,7 @@ import { isForward } from './bench'
 import { aiShoppingTarget, askingPrice, embargoed } from './ai'
 import { recall } from './memory'
 import { attrRange, fuzzedCa, knowledge, margin, paRange, persKnown, reportStage, type ReportStage } from './scout'
-import { clamp, hashString, mulberry32 } from './rng'
+import { clamp, hashString, mulberry32, cmpStr } from './rng'
 import { atkName, defName, stylesOf, type AtkStyle, type DefStyle } from './styles'
 
 type Key = keyof Attrs
@@ -179,18 +179,18 @@ function relevant(pos: Pos, k: Key): boolean {
  * above what the position usually has; a concern stands well below. The two
  * record-based concerns read what is public: his injury history and his cards.
  */
-export function notesFrom(
+function notesFrom(
   pos: Pos, vals: Record<Key, number>, base: Record<Key, number>, maxS: number, maxC: number,
   record?: { durability: boolean; discipline: boolean },
 ): { strengths: Note[]; concerns: Note[] } {
   const devs = ATTR_KEYS.filter(k => relevant(pos, k))
     .map(k => ({ k, d: (vals[k] - base[k]) * (0.6 + 0.4 * attrWeight(pos, k)) }))
-  const strengths = devs.filter(x => x.d >= 1.2).sort((a, b) => b.d - a.d || a.k.localeCompare(b.k))
+  const strengths = devs.filter(x => x.d >= 1.2).sort((a, b) => b.d - a.d || cmpStr(a.k, b.k))
     .slice(0, maxS).map(x => x.k as Note)
   const concerns: Note[] = []
   if (record?.durability) concerns.push('durability')
   if (record?.discipline || (vals.agg >= 16 && vals.agg - base.agg >= 3)) concerns.push('discipline')
-  for (const x of devs.filter(x => x.d <= -1.2 && x.k !== 'agg').sort((a, b) => a.d - b.d || a.k.localeCompare(b.k))) {
+  for (const x of devs.filter(x => x.d <= -1.2 && x.k !== 'agg').sort((a, b) => a.d - b.d || cmpStr(a.k, b.k))) {
     if (concerns.length >= maxC) break
     concerns.push(x.k === 'han' && !isForward(pos) ? 'highBall' : x.k)
   }
@@ -288,7 +288,7 @@ export function fitScore(pos: Pos, vals: Record<Key, number>, base: Record<Key, 
   return w > 0.3 ? sc / w : 0
 }
 
-export const FIT_CUT = 0.45
+const FIT_CUT = 0.45
 export const fitWord = (score: number): Fit => score >= FIT_CUT ? 'excellent' : score <= -FIT_CUT ? 'doubtful' : 'good'
 
 // ---------------------------------------------------------------------------
@@ -311,7 +311,7 @@ const DEALING: Partial<Record<string, number>> = {
  * Recent dealings weigh more than old ones, and a broken promise to anybody in
  * the last year travels (agents talk to each other: memory.ts agentWariness).
  */
-export function agentScore(state: GameState, p: Player): number {
+function agentScore(state: GameState, p: Player): number {
   const stable = agentStable(p.id)
   let sc = 0
   for (const e of recall(state, {})) {
@@ -350,7 +350,7 @@ function shoppingMap(state: GameState): Map<number, string> {
   const map = new Map<number, string>()
   const clubs = Object.values(state.clubs)
     .filter(c => c.id !== state.userClubId && c.budget >= 800_000 && !embargoed(state, c.id))
-    .sort((a, b) => b.rep - a.rep || a.id.localeCompare(b.id))
+    .sort((a, b) => b.rep - a.rep || cmpStr(a.id, b.id))
   for (const c of clubs) {
     const t = aiShoppingTarget(state, c)?.target
     if (t && !map.has(t.id)) map.set(t.id, c.id)
@@ -365,7 +365,7 @@ function shoppingMap(state: GameState): Map<number, string> {
  * target this week, or he is unsettled (listed, unhappy, or out of contract)
  * and a club could afford him. If you wait, the next window can take him.
  */
-export function realSuitor(state: GameState, p: Player): string | null {
+function realSuitor(state: GameState, p: Player): string | null {
   if (!p.clubId || p.clubId === state.userClubId || p.onLoan || p.loanFrom || p.retiring) return null
   const shop = shoppingMap(state).get(p.id)
   if (shop) return shop
@@ -374,7 +374,7 @@ export function realSuitor(state: GameState, p: Player): string | null {
   const c = Object.values(state.clubs)
     .filter(c => c.id !== state.userClubId && c.id !== p.clubId && c.budget >= 200_000 && !embargoed(state, c.id) &&
       p.ca <= c.rep + 12 && ask <= c.budget)
-    .sort((a, b) => b.budget - a.budget || a.id.localeCompare(b.id))[0]
+    .sort((a, b) => b.budget - a.budget || cmpStr(a.id, b.id))[0]
   return c?.id ?? null
 }
 
@@ -401,7 +401,7 @@ export function insideWord(state: GameState, p: Player): boolean {
  * Keyed on the man, the season and the six-week spell, so it lasts a while
  * and then fades if nobody bites. Not everybody's agent does it.
  */
-export function agentTalkClub(state: GameState, p: Player): string | null {
+function agentTalkClub(state: GameState, p: Player): string | null {
   if (!p.clubId || p.clubId === state.userClubId || p.ca < 60 || p.onLoan || p.loanFrom || p.retiring) return null
   const seller = state.clubs[p.clubId]
   if (!seller) return null
@@ -413,7 +413,7 @@ export function agentTalkClub(state: GameState, p: Player): string | null {
   if (rand(`talk|${p.id}|${state.season}|${ph}`) >= 0.12 + pushy) return null
   const pool = Object.values(state.clubs)
     .filter(c => c.id !== state.userClubId && c.id !== seller.id && c.rep >= seller.rep - 6 && c.rep <= seller.rep + 15)
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => cmpStr(a.id, b.id))
   if (!pool.length) return null
   return pool[Math.floor(rand(`talkclub|${p.id}|${state.season}|${ph}`) * pool.length) % pool.length].id
 }
@@ -505,7 +505,7 @@ export function unsettledTerms(p: Player): number {
  *  a listing or a request is public at any stage, a low mood only once the
  *  scouts have a proper report and have talked to people around him. */
 export type Unsettled = 'asked' | 'listed' | 'unhappy'
-export function unsettledRead(stage: ReportStage, p: Player): Unsettled | null {
+function unsettledRead(stage: ReportStage, p: Player): Unsettled | null {
   if (askedLevel(p)) return 'asked'
   if (p.transferListed) return 'listed'
   if (stage >= 2 && moraleLevel(p) > 0) return 'unhappy'
@@ -517,7 +517,7 @@ export function unsettledRead(stage: ReportStage, p: Player): Unsettled | null {
 // ---------------------------------------------------------------------------
 
 /** The level band: his current standard as the scouts would put it. */
-export function levelBand(state: GameState, p: Player): [number, number] {
+function levelBand(state: GameState, p: Player): [number, number] {
   const m = margin(knowledge(state, p)) * 1.5
   const c = fuzzedCa(state, p)
   return [clamp(Math.round(c - m), 1, 99), clamp(Math.round(c + m), 1, 99)]

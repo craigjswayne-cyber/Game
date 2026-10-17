@@ -81,7 +81,7 @@ export function acadAdvice(state: GameState, p: Player): boolean {
 
 /** The wage the button quotes: the academy scale for a first-year, the
  *  professional scale for a lad signing his first senior deal. */
-export function acadCallWage(p: Player, call: AcadCall): number {
+function acadCallWage(p: Player, call: AcadCall): number {
   return playerWage(p.ca, p.age, call === 'first')
 }
 
@@ -138,7 +138,7 @@ export function acadCallLive(state: GameState, item: PressItem): boolean {
 }
 
 /** Let him go: off the books, into the free-agent pool, no longer a scholar. */
-function releaseScholar(state: GameState, club: Club, p: Player) {
+function releaseScholar(_state: GameState, club: Club, p: Player) {
   club.players = club.players.filter(id => id !== p.id)
   club.tactic.lineup = club.tactic.lineup.map(id => (id === p.id ? null : id))
   if (club.captain === p.id) club.captain = null

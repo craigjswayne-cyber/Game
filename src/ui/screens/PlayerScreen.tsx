@@ -4,10 +4,10 @@ import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, inj
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
-import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
+import { FormPill, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
-import { firstProWage, fineAttr, playerWage } from '../../game/attributes'
+import { firstProWage, fineAttr } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
@@ -868,7 +868,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               ) : (
                 <>
                   <div className="meta">{t('player.campWants', { demand: fmtWage(renewalDemand(p)), wage: fmtWage(p.wage) })}</div>
-                  <input className="inline-input" type="text" inputMode="numeric" value={wageText}
+                  <input className="inline-input" type="text" inputMode="numeric" value={wageText} aria-label={t('player.yourOfferWage')}
                     onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
                   <div className="btn-row" style={{ margin: '10px 0 0' }}>
                     <button className="btn gold" onClick={() => {

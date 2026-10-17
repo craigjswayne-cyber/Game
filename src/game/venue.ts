@@ -147,9 +147,3 @@ function noteFor(km: number, tz: number, altGap: number, heatGap: number, h: Ven
   return null
 }
 
-/** A short badge for the fixture list and the club screen: "1,753m" or "9,200km". */
-export function venueBadge(e: VenueEffect): string | null {
-  if (e.altGap >= 500) return `${e.alt.toLocaleString()}m`
-  if (e.km >= 3000) return `${e.km.toLocaleString()}km`
-  return null
-}

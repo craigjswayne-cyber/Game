@@ -239,7 +239,7 @@ export const MAILTO_LIMIT = 1800
  *  public/privacy.html and landing/index.html write the same address and
  *  subject by hand, because they are static pages; landingprobe and bugprobe
  *  hold all three to it. */
-export const CONTACT_SUBJECT = 'PHASE: Rugby Manager'
+const CONTACT_SUBJECT = 'PHASE: Rugby Manager'
 export const CONTACT_MAILTO = `mailto:${DEV_CONTACT}?subject=${encodeURIComponent(CONTACT_SUBJECT)}`
 
 export function mailtoUrl(

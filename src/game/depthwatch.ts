@@ -24,7 +24,7 @@ import { clubMatchesPlayed } from './gametime'
  */
 export const depthNeed = (pos: Pos): number => (pos === 'LP' || pos === 'HK' || pos === 'TP' ? 3 : 2)
 
-export const outThisWeek = (p: Player): boolean => !!p.injury || p.bans > 0 || !!p.natSquad || !!p.onLoan
+const outThisWeek = (p: Player): boolean => !!p.injury || p.bans > 0 || !!p.natSquad || !!p.onLoan
 
 /** Fit specialists at a position for the manager's club. */
 export function fitAt(state: GameState, pos: Pos): number {

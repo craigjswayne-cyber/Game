@@ -18,14 +18,10 @@
 //
 // So: one identified rival per season, and a voice that moves with the table.
 import { subjectVar } from './gender'
-import { tIn, type Vars } from './i18n'
+import { type Vars } from './i18n'
 import { nextTelling } from './tellings'
 import { poss, type Club, type GameState } from './model'
 
-/** Who is in the other dugout, or null for a club between coaches. */
-export function bossOf(club: Club): string | null {
-  return club.coach ?? null
-}
 
 /**
  * The manager the season is about.

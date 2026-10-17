@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { Club, GameState } from '../game/model'
-import { XV_SLOTS } from '../game/model'
 import { BRIEF_BY_ID, benchSeats, briefForSeat, isForward, type Brief } from '../game/bench'
 import { t } from '../game/i18n'
 import { Jersey, PosBadge } from './components'

@@ -22,7 +22,7 @@ export function Byline({ n, sep }: { n: NewsItem; sep?: boolean }) {
  *  so the same path works on the website and inside the Capacitor shells. If
  *  the file is missing or fails to decode, nothing is drawn: never a broken
  *  image in the game. Renders nothing on a story that is not Ruck's. */
-export const RUCK_LOGO = `${import.meta.env.BASE_URL}ruck-logo.webp`
+const RUCK_LOGO = `${import.meta.env.BASE_URL}ruck-logo.webp`
 export function RuckMark({ n }: { n: NewsItem }) {
   const [failed, setFailed] = useState(false)
   if (n.src !== 'ruck' || failed) return null

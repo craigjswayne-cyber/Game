@@ -44,7 +44,7 @@ import { book, file, moment, note, type Line, type Rivalry } from './histbook'
 import type { Vars } from './i18n'
 
 export const FORM_AT = 4
-export const COOL_AT = 2
+const COOL_AT = 2
 const DECAY = 0.6
 const MAX_HEAT = 12
 

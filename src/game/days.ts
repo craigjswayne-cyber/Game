@@ -1,6 +1,6 @@
 import { isBoardroom } from './media'
 import type { GameState, NewsItem } from './model'
-import { seasonStart, BASE_YEAR, dayAbbr, fixtureDayOff, fxDate, injuryDesc, monthName, weekDate } from './model'
+import { seasonStart, dayAbbr, fixtureDayOff, fxDate, injuryDesc, monthName } from './model'
 import { userMatchThisWeek } from './season'
 import { t } from './i18n'
 import { isDeadlineWeek, windowNoteDue } from './window'
@@ -34,7 +34,7 @@ import { isDeadlineWeek, windowNoteDue } from './window'
 /** Monday to Saturday. Sunday belongs to the previous week's match. */
 export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
 export type DayIndex = 0 | 1 | 2 | 3 | 4 | 5
-export const MATCH_DAY: DayIndex = 5
+const MATCH_DAY: DayIndex = 5
 
 /** What the day is FOR - the heading on the bulletin, and the reason a story
  *  lands on it. A coach's week has this shape whether the game models it or not:
@@ -121,16 +121,11 @@ export const RECALL_DAYS = 5
  *
  *  Built on the same calendar weekDate prints, so the arithmetic agrees with the
  *  dates on screen and crossing a season boundary needs no special case. */
-export function absDay(season: number, week: number, day: DayIndex = MATCH_DAY): number {
+function absDay(season: number, week: number, day: DayIndex = MATCH_DAY): number {
   const start = seasonStart(season)
   return Math.round((start + ((week - 1) * 7 + (day - MATCH_DAY)) * 86400000) / 86400000)
 }
 
-/** How many days ago this story landed, from where the manager is standing. */
-export function storyAge(state: GameState, n: NewsItem): number {
-  const now = absDay(state.season, state.week, today(state))
-  return Math.max(0, now - absDay(n.season, n.week, dayOfStory(n)))
-}
 
 /** Should this story still be in the news reader?
  *
@@ -182,7 +177,7 @@ export function markRead(state: GameState, n: NewsItem): void {
  *  day flow existed would otherwise dump its whole unread backlog onto Monday.
  *  The watermark is set on the next settlement, so it self-corrects after one
  *  Continue. */
-export function newsSince(state: GameState): number {
+function newsSince(state: GameState): number {
   return state.newsFrom ?? state.nextId
 }
 
@@ -461,8 +456,4 @@ export function dayLine(state: GameState): string {
   return dayDate(state.season, state.week, today(state))
 }
 
-/** For anything that still wants the week's Saturday by name. */
-export function weekLine(state: GameState): string {
-  return weekDate(state.season, state.week)
-}
 

@@ -15,7 +15,7 @@ import { aiFreeAgents, aiSummerMarket, aiYouthHunt, rivalPushWeek, settleRivalBi
 import { offerResult, offerRun } from './records'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
-import { commercialWeekly, expireDeals } from './commercial'
+import { commercialWeekly } from './commercial'
 import { book } from './books'
 import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
@@ -24,7 +24,7 @@ import { upkeepWeek } from './upkeep'
 import {absWeek, addGrudge, careerRows, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100, tieWinner } from './model'
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
-import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
+import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, TRC_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice, settlePendingDeals } from './ai'
 import { isDeadlineWeek, nextWeek, postWindowNotes, prevWeek } from './window'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress, isBoardroom } from './media'
@@ -40,13 +40,13 @@ import { OBJECTIVE_DEFS, objectiveBonus } from './objectives'
 import { applyPlanSheet, boardPriorityF } from './seasonplan'
 import { IRON_REC, brittleF, formTraits } from './formtraits'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
-import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
-import { isMyClub, logDecision } from './model'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { isMyClub, LAST_PLEDGE_WEEK, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { RIFT_MORALE, RIFT_TRAINING, riftDrag, staffRiftWeek } from './staffrift'
 import { resolveCommission, scoutPostcard } from './commission'
 import { scoutDesk } from './scoutrecs'
-import { clamp, mulberry32, shuffled, type Rng } from './rng'
+import { clamp, mulberry32, shuffled, type Rng, cmpStr } from './rng'
 import { attrOdds, attrRoll, gapGrowth, PRODIGY_PA, trainPoint, youthPace } from './ageing'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { depthWatch } from './depthwatch'
@@ -1155,12 +1155,12 @@ function manageInternationals(state: GameState, rng: Rng) {
 
 /** Which attributes a training focus works on - the squad session and the
  *  personal plans (18A) speak the same vocabulary. */
-export const FOCUS_ATTRS: Record<string, (keyof Player['a'])[]> = {
+const FOCUS_ATTRS: Record<string, (keyof Player['a'])[]> = {
   balanced: [], scrum: ['scr', 'str'], lineout: ['lin'], attack: ['han', 'pas', 'vis'],
   defence: ['tac', 'pos'], fitness: ['sta'], kicking: ['kic', 'goa'],
 }
 /** Which specialist coach amplifies which training focus. */
-export const FOCUS_COACH: Record<string, keyof GameState['staff'] | null> = {
+const FOCUS_COACH: Record<string, keyof GameState['staff'] | null> = {
   balanced: null, scrum: 'scrumCoach', lineout: 'scrumCoach', attack: 'attack',
   defence: 'defence', fitness: 'assistant', kicking: 'kicking',
 }
@@ -1649,7 +1649,7 @@ export function runSpotlight(state: GameState, fx: Fixture, us: number, them: nu
 // Finances & board
 // ------------------------------------------------------------------
 
-function weeklyFinance(state: GameState, rng: Rng) {
+function weeklyFinance(state: GameState, _rng: Rng) {
   const club = state.clubs[state.userClubId]
   // The last three weeks of a 48-week season are the tour, and the close season
   // for everybody else. The books do not run - see LEDGER_WEEKS for what
@@ -1886,7 +1886,7 @@ export function afterClubMatch(state: GameState, fx: Fixture) {
 
 const MILESTONE_KEYS = tellingsOf('news.milestone')
 
-function milestones(state: GameState, rng: Rng) {
+function milestones(state: GameState, _rng: Rng) {
   const club = state.clubs[state.userClubId]
   for (const id of club.players) {
     const p = state.players[id]
@@ -2058,7 +2058,7 @@ export function honeymoonEnd(rep: number): number {
 }
 
 /** board confidence a week at a title favourite for a sheet the manager never claimed */
-export const ABSENT_SHEET = 1.1
+const ABSENT_SHEET = 1.1
 function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const club = state.clubs[state.userClubId]
   const isHome = fx.homeId === club.id
@@ -2426,7 +2426,7 @@ export function friendlySuggestions(state: GameState, week: number): string[] {
       const abroad = c.country !== user.country
       return lower || abroad
     })
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => cmpStr(a.id, b.id))
   if (!pool.length) return []
   // deterministic per (save, week): the same three every time you look, a
   // different three next week. A list that reshuffles on every render is a
@@ -2951,7 +2951,8 @@ export function processWeekAndAdvance(state: GameState) {
         (state.preContracts ?? []).some(pc => pc.playerId === p.id)) continue
       // a start is owed at the next match played (handshake.ts)
       if (pl.kind === 'start') { if (settleStartPledge(state, pl, p)) remain.push(pl); continue }
-      if (state.week < pl.due) { remain.push(pl); continue }
+      // due past the last playing week: rollover carries it into the new season
+      if (state.week < pl.due || pl.due > LAST_PLEDGE_WEEK) { remain.push(pl); continue }
       const gap = p.stats.apps - pl.baseApps
       const kept = pl.kind === 'plans' ? gap >= 2
         : pl.kind === 'minutes' ? gap >= 1
@@ -3372,7 +3373,6 @@ export function processWeekAndAdvance(state: GameState) {
       const seeds = state.comps['wc']?.seeds ?? []
       const seed = seeds.indexOf(nat) + 1
       const won = tieWinner(wcFinal) === nat
-      const inFinal = wcFinal.homeId === nat || wcFinal.awayId === nat
       const wcFx = state.fixtures.filter(f => f.compId === 'wc' && f.played && (f.homeId === nat || f.awayId === nat))
       const deepest = wcFx.some(f => f.stage === 'F') ? (won ? 1 : 2)
         : wcFx.some(f => f.stage === 'SF') ? 4

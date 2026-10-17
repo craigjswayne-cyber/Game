@@ -58,7 +58,7 @@ export type Unit = AnalystRead['unit']
 // ---------------------------------------------------------------------------
 
 export type PlanId = 'exploit' | 'counter' | 'lesson' | 'finish' | 'starve'
-export const PLAN_IDS: readonly PlanId[] = ['exploit', 'counter', 'lesson', 'finish', 'starve']
+const PLAN_IDS: readonly PlanId[] = ['exploit', 'counter', 'lesson', 'finish', 'starve']
 
 /** The levers a plan sets. Every field is an existing control. */
 export interface PlanLevers {
@@ -465,7 +465,7 @@ function drilledEnough(club: Club, id: string): boolean {
 /** The levers for going after one unit. The prep is the analyst's own mapping,
  *  so a sound read followed through a plan earns exactly the homework edge the
  *  engine already pays for following him. */
-export function leversFor(state: GameState, unit: Unit, prep: MatchPrep): PlanLevers {
+function leversFor(state: GameState, unit: Unit, prep: MatchPrep): PlanLevers {
   const club = state.clubs[state.userClubId]
   const tac = club.tactic
   switch (unit) {
@@ -530,7 +530,7 @@ export function planOptions(state: GameState, fx: Fixture): PlanOption[] {
  * scores least against.
  */
 export const STARVE = { kicking: 10, tempo: 35, ruckCommit: 85 }
-export function starveLevers(): PlanLevers {
+function starveLevers(): PlanLevers {
   return { prep: 'defence', dials: { ...STARVE } }
 }
 

@@ -81,7 +81,7 @@ export function fuzzedCa(state: GameState, p: Player): number {
 export const WATCH_KNOW = 55
 
 /** Margin on the ceiling at a knowledge level, or -1 for no reading at all. */
-export function paMargin(k: number): number {
+function paMargin(k: number): number {
   if (k >= 95) return 0
   if (k >= 75) return 4
   if (k >= 55) return 7

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
-import { nationByCode, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { MoveCell, sinceLine } from './Agency'
@@ -10,6 +10,7 @@ import { ClubLink, SectionTitle } from '../components'
 import { answerIsles, islesCoach, islesEligible } from '../../game/isles'
 import { weekDate } from '../../game/model'
 import { t, compLabel } from '../../game/i18n'
+import { rowNav } from '../rowNav'
 
 /** THE TEST RANKINGS, WITH THE REST OF INTERNATIONAL RUGBY (owner, 1.8.2).
  *  They sat as a third tab on the Scouting Agency, between two lists of club
@@ -24,7 +25,6 @@ function TestRankings({ game }: { game: GameState }) {
         <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
         <tbody>
           {order.map((code, i) => {
-            const n = nationByCode(code)
             const prevIdx = prevOrder.indexOf(code)
             const mine = game.natTeam === code
             return (
@@ -113,7 +113,7 @@ export default function Nations() {
           </div>
           <div className="tblwrap" style={{ marginTop: 6 }}><table className="dtable"><tbody>
             {(mySquad.length ? mySquad : myPool).slice(0, 26).map(p => (
-              <tr key={p.id} onClick={() => go('player', p.id)}>
+              <tr key={p.id} {...rowNav(() => go('player', p.id))}>
                 <td className="muted">{p.pos}</td>
                 <td className="name">{p.name}</td>
                 <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>

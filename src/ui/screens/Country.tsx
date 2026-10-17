@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, weekDate, type Pos } from '../../game/model'
-import { nationByCode, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { natFixtureThisWeek } from '../../game/season'
@@ -9,8 +9,9 @@ import { NAT_SQUAD_SIZE } from '../../game/nations'
 import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow, weeksToSquad } from '../../game/country'
 import { ClubLink, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
-import { ord, posName, t } from '../../game/i18n'
+import { posName, t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { rowNav } from '../rowNav'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -47,7 +48,6 @@ export default function Country() {
     )
   }
 
-  const nat = nationByCode(natId)
   const order = natRankOrder(game)
   const rank = order.indexOf(natId) + 1
   const conf = game.natConfidence != null ? Math.round(game.natConfidence) : null
@@ -88,7 +88,7 @@ export default function Country() {
   }
 
   const row = (p: NonNullable<(typeof squad)[number]>, inSquad: boolean) => (
-    <tr key={p.id} onClick={() => go('player', p.id)}>
+    <tr key={p.id} {...rowNav(() => go('player', p.id))}>
       <td style={{ width: 34 }}><PosBadge pos={p.pos} /></td>
       <td className="name" style={p.clubId === game.userClubId ? { fontWeight: 800 } : undefined}>
         {p.name}{(p.caps ?? 0) > 0 ? <span className="muted">{t('legacy.coCaps', { n: p.caps ?? 0 })}</span> : <span className="muted">{t('legacy.coUncapped')}</span>}

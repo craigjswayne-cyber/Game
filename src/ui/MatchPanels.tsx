@@ -34,7 +34,9 @@ export function MatchPanels({ onClose }: { onClose: () => void }) {
   const shown = ctx.events.slice(0, live.cursor)
   const panel = PANELS[i]
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
     <div className={`modal-veil${panel === 'lineups' ? ' mp-clear' : ''}`} onClick={onClose}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
       <div className={`modal mpanels${panel === 'lineups' ? ' tele-mode' : ''}`} onClick={e => e.stopPropagation()}>
         <div className="mp-head">
           <button className="btn ghost tiny" aria-label={t('mpanel.prev')} disabled={i === 0} onClick={() => setI(i - 1)}>◀</button>
@@ -276,7 +278,7 @@ function PlayerLines({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
 
 /** The field in three: where the lines revealed so far were played, from each
  *  side's point of view (its own third, the middle, the opposition's). */
-export function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
+function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
   const game = useStore(s => s.game)!
   const f = shown.map(e => e.fld).filter((x): x is number => x != null)
   const n = f.length || 1
@@ -302,7 +304,7 @@ export function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
 /** Visits to the 22 and what each side made of them: the rugby version of
  *  "attack areas", and the number coaches actually quote. A visit starts on the
  *  first line inside the opposition 22 after a line outside it. */
-export function Visits({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
+function Visits({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
   const game = useStore(s => s.game)!
   // the engine's count, the same one the live stats read (visitsTo22)
   const tally = (home: boolean) => {

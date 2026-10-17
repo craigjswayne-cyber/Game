@@ -11,6 +11,8 @@ too heavy to ship. This writes:
 and src/game/campusPlots.ts, the ten plot rectangles as percentages so the
 screen can place tiles without importing JSON or hard-coding pixels.
 
+The game ships these as WebP: run scripts/art/to_webp.py afterwards.
+
 Pure stdlib. The PNG writer picks a filter per row the way encoders normally
 do - the naive all-zero filter this started with compresses renders badly.
 """

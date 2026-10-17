@@ -118,9 +118,9 @@ export interface TalksState {
 
 export const MAX_MOVES = 4
 export const ASK = 0.10
-export const DEMAND = 0.25
+const DEMAND = 0.25
 /** each walk-out is heard in the market: the other sponsors open lower */
-export const WALK_PENALTY = 0.05
+const WALK_PENALTY = 0.05
 
 function roll(state: GameState, key: string): number {
   return hash(state.seed, key) / 10000
@@ -136,7 +136,7 @@ export function talksOf(state: GameState): TalksState {
 /** The target a sponsor sets: where the club's stature says it should finish,
  *  or where it already stands if that is higher - nobody pays a bonus for a
  *  finish the table already shows. */
-export function leagueTarget(state: GameState): { target: number; size: number } {
+function leagueTarget(state: GameState): { target: number; size: number } {
   const club = state.clubs[state.userClubId]
   const comp = club ? state.comps[club.leagueId] : undefined
   if (!club || !comp) return { target: 1, size: 1 }
@@ -383,7 +383,7 @@ export function acceptTalk(state: GameState, slot: SlotId): string {
 }
 
 /** Which bonus lines a season met, read off the finished tables. */
-export function bonusHits(state: GameState, perf: PerfTerms): Record<BonusLine, boolean> {
+function bonusHits(state: GameState, perf: PerfTerms): Record<BonusLine, boolean> {
   const club = state.clubs[state.userClubId]
   const none = { league: false, title: false, final: false, tries: false }
   if (!club) return none

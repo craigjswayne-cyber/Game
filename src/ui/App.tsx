@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
@@ -11,55 +11,61 @@ import { islesCoach } from '../game/isles'
 import { tillOpen } from '../game/monetise'
 import { IcoClipboard, IcoGlobe, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
 import { Glyph } from './glyphs'
-import { natWindow } from '../game/country'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
 import Home from './screens/Home'
 import Inbox from './screens/Inbox'
-import Offers from './screens/Offers'
-import Squad from './screens/Squad'
-import PlayerScreen from './screens/PlayerScreen'
-import Tactics from './screens/Tactics'
-import Fixtures from './screens/Fixtures'
-import Tables from './screens/Tables'
-import Transfers from './screens/Transfers'
-import Training from './screens/Training'
-import Scouting from './screens/Scouting'
-import Finances from './screens/Finances'
-import ClubScreen from './screens/ClubScreen'
 import MatchDay from './screens/MatchDay'
-import Press from './screens/Press'
-import Nations from './screens/Nations'
-import History from './screens/History'
-import Legacy from './screens/Legacy'
-import Handbook from './screens/Handbook'
-import Settings from './screens/Settings'
-import BugReport from './screens/BugReport'
-import About from './screens/About'
-import Supporter from './screens/Supporter'
-import Jobs from './screens/Jobs'
 import Wire from './screens/Wire'
-import Medical from './screens/Medical'
 import { isBoardroom } from '../game/media'
-import TeamReport from './screens/TeamReport'
-import Profile from './screens/Profile'
 import Saves from './screens/Saves'
 import DayRoom from './screens/DayRoom'
-import DrawRoom from './screens/DrawRoom'
-import Annual from './screens/Annual'
-import DreamTeam from './screens/DreamTeam'
-import WeekResults from './screens/WeekResults'
-import SeasonReview from './screens/SeasonReview'
-import Agency from './screens/Agency'
-import Country from './screens/Country'
-import Infrastructure from './screens/Infrastructure'
-import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 import { Intro } from './Intro'
 import { ProPrompt } from './ProPrompt'
 import { FeedbackPrompt } from './FeedbackPrompt'
 import { bigTablet, useTablet } from './tablet'
 import { COMMUNITY_URL } from '../game/community'
+
+/* SCREENS ON DEMAND (1.9.1). Every screen used to be in the boot chunk, so a
+   phone parsed the Handbook, the Finances, the highlight clip and forty more
+   before it could draw the title. The screens a session opens on (the title,
+   the wizard, Home, the day, the Wire, the inbox, the match) stay in it; the
+   rest load the first time they are opened, which on a phone reading its own
+   files is a few milliseconds. */
+const Offers = lazy(() => import('./screens/Offers'))
+const Squad = lazy(() => import('./screens/Squad'))
+const PlayerScreen = lazy(() => import('./screens/PlayerScreen'))
+const Tactics = lazy(() => import('./screens/Tactics'))
+const Fixtures = lazy(() => import('./screens/Fixtures'))
+const Tables = lazy(() => import('./screens/Tables'))
+const Transfers = lazy(() => import('./screens/Transfers'))
+const Training = lazy(() => import('./screens/Training'))
+const Scouting = lazy(() => import('./screens/Scouting'))
+const Finances = lazy(() => import('./screens/Finances'))
+const ClubScreen = lazy(() => import('./screens/ClubScreen'))
+const Press = lazy(() => import('./screens/Press'))
+const Nations = lazy(() => import('./screens/Nations'))
+const History = lazy(() => import('./screens/History'))
+const Legacy = lazy(() => import('./screens/Legacy'))
+const Handbook = lazy(() => import('./screens/Handbook'))
+const Settings = lazy(() => import('./screens/Settings'))
+const BugReport = lazy(() => import('./screens/BugReport'))
+const About = lazy(() => import('./screens/About'))
+const Supporter = lazy(() => import('./screens/Supporter'))
+const Jobs = lazy(() => import('./screens/Jobs'))
+const Medical = lazy(() => import('./screens/Medical'))
+const TeamReport = lazy(() => import('./screens/TeamReport'))
+const Profile = lazy(() => import('./screens/Profile'))
+const DrawRoom = lazy(() => import('./screens/DrawRoom'))
+const Annual = lazy(() => import('./screens/Annual'))
+const DreamTeam = lazy(() => import('./screens/DreamTeam'))
+const WeekResults = lazy(() => import('./screens/WeekResults'))
+const SeasonReview = lazy(() => import('./screens/SeasonReview'))
+const Agency = lazy(() => import('./screens/Agency'))
+const Country = lazy(() => import('./screens/Country'))
+const Infrastructure = lazy(() => import('./screens/Infrastructure'))
+const Academy = lazy(() => import('./screens/Academy'))
 
 /* The masthead title for every screen that is not Home (Home shows the club).
  *
@@ -77,12 +83,12 @@ const TITLES: readonly string[] = [
 ]
 
 const IcoMoon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" />
   </svg>
 )
 const IcoSun = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="4.2" />
     <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" />
   </svg>
@@ -118,6 +124,24 @@ function SaveWarning() {
   )
 }
 
+/** A week that threw on the way through (store.settleWeek): the career has
+ *  been put back to its last save, or, if that failed too, it is being held
+ *  unsaved so nothing half-turned overwrites anything. */
+function WeekWarning() {
+  const failed = useStore(s => s.weekFailed)
+  if (!failed) return null
+  return (
+    <div className="save-warn" role="alert">
+      <div>{t(failed === 2 ? 'common.weekStuck' : 'common.weekRolledBack')}</div>
+      {failed === 1 && (
+        <div className="save-warn-btns">
+          <button className="btn tiny ghost" onClick={() => useStore.getState().dismissWeekFailed()}>{t('common.hide')}</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** The trophy moment, the promotion, the challenge completed.
  *
  *  This block used to sit in App's function body as an orphaned statement
@@ -130,6 +154,7 @@ function Celebration() {
   if (!game?.celebration) return null
   const cel = game.celebration
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- full-screen tap-to-dismiss celebration; Escape dismisses it (a11y.ts)
     <div className="celebrate-veil" onClick={() => { game.celebration = null; useStore.getState().touch() }}>
       {Array.from({ length: 26 }).map((_, i) => (
         <i key={i} className="confetti" style={{
@@ -233,6 +258,7 @@ function Overlays() {
   return (
     <>
       <SaveWarning />
+      <WeekWarning />
       <Tutorial />
       <Celebration />
       {/* Pro Manager, at most one card per match flow and only at a safe
@@ -462,7 +488,8 @@ export default function App() {
   // else happened to re-render it
   useStore(s => s.lang)
   useStore(s => s.tick)
-  const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
+  const { back, go, home, continueTap, toggleNight, openInbox } = useStore.getState()
+  const turning = useStore(s => s.turning)
   const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
   const tablet = useTablet()
   useTextScale(tablet)
@@ -826,16 +853,16 @@ export default function App() {
               // the desk's own Continue reads too
               const desk = continueHold(game)
               return (
-                <button className="continue-btn" onClick={continueWeek}
+                <button className="continue-btn" onClick={continueTap} disabled={turning} aria-busy={turning}
                   title={desk ? t('common.deskWaits') : undefined}>
-                  {desk ? `${desk.label} ▸` : t(step.kind === 'match' ? 'common.matchdayBtn' : 'common.continueBtn')}
+                  {turning ? t('common.turningWeek') : desk ? `${desk.label} ▸` : t(step.kind === 'match' ? 'common.matchdayBtn' : 'common.continueBtn')}
                 </button>
               )
             })()}
           </div>
         </div>
       </header>
-      <main className="content" data-screen={cur.screen}>{screen()}</main>
+      <main className="content" data-screen={cur.screen}><Suspense fallback={null}>{screen()}</Suspense></main>
       <nav className="bottom-nav">
         {/* The order the user asked for, top to bottom: news, home, the hub,
             the manager. World comes last because it is the only group that is
@@ -878,7 +905,9 @@ export default function App() {
       </nav>
 
       {menu && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="submenu-veil" onClick={() => setMenu(null)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="submenu" onClick={e => e.stopPropagation()}>
             <div className="submenu-head">{MENUS[menu].title}</div>
             {/* ELEVEN ITEMS AND NO ORDER OF BUSINESS.

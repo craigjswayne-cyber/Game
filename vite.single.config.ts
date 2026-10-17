@@ -7,7 +7,8 @@
 // scripts/onefile.mjs folds that bundle into the HTML.
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { version } from './package.json'
+import pkg from './package.json' with { type: 'json' }
+const { version } = pkg
 
 export default defineConfig({
   plugins: [react()],
@@ -20,6 +21,6 @@ export default defineConfig({
     assetsInlineLimit: 10_000_000,
     cssCodeSplit: false,
     chunkSizeWarningLimit: 100_000,
-    rollupOptions: { output: { inlineDynamicImports: true } },
+    rollupOptions: { output: { codeSplitting: false } },
   },
 })

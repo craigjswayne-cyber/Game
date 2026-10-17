@@ -67,7 +67,7 @@ export default function CampusMap({ game, onPick }: {
         position: 'relative', width: '100%', aspectRatio: `${PLATE_W} / ${PLATE_H}`,
         borderRadius: 6, overflow: 'hidden', background: 'var(--surface-2)',
       }}>
-        <img src={`${ART}campus/plate.png`} alt=""
+        <img src={`${ART}campus/plate.webp`} alt=""
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
 
         {/* ---- the buildings ----
@@ -79,8 +79,8 @@ export default function CampusMap({ game, onPick }: {
           const lvl = levelOf(club, p.fid)
           const building = onSite(p.fid)
           const src = building
-            ? `${ART}campus/construction.png`
-            : `${ART}facilities/${p.art}-L${lvl}.png`
+            ? `${ART}campus/construction.webp`
+            : `${ART}facilities/${p.art}-L${lvl}.webp`
           // centred overspill: half the extra comes off each side
           const pad = (PLOT_OVERSIZE - 1) / 2
           return (
@@ -128,7 +128,7 @@ export default function CampusMap({ game, onPick }: {
               <span style={{
                 position: 'absolute', left: '50%', top: '100%', transform: 'translate(-50%, 2px)',
                 display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap',
-                padding: '1px 4px', borderRadius: 7, fontSize: 9, lineHeight: 1.35, fontWeight: 700,
+                padding: '1px 4px', borderRadius: 7, fontSize: 11, lineHeight: 1.35, fontWeight: 700,
                 background: 'rgba(8, 11, 15, 0.72)',
                 border: `1px solid ${building ? 'var(--gold)' : 'rgba(255,255,255,0.18)'}`,
                 color: building ? 'var(--gold)' : 'var(--on-hero)',

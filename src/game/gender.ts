@@ -42,7 +42,6 @@
 /** 'm' is the men's game, 'w' the women's. Stored on the save. */
 export type Gender = 'm' | 'w'
 
-export const GENDERS: Gender[] = ['m', 'w']
 
 /**
  * The gender of a world, for saves that predate the women's game.
@@ -77,38 +76,7 @@ export const isWomensId = (id: string): boolean => id.startsWith(W)
 /** The gender a club or competition id implies, from the id alone. */
 export const genderOfId = (id: string): Gender => (isWomensId(id) ? 'w' : 'm')
 
-/**
- * Does this id belong in this world?
- *
- * The invariant the whole design rests on: every id in a save agrees with the
- * save's gender. scripts/genderprobe.ts asserts it across a built world and
- * after a season of play, which is what turns the comment at the top of this
- * file into something that stays true.
- */
-export const idFitsWorld = (id: string, g: Gender): boolean => genderOfId(id) === g
 
-/**
- * What a manager takes with them across the divide.
- *
- * A coach moving from the men's game to the women's - or back - keeps what a CV
- * keeps. Their name, obviously. Their record: games, wins, draws, losses, the
- * trophies they won and where they finished. Their reputation with boards, and
- * the origin story they started with, because none of that stops being true.
- *
- * They keep nothing that belongs to a club: no squad, no staff, no shortlist,
- * no scouting knowledge, no transfer budget, no half-finished stand. Those
- * belong to the club they left, and in the other game they never existed.
- *
- * Trophies keep their compId, which will be a men's id in a women's career.
- * That is correct and is the one place the two worlds legitimately touch: a
- * trophy cabinet is a history, and history does not re-sort itself when you
- * change job. Screens that print a trophy look its name up by id, and the
- * id survives, so a women's-game manager's cabinet still reads "won the
- * English Premier Division in 2029" - which is exactly what happened.
- */
-export const CARRIED_ACROSS = [
-  'managerName', 'mgrGender', 'mgr', 'mgrTrust', 'mgrOrigin', 'seed',
-] as const
 
 /**
  * The gender of a COACH or a member of staff, which is not the gender of the

@@ -64,7 +64,7 @@ export function possPct(ctx: LiveCtx, side: SideCtx): number {
 
 /** A side's score at a minute, read off the commentary: the last line
  *  stamped at or before it (the whistle lines are not scores). */
-export function scoreAt(ctx: LiveCtx, min: number, side: SideCtx): number {
+function scoreAt(ctx: LiveCtx, min: number, side: SideCtx): number {
   let at: { homeScore: number; awayScore: number } | null = null
   for (const e of ctx.events) {
     if (e.type === 'FT') continue
@@ -492,10 +492,10 @@ export function marginLeader(ev: CausalEvidence): EvCause | null {
 
 /** what an evidence line at half time is about, so the half-time word does
  *  not say the same thing twice (conditions.ts halfTimeHints) */
-export const HT_ABOUT: Partial<Record<WhyCause, 'pens' | 'ball' | 'set'>> = { pen: 'pens', turn: 'ball', set: 'set' }
+const HT_ABOUT: Partial<Record<WhyCause, 'pens' | 'ball' | 'set'>> = { pen: 'pens', turn: 'ball', set: 'set' }
 
 /** a first half's cause has to be this big to be called working or hurting */
-export const HT_MIN = 5
+const HT_MIN = 5
 
 export interface HtEvidence {
   k: string

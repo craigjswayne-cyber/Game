@@ -118,7 +118,7 @@ export function moneyIndex(state: GameState): number {
  * floor, and then administration, without ever putting a man on the market.
  * Ten weeks sits just ahead of the shedding, for everybody.
  */
-export const FIRE_SALE_WEEKS = 10
+const FIRE_SALE_WEEKS = 10
 
 /**
  * ---- WHAT A CLUB CAN PAY (1.8.3) ----

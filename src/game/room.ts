@@ -44,7 +44,7 @@
 // match engine except by the morale and cohesion paths it already reads.
 import type { Club, GameState, Player, PressItem, PressOption } from './model'
 import { absWeek, fmtMoney, logDecision } from './model'
-import { clamp, mulberry32 } from './rng'
+import { clamp, mulberry32, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
 import { OFFICE_OUTLET, rememberAsk } from './media'
 import { bondOf, nudgeBond, seniorVoices, CLOSE } from './bonds'
@@ -81,10 +81,10 @@ export interface RoomState {
  *  neutral club past the point the room starts talking about it. */
 export const DRIFT = 12
 /** Where the culture is talked about, as a share of the full lean. */
-export const TOLD_AT = 0.4
+const TOLD_AT = 0.4
 /** The weekly chance a rival agrees a pre-contract with a man you waited on,
  *  from the week the pre-contract window opens (on top of the market's own). */
-export const WAIT_RISK = 0.04
+const WAIT_RISK = 0.04
 /** Renew now costs this much over his asking. */
 export const PREMIUM = 1.15
 
@@ -159,7 +159,7 @@ export function popular(state: GameState, club: Club, p: Player): boolean {
 
 /** The man in the middle of it: the vice-captain, or the captain when it is
  *  the vice who has been left out. */
-export function deputyOf(state: GameState, club: Club, droppedId: number): { p: Player; role: 'vice' | 'cap' } | null {
+function deputyOf(state: GameState, club: Club, droppedId: number): { p: Player; role: 'vice' | 'cap' } | null {
   const pick = (id: number | null | undefined) => {
     const p = id != null ? state.players[id] : undefined
     return p && p.clubId === club.id && p.id !== droppedId && !p.onLoan ? p : undefined
@@ -473,7 +473,7 @@ function waitWeek(state: GameState, club: Club): void {
     if (!pc && state.week >= 25 && state.week <= 38 && hash(state, p.id, w.s, nowOf(state)) < WAIT_RISK) {
       const suitors = Object.values(state.clubs)
         .filter(c => c.id !== club.id && c.rep >= club.rep - 10)
-        .sort((a, b) => a.id.localeCompare(b.id))
+        .sort((a, b) => cmpStr(a.id, b.id))
       const to = suitors[Math.floor(hash(state, p.id, state.season, 71) * suitors.length)]
       if (to) {
         state.preContracts.push({ playerId: p.id, toClubId: to.id, week: state.week })

@@ -1,17 +1,17 @@
 import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './model'
 import { subjectVar } from './gender'
-import {absWeek, careerRows, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
+import {absWeek, careerRows, SEASON_WEEKS, pledgeDue, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
 import { loanOut } from './loans'
 import { academyCalls, acadCallLive, resolveAcadCall } from './acadcall'
 import { resolveRoom, roomLive } from './room'
 import { remember } from './memory'
 import { dropSlotQuestion, offersFor, signOffer, slotSignable, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
-import { nationByCode, nationNameIn, nationVars } from './nations'
+import { nationByCode, nationVars } from './nations'
 import { applyResponse } from './authority'
 import { settleTalk } from './talkback'
 import { applyMoodAnswer, moodRoom, settlePressMood, userResults, trailingRun } from './pressmood'
-import { clamp, pick, type Rng } from './rng'
+import { clamp, pick, type Rng, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
 import { clubGamesPlayed, competitiveMatchIn } from './handshake'
 
@@ -49,7 +49,7 @@ export function isBoardroom(p: { options: { camp?: unknown; stance?: unknown; de
  * a man whose patience has run out rather than a bug, and short enough that
  * he does get to come back if you left him in the stand all year.
  */
-export const OFFICE_COOLDOWN = 14
+const OFFICE_COOLDOWN = 14
 
 
 /** Has this player raised this subject recently enough that raising it again
@@ -885,7 +885,7 @@ export function generatePress(state: GameState, rng: Rng) {
       // the best man in the side, and a club at least as big as this one
       const star = squad.filter(q => xvIds.includes(q.id) && !q.onLoan).sort((a, b) => b.ca - a.ca)[0]
       const suitors = Object.values(state.clubs).filter(c => c.id !== club.id && c.rep >= club.rep && c.leagueId)
-        .sort((a, b) => a.id.localeCompare(b.id))
+        .sort((a, b) => cmpStr(a.id, b.id))
       const suitor = suitors.length ? suitors[(state.season * 7 + state.week) % suitors.length] : null
       if (star && suitor) pool.push(() => mk(state,
         { k: voice(52 + star.id, ['press.baroSuitorQ1', 'press.baroSuitorQ2']), v: { player: star.name, club: suitor.name } },
@@ -1324,7 +1324,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       if (opt.pledge && !(state.pledges ?? []).some(pl => pl.playerId === p.id && pl.kind === opt.pledge)) {
         ;(state.pledges ??= []).push({
           playerId: p.id, kind: opt.pledge, week: state.week, season: state.season,
-          due: opt.pledge === 'start' ? state.week : Math.min(state.week + (opt.pledge === 'deal' ? 8 : 6), 44),
+          due: opt.pledge === 'start' ? state.week : pledgeDue(state.week, opt.pledge === 'deal' ? 8 : 6),
           baseApps: p.stats.apps,
           // a start is owed at the next match played, not by a date (handshake.ts)
           ...(opt.pledge === 'start' ? { baseStarts: p.stats.starts, baseGames: clubGamesPlayed(state, state.userClubId) } : {}),

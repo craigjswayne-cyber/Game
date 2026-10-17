@@ -32,13 +32,6 @@ export const ATTR_KEYS = [
   'pac', 'sta', 'agi', 'vis', 'dec', 'pos', 'agg', 'lea', 'wor',
 ] as const
 
-export const ATTR_NAMES: Record<keyof Attrs, string> = {
-  tac: 'Tackling', str: 'Strength', scr: 'Scrummaging', lin: 'Lineout',
-  ruc: 'Rucking', han: 'Handling', pas: 'Passing', kic: 'Kicking',
-  goa: 'Goal Kicking', pac: 'Pace', sta: 'Stamina', agi: 'Agility',
-  vis: 'Vision', dec: 'Decisions', pos: 'Positioning', agg: 'Aggression',
-  lea: 'Leadership', wor: 'Work Rate',
-}
 
 export interface SeasonStats {
   apps: number
@@ -1011,7 +1004,7 @@ export interface NewsItem {
  *  a dictionary entry. The company name, ruck.co.uk (owner, 1.8.9: "It should
  *  also be ruck.co.uk as the company name"); the wordmark sits at the foot of
  *  the story (ui/Byline.tsx RuckMark). */
-export const RUCK_BYLINE = 'RUCK.CO.UK'
+const RUCK_BYLINE = 'RUCK.CO.UK'
 export const newsByline = (n: NewsItem): string | null => (n.src === 'ruck' ? RUCK_BYLINE : null)
 
 export interface PressOption {
@@ -1251,7 +1244,7 @@ export const facilityCost = (info: { base: number }, level: number) => info.base
  *
  * Indexed by TARGET level, so buildWeeks(1) is the first rung.
  */
-export const FACILITY_BUILD_WEEKS = [3, 5, 7, 9, 12] as const
+const FACILITY_BUILD_WEEKS = [3, 5, 7, 9, 12] as const
 
 /**
  * ---- THE GROUND IS A LADDER, 0 TO 5 (owner, v1.6.8) ----
@@ -1296,7 +1289,7 @@ export function groundLevel(capacity: number): number {
  * rung is a stadium. Indexed by TARGET stage, so groundBuildWeeks(1) is the
  * climb out of a village ground.
  */
-export const GROUND_BUILD_WEEKS = [6, 8, 10, 12, 16] as const
+const GROUND_BUILD_WEEKS = [6, 8, 10, 12, 16] as const
 
 export function groundBuildWeeks(level: number): number {
   const i = Math.max(1, Math.min(GROUND_TIERS.length - 1, Math.round(level))) - 1
@@ -1366,7 +1359,7 @@ export function demandCeiling(club: Club): number {
 export const MAX_FOLLOWING = 3.5
 
 /** Every facility level the club holds, 0 to 45 across the nine buildings. */
-export function estateSum(club: Club | undefined): number {
+function estateSum(club: Club | undefined): number {
   if (!club?.facilities) return 0
   return (Object.keys(FACILITY_INFO) as FacilityId[]).reduce((s, fid) => s + (club.facilities?.[fid] ?? 0), 0)
 }
@@ -1383,7 +1376,7 @@ export function estateSum(club: Club | undefined): number {
  *  read by the user's ledger here and by every AI club's in aiecon.ts - they
  *  were 1.1 and 3.1 for a while, which made the manager's ground a third the
  *  price of everybody else's. */
-export const UPKEEP_PER_SEAT = 3.1
+const UPKEEP_PER_SEAT = 3.1
 
 /**
  * ---- A STADIUM COSTS MORE PER SEAT THAN A TERRACE (owner, v1.6.9) ----
@@ -1443,7 +1436,7 @@ export function groundUpkeep(capacity: number): number {
  * the seats, the toilets, the cellar and the electricity bill that arrive
  * when they feel like it.
  */
-export const GROUND_TRADE_F = [0, 0.15, 0.35, 0.55, 0.75, 1] as const
+const GROUND_TRADE_F = [0, 0.15, 0.35, 0.55, 0.75, 1] as const
 
 export function groundTrade(capacity: number): number {
   return capacity * UPKEEP_PER_SEAT * 0.26 * GROUND_TRADE_F[groundLevel(capacity)]
@@ -2597,7 +2590,7 @@ export function isWorldCupSeason(season: number): boolean {
  *  last one, so 2029, 2033 and 2037 are the next (1.6.4). Computed from the
  *  real year like the men's, so a change of BASE_YEAR moves the season it
  *  falls in and never the year. */
-export function isWomensWorldCupSeason(season: number): boolean {
+function isWomensWorldCupSeason(season: number): boolean {
   return (BASE_YEAR + season) % 4 === 1
 }
 
@@ -2692,6 +2685,26 @@ export const SEASON_WEEKS = 48
  */
 export const LEDGER_WEEKS = 45
 
+/** The last week a promise can be judged in: the week before the ledger
+ *  closes, when the domestic season's last games are played. */
+export const LAST_PLEDGE_WEEK = LEDGER_WEEKS - 1
+
+/** When a promise made this week falls due, `span` weeks on.
+ *
+ *  THE CLOSE SEASON IS NOT A DEADLINE (1.9.1). This was
+ *  Math.min(week + span, 44) at both call sites, so a promise made in the
+ *  summer window (weeks 46 to 48: a signing told he is in your plans) fell due
+ *  in a week already gone and was settled as broken the very next Saturday,
+ *  with no match played. Late in the season it gave a promise one week to be
+ *  kept. Now a promise with fewer than three playing weeks left falls due past
+ *  the end of the season, and rollover carries it into the new one
+ *  (carryPledges). */
+export function pledgeDue(week: number, span: number): number {
+  if (week + span <= LAST_PLEDGE_WEEK) return week + span
+  if (week <= LAST_PLEDGE_WEEK - 3) return LAST_PLEDGE_WEEK
+  return week + span
+}
+
 /** Leagues where the bottom club goes down. ONE list: the table's shading,
  *  the new-career media verdict and the pundits' predictions all read it, so
  *  no screen can threaten relegation in a league that has none. */
@@ -2765,26 +2778,6 @@ export function closeNatTenure(state: GameState) {
  *  The fallback is not a stopgap to be removed later. Careers are on the device
  *  and live for years, and a save begun on the release that shipped this will
  *  still be opened in v2. */
-/** News keys nothing WRITES any more but old saves still CARRY: newsBody
- *  renders t(n.k) for any stored item, so the locale entry for a retired
- *  story must outlive the code that pushed it or the inbox shows the raw
- *  key. Listing one here is what keeps i18nprobe's unused-key sweep honest
- *  about why it stays in the dictionary.
- *  - 'news.dressingDown' (+Subj): pushed by talkToPlayer, the uncapped talk
- *    economy retired in v1.1.4.
- *  - 'news.pinnacle' (+Subj): the "your name goes to the federations"
- *    letter from when the International Stage took two weeks to answer;
- *    since v1.1.6 the offer itself arrives immediately instead.
- *  - 'news.staffChem', 'news.staffClick', 'news.staffClash' and the
- *    staff.click and staff.clash notes they quote: the hire-day line on how a
- *    new coach got on with the room, retired when staff chemistry became a
- *    secret falling-out the news only hints at (staffrift.ts, round 4). */
-export const LEGACY_NEWS_KEYS = [
-  'news.dressingDown', 'news.pinnacle',
-  'news.staffChem', 'news.staffClick', 'news.staffClash',
-  'staff.clickNumbers', 'staff.clickRoom', 'staff.clickScrum', 'staff.clickCaps',
-  'staff.clashGps', 'staff.clashLaptop', 'staff.clashVideo',
-] as const
 
 /** A story filed before the icon pass (owner, 27 Sep 2026: "use icons instead
  *  of emojis") still has an emoji at the front of its English in an old save;

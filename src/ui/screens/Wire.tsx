@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { OfferAnswer, PeopleChips, RequestAnswer } from './Inbox'
-import { ContextCard, ResponseNeeded } from '../ContextCard'
+import { ContextCard } from '../ContextCard'
 import { NewsBody, NewsGo } from '../NewsBody'
 import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
@@ -23,7 +23,6 @@ export default function Wire() {
   const game = useStore(s => s.game)!
   const queue = useStore(s => s.wireQueue)
   const home = useStore.getState().home
-  const go = useStore(s => s.go)
   const [idx, setIdx] = useState(0)
 
   const items = queue.map(id => game.news.find(n => n.id === id)).filter((n): n is NonNullable<typeof n> => !!n)
