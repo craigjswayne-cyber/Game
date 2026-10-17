@@ -42,10 +42,9 @@ import {
   respond, restructure, stretchTarget, talksOf, walkChance, type Structure, type Talk,
 } from '../src/game/sponsortalks'
 import { sheetOf } from '../src/game/books'
+import { ok, failures } from './lib/probe'
 
 const SEASONS = Number(process.argv[2] ?? 3)
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`
 
 // ---- 1. the slots -------------------------------------------------------
@@ -367,5 +366,5 @@ const meanM = multiples.reduce((a, b) => a + b, 0) / Math.max(1, multiples.lengt
   void LEDGER_WEEKS
 }
 
-if (fails) { console.error(`\nTALKS PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nTALKS PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nTALKS PROBE PASSED')

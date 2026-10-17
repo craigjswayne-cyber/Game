@@ -47,12 +47,8 @@ import { ambitionsOf, ambitionsWeek, setAmbitions } from '../src/game/ambitions'
 import { buildEra, eraYearEnd, openEra } from '../src/game/erastory'
 import { identityInterestLift } from '../src/game/identity'
 import { proteges } from '../src/game/records'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const queued = (g: GameState, k: string) => [...g.news, ...(g.arc?.queue ?? [])].filter(n => n.k === k)
 const fx = (g: GameState, oppId: string, us: number, them: number, stage?: string): Fixture => ({
   id: 9_000_000 + Math.floor(Math.random() * 1e6), compId: g.clubs[g.userClubId].leagueId, week: g.week,
@@ -395,5 +391,4 @@ const keepBoard = (g: GameState) => {
   flushArcNews(on.g)
 }
 
-console.log(fails ? `CAREER ARC PROBE FAILED (${fails})` : 'CAREER ARC PROBE PASSED: the world knows who you are, and the AI never noticed')
-process.exit(fails ? 1 : 0)
+done('CAREER ARC PROBE', 'the world knows who you are, and the AI never noticed', { exit: true, blank: false })

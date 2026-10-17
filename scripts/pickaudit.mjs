@@ -16,7 +16,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4199', 2500)
+const server = await startPreview(0, 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
@@ -78,7 +78,7 @@ const check = async (label, family) => {
 }
 
 try {
-  await page.goto('http://localhost:4199/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=Elite 14')

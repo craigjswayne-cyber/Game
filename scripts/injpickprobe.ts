@@ -21,9 +21,7 @@ import { newGame } from '../src/game/newgame'
 import { beginMatch, coverInjury, stepTick, type LiveCtx } from '../src/game/matchEngine'
 import { userFixtureThisWeek, processWeekAndAdvance, matchRng } from '../src/game/season'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 /** play watched matches until one of his men is down and waiting */
 function findWait(manual: boolean): { g: GameState; ctx: LiveCtx } | null {
@@ -93,5 +91,4 @@ console.log('--- 5. nobody watching, nothing changes')
 const auto = findWait(false)
 ok(auto === null, 'a match without the flag never waits')
 
-if (fails) { console.log(`\nINJURY PICK PROBE FAILED (${fails})`); process.exit(1) }
-console.log('\nINJURY PICK PROBE PASSED: his man is hurt, his call who comes on')
+done('INJURY PICK PROBE', 'his man is hurt, his call who comes on')

@@ -22,7 +22,7 @@ const DEVICES = [
   { name: 'tablet 768x1024', w: 768, h: 1024, dpr: 2 },
 ]
 
-const server = await startPreview('4237', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 let fails = 0
@@ -130,7 +130,7 @@ for (const dev of DEVICES) {
   await page.addInitScript(() => { localStorage.setItem('rm-night', '1') })
   console.log(`\n===== ${dev.name} (DPR ${dev.dpr}) =====`)
   try {
-    await page.goto('http://localhost:4237/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 
     await page.click('text=New Career')

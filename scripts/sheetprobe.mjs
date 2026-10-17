@@ -29,24 +29,21 @@
 // Run: npm run build && node scripts/sheetprobe.mjs
 import { chromium } from 'playwright-core'
 import { mkdirSync, writeSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
-const PORT = 4271
 const SHOTS = process.env.SHOTS ?? '/tmp/sheetprobe'
 mkdirSync(SHOTS, { recursive: true })
-const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const EMOJI = /\p{Extended_Pictographic}/u
 
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 async function openGame(width, height, night) {
   const page = await browser.newPage({ viewport: { width, height } })
   page.setDefaultTimeout(8000)
   await page.addInitScript(n => { localStorage.setItem('rm-night', n ? '1' : '0'); localStorage.setItem('rm-lang', 'en') }, night)
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.evaluate(() => window.rugbyStore.getState().start('northampton', 'Sheet Probe'))
   await page.waitForTimeout(700)
@@ -259,5 +256,4 @@ try {
   server.stop()
 }
 
-say(fails ? `\nSHEET PROBE FAILED (${fails})` : '\nSHEET PROBE PASSED: a balance sheet, and a table to negotiate at')
-done(fails)
+done('SHEET PROBE', 'a balance sheet, and a table to negotiate at', { exit: true })

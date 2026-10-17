@@ -7,7 +7,7 @@ import { mkdirSync } from 'node:fs'
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = await startPreview('4175', 2500)
+const server = await startPreview(0, 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
@@ -32,7 +32,7 @@ const clearTalk = async () => {
 const shot = (name) => page.screenshot({ path: `${SHOTS}/night-${name}.png` })
 
 try {
-  await page.goto('http://localhost:4175/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await shot('01-title')
 

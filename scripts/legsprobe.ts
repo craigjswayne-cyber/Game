@@ -21,9 +21,7 @@ import { newGame } from '../src/game/newgame'
 import { beginMatch, resolveDecision, stepTick } from '../src/game/matchEngine'
 import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 /** The owner's path: watch the match live, take every interval, never sub. */
 const playLiveNoSubs = (g: ReturnType<typeof newGame>, seed: number) => {
@@ -80,5 +78,4 @@ const g = newGame('northampton', 'Legs', 7)
     `an unrotated league XV still pays for all eighty (${Math.round(Math.min(...after))}%) - the bench matters`)
 }
 
-console.log(fails ? `\nLEGS PROBE FAILED (${fails})` : '\nLEGS PROBE PASSED: friendlies build a season, they do not spend one')
-if (fails) process.exit(1)
+done('LEGS PROBE', 'friendlies build a season, they do not spend one')

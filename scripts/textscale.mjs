@@ -26,7 +26,7 @@ import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
-const server = await startPreview(4211, 2500)
+const server = await startPreview(0, 2500)
 const say = s => writeSync(1, s + '\n')
 let fails = 0
 const ok = (cond, what) => { say(`${cond ? '  ok  ' : 'FAIL  '}${what}`); if (!cond) fails++ }
@@ -59,7 +59,7 @@ const toSettings = async () => {
 }
 
 try {
-  await page.goto('http://localhost:4211/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 
   // ---- 0. the title screen has let it go ----

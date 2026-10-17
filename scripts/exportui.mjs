@@ -21,8 +21,7 @@ const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const PORT = '4293'
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** mode: 'ok' writes and shares; 'cancel' writes, the player backs out;
@@ -60,7 +59,7 @@ async function phone(mode) {
   page.setDefaultTimeout(20000)
   const errs = []
   page.on('pageerror', e => errs.push(e.message))
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=New Career')
   await page.click('text=New Career')
   await page.click('text=English Premier Division')

@@ -839,3 +839,28 @@ above become false in the other direction: Play rejects a build that declares
 an advertising ID it cannot see. If adverts are ever removed from the shell,
 the permission, the Advertising ID answer and the Data safety row all go
 together.
+
+---
+
+## Addendum, 2026-10-17: a release is cut only after the release check is green
+
+Until 1.9.1 the soaks (`suite.sh soak`: twenty seasons through the engine,
+five through the interface, the deep save, the release simulation and nine
+more) ran weekly and were advisory, and the full browser list ran on `main`
+and overnight. Nothing ran all of them on the commit being shipped, so a
+release could be tagged on a Sunday soak from an older commit.
+
+From 1.9.2 the rule is:
+
+1. The Gate (`.github/workflows/ci.yml`) is green on the release commit:
+   the engine probes, the unit tests, the IP tripwire.
+2. **Release check** (`.github/workflows/release-check.yml`) is run by hand
+   from the Actions tab on the same commit (or its tag), and is green: the
+   thirteen soaks in seven shards (at most two 90-minute soaks to a shard,
+   inside the 300-minute ceiling) and every browser harness in four shards.
+3. Only then is the release tagged and uploaded. A red shard is a fix and a
+   new run of the release check, not a judgement that the failure is a flake;
+   if it is a flake, the harness is fixed first.
+
+The run's link goes in the release's QA record (`docs/archive/`), with the
+commit it ran on. `docs/testing.md` has the details of each job.

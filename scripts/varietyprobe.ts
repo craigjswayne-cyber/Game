@@ -39,12 +39,8 @@ import { generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
 import { readFileSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const say = (s: string) => console.log(s)
 
 /** Sentences of a body, trimmed, ignoring the very short connective ones that
@@ -268,7 +264,4 @@ say('\n--- 4. two unrelated stories do not end the same way')
   stock.slice(1, 4).forEach(x => console.log(`        ${x}`))
 }
 
-console.log(fails
-  ? `\nVARIETY PROBE FAILED (${fails})`
-  : '\nVARIETY PROBE PASSED: the game does not say the same thing twice')
-if (fails) process.exit(1)
+done('VARIETY PROBE', 'the game does not say the same thing twice')

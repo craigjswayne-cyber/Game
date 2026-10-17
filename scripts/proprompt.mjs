@@ -37,12 +37,11 @@ const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const PORT = process.env.PORT ?? '4237'
-const URL = `http://localhost:${PORT}/`
 const SHOTS = process.env.SHOTS ?? ''
 if (SHOTS) mkdirSync(SHOTS, { recursive: true })
 
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
+const URL = server.url
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 const FRESH = { v: 1, firstPromptShown: false, firstOfferShown: false, firstOfferAccepted: false, firstOfferDeclined: false, played: 0, offerDueAt: 1, remindAt: 0, lastShownAt: -1, seen: [] }

@@ -24,13 +24,12 @@
 // Run: npx vite-node scripts/commprobe.ts
 import { SIBLING } from '../src/game/i18n'
 import { readFileSync, readdirSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 
 /** Commentary lines still called as finished English. ONLY EVER DECREASE. */
 const BUDGET = 0
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 type Dict = { [k: string]: unknown }
 const load = (p: string) => JSON.parse(readFileSync(p, 'utf8')) as Dict
@@ -136,5 +135,4 @@ for (const phrase of PINNED) {
     `"${phrase}" still appears in the English commentary (saves from before MatchEvent.fx match on it)`)
 }
 
-say(fails ? `\nCOMM PROBE FAILED (${fails})` : `\nCOMM PROBE PASSED: ${wanted.size} commentary keys, every one of them in every language`)
-process.exitCode = fails ? 1 : 0
+done('COMM PROBE', `${wanted.size} commentary keys, every one of them in every language`)

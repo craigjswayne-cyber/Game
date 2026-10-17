@@ -19,9 +19,7 @@ import { newGame } from '../src/game/newgame'
 import { beginMatch, playHalf, matchStats, sideEnergy } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const FR = new Set(['LP', 'HK', 'TP'])
 const N = 40
@@ -84,5 +82,4 @@ const homeE = fresh.homeE / N, awayE = fresh.awayE / N
 ok(Math.abs(homeE - 54.3) <= 2.5 && Math.abs(awayE - 32.5) <= 2.5,
   `a side tires as fast as it did, only different men (${homeE.toFixed(1)} and ${awayE.toFixed(1)} at full time, were 54.3 and 32.5)`)
 
-console.log(fails ? `PACK PROBE FAILED (${fails})` : 'PACK PROBE PASSED: the scrum and the lineout are contested, and the front row tires by its own work')
-process.exit(fails ? 1 : 0)
+done('PACK PROBE', 'the scrum and the lineout are contested, and the front row tires by its own work', { exit: true, blank: false })

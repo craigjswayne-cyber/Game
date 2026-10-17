@@ -19,12 +19,8 @@ import { newGame } from '../src/game/newgame'
 import { settleFault, settleInSlices, useStore } from '../src/store'
 import { loadGame, saveGame } from '../src/game/save'
 import type { GameState } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const quiet = async () => { for (let i = 0; i < 10; i++) await new Promise(r => setTimeout(r, 5)); await new Promise(r => setTimeout(r, 700)) }
 
 const SLOT = 'slot1'
@@ -155,5 +151,4 @@ function clearGates() {
   settleInSlices(false)
 }
 
-console.log(fails ? `\nSETTLE GUARD PROBE FAILED (${fails})` : '\nSETTLE GUARD PROBE PASSED: a week turns whole or not at all')
-process.exit(fails ? 1 : 0)
+done('SETTLE GUARD PROBE', 'a week turns whole or not at all', { exit: true })

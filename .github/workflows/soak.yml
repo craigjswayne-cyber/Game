@@ -12,9 +12,13 @@ name: Soak
 # itself on a new push to the same ref: a soak four hours in would be thrown
 # away by the next merge to main.
 #
-# Six shards, each taking every sixth soak (SSHARDS/SSHARD), so no shard
-# holds more than three. Each soak has 90 minutes inside suite.sh; the job
-# ceiling allows three of those and the build.
+# Seven shards, each taking every seventh soak (SSHARDS/SSHARD), so no shard
+# holds more than two of the thirteen (1.9.2; six shards put three on one).
+# Each soak has 90 minutes inside suite.sh, so a shard is three hours at the
+# very worst, with the build and Chromium, inside the 300-minute ceiling.
+#
+# release-check.yml runs these same shards, plus the whole browser list, on
+# a ref of your choosing before a release is cut.
 on:
   schedule:
     # Sunday 04:00 UTC, an hour after the nightly Gate
@@ -30,13 +34,13 @@ concurrency:
 
 jobs:
   soak:
-    name: Soaks (shard ${{ matrix.sshard }} of 6)
+    name: Soaks (shard ${{ matrix.sshard }} of 7)
     runs-on: ubuntu-latest
     timeout-minutes: 300
     strategy:
       fail-fast: false
       matrix:
-        sshard: [1, 2, 3, 4, 5, 6]
+        sshard: [1, 2, 3, 4, 5, 6, 7]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -52,7 +56,7 @@ jobs:
         run: echo "PW_CHROMIUM=$(node -e "console.log(require('playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
       - name: Soaks
         env:
-          SSHARDS: 6
+          SSHARDS: 7
           SSHARD: ${{ matrix.sshard }}
         run: bash scripts/suite.sh soak
       - name: Keep the screenshots

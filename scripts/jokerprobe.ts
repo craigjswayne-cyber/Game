@@ -17,9 +17,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { capBill } from '../src/game/ai'
 import { JOKER_MIN_WEEKS, jokerCandidates, jokerFor, jokerOpen, signMedicalJoker } from '../src/game/joker'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const fresh = (): GameState => {
   const g = newGame('leicester', 'Joker Probe', 71)
@@ -104,5 +102,4 @@ console.log('--- 4. nobody rolls into next season on a joker deal')
   ok(j.clubId !== g.userClubId && j.joker == null, `and the joker left with it (${j.clubId ?? 'free agent'})`)
 }
 
-console.log(fails ? `\nJOKER PROBE FAILED (${fails})` : '\nJOKER PROBE PASSED: one long lay-off, one joker, off the cap, gone when the man is back')
-process.exit(fails ? 1 : 0)
+done('JOKER PROBE', 'one long lay-off, one joker, off the cap, gone when the man is back', { exit: true })

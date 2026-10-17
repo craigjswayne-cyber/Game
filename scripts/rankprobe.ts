@@ -28,12 +28,7 @@ import { newGame } from '../src/game/newgame'
 import { agencyKids, agencySeniors, agencyView, updateAgency } from '../src/game/agency'
 import { natRankOrder } from '../src/game/natrank'
 import { processWeekAndAdvance } from '../src/game/season'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const g = newGame('leicester', 'Ranker', 8811)
 
@@ -97,5 +92,4 @@ const g = newGame('leicester', 'Ranker', 8811)
   ok(JSON.stringify(g) === before, 'reading the rankings leaves the save byte-identical')
 }
 
-console.log(fails ? `RANK PROBE FAILED (${fails})` : 'RANK PROBE PASSED: one ranking, and it says which week it is')
-if (fails) process.exit(1)
+done('RANK PROBE', 'one ranking, and it says which week it is', { blank: false })

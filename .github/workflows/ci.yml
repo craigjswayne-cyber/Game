@@ -9,20 +9,24 @@ name: Gate
 # ./scripts/suite.sh - and the one time that habit slipped, a rename broke 42
 # browser harnesses and the engine-only run reported green for a fortnight.
 #
-# Three jobs, because they cost different amounts of time:
+# Four jobs, because they cost different amounts of time:
 #
-#   engine   ~35 min a shard, on every push and every PR. This is the one that
-#            must be green before anything merges. Shard 1 also runs the
-#            vitest unit tests (npm test).
-#   smoke    ~10 min, on pull requests and pushes to branches other than main:
-#            four browser harnesses (suite.sh smoke), so a PR that breaks the
-#            wizard or the till hears about it before it merges, not after.
-#   browser  ~40 min a shard, on main and once a night. It needs a build, a
-#            preview server and Chromium, and it is the half that catches what
-#            the engine cannot see - tap targets, contrast, overflow, the wizard.
+#   engine      ~35 min a shard, on every push and every PR. This is the one
+#               that must be green before anything merges. Shard 1 also runs
+#               the vitest unit tests (npm test).
+#   smoke       ~6 min plus Chromium, on pull requests and pushes to branches other
+#               than main: four browser harnesses (suite.sh smoke), so a PR
+#               that breaks the wizard or the till hears about it before it
+#               merges, not after.
+#   browser-pr  the same triggers: 25 more browser harnesses (suite.sh pr) in
+#               three shards, chosen for what a player loses most by.
+#   browser     ~40 min a shard, on main and once a night. It needs a build, a
+#               preview server and Chromium, and it is the half that catches
+#               what the engine cannot see - tap targets, contrast, overflow.
 #
-# The soaks (suite.sh soak) run weekly in soak.yml, and the Pages deploy
-# (pages.yml) waits for this workflow to pass on main.
+# The soaks (suite.sh soak) run weekly in soak.yml; release-check.yml runs the
+# soaks and the whole browser list on one ref before a release is cut. The
+# Pages deploy (pages.yml) waits for this workflow to pass on main.
 on:
   push:
     branches: ['**']
@@ -141,6 +145,50 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: shots-smoke
+          path: |
+            shots/
+            shots-*/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # THE SECOND PR JOB (1.9.2). Smoke is four harnesses; the full list is 102
+  # and about forty minutes a shard, too long for every pull request. This
+  # runs the 25 in PRBROWSER (scripts/suite.sh): accessibility, save and load,
+  # purchases, the match screen and the phone layout, three shards of eight
+  # or nine. Same triggers as smoke.
+  browser-pr:
+    name: Browser, PR set (shard ${{ matrix.bshard }} of 3)
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        bshard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # pinned to playwright-core's own version: see the browser job
+      - name: Install Chromium
+        run: npx "playwright@$(node -p "require('playwright-core/package.json').version")" install --with-deps chromium
+      - name: Locate Chromium
+        run: echo "PW_CHROMIUM=$(node -e "console.log(require('playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
+      - name: Build
+        run: npm run build
+      - name: Browser, PR set
+        env:
+          BSHARDS: 3
+          BSHARD: ${{ matrix.bshard }}
+        run: bash scripts/suite.sh pr
+      - name: Keep the screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: shots-pr-${{ matrix.bshard }}
           path: |
             shots/
             shots-*/

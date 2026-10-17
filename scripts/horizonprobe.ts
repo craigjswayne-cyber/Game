@@ -14,12 +14,7 @@
 import { newGame } from '../src/game/newgame'
 import { horizon, horizonPct } from '../src/game/legacy'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'Horizon Probe', 4242)
 
@@ -87,5 +82,4 @@ const at = (state: GameState, w: number, m: number, seasons: number, titles: num
   ok(!all.some(r => /\b1 seasons\b/.test(r.note)), 'one season is a season, not seasons')
 }
 
-console.log(fails ? `\nHORIZON PROBE FAILED (${fails})` : '\nHORIZON PROBE PASSED: there is always something ahead')
-process.exit(fails ? 1 : 0)
+done('HORIZON PROBE', 'there is always something ahead', { exit: true })

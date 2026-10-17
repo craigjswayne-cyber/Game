@@ -26,12 +26,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { natCallUp, natEligible, natSquadHold, natWindow, NAT_SQUAD_FLOOR } from '../src/game/country'
 import type { GameState } from '../src/game/model'
 import { federationList } from '../src/game/nations'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 /** A career with the England job, walked to the first open camp. */
 function toCamp(seed: number): GameState {
@@ -140,7 +135,7 @@ console.log('\n--- 4. and a Test is never played with an empty squad\n')
     'and the assistant said he had done it, rather than doing it quietly')
 }
 
-console.log(fails === 0
+console.log(failures() === 0
   ? '\nSQUAD NAME PASSED: the squad is his to name, and the game stops until he does'
-  : `\nSQUAD NAME FAILED: ${fails}`)
-process.exit(fails === 0 ? 0 : 1)
+  : `\nSQUAD NAME FAILED: ${failures()}`)
+process.exit(failures() === 0 ? 0 : 1)

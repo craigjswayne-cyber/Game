@@ -37,12 +37,8 @@ import {
 import { buildFindings, fileFindings, lineText } from '../src/game/matchfindings'
 import { RECALL_CAP } from '../src/game/evidence'
 import type { Fixture, GameState } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T
 const rawKey = (s: string) => /\b(oppreport|find|playbook|analyst|bench)\.[A-Za-z_]+/.test(s)
 const texts = (lines: { k: string }[]) => lines.map(l => lineText(l as ReportLine))
@@ -377,5 +373,4 @@ console.log('\n7. save migration')
   ok(JSON.stringify(round.tacLoop) === JSON.stringify(gw.tacLoop), 'a real loop survives a save and load untouched')
 }
 
-console.log(fails ? `\nTACTIC LOOP PROBE FAILED (${fails})` : '\nTACTIC LOOP PROBE PASSED')
-process.exit(fails ? 1 : 0)
+done('TACTIC LOOP PROBE', '', { exit: true })

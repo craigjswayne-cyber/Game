@@ -23,9 +23,8 @@ import { NAT_CALL_WEEKS, applyCharter, applyEstate, estateBuiltHere, applyHeal, 
 import { capPosition } from '../src/game/cap'
 import { FACILITY_INFO, MAX_FACILITY, mgrReputation, type FacilityId, type GameState } from '../src/game/model'
 import { OBJECTIVE_DEFS } from '../src/game/objectives'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 console.log('--- 1. a fresh career has bought nothing\n')
 {
@@ -353,5 +352,5 @@ console.log('\n--- 10. the International Stage APPOINTS, once per career, to the
   ok(Number.isFinite(userWageBudget(g, rival)), 'while every other club keeps its budget')
 }
 
-if (fails) { console.error(`\nGRANT PROBE FAILED (${fails})`); process.exit(1) }
+if (failures()) { console.error(`\nGRANT PROBE FAILED (${failures()})`); process.exit(1) }
 console.log('\nGRANT PROBE PASSED: every purchase pays the tin, and only the tin')

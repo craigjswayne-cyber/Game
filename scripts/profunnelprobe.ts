@@ -16,9 +16,7 @@ import {
   type Funnel, type ProKind,
 } from '../src/game/profunnel'
 import { priceNumber, proDiscount } from '../src/game/monetise'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 /** One phone. `pro` is the entitlement; `log` is every card it was shown,
  *  with the competitive-match count at the time. */
@@ -210,5 +208,4 @@ console.log('\n--- the percentage is only ever true')
   ok(priceNumber('1.234,56 kr') === 1234.56 && priceNumber('US$1,999.00') === 1999, 'thousands separators')
 }
 
-console.log(fails ? `\nPRO FUNNEL PROBE FAILED (${fails})` : '\nPRO FUNNEL PROBE PASSED: A-H and the edges hold')
-process.exitCode = fails ? 1 : 0
+done('PRO FUNNEL PROBE', 'A-H and the edges hold')

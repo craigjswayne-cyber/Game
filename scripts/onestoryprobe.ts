@@ -56,12 +56,8 @@ import { ADAPT_WORTH, deskQuestion } from '../src/game/armsrace'
 import { buildReport } from '../src/game/oppreport'
 import { ensureLang, setLang, t, type Lang } from '../src/game/i18n'
 import type { GameState } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'ja', 'af']
 for (const l of LANGS) await ensureLang(l)
 setLang('en')
@@ -294,5 +290,5 @@ ok(stats.warned >= 20, `the report or the desk warned of a call in enough matche
 ok(!stats.unanswered.length, `a warned call run three times or more is always answered at full time (${stats.unanswered.length} not)`); show(stats.unanswered)
 ok(!stats.unwarned.length && !stats.deskNotTold.length, `full time never answers a warning nobody gave, nor the desk warn of one the match did not hold (${stats.unwarned.length}, ${stats.deskNotTold.length})`); show([...stats.unwarned, ...stats.deskNotTold])
 ok(!stats.raw.length, 'every line reads as words in six languages'); show(stats.raw)
-console.log(fails ? `\nONE STORY PROBE FAILED: ${fails}` : '\nONE STORY PROBE PASSED')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\nONE STORY PROBE FAILED: ${failures()}` : '\nONE STORY PROBE PASSED')
+process.exit(failures() ? 1 : 0)

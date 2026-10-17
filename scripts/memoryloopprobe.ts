@@ -47,12 +47,8 @@ import { moveEdge } from '../src/game/moves'
 import { playbookOf } from '../src/game/playbook'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
 import type { Fixture, GameState } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'ja', 'af']
 for (const l of LANGS) await ensureLang(l)
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0)
@@ -415,5 +411,5 @@ console.log('\n--- 6. a season or more as the assistant plays it: nothing hidden
 }
 
 lap()
-console.log(fails ? `\nMEMORY LOOP PROBE FAILED: ${fails}` : '\nMEMORY LOOP PROBE PASSED')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\nMEMORY LOOP PROBE FAILED: ${failures()}` : '\nMEMORY LOOP PROBE PASSED')
+process.exit(failures() ? 1 : 0)

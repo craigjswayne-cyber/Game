@@ -9,7 +9,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4233', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625 })
 await page.addInitScript(() => {
@@ -139,7 +139,7 @@ const report = async (label) => {
 }
 
 try {
-  await page.goto('http://localhost:4233/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   const s = await scheme()
   console.log(`color-scheme: root "${s.root}", meta ${s.meta ?? 'absent'}`)

@@ -8,13 +8,12 @@
 // elsewhere (Cardiff's Atuanya, the Pirates' Tom James) are allowed to
 // exist - the claim is about Northampton, not the whole world.
 import { newGame } from '../src/game/newgame'
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'SquadCheck', 61)
 const club = g.clubs['northampton']
 const seniors = club.players.map(id => g.players[id]).filter(p => p && !p.acad)
 const acad = club.players.map(id => g.players[id]).filter(p => p && p.acad)
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const names = new Set(seniors.map(p => p.name))
 const acadNames = new Set(acad.map(p => p.name))
@@ -37,5 +36,4 @@ ok(fb.some(p => p.name === 'George Hendy'), `Hendy is the resident 15 (FBs: ${fb
 console.log(`  --  ${seniors.length} seniors, ${acad.length} academy`)
 const quins = g.clubs['harlequins']
 ok(!quins || !quins.players.some(id => g.players[id]?.name === 'Jordan Els'), 'Els is no longer at Harlequins')
-console.log(fails ? `\nSQUAD CHECK FAILED (${fails})` : '\nSQUAD CHECK PASSED')
-process.exit(fails ? 1 : 0)
+done('SQUAD CHECK', '', { exit: true })

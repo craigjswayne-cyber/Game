@@ -19,9 +19,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { injuryDesc } from '../src/game/model'
 import { ensureLang, setLang, tIn } from '../src/game/i18n'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const files = (dir: string): string[] => readdirSync(dir).flatMap(n => {
   const p = join(dir, n)
@@ -46,5 +44,4 @@ ok(injuryDesc(inj) === tIn('fr', 'injury.hamstring') && injuryDesc(inj) !== inj.
   `and injuryDesc answers in French ("${injuryDesc(inj)}", recorded "${inj.desc}")`)
 setLang('en')
 
-console.log(fails ? `\nINJURY TEXT PROBE FAILED (${fails})` : '\nINJURY TEXT PROBE PASSED: every screen names an injury in the language it is read in')
-process.exit(fails ? 1 : 0)
+done('INJURY TEXT PROBE', 'every screen names an injury in the language it is read in', { exit: true })

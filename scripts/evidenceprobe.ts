@@ -50,12 +50,8 @@ import { migrate } from '../src/game/save'
 import { playbookOf } from '../src/game/playbook'
 import { adaptMap } from '../src/game/armsrace'
 import type { Fixture, GameState } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'ja', 'af']
 for (const l of LANGS) await ensureLang(l)
 
@@ -303,5 +299,5 @@ function emptyEv(): CausalEvidence {
   return { fxId: 1, season: 0, week: 1, oppId: 'x', us: 0, them: 0, min: 80, poss: 50, side: [s(), s()], swings: [], lead: [], late: 0 }
 }
 
-console.log(fails ? `\nEVIDENCE PROBE FAILED: ${fails}` : '\nEVIDENCE PROBE PASSED')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\nEVIDENCE PROBE FAILED: ${failures()}` : '\nEVIDENCE PROBE PASSED')
+process.exit(failures() ? 1 : 0)

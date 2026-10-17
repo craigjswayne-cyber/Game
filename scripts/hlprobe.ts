@@ -18,8 +18,8 @@ import { mulberry32 } from '../src/game/rng'
 import { buildClip, momentAt, lateAndClose, frameAt, clipLength, clipTimeline, refereeColour, type ClipSpec, type ClipKind, type ClipStyle } from '../src/ui/HighlightClip'
 import type { MatchEvent } from '../src/game/model'
 import { MOVES } from '../src/game/moves'
+import { ok, done } from './lib/probe'
 
-let fails = 0
 // A QUICK FINISHER MAY TAKE A SLIGHTLY LONGER LINE (1.8.0). The pairs below
 // swap the defenders' pace as well as the attackers', so the line a finisher
 // bends through the gap is not the same line in the two clips: in 1 to 3 of
@@ -31,7 +31,6 @@ const PACE_SLACK = 0.15
 // and the referee trails the play on a crossfield try: 30.1 m was the worst in
 // four reshuffled lists, so the bar is 32 m, still well inside half the width
 const REF_FAR = 32
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const FPS = 60
 // metres a second: a sprinting wing is about 10, so 13 leaves room for easing
@@ -543,5 +542,4 @@ ok(conLines.length >= 5 && conLines.every(d => d < 0.01), `every conversion is k
   ok(endFrame.lift > 0, 'and the ball never touches the grass')
 }
 
-console.log(fails ? `\nHL PROBE FAILED (${fails})` : '\nHL PROBE PASSED')
-process.exit(fails ? 1 : 0)
+done('HL PROBE', '', { exit: true })

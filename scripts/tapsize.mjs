@@ -52,7 +52,7 @@ const FLOOR = [
   { cls: 'th-btn', min: 28, why: 'a column header is as wide as its column in a table that must fit a 320px phone' },
 ]
 
-const server = await startPreview('4196', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 780 } })
 page.setDefaultTimeout(6000)
@@ -132,7 +132,7 @@ const check = async (name) => {
 }
 
 try {
-  await page.goto('http://localhost:4196/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

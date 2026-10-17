@@ -33,12 +33,7 @@ import { migrate } from '../src/game/save'
 import { tIn } from '../src/game/i18n'
 import type { GameState, Player } from '../src/game/model'
 import { playerWage } from '../src/game/attributes'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const SEEDS = [11, 23, 37, 41, 59, 67, 73, 89]
 const CLUBS = ['leicester', 'northampton', 'bristol', 'toulouse']
@@ -297,5 +292,5 @@ ok(badMoney === 0, `and every one can pay the fee (${badMoney} not)`)
   ok(bstars.every(p => !p.clubId), 'no club in the red signs a free agent')
 }
 
-console.log(fails ? `\nRIVAL BID PROBE FAILED: ${fails}` : '\nRIVAL BID PROBE PASSED')
-if (fails) process.exit(1)
+console.log(failures() ? `\nRIVAL BID PROBE FAILED: ${failures()}` : '\nRIVAL BID PROBE PASSED')
+if (failures()) process.exit(1)

@@ -16,11 +16,10 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 
-const PORT = 4261
 let fails = 0
 const ok = (c, m) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${m}`); if (!c) fails++ }
 
-const preview = await startPreview(PORT)
+const preview = await startPreview(0)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** Put saves on the device the way saveGame() does: {meta, state} keyed by slot. */
@@ -63,7 +62,7 @@ const phoneWith = async slots => {
   const ctx = await browser.newContext({ viewport: { width: 412, height: 740 } })
   await ctx.addInitScript(() => localStorage.setItem('rm-night', '1'))
   const page = await ctx.newPage()
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${preview.origin}/`)
   await page.waitForSelector('text=New Career', { timeout: 20000 })
   await seed(page, slots)
   await page.reload()

@@ -21,9 +21,7 @@ import {
   countScreen, feedbackDue, freshUsage, neverOpened, noteUse, parseUsage, readUsage, withOffered, writeUsage,
   type Usage,
 } from '../src/game/usage'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 // an in-memory localStorage, as safeStorage.ts puts in place in a sandbox
 const mem = new Map<string, string>()
@@ -228,5 +226,4 @@ console.log('--- the first season')
   ok(/compId === 'fr'\) return[\s\S]*countMatch\(/.test(cfp), 'friendlies return before the match is counted')
 }
 
-console.log(fails ? `FEEDBACK PROBE FAILED (${fails})` : 'FEEDBACK PROBE PASSED')
-process.exit(fails ? 1 : 0)
+done('FEEDBACK PROBE', '', { exit: true, blank: false })

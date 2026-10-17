@@ -14,18 +14,16 @@
 // Run: node scripts/pressureprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
 import { writeSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
-const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { startPreview } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
-const server = await startPreview(4262, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 try {
   for (const [w, h] of [[412, 915], [360, 740], [768, 1024]]) {
     const page = await browser.newPage({ viewport: { width: w, height: h } })
     await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
-    await page.goto('http://localhost:4262/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 20000 })
     await page.click('text=New Career'); await page.click('text=English Premier Division'); await page.waitForSelector('.club-tile')
     await page.click('.tile >> text=Northampton'); await page.waitForSelector('text=Star Player'); await page.click('.action-bar >> text=Confirm')
@@ -54,5 +52,4 @@ try {
   await browser.close().catch(() => {})
   server.stop()
 }
-say(fails ? `\nPRESSURE PROBE FAILED (${fails})` : '\nPRESSURE PROBE PASSED: the needle swings inside the bar, and the page never scrolls sideways')
-done(fails)
+done('PRESSURE PROBE', 'the needle swings inside the bar, and the page never scrolls sideways', { exit: true })

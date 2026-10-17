@@ -14,12 +14,9 @@
 //
 // Run: node scripts/spotadui.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { startPreview, done } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
 import { writeSync, readFileSync } from 'node:fs'
-
-const say = (s) => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe.mjs'
 
 // ---- the words, in every language ----
 const SUFFIX = { en: '(Free with ad)', fr: '(gratuit avec une pub)', es: '(gratis con un anuncio)', it: '(gratis con una pubblicità)', af: "(gratis met 'n advertensie)", ja: '（広告視聴で無料）' }
@@ -31,7 +28,7 @@ for (const [lang, suf] of Object.entries(SUFFIX)) {
   ok(bad.length === 0, `${lang}: no rewarded label says "${suf}" or "favour"${bad.length ? ` (still: ${bad.join(' | ')})` : ''}`)
 }
 
-const server = await startPreview('4241', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 393, height: 852 }, locale: 'en-GB' })
 page.setDefaultTimeout(15000)
@@ -50,7 +47,7 @@ const lum = (rgb) => {
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05) }
 
 try {
-  await page.goto('http://localhost:4241/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.click('text=English Premier Division')
@@ -114,5 +111,4 @@ try {
 if (errors.length) ok(false, `page errors: ${[...new Set(errors)].join(' | ').slice(0, 200)}`)
 await browser.close()
 await server.stop?.()
-say(fails ? `\nSPOT AD UI FAILED (${fails})` : '\nSPOT AD UI PASSED: every rewarded button is gold and black, no Free with ad tag')
-done(fails)
+done('SPOT AD UI', 'every rewarded button is gold and black, no Free with ad tag', { exit: true })

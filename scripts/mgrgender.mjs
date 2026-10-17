@@ -17,12 +17,11 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 
-const PORT = '4231'
 let fails = 0
 const say = (s) => console.log(s)
 const ok = (cond, what) => { say(`  ${cond ? 'ok  ' : 'FAIL'}  ${what}`); if (!cond) fails++ }
 
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 780 } })
 page.setDefaultTimeout(6000)
@@ -42,7 +41,7 @@ const state = () => page.evaluate(() => ({
 }))
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('#root >> text=RUGBY')
 
   // ---- 1. the wizard does not ask any more ----

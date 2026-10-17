@@ -33,7 +33,7 @@ const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fail
 const ADS = JSON.parse(readFileSync('packaging/shell/ads.json', 'utf8'))
 const BRIDGE = readFileSync('packaging/shell/ads-bridge.js', 'utf8')
 
-const server = await startPreview('4211', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /**
@@ -122,7 +122,7 @@ const openPage = async ({ platform = 'android', consent = 'required', spot = 're
 }
 
 const startCareer = async (page) => {
-  await page.goto('http://localhost:4211/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

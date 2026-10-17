@@ -31,9 +31,8 @@ import { applyPlanSheet, assistantSheet, boardPriorityF, planComps, planTier, re
 import { CONF_GOOD, CONF_POOR, formTraits, formTrend, traitDayF, traitHints } from '../src/game/formtraits'
 import { sortTable } from '../src/game/schedule'
 import { reportStage } from '../src/game/scout'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const mean = (a: number[]) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0)
 const clone = (g: GameState): GameState => JSON.parse(JSON.stringify(g))
 const CLUB = 'northampton'
@@ -369,5 +368,4 @@ console.log('(f) old saves load')
   ok(JSON.stringify(back.seasonPlan) === JSON.stringify(kept.seasonPlan), 'a good plan survives a save and load')
 }
 
-console.log(fails ? `SEASON PLAN PROBE FAILED (${fails})` : 'SEASON PLAN PROBE PASSED')
-process.exit(fails ? 1 : 0)
+done('SEASON PLAN PROBE', '', { exit: true, blank: false })

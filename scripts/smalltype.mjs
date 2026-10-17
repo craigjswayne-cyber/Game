@@ -16,7 +16,7 @@ import { done, startPreview } from './lib/preview.mjs'
 const say = s => writeSync(1, s + '\n')
 const MIN = 11
 let fails = 0
-const server = await startPreview('4613', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
 page.setDefaultTimeout(9000)
@@ -49,7 +49,7 @@ const look = async label => {
 }
 
 try {
-  await page.goto('http://localhost:4613/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await look('title screen')
   await page.click('text=New Career')
