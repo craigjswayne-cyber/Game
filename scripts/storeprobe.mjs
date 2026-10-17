@@ -138,8 +138,16 @@ const openAbout = async (page) => {
   await page.locator('.bottom-nav button[data-group]').nth(1).click()
   await page.waitForSelector('.submenu')
   await page.locator('.submenu-item', { hasText: 'About' }).click()
-  await page.waitForSelector('.content')
+  await screenShown(page, 'about')
 }
+
+/** The screens are lazy chunks behind a Suspense, and they fade in: .content
+ *  is on the page before the screen asked for is, and its words read as empty
+ *  (innerText) until it is shown. Wait for the screen's own words. */
+const screenShown = (page, name) => until(page, n => {
+  const c = document.querySelector(`.content[data-screen="${n}"]`)
+  return !!c && c.innerText.trim().length > 0
+}, name, 10000)
 
 try {
   // ---- 1. the build people play: no till anywhere ------------------------
@@ -193,7 +201,7 @@ try {
     ok(await page.locator('.content').innerText().then(t => /The Store/i.test(t)),
       'the About page grows a Store card')
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
-    await page.waitForSelector('.content')
+    await screenShown(page, 'supporter')
     const till = await page.locator('.content').innerText()
     // THE STORE'S OWN PRICE MUST NOT REACH THE SHELF (v1.2.3).
     //
@@ -263,7 +271,7 @@ try {
     await openAbout(page)
     ok(await page.locator('.content').innerText().then(t => /The Store/i.test(t)), 'so the About page grows a Store card')
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
-    await page.waitForSelector('.content')
+    await screenShown(page, 'supporter')
     const till = await page.locator('.content').innerText()
     ok(till.includes('Support the game'), 'and the shelf is laid')
     ok(!/£1\.99/.test(till), "with the plugin's price kept off it, like every other bridge")
@@ -295,7 +303,7 @@ try {
     await startCareer(page)
     await openAbout(page)
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
-    await page.waitForSelector('.content')
+    await screenShown(page, 'supporter')
     const row = page.locator('.card', { hasText: 'Support the game' }).first()
     const answer = async (a) => {
       await page.evaluate((x) => { globalThis.__shellAnswer = x }, a)
@@ -340,7 +348,7 @@ try {
     await startCareer(page)
     await openAbout(page)
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
-    await page.waitForSelector('.content')
+    await screenShown(page, 'supporter')
 
     const jar = page.locator('.card', { hasText: 'Support the game' }).locator('.btn.gold')
     const heal = page.locator('.card', { hasText: 'Full Fitness' }).locator('.btn.gold')
@@ -376,7 +384,7 @@ try {
     await startCareer(page)
     await openAbout(page)
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
-    await page.waitForSelector('.content')
+    await screenShown(page, 'supporter')
     ok(await page.locator('.content').innerText().then(t => /Pro Manager/i.test(t)),
       'with ads in the build, the removal is on the shelf')
     await page.locator('.card', { hasText: 'Pro Manager' }).locator('.btn.gold').click()
@@ -560,7 +568,7 @@ try {
     await startCareer(page)
     await openAbout(page)
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
-    await page.waitForSelector('.content')
+    await screenShown(page, 'supporter')
     ok(await page.locator('text=In-Game Editor').count() === 0,
       'the shop shelf offers no Editor')
     await page.evaluate(() => window.rugbyStore.getState().go('saves'))
@@ -587,7 +595,7 @@ try {
     await startCareer(page)
     await openAbout(page)
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
-    await page.waitForSelector('.content')
+    await screenShown(page, 'supporter')
     await page.waitForTimeout(400)
     const till = await page.locator('.content').innerText()
     // v1.1.18: the banner stopped claiming "nothing here can be bought yet" -
@@ -647,7 +655,7 @@ try {
     await startCareer(page)
     await openAbout(page)
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
-    await page.waitForSelector('.content')
+    await screenShown(page, 'supporter')
     // the slow store runs the game's own twelve-second clock out
     if (answered) await page.waitForTimeout(400)
     else await page.waitForFunction(() => /has not answered|nothing on sale/i.test(document.querySelector('.content')?.innerText ?? ''), null, { timeout: 16000 })
@@ -677,7 +685,7 @@ try {
     await startCareer(page)
     await openAbout(page)
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
-    await page.waitForSelector('.content')
+    await screenShown(page, 'supporter')
     await page.locator('.btn.gold', { hasText: 'Buy' }).first().click()
     await until(page, () => /would not open a purchase/i.test(document.querySelector('.content')?.textContent ?? ''), null, 3000)
     const till = await page.locator('.content').innerText()
