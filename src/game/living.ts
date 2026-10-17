@@ -30,7 +30,7 @@
  * and the fingerprint is untouched. Same rule as dialweight and the Dream.
  */
 import { absWeek, fmtMoney, poss } from './model'
-import { INK_WEEKS } from './ai'
+import { INK_WEEKS } from './transferRules'
 import type { Club, GameState, Player } from './model'
 import { hashString, mulberry32 } from './rng'
 import { t } from './i18n'

@@ -39,7 +39,10 @@
  */
 import type { Club, GameState, Player, Pos } from './model'
 import { XV_SLOTS, absWeek, careerRows, fmtMoney, fmtWage, isMyClub, leagueTier } from './model'
-import { FREE_RESALE, INK_WEEKS, aiShoppingTarget, askingPrice, freeDeal, capBill, embargoed, executeTransfer, promisedElsewhere, seniorsOf, SQUAD_LIMIT, windowOpen } from './ai'
+import { FREE_RESALE, INK_WEEKS, askingPrice, freeDeal, embargoed, promisedElsewhere, seniorsOf, SQUAD_LIMIT } from './transferRules'
+import { aiShoppingTarget } from './aishop'
+import { capBill } from './cap'
+import { executeTransfer } from './transfer'
 import { aiCanCarry, aiPayRate, aiWageRooms } from './aiecon'
 import { playerWage } from './attributes'
 import { clubIntent } from './living'
@@ -48,7 +51,7 @@ import { rivalsOf } from './rivalries'
 import { rivalCoach } from './rivalcoach'
 import { clamp, hashString, mulberry32, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
-import { JANUARY_OPEN, SUMMER_OPEN, SUMMER_SHUT, nextWeek } from './window'
+import { JANUARY_OPEN, SUMMER_OPEN, SUMMER_SHUT, nextWeek, windowOpen } from './window'
 
 const rand = (s: string): number => mulberry32(hashString(s))()
 

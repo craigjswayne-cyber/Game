@@ -1,6 +1,6 @@
-import { capBill, windowOpen } from './ai'
+import { windowOpen } from './window'
 import { userCap } from './grants'
-import { LEDGER_WEEKS, fmtMoney, fmtWage, type Club, type GameState } from './model'
+import { LEDGER_WEEKS, fmtMoney, fmtWage, type Club, type GameState, type Player } from './model'
 import { t } from './i18n'
 
 /**
@@ -374,4 +374,37 @@ export function rosterWarnings(state: GameState, clubId: string): string[] {
 /** Used by the probe and by any caller that wants the raw bill for a club. */
 export function billOf(state: GameState, club: Club): number {
   return capBill(state, club)
+}
+
+
+// capWage and capBill moved here from ai.ts (which re-exports them), so that
+// this module no longer imports ai back: ai imports MARQUEE_SLOTS from here.
+
+/** What one man costs against the cap, or 0 where he sits outside it. The
+ *  single reading capBill sums and every "replacing" figure must match. */
+export function capWage(_state: GameState, club: { marquee?: number[] }, p: Player | undefined): number {
+  if (!p) return 0
+  if ((club.marquee ?? []).slice(0, MARQUEE_SLOTS).includes(p.id)) return 0
+  // Academy men sit outside the senior cap, as they do in the real game: a
+  // club is not punished for developing its own. It also matters mechanically
+  // now the academy is 27 strong rather than four - counting them would have
+  // put every club in the world over the cap overnight.
+  // a hand-demoted senior still counts (v1.1.18): demotion moves a man to
+  // the academy LIST, not out of the wage bill - or the button is a cap dodge
+  if (p.acad && !p.demoted) return 0
+  // a medical joker's wage is outside the cap while he covers (joker.ts):
+  // the club still pays him, the cap just does not count him
+  if (p.joker != null) return 0
+  // A BORROWED MAN COUNTS AT WHAT THE CLUB PAYS HIM (1.8.1). The weekly
+  // ledger charges a loan-in at his share of the wage (season.ts), and the
+  // cap counted all of it, so the share the parent carried was on nobody's
+  // books but this club's. A man out on loan is still paid in full from here
+  // and still counts in full.
+  if (p.loanFrom) return Math.round(p.wage * (p.loanShare ?? 0.5))
+  return p.wage
+}
+
+/** The wage bill that counts against the cap - marquee men sit outside it. */
+export function capBill(state: GameState, club: { players: number[]; marquee?: number[] }): number {
+  return club.players.reduce((s, id) => s + capWage(state, club, state.players[id]), 0)
 }

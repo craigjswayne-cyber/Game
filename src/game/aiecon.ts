@@ -27,7 +27,7 @@
 // £0.85M a season over ten seasons). What changes is the SPREAD: a club with a
 // bloated bill and a small ground now bleeds, and a club that fills a big stadium
 // banks it. scripts/aiecon.ts holds both the median and the spread.
-import { seniorsOf } from './ai'
+import { seniorsOf } from './transferRules'
 import { MARQUEE_SLOTS } from './cap'
 import { demandCeiling, isMyClub, LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
 
