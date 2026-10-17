@@ -94,8 +94,15 @@ try {
     const club = g.clubs[g.userClubId]
     return {
       inXV: club.tactic.lineup.slice(0, 15).includes(hurtId),
+      // hurt BEFORE kick-off: a man hurt in the warm-up (lateWithdrawal, 2%
+      // a side) or in play since is logged this week, and is the match's
+      // business, not the gate's - one CI run caught a warm-up withdrawal
       anyInjuredIn23: club.tactic.lineup
-        .some(id => id != null && g.players[id]?.injury),
+        .some(id => {
+          const p = id != null ? g.players[id] : null
+          const last = p?.injLog?.[p.injLog.length - 1]
+          return !!p?.injury && !(last && last.s === g.season && last.w === g.week)
+        }),
       lineup: [...club.tactic.lineup],
     }
   }, hurt.id)
