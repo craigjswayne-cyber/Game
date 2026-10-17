@@ -4,26 +4,28 @@ import {
   effectiveSkin, MGR_GENDER_KEY, planSlots, proLocked, readMgrGender, readSkin, SKIN_KEY, SKINS, skinLocked, type Skin,
 } from './store/skins'
 import type { NavEntry, Screen, Store } from './store/types'
+import { countForPro, nextHighlight, settleKnockout } from './store/live'
+import { noteWhere, onMatchDay, openDay, readWhere, sameSession, WHERE_KEY } from './store/nav'
 
 export { effectiveSkin, planSlots, proLocked, SKINS, skinLocked }
 export type { Screen, Skin }
 import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, tIn, type Lang } from './game/i18n'
-import { hasSupporter, tillOpen } from './game/monetise'
+import { hasSupporter } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle } from './game/grants'
 import {
   agencyFile, armAnalyst, insideWordFavour, physioFavour, secondOpinionFavour, tapeRoomFavour,
   teamNightFavour, townCollection,
 } from './game/rewarded'
 import { dreamState, dreamsFor } from './game/dream'
-import type { GameState, MatchEvent, Fixture } from './game/model'
+import type { GameState } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
 import { genderOf, type Gender } from './game/gender'
-import { isKnockoutTie, matchRng, processWeekAndAdvance, processWeekAndAdvanceAsync, resolveKnockoutDraw, userMatchThisWeek, weekRng } from './game/season'
+import { matchRng, processWeekAndAdvance, processWeekAndAdvanceAsync, userMatchThisWeek } from './game/season'
 import { resultsParam } from './game/schedule'
 import {
   openDressingRoom, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, coverInjury, swapShirts, undoSubstitution,
-  playHalf, resolveDecision, stepTick, teamName, type LiveCtx, forfeitSide, settleForfeit } from './game/matchEngine'
+  playHalf, resolveDecision, stepTick, teamName, forfeitSide, settleForfeit } from './game/matchEngine'
 import { applyForJob, resignJob, answerJobOffer } from './game/jobs'
 import { answerPress } from './game/media'
 import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
@@ -35,31 +37,9 @@ import {
   notePlayedOut, playOut, recordReach, replayMatch, resumeFits, sameCareer, stampedRecord, stampedSave,
   type LiveStamp, type MatchCmdBody, type MatchResume,
 } from './game/resume'
-import { isHighlight } from './game/highlights'
 import { fileFindings } from './game/matchfindings'
 import { fileEvidence } from './game/evidence'
-import { proMatchPlayed, readFunnel, writeFunnel } from './game/profunnel'
-import { countFinished, countMatch, countScreen, countWeek, noteUse } from './game/usage'
-
-/** ONE COMPETITIVE MATCH COMPLETED, FOR THE PRO MANAGER CADENCE (1.8.6).
- *
- *  Device state only (game/profunnel.ts): nothing here reads the rng or
- *  writes the career. Friendlies do not count, nothing counts once Pro is
- *  owned, and nothing counts where there is no store to buy it from. Called
- *  at each of the four places a match of the manager's ends - the live
- *  whistle, the assistant's result, a walkover and a match played out on
- *  reload - and keyed by career and fixture, so no match counts twice. */
-function countForPro(g: GameState, fx: Pick<Fixture, 'id' | 'compId'> | null | undefined) {
-  if (!fx || fx.compId === 'fr') return
-  // the feedback report's match count (game/usage.ts) rides the same four
-  // places and the same key, and counts whatever the store: device state,
-  // never the career, never the rng
-  countMatch(`${g.seed}:${g.season}:${fx.id}`, `${g.seed}:${g.season}`)
-  if (!tillOpen() || hasSupporter()) return
-  const f = readFunnel()
-  const n = proMatchPlayed(f, `${g.seed}:${g.season}:${fx.id}`)
-  if (n !== f) writeFunnel(n)
-}
+import { countFinished, countScreen, countWeek, noteUse } from './game/usage'
 
 /**
  * How close together two Continue taps have to be before the second is treated as
@@ -70,114 +50,6 @@ function countForPro(g: GameState, fx: Pick<Fixture, 'id' | 'compId'> | null | u
  * both sides of it rather than sleeping.
  */
 export const TAP_GUARD_MS = 220
-
-/** The cursor position that reveals the next highlight, or the end of what has
- *  been simulated so far. Always advances by at least one so the ticker can
- *  never stall on a quiet passage. What counts as a highlight depends on how
- *  close the game is (game/highlights.ts, 1.8.0).
- *
- *  'SUB' lines are not highlights by type: the engine uses them for
- *  substitutions but also for atmosphere lines, the half-time numbers and the
- *  penalty prompt. Touchline decisions and intervals still halt play through
- *  ctx.decision and ctx.awaiting, which is where those stops belong. */
-function nextHighlight(events: MatchEvent[], cursor: number, homeId: string): number {
-  let c = cursor
-  while (c < events.length && !isHighlight(events, c, homeId)) c += 1
-  return Math.min(events.length, Math.max(cursor + 1, c + 1))
-}
-
-/** After a tick hits FT: knockout ties are settled in sudden-death extra time. */
-function settleKnockout(g: GameState, ctx: LiveCtx) {
-  const fx = ctx.fx
-  if (isKnockoutTie(fx) && fx.homeScore === fx.awayScore) {
-    // EXTRA TIME, THEN TRIES, THEN THE KICKS (1.8.16): every step of it on
-    // the ticker, as keys like every other line (this used to be one line of
-    // English, the same in a French match)
-    const h0 = fx.homeScore, a0 = fx.awayScore
-    const lines = resolveKnockoutDraw(g, fx, weekRng(g))
-    let hs = h0, as = a0
-    for (const l of lines) {
-      if (l.type === 'TRY' || l.type === 'PEN') {
-        const pts = l.k === 'comm.etTryCon' ? 7 : l.k === 'comm.etTry' ? 5 : 3
-        if (l.teamId === fx.homeId) hs += pts; else as += pts
-      }
-      ctx.events.push({ min: l.min, type: l.type, teamId: l.teamId, text: tIn('en', l.k, l.v), k: l.k, v: l.v, homeScore: hs, awayScore: as })
-    }
-    fx.events = ctx.events
-  }
-}
-
-/** ---- where the manager was when the page went away ----
- *
- *  A reload used to drop you on the title screen with a Continue button, which
- *  is two taps to get back to a screen you never left, and on a phone the tab
- *  gets reloaded for you all the time. The save itself lives in IndexedDB and is
- *  already written every week; this is just the bookmark, so it is small enough
- *  for localStorage and losing it costs nothing.
- *
- *  Screens that only make sense mid-flow are not bookmarked. A live match is the
- *  important one: the ticker's state is in memory and is not saved, so resuming
- *  onto 'matchday' has to mean the pre-match hub, and resuming onto the Wire or a
- *  round-up would be a queue that no longer exists. */
-const NO_RESUME = new Set<Screen>(['menu', 'newgame', 'wire', 'results', 'seasonreview'])
-const WHERE_KEY = 'rm-where'
-
-/** Is the pre-match hub still the screen on top?
- *
- *  Kicking off and taking the assistant's instant result are both MatchDay
- *  buttons, and both settle the whole week before returning. A thumb that taps
- *  twice quickly can land the second tap after the first has already been
- *  honoured and the screen has moved on to the round-up - at which point the
- *  week has advanced, so the handler would happily find NEXT week's fixture and
- *  play it with no preview, no selection and no team talk. Refusing a call that
- *  arrives when MatchDay is no longer on top costs nothing and closes that. */
-function onMatchDay(get: () => Store): boolean {
-  const nav = get().nav
-  return nav[nav.length - 1]?.screen === 'matchday'
-}
-
-function noteWhere(slot: string, nav: NavEntry[]) {
-  const trail = nav.filter(e => !NO_RESUME.has(e.screen)).slice(-6)
-  try {
-    if (!trail.length) localStorage.removeItem(WHERE_KEY)
-    else localStorage.setItem(WHERE_KEY, JSON.stringify({ slot, nav: trail }))
-  } catch { /* private mode: the bookmark is a nicety, not a feature */ }
-}
-
-/** Has this tab already been running the game?
- *
- *  Marked on the first call, so the first call of a launch answers no and every
- *  call after a refresh answers yes. Private mode with storage disabled answers
- *  no for ever, which fails the safe way round: the title screen. */
-const SESSION_KEY = 'rm-live'
-function sameSession(): boolean {
-  try {
-    const seen = sessionStorage.getItem(SESSION_KEY) === '1'
-    sessionStorage.setItem(SESSION_KEY, '1')
-    return seen
-  } catch { return false }
-}
-
-function readWhere(): { slot: string; nav: NavEntry[] } | null {
-  try {
-    const raw = localStorage.getItem(WHERE_KEY)
-    if (!raw) return null
-    const v = JSON.parse(raw) as { slot?: unknown; nav?: unknown }
-    if (typeof v.slot !== 'string' || !Array.isArray(v.nav) || !v.nav.length) return null
-    const nav = (v.nav as NavEntry[]).filter(e => e && typeof e.screen === 'string' && !NO_RESUME.has(e.screen))
-    if (!nav.length) return null
-    return { slot: v.slot, nav }
-  } catch { return null }
-}
-
-/** Push the day bulletin, replacing one that is already open.
- *
- *  Continue is pressed from the bulletin itself, so without the filter the back
- *  stack would grow one entry per day and the back arrow would walk the manager
- *  backwards through a week that has already happened. */
-function openDay(nav: NavEntry[]): NavEntry[] {
-  return [...nav.filter(e => e.screen !== 'day' && e.screen !== 'wire'), { screen: 'day' as const }]
-}
 
 /** THE WEEK TURNS ALL AT ONCE OR NOT AT ALL (1.9.1).
  *
