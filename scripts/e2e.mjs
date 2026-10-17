@@ -91,16 +91,38 @@ async function playMatch(speech = 'Calm the nerves') {
     await page.click('text=▸ Take the Field')
   } catch { /* no modal - straight to the tunnel */ }
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Start Second Half', { timeout: 20000 })
+  await skipTo('Start Second Half')
   await page.click('text=▸ Start Second Half')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Play the Final Quarter', { timeout: 20000 })
+  await skipTo('Play the Final Quarter')
   await page.click('text=▸ Play the Final Quarter')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Continue to Results', { timeout: 20000 })
+  await skipTo('Continue to Results')
+}
+
+/**
+ * Skip on to a break, answering whatever stops the clock on the way. A bad
+ * injury holds the match until a man is named (the 1.9.1 wait), and a kickable
+ * penalty asks the touchline: both used to leave this waiting for a break that
+ * could not come, which read as a flaky timeout about one run in five.
+ */
+async function skipTo(label) {
+  const until = Date.now() + 40000
+  while (Date.now() < until) {
+    if (await page.locator(`text=${label}`).first().isVisible().catch(() => false)) return
+    if (await page.locator('.sheet-col').first().isVisible().catch(() => false)) {
+      // arm a man who is on, then take a bench option, then close the sheet
+      await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.btn', { hasText: /Back to the Match|Done|Close/ }).first().click({ timeout: 3000 }).catch(() => {})
+    } else if (await page.locator('.btn', { hasText: 'Take the Points' }).first().isVisible().catch(() => false)) {
+      await page.locator('.btn', { hasText: 'Take the Points' }).first().click().catch(() => {})
+    } else {
+      await page.click('.speed-controls [data-ctl=skip]', { timeout: 2000 }).catch(() => {})
+    }
+    await page.waitForTimeout(250)
+  }
+  await page.waitForSelector(`text=${label}`, { timeout: 1000 })
 }
 
 try {
