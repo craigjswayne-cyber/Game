@@ -1517,7 +1517,9 @@ export const useStore = create<Store>((set, get) => ({
     // settles it once the answer is in (releaseaudit.ts, 1.2b).
     if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
     if (ctx.events.length > cursor) cursor += 1
-    set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor }, tick: s.tick + 1 } : {})
+    // the match view follows liveMatch; the app shell around it shows nothing
+    // a simulated minute changes, so it is not redrawn for one (1.9.1)
+    set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor } } : {})
     // where the match has got to, so a reload comes back to the same minute
     get().noteProgress()
   },
@@ -1531,7 +1533,7 @@ export const useStore = create<Store>((set, get) => ({
     let r: ReturnType<typeof stepTick> = 'play'
     while (ctx.events.length <= cursor && r === 'play' && !ctx.decision && !ctx.injWait?.length) r = stepTick(game, ctx)
     if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
-    set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch }, tick: s.tick + 1 } : {})
+    set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch } } : {})
     get().noteProgress()
   },
 
@@ -2113,7 +2115,17 @@ const saveQueue = (() => {
       dirty = true
       if (timer && !soft) return
       if (timer) clearTimeout(timer)
-      timer = setTimeout(() => { timer = null; void run() }, SAVE_IDLE_MS)
+      // WRITTEN WHEN THE PHONE IS IDLE (1.9.1 performance re-audit). put()
+      // copies the whole career on the main thread, 100 to 250 ms on a
+      // desktop, and the idle timer used to drop that copy a beat after the
+      // tap that caused it, where the next tap would meet it. Once the timer
+      // runs out the write waits for an idle moment too, two seconds at most.
+      timer = setTimeout(() => {
+        timer = null
+        const idle = typeof requestIdleCallback === 'function' ? requestIdleCallback : null
+        if (idle) idle(() => { if (dirty) void run() }, { timeout: 2000 })
+        else void run()
+      }, SAVE_IDLE_MS)
     },
     /** True only when the career in memory is now on disk: nothing left
      *  dirty and the last write landed. A held, deferred or failed write
