@@ -17,6 +17,29 @@ import type { NavEntry, Store } from './types'
  *  on disk, and rethrows so the crash log still records it. The same week
  *  failing twice in a row stops there rather than reloading forever. */
 let failedWeek: string | null = null
+/** A career whose week failed twice and was not put back (weekFailed 2): it
+ *  is half-turned in memory and held, so no week may turn on it again. Tied to
+ *  the object, like the save queue's hold, so another career plays on. */
+let stuckFor: GameState | null = null
+/** The rollback after a first failure is still reading the save back. */
+let rollingBack: Promise<void> | null = null
+
+/** A settle threw: hold the career, then put it back from disk, or if this
+ *  week has already failed once, stop it where it is for good. */
+function settleFailed(g: GameState, key: string, get: () => Store): void {
+  saveQueue.hold(g)
+  if (failedWeek === key) {
+    stuckFor = g
+    storeApi().setState(s => ({ weekFailed: 2, tick: s.tick + 1 }))
+    return
+  }
+  failedWeek = key
+  rollingBack = get().rollBack()
+    .catch(() => {})
+    // nothing on disk to go back to (rollBack sets weekFailed 2): stuck too
+    .then(() => { if (storeApi().getState().weekFailed === 2) stuckFor = g })
+    .finally(() => { rollingBack = null })
+}
 /** settleguardprobe plants a failure here, after the week has been changed in
  *  memory, to prove the change is never written. Nothing in the game sets it. */
 export const settleFault: { after: ((g: GameState) => void) | null } = { after: null }
@@ -27,9 +50,7 @@ export function settleWeek(g: GameState, get: () => Store): void {
     settleFault.after?.(g)
     failedWeek = null
   } catch (e) {
-    saveQueue.hold(g)
-    if (failedWeek === key) storeApi().setState(s => ({ weekFailed: 2, tick: s.tick + 1 }))
-    else { failedWeek = key; void get().rollBack() }
+    settleFailed(g, key, get)
     throw e
   }
 }
@@ -37,7 +58,12 @@ export function settleWeek(g: GameState, get: () => Store): void {
 /** A week settle running in slices (settleWeekAsync): nothing else may turn
  *  a week, or change the career, until it is done. */
 let settling = false
-export const isSettling = (): boolean => settling
+/** True while nothing may turn a week or change the career: a sliced settle
+ *  running, the rollback after a failed one still reading the save back, or
+ *  the career in hand stuck on a week that failed twice. Every action that
+ *  turns a week or touches the career asks this first. */
+export const isSettling = (): boolean =>
+  settling || rollingBack !== null || (stuckFor !== null && storeApi().getState().game === stuckFor)
 
 /** settleWeek, sliced so the screen keeps painting (season.weekSteps). The
  *  save queue is held for the career while the week is half-turned, the
@@ -52,10 +78,12 @@ export async function settleWeekAsync(g: GameState, get: () => Store): Promise<v
     await processWeekAndAdvanceAsync(g)
     settleFault.after?.(g)
     failedWeek = null
-    saveQueue.resume()
+    saveQueue.resume(g)
   } catch (e) {
-    if (failedWeek === key) storeApi().setState(s => ({ weekFailed: 2, tick: s.tick + 1 }))
-    else { failedWeek = key; void get().rollBack() }
+    settleFailed(g, key, get)
+    // the screen stays covered until the career is back from disk, so no tap
+    // reaches the half-turned one in between
+    if (rollingBack) await rollingBack
     throw e
   } finally {
     settling = false

@@ -1,5 +1,5 @@
 import { billingCause, billingReason, bridge, creditAdd, creditCount, creditTake, type PurchaseOutcome } from '../game/monetise'
-import { useStore } from '../store'
+import { isSettling, useStore } from '../store'
 import { t } from '../game/i18n'
 
 /** Every way a tap on Buy can end, including the ones the store never reaches. */
@@ -78,6 +78,9 @@ export async function spendCredit(sku: string, grant: () => boolean): Promise<'d
   // holds), so nothing can be spent on it until then
   const st = useStore.getState()
   if (st.liveMatch || st.matchRec) return 'storage'
+  // nor while a week is turning, or the career is being put back from disk:
+  // a revert here would swap the career out from under the settle
+  if (isSettling()) return 'storage'
   // nothing banked is its own answer, not a storage fault: creditTake says no
   // to both, and the player should hear the right one (1.9.1 security re-audit)
   if (creditCount(sku) < 1) return 'none'
@@ -96,7 +99,9 @@ export async function spendCredit(sku: string, grant: () => boolean): Promise<'d
   // the credit goes back and the career is reopened from its save, so the
   // effect and the credit are never both lost and never both kept.
   if (await useStore.getState().persistNow()) return 'done'
-  creditAdd(sku)
-  await useStore.getState().revertToDisk()
+  // back to the save, and only then the credit back: a career with no save to
+  // go back to (a new one on a full phone) keeps the effect, and with it the
+  // credit stays spent, rather than holding both (1.9.1 bug hunt)
+  if (await useStore.getState().revertToDisk()) creditAdd(sku)
   return 'storage'
 }

@@ -1,6 +1,6 @@
 // The match-day squad sheet and the assistant's read on how fresh the XV is.
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from '../../../store'
 import { MAX_SUBS, isFrontRower, needsFrontRower, type SideCtx, shirtNumber } from '../../../game/matchEngine'
 import { XV_SLOTS, type Player, type Pos } from '../../../game/model'
@@ -104,6 +104,16 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
     .map(id => (id != null ? game.players[id] : null))
     .filter((p): p is Player => !!p && !p.injury && !mine.onPitch.has(p.id) && mine.ratings.has(p.id) && isFrontRower(p)
       && !mine.binned.has(p.id) && !mine.sentOff?.has(p.id))
+  // A WAIT WITH NOBODY TO SEND ON (1.9.1 bug hunt). The wait opens when the
+  // bench has a man for the shirt, but a head-injury check in the same minute
+  // can take that man, and then this sheet had no row to tap and no way to
+  // close: the match stood still. The engine's answer for an empty bench is
+  // to play on a man short (coverInjury with nobody chosen), which is what
+  // the hint here already says will happen, so that is what happens.
+  const noAnswer = waitP != null && bench.length === 0
+  useEffect(() => {
+    if (noAnswer && waitId != null) injuryPick(waitId, null)
+  }, [noAnswer, waitId, injuryPick])
   // CHANGES YOU CAN ACTUALLY MAKE (owner, round 2): the header said "6 changes
   // left" with four fit men on the bench after injuries. The number shown and the
   // number allowed are both the smaller of the law's count and the usable bench.
