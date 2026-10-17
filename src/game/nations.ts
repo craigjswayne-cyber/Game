@@ -3,7 +3,7 @@ import { t, tIn, type Lang } from './i18n'
 import type { Gender } from './gender'
 import type { GameState, Player } from './model'
 
-export interface Nation {
+interface Nation {
   code: string
   name: string
   rep: number // 1-100

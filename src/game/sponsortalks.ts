@@ -69,7 +69,7 @@ export const STRUCTURES: Record<Structure, { guaranteed: number; premium: number
  * are the lines a small club can win.
  */
 export const BONUS_WEIGHTS = { league: 0.95, title: 0.55, final: 0.45, tries: 0.9 } as const
-export type BonusLine = keyof typeof BONUS_WEIGHTS
+type BonusLine = keyof typeof BONUS_WEIGHTS
 
 export interface PerfTerms {
   structure: Structure
@@ -117,7 +117,7 @@ export interface TalksState {
 }
 
 export const MAX_MOVES = 4
-export const ASK = 0.10
+const ASK = 0.10
 const DEMAND = 0.25
 /** each walk-out is heard in the market: the other sponsors open lower */
 const WALK_PENALTY = 0.05

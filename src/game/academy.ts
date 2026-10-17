@@ -85,7 +85,7 @@ export function acadCeiling(club: Club, rng: Rng): number {
   return 20 + Math.round(club.rep * 0.8) + Math.floor(rng() * 8)
 }
 
-export interface AcadFixture {
+interface AcadFixture {
   round: number
   week: number
   homeId: string

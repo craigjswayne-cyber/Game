@@ -62,7 +62,7 @@ export function emptyRow(teamId: string): TableRow {
   return { teamId, p: 0, w: 0, d: 0, l: 0, pf: 0, pa: 0, tf: 0, ta: 0, bp: 0, pts: 0 }
 }
 
-export interface LeagueSpec {
+interface LeagueSpec {
   id: string
   name: string
   short: string

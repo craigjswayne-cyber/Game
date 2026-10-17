@@ -27,7 +27,7 @@ import type { Club, GameState, Playbook } from './model'
 import { standing } from './authority'
 import { clamp } from './rng'
 
-export interface Routine {
+interface Routine {
   id: string
   name: string
   kind: 'lineout' | 'scrum'

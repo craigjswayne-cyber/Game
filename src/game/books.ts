@@ -18,7 +18,7 @@
 // every line always equals the cash in the bank - without a hook in every file.
 import type { GameState } from './model'
 
-export type BookLine =
+type BookLine =
   | 'deals' | 'bonus' | 'central' | 'gate' | 'shop' | 'sales' | 'prize'
   | 'wages' | 'staff' | 'upkeep' | 'works' | 'buys'
 

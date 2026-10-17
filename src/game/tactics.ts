@@ -12,7 +12,7 @@ import { t } from './i18n'
 
 export type SliderKey = 'style' | 'tempo' | 'kicking' | 'aggression'
 
-export interface SliderInfo {
+interface SliderInfo {
   key: SliderKey
   label: string
   lo: string
@@ -70,7 +70,7 @@ export function sliderReadout(key: SliderKey, v: number): string {
 // does the same with two dials that default to 50 (which the engine treats as
 // literally absent, so old saves and the sim fingerprint are untouched).
 
-export type DefSliderKey = 'defLine' | 'defWidth'
+type DefSliderKey = 'defLine' | 'defWidth'
 
 export const DEF_SLIDER_INFO: { key: DefSliderKey; label: string; lo: string; hi: string; up: string; down: string }[] = [
   {
@@ -100,7 +100,7 @@ export const DEF_SLIDER_INFO: { key: DefSliderKey; label: string; lo: string; hi
  * That keeps one mechanism rather than two, so a system can never mean
  * something the sliders do not.
  */
-export interface DefSystem {
+interface DefSystem {
   id: string
   name: string
   desc: string
@@ -126,7 +126,7 @@ export const DEF_SYSTEMS: DefSystem[] = [
  * you commit to your own ruck, and how hard you contest theirs. The trades are
  * in matchEngine.applyModifiers; the words below say what they cost.
  */
-export type BrkSliderKey = 'ruckCommit' | 'ruckContest'
+type BrkSliderKey = 'ruckCommit' | 'ruckContest'
 
 export const BRK_SLIDER_INFO: { key: BrkSliderKey; label: string; lo: string; hi: string; up: string; down: string }[] = [
   {
@@ -176,7 +176,7 @@ export function defSliderReadout(key: DefSliderKey, v: number): string {
  */
 export type ZoneId = 'own22' | 'middle' | 'opp22'
 
-export interface ZonePlan {
+interface ZonePlan {
   id: string
   name: string
   desc: string
@@ -264,7 +264,7 @@ export function zoneAt(up: number): ZoneId {
   return up < 22 ? 'own22' : up > 78 ? 'opp22' : 'middle'
 }
 
-export interface Preset {
+interface Preset {
   id: string
   name: string
   /** a glyphs.tsx name, not an emoji */
@@ -302,7 +302,7 @@ export const PRESETS: Preset[] = [
   },
 ]
 
-export interface CoachingStyle {
+interface CoachingStyle {
   id: string
   name: string
   desc: string

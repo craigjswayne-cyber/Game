@@ -44,27 +44,26 @@ import { unsettledLevel, unsettledRead, type Unsettled } from './unsettled'
 // "An unsettled man is cheaper" lives in unsettled.ts (a leaf) so askingPrice
 // can read it without a cycle; re-exported here for every existing import.
 export { unsettledLevel, unsettledFee, unsettledTerms } from './unsettled'
-export type { Unsettled } from './unsettled'
 
 type Key = keyof Attrs
 export type Confidence = 'high' | 'medium' | 'low'
 export type Fit = 'excellent' | 'good' | 'doubtful'
-export type AgentTone = 'warm' | 'neutral' | 'cool'
-export type TalkRead = 'genuine' | 'unsure' | 'agent'
-export type Upside = 'limited' | 'some' | 'big'
-export type Risk = 'low' | 'medium' | 'high'
+type AgentTone = 'warm' | 'neutral' | 'cool'
+type TalkRead = 'genuine' | 'unsure' | 'agent'
+type Upside = 'limited' | 'some' | 'big'
+type Risk = 'low' | 'medium' | 'high'
 
 /** A note in the report: the attribute (or a record-based concern) it is about. */
 export type Note = Key | 'highBall' | 'discipline' | 'durability'
 
-export interface RivalTalk {
+interface RivalTalk {
   clubId: string
   /** what our scout makes of it */
   read: TalkRead
 }
 
 /** What the scouts say they cannot tell yet. */
-export type Unknown = 'character' | 'conditions' | 'paceFade' | 'durability' | 'ceiling' | 'fit'
+type Unknown = 'character' | 'conditions' | 'paceFade' | 'durability' | 'ceiling' | 'fit'
 
 export interface ScoutReport {
   stage: ReportStage

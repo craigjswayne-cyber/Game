@@ -17,7 +17,7 @@
  * is sea level, and the interesting cases are the two grounds on the highveld.
  */
 
-export type Climate = 'temperate' | 'mediterranean' | 'subtropical' | 'tropical'
+type Climate = 'temperate' | 'mediterranean' | 'subtropical' | 'tropical'
 
 export interface Venue {
   lat: number

@@ -40,7 +40,7 @@ import { MEMORY_CAP, STORIES_PER_SEASON, memoryLog, pruneMemory, recall, remembe
 // The log's types and its read/write doors live in memorylog.ts (a leaf), so
 // histbook can note into it without an import cycle through legends.
 export { MEMORY_CAP, STORIES_PER_SEASON, remember, noteMemory, recall, pruneMemory } from './memorylog'
-export type { MemoryKind, MemoryEntry, MemoryLog } from './memorylog'
+export type { MemoryKind, MemoryLog } from './memorylog'
 
 /** An old save has no memory, and a damaged one gets an empty one. */
 export function migrateMemory(s: GameState): void {

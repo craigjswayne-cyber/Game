@@ -439,10 +439,10 @@ export function paperOverall(state: GameState, teamId: string, lineup: (number |
 
 /** the platform's price for a non-specialist in each specialist shirt */
 export const SPEC_PROP = 0.84
-export const SPEC_HOOK_SCRUM = 0.92
-export const SPEC_HOOK_LINEOUT = 0.8
-export const SPEC_NINE_ATT = 0.94
-export const SPEC_NINE_KICK = 0.94
+const SPEC_HOOK_SCRUM = 0.92
+const SPEC_HOOK_LINEOUT = 0.8
+const SPEC_NINE_ATT = 0.94
+const SPEC_NINE_KICK = 0.94
 /** The specialist shirts a man is filling without the trade: 0 and 2 (the
  *  props: any trained prop will do on either side), 1 (hooker) and 8 (scrum-
  *  half). An empty shirt is not counted here; it is already a weak man. */
@@ -480,7 +480,7 @@ export function teamShort(state: GameState, teamId: string): string {
  *  energy tank). 1.8.14 took them to 0.18 and 0.45; 1.8.17 half way back.
  *  autopilotprobe, 54 worlds: picking the side worth 6.9 points a season
  *  (3.1 before); bandcheck inside every band. */
-export const FIT_W = 0.22
+const FIT_W = 0.22
 export const TANK_K = 0.75
 export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   const club = state.clubs[teamId]
