@@ -272,12 +272,14 @@ export function wizardAim(defs: LeagueDef[], clubId: string, seed: number): stri
       const club = {
         id: rc.id, rep: rc.rep, leagueId: def.id, capacity: rc.capacity, capacity0: rc.capacity,
         budget, balance: Math.round(budget * 0.6), players: rc.players.length ? [0] : [],
-      } as unknown as Club
+      } as Club
       club.facilities = initFacilities(club, seed)
       clubs[rc.id] = club
     }
   }
   const def = defs.find(d => d.clubs.some(c => c.id === clubId))
+  // a sketch of a world, holding only what demandedFinish reads: not a GameState
+  // by type, and never saved or simulated
   const state = { seed, season: 0, week: 1, userClubId: clubId, clubs, history: [], comps: {}, mgr: { trophies: [], finishes: [] } } as unknown as GameState
   return demandedFinish(state, clubId, def?.clubs.length ?? 14).text
 }

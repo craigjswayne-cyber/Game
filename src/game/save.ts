@@ -75,6 +75,8 @@ function memoryDb(): IDBDatabase {
       return tx
     },
   }
+  // the stand-in implements only the calls this file makes, not IDBDatabase's
+  // whole surface, so the type has to be asserted rather than proved
   memDb = db as unknown as IDBDatabase
   return memDb
 }
@@ -162,7 +164,7 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
     // the label on its own, so the Load screen never reads a career to list it
     tx.objectStore(STORE).put(meta, metaKey(slot))
     const held = performance.now() - t0
-    if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) {
+    if (import.meta.env?.DEV) {
       console.debug(`[save] ${slot}: put() held the main thread ${held.toFixed(0)} ms`)
     }
     tx.oncomplete = () => { resolve() }
@@ -345,6 +347,7 @@ function rebase(v: unknown): number | undefined {
 function rebaseStamps(s: GameState): void {
   const num = (x: unknown) => typeof x === 'number' && Number.isFinite(x)
   for (const p of Object.values(s.players ?? {})) {
+    // read as a bag of fields: these are old-save keys, some no longer on Player
     const q = p as unknown as Record<string, unknown>
     for (const f of ['joinedAt', 'loanSince', 'loanUntil', 'lastChatWk', 'retakeAt']) {
       if (num(q[f])) q[f] = rebase(q[f])
@@ -361,9 +364,11 @@ function rebaseStamps(s: GameState): void {
     }
   }
   for (const c of Object.values(s.clubs ?? {})) {
+    // the same for a club: an old save's field, read by name
     const q = c as unknown as Record<string, unknown>
     if (num(q.debtSince)) q.debtSince = rebase(q.debtSince)
   }
+  // and for the state itself, whose stamped fields are listed by name below
   const g = s as unknown as Record<string, unknown>
   for (const f of ['groundsAt', 'lawWatchAt', 'lawTalkAt', 'challengeAt', 'chatWk', 'natAskAt',
                    'natCoachAskAt', 'natCall']) {
@@ -1260,6 +1265,8 @@ function migrateMatchMemory(s: GameState): void {
   migrateEvidence(s)
   // the homework, now set on every match (coachfix fileHomework): one that
   // cannot be read is dropped, which is read as no homework
+  // untrusted JSON from a save: checked field by field below, so nothing about
+  // its shape is assumed
   const hw = s.fixHw as unknown as Record<string, unknown> | undefined
   if (hw !== undefined && (!hw || typeof hw !== 'object' || ![hw.fxId, hw.season, hw.week].every(n => typeof n === 'number' && Number.isFinite(n))
     || !Array.isArray(hw.tags) || !hw.tags.every(x => typeof x === 'string'))) delete s.fixHw

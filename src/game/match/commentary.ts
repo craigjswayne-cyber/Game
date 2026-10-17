@@ -43,10 +43,10 @@ export function said<T>(ctx: LiveCtx, xs: readonly T[]): T {
   const roll = ctx.crng()
   if (xs.length < 2 || typeof xs[0] !== 'string') return xs[Math.floor(roll * xs.length)]
   const recent = ctx.recent ?? []
-  const fresh = xs.filter(x => !recent.includes(x as unknown as string))
+  const fresh = xs.filter(x => !(recent as readonly unknown[]).includes(x))
   const pool = fresh.length ? fresh : xs
   const pick = pool[Math.floor(roll * pool.length)]
-  remember(ctx, pick as unknown as string)
+  remember(ctx, pick as string)
   return pick
 }
 
