@@ -1,6 +1,6 @@
 // Scouting knowledge: attributes of unscouted players show as ranges.
 import { userWageBudget } from './grants'
-import { askingPrice } from './ai'
+import { askingPrice } from './transferRules'
 import { playerValue } from './attributes'
 // Knowledge grows by shortlisting, playing against them, and via the
 // chief scout. Your own squad is always fully known, bar a young man's ceiling
