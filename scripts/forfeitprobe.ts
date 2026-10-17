@@ -15,12 +15,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, weekRng } from '../src/game/season'
 import { simMatch, forfeitSide, FORFEIT_MIN, FORFEIT_SCORE, FORFEIT_TRIES } from '../src/game/matchEngine'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 function toFixtureWeek(g: GameState, clubId: string) {
   let guard = 0
@@ -86,5 +81,4 @@ for (const [keep, expectForfeit] of [[FORFEIT_MIN - 1, true], [FORFEIT_MIN, fals
   ok(!!test && forfeitSide(g, test) === null, `a Test match is never a walkover (${test?.homeId} v ${test?.awayId})`)
 }
 
-console.log(fails ? `FORFEIT PROBE FAILED (${fails})` : 'FORFEIT PROBE PASSED: ten men play, nine concede, and the table knows')
-process.exit(fails ? 1 : 0)
+done('FORFEIT PROBE', 'ten men play, nine concede, and the table knows', { exit: true, blank: false })

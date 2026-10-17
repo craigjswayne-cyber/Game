@@ -24,12 +24,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const g: GameState = newGame('northampton', 'Wire Probe', 606)
 
@@ -166,5 +161,5 @@ ok(flat.length === 0, `every colour story has a turn in it${flat.length ? ` (${f
 const dashes = seen.filter(s => (s.subject + s.body).includes('—'))
 ok(dashes.length === 0, 'no em dashes on the wire')
 
-if (fails) { console.error(`\nWIRE PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nWIRE PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nWIRE PROBE PASSED: the wire spends its whole pool before repeating a word')

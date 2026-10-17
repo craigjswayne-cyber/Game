@@ -35,12 +35,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
 import { genderOf, isWomensId, type Gender } from '../src/game/gender'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 /**
  * IDS THAT BELONG TO WHICHEVER WORLD IS RUNNING.
@@ -217,6 +212,6 @@ ok(crossed.length === 0,
   `not one of the ${womenNames.length} players in the women's world is one of the ${realMen.size} real men${crossed.length ? ` - found ${crossed.slice(0, 5).join(', ')}` : ''}`)
 
 console.log('')
-if (fails === 0) console.log('GENDER PROBE PASSED: the two games are built apart and stay apart')
-else console.log(`GENDER PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('GENDER PROBE PASSED: the two games are built apart and stay apart')
+else console.log(`GENDER PROBE FAILED (${failures()})`)
+process.exit(failures())

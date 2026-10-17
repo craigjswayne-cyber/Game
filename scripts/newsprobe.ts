@@ -29,13 +29,12 @@
 // Run: npx vite-node scripts/newsprobe.ts
 import { SIBLING } from '../src/game/i18n'
 import { readFileSync, readdirSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 
 /** Story-filing sites still writing prose with no key. ONLY EVER DECREASE. */
 const BUDGET = 0
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const GAME = 'src/game'
 // recursive since season.ts and matchEngine.ts were split into src/game/season/
@@ -242,5 +241,4 @@ for (const key of Object.keys(enNews)) {
 }
 ok(bad.length === 0, `every story fills the same holes in both languages${bad.length ? ` - ${bad.length}: ${bad.slice(0, 5).join('; ')}` : ''}`)
 
-say(fails ? `\nNEWS PROBE FAILED (${fails})` : `\nNEWS PROBE PASSED: ${wanted.size} story keys, every one of them in every language`)
-process.exitCode = fails ? 1 : 0
+done('NEWS PROBE', `${wanted.size} story keys, every one of them in every language`)

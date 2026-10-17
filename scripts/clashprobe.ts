@@ -11,12 +11,10 @@
 import { newGame } from '../src/game/newgame'
 import { kitColours, kitGap, luma, type Spares } from '../src/ui/kit'
 import { readFileSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 // the spare kits, read from the token file the page reads them from
 const tok = (n: string) => readFileSync('src/ui/tokens.css', 'utf8').match(new RegExp(`${n}:\\s*(#[0-9a-fA-F]{6})`))![1]
 const SP: Spares = { white: tok('--kit-spare-white'), slate: tok('--kit-spare-slate'), gold: tok('--kit-spare-gold'), ink: tok('--kit-spare-ink') }
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const g = newGame('northampton', 'Kit', 3)
 const clubs = Object.values(g.clubs).filter(c => c.colors?.length)
@@ -39,5 +37,4 @@ console.log(`Northampton v Connacht: ${nc.home[0]} against ${nc.away[0]}`)
 ok(kitGap(nc.home[0], nc.away[0]) >= 150, 'Northampton v Connacht: the bars are two colours')
 ok(bad.length === 0, `every pairing is two clear colours${bad.length ? ` (not: ${bad.slice(0, 8).join(', ')}${bad.length > 8 ? ` and ${bad.length - 8} more` : ''})` : ''}`)
 ok(dim.length === 0, `no near-black bar on the dark panel${dim.length ? ` (${dim.slice(0, 5).join(', ')})` : ''}`)
-console.log(fails ? `\nCLASH PROBE FAILED (${fails})` : '\nCLASH PROBE PASSED: every match has two colours')
-process.exit(fails ? 1 : 0)
+done('CLASH PROBE', 'every match has two colours', { exit: true })

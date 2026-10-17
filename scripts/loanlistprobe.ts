@@ -32,12 +32,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { migrate } from '../src/game/save'
 import { loanFree, loanIn, loanMarket, loanOut, loanTargets, loanTerms } from '../src/game/loans'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 /** is he anywhere on the market the screen would show, under any query? */
 const onMarket = (g: GameState, id: number) => {
@@ -131,5 +126,4 @@ console.log('\n--- an AI-held man carrying a loan from another club')
   }
 }
 
-console.log(fails ? `\nLOAN LIST PROBE FAILED (${fails})` : '\nLOAN LIST PROBE PASSED: a loaned man stays off the loan list until the loan is over')
-process.exit(fails ? 1 : 0)
+done('LOAN LIST PROBE', 'a loaned man stays off the loan list until the loan is over', { exit: true })

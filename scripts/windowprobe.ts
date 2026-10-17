@@ -32,12 +32,7 @@ import { dayHasSomething, dayOfStory } from '../src/game/days'
 import {
   JANUARY_OPEN, JANUARY_SHUT, SUMMER_OPEN, SUMMER_SHUT, postWindowNotes, windowNoteOn,
 } from '../src/game/window'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 // ---- 1. the weeks ----
 {
@@ -199,5 +194,4 @@ for (const [club, seed, walk] of [['leicester', 7101, false], ['bath', 7102, tru
   ok(m.windowNote === undefined && m.news[m.news.length - 1].day === undefined, 'a junk stamp or day is dropped on load')
 }
 
-console.log(fails ? `WINDOW PROBE FAILED (${fails})` : 'WINDOW PROBE PASSED: two windows, every club, a countdown posted once')
-process.exit(fails ? 1 : 0)
+done('WINDOW PROBE', 'two windows, every club, a countdown posted once', { exit: true, blank: false })

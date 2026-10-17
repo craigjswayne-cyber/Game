@@ -31,12 +31,7 @@
  * Run: npx vite-node scripts/colourblind.ts
  */
 import { readFileSync } from 'node:fs'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const css = readFileSync('src/ui/tokens.css', 'utf8')
 /** Resolve a token to its hex, following one level of var() indirection. */
@@ -119,5 +114,4 @@ console.log(`\nclosest pair anywhere: ${worst.toFixed(0)} (${worstWhat})\n`)
     `(evidence) the three hues really do collapse under dichromacy - closest pair ${worst.toFixed(0)}, which is why the above matters`)
 }
 
-console.log(fails ? `COLOUR BLIND PROBE FAILED (${fails})` : 'COLOUR BLIND PROBE PASSED: no state is carried by hue alone')
-if (fails) process.exit(1)
+done('COLOUR BLIND PROBE', 'no state is carried by hue alone', { blank: false })

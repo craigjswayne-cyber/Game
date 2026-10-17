@@ -50,12 +50,7 @@ import { autoSelect, refFor, simMatch } from '../src/game/matchEngine'
 import { packTilt } from '../src/game/philosophy'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState, Player, Tactic } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const SEEDS = [4, 88, 1201, 77]
 const SEASONS = 1
@@ -248,5 +243,5 @@ for (const dial of DIALS) {
     `going physical costs less in front of a lenient referee than a fussy one (paired ${(m >= 0 ? '+' : '') + m.toFixed(2)} a match)`)
 }
 
-console.log(fails ? `\n${fails} FAILURES` : '\nDIAL WEIGHT PASSED: every dial earns its place at two squad shapes, measured with the world held still')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nDIAL WEIGHT PASSED: every dial earns its place at two squad shapes, measured with the world held still')
+process.exit(failures() ? 1 : 0)

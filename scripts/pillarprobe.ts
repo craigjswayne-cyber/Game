@@ -16,12 +16,7 @@ import { drillWeek, playbookOf, DEFAULT_LINEOUT } from '../src/game/playbook'
 import { mulberry32, hashString } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
 import { beginMatch } from '../src/game/matchEngine'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 // ---------------------------------------------------------------------------
 console.log('PILLAR 1: the room compares your name to its own\n')
@@ -222,5 +217,4 @@ console.log('\nINTEGRATION: the homework reaches the pitch\n')
   ok(!ctx2.events.some(e => e.text.includes('done his homework')), 'a manager with no habit gets no homework done on him')
 }
 
-console.log(fails ? `\nPILLAR PROBE FAILED (${fails})` : '\nPILLAR PROBE PASSED: the game asks who you are before it hands you the room')
-process.exit(fails ? 1 : 0)
+done('PILLAR PROBE', 'the game asks who you are before it hands you the room', { exit: true })

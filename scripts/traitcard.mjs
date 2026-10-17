@@ -15,11 +15,8 @@
 // Run: npm run build && node scripts/traitcard.mjs [port]
 import { chromium } from 'playwright-core'
 import { mkdirSync, readFileSync, writeSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
-
-const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { startPreview } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
 const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -125,5 +122,4 @@ try {
   server.stop()
 }
 
-say(fails ? `\nTRAIT CARD FAILED (${fails})` : '\nTRAIT CARD PASSED: a man\'s character is named, as far as the club knows it')
-done(fails)
+done('TRAIT CARD', 'a man\'s character is named, as far as the club knows it', { exit: true })

@@ -44,12 +44,8 @@ import { coachFixes, gradeFixes, type FixTag } from '../src/game/coachfix'
 import { mulberry32 } from '../src/game/rng'
 import { rolesForSlot } from '../src/game/roles'
 import type { GameState, Fixture } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const say = (s: string) => console.log(s)
 
 type Journey = 'none' | 'empty'
@@ -348,7 +344,4 @@ say('\n--- 5. every full-time card has something on it')
   ok(dupe === 0, `never the same thing twice (${dupe})`)
 }
 
-console.log(fails
-  ? `\nJOURNEY PROBE FAILED (${fails})`
-  : '\nJOURNEY PROBE PASSED: the card tells the truth about the match that was played')
-if (fails) process.exit(1)
+done('JOURNEY PROBE', 'the card tells the truth about the match that was played')

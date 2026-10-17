@@ -17,12 +17,7 @@
 import { newGame } from '../src/game/newgame'
 import { mgrReputation } from '../src/game/model'
 import { planCap } from '../src/game/season'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const coach = newGame('northampton', 'Coach', 41, undefined, 'coach')
 const player = newGame('northampton', 'Player', 41, undefined, 'player')
@@ -50,5 +45,5 @@ ok((legacy.mgrTrust ?? 0) === 26 && mgrReputation(legacy) === mgrReputation(coac
   legacy.clubs[legacy.userClubId].boardConfidence === homeCoach.boardConfidence,
   'trust, standing and the board all read exactly as they did before origins existed')
 
-if (fails) { console.error(`\nORIGIN PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nORIGIN PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nORIGIN PROBE PASSED: three ways in, each paying differently')

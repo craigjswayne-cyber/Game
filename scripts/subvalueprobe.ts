@@ -16,6 +16,7 @@ import { beginMatch, stepTick, playSegment, resolveDecision, autoSelect, availab
 import type { LiveCtx } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture } from '../src/game/model'
+import { ok, done } from './lib/probe'
 const g = newGame('leicester', 'T', 20260907)
 const clubs = Object.values(g.clubs).filter(c => c.leagueId === g.clubs.leicester.leagueId).sort((a, b) => b.rep - a.rep)
 g.week = 20
@@ -53,11 +54,8 @@ for (let i = 0; i < N; i++) {
 }
 for (const [k, v] of Object.entries(res)) console.log(`${k}: margin from minute 56 ${(v.m / v.n).toFixed(2)} (${v.n})`)
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const mean = (k: string) => res[k].m / Math.max(1, res[k].n)
 ok(mean('four') >= mean('none') + 0.5, `four fresh men late on are worth it (${(mean('four') - mean('none')).toFixed(2)} points over none)`)
 ok(mean('eight') >= mean('none') + 0.5, `and so is the whole bench (${(mean('eight') - mean('none')).toFixed(2)})`)
 ok(mean('eight') - mean('four') <= 1.5, `but emptying it is not a meta over choosing (${(mean('eight') - mean('four')).toFixed(2)} more than four)`)
-console.log(fails ? `SUB VALUE PROBE FAILED (${fails})` : 'SUB VALUE PROBE PASSED: fresh legs win the last quarter, and the bench is a choice')
-process.exit(fails ? 1 : 0)
+done('SUB VALUE PROBE', 'fresh legs win the last quarter, and the bench is a choice', { exit: true, blank: false })

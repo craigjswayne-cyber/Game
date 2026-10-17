@@ -46,14 +46,13 @@ import { CLIP_MOVES, buildClip, clipLength, clipTimeline, frameAt, type ClipSpec
 import { newGame } from '../src/game/newgame'
 import { beginMatch, lineupFor, playHalf } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
+import { ok, done } from './lib/probe'
 
 /** metres (or picture units) forward a pass may go before it fails */
 const TOL = 0.05
 /** how far behind the passer the catcher is in the previews and tracks */
 const MARGIN = 0.3
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 type Worst = { fwd: number; what: string }
 const worstOf = (xs: Worst[]) => xs.reduce<Worst>((a, b) => (b.fwd > a.fwd ? b : a), { fwd: -Infinity, what: '(none)' })
 const f2 = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}`
@@ -291,5 +290,4 @@ for (const id of CLIP_MOVES) {
   ok(bad.length === 0, `no pass in any clip goes forward (worst ${w.name}: ${shirt(w.f.from)} to ${shirt(w.f.to)} at ${w.f.t0.toFixed(2)}s, ${f2(w.f.fwd)} m)${bad.length ? `\n        ${bad.length} forward, on ${paths.size} paths; the worst on each:\n        ` + tells.join('\n        ') : ''}`)
 }
 
-console.log(fails ? `\nPASS PROBE FAILED (${fails})` : '\nPASS PROBE PASSED: every pass goes backwards')
-process.exit(fails ? 1 : 0)
+done('PASS PROBE', 'every pass goes backwards', { exit: true })

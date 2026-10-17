@@ -34,12 +34,8 @@ import { campCost, tourFee, generatePress, answerPress } from '../src/game/media
 import { objectiveBonus } from '../src/game/objectives'
 import { INJECT_TIERS } from '../src/game/grants'
 import { mulberry32 } from '../src/game/rng'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const say = (s: string) => console.log(s)
 
 /** Every club the game can start you at, with the budget it starts with. */
@@ -232,7 +228,4 @@ say('\n--- 5. and the store line names the prices the store charges')
     `and there are ${tiers.length} of them`)
 }
 
-console.log(fails
-  ? `\nPROPORTION PROBE FAILED (${fails})`
-  : '\nPROPORTION PROBE PASSED: every figure is a share of what the club has, and the story says so')
-if (fails) process.exit(1)
+done('PROPORTION PROBE', 'every figure is a share of what the club has, and the story says so')

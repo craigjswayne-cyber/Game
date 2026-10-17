@@ -48,12 +48,8 @@ import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game
 import { beginMatch, playSegment, simMatch } from '../src/game/matchEngine'
 import { SEASON_WEEKS, type GameState } from '../src/game/model'
 import { mulberry32 } from '../src/game/rng'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const SLOWDOWN = Number(process.env.PERF_SLOWDOWN ?? 1)
 const spin = (wanted: number) => { const end = performance.now() + wanted; while (performance.now() < end) { /* spin */ } }
 const ms = (f: () => void) => {
@@ -172,6 +168,6 @@ const REF_INSTANT = 0.27
   ok(second <= first * 1.35, `save growth is flattening, not compounding (${(second / Math.max(1, first)).toFixed(2)}x)`)
 }
 
-console.log(fails ? `\n${fails} FAILURES` : '\nPERF PROBE PASSED: the week, the match and the save all stay light')
+console.log(failures() ? `\n${failures()} FAILURES` : '\nPERF PROBE PASSED: the week, the match and the save all stay light')
 if (sink < 0) console.log(sink)                  // keeps the calibration from being optimised away
-process.exit(fails ? 1 : 0)
+process.exit(failures() ? 1 : 0)

@@ -36,14 +36,9 @@ import {
   noteMemory, rememberDebut, rememberPromise,
 } from '../src/game/memory'
 import { ensureLang, tIn } from '../src/game/i18n'
+import { ok, failures } from './lib/probe'
 
 await ensureLang('fr')
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 
 const seniors = (g: GameState, clubId: string) =>
   g.clubs[clubId].players.map(id => g.players[id]).filter((p): p is Player => !!p && !p.acad)
@@ -444,7 +439,7 @@ const leagueRival = (g: GameState) => {
   ok(noteMemory(g, { kind: 'nonsense' }) === null && recall(g).length === 5, 'and an unknown kind is left out')
 }
 
-console.log(fails === 0
+console.log(failures() === 0
   ? '\nMEMORY PROBE PASSED: the world remembers what you did, and says so'
-  : `\nMEMORY PROBE FAILED: ${fails}`)
-process.exit(fails === 0 ? 0 : 1)
+  : `\nMEMORY PROBE FAILED: ${failures()}`)
+process.exit(failures() === 0 ? 0 : 1)

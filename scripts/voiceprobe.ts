@@ -36,12 +36,8 @@
  * Run: npx vite-node scripts/voiceprobe.ts
  */
 import { readFileSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const say = (s: string) => console.log(s)
 
 const LANGS = ['en', 'fr', 'es', 'it', 'ja', 'af'] as const
@@ -188,7 +184,4 @@ say('\n--- 5. report-voice constructions the broadcasts never use')
   }
 }
 
-console.log(fails
-  ? `\nVOICE PROBE FAILED (${fails})`
-  : '\nVOICE PROBE PASSED: the tics are counted, and none of them is getting worse')
-if (fails) process.exit(1)
+done('VOICE PROBE', 'the tics are counted, and none of them is getting worse')

@@ -34,12 +34,7 @@
  * Run: npx vite-node scripts/tempoprobe.ts
  */
 import { readFileSync } from 'node:fs'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 /** Brysbaert, M. (2019), "How many words do we read per minute? A review and
  *  meta-analysis of reading rate", Journal of Memory and Language. 238 wpm for
@@ -107,7 +102,4 @@ ok(slow * TENSION <= 2700,
 ok(/speedIdx < 2 \? 1 \+ 0\.6 \* tension : 1/.test(src),
   'the tension stretch still applies to Slow and Normal only - Fast is asked to be fast')
 
-console.log(fails
-  ? `\nTEMPO PROBE FAILED (${fails})`
-  : '\nTEMPO PROBE PASSED: the speeds answer to the prose, not to a feeling')
-if (fails) process.exit(1)
+done('TEMPO PROBE', 'the speeds answer to the prose, not to a feeling')

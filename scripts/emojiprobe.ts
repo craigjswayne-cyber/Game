@@ -22,9 +22,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import ts from 'typescript'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const ROOT = join(__dirname, '..')
 
@@ -105,5 +103,4 @@ ok(emojiIn('\u{1F1EB}\u{1F1F7} France').length >= 1 && emojiIn('\u{1F3F4}\u{E006
 ok(emojiIn('\u26A0\uFE0F Warning').length >= 1 && emojiIn('\u{1F3C6} Champions').length === 1 && emojiIn('\u26A1').length === 1 && emojiIn('\u2B50').length === 1 && emojiIn('\u25B6\uFE0F').length === 1,
   'a warning sign, a trophy, a lightning bolt, a star emoji and an emoji play button are')
 
-console.log(fails ? `EMOJI PROBE FAILED (${fails})` : 'EMOJI PROBE PASSED: icons, not emoji, everywhere a player looks')
-process.exit(fails ? 1 : 0)
+done('EMOJI PROBE', 'icons, not emoji, everywhere a player looks', { exit: true, blank: false })

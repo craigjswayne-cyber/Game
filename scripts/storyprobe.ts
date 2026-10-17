@@ -44,12 +44,8 @@ import { eraBuilt, eraTurns, seasonCandidates, TP_PER_ERA, TP_RUN } from '../src
 import { oldBoyApps } from '../src/game/model'
 import { tIn } from '../src/game/i18n'
 import type { Era } from '../src/game/arcbook'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const t0 = Date.now()
 const SEASONS = Number(process.env.SEASONS ?? 8)
 
@@ -308,5 +304,5 @@ for (const { g, label } of runs) {
 console.log('\n      what the player sees:')
 for (const s of samples) console.log(`      ${s}`)
 console.log(`\n${((Date.now() - t0) / 1000).toFixed(0)}s`)
-if (fails) { console.log(`\nSTORY PROBE FAILED: ${fails}`); process.exit(1) }
+if (failures()) { console.log(`\nSTORY PROBE FAILED: ${failures()}`); process.exit(1) }
 console.log('\nSTORY PROBE PASSED')

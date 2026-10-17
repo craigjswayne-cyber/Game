@@ -16,12 +16,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { rivalBeat, rivalBoss, rivalVerdict } from '../src/game/boss'
 import { SEASON_WEEKS, type NewsItem } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'Boss Probe', 4242)
 
@@ -137,5 +132,4 @@ ok(verdicts.length >= 2, 'and the season closes with an accounting of who finish
   ok(rivalVerdict(g) !== undefined, 'and the season verdict still returns without throwing')
 }
 
-console.log(fails ? `\nBOSS PROBE FAILED (${fails})` : '\nBOSS PROBE PASSED: the rivalry has a face, and only one of them')
-process.exit(fails ? 1 : 0)
+done('BOSS PROBE', 'the rivalry has a face, and only one of them', { exit: true })

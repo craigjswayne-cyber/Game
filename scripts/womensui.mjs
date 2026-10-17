@@ -28,12 +28,10 @@
 // Run: node scripts/womensui.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
+import { ok, failures } from './lib/probe.mjs'
 
 const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
-
-let fails = 0
-const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625 })
 page.setDefaultTimeout(12000)
@@ -149,6 +147,6 @@ try {
 }
 
 console.log('')
-if (fails === 0) console.log("WOMEN'S UI PROBE PASSED: the women's game is on the menu and plays")
-else console.log(`WOMEN'S UI PROBE FAILED (${fails})`)
-process.exit(fails ? 1 : 0)
+if (failures() === 0) console.log("WOMEN'S UI PROBE PASSED: the women's game is on the menu and plays")
+else console.log(`WOMEN'S UI PROBE FAILED (${failures()})`)
+process.exit(failures() ? 1 : 0)

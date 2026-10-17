@@ -27,9 +27,7 @@ import { upkeepWeek } from '../src/game/upkeep'
 import { GROUND_UPKEEP_F, groundLevel, groundUpkeep } from '../src/game/model'
 import { ZONE_PLANS, zonePlan } from '../src/game/tactics'
 import { mulberry32 } from '../src/game/rng'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, failures } from './lib/probe'
 
 // ---------------------------------------------------------------- 1. advantage
 console.log('=== 1. the arm stays out ===')
@@ -349,5 +347,5 @@ console.log('\n=== 9. good pitch, good prep ===')
   ok(gTrue.world > gBog.world, `the squad develops faster on a pitch it can work on (${gBog.world} -> ${gTrue.world} across the world)`)
 }
 
-console.log(fails ? `\nDESIGN ROUND PROBE: ${fails} failures` : '\nDESIGN ROUND PROBE PASSED: advantage, the Tuesday session and the kicking ladder all behave')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\nDESIGN ROUND PROBE: ${failures()} failures` : '\nDESIGN ROUND PROBE PASSED: advantage, the Tuesday session and the kicking ladder all behave')
+process.exit(failures() ? 1 : 0)

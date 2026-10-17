@@ -38,9 +38,8 @@ import { beginMatch, matchStats, playSegment } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import { STARVE, applyPlan, currentPlan, isCurrent, opponentIn, planFollowed, planOptions } from '../src/game/oppreport'
 import type { Fixture, GameState } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length)
 const se = (xs: number[]) => { const m = mean(xs); return Math.sqrt(xs.reduce((a, x) => a + (x - m) ** 2, 0) / Math.max(1, xs.length - 1) / Math.max(1, xs.length)) }
@@ -161,5 +160,4 @@ ok(sg <= bestOther + tie, `not dominant: worth ${sgn(sg)} a match, against ${sgn
 const sgSe = se(gain.get('starve') ?? [])
 ok(sg > -sgSe, `but not a mistake: not clearly worse than no plan at all (${sgn(sg)} a match, se ${sgSe.toFixed(2)})`)
 
-console.log(fails ? `\nSTARVE PROBE FAILED (${fails})` : '\nSTARVE PROBE PASSED: a plan of its own, and not the answer')
-process.exit(fails ? 1 : 0)
+done('STARVE PROBE', 'a plan of its own, and not the answer', { exit: true })

@@ -27,12 +27,8 @@ import { devFactor } from '../src/game/rollover'
 import { counterIncomingOffer } from '../src/game/ai'
 import { SEASON_WEEKS } from '../src/game/model'
 import type { Player, TransferOffer } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const mean = (a: number[]) => a.reduce((s, x) => s + x, 0) / a.length
 
 // the formula this round replaced, kept here as the yardstick
@@ -186,5 +182,5 @@ for (const seed of [9, 777]) {
   ok(walked > 0, `and walking away still happens (${walked}/200) - the gamble has teeth`)
 }
 
-console.log(fails ? `\n${fails} FAILURES` : '\nROUND 25D PROBE PASSED')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nROUND 25D PROBE PASSED')
+process.exit(failures() ? 1 : 0)

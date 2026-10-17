@@ -20,9 +20,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { beginMatch, playHalf, teamRatingTerm } from '../src/game/matchEngine'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 // ---- 1. the team term is exactly symmetric -------------------------------
 //
@@ -169,5 +167,4 @@ const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  
   }
 }
 
-console.log(fails ? `\nRATING PROBE FAILED (${fails})` : '\nRATING PROBE PASSED: the scoreboard is in the mark')
-process.exit(fails ? 1 : 0)
+done('RATING PROBE', 'the scoreboard is in the mark', { exit: true })

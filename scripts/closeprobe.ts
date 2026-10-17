@@ -22,12 +22,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { CLOSE_EVENTS, MISHAPS, SLATE_SIZE, aiCloseSeason, bookEvent, bookedThisWeek, eventFee, eventMishap, eventOpen, eventSlate, isCloseSeason } from '../src/game/closeseason'
 import { LEDGER_WEEKS, SEASON_WEEKS, fmtMoney } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 // ---- 1. when the diary is open ------------------------------------------
 console.log('--- 1. only in the weeks with no rugby in them')
@@ -176,6 +171,6 @@ ok(w.clubs[w.userClubId].balance === before2.get(w.userClubId),
 ok(takings[takings.length - 1] < 200_000, `nobody has a suspiciously good July (${fmtMoney(takings[takings.length - 1])})`)
 
 console.log('')
-if (fails === 0) console.log('CLOSE SEASON PROBE PASSED: the ground earns in July, and not so much that the paused books stop mattering')
-else console.log(`CLOSE SEASON PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('CLOSE SEASON PROBE PASSED: the ground earns in July, and not so much that the paused books stop mattering')
+else console.log(`CLOSE SEASON PROBE FAILED (${failures()})`)
+process.exit(failures())

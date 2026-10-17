@@ -19,9 +19,8 @@ import { weekRng } from '../src/game/season'
 import { beginMatch, simMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState, Tactic } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const userFixture = (g: GameState) =>
   g.fixtures.find(f => f.week === g.week && (f.homeId === g.userClubId || f.awayId === g.userClubId))!
 const mine = (g: GameState, ctx: ReturnType<typeof beginMatch>) => (ctx.home.teamId === g.userClubId ? ctx.home : ctx.away)
@@ -169,5 +168,4 @@ console.log('--- nothing is a meta')
   }
 }
 
-console.log(fails ? `\nKICK & BREAKDOWN PROBE FAILED (${fails})` : '\nKICK & BREAKDOWN PROBE PASSED: every choice is a trade that pays in its own conditions, and none is a meta')
-process.exit(fails ? 1 : 0)
+done('KICK & BREAKDOWN PROBE', 'every choice is a trade that pays in its own conditions, and none is a meta', { exit: true })

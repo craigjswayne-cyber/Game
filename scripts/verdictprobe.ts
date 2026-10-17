@@ -20,15 +20,10 @@ import { RELEGATES } from '../src/game/model'
 // code, and a missing named import would kill the run at load time instead of
 // showing each claim red on its own line
 import * as NG from '../src/game/newgame'
+import { ok, done } from './lib/probe'
 const mediaVerdict = (NG as {
   mediaVerdict?: (club: { id: string }, league: ReturnType<typeof LEAGUE_DEFS>[number]) => string
 }).mediaVerdict
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 
 ok(typeof mediaVerdict === 'function', 'mediaVerdict exists - the verdict is a league rule, not a screen constant')
 if (!mediaVerdict) {
@@ -62,5 +57,4 @@ ok(natVerdicts.every(v => !v.toLowerCase().includes('relegation')),
 ok(natVerdicts.includes('Promotion chasers'),
   'National 1 top sides chase promotion, not playoffs it does not run')
 
-console.log(fails ? `\nVERDICT PROBE FAILED (${fails})` : '\nVERDICT PROBE PASSED: every league is judged on its own terms')
-process.exit(fails ? 1 : 0)
+done('VERDICT PROBE', 'every league is judged on its own terms', { exit: true })

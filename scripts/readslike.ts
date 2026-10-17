@@ -30,12 +30,8 @@
  * Run: npx vite-node scripts/readslike.ts
  */
 import { readFileSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const say = (s: string) => console.log(s)
 
 type Dict = { [k: string]: unknown }
@@ -152,7 +148,4 @@ say("\n--- 5. Afrikaans writes 'n with its apostrophe")
   ok(curly.length === 0, `${curly.length} entries use a curly apostrophe where the file uses a straight one`)
 }
 
-console.log(fails
-  ? `\nREADS LIKE FAILED (${fails})`
-  : '\nREADS LIKE PASSED: five languages, each asked about its own conventions')
-if (fails) process.exit(1)
+done('READS LIKE', 'five languages, each asked about its own conventions')

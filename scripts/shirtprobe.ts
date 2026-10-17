@@ -12,9 +12,7 @@
 import { newGame } from '../src/game/newgame'
 import { beginMatch, stepTick, resolveDecision, shirtNumber } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const g = newGame('leicester', 'Shirts', 4040)
 const fxs = g.fixtures.filter(f => g.clubs[f.homeId] && g.clubs[f.awayId] && f.homeId !== g.userClubId && f.awayId !== g.userClubId).slice(0, 60)
@@ -40,5 +38,4 @@ for (const [i, fx] of fxs.entries()) {
 ok(subs > 100, `replacements seen in a starting shirt (${subs} man-ticks)`)
 ok(moved === subs, `and every one is in a shirt slot that is not his own number (${moved} of ${subs})`)
 ok(wrong === 0, `every man wears the number he had at kick-off, all match (${wrong} wrong)`)
-console.log(fails ? `SHIRT PROBE FAILED (${fails})` : 'SHIRT PROBE PASSED: 23 on the bench is 23 on the pitch')
-process.exit(fails ? 1 : 0)
+done('SHIRT PROBE', '23 on the bench is 23 on the pitch', { exit: true, blank: false })

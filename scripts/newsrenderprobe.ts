@@ -20,9 +20,8 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS, newsBody, newsSubject } from '../src/game/model'
 import { ensureLang, setLang, tIn, type Lang } from '../src/game/i18n'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'ja', 'af']
 // 2,029 / 2.029 / 2 029 (NBSP or narrow NBSP in French)
 const SPLIT_YEAR = /\b20[,.   ]?\d{2}\b/
@@ -61,7 +60,7 @@ async function main() {
   setLang('en')
   ok(bad.length === 0, `every story renders clean in every language (${bad.length} flagged)`)
   for (const b of bad.slice(0, 15)) console.log('        ' + b)
-  console.log(fails ? `\nNEWS RENDER PROBE FAILED: ${fails}` : '\nNEWS RENDER PROBE PASSED: a season of stories reads clean in six languages')
-  process.exit(fails ? 1 : 0)
+  console.log(failures() ? `\nNEWS RENDER PROBE FAILED: ${failures()}` : '\nNEWS RENDER PROBE PASSED: a season of stories reads clean in six languages')
+  process.exit(failures() ? 1 : 0)
 }
 main()

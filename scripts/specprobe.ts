@@ -21,12 +21,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SPECIALITIES, SPEC_MIN_GAMES } from '../src/ui/screens/Profile'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 /** what the screen shows: the gate, then the speciality's own test */
 const shown = (g: GameState) =>
@@ -87,7 +82,7 @@ console.log('\n--- 2. and they cost more than they did\n')
   ok(dealer.earned(rec), 'twelve is')
 }
 
-console.log(fails === 0
+console.log(failures() === 0
   ? '\nSPEC PROBE PASSED: nothing is worn on a badge before it is earned'
-  : `\nSPEC PROBE FAILED: ${fails}`)
-process.exit(fails === 0 ? 0 : 1)
+  : `\nSPEC PROBE FAILED: ${failures()}`)
+process.exit(failures() === 0 ? 0 : 1)

@@ -27,15 +27,11 @@ import { attrWeight } from '../src/game/attributes'
 import { attrLevel } from '../src/game/ageing'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState, Player } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
 /** a `since` that makes the pairing forty weeks old this week */
 const SETTLED = (h: GameState) => absWeek(h.season, h.week) - 39
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const f2 = (n: number) => n.toFixed(2)
 
 const g: GameState = newGame('leicester', 'Mentor', 616)
@@ -288,5 +284,4 @@ console.log('--- the fit is still mean-neutral (mentorprobe holds the world figu
   ok(Math.abs(mean - 1) < 0.3, `this squad's average fit multiplier is ${f2(mean)}`)
 }
 
-console.log(fails ? `\nMENTOR IMPACT PROBE FAILED (${fails})` : '\nMENTOR IMPACT PROBE PASSED: a pairing teaches what the mentor has, and the screen tells the truth about it')
-process.exit(fails ? 1 : 0)
+done('MENTOR IMPACT PROBE', 'a pairing teaches what the mentor has, and the screen tells the truth about it', { exit: true })

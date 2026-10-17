@@ -28,9 +28,7 @@ import { mulberry32 } from '../src/game/rng'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
 import { momentAt } from '../src/ui/HighlightClip'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, failures } from './lib/probe'
 
 const CLUBS = ['leicester', 'toulouse', 'leinster', 'crusaders', 'northampton', 'saracens']
 // (72, from 60: at 840 matches the count sat at 94 against a floor of 100
@@ -159,5 +157,5 @@ for (const l of LANGS) for (const k of KEYS) {
 }
 ok(missing === 0, `all ${KEYS.length} lines exist in all six languages (${missing} missing)`)
 
-console.log(fails ? `\n${fails} FAILURES` : '\nFORWARD PASS PROBE PASSED')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nFORWARD PASS PROBE PASSED')
+process.exit(failures() ? 1 : 0)

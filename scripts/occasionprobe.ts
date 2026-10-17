@@ -25,12 +25,7 @@ import { sortTable } from '../src/game/schedule'
 import { SEASON_WEEKS, absWeek} from '../src/game/model'
 import type { Fixture, GameState } from '../src/game/model'
 import { mulberry32 } from '../src/game/rng'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 /** Mark the user's fixture this week as played with the given numbers, so the
  *  settle takes the MatchDay path over our result instead of simming one. */
@@ -144,5 +139,4 @@ const inject = (g: GameState, fx: Fixture, att: number, venue?: { name: string; 
   }
 }
 
-console.log(fails ? `\nOCCASION PROBE FAILED (${fails})` : '\nOCCASION PROBE PASSED: the big days read the way they felt')
-process.exit(fails ? 1 : 0)
+done('OCCASION PROBE', 'the big days read the way they felt', { exit: true })

@@ -22,9 +22,7 @@ import { jobChance } from '../src/game/jobs'
 import { MENTOR_MAX_KIDS, mentorCap, mentorGraduations, mentorLoad } from '../src/game/mentoring'
 import type { GameState, PressItem } from '../src/game/model'
 import { OFFICE_OUTLET } from '../src/game/media'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, failures } from './lib/probe'
 
 // ---- mentoring: cap, load, graduation ---------------------------------------
 console.log('mentoring:\n')
@@ -276,5 +274,5 @@ console.log('\nthe terrace on seed 11 (three pulses, close together):\n')
   ok(pulsing >= 20, `the terraces still get their say across the world, not on one lucky seed (${pulsing}/39 seasons pulse)`)
 }
 
-if (fails) { console.error(`\nROUND 25B PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nROUND 25B PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nROUND 25B PROBE PASSED: the quick-feature batch holds')

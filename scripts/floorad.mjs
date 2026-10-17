@@ -10,12 +10,9 @@
 //
 // Run: node scripts/floorad.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { startPreview, done } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
-
-const say = (s) => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe.mjs'
 
 const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -95,5 +92,4 @@ try {
 }
 await browser.close()
 await server.stop?.()
-say(fails ? `FLOOR AD PROBE FAILED (${fails})` : 'FLOOR AD PROBE PASSED: the news, press and finance floors carry a banner, never beside a question')
-done(fails)
+done('FLOOR AD PROBE', 'the news, press and finance floors carry a banner, never beside a question', { exit: true, blank: false })

@@ -28,12 +28,7 @@ import { newGame } from '../src/game/newgame'
 import { executeTransfer } from '../src/game/ai'
 import { campaignStage, terraceStanding, terraceWeek } from '../src/game/terraces'
 import type { Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 console.log('--- 1. sell one of their own, and the phone-ins start\n')
 {
@@ -167,5 +162,4 @@ console.log('\n--- 4. and the board reads the same phone-ins\n')
     `and a support that has fallen for you buys time upstairs (${hBefore} -> ${hclub.boardConfidence.toFixed(1)})`)
 }
 
-console.log(fails ? `\nTERRACE PROBE FAILED (${fails})` : '\nTERRACE PROBE PASSED: the support has a voice, and it costs something')
-process.exit(fails ? 1 : 0)
+done('TERRACE PROBE', 'the support has a voice, and it costs something', { exit: true })

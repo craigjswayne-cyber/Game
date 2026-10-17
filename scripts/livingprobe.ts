@@ -25,12 +25,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
 import * as L from '../src/game/living'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 ok(typeof L.clubIntent === 'function' && typeof L.advanceHunt === 'function',
   'living.ts exports intent and the hunt')
@@ -115,5 +110,4 @@ ok(typeof L.clubIntent === 'function' && typeof L.advanceHunt === 'function',
   ok(a === b && a.length > 0, 'the same seed plays the same season twice, to the point')
 }
 
-console.log(fails ? `LIVING PROBE FAILED (${fails})` : 'LIVING PROBE PASSED: the league wants things, and one of them is your man')
-if (fails) process.exit(1)
+done('LIVING PROBE', 'the league wants things, and one of them is your man', { blank: false })
