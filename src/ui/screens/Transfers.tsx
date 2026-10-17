@@ -12,6 +12,7 @@ import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 import { ScoutingBody } from './Scouting'
 import { ariaSort, refocus, rowNav, rowNavTr } from '../rowNav'
+import { Veil } from '../Veil'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -291,41 +292,37 @@ export default function Transfers() {
         const reply = msg?.key === `loan:${loanDeal.id}` ? msg.text : null
         const gone = !lp || lp.clubId === game.userClubId
         return (
-          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-          <div className="modal-veil" onClick={() => setLoanDeal(null)}>
-            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-            <div className="modal loan-sheet" onClick={e => e.stopPropagation()}>
-              <div className="grab" />
-              <SectionTitle sub={parent ? t('transfers.loanSheetSub', { club: parent.name }) : ''}>{lp?.name ?? ''}</SectionTitle>
-              {!gone && (
-                <div className="loan-deal">
-                  <label className="meta">{t('transfers.loanLength')}
-                    <select className="inline-input" value={loanDeal.length}
-                      onChange={e => setLoanDeal({ ...loanDeal, length: e.target.value as LoanLength })}>
-                      {LOAN_LENGTHS.map(l => <option key={l} value={l}>{t(`transfers.loanLen${l[0].toUpperCase()}${l.slice(1)}`)}</option>)}
-                    </select>
-                  </label>
-                  <label className="meta">{t('transfers.loanShare')}
-                    <select className="inline-input" value={loanDeal.share}
-                      onChange={e => setLoanDeal({ ...loanDeal, share: Number(e.target.value) })}>
-                      {LOAN_SHARES.map(sh => <option key={sh} value={sh}>{t('transfers.loanSharePct', { n: Math.round(sh * 100) })}</option>)}
-                    </select>
-                  </label>
-                  {lp && <div className="meta muted">{t('transfers.loanCostLine', { wage: fmtWage(Math.round(lp.wage * loanDeal.share)) })}</div>}
-                </div>
-              )}
-              {reply && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8, margin: '8px 14px 0', whiteSpace: 'normal' }}>{reply}</div>}
-              <div className="btn-row" style={{ margin: '12px 14px 4px' }}>
-                <button className="btn ghost" onClick={() => setLoanDeal(null)}>{t(gone ? 'transfers.loanDone' : 'transfers.loanClose')}</button>
-                {!gone && (
-                  <button className="btn gold" style={{ flex: 1.6 }}
-                    onClick={() => { setMsg({ key: `loan:${loanDeal.id}`, text: loanIn(game, loanDeal.id, loanDeal.length, loanDeal.share) }); noteUse('loan'); touch() }}>
-                    {t('transfers.loanOffer')}
-                  </button>
-                )}
+          <Veil onClose={() => setLoanDeal(null)} boxClassName="modal loan-sheet">
+            <div className="grab" />
+            <SectionTitle sub={parent ? t('transfers.loanSheetSub', { club: parent.name }) : ''}>{lp?.name ?? ''}</SectionTitle>
+            {!gone && (
+              <div className="loan-deal">
+                <label className="meta">{t('transfers.loanLength')}
+                  <select className="inline-input" value={loanDeal.length}
+                    onChange={e => setLoanDeal({ ...loanDeal, length: e.target.value as LoanLength })}>
+                    {LOAN_LENGTHS.map(l => <option key={l} value={l}>{t(`transfers.loanLen${l[0].toUpperCase()}${l.slice(1)}`)}</option>)}
+                  </select>
+                </label>
+                <label className="meta">{t('transfers.loanShare')}
+                  <select className="inline-input" value={loanDeal.share}
+                    onChange={e => setLoanDeal({ ...loanDeal, share: Number(e.target.value) })}>
+                    {LOAN_SHARES.map(sh => <option key={sh} value={sh}>{t('transfers.loanSharePct', { n: Math.round(sh * 100) })}</option>)}
+                  </select>
+                </label>
+                {lp && <div className="meta muted">{t('transfers.loanCostLine', { wage: fmtWage(Math.round(lp.wage * loanDeal.share)) })}</div>}
               </div>
+            )}
+            {reply && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8, margin: '8px 14px 0', whiteSpace: 'normal' }}>{reply}</div>}
+            <div className="btn-row" style={{ margin: '12px 14px 4px' }}>
+              <button className="btn ghost" onClick={() => setLoanDeal(null)}>{t(gone ? 'transfers.loanDone' : 'transfers.loanClose')}</button>
+              {!gone && (
+                <button className="btn gold" style={{ flex: 1.6 }}
+                  onClick={() => { setMsg({ key: `loan:${loanDeal.id}`, text: loanIn(game, loanDeal.id, loanDeal.length, loanDeal.share) }); noteUse('loan'); touch() }}>
+                  {t('transfers.loanOffer')}
+                </button>
+              )}
             </div>
-          </div>
+          </Veil>
         )
       })()}
 
@@ -366,83 +363,79 @@ export default function Transfers() {
         </select>
       </div>
       {filtersOpen && (
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-        <div className="modal-veil" onClick={() => setFiltersOpen(false)}>
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-          <div className="modal filter-sheet" onClick={e => e.stopPropagation()}>
-            <div className="grab" />
-            <h3>{t('search.filters')}</h3>
-            <div className="fs-grid">
-              <label htmlFor="fs-deal">{t('search.deal')}</label>
-              <select id="fs-deal" className="inline-input" value={deal} onChange={e => { setDeal(e.target.value as 'transfer' | 'loan'); setPage(0) }}>
-                <option value="transfer">{t('search.dealTransfer')}</option>
-                <option value="loan">{t('search.dealLoan')}</option>
-              </select>
-              <label htmlFor="fs-pos">{t('transfers.filterPosition')}</label>
-              <select id="fs-pos" className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
-                <option value="ALL">{t('search.any')}</option>
-                {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
-              </select>
-              <label htmlFor="fs-league">{t('transfers.filterLeague')}</label>
-              <select id="fs-league" className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
-                <option value="ALL">{t('search.any')}</option>
-                {/* a free agent's league is nowhere, which makes this the natural
-                    place to find him (user: "you should be able to search for free
-                    agents on the transfer centre") */}
-                <option value="FA">{t('transfers.freeAgents')}</option>
-                {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
-                  <option key={c.id} value={c.id}>{compLabel(c.short)}</option>
-                ))}
-              </select>
-              <label htmlFor="fs-value">{t('transfers.filterValue')}</label>
-              <select id="fs-value" className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
-                <option value={0}>{t('search.any')}</option>
-                <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
-                <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
-                <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
-                <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
-              </select>
-              <label htmlFor="fs-age">{t('transfers.filterAge')}</label>
-              <select id="fs-age" className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
-                <option value={0}>{t('search.any')}</option>
-                {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
-              </select>
-              {/* the attributes are what the scouts can see (scout.attrRange) */}
-              <label htmlFor="fs-attr">{t('search.anyAttr')}</label>
-              <div className="fs-pair">
-                <select id="fs-attr" className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
-                  <option value="">{t('search.any')}</option>
-                  {ATTR_ORDER.map(k => <option key={k} value={k}>{attrName(k)}</option>)}
-                </select>
-                <select className="inline-input" aria-label={t('search.attrMin')} value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
-                  {[8, 10, 12, 14, 16, 18].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="fs-toggles">
-              {([
-                [listedOnly, () => setListedOnly(!listedOnly), 'search.onlyListed'],
-                [keenOnly, () => setKeenOnly(!keenOnly), 'search.onlyInterested'],
-                [expiringOnly, () => setExpiringOnly(!expiringOnly), 'search.onlyExpiring'],
-                [withInjured, () => setWithInjured(!withInjured), 'search.includeInjured'],
-              ] as [boolean, () => void, string][]).map(([on, flip, k]) => (
-                <label key={k} className="fs-toggle">
-                  <input type="checkbox" checked={on} onChange={() => { flip(); setPage(0) }} />
-                  <span>{t(k)}</span>
-                </label>
+        <Veil onClose={() => setFiltersOpen(false)} boxClassName="modal filter-sheet">
+          <div className="grab" />
+          <h3>{t('search.filters')}</h3>
+          <div className="fs-grid">
+            <label htmlFor="fs-deal">{t('search.deal')}</label>
+            <select id="fs-deal" className="inline-input" value={deal} onChange={e => { setDeal(e.target.value as 'transfer' | 'loan'); setPage(0) }}>
+              <option value="transfer">{t('search.dealTransfer')}</option>
+              <option value="loan">{t('search.dealLoan')}</option>
+            </select>
+            <label htmlFor="fs-pos">{t('transfers.filterPosition')}</label>
+            <select id="fs-pos" className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
+              <option value="ALL">{t('search.any')}</option>
+              {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
+            </select>
+            <label htmlFor="fs-league">{t('transfers.filterLeague')}</label>
+            <select id="fs-league" className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
+              <option value="ALL">{t('search.any')}</option>
+              {/* a free agent's league is nowhere, which makes this the natural
+                  place to find him (user: "you should be able to search for free
+                  agents on the transfer centre") */}
+              <option value="FA">{t('transfers.freeAgents')}</option>
+              {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
+                <option key={c.id} value={c.id}>{compLabel(c.short)}</option>
               ))}
-            </div>
-            <div className="btn-row" style={{ marginTop: 10 }}>
-              <button className="btn ghost" onClick={() => {
-                setDeal('transfer'); setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKey('')
-                setListedOnly(false); setKeenOnly(false); setExpiringOnly(false); setWithInjured(true); setPage(0)
-              }}>{t('search.reset')}</button>
-              <button className="btn gold" style={{ flex: 2 }} onClick={() => setFiltersOpen(false)}>
-                {t('search.show', { n: results.length === 120 ? t('transfers.best120') : results.length })}
-              </button>
+            </select>
+            <label htmlFor="fs-value">{t('transfers.filterValue')}</label>
+            <select id="fs-value" className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
+              <option value={0}>{t('search.any')}</option>
+              <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
+              <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
+              <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
+              <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
+            </select>
+            <label htmlFor="fs-age">{t('transfers.filterAge')}</label>
+            <select id="fs-age" className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
+              <option value={0}>{t('search.any')}</option>
+              {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
+            </select>
+            {/* the attributes are what the scouts can see (scout.attrRange) */}
+            <label htmlFor="fs-attr">{t('search.anyAttr')}</label>
+            <div className="fs-pair">
+              <select id="fs-attr" className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
+                <option value="">{t('search.any')}</option>
+                {ATTR_ORDER.map(k => <option key={k} value={k}>{attrName(k)}</option>)}
+              </select>
+              <select className="inline-input" aria-label={t('search.attrMin')} value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
+                {[8, 10, 12, 14, 16, 18].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
+              </select>
             </div>
           </div>
-        </div>
+          <div className="fs-toggles">
+            {([
+              [listedOnly, () => setListedOnly(!listedOnly), 'search.onlyListed'],
+              [keenOnly, () => setKeenOnly(!keenOnly), 'search.onlyInterested'],
+              [expiringOnly, () => setExpiringOnly(!expiringOnly), 'search.onlyExpiring'],
+              [withInjured, () => setWithInjured(!withInjured), 'search.includeInjured'],
+            ] as [boolean, () => void, string][]).map(([on, flip, k]) => (
+              <label key={k} className="fs-toggle">
+                <input type="checkbox" checked={on} onChange={() => { flip(); setPage(0) }} />
+                <span>{t(k)}</span>
+              </label>
+            ))}
+          </div>
+          <div className="btn-row" style={{ marginTop: 10 }}>
+            <button className="btn ghost" onClick={() => {
+              setDeal('transfer'); setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKey('')
+              setListedOnly(false); setKeenOnly(false); setExpiringOnly(false); setWithInjured(true); setPage(0)
+            }}>{t('search.reset')}</button>
+            <button className="btn gold" style={{ flex: 2 }} onClick={() => setFiltersOpen(false)}>
+              {t('search.show', { n: results.length === 120 ? t('transfers.best120') : results.length })}
+            </button>
+          </div>
+        </Veil>
       )}
       {/* codefirst: the leading column is a position code, so it forgoes the
           16px first-column gutter - eight columns already fill a 412px phone */}

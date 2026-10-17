@@ -27,6 +27,7 @@ import { FeedbackPrompt } from './FeedbackPrompt'
 import { bigTablet, useTablet } from './tablet'
 import { COMMUNITY_URL } from '../game/community'
 import { TurningVeil } from './TurningVeil'
+import { Veil } from './Veil'
 
 /* A SCREEN WHOSE FILE IS GONE RELOADS THE GAME ONCE (1.9.1 re-audit). After
    a new build replaces the old one, a tab still running the old build asks
@@ -928,41 +929,37 @@ export default function App() {
       </nav>
 
       {menu && (
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-        <div className="submenu-veil" onClick={() => setMenu(null)}>
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-          <div className="submenu" onClick={e => e.stopPropagation()}>
-            <div className="submenu-head">{MENUS[menu].title}</div>
-            {/* ELEVEN ITEMS AND NO ORDER OF BUSINESS.
-                The audit's read was that a new manager opens the Hub, finds
-                eleven destinations and no clue which of them is a job this week.
-                Its suggestion was to hide the bottom of the list until week four,
-                and that is the wrong fix: pre-season is exactly when a manager
-                wants the Transfer Centre, and a menu that grows behind your back
-                is worse than a long one. So nothing is taken away. Three items
-                are marked instead, for the same three weeks as the Home hint, and
-                then the marks go. */}
-            {menu === 'hub' && firstWeeks && (
-              <div className="submenu-note">{t('groups.firstJobs')}</div>
-            )}
-            {MENUS[menu].items.map(it => it.href ? (
-              <a key={it.label} className="submenu-item" href={it.href} target="_blank" rel="noopener noreferrer"
-                onClick={() => setMenu(null)}>
-                <span className="mico">{it.ico}</span>
-                <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
-              </a>
-            ) : (
-              <button key={it.label} className="submenu-item"
-                onClick={() => { setMenu(null); if (it.action) it.action(); else go(it.screen) }}>
-                <span className="mico">{it.ico}</span>
-                <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
-                {menu === 'hub' && firstWeeks && FIRST_JOBS.has(it.screen)
-                  ? <span className="mstart">{t('groups.startHere')}</span> : null}
-                {it.badge ? <span className="mbadge">{it.badge > 9 ? '9+' : it.badge}</span> : null}
-              </button>
-            ))}
-          </div>
-        </div>
+        <Veil onClose={() => setMenu(null)} className="submenu-veil" boxClassName="submenu">
+          <div className="submenu-head">{MENUS[menu].title}</div>
+          {/* ELEVEN ITEMS AND NO ORDER OF BUSINESS.
+              The audit's read was that a new manager opens the Hub, finds
+              eleven destinations and no clue which of them is a job this week.
+              Its suggestion was to hide the bottom of the list until week four,
+              and that is the wrong fix: pre-season is exactly when a manager
+              wants the Transfer Centre, and a menu that grows behind your back
+              is worse than a long one. So nothing is taken away. Three items
+              are marked instead, for the same three weeks as the Home hint, and
+              then the marks go. */}
+          {menu === 'hub' && firstWeeks && (
+            <div className="submenu-note">{t('groups.firstJobs')}</div>
+          )}
+          {MENUS[menu].items.map(it => it.href ? (
+            <a key={it.label} className="submenu-item" href={it.href} target="_blank" rel="noopener noreferrer"
+              onClick={() => setMenu(null)}>
+              <span className="mico">{it.ico}</span>
+              <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
+            </a>
+          ) : (
+            <button key={it.label} className="submenu-item"
+              onClick={() => { setMenu(null); if (it.action) it.action(); else go(it.screen) }}>
+              <span className="mico">{it.ico}</span>
+              <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
+              {menu === 'hub' && firstWeeks && FIRST_JOBS.has(it.screen)
+                ? <span className="mstart">{t('groups.startHere')}</span> : null}
+              {it.badge ? <span className="mbadge">{it.badge > 9 ? '9+' : it.badge}</span> : null}
+            </button>
+          ))}
+        </Veil>
       )}
       <Overlays />
     </div>

@@ -17,7 +17,7 @@
 //   3. The club's afternoon still counts in full - the board reacts and the
 //      report files - and the manager's own record counts only the match his
 //      hands were on.
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import type { Fixture } from '../src/game/model'
@@ -94,7 +94,9 @@ for (const [file, needle] of routing) {
   const src = readFileSync(file, 'utf8')
   ok(src.includes(needle), `${file} decides the week's match through ${needle}`)
 }
-const md = readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
+// the match screen is MatchDay.tsx and the parts it is split into under matchday/
+const md = ['src/ui/screens/MatchDay.tsx', ...readdirSync('src/ui/screens/matchday').map(f => `src/ui/screens/matchday/${f}`)]
+  .map(f => readFileSync(f, 'utf8')).join('\n')
 ok(!/const fx = live\?\.fixture \?\? clubFx/.test(md),
   'MatchDay no longer prefers the club fixture over the Test')
 ok(md.includes('assistantFixtureThisWeek'),

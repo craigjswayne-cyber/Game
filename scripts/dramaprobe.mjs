@@ -252,7 +252,7 @@ try {
   // be slow, and this line failed for no reason except that it had memorised
   // the old one. A rout gets no tension stretch, so the tick a rout runs at IS
   // the base; the 15% is measurement slack, not a tolerance on the pacing.
-  const slowMs = Number(readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
+  const slowMs = Number(readFileSync('src/ui/screens/matchday/Live.tsx', 'utf8')
     .match(/matchday\.spdSlow['"],\s*ms:\s*(\d+)/)?.[1] ?? 0)
   ok(slowMs > 0, `MatchDay still names the Slow tick (${slowMs}ms)`)
   ok(rout.per < slowMs * 1.15, `and the rout keeps the speed the manager chose (${rout.per?.toFixed(0)}ms, Slow is ${slowMs})`)
