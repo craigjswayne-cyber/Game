@@ -34,8 +34,8 @@ import type { GameState, Player } from './model'
 import { tIn } from './i18n'
 import { subjectVar } from './gender'
 import { clamp, hashString, mulberry32 } from './rng'
-import { fuzzedCa, knowledge, scoutPa } from './scout'
-import { noteFor, type NoteRef } from './commission'
+import { fuzzedCa, knowledge, scoutPa } from './scoutknow'
+import { noteFor, type NoteRef } from './scoutnote'
 
 export type RecSource = 'brief' | 'road' | 'meeting'
 
