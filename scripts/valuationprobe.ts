@@ -1,4 +1,4 @@
-// Probe: Round 25D-1 - the valuation engine and the development magic.
+// Valuation probe (Round 25D-1): the valuation engine and the development magic.
 //
 // User: "at the moment the value of a player is too linked to age rather than
 // talent", plus the FM blueprint he pasted: late bloomers ("the random kinda
@@ -20,6 +20,9 @@
 //   MINUTES MATTER, AND THE MEAN STAYS PUT. Ten starts feed a young pro's
 //   growth, a season on the bench starves it, and the measured -0.012 middle
 //   band keeps the u24 average where it was.
+//
+// Was scripts/round25d.ts until 1.9.2, named for the feedback round that asked
+// for it; renamed for what it holds. Nothing else asserts these properties.
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { isLateBloomer, playerValue } from '../src/game/attributes'
@@ -27,7 +30,7 @@ import { devFactor } from '../src/game/rollover'
 import { counterIncomingOffer } from '../src/game/ai'
 import { SEASON_WEEKS } from '../src/game/model'
 import type { Player, TransferOffer } from '../src/game/model'
-import { ok, failures } from './lib/probe'
+import { ok, done } from './lib/probe'
 
 const mean = (a: number[]) => a.reduce((s, x) => s + x, 0) / a.length
 
@@ -182,5 +185,4 @@ for (const seed of [9, 777]) {
   ok(walked > 0, `and walking away still happens (${walked}/200) - the gamble has teeth`)
 }
 
-console.log(failures() ? `\n${failures()} FAILURES` : '\nROUND 25D PROBE PASSED')
-process.exit(failures() ? 1 : 0)
+done('VALUATION PROBE', 'talent prices players, bloomers bloom, minutes matter', { exit: true })
