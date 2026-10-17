@@ -1,4 +1,4 @@
-import { billingCause, billingReason, bridge, creditAdd, creditTake, type PurchaseOutcome } from '../game/monetise'
+import { billingCause, billingReason, bridge, creditAdd, creditCount, creditTake, type PurchaseOutcome } from '../game/monetise'
 import { useStore } from '../store'
 import { t } from '../game/i18n'
 
@@ -73,7 +73,10 @@ export const endingText = (out: Ending) => {
  * career refused the grant; and wait for the career to be on disk before
  * saying it landed.
  */
-export async function spendCredit(sku: string, grant: () => boolean): Promise<'done' | 'refused' | 'storage'> {
+export async function spendCredit(sku: string, grant: () => boolean): Promise<'done' | 'refused' | 'storage' | 'none'> {
+  // nothing banked is its own answer, not a storage fault: creditTake says no
+  // to both, and the player should hear the right one (1.9.1 security re-audit)
+  if (creditCount(sku) < 1) return 'none'
   if (!creditTake(sku)) return 'storage'
   let landed = false
   try {

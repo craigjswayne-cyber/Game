@@ -55,6 +55,13 @@ ok(r1 === 'storage', `a ledger that will not write says so (${r1})`)
 ok(granted === 0, 'and nothing is granted')
 ok(M.creditCount(SKU) === 1, `and the credit is still banked (${M.creditCount(SKU)})`)
 
+// ---- nothing banked at all ----
+{
+  let ran = 0
+  const r0 = await spendCredit('phase.nothing', () => { ran++; return true })
+  ok(r0 === 'none' && ran === 0, `no credit says so, not storage, and grants nothing (${r0})`)
+}
+
 // ---- a grant the career refuses ----
 const r2 = await spendCredit(SKU, () => false)
 ok(r2 === 'refused' && M.creditCount(SKU) === 1, `a refused grant gives the credit back (${r2}, ${M.creditCount(SKU)})`)
