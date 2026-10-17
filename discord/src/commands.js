@@ -1,6 +1,10 @@
 // The slash commands, as data. register.js sends these to Discord once; the
 // bot answers them in index.js.
-import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js'
+import { InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js'
+
+// Every command works on a server's roles, channels or forum, so none is
+// offered in a DM, where there is nothing for it to act on.
+const inServers = b => b.setContexts(InteractionContextType.Guild)
 
 export const COMMANDS = [
   new SlashCommandBuilder().setName('club')
@@ -12,7 +16,7 @@ export const COMMANDS = [
   new SlashCommandBuilder().setName('setup')
     .setDescription('Build or top up the server layout (admins only)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-]
+].map(inServers)
 
 // The default permission above only hides /setup in the command list: a server
 // owner can override it under Integrations, and Discord applies it, not the bot.

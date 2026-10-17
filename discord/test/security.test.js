@@ -130,3 +130,20 @@ test('languages go through the same check', async () => {
   await assert.rejects(setLanguages(member, [first.id, second.id]), err => err.code === 'UNSAFE_ROLE')
   assert.ok(!member.roles.cache.has('bad'))
 })
+
+import { BUG_COOLDOWN_MS, bugWait, noteBug } from '../src/cooldown.js'
+import { COMMANDS } from '../src/commands.js'
+import { InteractionContextType } from 'discord.js'
+
+test('a member may report once, then waits out the window', () => {
+  const t0 = 1_000_000
+  assert.equal(bugWait('u-cool', t0), 0)
+  noteBug('u-cool', t0)
+  assert.ok(bugWait('u-cool', t0 + 1000) > 0)
+  assert.equal(bugWait('u-cool', t0 + BUG_COOLDOWN_MS), 0)
+  assert.equal(bugWait('someone-else', t0 + 1000), 0)
+})
+
+test('every command is offered in servers only, never in DMs', () => {
+  for (const c of COMMANDS) assert.deepEqual(c.toJSON().contexts, [InteractionContextType.Guild])
+})
