@@ -13,6 +13,7 @@ import { nationName } from '../../../game/nations'
 import { Glyph } from '../../glyphs'
 import { rowNavTr } from '../../rowNav'
 import { SPEECHES, type SpeechId, ViewPicker } from './prematch'
+import { Veil } from '../../Veil'
 
 /** Test-match preview: you're coaching your COUNTRY this week. */
 export function NationPreview({ fxId }: { fxId: number }) {
@@ -171,29 +172,25 @@ export function NationPreview({ fxId }: { fxId: number }) {
           })}
         </tbody></table></div>
         {pickSlot != null && (
-          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-          <div className="modal-veil" onClick={() => setPickSlot(null)}>
-            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-            <div className="modal" onClick={e => e.stopPropagation()}>
-              <div className="grab" />
-              <SectionTitle sub={t('matchday.testSquadSub')}>
-                {t('matchday.pickerTitle', { pos: posName(pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]) })}
-              </SectionTitle>
-              <table className="dtable"><tbody>
-                {availablePlayers(game, rosterOf(game, nat), true)
-                  .sort((a, b) => effAt(b, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]) - effAt(a, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]))
-                  .map(p => (
-                    <tr key={p.id} {...rowNavTr(() => setSlot(pickSlot, p.id))}
-                      style={myLineup.includes(p.id) ? { opacity: .55 } : undefined}>
-                      <td><PosBadge pos={p.pos} /></td>
-                      <td className="name">{p.name}{myLineup.includes(p.id) ? t('matchday.selected') : ''}</td>
-                      <td><Stars ca={p.ca} /></td>
-                      <td className="num">{Math.round(p.cond)}%</td>
-                    </tr>
-                  ))}
-              </tbody></table>
-            </div>
-          </div>
+          <Veil onClose={() => setPickSlot(null)}>
+            <div className="grab" />
+            <SectionTitle sub={t('matchday.testSquadSub')}>
+              {t('matchday.pickerTitle', { pos: posName(pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]) })}
+            </SectionTitle>
+            <table className="dtable"><tbody>
+              {availablePlayers(game, rosterOf(game, nat), true)
+                .sort((a, b) => effAt(b, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]) - effAt(a, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]))
+                .map(p => (
+                  <tr key={p.id} {...rowNavTr(() => setSlot(pickSlot, p.id))}
+                    style={myLineup.includes(p.id) ? { opacity: .55 } : undefined}>
+                    <td><PosBadge pos={p.pos} /></td>
+                    <td className="name">{p.name}{myLineup.includes(p.id) ? t('matchday.selected') : ''}</td>
+                    <td><Stars ca={p.ca} /></td>
+                    <td className="num">{Math.round(p.cond)}%</td>
+                  </tr>
+                ))}
+            </tbody></table>
+          </Veil>
         )}
 
         <SectionTitle sub={t('matchday.dressingRoomSub')}>{t('matchday.dressingRoom')}</SectionTitle>
@@ -231,34 +228,30 @@ export function NationPreview({ fxId }: { fxId: number }) {
         <div className="spacer" />
       </main>
       {confirm && (
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-        <div className="modal-veil" onClick={() => setConfirm(false)}>
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="grab" />
-            {/* A GUTTER, LIKE ITS CLUB TWIN. .modal sets no horizontal padding
-                of its own, so anything not wrapped runs flush to both edges of
-                the phone - the heading and the anthems line were touching the
-                glass at x=0, which is the other half of "dimension wise is too
-                big for the screen". The club ready sheet has always had this
-                wrapper and this centring; the Test one never did. */}
-            <div style={{ padding: '0 18px 4px' }}>
-              <h3 style={{ fontSize: '1.125rem', margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyNation', { nat: nationName(nat) })}</h3>
-              <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>{t('matchday.anthems')}</div>
-            </div>
-            <div className="btn-row" style={{ marginTop: 12 }}>
-              <button className="btn ghost" onClick={() => setConfirm(false)}>{t('matchday.notYet')}</button>
-              <button className="btn gold" style={{ flex: 1.5, fontSize: '1rem' }}
-                onClick={() => {
-                  setConfirm(false)
-                  if (view === 'instant') instantResult(speech ?? undefined, true)
-                  else kickOff(speech ?? undefined, view)
-                }}>
-                {t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
-              </button>
-            </div>
+        <Veil onClose={() => setConfirm(false)}>
+          <div className="grab" />
+          {/* A GUTTER, LIKE ITS CLUB TWIN. .modal sets no horizontal padding
+              of its own, so anything not wrapped runs flush to both edges of
+              the phone - the heading and the anthems line were touching the
+              glass at x=0, which is the other half of "dimension wise is too
+              big for the screen". The club ready sheet has always had this
+              wrapper and this centring; the Test one never did. */}
+          <div style={{ padding: '0 18px 4px' }}>
+            <h3 style={{ fontSize: '1.125rem', margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyNation', { nat: nationName(nat) })}</h3>
+            <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>{t('matchday.anthems')}</div>
           </div>
-        </div>
+          <div className="btn-row" style={{ marginTop: 12 }}>
+            <button className="btn ghost" onClick={() => setConfirm(false)}>{t('matchday.notYet')}</button>
+            <button className="btn gold" style={{ flex: 1.5, fontSize: '1rem' }}
+              onClick={() => {
+                setConfirm(false)
+                if (view === 'instant') instantResult(speech ?? undefined, true)
+                else kickOff(speech ?? undefined, view)
+              }}>
+              {t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
+            </button>
+          </div>
+        </Veil>
       )}
     </>
   )

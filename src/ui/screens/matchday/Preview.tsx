@@ -31,6 +31,7 @@ import { Glyph } from '../../glyphs'
 import { rowNavTr } from '../../rowNav'
 import { SPEECHES, type SpeechId, ViewPicker } from './prematch'
 import { WEATHER_ICON, weatherWord } from './weather'
+import { Veil } from '../../Veil'
 
 export function Preview({ fxId }: { fxId: number }) {
   const game = useStore(s => s.game)!
@@ -446,93 +447,85 @@ export function Preview({ fxId }: { fxId: number }) {
     const pool = availablePlayers(game, club.players)
       .sort((a, b) => effAt(b, pos) - effAt(a, pos))
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-      <div className="modal-veil" onClick={() => setPickSlot(null)}>
-        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-        <div className="modal" onClick={e => e.stopPropagation()}>
-          <div className="grab" />
-          <SectionTitle sub={t('matchday.pickerSub', { shirt: pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt })}>
-            {t('matchday.pickerTitle', { pos: posName(pos) })}
-          </SectionTitle>
-          <table className="dtable"><tbody>
-            {pool.map(p => (
-              <tr key={p.id} {...rowNavTr(() => setSlot(pickSlot, p.id))}
-                style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
-                <td><PosBadge pos={p.pos} /></td>
-                <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('matchday.selected') : ''}
-                  {(p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: '0.6875rem', fontWeight: 700 }}> {t('matchday.rustyW', { n: p.rust ?? 0 })}</span>}
-                </td>
-                <td><Stars ca={effAt(p, pos)} /></td>
-                <td className="num">{Math.round(p.cond)}%</td>
-              </tr>
-            ))}
-          </tbody></table>
-          <button className="btn ghost block" onClick={() => setSlot(pickSlot, null)}>{t('matchday.clearSlot')}</button>
-        </div>
-      </div>
+      <Veil onClose={() => setPickSlot(null)}>
+        <div className="grab" />
+        <SectionTitle sub={t('matchday.pickerSub', { shirt: pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt })}>
+          {t('matchday.pickerTitle', { pos: posName(pos) })}
+        </SectionTitle>
+        <table className="dtable"><tbody>
+          {pool.map(p => (
+            <tr key={p.id} {...rowNavTr(() => setSlot(pickSlot, p.id))}
+              style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
+              <td><PosBadge pos={p.pos} /></td>
+              <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('matchday.selected') : ''}
+                {(p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: '0.6875rem', fontWeight: 700 }}> {t('matchday.rustyW', { n: p.rust ?? 0 })}</span>}
+              </td>
+              <td><Stars ca={effAt(p, pos)} /></td>
+              <td className="num">{Math.round(p.cond)}%</td>
+            </tr>
+          ))}
+        </tbody></table>
+        <button className="btn ghost block" onClick={() => setSlot(pickSlot, null)}>{t('matchday.clearSlot')}</button>
+      </Veil>
     )
   }
 
   const readyModal = () => {
     if (!confirm) return null
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-      <div className="modal-veil" onClick={() => setConfirm(false)}>
-        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-        <div className="modal" onClick={e => e.stopPropagation()}>
-          <div className="grab" />
-          <div style={{ padding: '0 18px 4px' }}>
-            <h3 style={{ fontSize: '1.125rem', margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyTitle')}</h3>
-            {warnings.length === 0 && (
-              <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>{t('matchday.readyOk')}</div>
-            )}
-            {warnings.length > 0 && (
-              <div style={{ maxHeight: '34vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 10, padding: '2px 10px' }}>
-                {warnings.map((w, i) => (
-                  <div key={i} style={{
-                    display: 'flex', gap: 8, padding: '6px 0', fontSize: '0.8125rem', lineHeight: 1.4,
-                    color: w.level === 'bad' ? 'var(--text-negative)' : w.level === 'warn' ? 'var(--gold)' : 'var(--text-secondary)',
-                    borderBottom: i < warnings.length - 1 ? '1px solid var(--border)' : 'none',
-                  }}>
-                    <span><Glyph name={w.level === 'bad' ? 'stop' : w.level === 'warn' ? 'warning' : 'info'} /></span>
-                    <span>{w.text}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {speech && (
-              <div className="meta" style={{ marginTop: 8, textAlign: 'center' }}>
-                {t('matchday.speechLabel')}<b>{t(SPEECHES.find(s => s.id === speech)?.name ?? '')}</b>
-              </div>
-            )}
-            {hasBad && fixedLineup && (
-              <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-negative)', fontWeight: 600 }}>
-                {t('matchday.fixItNote')}
-              </div>
-            )}
-            {hasBad && !fixedLineup && (
-              <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-negative)', fontWeight: 600 }}>
-                {t('matchday.crisisNote')}
-              </div>
-            )}
-            <div className="btn-row" style={{ marginTop: 12 }}>
-              <button className="btn ghost" onClick={() => setConfirm(false)}>{t('matchday.notYet')}</button>
-              {/* the gold button's label keeps the exact 'Take the Field' text
-                  inside it because that substring is what a tap looks for -
-                  scripts/i18nprobe.ts pins the English value for the same reason */}
-              <button className="btn gold" style={{ flex: 1.5, fontSize: '1rem' }}
-                onClick={() => {
-                  if (hasBad && fixedLineup) { tac.lineup = fixedLineup; touch() }
-                  setConfirm(false)
-                  if (view === 'instant') instantResult(speech ?? undefined, true)
-                  else kickOff(speech ?? undefined, view)
+      <Veil onClose={() => setConfirm(false)}>
+        <div className="grab" />
+        <div style={{ padding: '0 18px 4px' }}>
+          <h3 style={{ fontSize: '1.125rem', margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyTitle')}</h3>
+          {warnings.length === 0 && (
+            <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>{t('matchday.readyOk')}</div>
+          )}
+          {warnings.length > 0 && (
+            <div style={{ maxHeight: '34vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 10, padding: '2px 10px' }}>
+              {warnings.map((w, i) => (
+                <div key={i} style={{
+                  display: 'flex', gap: 8, padding: '6px 0', fontSize: '0.8125rem', lineHeight: 1.4,
+                  color: w.level === 'bad' ? 'var(--text-negative)' : w.level === 'warn' ? 'var(--gold)' : 'var(--text-secondary)',
+                  borderBottom: i < warnings.length - 1 ? '1px solid var(--border)' : 'none',
                 }}>
-                {hasBad && fixedLineup ? t('matchday.fixItPrefix') : ''}{t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
-              </button>
+                  <span><Glyph name={w.level === 'bad' ? 'stop' : w.level === 'warn' ? 'warning' : 'info'} /></span>
+                  <span>{w.text}</span>
+                </div>
+              ))}
             </div>
+          )}
+          {speech && (
+            <div className="meta" style={{ marginTop: 8, textAlign: 'center' }}>
+              {t('matchday.speechLabel')}<b>{t(SPEECHES.find(s => s.id === speech)?.name ?? '')}</b>
+            </div>
+          )}
+          {hasBad && fixedLineup && (
+            <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-negative)', fontWeight: 600 }}>
+              {t('matchday.fixItNote')}
+            </div>
+          )}
+          {hasBad && !fixedLineup && (
+            <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-negative)', fontWeight: 600 }}>
+              {t('matchday.crisisNote')}
+            </div>
+          )}
+          <div className="btn-row" style={{ marginTop: 12 }}>
+            <button className="btn ghost" onClick={() => setConfirm(false)}>{t('matchday.notYet')}</button>
+            {/* the gold button's label keeps the exact 'Take the Field' text
+                inside it because that substring is what a tap looks for -
+                scripts/i18nprobe.ts pins the English value for the same reason */}
+            <button className="btn gold" style={{ flex: 1.5, fontSize: '1rem' }}
+              onClick={() => {
+                if (hasBad && fixedLineup) { tac.lineup = fixedLineup; touch() }
+                setConfirm(false)
+                if (view === 'instant') instantResult(speech ?? undefined, true)
+                else kickOff(speech ?? undefined, view)
+              }}>
+              {hasBad && fixedLineup ? t('matchday.fixItPrefix') : ''}{t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
+            </button>
           </div>
         </div>
-      </div>
+      </Veil>
     )
   }
 
@@ -1093,53 +1086,49 @@ export function Preview({ fxId }: { fxId: number }) {
       {picker()}
       {readyModal()}
       {talkOpen && (
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-        <div className="modal-veil" onClick={() => setTalkOpen(false)}>
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-          <div className="modal talk-modal" onClick={e => e.stopPropagation()}>
-            <div className="grab" />
-            <div style={{ padding: '0 12px 10px' }}>
-              {/* THE FIXTURE IS NOT THE POINT OF THIS LINE. It used to read
-                  "{home} v {away} - one speech, choose the tone", which is two
-                  club names before it gets to the thing you actually have to
-                  do, and on a phone the tone clause wrapped to a second line
-                  (owner: "can you get the choose your tone on one line"). The
-                  scoreboard, both crests and both names are on the screen this
-                  modal opened from; the one new instruction is the speech. */}
-              <SectionTitle sub={t('matchday.dressingRoomSub')}>
-                {t('matchday.theDressingRoom')}
-              </SectionTitle>
-              {/* How you watch it (F5) lives here rather than at the foot of the
-                  page. Measured: below the team sheet it sat 320px under the fold
-                  on a 844x390 phone, which is exactly where Instant Result was
-                  buried and nobody found it. This modal is the last thing before
-                  the tunnel and has nothing above it. */}
-              <ViewPicker view={view} onPick={setView} />
-              {/* the room before you speak to it (1.8.0) */}
-              <details className="mood-fold">
-                <summary>{t('mood.room')}</summary>
-                <MoodTable game={game} lineup={tac.lineup} room={room} />
-              </details>
-              <div className="speech-grid talk-tones" style={{ marginTop: 6 }}>
-                {SPEECHES.map(sp => (
-                  <button key={sp.id} className={`speech-tile${speech === sp.id ? ' sel' : ''}`}
-                    onClick={() => {
-                      setSpeech(sp.id); setTalkDone(true); setTalkOpen(false)
-                      goDownTheTunnel(sp.id)
-                    }}>
-                    <span className="ico"><Glyph name={sp.icon} /></span>
-                    <b>{t(sp.name)}</b>
-                    <span className="d">{t(sp.desc)}</span>
-                  </button>
-                ))}
-              </div>
-              <button className="btn ghost block" style={{ marginTop: 8 }}
-                onClick={() => { setTalkDone(true); setTalkOpen(false); goDownTheTunnel(null) }}>
-                {t('matchday.sayNothing')}
-              </button>
+        <Veil onClose={() => setTalkOpen(false)} boxClassName="modal talk-modal">
+          <div className="grab" />
+          <div style={{ padding: '0 12px 10px' }}>
+            {/* THE FIXTURE IS NOT THE POINT OF THIS LINE. It used to read
+                "{home} v {away} - one speech, choose the tone", which is two
+                club names before it gets to the thing you actually have to
+                do, and on a phone the tone clause wrapped to a second line
+                (owner: "can you get the choose your tone on one line"). The
+                scoreboard, both crests and both names are on the screen this
+                modal opened from; the one new instruction is the speech. */}
+            <SectionTitle sub={t('matchday.dressingRoomSub')}>
+              {t('matchday.theDressingRoom')}
+            </SectionTitle>
+            {/* How you watch it (F5) lives here rather than at the foot of the
+                page. Measured: below the team sheet it sat 320px under the fold
+                on a 844x390 phone, which is exactly where Instant Result was
+                buried and nobody found it. This modal is the last thing before
+                the tunnel and has nothing above it. */}
+            <ViewPicker view={view} onPick={setView} />
+            {/* the room before you speak to it (1.8.0) */}
+            <details className="mood-fold">
+              <summary>{t('mood.room')}</summary>
+              <MoodTable game={game} lineup={tac.lineup} room={room} />
+            </details>
+            <div className="speech-grid talk-tones" style={{ marginTop: 6 }}>
+              {SPEECHES.map(sp => (
+                <button key={sp.id} className={`speech-tile${speech === sp.id ? ' sel' : ''}`}
+                  onClick={() => {
+                    setSpeech(sp.id); setTalkDone(true); setTalkOpen(false)
+                    goDownTheTunnel(sp.id)
+                  }}>
+                  <span className="ico"><Glyph name={sp.icon} /></span>
+                  <b>{t(sp.name)}</b>
+                  <span className="d">{t(sp.desc)}</span>
+                </button>
+              ))}
             </div>
+            <button className="btn ghost block" style={{ marginTop: 8 }}
+              onClick={() => { setTalkDone(true); setTalkOpen(false); goDownTheTunnel(null) }}>
+              {t('matchday.sayNothing')}
+            </button>
           </div>
-        </div>
+        </Veil>
       )}
     </>
   )

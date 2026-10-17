@@ -32,6 +32,7 @@ import { plainNews } from '../NewsBody'
 import ScoutReportCard from '../ScoutReport'
 import { offerFocus } from './PlayerScreen'
 import { rowNav } from '../rowNav'
+import { Veil } from '../Veil'
 
 /** The verdict's colour, the same ladder the old table used. */
 const gradeColour = (g: number) =>
@@ -125,53 +126,49 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
     go('player', p.id)
   }
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-    <div className="modal-veil" onClick={onClose}>
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-      <div className="modal scout-sheet" onClick={e => e.stopPropagation()} role="dialog" aria-label={p.name}>
-        <div className="grab" />
-        <div className="scout-sheet-head">
-          <PosBadge pos={p.pos} />
-          <div style={{ minWidth: 0 }}>
-            <div className="scout-sheet-name">{p.name}</div>
-            <div className="meta">{posName(p.pos)} · {t('scouting.age', { n: p.age })} · {club ? club.name : t('transfers.freeAgent')}</div>
-          </div>
-        </div>
-        {rec && (
-          <div className="card scout-verdict">
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
-              <span className="fact-label">{t('scouting.verdict')}</span>
-              <span className="meta muted" style={{ fontSize: '0.6875rem' }}>{t('scouting.filed', { date: weekDate(rec.season, rec.week) })}</span>
-            </div>
-            <div className="scout-verdict-word" style={{ color: gradeColour(rec.grade) }}>{gradeWord(rec.grade)}</div>
-            {/* his words without the opener: the verdict is the headline above it */}
-            <div className="scout-verdict-quote">{`${t(rec.note.body_k)}${t(rec.note.growth_k)}`.trim()}</div>
-            {hs && <div className="meta" style={{ marginTop: 6, fontWeight: 700, color: hs === 'worse' ? 'var(--text-negative)' : hs === 'better' ? 'var(--text-positive)' : undefined }}>{t(`scouting.hs_${hs}`)}</div>}
-          </div>
-        )}
-        <div className="card scout-facts">
-          <div className="scout-fact"><span className="muted">{t('scouting.current')}</span><Stars ca={cur} /></div>
-          <div className="scout-fact"><span className="muted">{t('scouting.potential')}</span><Stars ca={pot} /></div>
-          {!ours && <div className="scout-fact"><span className="muted">{t('scouting.value')}</span><b>{t('scouting.about', { fee: fmtMoney(seenValue(game, p)) })}</b></div>}
-          <div className="scout-fact"><span className="muted">{t('scouting.wage')}</span><b>{fmtWage(p.wage)}{t('common.perWeek')}</b></div>
-          <div className="meta muted" style={{ fontSize: '0.6875rem', marginTop: 4 }}>{t(rec ? 'scouting.starsNote' : 'scouting.starsFile')}</div>
-        </div>
-        {!ours && <div style={{ margin: '0 0 0' }}><ScoutReportCard game={game} p={p} onMsg={setMsg} /></div>}
-        {msg && <div className="meta" style={{ margin: '6px 14px', color: 'var(--gold)', fontWeight: 700 }}>{msg}</div>}
-        <div className="btn-row" style={{ margin: '12px 14px 4px' }}>
-          {!ours && (
-            <button className={`btn ${listed ? '' : 'ghost'}`} onClick={() => toggleShortlist(p.id)}>
-              {t(listed ? 'scouting.unlist' : 'scouting.shortlist')}
-            </button>
-          )}
-          {!ours && <button className="btn gold" onClick={() => toPlayer(true)}>{t('scouting.makeOffer')}</button>}
-        </div>
-        <div className="btn-row" style={{ margin: '4px 14px 4px' }}>
-          <button className="btn ghost" onClick={onClose}>{t('scouting.close')}</button>
-          <button className="btn ghost" onClick={() => toPlayer(false)}>{t('scouting.toPlayer')}</button>
+    <Veil onClose={onClose} boxClassName="modal scout-sheet" role="dialog" label={p.name}>
+      <div className="grab" />
+      <div className="scout-sheet-head">
+        <PosBadge pos={p.pos} />
+        <div style={{ minWidth: 0 }}>
+          <div className="scout-sheet-name">{p.name}</div>
+          <div className="meta">{posName(p.pos)} · {t('scouting.age', { n: p.age })} · {club ? club.name : t('transfers.freeAgent')}</div>
         </div>
       </div>
-    </div>
+      {rec && (
+        <div className="card scout-verdict">
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <span className="fact-label">{t('scouting.verdict')}</span>
+            <span className="meta muted" style={{ fontSize: '0.6875rem' }}>{t('scouting.filed', { date: weekDate(rec.season, rec.week) })}</span>
+          </div>
+          <div className="scout-verdict-word" style={{ color: gradeColour(rec.grade) }}>{gradeWord(rec.grade)}</div>
+          {/* his words without the opener: the verdict is the headline above it */}
+          <div className="scout-verdict-quote">{`${t(rec.note.body_k)}${t(rec.note.growth_k)}`.trim()}</div>
+          {hs && <div className="meta" style={{ marginTop: 6, fontWeight: 700, color: hs === 'worse' ? 'var(--text-negative)' : hs === 'better' ? 'var(--text-positive)' : undefined }}>{t(`scouting.hs_${hs}`)}</div>}
+        </div>
+      )}
+      <div className="card scout-facts">
+        <div className="scout-fact"><span className="muted">{t('scouting.current')}</span><Stars ca={cur} /></div>
+        <div className="scout-fact"><span className="muted">{t('scouting.potential')}</span><Stars ca={pot} /></div>
+        {!ours && <div className="scout-fact"><span className="muted">{t('scouting.value')}</span><b>{t('scouting.about', { fee: fmtMoney(seenValue(game, p)) })}</b></div>}
+        <div className="scout-fact"><span className="muted">{t('scouting.wage')}</span><b>{fmtWage(p.wage)}{t('common.perWeek')}</b></div>
+        <div className="meta muted" style={{ fontSize: '0.6875rem', marginTop: 4 }}>{t(rec ? 'scouting.starsNote' : 'scouting.starsFile')}</div>
+      </div>
+      {!ours && <div style={{ margin: '0 0 0' }}><ScoutReportCard game={game} p={p} onMsg={setMsg} /></div>}
+      {msg && <div className="meta" style={{ margin: '6px 14px', color: 'var(--gold)', fontWeight: 700 }}>{msg}</div>}
+      <div className="btn-row" style={{ margin: '12px 14px 4px' }}>
+        {!ours && (
+          <button className={`btn ${listed ? '' : 'ghost'}`} onClick={() => toggleShortlist(p.id)}>
+            {t(listed ? 'scouting.unlist' : 'scouting.shortlist')}
+          </button>
+        )}
+        {!ours && <button className="btn gold" onClick={() => toPlayer(true)}>{t('scouting.makeOffer')}</button>}
+      </div>
+      <div className="btn-row" style={{ margin: '4px 14px 4px' }}>
+        <button className="btn ghost" onClick={onClose}>{t('scouting.close')}</button>
+        <button className="btn ghost" onClick={() => toPlayer(false)}>{t('scouting.toPlayer')}</button>
+      </div>
+    </Veil>
   )
 }
 

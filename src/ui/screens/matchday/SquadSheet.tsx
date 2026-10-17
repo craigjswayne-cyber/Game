@@ -8,6 +8,7 @@ import { BRIEF_BY_ID, briefForSeat } from '../../../game/bench'
 import { BriefIcon } from '../../tacticsArt'
 import { posName, t } from '../../../game/i18n'
 import { Glyph } from '../../glyphs'
+import { Veil } from '../../Veil'
 
 /** Replacements the user can still make: the law's count, capped by the fit men
  *  left on the bench. The engine keeps its own count; this is what we show. */
@@ -159,178 +160,174 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // man - tapping him again is a decision, it is just the same decision
   const settled = waitId != null ? !waiting() : !mustDecide || decided || !freeLeft
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-    <div className="modal-veil" onClick={() => { if (settled) onClose() }}>
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-      <div className="modal squad-sheet" onClick={e => e.stopPropagation()}>
-        <div className="grab" />
-        {/* THE WHOLE BRIEF STICKS, not just the title.
-            The title was made sticky on its own after a screenshot showed the
-            sheet scrolled down to the bench with the heading off the top, so the
-            manager was being asked to replace a man the screen no longer named.
-            That fixed the name and left the instruction behind: reported from a
-            live game, "she could see the team xv but couldnt see the text above
-            it". Measured at 412x640 the hint sat 215px above the top of the
-            screen once the list was scrolled far enough to reach the bench.
-            The hint is the one line that CHANGES as you tap - it goes from "tap a
-            man on the pitch" to "Ollie Sleightholme is coming off, now tap his
-            replacement" - so it is the one line that must never be off screen.
-            All three ride together in one sticky block. */}
-        <div className="sheet-top">
-          <div className="sheet-head">
-            <h3>{title ?? t('matchday.matchDaySquad')}</h3>
-            <span className="meta">{t('matchday.changesLeft', { n: left })}</span>
-          </div>
-          {/* who is hurt, named in his own line rather than buried in a
-              paragraph of instructions */}
-          {hurtName && (
-            <div className="sheet-casualty">
-              <Glyph name="medical" /> <b>{hurtName}</b>{t('matchday.casualty')}{hurtDesc ? t('matchday.casualtyDesc', { desc: hurtDesc }) : ''}
-            </div>
-          )}
-          {hurtP && ctx.uncontested && (
-            <div className="meta sheet-hint" style={{ fontWeight: 700 }}>{t('matchday.injUncontested')}</div>
-          )}
-          <div className="meta sheet-hint">
-            {note ? <>{note}{' '}</> : null}
-            {hurtP && !coverOn && bench.length === 0 ? t('matchday.injNoCover')
-              : isFreeSwap && off ? t('matchday.hintFree', { player: off.name })
-              : isWait && off ? t('matchday.hintWait', { player: off.name })
-              : off ? t('matchday.hintArmed', { player: off.name })
-              : left <= 0 ? t('matchday.hintNoneLeft')
-              : t('matchday.hintTap')}
-          </div>
+    <Veil onClose={() => { if (settled) onClose() }} boxClassName="modal squad-sheet">
+      <div className="grab" />
+      {/* THE WHOLE BRIEF STICKS, not just the title.
+          The title was made sticky on its own after a screenshot showed the
+          sheet scrolled down to the bench with the heading off the top, so the
+          manager was being asked to replace a man the screen no longer named.
+          That fixed the name and left the instruction behind: reported from a
+          live game, "she could see the team xv but couldnt see the text above
+          it". Measured at 412x640 the hint sat 215px above the top of the
+          screen once the list was scrolled far enough to reach the bench.
+          The hint is the one line that CHANGES as you tap - it goes from "tap a
+          man on the pitch" to "Ollie Sleightholme is coming off, now tap his
+          replacement" - so it is the one line that must never be off screen.
+          All three ride together in one sticky block. */}
+      <div className="sheet-top">
+        <div className="sheet-head">
+          <h3>{title ?? t('matchday.matchDaySquad')}</h3>
+          <span className="meta">{t('matchday.changesLeft', { n: left })}</span>
         </div>
-        <div className="sheet-cols">
-          <div className="sheet-col">
-            <div className="fact-label">{t('matchday.onThePitch')}</div>
-            {xv.map(({ shirt, p }) => {
-              const on = mine.onPitch.has(p.id)
-              const e = Math.round(mine.energy.get(p.id) ?? 70)
-              const r = mine.ratings.get(p.id)
-              const binned = (mine.yellowUntil.get(p.id) ?? 0) > ctx.tick * 4
-              // the free injury swap stays available even with the bench emptied
-              const canFree = freeLeft && p.id === freeCoverId
-              return (
-                <button key={p.id} className={`sheet-row ${offId === p.id ? 'armed' : ''}`}
-                  // while a shirt waits for its man, that shirt is the only one
-                  // to fill: a tactical change now would leave it empty and the
-                  // match still waiting (hlliveprobe made eight of them)
-                  disabled={p.id === waitP?.id ? false : !!waitP || !on || (lawLeft <= 0 && !canFree)}
-                  onClick={() => {
-                    // the man the match is waiting on can always be armed again
-                    if (p.id === waitP?.id) { setOffId(p.id); return }
-                    // Re-tapping the man the assistant sent on means "he stays".
-                    // That is a decision, so it settles a forced stop - and it has
-                    // to be answerable here, because he is already on the pitch
-                    // and so never appears in the bench column.
-                    if (canFree && offId === p.id) {
-                      setFreeLeft(false)
-                      setDecided(true)
-                      // no setMade here on purpose: keeping the assistant's man is a
-                      // decision, which settles the forced stop, but it is not a change
-                      setLog(l => [t('matchday.keepsShirt', { player: p.name }), ...l].slice(0, MAX_SUBS))
-                      setOffId(null)
-                      return
-                    }
-                    // a second on-pitch tap is a positional switch (16B, user:
-                    // "swap the 12 and 13 over"): free, burns nothing
-                    if (offId != null && offId !== p.id && !isFreeSwap && mine.onPitch.has(offId) && on) {
-                      const msg = swapPositions(offId, p.id)
-                      setLog(l => [msg, ...l].slice(0, MAX_SUBS))
-                      setDecided(true)
-                      setOffId(null)
-                      return
-                    }
-                    setOffId(offId === p.id ? null : p.id)
-                  }}>
-                  <span className="sh-num">{shirt}</span>
-                  {/* the position, not just the shirt (Round 27, user: "it
-                      should have their positions"). The bench column has always
-                      said what a man is; the pitch column made you know the
-                      numbering by heart to work out who you were taking off. */}
-                  <span className="sh-pos">{p.pos}</span>
-                  <span className="sh-name">{p.name}</span>
-                  {binned && <span className="sh-flag" title={t('matchday.inTheBin')} style={{ color: 'var(--gold)' }}><Glyph name="card" /></span>}
-                  {p.injury && <span className="sh-flag" title={t('matchday.injuredFlag')}><Glyph name="medical" /></span>}
-                  {/* A man off the pitch who is neither binned nor hurt was sent
-                      off - a substituted man leaves the lineup entirely, so this
-                      is the only remaining way to be gone. Without the flag his
-                      row was just dead grey with no reason on it, which is how
-                      subreach failed one suite run and taught the sheet to say
-                      why (round 23). */}
-                  {!on && !binned && !p.injury && <span className="sh-flag" title={t('matchday.sentOff')} style={{ color: 'var(--danger)' }}><Glyph name="card" /></span>}
-                  {r != null && <span className="sh-rate">{r.toFixed(1)}</span>}
-                  {/* THE NUMBER, NOT THE WORD (Round 27, user: "percentage
-                      rather than words"). 25D-2 put the assistant's phrasing in
-                      here for the fog of war and it was wrong twice over: this
-                      column is 32px, built for "43%", so "out on his feet"
-                      wrapped to four lines and tore the row open; and this is
-                      the screen where the substitution is actually decided, so
-                      it is the one place that wants a hard number rather than a
-                      feel. The words keep their home in the assistant's read
-                      below, where they are commentary rather than an input. */}
-                  <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{e}%</span>
-                </button>
-              )
-            })}
-          </div>
-          <div className="sheet-col">
-            <div className="fact-label">{shirtPos ? t('matchday.benchCover', { pos: posName(shirtPos) }) : t('matchday.bench')}</div>
-            {/* the front row is the one shirt with a rule on it, said where the
-                choice is made rather than discovered as a refusal */}
-            {off && frShirt && benchSorted.length > 0 && (frOnly || !ctx.uncontested) && (
-              <div className="meta sheet-frnote">{t(frOnly ? 'matchday.frOnlyNote' : 'matchday.frNoneNote')}</div>
-            )}
-            {benchSorted.length === 0 && <div className="meta">{t('matchday.benchEmpty')}</div>}
-            {benchSorted.map(p => {
-              // what he was told before kick-off, so the choice is informed (F4)
-              const seat = mine.seatOf.get(p.id)
-              const brief = seat != null ? briefForSeat(game.clubs[mine.teamId], seat) : 'orders'
-              return (
-                <button key={p.id} className={`sheet-row ${off && covers(p) ? 'cover' : ''}`}
-                  disabled={!off || (left <= 0 && !isFreeSwap && !isWait) || blocked(p)}
-                  onClick={() => doSub(p)}>
-                  <span className="sh-num">{p.pos}</span>
-                  <span className="sh-name">{p.name}</span>
-                  {brief !== 'orders' && (
-                    <span className="sh-flag" title={t(BRIEF_BY_ID[brief].name)}><BriefIcon brief={brief} /></span>
-                  )}
-                  {off && covers(p) && <span className="sh-flag" title={t('matchday.naturalCover')}>✓</span>}
-                  <span className="sh-rate">{p.ca}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-        {log.map((m, i) => <div key={i} className="meta sheet-log">{m}</div>)}
-        {/* the wrong tap can be taken back at the same stoppage (16B, user:
-            "i made a substitution but selected the wrong player, i couldnt
-            undo it"). Only the LAST change, and only until play resumes. */}
-        {ctx.lastSub && (
-          <button className="btn ghost block" onClick={() => {
-            const msg = undoSub()
-            setLog(l => [msg, ...l].slice(0, MAX_SUBS))
-            setMade(n => Math.max(0, n - 1))
-            setOffId(null)
-          }}>{t('matchday.takeBack')}</button>
-        )}
-        {mustDecide && !settled && (
-          <div className="meta sheet-log" style={{ color: 'var(--danger)', fontWeight: 700 }}>
-            {t(waitP ? 'matchday.mustDecideWait' : 'matchday.mustDecide')}
+        {/* who is hurt, named in his own line rather than buried in a
+            paragraph of instructions */}
+        {hurtName && (
+          <div className="sheet-casualty">
+            <Glyph name="medical" /> <b>{hurtName}</b>{t('matchday.casualty')}{hurtDesc ? t('matchday.casualtyDesc', { desc: hurtDesc }) : ''}
           </div>
         )}
-        <div className="btn-row" style={{ marginTop: 8 }}>
-          {onTactics && (
-            <button className="btn ghost" onClick={onTactics}>{t('matchday.tacticsBtn')}</button>
-          )}
-          <button className="btn gold" style={{ flex: 1.6 }} disabled={!settled} onClick={onClose}>
-            {made ? t('matchday.doneChanges', { n: made })
-              : t(settled ? 'matchday.backToMatch' : 'matchday.nameFirst')}
-          </button>
+        {hurtP && ctx.uncontested && (
+          <div className="meta sheet-hint" style={{ fontWeight: 700 }}>{t('matchday.injUncontested')}</div>
+        )}
+        <div className="meta sheet-hint">
+          {note ? <>{note}{' '}</> : null}
+          {hurtP && !coverOn && bench.length === 0 ? t('matchday.injNoCover')
+            : isFreeSwap && off ? t('matchday.hintFree', { player: off.name })
+            : isWait && off ? t('matchday.hintWait', { player: off.name })
+            : off ? t('matchday.hintArmed', { player: off.name })
+            : left <= 0 ? t('matchday.hintNoneLeft')
+            : t('matchday.hintTap')}
         </div>
       </div>
-    </div>
+      <div className="sheet-cols">
+        <div className="sheet-col">
+          <div className="fact-label">{t('matchday.onThePitch')}</div>
+          {xv.map(({ shirt, p }) => {
+            const on = mine.onPitch.has(p.id)
+            const e = Math.round(mine.energy.get(p.id) ?? 70)
+            const r = mine.ratings.get(p.id)
+            const binned = (mine.yellowUntil.get(p.id) ?? 0) > ctx.tick * 4
+            // the free injury swap stays available even with the bench emptied
+            const canFree = freeLeft && p.id === freeCoverId
+            return (
+              <button key={p.id} className={`sheet-row ${offId === p.id ? 'armed' : ''}`}
+                // while a shirt waits for its man, that shirt is the only one
+                // to fill: a tactical change now would leave it empty and the
+                // match still waiting (hlliveprobe made eight of them)
+                disabled={p.id === waitP?.id ? false : !!waitP || !on || (lawLeft <= 0 && !canFree)}
+                onClick={() => {
+                  // the man the match is waiting on can always be armed again
+                  if (p.id === waitP?.id) { setOffId(p.id); return }
+                  // Re-tapping the man the assistant sent on means "he stays".
+                  // That is a decision, so it settles a forced stop - and it has
+                  // to be answerable here, because he is already on the pitch
+                  // and so never appears in the bench column.
+                  if (canFree && offId === p.id) {
+                    setFreeLeft(false)
+                    setDecided(true)
+                    // no setMade here on purpose: keeping the assistant's man is a
+                    // decision, which settles the forced stop, but it is not a change
+                    setLog(l => [t('matchday.keepsShirt', { player: p.name }), ...l].slice(0, MAX_SUBS))
+                    setOffId(null)
+                    return
+                  }
+                  // a second on-pitch tap is a positional switch (16B, user:
+                  // "swap the 12 and 13 over"): free, burns nothing
+                  if (offId != null && offId !== p.id && !isFreeSwap && mine.onPitch.has(offId) && on) {
+                    const msg = swapPositions(offId, p.id)
+                    setLog(l => [msg, ...l].slice(0, MAX_SUBS))
+                    setDecided(true)
+                    setOffId(null)
+                    return
+                  }
+                  setOffId(offId === p.id ? null : p.id)
+                }}>
+                <span className="sh-num">{shirt}</span>
+                {/* the position, not just the shirt (Round 27, user: "it
+                    should have their positions"). The bench column has always
+                    said what a man is; the pitch column made you know the
+                    numbering by heart to work out who you were taking off. */}
+                <span className="sh-pos">{p.pos}</span>
+                <span className="sh-name">{p.name}</span>
+                {binned && <span className="sh-flag" title={t('matchday.inTheBin')} style={{ color: 'var(--gold)' }}><Glyph name="card" /></span>}
+                {p.injury && <span className="sh-flag" title={t('matchday.injuredFlag')}><Glyph name="medical" /></span>}
+                {/* A man off the pitch who is neither binned nor hurt was sent
+                    off - a substituted man leaves the lineup entirely, so this
+                    is the only remaining way to be gone. Without the flag his
+                    row was just dead grey with no reason on it, which is how
+                    subreach failed one suite run and taught the sheet to say
+                    why (round 23). */}
+                {!on && !binned && !p.injury && <span className="sh-flag" title={t('matchday.sentOff')} style={{ color: 'var(--danger)' }}><Glyph name="card" /></span>}
+                {r != null && <span className="sh-rate">{r.toFixed(1)}</span>}
+                {/* THE NUMBER, NOT THE WORD (Round 27, user: "percentage
+                    rather than words"). 25D-2 put the assistant's phrasing in
+                    here for the fog of war and it was wrong twice over: this
+                    column is 32px, built for "43%", so "out on his feet"
+                    wrapped to four lines and tore the row open; and this is
+                    the screen where the substitution is actually decided, so
+                    it is the one place that wants a hard number rather than a
+                    feel. The words keep their home in the assistant's read
+                    below, where they are commentary rather than an input. */}
+                <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{e}%</span>
+              </button>
+            )
+          })}
+        </div>
+        <div className="sheet-col">
+          <div className="fact-label">{shirtPos ? t('matchday.benchCover', { pos: posName(shirtPos) }) : t('matchday.bench')}</div>
+          {/* the front row is the one shirt with a rule on it, said where the
+              choice is made rather than discovered as a refusal */}
+          {off && frShirt && benchSorted.length > 0 && (frOnly || !ctx.uncontested) && (
+            <div className="meta sheet-frnote">{t(frOnly ? 'matchday.frOnlyNote' : 'matchday.frNoneNote')}</div>
+          )}
+          {benchSorted.length === 0 && <div className="meta">{t('matchday.benchEmpty')}</div>}
+          {benchSorted.map(p => {
+            // what he was told before kick-off, so the choice is informed (F4)
+            const seat = mine.seatOf.get(p.id)
+            const brief = seat != null ? briefForSeat(game.clubs[mine.teamId], seat) : 'orders'
+            return (
+              <button key={p.id} className={`sheet-row ${off && covers(p) ? 'cover' : ''}`}
+                disabled={!off || (left <= 0 && !isFreeSwap && !isWait) || blocked(p)}
+                onClick={() => doSub(p)}>
+                <span className="sh-num">{p.pos}</span>
+                <span className="sh-name">{p.name}</span>
+                {brief !== 'orders' && (
+                  <span className="sh-flag" title={t(BRIEF_BY_ID[brief].name)}><BriefIcon brief={brief} /></span>
+                )}
+                {off && covers(p) && <span className="sh-flag" title={t('matchday.naturalCover')}>✓</span>}
+                <span className="sh-rate">{p.ca}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      {log.map((m, i) => <div key={i} className="meta sheet-log">{m}</div>)}
+      {/* the wrong tap can be taken back at the same stoppage (16B, user:
+          "i made a substitution but selected the wrong player, i couldnt
+          undo it"). Only the LAST change, and only until play resumes. */}
+      {ctx.lastSub && (
+        <button className="btn ghost block" onClick={() => {
+          const msg = undoSub()
+          setLog(l => [msg, ...l].slice(0, MAX_SUBS))
+          setMade(n => Math.max(0, n - 1))
+          setOffId(null)
+        }}>{t('matchday.takeBack')}</button>
+      )}
+      {mustDecide && !settled && (
+        <div className="meta sheet-log" style={{ color: 'var(--danger)', fontWeight: 700 }}>
+          {t(waitP ? 'matchday.mustDecideWait' : 'matchday.mustDecide')}
+        </div>
+      )}
+      <div className="btn-row" style={{ marginTop: 8 }}>
+        {onTactics && (
+          <button className="btn ghost" onClick={onTactics}>{t('matchday.tacticsBtn')}</button>
+        )}
+        <button className="btn gold" style={{ flex: 1.6 }} disabled={!settled} onClick={onClose}>
+          {made ? t('matchday.doneChanges', { n: made })
+            : t(settled ? 'matchday.backToMatch' : 'matchday.nameFirst')}
+        </button>
+      </div>
+    </Veil>
   )
 }
 
