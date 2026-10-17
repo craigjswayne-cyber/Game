@@ -70,7 +70,8 @@ async function sweep(label, height, stopAt, width = 412) {
 
     for (let tap = 0; tap < 10; tap++) {
       if (await page.locator('text=Kick Off ▸').count()) break
-      await page.click('.continue-btn')
+      // a turning week covers the button for a moment: try again next tap
+      await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
       await page.waitForTimeout(450)
     }
     await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
@@ -104,14 +105,16 @@ async function sweep(label, height, stopAt, width = 412) {
           if (want === 'BRK' && /break in play/.test(t)) return true
           // the wrong panel: resume and keep going
           const resume = page.locator('.ticker.panel-area .btn.gold')
-          if (await resume.count()) { await resume.first().click(); await page.waitForTimeout(400); continue }
+          if (await resume.count()) { await resume.first().click({ timeout: 5000 }).catch(() => {}); await page.waitForTimeout(400); continue }
         }
         // any injury stop has to be answered before play goes on
         if (await page.locator('.squad-sheet').count()) {
-          const first = page.locator('.squad-sheet .sheet-col >> nth=1').locator('.sheet-row').first()
-          if (await first.count()) await first.click().catch(() => {})
+          // the man who is on, then a bench option, then back to the match;
+          // only rows that can be tapped (1.9.1's injury wait greys the rest)
+          await page.locator('.squad-sheet .sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+          await page.locator('.squad-sheet .sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
           const done = page.locator('.squad-sheet .btn.gold')
-          if (await done.count()) await done.first().click().catch(() => {})
+          if (await done.count()) await done.first().click({ timeout: 3000 }).catch(() => {})
           await page.waitForTimeout(300)
           continue
         }
@@ -126,7 +129,9 @@ async function sweep(label, height, stopAt, width = 412) {
     // open the match-day squad the way a manager does
     const openBtn = page.locator('.ticker.panel-area button', { hasText: 'Match-Day Squad' })
     if (!(await openBtn.count())) { ok(false, 'the panel offers a way into the match-day squad'); return }
-    await openBtn.first().click()
+    // an injury stop at the same moment has the sheet open already (1.9.1):
+    // that is the sheet this sweep measures, so there is nothing to open
+    if (!(await page.locator('.squad-sheet').count())) await openBtn.first().click()
     await page.waitForSelector('.squad-sheet', { timeout: 5000 })
     await page.waitForTimeout(350)
 

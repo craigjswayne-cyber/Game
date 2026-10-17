@@ -141,7 +141,9 @@ try {
   ok(now !== was, `the training focus changed on screen (${was} to ${now}, "${picked}")`)
   const mid = await stats(page)
   ok(mid.marks > before.marks, `and the tap marked the save (${mid.marks - before.marks} mark)`)
-  await page.waitForTimeout(1500)
+  // the queue writes 600ms after the last mark and then waits for an idle
+  // moment, two seconds at most (1.9.1): give a busy runner the whole window
+  for (let t = 0; t < 60 && (await stats(page)).writes <= before.writes; t++) await page.waitForTimeout(100)
   ok((await stats(page)).writes > before.writes, 'and the queue wrote it')
   ok(await onDisk(page, s => s.training) === now, 'the new focus is on the disk without a Continue')
   // the phone's way out: change it again and leave at once

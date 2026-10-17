@@ -72,7 +72,8 @@ try {
     if (await page.locator('text=Kick Off ▸').count()) break
     const rej = page.locator('.btn.danger >> text=Reject')
     if (await rej.count()) { await rej.first().click(); await page.waitForTimeout(200); continue }
-    await page.click('.continue-btn'); await page.waitForTimeout(450)
+    // a turning week covers the button for a moment: try again next tap
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(450)
   }
   await page.locator('text=Kick Off ▸').first().click()
   try { await page.locator('.talk-modal').waitFor({ timeout: 3000 }); await page.click('.talk-modal .speech-tile >> nth=0') } catch {}
@@ -82,13 +83,20 @@ try {
   // ---- skip to full time ----
   for (let i = 0; i < 160; i++) {
     if (await page.locator('.ft-continue').count()) break
+    // the injury-wait sheet (1.9.1) covers the controls until a change is made
+    if (await page.locator('.sheet-col').first().isVisible().catch(() => false)) {
+      await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.btn', { hasText: /Back to the Match|Done|Close/ }).first().click({ timeout: 3000 }).catch(() => {})
+      continue
+    }
     if (await answer()) continue
     for (const label of ['▸ Start Second Half', '▸ Play the Final Quarter']) {
       const b = page.locator(`text=${label}`)
-      if (await b.count()) await b.first().click().catch(() => {})
+      if (await b.count()) await b.first().click({ timeout: 3000 }).catch(() => {})
     }
     const s = page.locator('.speed-controls [data-ctl=skip]:not([disabled])')
-    if (await s.count()) await s.first().click().catch(() => {})
+    if (await s.count()) await s.first().click({ timeout: 3000 }).catch(() => {})
     await page.waitForTimeout(400)
   }
   await page.waitForSelector('.ft-continue', { timeout: 25000 })

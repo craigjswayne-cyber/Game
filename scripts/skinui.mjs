@@ -67,7 +67,8 @@ const openSettings = async (page) => {
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(300)
   await page.locator('.submenu-item', { hasText: 'Settings' }).click()
-  await page.waitForSelector('.content')
+  // screens load on demand (1.9.1): .content is always there, the skins are not
+  await page.waitForSelector('.content[data-screen="settings"] .skin-card')
 }
 
 try {
