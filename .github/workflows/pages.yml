@@ -2,8 +2,16 @@ name: Deploy to GitHub Pages
 
 # Only main deploys — the github-pages environment rejects other branches,
 # so feature-branch runs would just fail noisily in seconds.
+#
+# AFTER THE GATE, NOT BESIDE IT (1.9.1). This ran on push to main, in
+# parallel with Gate (ci.yml), so a commit that failed the Gate was already
+# live by the time anyone read the red cross. It now runs when a Gate run for
+# a push to main finishes, only if that run passed, and it checks out the
+# exact commit the Gate passed (head_sha) rather than whatever main is now.
 on:
-  push:
+  workflow_run:
+    workflows: [Gate]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -18,12 +26,21 @@ concurrency:
 
 jobs:
   build-deploy:
+    # a Gate that failed or was cancelled deploys nothing; the nightly Gate
+    # run on main is not a new commit and does not redeploy
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # the commit the Gate passed; on a manual run, the ref it was run on
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
