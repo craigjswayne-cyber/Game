@@ -22,6 +22,7 @@ import MovesSection from '../MovesSection'
 import StylesSection from '../StylesSection'
 import { atkName, defName, stylesOf } from '../../game/styles'
 import { rowNavTr } from '../rowNav'
+import { Veil } from '../Veil'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -181,36 +182,32 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
     const roles = rolesForSlot(roleSlot)
     const current = tac.roles?.[roleSlot] ?? null
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-      <div className="modal-veil" onClick={() => setRoleSlot(null)}>
-        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-        <div className="modal" onClick={e => e.stopPropagation()}>
-          <div className="grab" />
-          <div style={{ padding: '0 14px 10px' }}>
-            <SectionTitle sub={t('tacticsScreen.roleSheetSub', { shirt: XV_SLOTS[roleSlot].shirt, n: roles.length + 1 })}>
-              {p ? p.name : t('tacticsScreen.emptySlot')}
-            </SectionTitle>
-            <button className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = null; setRoleSlot(null); touch() }}>
-              <span style={{ fontSize: '1rem' }}>{current == null ? '●' : '○'}</span>
-              <span className="cname">{t('tacticsScreen.natural')}</span>
-              <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t('tacticsScreen.noInstruction')}</span>
+      <Veil onClose={() => setRoleSlot(null)}>
+        <div className="grab" />
+        <div style={{ padding: '0 14px 10px' }}>
+          <SectionTitle sub={t('tacticsScreen.roleSheetSub', { shirt: XV_SLOTS[roleSlot].shirt, n: roles.length + 1 })}>
+            {p ? p.name : t('tacticsScreen.emptySlot')}
+          </SectionTitle>
+          <button className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = null; setRoleSlot(null); touch() }}>
+            <span style={{ fontSize: '1rem' }}>{current == null ? '●' : '○'}</span>
+            <span className="cname">{t('tacticsScreen.natural')}</span>
+            <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t('tacticsScreen.noInstruction')}</span>
+          </button>
+          {roles.map(r => (
+            <button key={r.id} className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = r.id; setRoleSlot(null); touch() }}>
+              <span style={{ fontSize: '1rem' }}>{current === r.id ? '●' : '○'}</span>
+              <span className="cname">{t(r.name)}</span>
+              <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t(r.desc)}</span>
             </button>
-            {roles.map(r => (
-              <button key={r.id} className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = r.id; setRoleSlot(null); touch() }}>
-                <span style={{ fontSize: '1rem' }}>{current === r.id ? '●' : '○'}</span>
-                <span className="cname">{t(r.name)}</span>
-                <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t(r.desc)}</span>
-              </button>
-            ))}
-            {p && (
-              <button className="btn ghost block" style={{ marginTop: 8 }}
-                onClick={() => { setRoleSlot(null); go('player', p.id) }}>
-                {t('tacticsScreen.openProfile', { name: p.name.split(' ').slice(-1)[0] })}
-              </button>
-            )}
-          </div>
+          ))}
+          {p && (
+            <button className="btn ghost block" style={{ marginTop: 8 }}
+              onClick={() => { setRoleSlot(null); go('player', p.id) }}>
+              {t('tacticsScreen.openProfile', { name: p.name.split(' ').slice(-1)[0] })}
+            </button>
+          )}
         </div>
-      </div>
+      </Veil>
     )
   }
 
@@ -395,27 +392,23 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
           const cur = (tac.kickers ?? [])[kickSlot] ?? null
           const title = t(kickSlot === 0 ? 'tacticsScreen.first' : 'tacticsScreen.second')
           return (
-            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-            <div className="modal-veil" onClick={() => setKickSlot(null)}>
-              {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-              <div className="modal lead-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
-                <div className="grab" />
-                <SectionTitle sub={t('tacticsScreen.kickerSheetSub')}>{t('tacticsScreen.goalKickers')}: {title}</SectionTitle>
-                <div className="lead-list">
-                  <table className="dtable"><tbody>
-                    {squad.map(p => (
-                      <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNavTr(() => setKicker(p.id))}>
-                        <td><PosBadge pos={p.pos} /></td>
-                        <td className="name">{p.name}</td>
-                        <td className="lead-bar"><span style={{ width: `${p.a.goa * 5}%` }} /></td>
-                        <td className="num"><b>{p.a.goa}</b></td>
-                      </tr>
-                    ))}
-                  </tbody></table>
-                </div>
-                <button className="btn ghost block" onClick={() => setKicker(null)}>{t('tacticsScreen.assistantPicks')}</button>
+            <Veil onClose={() => setKickSlot(null)} boxClassName="modal lead-sheet" role="dialog" label={title}>
+              <div className="grab" />
+              <SectionTitle sub={t('tacticsScreen.kickerSheetSub')}>{t('tacticsScreen.goalKickers')}: {title}</SectionTitle>
+              <div className="lead-list">
+                <table className="dtable"><tbody>
+                  {squad.map(p => (
+                    <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNavTr(() => setKicker(p.id))}>
+                      <td><PosBadge pos={p.pos} /></td>
+                      <td className="name">{p.name}</td>
+                      <td className="lead-bar"><span style={{ width: `${p.a.goa * 5}%` }} /></td>
+                      <td className="num"><b>{p.a.goa}</b></td>
+                    </tr>
+                  ))}
+                </tbody></table>
               </div>
-            </div>
+              <button className="btn ghost block" onClick={() => setKicker(null)}>{t('tacticsScreen.assistantPicks')}</button>
+            </Veil>
           )
         })()}
 

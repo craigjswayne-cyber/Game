@@ -11,6 +11,7 @@ import { PosBadge, SectionTitle, RewardedButton, Stars } from '../components'
 import FullFitness from '../FullFitness'
 import { t } from '../../game/i18n'
 import { rowNav } from '../rowNav'
+import { Veil } from '../Veil'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
 export default function Medical() {
@@ -259,50 +260,46 @@ export default function Medical() {
       }))}
       <div className="spacer" />
       {jokerHurt && (
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-        <div className="modal-veil" onClick={() => setJokerHurt(null)}>
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="grab" />
-            <div style={{ padding: '0 16px' }}>
-            <h3 style={{ fontSize: '1rem', margin: '2px 0 6px' }}>{t('medical.jokerTitle', { hurt: jokerHurt.name })}</h3>
-            <div className="meta" style={{ marginBottom: 8 }}>
-              {t('medical.jokerExplain', { n: weeksOut(game, jokerHurt), hurt: jokerHurt.name })}
-            </div>
-            {(() => {
-              const pool = jokerCandidates(game, jokerHurt)
-              if (!pool.length) return <div className="meta">{t('medical.jokerNone')}</div>
-              return (
-                <div className="tblwrap">
-                  <table className="dtable"><tbody>
-                    {pool.map(c => (
-                      <tr key={c.id}>
-                        <td><PosBadge pos={c.pos} /></td>
-                        <td className="name">{c.name} <span className="muted">{c.age}</span></td>
-                        <td><Stars ca={fuzzedCa(game, c)} /></td>
-                        <td>
-                          <button className="btn gold rowact"
-                            onClick={() => {
-                              const r = signMedicalJoker(game, jokerHurt.id, c.id)
-                              setMsg({ id: jokerHurt.id, text: r.msg })
-                              setJokerHurt(null)
-                              touch()
-                            }}>
-                            {t('medical.jokerSign', { wage: fmtWage(jokerWage(c)) })}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody></table>
-                </div>
-              )
-            })()}
-            <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setJokerHurt(null)}>
-              {t('medical.jokerClose')}
-            </button>
-            </div>
+        <Veil onClose={() => setJokerHurt(null)}>
+          <div className="grab" />
+          <div style={{ padding: '0 16px' }}>
+          <h3 style={{ fontSize: '1rem', margin: '2px 0 6px' }}>{t('medical.jokerTitle', { hurt: jokerHurt.name })}</h3>
+          <div className="meta" style={{ marginBottom: 8 }}>
+            {t('medical.jokerExplain', { n: weeksOut(game, jokerHurt), hurt: jokerHurt.name })}
           </div>
-        </div>
+          {(() => {
+            const pool = jokerCandidates(game, jokerHurt)
+            if (!pool.length) return <div className="meta">{t('medical.jokerNone')}</div>
+            return (
+              <div className="tblwrap">
+                <table className="dtable"><tbody>
+                  {pool.map(c => (
+                    <tr key={c.id}>
+                      <td><PosBadge pos={c.pos} /></td>
+                      <td className="name">{c.name} <span className="muted">{c.age}</span></td>
+                      <td><Stars ca={fuzzedCa(game, c)} /></td>
+                      <td>
+                        <button className="btn gold rowact"
+                          onClick={() => {
+                            const r = signMedicalJoker(game, jokerHurt.id, c.id)
+                            setMsg({ id: jokerHurt.id, text: r.msg })
+                            setJokerHurt(null)
+                            touch()
+                          }}>
+                          {t('medical.jokerSign', { wage: fmtWage(jokerWage(c)) })}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody></table>
+              </div>
+            )
+          })()}
+          <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setJokerHurt(null)}>
+            {t('medical.jokerClose')}
+          </button>
+          </div>
+        </Veil>
       )}
     </>
   )

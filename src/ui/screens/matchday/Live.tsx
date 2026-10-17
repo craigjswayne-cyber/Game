@@ -30,6 +30,7 @@ import { TouchlinePanel } from './Touchline'
 import { MatchVerdict } from './Verdict'
 import { FEED_ROWS, useFeedGlide } from './feedGlide'
 import { WEATHER_ICON, weatherWord } from './weather'
+import { Veil } from '../../Veil'
 
 // ------------------------------------------------------------------
 // Live match
@@ -769,53 +770,49 @@ export function Live() {
       )}
 
       {settings && (
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-        <div className="modal-veil" onClick={() => setSettings(false)}>
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-          <div className="modal settings-sheet" onClick={e => e.stopPropagation()}>
-            <div className="grab" />
-            <h3 style={{ fontSize: '1rem', margin: '2px 16px 8px' }}>{t('matchday.matchSettings')}</h3>
-            {/* THE FM26 LAYOUT (1.8.1, from the owner's screenshot of its match
-                settings): each choice on a row with its name beside it, then
-                the on/off switches in a grid. */}
-            <div className="ms-rows">
-              <div className="set-label">{t('matchday.commentarySpeed')}</div>
-              <div className="btn-row ms-seg">
-                {SPEEDS.map((s, i) => (
-                  <button key={i} className={`btn ${i === speedIdx ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                    title={t(s.name)} onClick={() => setSpeedIdx(i)}>{t(s.label)}</button>
-                ))}
-              </div>
-              <div className="set-label">{t('matchday.tickerStops')}</div>
-              <div className="btn-row ms-seg">
-                <button className={`btn ${live.mode === 'full' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                  onClick={() => matchMode('full')}>{t('matchday.everyMinute')}</button>
-                <button className={`btn ${live.mode === 'highlights' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                  onClick={() => matchMode('highlights')}>{t('matchday.highlightsBtn')}</button>
-              </div>
-              <div className="set-label">{t('mset.highlights')}</div>
-              <div className="btn-row ms-seg">
-                <button className={`btn ${prefs.highlights === 'key' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                  title={t('mset.hlKeySub')} onClick={() => setPref({ highlights: 'key' })}>{t('mset.hlKey')}</button>
-                <button className={`btn ${prefs.highlights === 'extended' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                  title={t('mset.hlExtendedSub')} onClick={() => setPref({ highlights: 'extended' })}>{t('mset.hlExtended')}</button>
-              </div>
-              <div className="ms-note">{t(prefs.highlights === 'key' ? 'mset.hlKeySub' : 'mset.hlExtendedSub')}</div>
+        <Veil onClose={() => setSettings(false)} boxClassName="modal settings-sheet">
+          <div className="grab" />
+          <h3 style={{ fontSize: '1rem', margin: '2px 16px 8px' }}>{t('matchday.matchSettings')}</h3>
+          {/* THE FM26 LAYOUT (1.8.1, from the owner's screenshot of its match
+              settings): each choice on a row with its name beside it, then
+              the on/off switches in a grid. */}
+          <div className="ms-rows">
+            <div className="set-label">{t('matchday.commentarySpeed')}</div>
+            <div className="btn-row ms-seg">
+              {SPEEDS.map((s, i) => (
+                <button key={i} className={`btn ${i === speedIdx ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                  title={t(s.name)} onClick={() => setSpeedIdx(i)}>{t(s.label)}</button>
+              ))}
             </div>
-            <div className="ms-toggles">
-              {/* One switch, and it has to name everything it turns off. The
-                  buzz used to survive Silent, so the label lied by omission. */}
-              <Toggle on={sound} onChange={() => setSound(toggleSound())}
-                label={t('matchday.soundAndBuzz')} sub={t(sound ? 'matchday.soundOn' : 'matchday.soundOff')} />
-              <Toggle on={prefs.bigText} onChange={v => setPref({ bigText: v })}
-                label={t('mset.bigText')} sub={t('mset.bigTextSub')} />
+            <div className="set-label">{t('matchday.tickerStops')}</div>
+            <div className="btn-row ms-seg">
+              <button className={`btn ${live.mode === 'full' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                onClick={() => matchMode('full')}>{t('matchday.everyMinute')}</button>
+              <button className={`btn ${live.mode === 'highlights' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                onClick={() => matchMode('highlights')}>{t('matchday.highlightsBtn')}</button>
             </div>
-            <button className="btn gold block" style={{ marginTop: 10 }}
-              onClick={() => { setSettings(false); if (!done) matchCursor(cursor, true) }}>
-              {t(done ? 'matchday.close' : 'matchday.backToMatch')}
-            </button>
+            <div className="set-label">{t('mset.highlights')}</div>
+            <div className="btn-row ms-seg">
+              <button className={`btn ${prefs.highlights === 'key' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                title={t('mset.hlKeySub')} onClick={() => setPref({ highlights: 'key' })}>{t('mset.hlKey')}</button>
+              <button className={`btn ${prefs.highlights === 'extended' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                title={t('mset.hlExtendedSub')} onClick={() => setPref({ highlights: 'extended' })}>{t('mset.hlExtended')}</button>
+            </div>
+            <div className="ms-note">{t(prefs.highlights === 'key' ? 'mset.hlKeySub' : 'mset.hlExtendedSub')}</div>
           </div>
-        </div>
+          <div className="ms-toggles">
+            {/* One switch, and it has to name everything it turns off. The
+                buzz used to survive Silent, so the label lied by omission. */}
+            <Toggle on={sound} onChange={() => setSound(toggleSound())}
+              label={t('matchday.soundAndBuzz')} sub={t(sound ? 'matchday.soundOn' : 'matchday.soundOff')} />
+            <Toggle on={prefs.bigText} onChange={v => setPref({ bigText: v })}
+              label={t('mset.bigText')} sub={t('mset.bigTextSub')} />
+          </div>
+          <button className="btn gold block" style={{ marginTop: 10 }}
+            onClick={() => { setSettings(false); if (!done) matchCursor(cursor, true) }}>
+            {t(done ? 'matchday.close' : 'matchday.backToMatch')}
+          </button>
+        </Veil>
       )}
 
       {panelActive && (
