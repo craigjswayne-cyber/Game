@@ -11,9 +11,11 @@ folder builds the server and runs three things on it:
 - **Language roles.** `/language`: which of the six game languages someone
   plays in, so there is always somebody to ask about a French or Japanese line.
 - **Bug reports.** `/bug`: one form with the language, the area of the game, a
-(One report per member every two minutes; every command works on the server only, not in DMs.)
   summary, what happened and up to three screenshots. It becomes a post in the
-  `#bug-reports` forum, tagged with the language, the area and **Open**.
+  `#bug-reports` forum, tagged with the language, the area and **Open**. One
+  report per member every two minutes.
+
+Every command works on the server only; none is offered in a DM.
 
 The club list is exported from the game itself (171 clubs in 15 leagues, plus
 the 16 national teams a manager can be offered), so it always matches.
