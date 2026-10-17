@@ -380,7 +380,20 @@ export function safeColours(v: unknown): v is [string, string] {
   return Array.isArray(v) && v.length === 2 && v.every(x => typeof x === 'string' && HEX.test(x))
 }
 
-export function migrate(s: GameState): GameState {
+// The helpers the migration steps share. They were locals of migrate() and
+// close over nothing, so they live here now that migrate() is a list of
+// named steps.
+const int = (v: unknown, min: number, max: number, dflt: number) => {
+  const n = typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : Number.NaN
+  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
+}
+const num = (v: unknown, min: number, max: number, dflt: number) => {
+  const n = typeof v === 'number' && Number.isFinite(v) ? v : Number.NaN
+  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
+}
+const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
+
+function migrateWeekBasis(s: GameState): void {
   // ---- the week basis, before anything reads a stamp ----
   // Runs once in the life of a save and is marked done, so a career loaded
   // twice is not rebased twice - which would push every date out by a further
@@ -389,7 +402,9 @@ export function migrate(s: GameState): GameState {
     rebaseStamps(s)
     s.basis = WEEK_BASIS
   }
+}
 
+function migrateCollections(s: GameState): void {
   // ---- the collections the game reads without asking whether they are there ----
   //
   // A save written by an older build is simply missing the fields that build had
@@ -533,7 +548,9 @@ export function migrate(s: GameState): GameState {
   s.natSquads = asMap(s.natSquads)
   s.players = asMap(s.players)
   s.clubs = asMap(s.clubs)
+}
 
+function migrateCalendar(s: GameState): void {
   // ---- the scalars the whole calendar hangs off ----
   //
   // week and season index into the fixture list and the record books, so a week
@@ -541,10 +558,6 @@ export function migrate(s: GameState): GameState {
   // of an array and throws on the first tick after loading. Coerce them into
   // range instead. Anything unreadable starts the season at week one, which is a
   // playable career rather than a dead one.
-  const int = (v: unknown, min: number, max: number, dflt: number) => {
-    const n = typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : Number.NaN
-    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
-  }
   s.season = int(s.season, 0, 999, 0)
   s.week = int(s.week, 1, SEASON_WEEKS, 1)
   s.day = int(s.day, 0, 5, 0) as GameState['day']
@@ -552,7 +565,9 @@ export function migrate(s: GameState): GameState {
   // only means the next notice due is posted
   if (s.windowNote != null && !(typeof s.windowNote === 'number' && Number.isFinite(s.windowNote))) delete s.windowNote
   if (!Number.isFinite(s.seed)) s.seed = hashString(`${s.userClubId ?? 'rugby'}-${s.season}`)
+}
 
+function migratePruneLists(s: GameState): void {
   // ---- prune the rubbish out of the lists ----
   //
   // A story that is not an object at all - a null left by a bad write - throws
@@ -579,14 +594,18 @@ export function migrate(s: GameState): GameState {
   s.press = s.press.filter(p => story(p) && typeof (p as { question?: unknown }).question === 'string')
   s.offers = s.offers.filter(story)
   s.fixtures = s.fixtures.filter(story)
-  s.mentors = s.mentors.filter(story)
-  s.pledges = s.pledges.filter(story)
+  // (the non-null marks: migrateCollections made these three lists, and the
+  // compiler cannot see that across the step boundary)
+  s.mentors = s.mentors!.filter(story)
+  s.pledges = s.pledges!.filter(story)
   // a promise of a start settles on its two counts (handshake.ts): without
   // them it cannot be read, so it is dropped rather than broken by default
   s.pledges = s.pledges.filter(pl => pl.kind !== 'start' ||
     (Number.isFinite(pl.baseStarts) && Number.isFinite(pl.baseGames)))
-  s.preContracts = s.preContracts.filter(story)
+  s.preContracts = s.preContracts!.filter(story)
+}
 
+function migrateIdCounter(s: GameState): void {
   // ---- the id counter must clear everything already in the world ----
   //
   // nextId is shared by news, fixtures and offers. A save holding a NaN or a
@@ -610,7 +629,9 @@ export function migrate(s: GameState): GameState {
   for (const n of s.news) {
     if (typeof n.id !== 'number' || !Number.isFinite(n.id)) n.id = s.nextId++
   }
+}
 
+function migrateWorldRefs(s: GameState): void {
   // ---- the world has to point at itself ----
   //
   // Every one of these is a dangling reference, and a dangling reference in a
@@ -619,10 +640,6 @@ export function migrate(s: GameState): GameState {
   // played or tabulated, and a squad listing a player who is gone shows an empty
   // row the manager can tap. Repair them here, where there is still a chance to,
   // rather than discovering each one separately at kick-off.
-  const num = (v: unknown, min: number, max: number, dflt: number) => {
-    const n = typeof v === 'number' && Number.isFinite(v) ? v : Number.NaN
-    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
-  }
   const careerRow = (r: unknown): r is CareerRow => !!r && typeof r === 'object'
     && typeof (r as CareerRow).clubId === 'string'
     && ['season', 'apps', 'tries', 'points'].every(k => Number.isFinite((r as Record<string, unknown>)[k]))
@@ -694,6 +711,9 @@ export function migrate(s: GameState): GameState {
         })
       : []
   }
+}
+
+function migrateClubColours(s: GameState): void {
   // ---- CLUB COLOURS ARE COLOURS (1.8.18) ----
   // They go straight into inline CSS (club banners, the match-day bars, the
   // --club1/--club2 theme), and React does not check style values. A shared
@@ -744,7 +764,9 @@ export function migrate(s: GameState): GameState {
     typeof id === 'string' && (!!s.clubs[id] || NATIONS.some(n => n.code === id))
   s.fixtures = s.fixtures.filter(f => realTeam(f.homeId) && realTeam(f.awayId))
   for (const f of s.fixtures) f.week = int(f.week, 1, SEASON_WEEKS, 1)
+}
 
+function migrateStandings(s: GameState): void {
   // ---- and the standings have to match the results ----
   for (const comp of Object.values(s.comps)) {
     if (!comp || comp.type !== 'league' || !Array.isArray(comp.table)) continue
@@ -758,11 +780,12 @@ export function migrate(s: GameState): GameState {
     })
     if (wrong) rebuildTable(comp, s.fixtures, s)
   }
+}
 
+function migrateManagerAndNation(s: GameState): void {
   // SAVE-01 (1.6.5): ??= repairs null and nothing else. A save holding a string
   // or an object in a list field passed the null check and threw on the first
   // push. Every list the migration guarantees goes through the same gate.
-  const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
   s.shortlist = list(s.shortlist) as typeof s.shortlist
   // ??= is not enough here: a save holding a STRING in this field passes the
   // null check and then throws on the first property assignment, because you
@@ -820,6 +843,9 @@ export function migrate(s: GameState): GameState {
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist
   s.boardOwed ??= false
+}
+
+function migrateDialsAndRecords(s: GameState): void {
   // facilities moved onto the clubs (every club in the world has an estate,
   // and taking a new job means inheriting that club's buildings). Levels the
   // manager already paid for at his own club are kept, whichever is higher.
@@ -932,6 +958,9 @@ export function migrate(s: GameState): GameState {
   }
   if (s.ambitions != null && !Array.isArray(s.ambitions)) delete s.ambitions
   if (s.ambitions) s.ambitions = s.ambitions.filter(a => !!a && typeof a.id === 'string' && typeof a.clubId === 'string').slice(0, 5)
+}
+
+function migrateClubsAndPeople(s: GameState): Set<string> {
   // A CLUB BETWEEN COACHES STAYS BETWEEN COACHES (1.8.5 save QA). The fill
   // below is for a save written before AI coaches had names. A club whose
   // coach has just been sacked is MEANT to have none for the five weeks its
@@ -1022,6 +1051,10 @@ export function migrate(s: GameState): GameState {
       return !(p && l.season >= 0 && p.clubId === l.clubId && p.joinedAt != null && service(p, l.clubId).apps < LEGEND_APPS)
     })
   }
+  return settled
+}
+
+function migratePidCounter(s: GameState): void {
   // CRITICAL: restore the player-id counter. Only newGame resets it, so a
   // cold-started session that loads a save would otherwise mint new player
   // ids from 1, silently overwriting existing players at the next intake.
@@ -1029,7 +1062,9 @@ export function migrate(s: GameState): GameState {
   // and never below the counter the save carries (1.6.4): an id freed by a
   // retirement above the highest live one is not handed out again
   resetIds(Math.max(maxPid + 1, s.pidNext ?? 0))
+}
 
+function migrateWorldGrowth(s: GameState): void {
   // leagues added in later builds: inject their clubs & squads so existing
   // careers gain them (fixtures/tables arrive at the next season rebuild)
   //
@@ -1167,7 +1202,9 @@ export function migrate(s: GameState): GameState {
     if (!club.players.some(id => s.players[id]?.acad)) topUpAcademy(s, club, rng, 0xACAD)
   }
   ensureAcademyLeague(s)
+}
 
+function migrateDreamAndGrounds(s: GameState): void {
   // A CUP DREAM NOBODY CAN REACH (1.9.1). Until now "Win the Continental Cup"
   // and the league-and-cup double were offered at every club, the American,
   // Japanese and Pacific ones included, which can never enter the cup
@@ -1187,7 +1224,9 @@ export function migrate(s: GameState): GameState {
   // a save written before a following could be earned opens with the one it
   // was born with: every club starts level, and the ladder is climbed from here
   for (const c of Object.values(s.clubs)) c.following ??= 1
+}
 
+function migrateFormerClubsAndFinals(s: GameState): void {
   // pre-2025 former clubs (old-boy stories): fills only players still unset.
   // First, take back the ones the seeder should never have written: exClub is
   // only ever set by seedExClubs, so on a hand-written player it is always an
@@ -1209,7 +1248,9 @@ export function migrate(s: GameState): GameState {
       if (v) f.venue = v
     }
   }
+}
 
+function migrateMatchMemory(s: GameState): void {
   // the tactical loop's findings: healed and capped (#181), and the evidence
   // filed beside them (1.8.3): absent on an older save, and left absent.
   // Since 1.8.4 both keep the last against each other side as well as the
@@ -1226,7 +1267,9 @@ export function migrate(s: GameState): GameState {
     if (hw.test !== undefined && typeof hw.test !== 'boolean') delete hw.test
     if (hw.was !== undefined && !(Array.isArray(hw.was) && hw.was.every(x => typeof x === 'string'))) delete hw.was
   }
+}
 
+function migrateStylesAndPlans(s: GameState): void {
   // THE STYLES (1.8.2): a save from before them has dials and no style, so
   // the manager's side is named the nearest attack and defence to its dials,
   // and the dials are left exactly where he put them
@@ -1247,7 +1290,9 @@ export function migrate(s: GameState): GameState {
     if (!okOrder || !okRot) delete s.seasonPlan
     else if (typeof sp.season !== 'number') s.seasonPlan = { order: sp.order!, rot: sp.rot!, season: s.season }
   }
+}
 
+function migrateLeaders(s: GameState, settled: Set<string>): void {
   // LEADERS ARE NAMED FOR A CLUB THE SAVE HAS NEVER NAMED THEM FOR - a save
   // from before the armband, or a club injected above - and nowhere else
   // (1.8.5 save QA). This ran over every club on every load, and the game
@@ -1258,6 +1303,34 @@ export function migrate(s: GameState): GameState {
   // career played straight through (scripts/qa/savedet.ts).
   const fresh = Object.values(s.clubs).filter(c => !settled.has(c.id))
   if (fresh.length) ensureCaptains({ ...s, clubs: Object.fromEntries(fresh.map(c => [c.id, c])) }, true)
+}
+
+/**
+ * Bring a save of any age up to the current shape. The steps run in this
+ * order, which is the order they were written in when this was one long
+ * function: several read what an earlier one repaired (the leaders are
+ * named last, for the clubs migrateClubsAndPeople found unsettled), so the
+ * order is load-bearing.
+ */
+export function migrate(s: GameState): GameState {
+  migrateWeekBasis(s)
+  migrateCollections(s)
+  migrateCalendar(s)
+  migratePruneLists(s)
+  migrateIdCounter(s)
+  migrateWorldRefs(s)
+  migrateClubColours(s)
+  migrateStandings(s)
+  migrateManagerAndNation(s)
+  migrateDialsAndRecords(s)
+  const settled = migrateClubsAndPeople(s)
+  migratePidCounter(s)
+  migrateWorldGrowth(s)
+  migrateDreamAndGrounds(s)
+  migrateFormerClubsAndFinals(s)
+  migrateMatchMemory(s)
+  migrateStylesAndPlans(s)
+  migrateLeaders(s, settled)
   return s
 }
 
