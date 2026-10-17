@@ -44,13 +44,6 @@ const ISLES_REP = 95
  *  to be a decision rather than an ambush. */
 const ISLES_OFFER_WEEK = 36
 
-export interface IslesState {
-  /** the season the offer was made in */
-  season: number
-  /** accepted, declined, or still sitting in the inbox */
-  answer: 'open' | 'yes' | 'no'
-}
-
 /**
  * Would the unions consider him at all? Every clause of the owner's sentence,
  * and nothing else.

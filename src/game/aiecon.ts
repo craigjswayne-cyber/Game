@@ -337,7 +337,7 @@ const DEBT_FLOOR_WEEKS = 20
 const SURPLUS_WEEKS = 16
 const REINVEST_SHARE = 0.5
 
-export interface AiLedger {
+interface AiLedger {
   gate: number
   central: number
   commercial: number

@@ -5,7 +5,7 @@
 // load and the language can change afterwards. The screen calls t() on them.
 // English wording is in src/locales/en.json under `roles`.
 
-export interface RoleDef { id: string; name: string; short: string; desc: string }
+interface RoleDef { id: string; name: string; short: string; desc: string }
 
 // Props and the hooker were sharing one list, so the game offered to turn your
 // hooker into a Mobile Prop. A hooker's job is the throw and the link play; he
@@ -80,7 +80,7 @@ export const ROLE_BY_ID: Record<string, RoleDef> = Object.fromEntries(
  *
  * 'card' is card risk, everything else is a unit multiplier.
  */
-export type RoleFx = Partial<Record<'scrum' | 'lineout' | 'breakdown' | 'attack' | 'defence' | 'kicking' | 'card', number>>
+type RoleFx = Partial<Record<'scrum' | 'lineout' | 'breakdown' | 'attack' | 'defence' | 'kicking' | 'card', number>>
 
 export const ROLE_FX: Record<string, RoleFx> = {
   // the six that already traded, unchanged

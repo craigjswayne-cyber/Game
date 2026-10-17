@@ -51,7 +51,7 @@ const WANTED_SHARE = 0.35
 /** A content man told he is wanted. */
 const FLATTERED = 0.2
 
-export function unsettled(p: Player): boolean {
+function unsettled(p: Player): boolean {
   return (p.wantsOut ?? 0) > 0 || p.morale <= UNSETTLED
 }
 

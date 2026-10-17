@@ -409,7 +409,7 @@ export function pairRevealed(state: GameState, mp: { since?: number }): boolean 
   return mp.since == null || absWeek(state.season, state.week) - mp.since >= REVEAL_WEEKS
 }
 
-export type MentorStage = 'early' | 'growing' | 'flourishing' | 'settled' | 'stalled'
+type MentorStage = 'early' | 'growing' | 'flourishing' | 'settled' | 'stalled'
 /** Below this chemistry a pairing does not click: it creeps to a low ceiling. */
 const STALL_CHEM = 0.75
 /** At or above it, a settled pairing is a flourishing one. */

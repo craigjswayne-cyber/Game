@@ -68,7 +68,7 @@ const FOCUS_GROUP: Record<TrainingFocus, Group | null> = {
 }
 
 export type Tempo = 'early' | 'steady' | 'late'
-export interface Learning { tempo: Tempo; quick: Group | null; slow: Group | null }
+interface Learning { tempo: Tempo; quick: Group | null; slow: Group | null }
 
 /** One uniform 0..1 per (seed, id, salt, n): no rng draw is spent. */
 export function devHash(seed: number, id: number, salt: number, n = 0): number {
@@ -192,7 +192,7 @@ export function styleFit(state: GameState, p: Player): -1 | 0 | 1 {
  *  centres the academy estate on). */
 export const COE_MEAN = 1.9
 
-export interface DriveParts {
+interface DriveParts {
   minutes: number
   conf: number
   position: number
@@ -303,7 +303,7 @@ export const TL_MAX = 12
 const driftAge = (seed: number, p: Pick<Player, 'id' | 'age'>) =>
   p.age <= (isLateBloomer(seed, p.id) ? 25 : 22)
 
-export interface ReviewOut { d: number; gain: number; flags: number }
+interface ReviewOut { d: number; gain: number; flags: number }
 
 /**
  * One man's season, reviewed at the stats archive (rollover.ts), before the
@@ -412,7 +412,7 @@ function needWeeks(seed: number, id: number, what: number): number {
   return what === 0 ? 10 + u * 16 : what === 1 ? 18 + u * 22 : 24 + u * 16
 }
 
-export interface DevLine { k: string; v?: Record<string, string | number> }
+interface DevLine { k: string; v?: Record<string, string | number> }
 
 /**
  * The staff's read of how he learns, in plain words. The manager's own men

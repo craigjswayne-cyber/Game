@@ -499,7 +499,7 @@ const HT_ABOUT: Partial<Record<WhyCause, 'pens' | 'ball' | 'set'>> = { pen: 'pen
 /** a first half's cause has to be this big to be called working or hurting */
 const HT_MIN = 5
 
-export interface HtEvidence {
+interface HtEvidence {
   k: string
   v: Record<string, string | number>
   /** weighed against the assistant's other half-time reads */
@@ -545,7 +545,7 @@ export function htEvidence(ev: CausalEvidence | null): HtEvidence[] {
  *  more often), and their time in our 22 with more Kicking. The ball lost
  *  comes from the attacking style and the set piece from the men in the
  *  shirts, neither of which a dial at half time reaches, so they name none. */
-export type LeverDial = 'style' | 'tempo' | 'kicking' | 'aggression'
+type LeverDial = 'style' | 'tempo' | 'kicking' | 'aggression'
 export const LEVER_DIALS: readonly LeverDial[] = ['style', 'tempo', 'kicking', 'aggression']
 export const LEVERS: Partial<Record<WhyCause, { dial: LeverDial; dir: 1 | -1 }>> = {
   pen: { dial: 'aggression', dir: -1 },

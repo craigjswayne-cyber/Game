@@ -26,7 +26,7 @@ import type { MatchEvent } from './model'
 const ALWAYS = new Set<MatchEvent['type']>(['TRY', 'PEN', 'DG', 'YC', 'RC', 'HT', 'BRK', 'FT'])
 const USUAL = new Set<MatchEvent['type']>(['CON', 'INJ'])
 
-export type Tension = 'close' | 'normal' | 'rout'
+type Tension = 'close' | 'normal' | 'rout'
 
 /** How tight the game is going into line i. */
 export function tensionAt(events: MatchEvent[], i: number): Tension {

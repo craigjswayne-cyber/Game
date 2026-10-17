@@ -119,7 +119,7 @@ export function challengesFor(gender: Gender): Challenge[] {
   return CHALLENGES.filter(c => (c.gender ?? 'm') === gender)
 }
 
-export interface LeagueDef {
+interface LeagueDef {
   id: string
   name: string
   short: string

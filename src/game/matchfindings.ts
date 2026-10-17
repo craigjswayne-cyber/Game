@@ -40,7 +40,7 @@ function note(state: GameState, e: { kind: string; clubId?: string; payload?: Re
  *  touchline dials are all that moves once the ball is in play, and the
  *  engine keeps them at kick-off, at the break and as the second half
  *  starts (matchEngine koDials, htDials, shDials). */
-export type PlanCarry = 'full' | 'ht' | 'second' | 'dropped'
+type PlanCarry = 'full' | 'ht' | 'second' | 'dropped'
 function planCarried(state: GameState, ctx: LiveCtx, plan: ChosenPlan): PlanCarry {
   const now = planFollowed(state, plan)
   // a match begun before the dials were kept at kick-off

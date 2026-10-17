@@ -67,7 +67,7 @@ export interface Read {
  * (league games), and playing at home is worth a little either way. A final
  * at a neutral ground has no home side.
  */
-export function expectation(state: GameState, fx: Fixture): number {
+function expectation(state: GameState, fx: Fixture): number {
   const me = state.userClubId
   const oppId = fx.homeId === me ? fx.awayId : fx.homeId
   const us = state.clubs[me], opp = state.clubs[oppId]
@@ -183,7 +183,7 @@ export function currentMood(state: GameState): PressMood {
 
 /** The press room's family of question this week, or null when the pack has
  *  nothing to say about the manager himself. */
-export type MoodRoom = 'stir' | 'hostile' | 'sceptical' | 'warm'
+type MoodRoom = 'stir' | 'hostile' | 'sceptical' | 'warm'
 export function moodRoom(pm: PressMood): MoodRoom | null {
   if (pm.stir) return 'stir'
   const b = bandOf(pm.v)

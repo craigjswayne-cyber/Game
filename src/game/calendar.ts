@@ -72,7 +72,7 @@ const SEASON_LEN = 48
 // 43     league FINALS (June), and nothing else in England
 // 44-45  summer Tests (north heads south)
 // 44-48  an Isles XV tour, every fourth year
-export const PRESEASON_WEEKS = [1, 2, 3]
+const PRESEASON_WEEKS = [1, 2, 3]
 export const LEAGUE_WEEKS = [
   4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
   20, 21, 24, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 39,

@@ -44,7 +44,7 @@ const CRASH_LIMIT = 6
  *  enough that the report still fits in a mail body. */
 const TRAIL_LIMIT = 12
 
-export interface Crash {
+interface Crash {
   /** where it came from: a render, a promise nobody caught, a window error */
   kind: 'render' | 'promise' | 'window'
   message: string
@@ -115,7 +115,7 @@ function saveSizeKb(state: GameState): number | null {
   }
 }
 
-export interface ReportInput {
+interface ReportInput {
   state?: GameState | null
   /** what the player typed. The whole point; everything else is context. */
   notes: string

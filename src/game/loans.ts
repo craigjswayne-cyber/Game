@@ -120,7 +120,7 @@ const LOAN_LENGTH_WEEKS: Record<LoanLength, number> = { short: 13, half: 26, sea
  * twice in a week gets the same answer and a BETTER offer is what changes it.
  * A refusal names the lever that would have turned it.
  */
-export interface LoanVerdict {
+interface LoanVerdict {
   ok: boolean
   /** the reply's key */
   k: string
@@ -312,7 +312,7 @@ export function expireLoans(state: GameState, rng: () => number): void {
  *  screen, and the key and its variables for anything that files it in a save
  *  (media.ts puts a refusal into a press reaction), so a stored copy renders
  *  in whatever language the save is later read in. */
-export interface LoanReply { ok: boolean; msg: string; k: string; v: Vars }
+interface LoanReply { ok: boolean; msg: string; k: string; v: Vars }
 const reply = (ok: boolean, k: string, v: Vars = {}): LoanReply => ({ ok, msg: t(k, v), k, v })
 
 export function loanOut(state: GameState, playerId: number): LoanReply {
@@ -470,7 +470,7 @@ export function loanRecall(state: GameState, playerId: number): LoanReply {
  */
 export const LOAN_BUY_MIN_WEEKS = 8
 
-export interface LoanBuy {
+interface LoanBuy {
   /** what it would take, whether or not they would take it */
   fee: number
   /** WOULD THEY SELL? The parent club's own answer, and nothing to do with

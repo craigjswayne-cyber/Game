@@ -23,8 +23,7 @@ import { aiShoppingTarget } from './aishop'
 
 export { capWage, capBill } from './cap'
 export { executeTransfer } from './transfer'
-export { aiShoppingTarget } from './aishop'
-export { embargoed, pendingDeal, promisedElsewhere, FREE_RESALE, freeDeal, askingPrice, INK_WEEKS, SQUAD_LIMIT, squadFull, seniorsOf } from './transferRules'
+export { embargoed, pendingDeal, askingPrice, INK_WEEKS, SQUAD_LIMIT, squadFull, seniorsOf } from './transferRules'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -110,7 +109,7 @@ export function aiBidFee(p: Player, rng: () => number, deadline: boolean): numbe
  * a solvent club - still gets you nothing off, which is what keeps the market and
  * the salary cap where they were calibrated.
  */
-export interface Willingness {
+interface Willingness {
   /** fraction off the asking price the club would accept, 0 to MAX_HAGGLE */
   discount: number
   /** fraction ON TOP of the asking price before they will even nod (owner,

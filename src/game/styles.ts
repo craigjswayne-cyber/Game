@@ -68,9 +68,9 @@ const isAtkStyle = (v: unknown): v is AtkStyle => typeof v === 'string' && (ATK_
 const isDefStyle = (v: unknown): v is DefStyle => typeof v === 'string' && (DEF_STYLES as string[]).includes(v)
 
 /** the levers an attacking style sets */
-export type AtkPreset = Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'ruckCommit' | 'kickStyle'>
+type AtkPreset = Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'ruckCommit' | 'kickStyle'>
 /** the levers a defensive style sets */
-export type DefPreset = Required<Pick<Tactic, 'defLine' | 'defWidth' | 'ruckContest'>>
+type DefPreset = Required<Pick<Tactic, 'defLine' | 'defWidth' | 'ruckContest'>>
 
 export const ATK_PRESET: Record<AtkStyle, AtkPreset> = {
   direct: { style: 22, tempo: 46, kicking: 50, ruckCommit: 62, kickStyle: 'territory' },
@@ -116,7 +116,7 @@ export const MATCHUP: Record<AtkStyle, Record<DefStyle, number>> = {
  *  on the pitch (styleprobe) at a little under a point of margin a match */
 const MATCH_K = 0.04
 
-export interface StyleFx {
+interface StyleFx {
   /** multiplier on the attack's try chance: the line breaks it makes (an
    *  attack) or allows (a defence, read on the other side's attack) */
   tryF: number
@@ -185,7 +185,7 @@ export const TRY_NORM = 0.995
 
 // ---------------------------------------------------------------- the fit
 
-export interface StyleNeed { shirts: number[]; attrs: (keyof Attrs)[] }
+interface StyleNeed { shirts: number[]; attrs: (keyof Attrs)[] }
 
 export const STYLE_NEEDS: Record<AtkStyle | DefStyle, StyleNeed[]> = {
   direct: [{ shirts: [1, 3, 8], attrs: ['str', 'han'] }, { shirts: [12], attrs: ['str'] }],
@@ -419,7 +419,7 @@ function leanPick<T extends string>(pair: [T, T], w: Partial<Record<T, number>> 
   return u * (a + b) < a ? pair[0] : pair[1]
 }
 
-export interface Styles { atk: AtkStyle; def: DefStyle; pod?: PodShape }
+interface Styles { atk: AtkStyle; def: DefStyle; pod?: PodShape }
 
 /**
  * The styles a club plays. The manager's are his, on the tactic (or read off
@@ -481,7 +481,7 @@ export function migrateStyles(state: GameState) {
  *  the engine at kick-off and on every rebuild of the units (SideCtx.sty). */
 export interface SideStyle extends Styles { atkFit: number; defFit: number }
 
-export interface StyleTick {
+interface StyleTick {
   /** the matchup this tick, -2..2 */
   m: number
   tryF: number
@@ -584,35 +584,6 @@ export function atkBeats(id: AtkStyle): { beats: DefStyle[]; weak: DefStyle[] } 
 export function defBeats(id: DefStyle): { beats: AtkStyle[]; weak: AtkStyle[] } {
   return { beats: ATK_STYLES.filter(a => MATCHUP[a][id] < 0), weak: ATK_STYLES.filter(a => MATCHUP[a][id] > 0) }
 }
-
-// ---------------------------------------------------------------- the shapes
-
-/**
- * THE SHAPE OF EACH STYLE, for anything that draws a side playing it (the
- * highlight clip; the Tactics screen draws its own whiteboard versions in
- * ui/tacticsArt.tsx). Numbers in metres and seconds, taken from the coaching
- * study's keyframes: nothing here feeds back into the engine. A picture is
- * free to ignore any field it has no use for.
- *
- * ATTACK
- *   width       how far across the field the ball typically travels in a phase
- *   depth       how deep the first receivers stand behind the ruck
- *   passes      passes before contact in a typical phase
- *   pods        forwards grouped across the field, touch to touch (1-3-3-1)
- *   kick        the phase ends in a kick: hang time and distance of a box kick
- *   offload     the share of tackles the ball comes out of
- * DEFENCE
- *   lineSpeed   m/s the line comes up at
- *   slide       m/s the line slides outwards as the ball goes wide (the drift)
- *   deep        men standing back in the field (the full-back is one)
- *   track       each defender follows his own man rather than a channel
- *   tacklers    men into each tackle (the choke brings two, and keeps it up)
- *   upright     the tackle is made high, the carrier kept on his feet
- */
-export interface AtkShape { width: number; depth: number; passes: number; pods?: number[]; kick?: { hang: number; dist: number }; offload: number }
-export interface DefShape { lineSpeed: number; slide: number; deep: number; track: boolean; tacklers: number; upright: boolean }
-
-
 
 /**
  * THE STYLES IN A FINISHED MATCH, for the highlight clip and anything else

@@ -28,7 +28,7 @@ export const EXAM_PASS_PCT = 58
 export const RETAKE_WEEKS = 4
 export const courseFee = (tier: number) => 60_000 * tier
 
-export interface StaffCandidate {
+interface StaffCandidate {
   name: string
   /** the coin that named the candidate - kept on the person once hired */
   g: Gender
@@ -136,7 +136,7 @@ export function staffInterest(state: GameState, c: StaffCandidate): 'keen' | 'pe
  *   short - fits on the candidate row, next to the wage
  *   long  - the sentence shown when the refusal has to be spelled out
  */
-export interface AppointBlock { short: string; long: string }
+interface AppointBlock { short: string; long: string }
 
 /**
  * ---- THE BOARD'S BACKROOM FUND (boardroom.ts, v1.8.3) ----

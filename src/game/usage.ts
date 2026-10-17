@@ -264,7 +264,7 @@ export function countMatch(key: string, season: string): void {
 
 // ---- the report ----
 
-export interface FeedbackInput {
+interface FeedbackInput {
   usage: Usage
   version: string
   platform: string

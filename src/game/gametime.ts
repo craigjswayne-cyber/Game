@@ -32,7 +32,7 @@ import { requestLocked } from './handshake'
 
 export type SquadStatus = 'key' | 'rotation' | 'squad' | 'prospect' | 'fringe'
 
-export interface StatusDef {
+interface StatusDef {
   id: SquadStatus
   name: string
   /** what he was told, in words */
@@ -93,7 +93,7 @@ export function clubMatchesPlayed(state: GameState, clubId: string): number {
   return n
 }
 
-export interface LedgerRow {
+interface LedgerRow {
   p: Player
   status: SquadStatus
   /** appearances he was entitled to expect by now */

@@ -122,7 +122,7 @@ function room(state: GameState, moraleDelta: number, trustDelta: number, but?: n
   state.mgrTrust = clamp((state.mgrTrust ?? 30) + trustDelta, 0, 100)
 }
 
-export interface TalkOutcome {
+interface TalkOutcome {
   fit: Fit
   /** the morale the answer carries, before the Temperamental swing */
   morale: number

@@ -50,7 +50,7 @@ import { mulberry32 } from './rng'
 
 export type PreTone = 'calm' | 'faith' | 'expect' | 'fire'
 export type HtTone = 'calm' | 'faith' | 'praise' | 'demand' | 'criticise' | 'fire'
-export type Tone = PreTone | HtTone
+type Tone = PreTone | HtTone
 
 /**
  * FOUR TONES AND SILENCE (owner, round 6: "Reduce pre-match chat to four... 4

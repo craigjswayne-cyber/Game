@@ -162,7 +162,7 @@ export function wxEffectKey(w: Weather): string {
 
 /** What the referee's opinions are, for anything that wants them without the
  *  whole engine: the fields the card and the half-time read use. */
-export interface RefRead { name: string; scrum: number; breakdown: number; patience: number; flow: number }
+interface RefRead { name: string; scrum: number; breakdown: number; patience: number; flow: number }
 
 /** What the assistant says at half time, off what has happened so far: at
  *  most two lines, each an i18n key and its values, the most pressing first.
@@ -182,7 +182,7 @@ export interface HalfSide {
   turnWon: number
   score: number
 }
-export interface HalfLine {
+interface HalfLine {
   k: string
   v?: Record<string, string | number>
   tag?: 'work' | 'hurt'

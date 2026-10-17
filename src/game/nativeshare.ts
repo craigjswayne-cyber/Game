@@ -53,7 +53,7 @@ export function canShareNatively(): boolean {
   return !!plugin<FilesystemPlugin>('Filesystem') && !!plugin<SharePlugin>('Share')
 }
 
-export type ShareResult = 'shared' | 'cancelled' | 'unavailable' | 'failed'
+type ShareResult = 'shared' | 'cancelled' | 'unavailable' | 'failed'
 
 /** A save is several megabytes of text. It crosses the native bridge in
  *  pieces, so no single message is the whole career. */
