@@ -20,7 +20,7 @@
 // and the fingerprint reads the exact game it was calibrated on - the
 // analyst only wakes when a real manager leans on the dials.
 import { mgrReputation, type GameState } from './model'
-import { lineupFor, teamUnits } from './matchEngine'
+import { lineupFor, teamUnits } from './match/selection'
 import { hashString, mulberry32 } from './rng'
 import { tendencyProfile, type TendencyProfile } from './tendency'
 import { COUNTER } from './philosophy'

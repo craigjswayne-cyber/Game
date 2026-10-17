@@ -15,7 +15,10 @@
  *      injury writes into the log, so the player screen has something true
  *      to show
  */
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
+// matchEngine.ts is a facade since the engine was split by phase into
+// src/game/match/; the engine's source is the facade and every part.
+const engineSource = (): string => ['src/game/matchEngine.ts', ...readdirSync('src/game/match').filter(f => f.endsWith('.ts')).sort().map(f => `src/game/match/${f}`)].map(f => readFileSync(f, 'utf8')).join('\n')
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { RELEASE_FLOOR, releaseBlock, releaseCost, releasePlayer } from '../src/game/release'
@@ -52,7 +55,7 @@ say('\n--- 1. no difficulty lever, and an old save still plays')
     'and a save that chose the hardest level is byte-for-byte the same career once the dead key is set aside')
 
   // the levers are gone from the engine, not merely from the wizard
-  const src = readFileSync('src/game/matchEngine.ts', 'utf8')
+  const src = engineSource()
     + readFileSync('src/game/rollover.ts', 'utf8')
     + readFileSync('src/game/newgame.ts', 'utf8')
   ok(!/difficultyOf\(/.test(src),

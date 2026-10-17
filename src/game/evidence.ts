@@ -40,7 +40,9 @@
  * same match always reads the same.
  */
 import type { GameState } from './model'
-import { EV_CAUSES, evOf, matchStats, type EvCause, type LiveCtx, type SideCtx } from './matchEngine'
+import { EV_CAUSES, evOf, type EvCause, type SideCtx } from './match/side'
+import { matchStats } from './match/stats'
+import type { LiveCtx } from './match/live'
 import { sayKey } from './moves'
 import { atkSay, defSay } from './styles'
 import type { HalfSide } from './conditions'

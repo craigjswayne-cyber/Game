@@ -25,7 +25,10 @@
 //      is still played, and every club still plays its coach's philosophy.
 //
 // Run: npx vite-node scripts/depthprobe.ts
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
+// matchEngine.ts is a facade since the engine was split by phase into
+// src/game/match/; the engine's source is the facade and every part.
+const engineSource = (): string => ['src/game/matchEngine.ts', ...readdirSync('src/game/match').filter(f => f.endsWith('.ts')).sort().map(f => `src/game/match/${f}`)].map(f => readFileSync(f, 'utf8')).join('\n')
 import { newGame } from '../src/game/newgame'
 import { beginMatch, checkFrontRow, liveFrontRowCover, resolveDecision, specialistGaps, stepTick, teamUnits, SPEC_PROP, type LiveCtx, type SideCtx } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
@@ -213,7 +216,7 @@ console.log('\n--- 3. the briefing\n')
   const keys = [...WX.flatMap(w => [`matchday.wx${w}`, wxEffectKey(w)]), ...SURFACES.flatMap(s => [surfKey(s), surfaceNote(s)]), 'matchday.theConditions', 'matchday.htWord',
     ...['htPensBin', 'htRefTight', 'htRefLoose', 'htWetHands', 'htWetTight', 'htWind', 'htUncontested', 'htWorking', 'htHurting'].map(k => `matchday.${k}`)]
   ok(LANGS.every(l => keys.every(k => has(l, k))), `the conditions card and the half-time read speak six languages (${keys.length} keys)`)
-  const src = readFileSync('src/game/matchEngine.ts', 'utf8')
+  const src = engineSource()
   ok(['L. Pearce', 'K. Dickson', 'N. Amashukeli', 'P. Brousset'].every(n => src.includes(`name: '${n}'`)), 'the referee panel keeps its real names')
   const md = readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
   ok(md.includes('data-conditions') && md.includes('refNotes(ref)') && md.includes('surfaceOf(game, fx)'), 'the pre-match card reads the referee, the weather and the ground')
@@ -317,7 +320,7 @@ console.log('\n--- 4. the specialist shirts and Law 3\n')
     checkFrontRow(h, ctx, side, 30, p, 'hia')
     ok(!!ctx.uncontested && side.short === 0, 'a head injury replacement made permanent is treated like a blood one: no player lost')
   }
-  const src = readFileSync('src/game/matchEngine.ts', 'utf8')
+  const src = engineSource()
   ok(/THE LAW AS IMPLEMENTED \(World Rugby Law 3/.test(src), 'the rule implemented is stated in the engine, with its source')
   ok(LANGS.every(l => ['comm.uncontestedNoRep', 'comm.uncontestedBin', 'comm.specProp', 'comm.specHook', 'comm.specNine'].every(k => has(l, k))), 'the law and the specialist shirts are said in six languages')
   // and the commentary names a non-specialist when he is out there

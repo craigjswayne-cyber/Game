@@ -30,7 +30,10 @@ import { respectFor, restoreOpposition, RESPECT_MIN } from '../src/game/oppcoach
 import { PHILOSOPHY_BY_ID } from '../src/game/philosophy'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
+// matchEngine.ts is a facade since the engine was split by phase into
+// src/game/match/; the engine's source is the facade and every part.
+const engineSource = (): string => ['src/game/matchEngine.ts', ...readdirSync('src/game/match').filter(f => f.endsWith('.ts')).sort().map(f => `src/game/match/${f}`)].map(f => readFileSync(f, 'utf8')).join('\n')
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -158,7 +161,7 @@ const mHi = (hiMOff - hiMOn) / hiN
 // breakdown at full respect), 33.1% against 37.2%, 2.0 points of margin a
 // match. Which one is live depends on whether the engine reads it, so the
 // cost is asserted only when it does; either way it must never help him.
-const wired = readFileSync(new URL('../src/game/matchEngine.ts', import.meta.url), 'utf8').includes('respectLayers(')
+const wired = engineSource().includes('respectLayers(')
 // the margin is the firm test: 1.10 to 1.50 points a match on four
 // reshuffled lists against a floor of 0.5. The win rate it becomes is about
 // 2pp with a standard error near 1 over six worlds, so a 1.5pp floor failed

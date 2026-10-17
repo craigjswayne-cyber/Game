@@ -253,7 +253,9 @@ console.log('--- 7. the scale')
   // attributes run 1-20; a comparison against 21 or more can never be true,
   // which is how a leadership check sat dead in chats.ts and talkback.ts
   const bad: string[] = []
-  for (const f of readdirSync('src/game')) {
+  // recursive since season.ts and matchEngine.ts were split into src/game/season/
+  // and src/game/match/
+  for (const f of readdirSync('src/game', { recursive: true }).map(String).sort()) {
     if (!f.endsWith('.ts')) continue
     const src = readFileSync(`src/game/${f}`, 'utf8')
     for (const m of src.matchAll(/\.a\.(tac|str|scr|lin|ruc|han|pas|kic|goa|pac|sta|agi|vis|dec|pos|agg|lea|wor)\s*(>=|>|<=|<)\s*(\d+)/g)) {
