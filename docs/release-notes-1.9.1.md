@@ -125,3 +125,11 @@ this build, with a probe for each fix that fails without it.
   deterministic checks. The website deploy now waits for the Gate, pull
   requests get a browser smoke run, and the soaks run weekly. See
   `docs/testing.md`.
+- **The engine in modules.** No runtime import cycles (23 before).
+  `matchEngine.ts` (7,972 lines) is a 48-line facade over 22 modules in
+  `src/game/match/`; `season.ts` is down to the weekly settle (2,331 lines)
+  with nine subsystems in `src/game/season/`; the 900-line `migrate()` is
+  eighteen named steps; `theme.css` is twenty partials in `src/ui/styles/`.
+  Every old import path still works. Pure moves: the sim fingerprint, a
+  full-state hash over 70 weeks of two careers and the built CSS are all
+  identical before and after.
