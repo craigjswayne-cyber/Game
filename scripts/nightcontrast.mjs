@@ -211,7 +211,8 @@ const world = async (item, label) => {
 async function sweep(night, skin) {
   theme = `${skin}/${night ? 'floodlit' : 'daylight'}`
   console.log(`\n---- ${theme} ----`)
-  const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 1 })
+  // bypassCSP: the live match is staged with a string evaluate, which the CSP refuses
+  const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 1, bypassCSP: true })
   page = await ctx.newPage()
   await page.addInitScript(v => localStorage.setItem('rm-night', v), night ? '1' : '0')
   // The three chosen skins are a Settings choice, free on the website build

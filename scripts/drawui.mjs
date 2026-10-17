@@ -12,7 +12,8 @@ import { mkdirSync } from 'node:fs'
 const SHOTS = 'shots'; mkdirSync(SHOTS, { recursive: true })
 const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
-const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, colorScheme: 'dark' })
+// bypassCSP: the draw is staged with a string evaluate, which the CSP refuses
+const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, colorScheme: 'dark', bypassCSP: true })
 const page = await ctx.newPage()
 // floodlit before the app boots: the theme the user actually plays in
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))

@@ -22,6 +22,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import type { Fixture } from '../src/game/model'
 import { ok, done } from './lib/probe'
+import { storeSource } from './lib/storefiles'
 
 const g = newGame('northampton', 'TestWeek', 61)
 // take the Scotland job and walk to a week with a club fixture
@@ -86,7 +87,7 @@ const routing: [string, string][] = [
   ['src/game/days.ts', 'userMatchThisWeek'],
 ]
 for (const [file, needle] of routing) {
-  const src = readFileSync(file, 'utf8')
+  const src = file === 'src/store.ts' ? storeSource() : readFileSync(file, 'utf8')
   ok(src.includes(needle), `${file} decides the week's match through ${needle}`)
 }
 // the match screen is MatchDay.tsx and the parts it is split into under matchday/

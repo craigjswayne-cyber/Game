@@ -179,7 +179,8 @@ try {
   // is that the PAINT changed and got lighter, in every skin.
   say('\n--- 4. day and night both work, on every skin')
   const lumOf = css => {
-    const m = css.trim().match(/^#?([0-9a-f]{6})$/i)
+    // the minifier writes #000000 as #000 (Vite 8, Lightning CSS)
+    const m = css.trim().replace(/^#?([0-9a-f])([0-9a-f])([0-9a-f])$/i, '#$1$1$2$2$3$3').match(/^#?([0-9a-f]{6})$/i)
     if (!m) return null
     const [r, g, b] = [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16) / 255)
       .map(v => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))

@@ -26,7 +26,8 @@ const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // one context throughout: a second page would get its own storage partition and
 // the IndexedDB half of this probe would be testing nothing
-const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
+// bypassCSP: mutate() reaches the game with a string evaluate, which the CSP refuses
+const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, bypassCSP: true })
 const page = await ctx.newPage()
 const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
@@ -297,13 +298,14 @@ try {
   console.log('A4 a failed save')
   await page.click('.continue-tile')
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })
-  // break IndexedDB under the store's feet, which is what a full disk does
+  // break IndexedDB under the store's feet, which is what a full disk does.
+  // The database is opened once and kept (1.9.1), so it is the write that
+  // fails, as it does on a real full disk: every read-write transaction throws
   await page.evaluate(() => {
-    window.__realOpen = indexedDB.open.bind(indexedDB)
-    indexedDB.open = () => {
-      const req = { onerror: null, onsuccess: null, onupgradeneeded: null, error: new Error('QuotaExceededError: no room for this save') }
-      setTimeout(() => req.onerror && req.onerror(), 0)
-      return req
+    window.__realTx = IDBDatabase.prototype.transaction
+    IDBDatabase.prototype.transaction = function (names, mode, ...rest) {
+      if (mode === 'readwrite') throw new DOMException('QuotaExceededError: no room for this save', 'QuotaExceededError')
+      return window.__realTx.call(this, names, mode, ...rest)
     }
   })
   // Save / Load's explicit save, not Continue: week one is a match week, so
@@ -322,7 +324,7 @@ try {
   check(/no room for this save/.test(warn), 'and the banner says why')
   await shot('05-save-failed')
   // and it clears itself the moment a write lands again
-  await page.evaluate(() => { indexedDB.open = window.__realOpen })
+  await page.evaluate(() => { IDBDatabase.prototype.transaction = window.__realTx })
   await page.click('.save-warn button >> text=Try again')
   await page.waitForSelector('.save-warn', { state: 'detached', timeout: 10000 })
   check(true, 'and a successful write clears it')

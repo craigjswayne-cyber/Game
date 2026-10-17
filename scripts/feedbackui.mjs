@@ -115,7 +115,9 @@ async function playOne(page) {
       const screen = st.nav[st.nav.length - 1]?.screen
       if (screen === 'annual') { st.game.annual = undefined; st.touch(); st.back(); continue }
       if (st.liveMatch || screen === 'matchday') {
-        st.instantResult()
+        // the week it ends turns in slices (1.9.1), and the round-up is on
+        // top once that lands: instantResult hands back the settle to wait on
+        await st.instantResult()
         const top = s.getState().nav[s.getState().nav.length - 1]
         return top?.screen === 'results' ? String(top.param).split(':')[0] : 'none'
       }
