@@ -11,8 +11,7 @@ import { startPreview } from './lib/preview.mjs'
 
 const SHOTS = process.env.SHOTS ?? '/tmp/coachrift'
 mkdirSync(SHOTS, { recursive: true })
-const PORT = Number(process.env.PORT ?? 4393)
-const server = await startPreview(String(PORT), 4000)
+const server = await startPreview(0, 4000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
 await page.addInitScript(() => {
@@ -28,7 +27,7 @@ const go = (screen, param) => page.evaluate(([s, p]) => window.rugbyStore.getSta
 const touch = () => G(() => window.rugbyStore.getState().touch())
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career'); await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile'); await page.click('.tile >> text=Northampton')

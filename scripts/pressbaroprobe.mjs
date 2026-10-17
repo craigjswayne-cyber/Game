@@ -24,7 +24,6 @@ import { done, startPreview } from './lib/preview.mjs'
 const say = s => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
-const PORT = 4371
 const SHOTS = process.env.SHOTS ?? '/tmp/pressbaro'
 mkdirSync(SHOTS, { recursive: true })
 
@@ -92,7 +91,7 @@ const measure = (page, w) => page.evaluate((w) => {
   }
 }, w)
 
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 try {
   for (const [w, h, night] of [[412, 915, '1'], [360, 740, '1'], [412, 915, '0']]) {
@@ -100,7 +99,7 @@ try {
     const page = await browser.newPage({ viewport: { width: w, height: h } })
     page.setDefaultTimeout(8000)
     await page.addInitScript(n => localStorage.setItem('rm-night', n), night)
-    await page.goto(`http://localhost:${PORT}/`)
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 20000 })
     await page.click('text=New Career'); await page.click('text=English Premier Division'); await page.waitForSelector('.club-tile')
     await page.click('.tile >> text=Northampton'); await page.waitForSelector('text=Star Player'); await page.click('.action-bar >> text=Confirm')

@@ -9,7 +9,7 @@ const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 const record = JSON.parse(readFileSync('scripts/deepsave.json', 'utf8'))
 
-const server = await startPreview('4174', 2500)
+const server = await startPreview(0, 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
@@ -32,7 +32,7 @@ const shotScrolled = async (name) => {
 }
 
 try {
-  await page.goto('http://localhost:4174/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 
   // plant the save, then reload so the title screen lists it

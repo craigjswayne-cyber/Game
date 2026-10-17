@@ -12,7 +12,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4193', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 let fails = 0
@@ -41,7 +41,7 @@ const readTokens = (page) => page.evaluate(() => {
 try {
   // ---- NIGHT IS THE DEFAULT: no localStorage at all ----
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
-  await page.goto('http://localhost:4193/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   const t = await readTokens(page)
   ok(t.night, 'a fresh install opens under the floodlights (night default)')
@@ -114,7 +114,7 @@ try {
   // ---- DAY: the same names, the other values ----
   const day = await browser.newPage({ viewport: { width: 390, height: 844 } })
   await day.addInitScript(() => localStorage.setItem('rm-night', '0'))
-  await day.goto('http://localhost:4193/')
+  await day.goto(`${server.origin}/`)
   await day.waitForSelector('text=RUGBY', { timeout: 15000 })
   const d = await readTokens(day)
   ok(!d.night, 'rm-night=0 turns the daylight on')

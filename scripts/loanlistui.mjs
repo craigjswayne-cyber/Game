@@ -18,8 +18,7 @@ const say = s => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const PORT = Number(process.argv[2] ?? 4280)
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** every name on the current page of the market, from the row's title */
@@ -29,7 +28,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
   page.setDefaultTimeout(6000)
   await page.addInitScript(() => { localStorage.setItem('rm-lang', 'en') })
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.evaluate(() => window.rugbyStore.getState().start('newcastle', 'Loan List'))
   await page.waitForTimeout(700)

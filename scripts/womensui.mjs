@@ -29,8 +29,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const PORT = '4231'
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 let fails = 0
@@ -43,7 +42,7 @@ page.on('pageerror', e => errs.push(e.message))
 page.on('console', m => { if (m.type() === 'error') errs.push(m.text()) })
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
 
   // ---- the choice is on the main page ----

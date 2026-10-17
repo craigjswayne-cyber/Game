@@ -18,7 +18,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4187', 2500)
+const server = await startPreview(0, 2500)
 
 // 844x390 is what everything was tuned at. The other two are the same phone with
 // a browser toolbar and a narrower reported width, which is what it really is.
@@ -92,7 +92,7 @@ const run = async (size) => {
     if (!bad.length && sideways <= 1) console.log(`  ok ${size.label} ${name}`)
   }
   try {
-    await page.goto('http://localhost:4187/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
     await page.click('text=New Career')
     await page.waitForSelector('text=English Premier Division')

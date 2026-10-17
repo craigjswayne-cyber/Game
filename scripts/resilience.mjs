@@ -21,7 +21,7 @@ import { mkdirSync } from 'node:fs'
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = await startPreview('4177', 2500)
+const server = await startPreview(0, 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // one context throughout: a second page would get its own storage partition and
@@ -92,7 +92,7 @@ async function mutate(body) {
 }
 
 async function newCareer(name) {
-  await page.goto('http://localhost:4177/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -290,7 +290,7 @@ try {
   await shot('06-double-tap')
   // hand A4 the title screen it expects, with a save sitting behind it
   await page.evaluate(() => localStorage.removeItem('rm-where'))
-  await page.goto('http://localhost:4177/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('.continue-tile', { timeout: 15000 })
 
   // ---------- A4: a save that fails ----------

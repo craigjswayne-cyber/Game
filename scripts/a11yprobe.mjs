@@ -24,7 +24,7 @@ const say = s => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview('4611', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** visible form controls with no accessible name, on whatever is open */
@@ -48,7 +48,7 @@ for (const night of [true, false]) {
   page.setDefaultTimeout(9000)
   await page.addInitScript(v => localStorage.setItem('rm-night', v), night ? '1' : '0')
   try {
-    await page.goto('http://localhost:4611/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
     await page.click('text=New Career')
     await page.click('text=English Premier Division')

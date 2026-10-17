@@ -108,10 +108,10 @@ for (const { title, sub } of [...pairs.values()].sort((a, b) => (a.sub > b.sub ?
 }
 say(`  ${lines.length} headings to measure (both languages, both plural forms)`)
 
-const server = await startPreview(4247, 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625 })
-await page.goto('http://localhost:4247/', { waitUntil: 'networkidle' })
+await page.goto(`${server.origin}/`, { waitUntil: 'networkidle' })
 await page.waitForTimeout(400)
 
 // AND AT EVERY TEXT SIZE THE GAME OFFERS. The zoom control (store.textScale)

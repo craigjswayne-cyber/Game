@@ -16,7 +16,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4251', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -55,7 +55,7 @@ async function settles(page, max = 2000) {
 
 try {
   const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
-  await career(page, 'http://localhost:4251/?motion=1')
+  await career(page, `${server.origin}/?motion=1`)
   ok(await page.evaluate(() => document.documentElement.dataset.motion === 'on'), 'the layer is on with ?motion=1')
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Transfer Centre')
@@ -75,7 +75,7 @@ try {
   await page.close()
 
   const calm = await browser.newPage({ viewport: { width: 412, height: 915 }, reducedMotion: 'reduce' })
-  await calm.goto('http://localhost:4251/?motion=1')
+  await calm.goto(`${server.origin}/?motion=1`)
   await calm.waitForSelector('text=RUGBY')
   await calm.click('text=New Career')
   const calmNames = await calm.evaluate(() => document.getAnimations().map(a => a.animationName).filter(n => n?.startsWith('m-')))
@@ -83,7 +83,7 @@ try {
   await calm.close()
 
   const still = await browser.newPage({ viewport: { width: 412, height: 915 } })
-  await still.goto('http://localhost:4251/')
+  await still.goto(`${server.origin}/`)
   await still.waitForSelector('text=RUGBY')
   ok(await still.evaluate(() => document.documentElement.dataset.motion !== 'on'), 'an automated browser without ?motion=1 gets a still page')
   await still.close()

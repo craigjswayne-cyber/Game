@@ -26,6 +26,7 @@
 // found has no business still being alive.
 import { spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
+import { createServer } from 'node:net'
 
 // WAIT FOR THE SERVER, NOT FOR THE CLOCK (1.9.1). Every browser harness gave
 // vite a fixed 2.5 or 3 seconds and then asked for the page. On a quiet box
@@ -33,52 +34,87 @@ import { readFileSync } from 'node:fs'
 // loaded runner it is sometimes not enough, and the first page.goto fails
 // with a refused connection that reads like a broken build. The server is
 // now asked until it answers, for up to `settleMs` x 10 (30 s by default).
+//
+// ANY FREE PORT (1.9.2). Every harness hard-coded its own port (4173 to
+// 5341), and many shared one: two checkouts running harnesses at once, or
+// storeprobe and backupreach in two terminals, collided, and the guard below
+// reported PREVIEW PORT TAKEN, a FAIL for a probe that had found nothing. The
+// port is now whatever the system hands out, and a harness drives the page at
+// the `url` (or `origin`) this returns rather than at a number it wrote down.
+// PREVIEW_PORT pins one by hand, to keep a server's address known for a
+// person to open alongside a run.
+
+/** A port nothing is listening on right now: bind to 0, read it, let it go. */
+export function freePort() {
+  return new Promise((resolve, reject) => {
+    const s = createServer()
+    s.unref()
+    s.on('error', reject)
+    s.listen(0, () => {
+      const { port } = s.address()
+      s.close(() => resolve(port))
+    })
+  })
+}
+
+const bundleOf = html => (html.match(/assets\/index-[^"]+\.js/) ?? [])[0]
 
 /**
- * @param {number|string} port
+ * Serve this checkout's dist/ with `vite preview` and wait until it answers.
+ *
+ * @param {number|string} [port] 0 or nothing for a free port (the default);
+ *   a number only for a tool that must hold a known address
  * @param {number} settleMs a tenth of the longest to wait for vite to answer
- * @returns {Promise<{stop: () => void}>}
+ * @returns {Promise<{stop: () => void, port: number, origin: string, url: string}>}
+ *   `origin` is http://localhost:PORT, `url` the same with a trailing slash
  */
-export async function startPreview(port, settleMs = 3000) {
-  const server = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], {
-    stdio: 'ignore',
-    detached: true,
-  })
-  server.unref()
-  const until = Date.now() + settleMs * 10
-  for (;;) {
-    try {
-      const res = await fetch(`http://localhost:${port}/`)
-      if (res.ok) break
-    } catch { /* not listening yet */ }
-    if (Date.now() > until) break       // let the probe's own goto report it
-    await new Promise(r => setTimeout(r, 100))
-  }
-  // IS IT OURS? --strictPort makes vite exit when the port is taken, and the
-  // probe then drives whatever else is listening there: another checkout's
-  // preview, an older build. Every probe here hard-codes its port, so two
-  // worktrees running harnesses at once graded each other's builds, and a
-  // probe went red on a fix that was in this dist and not in that one. The
-  // page we serve names its bundle; if the one answering names another, stop.
-  try {
-    const want = (readFileSync('dist/index.html', 'utf8').match(/assets\/index-[^"]+\.js/) ?? [])[0]
-    const got = ((await (await fetch(`http://localhost:${port}/`)).text()).match(/assets\/index-[^"]+\.js/) ?? [])[0]
-    if (want && got !== want) {
-      throw new Error(`PREVIEW PORT TAKEN: localhost:${port} is serving ${got ?? 'something else'}, not this dist (${want}). Another preview holds the port; stop it and rerun.`)
-    }
-  } catch (e) {
-    if (String(e).includes('PREVIEW PORT TAKEN')) {
-      try { process.kill(-server.pid, 'SIGKILL') } catch { /* already gone */ }
-      throw e
-    }
-    // a fetch that fails outright is left to the probe, which reports it
-  }
-  return {
-    stop() {
+export async function startPreview(port = 0, settleMs = 3000) {
+  const pinned = Number(port) || Number(process.env.PREVIEW_PORT) || 0
+  let want
+  try { want = bundleOf(readFileSync('dist/index.html', 'utf8')) } catch { /* no build: the probe's goto says so */ }
+  // A free port can be taken between asking and binding (another harness
+  // starting in the same instant). --strictPort makes vite exit rather than
+  // wander to the next port, and a fresh port is tried. A pinned port gets
+  // one attempt.
+  for (let attempt = 1; ; attempt++) {
+    const p = pinned || await freePort()
+    const server = spawn('npx', ['vite', 'preview', '--port', String(p), '--strictPort'], {
+      stdio: 'ignore',
+      detached: true,
+    })
+    server.unref()
+    let exited = false
+    server.on('exit', () => { exited = true })
+    const stop = () => {
       // negative pid = the whole group, so vite goes with npx
       try { process.kill(-server.pid, 'SIGKILL') } catch { /* already gone */ }
       try { server.kill('SIGKILL') } catch { /* already gone */ }
-    },
+    }
+    const origin = `http://localhost:${p}`
+    const until = Date.now() + settleMs * 10
+    let html
+    for (;;) {
+      try {
+        const res = await fetch(`${origin}/`)
+        if (res.ok) { html = await res.text(); break }
+      } catch { /* not listening yet */ }
+      if (exited || Date.now() > until) break   // let the probe's own goto report it
+      await new Promise(r => setTimeout(r, 100))
+    }
+    // IS IT OURS? If vite lost the port, the probe would drive whatever else
+    // is listening there: another checkout's preview, an older build, and a
+    // probe went red on a fix that was in this dist and not in that one. The
+    // page we serve names its bundle; if the one answering names another,
+    // this is not our server.
+    const got = html === undefined ? undefined : bundleOf(html)
+    const foreign = Boolean(want) && html !== undefined && got !== want
+    if ((exited || foreign) && !pinned && attempt < 5) { stop(); continue }
+    if (foreign) {
+      stop()
+      throw new Error(`PREVIEW PORT TAKEN: ${origin} is serving ${got ?? 'something else'}, not this dist (${want}). Another preview holds the port; stop it and rerun.`)
+    }
+    // a server that never answered is left to the probe, which reports it
+    return { stop, port: p, origin, url: `${origin}/` }
   }
 }
 

@@ -19,7 +19,7 @@
 // Run: npm run build && node scripts/hlliveprobe.mjs
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
-const server = await startPreview('4262', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 const errors = []
@@ -40,7 +40,7 @@ await page.addInitScript(() => {
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 try {
-  await page.goto('http://localhost:4262/?hl=1')
+  await page.goto(`${server.origin}/?hl=1`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career'); await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile'); await page.click('.tile >> text=Northampton')

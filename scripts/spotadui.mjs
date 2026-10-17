@@ -31,7 +31,7 @@ for (const [lang, suf] of Object.entries(SUFFIX)) {
   ok(bad.length === 0, `${lang}: no rewarded label says "${suf}" or "favour"${bad.length ? ` (still: ${bad.join(' | ')})` : ''}`)
 }
 
-const server = await startPreview('4241', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 393, height: 852 }, locale: 'en-GB' })
 page.setDefaultTimeout(15000)
@@ -50,7 +50,7 @@ const lum = (rgb) => {
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05) }
 
 try {
-  await page.goto('http://localhost:4241/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.click('text=English Premier Division')
