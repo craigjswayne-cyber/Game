@@ -218,7 +218,7 @@ console.log('\n--- 3. the briefing\n')
   ok(LANGS.every(l => keys.every(k => has(l, k))), `the conditions card and the half-time read speak six languages (${keys.length} keys)`)
   const src = engineSource()
   ok(['L. Pearce', 'K. Dickson', 'N. Amashukeli', 'P. Brousset'].every(n => src.includes(`name: '${n}'`)), 'the referee panel keeps its real names')
-  const md = readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
+  const md = readFileSync('src/ui/screens/matchday/Preview.tsx', 'utf8')
   ok(md.includes('data-conditions') && md.includes('refNotes(ref)') && md.includes('surfaceOf(game, fx)'), 'the pre-match card reads the referee, the weather and the ground')
   const ref = { name: 'A. Referee', scrum: 1, breakdown: 0.9, patience: 5, flow: 1 }
   const calm = { consPens: 1, turnLost: 0, turnWon: 1, scrum: 15, score: 7 }
@@ -441,7 +441,8 @@ console.log('\n--- 5. the secret habits\n')
   if (hits.length) console.log(hits.slice(0, 20).map(h => `        ${h}`).join('\n'))
   ok(hits.length === 0, `${rendered} strings rendered across six languages, none names a habit`)
   // the only UI door is habitHint, own men only, at the full read
-  const ui = ['src/ui/screens/PlayerScreen.tsx', 'src/ui/screens/MatchDay.tsx', 'src/ui/StylesSection.tsx', 'src/ui/screens/Squad.tsx']
+  const ui = ['src/ui/screens/PlayerScreen.tsx', 'src/ui/screens/MatchDay.tsx', 'src/ui/StylesSection.tsx', 'src/ui/screens/Squad.tsx',
+    ...readdirSync('src/ui/screens/matchday').map(f => `src/ui/screens/matchday/${f}`)]
     .map(f => { try { return readFileSync(f, 'utf8') } catch { return '' } }).join('\n')
   ok(!/\bhabits\(|habitFx|HABIT_RATE/.test(ui), 'no screen reads the habits themselves, only the plain-words hint')
   let shown = 0, strangers = 0

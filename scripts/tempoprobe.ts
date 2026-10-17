@@ -66,7 +66,7 @@ console.log(`${counts.length} commentary lines, median ${median} words`)
 console.log(`a median line takes ${Math.round(readMs)}ms to read at ${WPM} wpm\n`)
 
 // ---- and what the screen does with them ----
-const src = readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
+const src = readFileSync('src/ui/screens/matchday/Live.tsx', 'utf8')
 const block = src.slice(src.indexOf('const SPEEDS = ['))
 const ms = [...block.slice(0, block.indexOf(']')).matchAll(/ms:\s*(\d+)/g)].map(m => Number(m[1]))
 ok(ms.length === 3, `three speeds found (${ms.join(' / ')}ms)`)

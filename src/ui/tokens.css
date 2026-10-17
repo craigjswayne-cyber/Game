@@ -820,6 +820,9 @@
   /* the FWDS & BCKS studio mark: black and white in every skin and mode */
   --studio-ink: #0b0b0b;
   --studio-paper: #ffffff;
+  /* the update pill's drop shadow (main.tsx, .upd-pill): it floats on the
+     body over whatever screen is open, outside .app and its surfaces */
+  --pill-shadow: rgba(0, 0, 0, 0.45);
 }
 
 /* ---------------- focus and disabled, as rules ---------------- */

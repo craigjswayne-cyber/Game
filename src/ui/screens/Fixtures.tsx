@@ -8,6 +8,7 @@ import { stageShort } from './Home'
 import { t, compLabel } from '../../game/i18n'
 import { arrangeMidweekFriendly, friendlyDate, friendlySuggestions, friendlyWeeks } from '../../game/season'
 import { rowNav } from '../rowNav'
+import { Veil } from '../Veil'
 
 export default function Fixtures() {
   const game = useStore(s => s.game)!
@@ -209,24 +210,20 @@ export default function Fixtures() {
         </>
       )}
       {replay && (
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
-        <div className="modal-veil" onClick={() => setReplayId(null)}>
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="grab" />
-            <SectionTitle sub={`${fxDate(game.season, replay)}${replay.att ? t('fixtures.replaySub', { att: replay.att, venue: replay.venue?.name ?? game.clubs[replay.homeId]?.stadium ?? t('fixtures.neutralVenueLower') }) : ''}`}>
-              {teamShort(game, replay.homeId)} {replay.homeScore} – {replay.awayScore} {teamShort(game, replay.awayId)}
-            </SectionTitle>
-            <div style={{ padding: '0 4px' }}>
-              {(replay.events ?? []).filter(e => e.type !== 'SUB' || /replaces/.test(e.text)).map((e: MatchEvent, i: number) => (
-                <div key={i} className={`tick-event ${e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big' : e.type === 'YC' ? 'card-y' : e.type === 'RC' ? 'card-r' : e.type === 'INJ' ? 'inj' : ''}`}>
-                  <span className="min">{e.min}'</span>
-                  <span className="txt">{e.text}</span>
-                </div>
-              ))}
-            </div>
+        <Veil onClose={() => setReplayId(null)}>
+          <div className="grab" />
+          <SectionTitle sub={`${fxDate(game.season, replay)}${replay.att ? t('fixtures.replaySub', { att: replay.att, venue: replay.venue?.name ?? game.clubs[replay.homeId]?.stadium ?? t('fixtures.neutralVenueLower') }) : ''}`}>
+            {teamShort(game, replay.homeId)} {replay.homeScore} – {replay.awayScore} {teamShort(game, replay.awayId)}
+          </SectionTitle>
+          <div style={{ padding: '0 4px' }}>
+            {(replay.events ?? []).filter(e => e.type !== 'SUB' || /replaces/.test(e.text)).map((e: MatchEvent, i: number) => (
+              <div key={i} className={`tick-event ${e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big' : e.type === 'YC' ? 'card-y' : e.type === 'RC' ? 'card-r' : e.type === 'INJ' ? 'inj' : ''}`}>
+                <span className="min">{e.min}'</span>
+                <span className="txt">{e.text}</span>
+              </div>
+            ))}
           </div>
-        </div>
+        </Veil>
       )}
       <div className="spacer" />
     </>
