@@ -18,10 +18,11 @@
          a stranger's save file smuggling url(https://...) into a club colour
          and making the phone call out (security findings F3 and F4, fixed at
          the source in migrate() - this is the second lock). Scripts and styles
-         are deliberately NOT restricted: the store shells inject the advert
-         bridge as an inline script, and a broader policy would silently stop
-         the adverts. Capacitor's own bridge is injected the same way on
-         Android.
+         are limited to this origin and inline (1.9.1 security re-audit): the
+         store shells inject the advert config as an inline script beside
+         ads-bridge.js (a file of our own), Capacitor's bridge is inline on
+         Android and native on iOS, and React writes style attributes. So
+         'unsafe-inline' stays, and nothing can be loaded from anywhere else.
          EVERYTHING ELSE THAT CAN BE LOCKED, IS. The game never makes a request
          from the page (scripts/netprobe.ts polices that), so connect-src is
          'self' rather than 'none' only because Vite's dev server talks to its
@@ -33,7 +34,7 @@
          and sounds are the game's own (sounds are synthesised). There are no
          plugins, no forms and no reason for a base URL. frame-ancestors is
          left out because browsers ignore it in a meta tag. -->
-    <meta http-equiv="Content-Security-Policy" content="img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; media-src 'self' blob: data:; object-src 'none'; base-uri 'none'; form-action 'none'" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; media-src 'self' blob: data:; object-src 'none'; base-uri 'none'; form-action 'none'" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
