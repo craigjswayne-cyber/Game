@@ -1461,7 +1461,16 @@ export const useStore = create<Store>((set, get) => ({
     }))
     // the one write that carries the 7MB state; every later write is the
     // short record (save.ts putResume, 1.6.3)
-    void putResume(get().saveSlot, rec, true).catch(() => {})
+    //
+    // AFTER THE MATCH SCREEN HAS PAINTED (1.9.1 performance re-audit). put()
+    // copies the whole career on the main thread, and in the kick-off tap it
+    // sat between the button and the match appearing. One frame later the
+    // screen is up; the record written then is the latest one, so a line the
+    // ticker has already noted is not overwritten by the kick-off copy.
+    const slot = get().saveSlot
+    const writePre = () => { const latest = get().matchRec; if (latest) void putResume(slot, latest, true).catch(() => {}) }
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => setTimeout(writePre, 0))
+    else writePre()
   },
 
   /** Note a decision the manager made, against the tick he made it on, and put
