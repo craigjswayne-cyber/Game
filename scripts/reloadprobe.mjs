@@ -64,7 +64,10 @@ const snapshot = () => page.evaluate(() => {
     // and the failure read as "the match never reached the second half", which
     // sounds like a resume bug and is not one. It surfaced when the AI economy
     // changed which players AI clubs were carrying, and so which men got hurt.
-    hurt: body.includes('Change it before play restarts'),
+    // AND THE 1.9.1 WAIT: the match holds until a man is named, and that sheet
+    // has no "Change it" note because nobody has gone on yet. Its columns are
+    // the sign either way (subsprobe drives the same two taps).
+    hurt: body.includes('Change it before play restarts') || !!document.querySelector('.sheet-col'),
     interval: /Start Second Half|Play the Final Quarter/.test(body),
     // IS IT PAUSED? The first control is Play/Pause and it says so in
     // data-playing. Read rather than assumed, because pressing

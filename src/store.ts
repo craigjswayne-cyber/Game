@@ -91,7 +91,7 @@ import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
 import { genderOf, type Gender } from './game/gender'
-import { isKnockoutTie, matchRng, processWeekAndAdvance, resolveKnockoutDraw, userMatchThisWeek, weekRng } from './game/season'
+import { isKnockoutTie, matchRng, processWeekAndAdvance, processWeekAndAdvanceAsync, resolveKnockoutDraw, userMatchThisWeek, weekRng } from './game/season'
 import { resultsParam } from './game/schedule'
 import {
   openDressingRoom, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, coverInjury, swapShirts, undoSubstitution,
@@ -323,7 +323,8 @@ interface Store {
   back: () => void
   home: () => void
   touch: () => void
-  continueWeek: () => void
+  /** Resolves when the week has turned (the browser settles in slices). */
+  continueWeek: () => void | Promise<void>
   /** What a Continue button calls: continueWeek, after one painted frame when
    *  the tap is going to turn the week (see below). */
   continueTap: () => void
@@ -331,7 +332,7 @@ interface Store {
   turning: boolean
   kickOff: (preTalk?: import('./game/teamtalk').PreTone, mode?: 'full' | 'highlights') => void
   /** the assistant takes over: play the match out instantly with your team */
-  instantResult: (preTalk?: import('./game/teamtalk').PreTone, review?: boolean) => void
+  instantResult: (preTalk?: import('./game/teamtalk').PreTone, review?: boolean) => void | Promise<void>
   advanceLive: () => void
   /** Simulate the next stretch of the live match without revealing any of it,
    *  so the match screen can see a try coming and play its build-up (1.8.0). */
@@ -341,7 +342,7 @@ interface Store {
   matchCursor: (cursor: number, playing: boolean) => void
   /** Change how the rest of this match is watched (F5). */
   matchMode: (mode: 'full' | 'highlights') => void
-  finishMatch: () => void
+  finishMatch: () => void | Promise<void>
   teamTalk: (kind: import('./game/teamtalk').HtTone) => void
   halfTimeSub: (outId: number, inId: number) => string
   /** Override the assistant's injury replacement. Free, and only at the moment. */
@@ -526,6 +527,40 @@ function settleWeek(g: GameState, get: () => Store): void {
     throw e
   }
 }
+
+/** A week settle running in slices (settleWeekAsync): nothing else may turn
+ *  a week, or change the career, until it is done. */
+let settling = false
+export const isSettling = (): boolean => settling
+
+/** settleWeek, sliced so the screen keeps painting (season.weekSteps). The
+ *  save queue is held for the career while the week is half-turned, the
+ *  screen is covered so no tap reaches the career, and a throw takes exactly
+ *  the path settleWeek's does. */
+async function settleWeekAsync(g: GameState, get: () => Store): Promise<void> {
+  const key = `${g.seed}:${g.season}:${g.week}`
+  settling = true
+  saveQueue.hold(g)
+  useStore.setState({ turning: true })
+  try {
+    await processWeekAndAdvanceAsync(g)
+    settleFault.after?.(g)
+    failedWeek = null
+    saveQueue.resume()
+  } catch (e) {
+    if (failedWeek === key) useStore.setState(s => ({ weekFailed: 2, tick: s.tick + 1 }))
+    else { failedWeek = key; void get().rollBack() }
+    throw e
+  } finally {
+    settling = false
+    useStore.setState({ turning: false })
+  }
+}
+
+/** The browser game settles in slices; the probes, which have no screen to
+ *  keep painting, settle in one go. Set once by App on mount. */
+let sliceSettles = false
+export const settleInSlices = (on: boolean): void => { sliceSettles = on }
 
 /** Land on the first day of a freshly settled week.
  *
@@ -1018,9 +1053,9 @@ export const useStore = create<Store>((set, get) => ({
     // was still waiting on the idle timer and would have gone with it. The
     // pending write lands before the week starts to turn.
     requestAnimationFrame(() => setTimeout(() => {
-      void get().persistNow().catch(() => false).then(() => {
-        try { get().continueWeek() } finally { set({ turning: false }) }
-      })
+      void get().persistNow().catch(() => false)
+        .then(() => get().continueWeek())
+        .finally(() => set({ turning: false }))
     }, 0))
   },
 
@@ -1028,6 +1063,8 @@ export const useStore = create<Store>((set, get) => ({
   continueWeek: () => {
     const g = get().game
     if (!g) return
+    // a week already turning in slices is the only thing happening
+    if (settling) return
     // A RETIRED MANAGER DOES NOT GET ANOTHER WEEK (career.ts). The save stays
     // readable forever - the record, the cabinet and the verdict are the whole
     // point of an ending - but the clock has stopped.
@@ -1229,6 +1266,7 @@ export const useStore = create<Store>((set, get) => ({
     // the week is spent: settle it, then start the new Monday. The watermark is
     // what tells the bulletins which stories are new.
     g.newsFrom = g.nextId
+    if (sliceSettles) return settleWeekAsync(g, get).then(() => landOnNextWeek(g, set, get))
     settleWeek(g, get)
     landOnNextWeek(g, set, get)
   },
@@ -1267,6 +1305,7 @@ export const useStore = create<Store>((set, get) => ({
   /** From the MatchDay preview: take the field. The match simulates
    *  tick by tick as the ticker plays, so nothing is decided yet. */
   instantResult: (preTalk, review) => {
+    if (settling) return
     const g = get().game
     if (!g) return
     // a match already kicked off is finished, never started again (1.8.2)
@@ -1335,13 +1374,18 @@ export const useStore = create<Store>((set, get) => ({
     // Monday to Friday were meant to carry. The day walk is the reveal now, both
     // ways round; the round-up still comes first, with Monday under it.
     g.newsFrom = g.nextId
+    const landed = () => {
+      set(s => ({ liveMatch: null, tick: s.tick + 1 }))
+      get().dropResume()
+      landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
+    }
+    if (sliceSettles) return settleWeekAsync(g, get).then(landed)
     settleWeek(g, get)
-    set(s => ({ liveMatch: null, tick: s.tick + 1 }))
-    get().dropResume()
-    landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
+    landed()
   },
 
   kickOff: (preTalk, mode) => {
+    if (settling) return
     const g = get().game
     if (!g) return
     if (get().resuming || get().liveMatch) return
@@ -1718,6 +1762,7 @@ export const useStore = create<Store>((set, get) => ({
 
   /** After FT: process the rest of the week and return home. */
   finishMatch: () => {
+    if (settling) return
     const g = get().game
     const live = get().liveMatch
     // ONE TAP, ONE WEEK (1.8.15). Two taps landing in one frame on Continue to
@@ -1732,14 +1777,18 @@ export const useStore = create<Store>((set, get) => ({
       countForPro(g, live.fixture)
     }
     g.newsFrom = g.nextId
+    const landed = () => {
+      set(s => ({ liveMatch: null, tick: s.tick + 1 }))
+      get().dropResume()
+      // The full-time round-up still comes first - that is the moment you want
+      // straight after your own final whistle - and Monday's bulletin sits under
+      // it, so backing out of the round-up puts you at the start of the new week
+      // rather than nowhere.
+      landOnNextWeek(g, set, get, resultsKey ? [{ screen: 'results', param: resultsKey }] : [])
+    }
+    if (sliceSettles) return settleWeekAsync(g, get).then(landed)
     settleWeek(g, get)
-    set(s => ({ liveMatch: null, tick: s.tick + 1 }))
-    get().dropResume()
-    // The full-time round-up still comes first - that is the moment you want
-    // straight after your own final whistle - and Monday's bulletin sits under
-    // it, so backing out of the round-up puts you at the start of the new week
-    // rather than nowhere.
-    landOnNextWeek(g, set, get, resultsKey ? [{ screen: 'results', param: resultsKey }] : [])
+    landed()
   },
 
   answerPressOption: (pressId, optionIndex) => {
@@ -2107,6 +2156,9 @@ const saveQueue = (() => {
   return {
     hold(g: GameState) { heldFor = g; if (timer) { clearTimeout(timer); timer = null } },
     release() { heldFor = null; dirty = false },
+    /** End a hold that a settle in progress took, keeping what is marked:
+     *  the week has turned whole and the next write should carry it. */
+    resume() { heldFor = null },
     /** soft: restart the idle timer rather than keep the first one, so a
      *  stream of marks (a slider dragged through twenty steps) is one write
      *  after the last of them, not one write in the middle of the drag */
