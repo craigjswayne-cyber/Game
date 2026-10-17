@@ -60,7 +60,7 @@ async function run(port) {
   // walk to the first match (reloadprobe's walk)
   for (let tap = 0; tap < 14; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn').catch(() => {})
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(600)
   }
   await page.locator('text=Kick Off ▸').first().click()

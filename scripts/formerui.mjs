@@ -76,7 +76,7 @@ try {
   await page.waitForSelector('.continue-btn', { timeout: 15000 })
   for (let tap = 0; tap < 40; tap++) {
     if (await page.locator('text=Kick Off').count()) break
-    await page.click('.continue-btn').catch(() => {})
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(400)
   }
   ok(await page.locator('text=Kick Off').count() > 0, 'Continue walked to the matchday')

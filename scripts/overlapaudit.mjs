@@ -136,7 +136,7 @@ const run = async (size) => {
     for (let tap = 0; tap < 10; tap++) {
       if (await page.locator('text=Kick Off ▸').count()) break
       if (!(await page.locator('.continue-btn').count())) break
-      await page.click('.continue-btn')
+      await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
       await page.waitForTimeout(450)
     }
     await page.waitForSelector('text=Kick Off', { timeout: 20000 })

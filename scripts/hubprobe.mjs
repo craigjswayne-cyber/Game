@@ -129,7 +129,7 @@ try {
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off').count()) break
     walk.push((await page.locator('.continue-btn').innerText().catch(() => '?')).trim())
-    await page.click('.continue-btn').catch(() => {})
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(500)
   }
   say(`\nContinue taps: ${walk.join(' > ') || '(none)'}`)
