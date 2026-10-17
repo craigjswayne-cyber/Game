@@ -87,8 +87,8 @@ export interface ClubIdentity {
 export const ALPHA = 0.035
 /** Hysteresis: an axis must pass ON to earn its label and fall under OFF to
  *  lose it, so a label near the line does not flicker week to week. */
-export const ON = 35
-export const OFF = 22
+const ON = 35
+const OFF = 22
 /** A club seen for the first time (a new career, an old save, a new job) is
  *  seeded at this share of its raw read: the reputation is half-formed. */
 const SEED = 0.5

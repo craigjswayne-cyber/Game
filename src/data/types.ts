@@ -80,14 +80,3 @@ export interface RawClub {
   /** Senior squad, 28-32 players covering all positions */
   players: RawPlayer[]
 }
-
-export interface RawLeague {
-  id: string
-  name: string
-  short: string
-  /** 3-letter country code, or 'EUR'/'INT' for cross-border */
-  country: string
-  /** League reputation 1-100 */
-  rep: number
-  clubs: RawClub[]
-}

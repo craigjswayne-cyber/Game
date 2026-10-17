@@ -136,7 +136,7 @@ export function refreshCaps(state: GameState, includeUser = false) {
   }
 }
 
-export interface CapPosition {
+interface CapPosition {
   /** the ceiling for this club's division, or null where the division has none */
   cap: number | null
   /** what the squad costs against it, marquee men and academy excluded */
@@ -328,7 +328,7 @@ const ROSTER_GROUPS: { label: string; pos: string[]; need: number }[] = [
   { label: 'finances.unitBackThree', pos: ['WG', 'FB'], need: 5 },
 ]
 
-export interface RosterCell {
+interface RosterCell {
   /** men under contract for that season */
   count: number
   /** the thinnest a unit should ever be, for colouring */

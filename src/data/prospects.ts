@@ -16,7 +16,7 @@
 // or the man will never be placed.
 import type { Pos } from './types'
 
-export interface Prospect {
+interface Prospect {
   name: string
   pos: Pos
   age: number

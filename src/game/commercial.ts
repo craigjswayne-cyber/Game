@@ -41,7 +41,7 @@ import { remember } from './memory'
 
 export type SlotId = 'shirt' | 'sleeve' | 'naming' | 'kit'
 
-export interface SlotInfo {
+interface SlotInfo {
   id: SlotId
   name: string
   /** a glyph name (glyphs.tsx) */
@@ -119,7 +119,7 @@ export const CARETAKER_RATE = 0.92
 
 export type ClauseId = 'none' | 'top4' | 'europe' | 'silverware' | 'crowds'
 
-export interface Clause {
+interface Clause {
   id: ClauseId
   /** what it says on the contract */
   text: string

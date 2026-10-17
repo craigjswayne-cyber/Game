@@ -59,7 +59,7 @@ const CLASHES: [string, string][] = [
   ['Temperamental', 'Temperamental'],
 ]
 
-export interface Feud {
+interface Feud {
   a: number
   b: number
   week: number
@@ -897,7 +897,7 @@ function postPredictionsNews(state: GameState) {
   })
 }
 
-export function ordinal(n: number): string {
+function ordinal(n: number): string {
   const s = ['th', 'st', 'nd', 'rd'], v = n % 100
   return n + (s[(v - 20) % 10] ?? s[v] ?? s[0])
 }

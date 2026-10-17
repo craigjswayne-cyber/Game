@@ -30,7 +30,7 @@ import { clamp, mulberry32 } from './rng'
 import { fmtMoney } from './model'
 import { tIn } from './i18n'
 
-export type PointId = 'awaykit' | 'advert' | 'tickets' | 'breakaway' | 'breakawayEnd' | 'leak'
+type PointId = 'awaykit' | 'advert' | 'tickets' | 'breakaway' | 'breakawayEnd' | 'leak'
 
 /** Fired once per season each, tracked so nothing repeats inside a year. */
 function fired(state: GameState): Record<string, number> {

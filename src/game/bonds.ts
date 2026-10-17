@@ -75,7 +75,7 @@ export const RIFT = -40
 export const bondsReport = { week: -1, maxDelta: 0, stories: 0, ms: 0, ids: 0 }
 
 /** A hook for the career memory log (memory.ts, not on this branch). */
-export interface BondNote { kind: string; playerId: number; clubId?: string; payload?: Record<string, unknown> }
+interface BondNote { kind: string; playerId: number; clubId?: string; payload?: Record<string, unknown> }
 /** Each ledger event, as the career memory log (memory.ts) names it, and how
  *  much it matters there. A lost shirt is only remembered for a senior voice:
  *  the ordinary weekly rotation would crowd the capped log out. */

@@ -134,7 +134,7 @@ export interface MatchResume {
 export type LiveStamp = Omit<MatchResume, 'pre'>
 
 /** The shape of a live match, rebuilt. */
-export interface Resumed {
+interface Resumed {
   ctx: LiveCtx
   fixture: Fixture
   preTalkMsg: string | null

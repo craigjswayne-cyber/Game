@@ -18,7 +18,7 @@ import { OFFICE_OUTLET, isBoardroom, askedRecently, rememberAsk } from './office
 
 // The office outlet and its ask memory live in office.ts (a leaf) so the
 // office's conversation modules need not import media back.
-export { OFFICE_OUTLET, isBoardroom, askedRecently, rememberAsk } from './office'
+export { OFFICE_OUTLET, isBoardroom } from './office'
 
 const OUTLETS = [
   'The Rugby Chronicle', 'Oval Times', 'The Breakdown Podcast', 'Rugby World Weekly',

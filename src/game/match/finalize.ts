@@ -497,7 +497,7 @@ export function settleForfeit(state: GameState, fx: Fixture, side: 'home' | 'awa
   const events: MatchEvent[] = [{
     min: 0, type: 'FT', teamId: winner ?? fx.homeId, text: tIn('en', 'comm.forfeit', v), k: 'comm.forfeit', v,
     homeScore: fx.homeScore, awayScore: fx.awayScore,
-  } as unknown as MatchEvent]
+  } as MatchEvent]
   const mine = fx.homeId === state.userClubId || fx.awayId === state.userClubId
   if (mine) {
     fx.events = events

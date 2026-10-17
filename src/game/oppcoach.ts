@@ -85,7 +85,7 @@ function dialFactor(unit: 'attack' | 'scrum' | 'breakdown' | 'kicking' | 'defenc
   }
 }
 
-export interface AnalystShift {
+interface AnalystShift {
   /** multiplier per unit, ready for layer() */
   layers: Partial<Record<'attack' | 'scrum' | 'breakdown' | 'kicking' | 'defence' | 'tempo', number>>
   /** how far toward the counter the plan moved, 0..0.45 */
@@ -209,7 +209,7 @@ export function respectLayers(state: GameState, clubId: string): Partial<Record<
 /** below this a coach does not change a thing */
 export const RESPECT_MIN = 0.15
 
-export type Weak = 'scrum' | 'lineout' | 'breakdown' | 'kicking' | 'defence'
+type Weak = 'scrum' | 'lineout' | 'breakdown' | 'kicking' | 'defence'
 
 /** The manager's weakest unit, measured against the side he is about to play. */
 function userWeakness(state: GameState, oppId: string): Weak | null {

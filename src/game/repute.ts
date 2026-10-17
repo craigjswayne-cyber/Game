@@ -296,8 +296,8 @@ function readTraits(state: GameState, rows: Conduct[], turned: number): { id: Tr
 export const TREND_GAP = 3
 /** how much stronger a trait must read now than then to be growing */
 const TREND_RISE = 1.12
-export type TraitFamily = 'youth' | Exclude<Trait, 'youthBacks' | 'youthPack' | 'youthIntl'>
-export type Trend = { id: TraitFamily; dir: 'new' | 'rise' | 'fade'; now: number; then: number }
+type TraitFamily = 'youth' | Exclude<Trait, 'youthBacks' | 'youthPack' | 'youthIntl'>
+type Trend = { id: TraitFamily; dir: 'new' | 'rise' | 'fade'; now: number; then: number }
 
 const familyOf = (id: Trait): TraitFamily => id.startsWith('youth') ? 'youth' : id as TraitFamily
 

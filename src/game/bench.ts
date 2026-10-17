@@ -31,7 +31,7 @@ import { effAt } from './attributes'
 
 export type BenchSplit = '5-3' | '6-2' | '4-4'
 
-export interface BenchSeat {
+interface BenchSeat {
   shirt: number
   pos: Pos[]
   /** An OPEN seat takes whoever you put in it and is labelled with HIS position
@@ -44,7 +44,7 @@ export interface BenchSeat {
   open?: boolean
 }
 
-export interface SplitDef {
+interface SplitDef {
   id: BenchSplit
   name: string
   desc: string
@@ -244,7 +244,7 @@ export function refillBench(state: GameState, club: Club) {
 
 export type Brief = 'orders' | 'impact' | 'shore' | 'manage'
 
-export interface BriefDef {
+interface BriefDef {
   id: Brief
   name: string
   /** two words at most, for the chip in a table row */

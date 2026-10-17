@@ -256,7 +256,7 @@ export const DEF_TRAITS: DefTrait[] = ['rush', 'drift', 'narrow', 'wide']
  * run), and the red-zone play. Absent is no call, which is the engine as it
  * was before moves existed.
  */
-export interface MoveCalls {
+interface MoveCalls {
   lineout?: string; scrum?: string; shape?: string
   main?: string; alt?: string; mix?: number; red?: string
   /** the tap penalty play (round 6), the manager's only */
@@ -499,7 +499,7 @@ const Q_BASE = 0.15
 const Q_FIT = 0.5
 const Q_MATCH = 0.65
 
-export interface MoveEdge {
+interface MoveEdge {
   gain: number; q: number; quality: number; drilled: number; seen: number
   /** the side's familiarity with it, 0..1 */
   fam: number

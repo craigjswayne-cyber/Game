@@ -37,7 +37,7 @@ type Cap = {
 /** The same honest lookup storekit.ts uses: the native side must say the
  *  plugin is there, because registerPlugin answers to every name. */
 function plugin<T>(name: string): T | null {
-  const cap = (globalThis as unknown as { Capacitor?: Cap }).Capacitor
+  const cap = (globalThis as { Capacitor?: Cap }).Capacitor
   if (!cap) return null
   const already = cap.Plugins?.[name] as T | undefined
   if (already) return already
@@ -53,7 +53,7 @@ export function canShareNatively(): boolean {
   return !!plugin<FilesystemPlugin>('Filesystem') && !!plugin<SharePlugin>('Share')
 }
 
-export type ShareResult = 'shared' | 'cancelled' | 'unavailable' | 'failed'
+type ShareResult = 'shared' | 'cancelled' | 'unavailable' | 'failed'
 
 /** A save is several megabytes of text. It crosses the native bridge in
  *  pieces, so no single message is the whole career. */

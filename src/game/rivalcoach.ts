@@ -50,9 +50,9 @@ const COOL = 0.7
 /** share of appointments that go to a known coach out of work, when one fits */
 const RETURN_PCT = 60
 
-export const meetings = (c: Coach): number => c.w + c.d + c.l
+const meetings = (c: Coach): number => c.w + c.d + c.l
 
-export function notable(state: GameState, c: Coach): boolean {
+function notable(state: GameState, c: Coach): boolean {
   return state.arc?.rival === c.id || meetings(c) >= 4 || c.heat >= 3
 }
 

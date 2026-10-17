@@ -328,7 +328,7 @@ export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min
  * worlds (Northampton has a level-two assistant): 44.2 points a season, 3
  * titles, against the engaged manager's 52.3 and 12. Deterministic: no draw.
  */
-export function assistantBench(state: GameState): { bulk: number; rolling: boolean } {
+function assistantBench(state: GameState): { bulk: number; rolling: boolean } {
   const lvl = Math.min(3, Math.max(0, state.staff?.assistant ?? 0))
   return { bulk: [2, 2, 3, 4][lvl], rolling: lvl >= 2 }
 }
