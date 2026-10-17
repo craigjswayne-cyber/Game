@@ -33,12 +33,14 @@ const TOOLS = new Set([
   'scripts/titlebg.mjs',       // cuts the title background from the key art
   'scripts/browserperf.mjs',   // two builds side by side, for a release note
   'scripts/tools/voicepatch.mjs', // a one-off text rewriter run by hand
+  'scripts/tools/probemod.mjs',   // the codemod that moved probes onto lib/probe (1.9.2)
 ])
 // imported or spawned by harnesses, never run on their own
 const LIBRARIES = new Set([
   'scripts/worldcheck.ts',
   'scripts/lib/preview.mjs',
   'scripts/lib/probe.ts',
+  'scripts/lib/probe.mjs',
   'scripts/lib/bondstwin.ts',
   'scripts/lib/savegen.ts',
   'scripts/lib/frspace.mjs',
