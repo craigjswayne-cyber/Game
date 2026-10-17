@@ -11,15 +11,17 @@ import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 import { ok, done } from './lib/probe.mjs'
 
-const server = await startPreview()
+// the game registers its worker anywhere but localhost (main.tsx), so the
+// preview is served on, and reached by, an address, which a browser also
+// treats as secure. Bound there too: a runner whose localhost is ::1 refused
+// a probe that only rewrote the origin.
+const server = await startPreview(0, 3000, '127.0.0.1')
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const ctx = await browser.newContext({ viewport: { width: 412, height: 915 } })
 const page = await ctx.newPage()
 const errs = []
 page.on('pageerror', e => errs.push(e.message))
-// the game registers its worker anywhere but localhost (main.tsx), so the
-// preview is reached by address, which a browser also treats as secure
-const origin = server.origin.replace('localhost', '127.0.0.1')
+const origin = server.origin
 await page.goto(origin + '/')
 // the worker has installed, and its precache is in
 const installed = await page.evaluate(async () => {
