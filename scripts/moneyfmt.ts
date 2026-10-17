@@ -78,8 +78,8 @@ for (const f of files) {
   const src = readFileSync(f, 'utf8')
   src.split('\n').forEach((line, i) => {
     if (line.trimStart().startsWith('*') || line.trimStart().startsWith('//')) return
-    // model.ts IS the ladder - it is the one file allowed to build the strings
-    if (f === 'src/game/model.ts') return
+    // model/money.ts IS the ladder - it is the one file allowed to build the strings
+    if (f === 'src/game/model/money.ts') return
     // £ immediately followed by an interpolation is a hand-built figure
     if (/£\$\{|£\{/.test(line)) handmade.push(`${f}:${i + 1}  ${line.trim().slice(0, 90)}`)
   })
