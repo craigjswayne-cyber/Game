@@ -28,7 +28,7 @@ import type { CausalEvidence, EvSide } from './evidence'
 import { calledIds, callsOf, sayKey } from './moves'
 
 /** the records read: the newest six (evidence.ts EVIDENCE_CAP) */
-export const WINDOW = 6
+const WINDOW = 6
 /** and no conclusion from fewer club matches than this */
 export const MIN_MATCHES = 4
 /** a call is a strength when it scored in this many of them, and as many tries */
@@ -45,9 +45,9 @@ const READ_RUNS = 6
 const READ_SHARE = 0.4
 const READ_RISE = 0.2
 
-export type TacCat = 'attack' | 'defence' | 'setpiece' | 'adapt'
+type TacCat = 'attack' | 'defence' | 'setpiece' | 'adapt'
 
-export interface TacNote {
+interface TacNote {
   cat: TacCat
   k: string
   v: Record<string, string | number>

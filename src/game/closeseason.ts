@@ -35,7 +35,7 @@ import { LEDGER_WEEKS, SEASON_WEEKS, facLevel, fmtMoney, isMyClub } from './mode
 import { mulberry32 } from './rng'
 import { t, tIn } from './i18n'
 
-export interface CloseEvent {
+interface CloseEvent {
   id: string
   /** hospitality level the room has to reach before it can be sold */
   needsHosp: number

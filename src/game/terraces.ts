@@ -166,7 +166,7 @@ export function transferReaction(
 const TERRACE_FLOOR = 40
 
 /** How angry the terraces are, 0 (content) to 3 (a plane over the ground). */
-export type CampaignStage = 0 | 1 | 2 | 3
+type CampaignStage = 0 | 1 | 2 | 3
 
 /**
  * WHERE A SUPPORT'S ANGER HAS GOT TO.

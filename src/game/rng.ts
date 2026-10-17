@@ -22,9 +22,6 @@ export function hashString(s: string): number {
   return h >>> 0
 }
 
-export const ri = (rng: Rng, lo: number, hi: number) =>
-  lo + Math.floor(rng() * (hi - lo + 1))
-
 export const clamp = (v: number, lo: number, hi: number) =>
   v < lo ? lo : v > hi ? hi : v
 

@@ -55,7 +55,7 @@ export const RAW_MEAN = 0.0828
  *  the flat 6 per cent it used to be for both. */
 const SPREAD = 0.05
 
-export interface VenueEffect {
+interface VenueEffect {
   /** as the crow flies, kilometres */
   km: number
   /** hours of body-clock shift */

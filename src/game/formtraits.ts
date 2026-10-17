@@ -21,7 +21,7 @@ import type { GameState, Player } from './model'
 import { mulberry32 } from './rng'
 import { readLevel } from './temperament'
 
-export interface FormTraits { slow: boolean; iron: boolean; brit: boolean; conf: boolean }
+interface FormTraits { slow: boolean; iron: boolean; brit: boolean; conf: boolean }
 
 const roll = (seed: number, id: number, salt: number) =>
   mulberry32((seed ^ Math.imul(id, salt)) >>> 0)()
@@ -90,7 +90,7 @@ export function traitHints(state: GameState, p: Player): string[] {
   return out
 }
 
-export type FormTrend = 'up' | 'flat' | 'down'
+type FormTrend = 'up' | 'flat' | 'down'
 
 /** Rising, steady or falling, off his last ten match marks (model.ts ratings):
  *  the least-squares slope, a tenth of a mark a match either way. Null under

@@ -41,7 +41,7 @@ import { remember, rememberDeparture } from './memory'
 /** Asked in the settle of the last ledger week: on the desk from week 46. */
 export const ACAD_CALL_WEEK = LEDGER_WEEKS
 
-export type AcadCall = 'first' | 'gate'
+type AcadCall = 'first' | 'gate'
 
 /** Which decision this man is owed this summer, if any. */
 export function acadCall(state: GameState, p: Player | undefined): AcadCall | null {

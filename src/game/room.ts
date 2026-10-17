@@ -148,7 +148,7 @@ const trust = (state: GameState, d: number) => { state.mgrTrust = clamp((state.m
 
 /** Is he someone the room would take sides over? The captain, a senior voice,
  *  or a man of twenty-seven or more with two close friends in the squad. */
-export function popular(state: GameState, club: Club, p: Player): boolean {
+function popular(state: GameState, club: Club, p: Player): boolean {
   if (club.captain === p.id) return true
   if (seniorVoices(state, club.id).some(v => v.id === p.id)) return true
   if (p.age < 27) return false

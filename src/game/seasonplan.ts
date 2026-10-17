@@ -57,7 +57,7 @@ export interface SeasonPlan {
   baseSeason?: number
 }
 
-export type Tier = 'high' | 'mid' | 'low'
+type Tier = 'high' | 'mid' | 'low'
 
 /** The club competitions a plan can rank: the league, then the continental
  *  cups the club is entered in. Tests and friendlies are not the club's to

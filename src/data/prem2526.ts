@@ -49,7 +49,7 @@
 import type { Pos } from '../game/model'
 
 /** A guide entry: the name, and the shirt the guide files him under. */
-export interface GuidePlayer { name: string; pos: Pos }
+interface GuidePlayer { name: string; pos: Pos }
 
 /** The guide groups by unit. These are the shirts each group maps to.
  *
@@ -66,7 +66,7 @@ function unit(group: keyof typeof GROUP, names: string): GuidePlayer[] {
   return names.split(';').map(n => n.trim()).filter(Boolean).map(name => ({ name, pos: GROUP[group] }))
 }
 
-export interface GuideClub { id: string; coach: string; captain: string; players: GuidePlayer[] }
+interface GuideClub { id: string; coach: string; captain: string; players: GuidePlayer[] }
 
 export const PREM_2526: GuideClub[] = [
   {

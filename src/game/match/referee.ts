@@ -10,7 +10,7 @@ import { clamp } from '../rng'
 // Simulation
 // ------------------------------------------------------------------
 
-export type RefStyle = 'strict' | 'fair' | 'lenient'
+type RefStyle = 'strict' | 'fair' | 'lenient'
 
 /** A referee is four separate opinions, not one dial.
  *

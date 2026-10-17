@@ -31,7 +31,7 @@ import { fileHeldNews } from './heldnews'
 export interface Line { k: string; v?: Vars }
 
 /** A season's defining moment, waiting for the year end to judge it. */
-export interface Moment extends Line { clubId: string; season: number; w: number }
+interface Moment extends Line { clubId: string; season: number; w: number }
 
 export interface Rivalry {
   a: string

@@ -32,13 +32,6 @@ import type { GameState, Player } from './model'
 import { t } from './i18n'
 import { eraSigning } from './erastory'
 
-export interface RecordBook {
-  biggestWin?: { oppId: string; us: number; them: number; season: number }
-  worstLoss?: { oppId: string; us: number; them: number; season: number }
-  longestUnbeaten?: { n: number; season: number }
-  recordSigning?: { playerId: number; fee: number; season: number }
-}
-
 /**
  * Offer a result to the book. Called at full time for the user's matches.
  *
@@ -125,7 +118,7 @@ export function protegeLine(state: GameState): string | null {
   })
 }
 
-export interface Nemesis {
+interface Nemesis {
   clubId: string
   played: number
   w: number

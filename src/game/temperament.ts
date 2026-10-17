@@ -27,9 +27,9 @@ import { reportStage } from './scout'
 export const KNOWN_APPS = 10
 export const FAIR_APPS = 4
 
-export type ReadLevel = 'none' | 'pending' | 'vague' | 'full'
-export type ConsBand = 'steady' | 'mid' | 'erratic'
-export type BigBand = 'thrive' | 'mid' | 'freeze'
+type ReadLevel = 'none' | 'pending' | 'vague' | 'full'
+type ConsBand = 'steady' | 'mid' | 'erratic'
+type BigBand = 'thrive' | 'mid' | 'freeze'
 
 /** The bands, on the hidden numbers. consistency runs 0.02-0.07 uniform, so
  *  each end is three players in ten; bigMatchTemper runs -1..1 uniform, same. */
@@ -66,7 +66,7 @@ export function readLevel(state: GameState, p: Player): ReadLevel {
   return st >= 3 ? 'full' : st >= 2 ? 'vague' : 'none'
 }
 
-export interface TemperRead {
+interface TemperRead {
   level: ReadLevel
   /** i18n keys, in the order the screen shows them (the player screen adds
    *  _f for a woman through its own gendered t) */

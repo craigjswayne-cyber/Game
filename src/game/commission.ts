@@ -10,8 +10,6 @@ import { BADGE } from './staff'
 import { fileRec, makeRec, scoutVerdict, type ScoutRec } from './scoutrecs'
 import { noteFor, type NoteRef } from './scoutnote'
 
-export { noteFor } from './scoutnote'
-export type { NoteRef } from './scoutnote'
 
 export type SearchMonths = 3 | 6 | 9
 export const SEARCH_WEEKS: Record<SearchMonths, number> = { 3: 13, 6: 26, 9: 39 }

@@ -24,7 +24,7 @@ export function releaseCost(state: GameState, playerId: number): number {
   return Math.round(weeksLeft * p.wage * 0.5 / 1000) * 1000
 }
 
-export type ReleaseBlock = 'notYours' | 'onLoanIn' | 'awayOnLoan' | 'floor' | 'noMoney' | null
+type ReleaseBlock = 'notYours' | 'onLoanIn' | 'awayOnLoan' | 'floor' | 'noMoney' | null
 
 /** Why the release button would refuse, or null when it would go through.
  *  The screen reads this to grey the button honestly (the appointBlock rule). */

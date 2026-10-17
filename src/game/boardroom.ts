@@ -50,7 +50,7 @@ const LEDGER: Record<BoardAsk, 'capital' | 'funds' | 'time' | 'staff'> = {
   time: 'time', funds: 'funds', facilities: 'capital', staff: 'staff',
 }
 
-export interface AskState {
+interface AskState {
   id: BoardAsk
   /** false when there is nothing here to ask for at all */
   possible: boolean

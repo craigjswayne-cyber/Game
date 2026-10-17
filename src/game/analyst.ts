@@ -106,7 +106,7 @@ const CLARITY_GAP = 0.06
 const CLARITY_K = 0.36
 const CLARITY_MEAN = 0.5
 
-export interface ReadOdds {
+interface ReadOdds {
   /** the units weakest first, by strength against their average */
   sorted: [AnalystRead['unit'], number][]
   clarity: number

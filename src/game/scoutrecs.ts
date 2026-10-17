@@ -129,7 +129,7 @@ export function recFor(state: GameState, playerId: number): ScoutRec | null {
 
 /** In hindsight, once the man is fully known: did the call hold up? Read on
  *  the present level against what the scout said it was. */
-export type Hindsight = 'better' | 'held' | 'worse'
+type Hindsight = 'better' | 'held' | 'worse'
 export function hindsight(state: GameState, rec: ScoutRec): Hindsight | null {
   const p = state.players[rec.playerId]
   if (!p || knowledge(state, p) < 95) return null

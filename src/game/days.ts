@@ -31,8 +31,6 @@ import { isDeadlineWeek, windowNoteDue } from './window'
  *     else's results, which is where the week used to end anyway.
  */
 
-/** Monday to Saturday. Sunday belongs to the previous week's match. */
-export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
 export type DayIndex = 0 | 1 | 2 | 3 | 4 | 5
 const MATCH_DAY: DayIndex = 5
 
@@ -309,7 +307,7 @@ export function matchDayIndex(state: GameState): DayIndex | null {
  * The single decision point for the whole flow, so the button's label, the
  * bulletin and the week roll-over can never disagree about what day it is.
  */
-export type NextStep =
+type NextStep =
   | { kind: 'day'; day: DayIndex }
   | { kind: 'match' }
   | { kind: 'week' }
@@ -367,7 +365,7 @@ export function nextStep(state: GameState): NextStep {
  * every tap of Continue on `mail` marks one story read and serves the next, so
  * n taps clear n stories, and a press question always carries options.
  */
-export type DeskBlock =
+type DeskBlock =
   | { kind: 'mail'; n: number; label: string }
   | { kind: 'press'; n: number; label: string }
   | { kind: 'board'; n: number; label: string }
