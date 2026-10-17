@@ -87,8 +87,10 @@ async function sweep(label, height, stopAt, width = 412) {
     // Play forward until the touchline panel we want is on screen. Half-time
     // comes first; the break is one resume further on.
     const reachPanel = async want => {
-      // 240 steps: a loaded runner plays fewer minutes a step (1.9.1)
-      for (let i = 0; i < 240; i++) {
+      // 240 steps, and four minutes at most: a loaded runner plays fewer
+      // minutes a step (1.9.1), and nothing may hold the suite for longer
+      const until = Date.now() + 240000
+      for (let i = 0; i < 240 && Date.now() < until; i++) {
         // A TOUCHLINE CALL STOPS EVERYTHING, INCLUDING SKIP. The Skip button is
         // disabled while a penalty decision is unanswered ("The touchline call is
         // yours first"), so a loop that only presses Skip sits at the same minute
@@ -110,12 +112,7 @@ async function sweep(label, height, stopAt, width = 412) {
         }
         // any injury stop has to be answered before play goes on
         if (await page.locator('.squad-sheet').count()) {
-          // the man who is on, then a bench option, then back to the match;
-          // only rows that can be tapped (1.9.1's injury wait greys the rest)
-          await page.locator('.squad-sheet .sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
-          await page.locator('.squad-sheet .sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
-          const done = page.locator('.squad-sheet .btn.gold')
-          if (await done.count()) await done.first().click({ timeout: 3000 }).catch(() => {})
+          await answerSheet(page)
           await page.waitForTimeout(300)
           continue
         }
@@ -134,9 +131,7 @@ async function sweep(label, height, stopAt, width = 412) {
     // (1.9.1), which greys every row but the ones that answer it. That is not
     // the sheet this sweep measures: answer it, then open the manager's own
     for (let i = 0; i < 6 && await page.locator('.squad-sheet').count(); i++) {
-      await page.locator('.squad-sheet .sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
-      await page.locator('.squad-sheet .sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
-      await page.locator('.squad-sheet .btn', { hasText: /Back to the Match|Done|Close/ }).first().click({ timeout: 3000 }).catch(() => {})
+      await answerSheet(page)
       await page.waitForTimeout(400)
     }
     await openBtn.first().click()
@@ -317,6 +312,22 @@ async function sweep(label, height, stopAt, width = 412) {
   } finally {
     await page.close()
   }
+}
+
+// Answer an open squad sheet the way a manager would: the man the match is
+// waiting on (or any man on), then each tappable bench row in turn until one
+// is taken, then back to the match. Bounded, so a refused row cannot spin it.
+async function answerSheet(page) {
+  await page.locator('.squad-sheet .sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+  const rows = page.locator('.squad-sheet .sheet-col >> nth=1').locator('.sheet-row:not([disabled])')
+  const n = await rows.count().catch(() => 0)
+  for (let k = 0; k < Math.min(n, 8); k++) {
+    const done = page.locator('.squad-sheet .btn.gold:not([disabled])')
+    if (await done.count()) break
+    await rows.nth(k).click({ timeout: 3000 }).catch(() => {})
+    await page.waitForTimeout(150)
+  }
+  await page.locator('.squad-sheet .btn.gold:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
 }
 
 try {
