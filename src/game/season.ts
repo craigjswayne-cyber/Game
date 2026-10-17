@@ -99,8 +99,44 @@ export const NEWS_KEEP = 250
  * Process everything for the current week EXCEPT the user's fixture
  * (which the UI plays via the MatchDay screen first).
  * Then move to next week.
+ *
+ * ONE WEEK, IN SLICES (1.9.1). The settle runs every match in the world and
+ * every club's week, 230 to 480 ms on a desktop and a second or more on a
+ * budget phone, and it used to run as one block the phone could not draw
+ * through. The body is a generator now: it pauses after each match and before
+ * each heavy phase. processWeekAndAdvance runs it straight through, exactly
+ * as before (every probe, and the sim fingerprint, use this one);
+ * processWeekAndAdvanceAsync hands the main thread back between slices so the
+ * screen keeps painting. Same code, same order, same dice: only the gaps
+ * between the steps differ.
  */
-export function processWeekAndAdvance(state: GameState) {
+export function processWeekAndAdvance(state: GameState): void {
+  const steps = weekSteps(state)
+  while (!steps.next().done) { /* run to the end */ }
+}
+
+/** The same week, yielding to the browser whenever a slice has run for
+ *  about `budgetMs`. The caller must keep everything else off the career until
+ *  it resolves (store.continueTap holds the save queue and covers the screen). */
+export async function processWeekAndAdvanceAsync(state: GameState, budgetMs = 12): Promise<void> {
+  const steps = weekSteps(state)
+  let since = performance.now()
+  while (!steps.next().done) {
+    if (performance.now() - since < budgetMs) continue
+    await breathe()
+    since = performance.now()
+  }
+}
+
+/** Give the main thread back for a frame: the scheduler's own yield where the
+ *  browser has it, a macrotask otherwise. */
+function breathe(): Promise<void> {
+  const sch = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler
+  if (sch?.yield) return sch.yield()
+  return new Promise(r => setTimeout(r, 0))
+}
+
+function* weekSteps(state: GameState): Generator<void, void, void> {
   // last week's back page is last week's: a fresh one is written below if
   // the side plays, and a stale one must never sit over a new week
   const rng = weekRng(state)
@@ -211,6 +247,8 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
     if (mine) simmedUserFx = fx
+    // a breath for the screen after every match in the world (weekSteps)
+    yield
   }
 
   // ---- WORD FROM CAMP ----
@@ -317,6 +355,7 @@ export function processWeekAndAdvance(state: GameState) {
   // The A League runs the same weeks as the senior league, and AFTER it: a lad
   // called up to the seniors this week has had his senior game and had p.acad
   // cleared, so he cannot also turn out for the A side (feedback 10G).
+  yield
   playAcademyWeek(state, rng)
   // DEADLINE DAY: the last week of each window is a circus - panic
   // listings appear at cut prices and nobody's star is safe. Filed by the
@@ -1824,6 +1863,7 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  yield
   weeklyTraining(state, rng)
   // the game-time ledger (F18): what the team sheets say against what each man
   // was told, settled a little every week rather than in one lump
@@ -1831,6 +1871,7 @@ export function processWeekAndAdvance(state: GameState) {
   gameTimeReview(state)
   // The other hundred clubs, whether or not the manager currently has a job:
   // the world's books do not stop because he is between posts.
+  yield
   aiWeeklyFinance(state)
   aiFireSale(state)
   // and the manager gets a year's notice before the same thing happens to him
@@ -2019,6 +2060,7 @@ export function processWeekAndAdvance(state: GameState) {
     // press tone cools toward neutral unless you keep feeding it
     if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8
   }
+  yield
   generateGossip(state, rng)
   memoryWeek(state) // the world reads your old decisions back (memory.ts), no rng
   // WHERE THE SUPPORT'S ANGER HAS GOT TO, and what it costs (terraces.ts).
@@ -2100,13 +2142,17 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // backed rivals and the youth hunters move (rivalbids.ts): all hashed, no
   // draws on the shared stream
   settleRivalBids(state)
+  yield
   aiTransfers(state, rng)
   rivalPushWeek(state)
   aiYouthHunt(state)
   aiFreeAgents(state)
+  yield
   aiSummerMarket(state)
+  yield
   aiRenewals(state, rng)
   if (!state.unemployed) aiPreContractPoach(state, rng)
+  yield
   refreshVacancies(state, rng)
 
   // individual development focus: extra growth for up to FOCUS_SLOTS
@@ -2271,6 +2317,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     // the summer cap audit happens on the old season's wage bill, before the
     // rollover moves anybody on (F6)
     auditCaps(state)
+    yield
     rebuildSeason(state)
     // and the new season's ceiling is measured from the league as it now stands
     refreshCaps(state)

@@ -26,6 +26,7 @@ import { ProPrompt } from './ProPrompt'
 import { FeedbackPrompt } from './FeedbackPrompt'
 import { bigTablet, useTablet } from './tablet'
 import { COMMUNITY_URL } from '../game/community'
+import { TurningVeil } from './TurningVeil'
 
 /* A SCREEN WHOSE FILE IS GONE RELOADS THE GAME ONCE (1.9.1 re-audit). After
    a new build replaces the old one, a tab still running the old build asks
@@ -280,6 +281,7 @@ function Overlays() {
     <>
       <SaveWarning />
       <WeekWarning />
+      <TurningVeil />
       <Tutorial />
       <Celebration />
       {/* Pro Manager, at most one card per match flow and only at a safe

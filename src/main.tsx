@@ -11,7 +11,7 @@ import { noteShell } from './game/shell'
 import { attachPlayBilling } from './game/playbilling'
 import { attachStoreKit } from './game/storekit'
 import { bridge, restore } from './game/monetise'
-import { useStore } from './store'
+import { settleInSlices, useStore } from './store'
 import { ensureLang, getLang, t } from './game/i18n'
 import './ui/tokens.css'
 import './ui/theme.css'
@@ -99,6 +99,9 @@ function watchPurchases(): void {
 // ensureLang fails soft - offline with a cold cache, the game opens in
 // English rather than not at all, and the switch lands when the network does.
 void ensureLang(getLang()).finally(() => {
+  // the week settles in slices in the game, so the screen paints through it
+  // (store.settleWeekAsync); the probes, run in node, settle in one go
+  settleInSlices(true)
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <ErrorBoundary>
