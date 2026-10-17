@@ -108,15 +108,15 @@ export function OppReportCard() {
     <div className="card opp-report" style={{ borderLeft: '4px solid var(--gold)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
         <div className="fact-label">{t('oppreport.title', { club: teamShort(game, oppId) })}</div>
-        <b className="meta" style={{ fontSize: 11 }} data-band={rep.band}>{t(`oppreport.band_${rep.band}`)}</b>
+        <b className="meta" style={{ fontSize: '0.6875rem' }} data-band={rep.band}>{t(`oppreport.band_${rep.band}`)}</b>
       </div>
-      <div className="meta muted" style={{ fontSize: 11 }}>{t(`oppreport.bandHint_${rep.band}`)}</div>
+      <div className="meta muted" style={{ fontSize: '0.6875rem' }}>{t(`oppreport.bandHint_${rep.band}`)}</div>
       <div style={{ marginTop: 4 }}>
         {shown.map((l, i) => (
-          <div key={i} className="meta" data-cat={l.cat} data-conf={l.conf} style={{ fontSize: 12, padding: '2px 0' }}>
+          <div key={i} className="meta" data-cat={l.cat} data-conf={l.conf} style={{ fontSize: '0.75rem', padding: '2px 0' }}>
             {lineText(l)}
             {/* how sure he is of it (1.8.2): the soft spot says so in its own words */}
-            {l.conf && l.cat !== 'soft' && <span className="muted" style={{ fontSize: 11 }}> ({t(`oppreport.sure${l.conf === 'high' ? 'High' : l.conf === 'mid' ? 'Mid' : 'Low'}`)})</span>}
+            {l.conf && l.cat !== 'soft' && <span className="muted" style={{ fontSize: '0.6875rem' }}> ({t(`oppreport.sure${l.conf === 'high' ? 'High' : l.conf === 'mid' ? 'Mid' : 'Low'}`)})</span>}
             {/* TAPE ROOM NIGHT (1.8.2, rewarded.ts): on the line it answers,
                 only while the report cannot say, once a match */}
             {l.cat === 'calls' && l.k === 'armsrace.tapeUnread' && club && rewardedAvailable('taperoom') && canTapeRoom(game, oppId) && (
@@ -126,7 +126,7 @@ export function OppReportCard() {
                   else setNote(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
                 }} /></>
             )}
-            {l.cat === 'calls' && note && <div className="muted" style={{ fontSize: 11 }}>{note}</div>}
+            {l.cat === 'calls' && note && <div className="muted" style={{ fontSize: '0.6875rem' }}>{note}</div>}
           </div>
         ))}
       </div>
@@ -135,17 +135,17 @@ export function OppReportCard() {
           {t(more ? 'oppreport.showLess' : 'oppreport.showMore')}
         </button>
       )}
-      {!club && <div className="meta" style={{ marginTop: 6, fontSize: 12 }}>{t('oppreport.testNote')}</div>}
+      {!club && <div className="meta" style={{ marginTop: 6, fontSize: '0.75rem' }}>{t('oppreport.testNote')}</div>}
       {/* what the plan chips on the page do, said once, here (1.8.3) */}
       {opts.length > 0 && (
         <>
           <div className="fact-label" style={{ marginTop: 8 }}>{t('oppreport.planTitle')}</div>
           {opts.map(o => (
-            <div key={o.id} className="meta" style={{ fontSize: 12, padding: '2px 0' }}>
+            <div key={o.id} className="meta" style={{ fontSize: '0.75rem', padding: '2px 0' }}>
               <b>{t(`oppreport.plan_${o.id}`)}.</b> {planDesc(o)}
             </div>
           ))}
-          <div className="meta muted" style={{ fontSize: 11 }}>{t('oppreport.planSub')}</div>
+          <div className="meta muted" style={{ fontSize: '0.6875rem' }}>{t('oppreport.planSub')}</div>
         </>
       )}
     </div>
@@ -169,13 +169,13 @@ export function MatchFindings() {
       <div className="fact-label">{t('oppreport.findingsTitle')}</div>
       {items.map((f, i) => (
         <div key={i} className="fix-row" data-cat={f.cat}>
-          <b style={{ flex: '0 0 74px', fontSize: 11, color: colour(f.tone), fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <b style={{ flex: '0 0 74px', fontSize: '0.6875rem', color: colour(f.tone), fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {t(`oppreport.cat_${f.cat}`)}
           </b>
-          <span style={{ fontSize: 12, minWidth: 0 }}>{lineText(f)}</span>
+          <span style={{ fontSize: '0.75rem', minWidth: 0 }}>{lineText(f)}</span>
         </div>
       ))}
-      {game.clubs[rec.oppId] && <div className="meta muted" style={{ fontSize: 11, marginTop: 4 }}>{t('oppreport.filed')}</div>}
+      {game.clubs[rec.oppId] && <div className="meta muted" style={{ fontSize: '0.6875rem', marginTop: 4 }}>{t('oppreport.filed')}</div>}
     </div>
   )
 }

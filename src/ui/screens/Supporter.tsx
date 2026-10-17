@@ -60,9 +60,9 @@ function Row({ icon, title, line, right, msg, children, hero }: {
   return (
     <div className={`card${hero ? ' store-hero' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span className="row-ico" style={{ fontSize: hero ? 24 : 20 }}><Glyph name={icon} /></span>
+        <span className="row-ico" style={{ fontSize: hero ? '1.5rem' : '1.25rem' }}><Glyph name={icon} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: hero ? 16 : 14 }}>{title}</div>
+          <div style={{ fontWeight: 700, fontSize: hero ? '1rem' : '0.875rem' }}>{title}</div>
           <div className="meta" style={{ marginTop: 1 }}>{line}</div>
         </div>
         {right}
@@ -552,7 +552,7 @@ export default function Supporter() {
             <div key={tier} style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid var(--edge, rgba(128,128,128,.18))', paddingTop: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13 }}>{t(TIER_KEY[tier])}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.8125rem' }}>{t(TIER_KEY[tier])}</div>
                   <div className="meta" style={{ marginTop: 1 }}>
                     {t('till.injAdds', { amount: fmtMoney(INJECT_TIERS[tier].amount) })}
                     {baseCap != null && <> {t('till.injWage', { weekly: fmtWage(Math.round(INJECT_TIERS[tier].wage * baseCap)) })}</>}
@@ -604,7 +604,7 @@ export default function Supporter() {
       </button>
       {msgs.restore && <div className="meta sheet-log" style={{ margin: '0 16px' }}>{msgs.restore}</div>}
 
-      <div className="muted" style={{ padding: '10px 16px', fontSize: 12 }}>{t('store.fineprint')}</div>
+      <div className="muted" style={{ padding: '10px 16px', fontSize: '0.75rem' }}>{t('store.fineprint')}</div>
       <div className="spacer" />
     </>
   )

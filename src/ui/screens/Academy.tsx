@@ -146,7 +146,7 @@ export default function Academy() {
                     <td className={!f.played ? 'muted' : us > them ? 'result-w' : us < them ? 'result-l' : 'result-d'}>
                       {f.played ? `${t(us > them ? 'common.w' : us < them ? 'common.l' : 'common.d')} ${us}-${them}` : t(home ? 'common.h' : 'common.a')}
                     </td>
-                    <td className="muted" style={{ fontSize: 11 }}>
+                    <td className="muted" style={{ fontSize: '0.6875rem' }}>
                       {[...tally].map(([n, c]) => (c > 1 ? `${n} (${c})` : n)).join(', ')}
                     </td>
                   </tr>

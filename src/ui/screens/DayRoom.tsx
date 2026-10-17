@@ -152,7 +152,7 @@ function MondayBlocks() {
             <div className="fact-label">{t('dayroom.satReviewed')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={22} />
-              <b style={{ fontSize: 16, color: col }}>{verdict} {us}-{them}</b>
+              <b style={{ fontSize: '1rem', color: col }}>{verdict} {us}-{them}</b>
               <span className="muted">
                 {t(home ? 'dayroom.homeTo' : 'dayroom.awayAt', { club: teamShort(game, oppId) })}
               </span>
@@ -434,7 +434,7 @@ function FridayBlocks() {
             <div className="fact-label">{fixtureDayOff(fx.id) === 1 && !fx.midweek ? fxDate(game.season, fx) : t('dayroom.tomorrow')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={26} />
-              <b style={{ fontSize: 16 }}>
+              <b style={{ fontSize: '1rem' }}>
                 {t(home ? 'dayroom.vHome' : 'dayroom.vAway', { club: opp?.name ?? teamShort(game, oppId) })}
               </b>
             </div>

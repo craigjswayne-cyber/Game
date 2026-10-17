@@ -88,7 +88,7 @@ export default function DevelopmentPanel() {
       </SectionTitle>
       <div className="card" style={{ padding: '8px 10px', borderLeft: '4px solid var(--gold)' }}>
         <div className="fact-label">{t('training.whoQualifies')}</div>
-        <div className="meta" style={{ fontSize: 12 }}>
+        <div className="meta" style={{ fontSize: '0.75rem' }}>
           {view === 'focus'
             ? t('training.focusRule', { age: FOCUS_MAX_AGE, cap: FOCUS_SLOTS })
             : t('training.planRule', { cap })}
@@ -108,7 +108,7 @@ export default function DevelopmentPanel() {
         ))}
       </div>
       <div className="card" style={{ padding: '2px 10px' }}>
-        {rows.length === 0 && <div className="meta" style={{ fontSize: 12, padding: '8px 0' }}>{t('training.noMatch')}</div>}
+        {rows.length === 0 && <div className="meta" style={{ fontSize: '0.75rem', padding: '8px 0' }}>{t('training.noMatch')}</div>}
         {rows.map((p, i) => {
           const on = isOn(p)
           const no = block(p)
@@ -121,15 +121,15 @@ export default function DevelopmentPanel() {
             <div key={p.id} data-dev-row={p.id} style={{ padding: '7px 0', borderTop: i ? '1px solid var(--border)' : undefined, opacity: no && !on ? 0.62 : 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '0.8438rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {/* a chosen man is marked, not only by the control on his right */}
                     {on && <span aria-hidden style={{ display: 'inline-block', width: 7, height: 7, borderRadius: 4, background: 'var(--gold)', marginRight: 6, verticalAlign: 'middle' }} />}
-                    {p.name} <span className="muted" style={{ fontWeight: 600, fontSize: 12 }}>{p.pos} · {p.age}{p.acad ? ` · ${t('training.tagAcademy')}` : ''}{p.onLoan ? ` · ${t('training.tagLoan')}` : ''}</span>
+                    {p.name} <span className="muted" style={{ fontWeight: 600, fontSize: '0.75rem' }}>{p.pos} · {p.age}{p.acad ? ` · ${t('training.tagAcademy')}` : ''}{p.onLoan ? ` · ${t('training.tagLoan')}` : ''}</span>
                   </div>
-                  <div className="meta" style={{ fontSize: 12, color: no ? 'var(--text-negative)' : undefined }}>{why}</div>
+                  <div className="meta" style={{ fontSize: '0.75rem', color: no ? 'var(--text-negative)' : undefined }}>{why}</div>
                 </div>
                 {view === 'focus' ? (
-                  <button className={on || full ? 'btn ghost dev-act' : 'btn dev-act'} style={{ padding: '5px 12px', fontSize: 12, flexShrink: 0 }}
+                  <button className={on || full ? 'btn ghost dev-act' : 'btn dev-act'} style={{ padding: '5px 12px', fontSize: '0.75rem', flexShrink: 0 }}
                     disabled={!on && !!no}
                     onClick={() => {
                       if (!on && full) { setSaid(p.id); return }
@@ -138,7 +138,7 @@ export default function DevelopmentPanel() {
                     {t(on ? 'training.remove' : 'training.add')}
                   </button>
                 ) : (
-                  <select className="inline-input" style={{ margin: 0, width: 128, flexShrink: 0, fontSize: 12, padding: '6px 6px' }}
+                  <select className="inline-input" style={{ margin: 0, width: 128, flexShrink: 0, fontSize: '0.75rem', padding: '6px 6px' }}
                     value={cur ?? ''} disabled={!on && !!no}
                     aria-label={t('training.planFor', { name: p.name })}
                     onChange={e => {
@@ -155,15 +155,15 @@ export default function DevelopmentPanel() {
                   on a programme or a focus place, and a second programme that
                   splits his week (devproject.ts, season.ts rollPlan) */}
               {on && (
-                <div className="meta" style={{ fontSize: 12, marginTop: 3 }}>
+                <div className="meta" style={{ fontSize: '0.75rem', marginTop: 3 }}>
                   {view === 'plans' && (activeEntry(game, p.id)?.pts ?? 0) > 0 && <>{t('dev.planOne', { plan: t(KINDS.find(k => k.id === cur)?.name ?? 'training.planNone'), n: activeEntry(game, p.id)?.pts ?? 0 })} </>}
                   {t(monthKey(game, p))}
                 </div>
               )}
               {on && view === 'plans' && cur && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                  <span className="meta muted" style={{ flex: 1, minWidth: 0, fontSize: 11.5 }}>{t('dev.plan2Hint')}</span>
-                  <select className="inline-input" style={{ margin: 0, width: 128, flexShrink: 0, fontSize: 12, padding: '6px 6px' }}
+                  <span className="meta muted" style={{ flex: 1, minWidth: 0, fontSize: '0.7188rem' }}>{t('dev.plan2Hint')}</span>
+                  <select className="inline-input" style={{ margin: 0, width: 128, flexShrink: 0, fontSize: '0.75rem', padding: '6px 6px' }}
                     value={activeEntry(game, p.id)?.plan2 ?? ''}
                     aria-label={t('dev.plan2For', { name: p.name })}
                     onChange={e => {
@@ -175,7 +175,7 @@ export default function DevelopmentPanel() {
                 </div>
               )}
               {said === p.id && full && (
-                <div className="meta" style={{ fontSize: 12, fontWeight: 700, color: 'var(--danger)', marginTop: 3 }}>
+                <div className="meta" style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--danger)', marginTop: 3 }}>
                   {t('training.bookFull', { cap })}
                 </div>
               )}
@@ -184,7 +184,7 @@ export default function DevelopmentPanel() {
         })}
       </div>
       {hiddenIneligible > 0 || showAll ? (
-        <button className="btn ghost dev-act" style={{ margin: '6px 14px 0', fontSize: 12, padding: '6px 12px' }} onClick={() => setShowAll(!showAll)}>
+        <button className="btn ghost dev-act" style={{ margin: '6px 14px 0', fontSize: '0.75rem', padding: '6px 12px' }} onClick={() => setShowAll(!showAll)}>
           {showAll ? t('training.hideIneligible') : t('training.showIneligible', { n: hiddenIneligible })}
         </button>
       ) : null}

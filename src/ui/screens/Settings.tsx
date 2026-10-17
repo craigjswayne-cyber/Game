@@ -79,7 +79,7 @@ export default function Settings() {
 
       {/* ---- the skins ---- */}
       <div className="card">
-        <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.skin')}</div>
+        <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{t('settings.skin')}</div>
         <div className="meta" style={{ marginTop: 1 }}>{t('settings.skinLine')}</div>
       </div>
       {/* A locked skin still shows its name, its line and its full swatch row.
@@ -96,7 +96,7 @@ export default function Settings() {
             onClick={() => locked ? go('supporter') : setSkin(s)}>
             <div className="skin-card-top">
               <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{t(SKIN_KEYS[s].name)}</div>
+                <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{t(SKIN_KEYS[s].name)}</div>
                 <div className="meta" style={{ marginTop: 1 }}>{t(SKIN_KEYS[s].line)}</div>
               </div>
               {skin === s && !locked && <span className="chip" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>✓</span>}
@@ -126,9 +126,9 @@ export default function Settings() {
           four. */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="row-ico" style={{ fontSize: 20 }}><Glyph name={night ? 'moon' : 'sun'} /></span>
+          <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name={night ? 'moon' : 'sun'} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.floodlights')}</div>
+            <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{t('settings.floodlights')}</div>
             <div className="meta" style={{ marginTop: 1 }}>{t(night ? 'settings.floodOn' : 'settings.floodOff')}</div>
           </div>
         </div>
@@ -152,16 +152,16 @@ export default function Settings() {
           name fits at every type size, in all five languages. */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="nations" /></span>
+          <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name="nations" /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* the title screen's label is capitals; here it sits among
                 sentence-case titles, so it is put into their case (UI QA) */}
-            <div className="set-title-case" style={{ fontWeight: 700, fontSize: 14 }}>{t('menu.language')}</div>
+            <div className="set-title-case" style={{ fontWeight: 700, fontSize: '0.875rem' }}>{t('menu.language')}</div>
             <div className="meta" style={{ marginTop: 1 }}>{t('settings.langLine')}</div>
           </div>
         </div>
         <select className="inline-input lang-select" value={lang} aria-label={t('menu.language')}
-          style={{ width: '100%', marginTop: 8, fontSize: 13, padding: '6px 10px', lineHeight: 1.2 }}
+          style={{ width: '100%', marginTop: 8, fontSize: '0.8125rem', padding: '6px 10px', lineHeight: 1.2 }}
           onChange={ev => setLang(ev.target.value as typeof lang)}>
           {LANGS.map(l => <option key={l.code} value={l.code} lang={l.code}>{l.label}</option>)}
         </select>
@@ -174,9 +174,9 @@ export default function Settings() {
       {adPrivacyAvailable() && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="paper" /></span>
+            <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name="paper" /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.adPrivacy')}</div>
+              <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{t('settings.adPrivacy')}</div>
               <div className="meta" style={{ marginTop: 1 }}>{adPrivacyMsg ?? t('settings.adPrivacyLine')}</div>
             </div>
           </div>
@@ -206,9 +206,9 @@ export default function Settings() {
       {game && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="paper" /></span>
+            <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name="paper" /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.pronoun')}</div>
+              <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{t('settings.pronoun')}</div>
               <div className="meta" style={{ marginTop: 1 }}>{t('settings.pronounLine')}</div>
             </div>
           </div>
@@ -232,9 +232,9 @@ export default function Settings() {
            the control - the same control, at its one address. */}
       <div className="card text-scale-row">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="text" /></span>
+          <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name="text" /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="ts-label" style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.textSize')}</div>
+            <div className="ts-label" style={{ fontWeight: 700, fontSize: '0.875rem' }}>{t('settings.textSize')}</div>
             <div className="meta" style={{ marginTop: 1 }}>{t('settings.textSizeLine')}</div>
           </div>
         </div>
@@ -249,7 +249,7 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="muted" style={{ padding: '10px 16px', fontSize: 12 }}>
+      <div className="muted" style={{ padding: '10px 16px', fontSize: '0.75rem' }}>
         {t('settings.fineprint', { lang: LANGS.find(l => l.code === getLang())?.label ?? '' })}
       </div>
       <div className="spacer" />

@@ -44,7 +44,7 @@ function TestRankings({ game }: { game: GameState }) {
           })}
         </tbody>
       </table></div>
-      <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
+      <div className="meta" style={{ padding: '4px 16px', fontSize: '0.75rem' }}>
         {sinceLine(game)}{t('world.agNatFoot')}
       </div>
     </>
@@ -100,12 +100,12 @@ export default function Nations() {
       {!game.isles && game.comps['lions'] && !islesCoach(game) && (
         <div className="card">
           <SectionTitle sub={compLabel(game.comps['lions']?.name)}>{t('isles.title')}</SectionTitle>
-          <div className="muted" style={{ padding: '0 10px 10px', fontSize: 12 }}>{t(islesEligible(game).why)}</div>
+          <div className="muted" style={{ padding: '0 10px 10px', fontSize: '0.75rem' }}>{t(islesEligible(game).why)}</div>
         </div>
       )}
       {myNat && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 14 }}>{t('world.natYouCoach', { nat: nationName(myNat) })}</h3>
+          <h3 style={{ fontSize: '0.875rem' }}>{t('world.natYouCoach', { nat: nationName(myNat) })}</h3>
           <div className="meta">
             {mySquad.length
               ? t('world.natWindowOpen', { n: mySquad.length })

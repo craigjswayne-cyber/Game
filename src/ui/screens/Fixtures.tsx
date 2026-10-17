@@ -96,7 +96,7 @@ export default function Fixtures() {
         <>
       {weekend.length > 0 && (
         <div className="card" style={{ padding: '10px 0' }}>
-          <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: 16 }}>{t('fixtures.thisWeekend')}</h3>
+          <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: '1rem' }}>{t('fixtures.thisWeekend')}</h3>
           <div className="meta" style={{ textAlign: 'center', marginBottom: 4 }}>{weekDate(game.season, game.week)} · {compLabel(game.comps[leagueId!]?.short)}</div>
           {weekend.map(f => (
             /* YOUR game is marked by tinting the row and bolding YOUR name, and the V
@@ -133,7 +133,7 @@ export default function Fixtures() {
                         (user: "on the fixture graphic the sea level isnt
                         needed"). The trip's difficulty still shows where the
                         decision is made: the match-day venue panel. */}
-                    {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 11 }}>▸</span> : null}
+                    {f.played && f.events?.length ? <span className="muted" style={{ fontSize: '0.6875rem' }}>▸</span> : null}
                   </span>
                 </td>
                 <td className="muted" style={{ whiteSpace: 'nowrap' }}>{compLabel(game.comps[f.compId]?.short) ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
@@ -185,14 +185,14 @@ export default function Fixtures() {
                           {teamShort(game, id)}
                         </span>
                       </td>
-                      <td className="muted" style={{ whiteSpace: 'nowrap', fontSize: 11 }}>
+                      <td className="muted" style={{ whiteSpace: 'nowrap', fontSize: '0.6875rem' }}>
                         {compLabel(game.comps[game.clubs[id]?.leagueId ?? '']?.short) ?? ''}
                       </td>
                       <td>
                         {/* a real tap target: geosweep holds every button to 44px
                             and this one shipped at 28, which on a phone is a
                             button you miss rather than a button you press */}
-                        <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
+                        <button className="btn ghost" style={{ fontSize: '0.75rem', padding: '12px 14px', minHeight: 44 }}
                           onClick={() => { setFrMsg(arrangeMidweekFriendly(game, id, wk)); touch() }}>
                           {t('fixtures.friendlyPlay')}
                         </button>

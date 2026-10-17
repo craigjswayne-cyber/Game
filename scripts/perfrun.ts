@@ -15,7 +15,7 @@ import * as SEASON from '../src/game/season'
 import type { GameState } from '../src/game/model'
 import { peekPid, resetIds } from '../src/game/attributes'
 process.env.SAVEGEN_LIB = '1'
-const { playWeek, startCareer } = await import('./savegen')
+const { playWeek, startCareer } = await import('./lib/savegen')
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Any = any

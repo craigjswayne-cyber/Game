@@ -90,7 +90,7 @@ export function ScoutRecList({ onOpen, limit }: { onOpen: (id: number) => void; 
   return (
     <>
       <SectionTitle sub={t('transfers.scoutsReportSub', { g: game.staffPeople?.scout?.g ?? 'm' })}>{t('transfers.scoutsReport')}</SectionTitle>
-      {!list.length && <div className="muted" style={{ padding: '4px 14px 10px', fontSize: 13 }}>{t('scouting.empty')}</div>}
+      {!list.length && <div className="muted" style={{ padding: '4px 14px 10px', fontSize: '0.8125rem' }}>{t('scouting.empty')}</div>}
       {list.length > 0 && (
         <div className="scout-list">
           {list.slice(0, cap).map(r => <ScoutRow key={r.playerId} game={game} p={game.players[r.playerId]} rec={r} onOpen={() => onOpen(r.playerId)} />)}
@@ -141,7 +141,7 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
           <div className="card scout-verdict">
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
               <span className="fact-label">{t('scouting.verdict')}</span>
-              <span className="meta muted" style={{ fontSize: 11 }}>{t('scouting.filed', { date: weekDate(rec.season, rec.week) })}</span>
+              <span className="meta muted" style={{ fontSize: '0.6875rem' }}>{t('scouting.filed', { date: weekDate(rec.season, rec.week) })}</span>
             </div>
             <div className="scout-verdict-word" style={{ color: gradeColour(rec.grade) }}>{gradeWord(rec.grade)}</div>
             {/* his words without the opener: the verdict is the headline above it */}
@@ -154,7 +154,7 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
           <div className="scout-fact"><span className="muted">{t('scouting.potential')}</span><Stars ca={pot} /></div>
           {!ours && <div className="scout-fact"><span className="muted">{t('scouting.value')}</span><b>{t('scouting.about', { fee: fmtMoney(seenValue(game, p)) })}</b></div>}
           <div className="scout-fact"><span className="muted">{t('scouting.wage')}</span><b>{fmtWage(p.wage)}{t('common.perWeek')}</b></div>
-          <div className="meta muted" style={{ fontSize: 11, marginTop: 4 }}>{t(rec ? 'scouting.starsNote' : 'scouting.starsFile')}</div>
+          <div className="meta muted" style={{ fontSize: '0.6875rem', marginTop: 4 }}>{t(rec ? 'scouting.starsNote' : 'scouting.starsFile')}</div>
         </div>
         {!ours && <div style={{ margin: '0 0 0' }}><ScoutReportCard game={game} p={p} onMsg={setMsg} /></div>}
         {msg && <div className="meta" style={{ margin: '6px 14px', color: 'var(--gold)', fontWeight: 700 }}>{msg}</div>}
@@ -268,10 +268,10 @@ function ScoutCommission() {
             </select>
             <div style={{ display: 'flex', gap: 8 }}>
               {([3, 6, 9] as SearchMonths[]).map(m => (
-                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 12, lineHeight: 1.25 }}
+                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: '0.75rem', lineHeight: 1.25 }}
                   onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
                   {t('transfers.months', { n: m })}<br />
-                  <span style={{ fontSize: 11, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
+                  <span style={{ fontSize: '0.6875rem', fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
                 </button>
               ))}
             </div>
@@ -303,10 +303,10 @@ function ScoutReports() {
         {reports.map((n, i) => (
           <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}
             {...rowNav(() => setOpenId(openId === n.id ? null : n.id))} aria-expanded={openId === n.id}>
-            <div className="meta" style={{ fontSize: 11 }}>{weekDate(n.season, n.week)}</div>
-            <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{newsSubject(n)}</div>
+            <div className="meta" style={{ fontSize: '0.6875rem' }}>{weekDate(n.season, n.week)}</div>
+            <div style={{ fontWeight: 700, fontSize: '0.8125rem', lineHeight: 1.3 }}>{newsSubject(n)}</div>
             {openId === n.id && (
-              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 12, marginTop: 3 }}>{plainNews(newsBody(n))}</div>
+              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: '0.75rem', marginTop: 3 }}>{plainNews(newsBody(n))}</div>
             )}
           </div>
         ))}

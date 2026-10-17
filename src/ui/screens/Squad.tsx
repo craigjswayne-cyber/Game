@@ -48,9 +48,9 @@ function FitRing({ v }: { v: number }) {
 }
 
 function MoraleArrow({ v }: { v: number }) {
-  if (v >= 7) return <span style={{ color: 'var(--text-positive)', fontSize: 14 }}>▲</span>
-  if (v >= 4.5) return <span style={{ color: 'var(--gold)', fontSize: 14 }}>►</span>
-  return <span style={{ color: 'var(--danger)', fontSize: 14 }}>▼</span>
+  if (v >= 7) return <span style={{ color: 'var(--text-positive)', fontSize: '0.875rem' }}>▲</span>
+  if (v >= 4.5) return <span style={{ color: 'var(--gold)', fontSize: '0.875rem' }}>►</span>
+  return <span style={{ color: 'var(--danger)', fontSize: '0.875rem' }}>▼</span>
 }
 
 export default function Squad() {

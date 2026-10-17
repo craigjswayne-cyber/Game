@@ -36,7 +36,7 @@ export function MoveCell({ from, to, compared }: { from: number; to: number; com
   if (compared && from < 0) mark = <span style={{ color: 'var(--info)' }}>★</span>
   else if (compared && from > to) mark = <span style={{ color: 'var(--text-positive)' }}>▲{from - to}</span>
   else if (compared && from >= 0 && from < to) mark = <span style={{ color: 'var(--text-negative)' }}>▼{to - from}</span>
-  return <td className="rk-move" style={{ fontSize: 11, whiteSpace: 'nowrap' }}>{mark}</td>
+  return <td className="rk-move" style={{ fontSize: '0.6875rem', whiteSpace: 'nowrap' }}>{mark}</td>
 }
 
 export default function Agency() {
@@ -87,7 +87,7 @@ export default function Agency() {
           })}
         </tbody>
       </table></div>
-      <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
+      <div className="meta" style={{ padding: '4px 16px', fontSize: '0.75rem' }}>
         {sinceLine(game)}{t('world.agFoot')}
       </div>
       <div className="spacer" />

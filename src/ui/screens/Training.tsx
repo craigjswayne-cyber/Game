@@ -41,9 +41,9 @@ export default function Training() {
         {FOCUSES.map(f => (
           <button key={f.id} className={`club-pick${game.training === f.id ? ' sel' : ''}`} style={{ margin: 0 }}
             onClick={() => { if (game.training !== f.id) noteUse('training'); game.training = f.id; touch() }}>
-            <span style={{ fontSize: 16 }}>{game.training === f.id ? '●' : '○'}</span>
+            <span style={{ fontSize: '1rem' }}>{game.training === f.id ? '●' : '○'}</span>
             <span className="cname">{t(f.name)}</span>
-            <span className="muted" style={{ maxWidth: '52%', textAlign: 'right', fontSize: 11 }}>{t(f.desc)}</span>
+            <span className="muted" style={{ maxWidth: '52%', textAlign: 'right', fontSize: '0.6875rem' }}>{t(f.desc)}</span>
           </button>
         ))}
       </div>
@@ -128,26 +128,26 @@ function StaffPanel() {
                   <div className="fact-label">{t(info.name)}</div>
                   {p ? (
                     <>
-                      <h3 style={{ fontSize: 14, margin: 0 }}>
-                        <Flag code={p.nat} /> {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: 12 }}>{badgeLabel(p.tier).toUpperCase()}</b>
+                      <h3 style={{ fontSize: '0.875rem', margin: 0 }}>
+                        <Flag code={p.nat} /> {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: '0.75rem' }}>{badgeLabel(p.tier).toUpperCase()}</b>
                       </h3>
-                      <div className="meta" style={{ fontSize: 11 }}>
+                      <div className="meta" style={{ fontSize: '0.6875rem' }}>
                         {t('training.staffLine', { age: p.age, wage: fmtWage(p.wage) })}
                         {(p.passed ?? 0) > 0 ? t(p.passed === 1 ? 'training.badgeHere' : 'training.badgesHere', { n: p.passed ?? 0 }) : ''}
                       </div>
-                      {p.course && <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>
+                      {p.course && <div className="meta" style={{ fontSize: '0.6875rem', color: 'var(--gold)', fontWeight: 700 }}>
                         {t(weeksLeft === 1 ? 'training.onCourseOne' : 'training.onCourse', { badge: badgeLabel(p.course.toTier).toLowerCase(), n: weeksLeft })}
                       </div>}
                       {!p.course && (p.retakeAt ?? 0) > abs && (
-                        <div className="meta" style={{ fontSize: 11, color: 'var(--danger)' }}>
+                        <div className="meta" style={{ fontSize: '0.6875rem', color: 'var(--danger)' }}>
                           {t(weeksBetween100(p.retakeAt!, abs) === 1 ? 'training.failedRetakeOne' : 'training.failedRetake', { g: p.g ?? 'm', n: weeksBetween100(p.retakeAt!, abs) })}
                         </div>
                       )}
                     </>
                   ) : (
                     <>
-                      <h3 style={{ fontSize: 14, margin: 0, opacity: .75 }}>{t('training.vacant')}</h3>
-                      <div className="meta" style={{ fontSize: 11 }}>{t(info.desc)}</div>
+                      <h3 style={{ fontSize: '0.875rem', margin: 0, opacity: .75 }}>{t('training.vacant')}</h3>
+                      <div className="meta" style={{ fontSize: '0.6875rem' }}>{t(info.desc)}</div>
                     </>
                   )}
                 </div>
@@ -155,19 +155,19 @@ function StaffPanel() {
                   {/* the seat can be emptied without a replacement lined up
                       (owner, v1.2.7): eight weeks of his wage, asked twice */}
                   {p && !p.course && (
-                    <TwoStep className="btn ghost" style={{ padding: '4px 8px', fontSize: 11, lineHeight: 1.25 }}
+                    <TwoStep className="btn ghost" style={{ padding: '4px 8px', fontSize: '0.6875rem', lineHeight: 1.25 }}
                       label={t('training.sack')} confirm={t('training.sackConfirm', { g: p.g ?? 'm', cost: fmtMoney(sackCost(game, role)) })}
                       title={t('training.sackTitle', { g: p.g ?? 'm', cost: fmtMoney(sackCost(game, role)) })}
                       onConfirm={() => { setMsg({ role, text: sackStaff(game, role) }); touch() }} />
                   )}
                   {p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
-                    <button className="btn gold" style={{ padding: '4px 8px', fontSize: 11, lineHeight: 1.25 }}
+                    <button className="btn gold" style={{ padding: '4px 8px', fontSize: '0.6875rem', lineHeight: 1.25 }}
                       disabled={!!courseNo} title={courseNo?.long}
                       onClick={() => { setMsg({ role, text: sendToCourse(game, role) }); touch() }}>
-                      {t('training.assess')}<br /><span style={{ fontSize: 11, fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
+                      {t('training.assess')}<br /><span style={{ fontSize: '0.6875rem', fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
                     </button>
                   )}
-                  <button className="btn ghost" style={{ padding: '4px 8px', fontSize: 11 }}
+                  <button className="btn ghost" style={{ padding: '4px 8px', fontSize: '0.6875rem' }}
                     onClick={() => { setOpen(open === role ? null : role); setMsg(null) }}>
                     {t(open === role ? 'training.close' : p ? 'training.market' : 'training.candidates')}
                   </button>
@@ -178,12 +178,12 @@ function StaffPanel() {
                   costume: the manager still cannot tell whether the game is
                   broken or he is skint. */}
               {courseNo && p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
-                <div className="meta" style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 600, marginTop: 3 }}>
+                <div className="meta" style={{ fontSize: '0.6875rem', color: 'var(--danger)', fontWeight: 600, marginTop: 3 }}>
                   <Glyph name="academy" /> {courseNo.short}
                 </div>
               )}
               {said && (
-                <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                <div className="meta" style={{ fontSize: '0.75rem', fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
                   {said}
                 </div>
               )}
@@ -194,24 +194,24 @@ function StaffPanel() {
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 5, marginTop: 5 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700 }}>
-                        <Flag code={c.nat} /> {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: 11 }}>{badgeLabel(c.tier).toUpperCase()}</span>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 700 }}>
+                        <Flag code={c.nat} /> {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: '0.6875rem' }}>{badgeLabel(c.tier).toUpperCase()}</span>
                       </div>
-                      <div className="meta" style={{ fontSize: 11 }}>
+                      <div className="meta" style={{ fontSize: '0.6875rem' }}>
                         {t('training.candLine', { age: c.age, wage: fmtWage(c.wage), fee: fmtMoney(c.fee) })}
                       </div>
                       {/* the money truth, on his row, before the tap - this is
                           the line the user went looking for and never found */}
                       {no && (
-                        <div className="meta" style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 700 }}>
+                        <div className="meta" style={{ fontSize: '0.6875rem', color: 'var(--danger)', fontWeight: 700 }}>
                           {no.short}
                         </div>
                       )}
                     </div>
-                    <span className="meta" style={{ fontSize: 11, color: keen === 'keen' ? 'var(--text-positive)' : keen === 'persuadable' ? 'var(--border-strong)' : 'var(--text-negative)', fontWeight: 700, flexShrink: 0 }}>
+                    <span className="meta" style={{ fontSize: '0.6875rem', color: keen === 'keen' ? 'var(--text-positive)' : keen === 'persuadable' ? 'var(--border-strong)' : 'var(--text-negative)', fontWeight: 700, flexShrink: 0 }}>
                       {t(keen === 'keen' ? 'training.keen' : keen === 'persuadable' ? 'training.listening' : 'training.notInterested')}
                     </span>
-                    <button className="btn" style={{ padding: '4px 9px', fontSize: 11, flexShrink: 0 }}
+                    <button className="btn" style={{ padding: '4px 9px', fontSize: '0.6875rem', flexShrink: 0 }}
                       disabled={!!no} title={no?.long}
                       onClick={() => { setMsg({ role, text: appointStaff(game, role, i) }); setOpen(null); touch() }}>{t('training.appoint')}</button>
                   </div>

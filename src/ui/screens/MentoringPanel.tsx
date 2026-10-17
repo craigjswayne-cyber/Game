@@ -70,7 +70,7 @@ export default function MentoringPanel() {
       <SectionTitle sub={free > 0 ? t('training.placesFree', { n: free, cap }) : t('training.placesNone', { cap })}>
         {t('training.mentoring')}
       </SectionTitle>
-      <div className="mentor-intro meta" style={{ fontSize: 12.5 }}>{t('training.mentorGamble')}</div>
+      <div className="mentor-intro meta" style={{ fontSize: '0.7812rem' }}>{t('training.mentorGamble')}</div>
 
       {pairs.length > 0 && <SectionTitle>{t('training.pairsNow')}</SectionTitle>}
       {pairs.map(mp => {
@@ -89,36 +89,36 @@ export default function MentoringPanel() {
           <div key={mp.kid} className="card" data-pair={mp.kid} data-revealed={shown ? '1' : '0'} style={{ padding: '8px 10px' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700 }}>
+                <div style={{ fontSize: '0.8438rem', fontWeight: 700 }}>
                   <span style={{ cursor: 'pointer' }} {...rowNav(() => go('player', k.id))}>{k.name}</span>{' '}
-                  <span className="muted" style={{ fontWeight: 600, fontSize: 12 }}>{k.pos} · {k.age}</span>
+                  <span className="muted" style={{ fontWeight: 600, fontSize: '0.75rem' }}>{k.pos} · {k.age}</span>
                 </div>
-                <div className="meta" style={{ fontSize: 12 }}>
+                <div className="meta" style={{ fontSize: '0.75rem' }}>
                   {t('training.mentoredBy', { name: s.name, pos: s.pos, link_k: LINK_KEY[posLink(s, k)] })}
                 </div>
               </div>
-              <button className="btn ghost" style={{ fontSize: 12, padding: '4px 10px', flexShrink: 0 }}
+              <button className="btn ghost" style={{ fontSize: '0.75rem', padding: '4px 10px', flexShrink: 0 }}
                 onClick={() => { game.mentors = pairs.filter(x => x.kid !== mp.kid); save() }}>{t('training.end')}</button>
             </div>
             {!shown ? (
               // THE FIRST MONTH: that it exists, and nothing about how it is going
-              <div className="meta" style={{ fontSize: 12, marginTop: 4, color: 'var(--text-muted)' }}>
+              <div className="meta" style={{ fontSize: '0.75rem', marginTop: 4, color: 'var(--text-muted)' }}>
                 {when}{' · '}{t('training.tooEarly')}
               </div>
             ) : (
               <div style={{ marginTop: 4 }}>
-                <div className="meta" style={{ fontSize: 12.5 }}>
+                <div className="meta" style={{ fontSize: '0.7812rem' }}>
                   <b style={{ color: fitCol(fit) }}>{fitWord(fit)}</b>{' · '}
                   <span data-stage={stage}>{t(STAGE_KEY[stage])}</span>
                 </div>
-                <div className="meta" style={{ fontSize: 12, color: 'var(--text-muted)' }}>{fitReason(s, k)}</div>
-                <div className="meta" style={{ fontSize: 12 }}>
+                <div className="meta" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{fitReason(s, k)}</div>
+                <div className="meta" style={{ fontSize: '0.75rem' }}>
                   {weeks == null ? t('training.noLedger') : <>
                     {when}{' · '}{t('training.ratingSince', { from: mp.ca0 ?? k.ca, to: k.ca, n: mp.grew ?? 0 })}
                     {taught.length > 0 && <>{' · '}{t('training.coachedSoFar', { list: taught.map(([key, n]) => `${attrName(key)} +${n}`).join(', ') })}</>}
                   </>}
                 </div>
-                {changed && <div className="meta" style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-positive)' }}>{t('training.tookCharacter')}</div>}
+                {changed && <div className="meta" style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-positive)' }}>{t('training.tookCharacter')}</div>}
               </div>
             )}
           </div>
@@ -127,16 +127,16 @@ export default function MentoringPanel() {
 
       <SectionTitle sub={free > 0 ? undefined : t('training.placesNone', { cap })}>{t('training.newPairing')}</SectionTitle>
       {free === 0 ? (
-        <div className="card meta" style={{ padding: '8px 10px', fontSize: 12 }}>{t('training.mentorFullNote')}</div>
+        <div className="card meta" style={{ padding: '8px 10px', fontSize: '0.75rem' }}>{t('training.mentorFullNote')}</div>
       ) : !kid ? (
         <div className="card" style={{ padding: '2px 10px' }}>
           <div className="fact-label" style={{ paddingTop: 6 }}>{t('training.pickKid', { age: MENTEE_MAX_AGE })}</div>
-          {kids.length === 0 && <div className="meta" style={{ fontSize: 12, padding: '6px 0' }}>{t('training.kidsNone', { age: MENTEE_MAX_AGE })}</div>}
+          {kids.length === 0 && <div className="meta" style={{ fontSize: '0.75rem', padding: '6px 0' }}>{t('training.kidsNone', { age: MENTEE_MAX_AGE })}</div>}
           {kids.map((p, i) => (
             <button key={p.id} data-kid={p.id} className="club-pick" onClick={() => setKidId(p.id)}
               style={{ margin: 0, width: '100%', borderRadius: 0, border: 0, borderTop: i ? '1px solid var(--border)' : undefined, padding: '8px 0', background: 'transparent' }}>
-              <span className="cname" style={{ fontSize: 13.5 }}>{p.name}</span>
-              <span className="muted" style={{ fontSize: 12 }}>{p.pos} · {p.age}</span>
+              <span className="cname" style={{ fontSize: '0.8438rem' }}>{p.name}</span>
+              <span className="muted" style={{ fontSize: '0.75rem' }}>{p.pos} · {p.age}</span>
             </button>
           ))}
         </div>
@@ -144,32 +144,32 @@ export default function MentoringPanel() {
         <div className="card" style={{ padding: '6px 10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div className="fact-label" style={{ flex: 1 }}>{t('training.pickMentor', { name: kid.name, pos: kid.pos, age: kid.age })}</div>
-            <button className="btn ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => setKidId(null)}>{t('training.changeKid')}</button>
+            <button className="btn ghost" style={{ fontSize: '0.75rem', padding: '4px 10px' }} onClick={() => setKidId(null)}>{t('training.changeKid')}</button>
           </div>
-          {seniors.length === 0 && <div className="meta" style={{ fontSize: 12, padding: '6px 0' }}>{t('training.mentorsNone', { age: MENTOR_MIN_AGE })}</div>}
+          {seniors.length === 0 && <div className="meta" style={{ fontSize: '0.75rem', padding: '6px 0' }}>{t('training.mentorsNone', { age: MENTOR_MIN_AGE })}</div>}
           {seniors.map(({ s, link, teaches, no }) => (
             <div key={s.id} data-mentor={s.id} style={{ borderTop: '1px solid var(--border)', padding: '8px 0', opacity: no ? 0.6 : 1 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 700 }}>
-                    {s.name} <span className="muted" style={{ fontWeight: 600, fontSize: 12 }}>{s.pos} · {s.age}</span>
+                  <div style={{ fontSize: '0.8438rem', fontWeight: 700 }}>
+                    {s.name} <span className="muted" style={{ fontWeight: 600, fontSize: '0.75rem' }}>{s.pos} · {s.age}</span>
                   </div>
-                  <div className="meta" style={{ fontSize: 12 }}>
+                  <div className="meta" style={{ fontSize: '0.75rem' }}>
                     {t(LINK_KEY[link])}
                     {' · '}{t('training.leadershipN', { n: leadOf(s) })}
                     {' · '}{t('training.capsN', { n: s.caps ?? 0 })}
                   </div>
                 </div>
-                <button className="btn" style={{ fontSize: 12, padding: '5px 12px', flexShrink: 0 }} disabled={!!no}
+                <button className="btn" style={{ fontSize: '0.75rem', padding: '5px 12px', flexShrink: 0 }} disabled={!!no}
                   onClick={() => { if (!startMentoring(game, s.id, kid.id)) { setKidId(null); save() } }}>
                   {t('training.pair')}
                 </button>
               </div>
-              <div className="meta" style={{ fontSize: 12 }}>
+              <div className="meta" style={{ fontSize: '0.75rem' }}>
                 {teaches.length ? t('training.teachesList', { list: attrList(teaches) }) : t('training.teachesNone')}
                 {kidCount(s.id) === 1 && !no ? ` ${t('training.hasOneKid')}` : ''}
               </div>
-              {no && <div className="meta" style={{ fontSize: 12, fontWeight: 700, color: 'var(--danger)' }}>{t(no === 'full' ? 'training.mentorHasTwo' : 'training.mentorFullNote')}</div>}
+              {no && <div className="meta" style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--danger)' }}>{t(no === 'full' ? 'training.mentorHasTwo' : 'training.mentorFullNote')}</div>}
             </div>
           ))}
         </div>

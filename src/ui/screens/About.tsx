@@ -162,7 +162,7 @@ export default function About() {
         </div>
       </div>
 
-      <div className="muted" style={{ padding: '4px 16px 0', fontSize: 12 }}>{t('about.thanks')}</div>
+      <div className="muted" style={{ padding: '4px 16px 0', fontSize: '0.75rem' }}>{t('about.thanks')}</div>
       <div className="spacer" />
     </>
   )

@@ -163,7 +163,7 @@ export default function Home() {
           borderLeftColor: assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)',
         }}>
           <div className="desk-mhead">
-            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
+            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: '0.6875rem' }}>
               {t(assistants ? 'home.assistantMatch' : 'home.nextMatch')} · {compLabel(comp?.name) ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
             </div>
             {/* the run the club is on, which had a card of its own with the hook */}
@@ -339,7 +339,7 @@ export default function Home() {
       <button className="hub-widget home-tile" data-w="form" onClick={() => go('fixtures')}>
         <label className="ht-l">{t('home.wForm')}</label>
         <b className="ht-v" style={{ display: 'flex', gap: 3 }}>
-          {recent.length === 0 ? <span style={{ fontSize: 12, fontWeight: 400 }}>{t('home.noGames')}</span> : recent.map((r, i) => (
+          {recent.length === 0 ? <span style={{ fontSize: '0.75rem', fontWeight: 400 }}>{t('home.noGames')}</span> : recent.map((r, i) => (
             // the class stays W/L/D - it is what colours the pip - while the
             // letter shown follows the language (V/N/D in French)
             <span key={i} className={`form-pip ${r}`}>{t(r === 'W' ? 'common.w' : r === 'L' ? 'common.l' : 'common.d')}</span>
@@ -604,7 +604,7 @@ function BlankWeek({ hook }: { hook: ReturnType<typeof weekHook> }) {
     <div className="desk-match desk-blank">
       {(hook.hook || hook.streak) && (
         <div className="desk-mhead">
-          {hook.hook && <b style={{ fontSize: 13, color: hook.winless ? 'var(--text-negative)' : undefined }}>{hook.hook}</b>}
+          {hook.hook && <b style={{ fontSize: '0.8125rem', color: hook.winless ? 'var(--text-negative)' : undefined }}>{hook.hook}</b>}
           {hook.streak && <span className="chip" style={{ marginLeft: 'auto', fontWeight: 700, color: hook.winless ? 'var(--text-negative)' : undefined }}>{hook.streak}</span>}
         </div>
       )}

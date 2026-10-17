@@ -115,7 +115,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
       <input type="range" min={0} max={100} value={tac[info.key]}
         aria-label={t(info.label)} aria-valuetext={`${tac[info.key]}: ${sliderReadout(info.key, tac[info.key])}`}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
-      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{sliderReadout(info.key, tac[info.key])}</div>
+      <div className="meta" style={{ fontSize: '0.6875rem', marginTop: 2 }}>{sliderReadout(info.key, tac[info.key])}</div>
     </div>
   )
 
@@ -128,7 +128,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
       <input type="range" min={0} max={100} value={tac[info.key] ?? 50}
         aria-label={t(info.label)} aria-valuetext={`${tac[info.key] ?? 50}: ${brkSliderReadout(info.key, tac[info.key] ?? 50)}`}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
-      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{brkSliderReadout(info.key, tac[info.key] ?? 50)}</div>
+      <div className="meta" style={{ fontSize: '0.6875rem', marginTop: 2 }}>{brkSliderReadout(info.key, tac[info.key] ?? 50)}</div>
     </div>
   )
 
@@ -142,7 +142,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
       <input type="range" min={0} max={100} value={tac[info.key] ?? 50}
         aria-label={t(info.label)} aria-valuetext={`${tac[info.key] ?? 50}: ${defSliderReadout(info.key, tac[info.key] ?? 50)}`}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
-      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{defSliderReadout(info.key, tac[info.key] ?? 50)}</div>
+      <div className="meta" style={{ fontSize: '0.6875rem', marginTop: 2 }}>{defSliderReadout(info.key, tac[info.key] ?? 50)}</div>
     </div>
   )
 
@@ -191,13 +191,13 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
               {p ? p.name : t('tacticsScreen.emptySlot')}
             </SectionTitle>
             <button className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = null; setRoleSlot(null); touch() }}>
-              <span style={{ fontSize: 16 }}>{current == null ? '●' : '○'}</span>
+              <span style={{ fontSize: '1rem' }}>{current == null ? '●' : '○'}</span>
               <span className="cname">{t('tacticsScreen.natural')}</span>
               <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t('tacticsScreen.noInstruction')}</span>
             </button>
             {roles.map(r => (
               <button key={r.id} className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = r.id; setRoleSlot(null); touch() }}>
-                <span style={{ fontSize: 16 }}>{current === r.id ? '●' : '○'}</span>
+                <span style={{ fontSize: '1rem' }}>{current === r.id ? '●' : '○'}</span>
                 <span className="cname">{t(r.name)}</span>
                 <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t(r.desc)}</span>
               </button>
@@ -244,7 +244,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
       {repPct > 0 && worstDial && (
         <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
           <div className="fact-label">{t('tacticsScreen.condCoach')}</div>
-          <div style={{ fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>
+          <div style={{ fontSize: '0.8125rem', lineHeight: 1.45, marginTop: 4 }}>
             {t('tacticsScreen.condLine', {
               n: worstDial.n,
               dial: t(worstDial.k === 'defLine' ? 'tacticsScreen.dialDefLine'
@@ -811,7 +811,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
                   </button>
                 ))}
               </div>
-              <div className="meta" style={{ fontSize: 11, marginTop: 3 }}>{t(cur.desc)}</div>
+              <div className="meta" style={{ fontSize: '0.6875rem', marginTop: 3 }}>{t(cur.desc)}</div>
             </div>
           )
         })}
@@ -864,7 +864,7 @@ function AnalystCard() {
     <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <div className="fact-label">{t('analyst.analystOn', { club: opp.short })}</div>
-        <div className="meta" style={{ fontSize: 11 }}>{analystForm(game)}</div>
+        <div className="meta" style={{ fontSize: '0.6875rem' }}>{analystForm(game)}</div>
       </div>
       <div className="meta" style={{ marginTop: 2 }}>
         <b style={{ color: 'var(--gold)' }}>{unitLabel(read.unit)}.</b> {analystClaim(read)}
