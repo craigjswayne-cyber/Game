@@ -11,8 +11,8 @@ The counts:
 | browser harnesses | 102 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
 | soaks and audits | 13 | `SLOW` in `suite.sh` | 90 min timeout each, weekly |
 | reporters | 20 | `REPORTERS` in `suite.sh` | never: no verdict, run by hand |
-| unit tests | 4 files | `tests/*.test.ts` | `npm test` (vitest) |
-| tools and libraries | 16 | `TOOLS` and `LIBRARIES` in `orphancheck.mjs` | by hand, or imported |
+| unit tests | 9 files | `tests/*.test.ts` | `npm test` (vitest) |
+| tools and libraries | 18 | `TOOLS` and `LIBRARIES` in `orphancheck.mjs` | by hand, or imported |
 
 This page says how to run them, what CI runs where, and which probes cover
 which part of the game.
@@ -23,7 +23,9 @@ which part of the game.
 ./scripts/suite.sh fast     # linters, unit tests, engine probes      (~2 h as 4 parallel shards on 4 cores)
 ./scripts/suite.sh browser  # linters, build, the 102 browser harnesses (~2 h)
 ./scripts/suite.sh smoke    # linters, build, e2e storeprobe backupreach keyscreen (~6 min)
+./scripts/suite.sh pr       # linters, build, the 25 PRBROWSER harnesses (the second PR job)
 ./scripts/suite.sh soak     # linters, build, the SLOW list            (hours)
+./scripts/suite.sh area save  # one part of the game: save money match rollover fuzz ui i18n a11y ip
 ./scripts/suite.sh          # fast + browser
 ./scripts/suite.sh all      # fast + browser + SLOW
 ```
@@ -40,7 +42,7 @@ Sharding, the same in CI and locally:
 ```bash
 SHARDS=8 SHARD=3 ./scripts/suite.sh fast        # every 8th engine probe, from the 3rd
 BSHARDS=3 BSHARD=1 ./scripts/suite.sh browser   # every 3rd browser harness
-SSHARDS=6 SSHARD=2 ./scripts/suite.sh soak      # every 6th soak
+SSHARDS=7 SSHARD=2 ./scripts/suite.sh soak      # every 7th soak
 PROBE_QUICK=1 ./scripts/suite.sh fast           # the smaller samples CI uses
 ```
 
@@ -52,7 +54,13 @@ node scripts/tapsize.mjs               # browser harnesses are .mjs (after npm r
 npx vitest run tests/migrate.test.ts   # one unit test file
 ```
 
-The browser harnesses need a build (`npm run build`) and Chromium. They find
+The browser harnesses need a build (`npm run build`) and Chromium. Each
+serves the build with `vite preview` on a free port (`startPreview` in
+`scripts/lib/preview.mjs` binds to port 0 and returns the URL), so two
+harnesses, two worktrees or two terminals run side by side without taking
+each other's port. `PREVIEW_PORT=4173` pins one, to keep a server at a known
+address. The guard that the server answering serves this checkout's bundle
+stays: a harness never grades another build. They find
 it at `/opt/pw-browsers/chromium` by default and honour `PW_CHROMIUM` when it
 is somewhere else, which is how they run on a CI runner:
 
@@ -71,6 +79,11 @@ over `tests/**/*.test.ts`: fast, deterministic, no browser, about a minute.
 | `tests/migrate.test.ts` | old saves migrate, heal and keep | `scripts/migratetest.ts` (ported, removed) |
 | `tests/refund.test.ts` | the till and the store agree on refunds | `scripts/refundprobe.ts` (ported, removed) |
 | `tests/determinism.test.ts` | eight weeks with a save and load each week match eight without | short form of `scripts/reloaddetprobe.ts` |
+| `tests/savequeue.test.ts` | a burst of marks is one write, never two in flight, never a half-played match; a failed write raises the banner | the engine half of `scripts/savequeue.mjs` |
+| `tests/settleweek.test.ts` | a week that throws half way is not saved, the career goes back to disk, the same week twice holds the writer | core of `scripts/settleguardprobe.ts` |
+| `tests/spend.test.ts` | a credit is spent on its effect once, given back on every failure, and the career is on disk at the answer | core of `scripts/spendprobe.ts` |
+| `tests/pledge.test.ts` | `pledgeDue` never falls due before a promise is made; `carryPledges` carries only last season's late one | the arithmetic of `scripts/pledgeprobe.ts` |
+| `tests/listsaves.test.ts` | the Load screen reads labels, labels old slots, reads no career, deletes labels with saves | `scripts/listsavesprobe.ts` |
 
 New fast, deterministic checks belong here rather than in a new probe. Watch
 mode while working: `npx vitest`. vitest 4.1 runs on the repo's Vite 8, the
@@ -85,12 +98,21 @@ Node 20.)
 |---|---|---|
 | Engine probes (8 shards) | every push, every PR, nightly | typecheck, textlint, tokenlint, cssaudit, accessibility lint (`npm run lint`), **orphan check**, `npm test` (shard 1), build, **ipprobe**, `suite.sh fast` with `PROBE_QUICK=1`. 25 to 40 min a shard, 55 min ceiling |
 | Browser smoke | pull requests, and pushes to any branch but `main` | build, Chromium, `suite.sh smoke`. About 6 min plus the Chromium install, 30 min ceiling |
+| Browser, PR set (3 shards) | the same | build, Chromium, `suite.sh pr`: the 25 `PRBROWSER` harnesses (accessibility, save and load, purchases, the match screen, phone layout), eight or nine a shard, 40 min ceiling |
 | Browser harnesses (3 shards) | `main`, 03:00 UTC nightly, manual | build, Chromium, `suite.sh browser`. About 40 min a shard, 75 min ceiling; screenshots kept on failure |
 
 `.github/workflows/soak.yml`, **Soak**: Sundays at 04:00 UTC and on demand,
-`suite.sh soak` in six shards (at most three soaks each), 300 min ceiling. A
-workflow of its own because the Gate cancels itself on a new push to the same
-ref, which would throw away a soak hours in.
+`suite.sh soak` in seven shards (at most two of the 90-minute soaks each, so
+three hours at worst inside the 300 min ceiling). A workflow of its own
+because the Gate cancels itself on a new push to the same ref, which would
+throw away a soak hours in. On its own schedule it is advisory.
+
+`.github/workflows/release-check.yml`, **Release check**: by hand only
+(Actions, Run workflow, give it a tag, branch or SHA). The seven soak shards
+and the whole browser list in four shards, on that ref. **A release is cut
+only after the release check is green on the release commit**, with the Gate
+green on the same commit; `docs/release-readiness.md` (addendum of
+2026-10-17) records the rule.
 
 `.github/workflows/pages.yml`, **Deploy to GitHub Pages**: runs when a Gate run
 for a push to `main` **completes successfully** (`workflow_run`), checks out
@@ -162,9 +184,12 @@ moved.
 
 Seven lessons, each of them paid for:
 
-1. **The verdict is the exit code.** Use `scripts/lib/probe.ts` (`ok`, `check`,
-   `done`) for an engine probe and `done(fails)` from `scripts/lib/preview.mjs`
-   for a browser harness. Printing FAILED is for the reader; `suite.sh` now
+1. **The verdict is the exit code.** Use `ok`, `check` and `done` from
+   `scripts/lib/probe` (`./lib/probe` in an engine probe, `./lib/probe.mjs`
+   in a browser harness, with `done(name, passed, { exit: true })` so a
+   browser or a preview server cannot hold the process open). 202
+   probes moved onto it in 1.9.2 (`scripts/tools/probemod.mjs`, which lists
+   the ones it left alone and why). Printing FAILED is for the reader; `suite.sh` now
    catches a FAIL line too, but a probe should not rely on that.
 2. **A probe that measures nothing must fail.** `nightcontrast` wrapped its
    measurement in a bare `catch`, so a syntax error made every screen return
@@ -194,10 +219,12 @@ Seven lessons, each of them paid for:
 
 ## Known gaps
 
-- **The browser half is not on every PR.** The smoke job runs four harnesses;
-  the other 98 run on `main` and nightly. Run `./scripts/suite.sh browser`
-  yourself before anything that touches the UI.
-- **About 730 fixed `waitForTimeout` sleeps remain** in the browser harnesses.
+- **Not all of the browser half is on every PR.** The smoke job runs four
+  harnesses and the PR set 25 more; the other 73 run on `main`, nightly and
+  in the release check. Run `./scripts/suite.sh browser` yourself before
+  anything that touches the UI broadly.
+- **752 fixed `waitForTimeout` sleeps remain** in the browser harnesses
+  (counted 17 Oct 2026, `grep -o waitForTimeout scripts/*.mjs`).
   The smoke set and the shared preview helper were converted in 1.9.1; convert
   the rest as each harness is next touched, with `until()`.
 - **`storeart.mjs` is not a probe** and has no verdict: it writes the store

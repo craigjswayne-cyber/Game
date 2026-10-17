@@ -51,7 +51,8 @@ SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight option
 # THE PR SMOKE (1.9.1): the browser half only ran on main and overnight, so a
 # pull request that broke the wizard found out after it merged. These four
 # cover the whole flow end to end, the till, the way a career leaves the
-# phone, and every screen's words in both languages, in about ten minutes.
+# phone, and every screen's words in both languages, in about six minutes
+# (5m23s measured on a four-core box, 17 Oct 2026; docs/testing.md).
 SMOKE="e2e storeprobe backupreach keyscreen"
 # THE SECOND PR JOB (1.9.2): the whole browser list is 102 harnesses and about
 # forty minutes a shard in three, too long to sit on every pull request. These
@@ -127,7 +128,7 @@ FAIL  (exited 0 but printed a failure: the harness must set its exit code)"
     # probe had already written down exactly what it was looking at. A harness
     # that diagnoses itself into a bin is a harness that does not diagnose.
     printf '%s' "$out" \
-      | grep -E -A 3 --no-group-separator '^(FAIL|PROBE THREW|.*(stopped early|stuck with))' \
+      | grep -E -A 3 --no-group-separator '^(FAIL|PROBE THREW|[A-Z][A-Z0-9 ]* FAILED: |.*(stopped early|stuck with))' \
       | head -20 | sed 's/^/        /'
     FAILS=$((FAILS + 1))
   fi
