@@ -38,12 +38,7 @@
  * Run: npx vite-node scripts/landingprobe.ts
  */
 import { readFileSync, existsSync } from 'node:fs'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const html = existsSync('landing/index.html') ? readFileSync('landing/index.html', 'utf8') : ''
 ok(!!html, 'landing/index.html exists')
@@ -162,5 +157,4 @@ const capAnd = JSON.parse(readFileSync('packaging/android/capacitor.config.json'
 ok(capIos.webDir === '../../dist' && capAnd.webDir === '../../dist',
   'both shells still bundle dist/ itself, so the site rearrangement cannot reach them')
 
-console.log(fails ? `\nLANDING PROBE FAILED (${fails})` : '\nLANDING PROBE PASSED: the shop window has no game behind it, and the three submitted URLs did not move')
-if (fails) process.exit(1)
+done('LANDING PROBE', 'the shop window has no game behind it, and the three submitted URLs did not move')

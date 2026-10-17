@@ -22,14 +22,9 @@ import { mulberry32 } from '../src/game/rng'
 // old code, and a missing named import would kill the run at load time - the
 // fallback lets the old loanTargets show its 11-wonderkid list red per assert
 import * as M from '../src/game/model'
+import { ok, done } from './lib/probe'
 const leagueTier = (M as { leagueTier?: (id?: string | null) => number }).leagueTier ??
   ((id?: string | null) => ({ prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1, mrc: 1, champ: 2, prod2: 2, natl1: 3 } as Record<string, number>)[id ?? ''] ?? 2)
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 
 // ---- Esher: the screenshot club ----
 const g = newGame('esher', 'LoanStep', 61)
@@ -60,5 +55,4 @@ ok(hTargets.length > 0, `a Premiership club still has a market (${hTargets.lengt
 ok(hTargets.every(t => leagueTier(h.clubs[h.userClubId].leagueId) - leagueTier(h.clubs[t.clubId!].leagueId) <= 1),
   'and no name on it fell two divisions to get there')
 
-console.log(fails ? `\nLOAN STEP PROBE FAILED (${fails})` : '\nLOAN STEP PROBE PASSED: the loan market has gravity')
-process.exit(fails ? 1 : 0)
+done('LOAN STEP PROBE', 'the loan market has gravity', { exit: true })

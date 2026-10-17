@@ -26,12 +26,7 @@
 import { readFileSync } from 'node:fs'
 import { readdirSync } from 'node:fs'
 import { fmtMoney, fmtWage } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 console.log('--- 1. every figure either formatter can produce has one of the game\'s shapes\n')
 
@@ -104,5 +99,4 @@ for (const f of files) {
 ok(perWeek.length === 0,
   `every /wk figure is a wage${perWeek.length ? `:\n        ${perWeek.join('\n        ')}` : ''}`)
 
-console.log(fails ? `\nMONEY FORMAT PROBE FAILED (${fails})` : '\nMONEY FORMAT PROBE PASSED: one ladder, two units, no commas')
-process.exit(fails ? 1 : 0)
+done('MONEY FORMAT PROBE', 'one ladder, two units, no commas', { exit: true })

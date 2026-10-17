@@ -18,12 +18,8 @@ import { newGame } from '../src/game/newgame'
 import { upkeepWeek } from '../src/game/upkeep'
 import { RELEASE_STEP, belowReserve, cashReserve, releasable, releaseBlock, releaseToBudget } from '../src/game/treasury'
 import { mulberry32 } from '../src/game/rng'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const k = (n: number) => `${(n / 1000).toFixed(0)}k`
 
 /** A season of non-rugby luck at one club, as a list of season nets. */
@@ -161,5 +157,4 @@ console.log('\n--- 4. the treasury moves the whole balance, and says what that c
   ok(releaseBlock(j) !== null, 'and then the bar is spent, and says so')
 }
 
-console.log(fails ? `\nUPKEEP PROBE FAILED (${fails})` : '\nUPKEEP PROBE PASSED: the year is uneven, and the bar moves the lot')
-process.exit(fails ? 1 : 0)
+done('UPKEEP PROBE', 'the year is uneven, and the bar moves the lot', { exit: true })

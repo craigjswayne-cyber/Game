@@ -27,9 +27,8 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { autoSelect, availablePlayers, frontRowCover, rosterOf } from '../src/game/matchEngine'
 import { withFrontRow } from '../src/game/nations'
 import { SEASON_WEEKS, type Player } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const FR = ['LP', 'HK', 'TP'] as const
 const can = (p: Player, pos: string) => p.pos === pos || (p.alt as string[]).includes(pos)
 
@@ -74,5 +73,5 @@ ok(sheets > 2000, `enough club sheets to judge (${sheets})`)
 ok(shortWithCover <= sheets / 1000, `an auto-picked 23 is almost never short of front-row cover while the club has it (${shortWithCover} of ${sheets})`)
 ok(squads > 50, `enough Test squads to judge (${squads})`)
 ok(squadsShort === 0, `every AI Test squad can name a legal 23: two of each front-row position (${squadsShort} of ${squads} short)`)
-console.log(fails ? `\nFRONT ROW SQUAD PROBE FAILED: ${fails}` : '\nFRONT ROW SQUAD PROBE PASSED: the front row is picked, at club and Test level')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\nFRONT ROW SQUAD PROBE FAILED: ${failures()}` : '\nFRONT ROW SQUAD PROBE PASSED: the front row is picked, at club and Test level')
+process.exit(failures() ? 1 : 0)

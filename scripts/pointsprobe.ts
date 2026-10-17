@@ -24,12 +24,8 @@ import { autoSelect } from '../src/game/matchEngine'
 import { processWeekAndAdvance } from '../src/game/season'
 import { talkingPoints, fillRate, prepLeaked } from '../src/game/talkingpoints'
 import { SEASON_WEEKS } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const seen = (g: ReturnType<typeof newGame>, k: string) => g.news.some(n => n.k === k)
 
 // ---- 1. they fire, across a season ---------------------------------------
@@ -245,6 +241,6 @@ console.log(`     three seasons: ${hurtOnDuty} players came back from a Test wee
 ok(hurtOnDuty > 0, 'a Test runs through the same engine as a league match, so men do come home hurt')
 
 console.log('')
-if (fails === 0) console.log('POINTS PROBE PASSED: six talking points, each of them with something behind it')
-else console.log(`POINTS PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('POINTS PROBE PASSED: six talking points, each of them with something behind it')
+else console.log(`POINTS PROBE FAILED (${failures()})`)
+process.exit(failures())

@@ -11,12 +11,11 @@
 // Run: node scripts/paletteqa.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
+import { ok, failures } from './lib/probe.mjs'
 
 const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
-let fails = 0
-const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const hex = (h) => {
   const n = h.replace('#', '')
   return `rgb(${parseInt(n.slice(0, 2), 16)}, ${parseInt(n.slice(2, 4), 16)}, ${parseInt(n.slice(4, 6), 16)})`
@@ -124,8 +123,8 @@ try {
   ok(d.positive === '#0f7a43', 'the alias follows the mode: --text-positive is the day green')
   await day.close()
 
-  console.log(fails ? `PALETTE QA FAILED (${fails})` : 'PALETTE QA PASSED: two accents, both modes, meanings held')
-  process.exitCode = fails ? 1 : 0
+  console.log(failures() ? `PALETTE QA FAILED (${failures()})` : 'PALETTE QA PASSED: two accents, both modes, meanings held')
+  process.exitCode = failures() ? 1 : 0
 } catch (e) {
   console.error('PALETTE QA FAILED:', String(e).slice(0, 400))
   process.exitCode = 1

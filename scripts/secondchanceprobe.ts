@@ -34,12 +34,7 @@ import { newGame } from '../src/game/newgame'
 import { jobChance } from '../src/game/jobs'
 import { mgrReputation } from '../src/game/model'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const g: GameState = newGame('northampton', 'Second Chance', 77)
 
@@ -119,5 +114,5 @@ ok(vetMid > rookieMid, `a body of work counts: ${middling.short} moves ${(rookie
     `the seat is what the board reads: ${target.short} (rep ${target.rep}) rates the Northampton coach above the Esher one (${(fromLarge * 100).toFixed(0)}% v ${(fromSmall * 100).toFixed(0)}%)`)
 }
 
-if (fails) { console.error(`\nSECOND CHANCE PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nSECOND CHANCE PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nSECOND CHANCE PROBE PASSED: the way back in is a rung or two down')

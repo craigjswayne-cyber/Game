@@ -16,9 +16,7 @@
 import { newGame } from '../src/game/newgame'
 import { beginMatch, makeSubstitution } from '../src/game/matchEngine'
 import { userFixtureThisWeek, weekRng, processWeekAndAdvance } from '../src/game/season'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 /** Put a career on the road to a real fixture with a real bench. */
 function atAMatch(seed: number) {
@@ -110,5 +108,4 @@ function walkTheBench(seed: number, briefed: boolean) {
     `a man who warmed up on ${TIRED}% never comes on above 68 (${over.length} did)`)
 }
 
-console.log(fails ? `\nBENCH TANK FAILED (${fails})` : '\nBENCH TANK PASSED: a replacement brings the legs he actually has')
-process.exit(fails ? 1 : 0)
+done('BENCH TANK', 'a replacement brings the legs he actually has', { exit: true })

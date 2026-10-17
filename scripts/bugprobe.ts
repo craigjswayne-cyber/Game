@@ -13,9 +13,7 @@ import { BUG_CHANNEL_URL, COMMUNITY_URL } from '../src/game/community'
 import {
   CONTACT_MAILTO, DEV_CONTACT, MAILTO_LIMIT, buildReport, crashCount, mailtoUrl, noteScreen, recordCrash, reportFilename,
 } from '../src/game/bugreport'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'Bug Probe', 99)
 g.week = 12
@@ -110,5 +108,4 @@ const base = { state: g, nav: NAV, screen: SCREEN, when: '2026-08-23 12:00' }
   ok(!/DEV_CONTACT|bgSendIt|bgAttached|bgShowFull/.test(bug), 'and the explainers are gone: no address line, attachment note or preview toggle')
 }
 
-console.log(fails ? `BUG PROBE FAILED (${fails})` : 'BUG PROBE PASSED: the report is actionable, and no wider than it says')
-process.exit(fails ? 1 : 0)
+done('BUG PROBE', 'the report is actionable, and no wider than it says', { exit: true, blank: false })

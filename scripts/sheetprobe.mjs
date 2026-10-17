@@ -29,13 +29,11 @@
 // Run: npm run build && node scripts/sheetprobe.mjs
 import { chromium } from 'playwright-core'
 import { mkdirSync, writeSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
 const SHOTS = process.env.SHOTS ?? '/tmp/sheetprobe'
 mkdirSync(SHOTS, { recursive: true })
-const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const EMOJI = /\p{Extended_Pictographic}/u
 
 const server = await startPreview(0, 3000)
@@ -258,5 +256,4 @@ try {
   server.stop()
 }
 
-say(fails ? `\nSHEET PROBE FAILED (${fails})` : '\nSHEET PROBE PASSED: a balance sheet, and a table to negotiate at')
-done(fails)
+done('SHEET PROBE', 'a balance sheet, and a table to negotiate at', { exit: true })

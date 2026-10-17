@@ -28,11 +28,10 @@
 import { chromium } from 'playwright-core'
 import { readFileSync } from 'node:fs'
 import { writeSync } from 'node:fs'
-import { done, startPreview, until } from './lib/preview.mjs'
+import { startPreview, until } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const en = JSON.parse(readFileSync('src/locales/en.json', 'utf8'))
 const keys = []
@@ -128,5 +127,4 @@ try {
   server.stop()
 }
 
-say(fails ? `\nKEY SCREEN FAILED (${fails})` : '\nKEY SCREEN PASSED: every label on every screen is words, not keys')
-done(fails)
+done('KEY SCREEN', 'every label on every screen is words, not keys', { exit: true })

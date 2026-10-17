@@ -20,9 +20,7 @@ import { newGame } from '../src/game/newgame'
 import { beginMatch, playHalf } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { MatchEvent } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const LATE = new Set(['comm.tryLate1', 'comm.tryLate2', 'comm.tryLate3'])
 const BENCH = new Set(['comm.tryBench1', 'comm.tryBench2'])
@@ -103,5 +101,4 @@ for (const [tr, [a, b, c, d]] of Object.entries(traitHit)) {
 const holder = hh / Math.max(1, hn), other = oh / Math.max(1, on)
 ok(hn >= 60 && holder > other * 1.6, `a signature trait's try lines come up far more for the men who carry it (${(holder * 100).toFixed(0)}% against ${(other * 100).toFixed(0)}%)`)
 
-console.log(fails ? `COMM VOICE PROBE FAILED (${fails})` : 'COMM VOICE PROBE PASSED: the commentary does not repeat itself, and a try sounds like the try it was')
-process.exit(fails ? 1 : 0)
+done('COMM VOICE PROBE', 'the commentary does not repeat itself, and a try sounds like the try it was', { exit: true, blank: false })

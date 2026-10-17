@@ -25,9 +25,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { answerPress, OFFICE_OUTLET } from '../src/game/media'
 import { FIT, fitFor, talkbackWeek } from '../src/game/talkback'
 import type { GameState, Personality, Player, PressItem } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const PERS: Personality[] = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader']
 const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x))
@@ -278,5 +276,4 @@ console.log('--- 8. its own dice')
   ok(!/Math\.random|weekRng|\brng\s*:\s*Rng/.test(src), 'talk-back never touches Math.random or the week\'s shared stream')
 }
 
-console.log(fails ? `\nTALK PROBE FAILED (${fails})` : '\nTALK PROBE PASSED: who he is decides how it lands, the room hears it, and every word is in six languages')
-process.exit(fails ? 1 : 0)
+done('TALK PROBE', 'who he is decides how it lands, the room hears it, and every word is in six languages', { exit: true })

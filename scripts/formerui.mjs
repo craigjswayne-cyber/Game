@@ -17,10 +17,9 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, failures } from './lib/probe.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const raw = s => /[{}]|\b(mem|oppreport|matchday)\.[a-zA-Z_]+/.test(s)
 
 const server = await startPreview(0, 3000)
@@ -129,5 +128,5 @@ try {
   await browser.close()
   server.stop()
 }
-say(fails ? `\n${fails} FAILED` : '\nFORMER UI PASSED')
-done(fails)
+say(failures() ? `\n${failures()} FAILED` : '\nFORMER UI PASSED')
+done(failures())

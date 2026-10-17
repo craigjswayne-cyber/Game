@@ -36,9 +36,7 @@
 import { newGame } from '../src/game/newgame'
 import { teamUnits } from '../src/game/matchEngine'
 import type { Attrs } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'Ladder', 3)
 const clubs = Object.values(g.clubs).filter(c => c.tactic?.lineup?.slice(0, 15).every(x => x != null)).slice(0, 20)
@@ -84,5 +82,4 @@ const ELSEWHERE = new Set<keyof Attrs>(['goa', 'sta', 'lea', 'agg'])
 const idle = rows.filter(r => r.str + r.pen + r.kick < 0.1 && !ELSEWHERE.has(r.k)).map(r => r.k)
 ok(idle.length === 0, `every rated attribute is read in a match${idle.length ? ` (not: ${idle.join(', ')})` : ' (goal kicking, stamina, leadership and aggression through the tee, the legs, the captaincy and the referee)'}`)
 
-console.log(fails ? `\nLADDER PROBE FAILED (${fails})` : '\nLADDER PROBE PASSED: no attribute runs the game')
-process.exit(fails ? 1 : 0)
+done('LADDER PROBE', 'no attribute runs the game', { exit: true })

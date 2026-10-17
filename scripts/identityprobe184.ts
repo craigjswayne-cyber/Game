@@ -33,12 +33,8 @@ import { mgrTraits, mgrTrends, trendLines, TREND_GAP } from '../src/game/repute'
 import { boardMethod, boardSummer, chairmanOf, chairWish, CHAIR_TYPES, jobProfile, METHOD_CAP, type ChairType } from '../src/game/chairman'
 import { jobChance, jobFit, JOB_FIT } from '../src/game/jobs'
 import { remember } from '../src/game/memory'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const en = (k: string, v?: Record<string, unknown>) => tIn('en', k, v as never)
 
 const seat = (g: GameState, want: ChairType) => {
@@ -306,5 +302,4 @@ console.log('\n--- 4. a real season through the engine, its May replayed')
   ok(gap >= 2 && gap <= 3, `and the boardroom keeps the full points through the summer pull (${A.conf.toFixed(1)} against ${B.conf.toFixed(1)}: ${gap})`)
 }
 
-console.log(fails ? `\nIDENTITY 1.8.4 PROBE FAILED (${fails})` : '\nIDENTITY 1.8.4 PROBE PASSED: the name is earned, it moves, and the board reads how it was earned')
-process.exit(fails ? 1 : 0)
+done('IDENTITY 1.8.4 PROBE', 'the name is earned, it moves, and the board reads how it was earned', { exit: true })

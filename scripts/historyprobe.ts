@@ -34,12 +34,8 @@ import { stoke, rivalsYearEnd, rivalryOf, FORM_AT } from '../src/game/grudges'
 import { legendsAfterMatch, legendsYearEnd, service } from '../src/game/legends'
 import { HIST_OFF, historyPreview, historyStakes, historyWeight, historyYearEnd, formerTenure, annalsFor } from '../src/game/history'
 import { tIn } from '../src/game/i18n'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 // the book holds its stories until the week settle ends (histbook.ts file), so
 // a hook called directly here has filed into the queue, not the inbox yet
 const newsK = (g: GameState, k: string) => [...g.news, ...(g.hist?.queue ?? [])].filter(n => n.k === k)
@@ -254,5 +250,4 @@ const seasonInWork = (g: GameState) => {
   ok(!!on.hist && !off.hist, 'and the switch really did switch it')
 }
 
-console.log(fails ? `HISTORY PROBE FAILED (${fails})` : 'HISTORY PROBE PASSED: the club remembers, and the AI never noticed')
-process.exit(fails ? 1 : 0)
+done('HISTORY PROBE', 'the club remembers, and the AI never noticed', { exit: true, blank: false })

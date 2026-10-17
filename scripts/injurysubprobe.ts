@@ -39,9 +39,7 @@ import { beginMatch, isFrontRower, makeSubstitution, resolveDecision, stepTick, 
 import { mulberry32 } from '../src/game/rng'
 import { t } from '../src/game/i18n'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, failures } from './lib/probe'
 
 type Strip = 'backrow' | 'frontrow' | 'none' | 'all'
 const BACK_ROW = ['FL', 'N8']
@@ -267,5 +265,5 @@ console.log('--- 7. the bookkeeping draws nothing')
   ok(a === b, `the same match twice is the same match (${a})`)
 }
 
-console.log(fails ? `\n${fails} FAILED` : '\nall passed')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILED` : '\nall passed')
+process.exit(failures() ? 1 : 0)

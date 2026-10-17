@@ -22,9 +22,7 @@ import it from '../src/locales/it.json'
 import ja from '../src/locales/ja.json'
 import af from '../src/locales/af.json'
 import { LANGS, ensureLang, tIn, type Lang, SIBLING, baseKey } from '../src/game/i18n'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 type Dict = Record<string, unknown>
 const DICTS: Record<string, Dict> = { en: en as Dict, fr: fr as Dict, es: es as Dict, it: it as Dict, ja: ja as Dict, af: af as Dict }
@@ -270,5 +268,4 @@ for (const { code, label } of LANGS) {
   }
 }
 
-console.log(fails ? `I18N PROBE FAILED (${fails})` : 'I18N PROBE PASSED: both languages answer every question the code asks')
-process.exit(fails ? 1 : 0)
+done('I18N PROBE', 'both languages answer every question the code asks', { exit: true, blank: false })

@@ -11,13 +11,11 @@
 import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
 import { done, startPreview } from './lib/preview.mjs'
+import { ok, failures } from './lib/probe.mjs'
 
 const OUT = process.argv[2] ?? 'shots/temper'
 mkdirSync(OUT, { recursive: true })
 const server = await startPreview(0, 3000)
-
-let fails = 0
-const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const errors = []
@@ -137,5 +135,5 @@ for (const [w, h] of [[412, 915], [360, 800]]) {
 ok(errors.length === 0, `no page errors (${errors.slice(0, 3).join(' / ')})`)
 await browser.close()
 server.stop()
-console.log(fails ? `\n${fails} FAILURES` : '\nTEMPER UI PASSED: his nerve, his minutes and their respect, on screen')
-done(fails)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nTEMPER UI PASSED: his nerve, his minutes and their respect, on screen')
+done(failures())

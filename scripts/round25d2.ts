@@ -27,12 +27,8 @@ import { bigMatchTemper, consistency } from '../src/game/attributes'
 import { beginMatch, teamUnits } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const mean = (a: number[]) => a.reduce((s, x) => s + x, 0) / a.length
 
 const g = newGame('northampton', 'Wobble', 9)
@@ -108,5 +104,5 @@ const ids = Object.values(g.players).map(p => p.id)
   ok(Math.abs(give + get - 2) < 1e-9, `and the squeeze is zero-sum: one side gives exactly what the other gets (x${give.toFixed(4)}, x${get.toFixed(4)})`)
 }
 
-console.log(fails ? `\n${fails} FAILURES` : '\nROUND 25D-2 PROBE PASSED')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nROUND 25D-2 PROBE PASSED')
+process.exit(failures() ? 1 : 0)

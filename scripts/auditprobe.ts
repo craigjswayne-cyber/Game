@@ -21,12 +21,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { loanTargets, loanIn, loanTerms } from '../src/game/loans'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const freshBothSquads = (g: GameState, homeId: string, awayId: string) => {
   for (const cid of [homeId, awayId]) {
@@ -177,5 +172,4 @@ const freshBothSquads = (g: GameState, homeId: string, awayId: string) => {
   }
 }
 
-console.log(fails ? `\nAUDIT PROBE FAILED (${fails})` : '\nAUDIT PROBE PASSED: the 16D fixes hold')
-process.exit(fails ? 1 : 0)
+done('AUDIT PROBE', 'the 16D fixes hold', { exit: true })

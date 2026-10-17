@@ -30,15 +30,10 @@ import { answerPress } from '../src/game/media'
 import { ATTR_KEYS, SEASON_WEEKS, leagueTier } from '../src/game/model'
 import type { GameState } from '../src/game/model'
 import { insolvencyRisk } from '../src/game/insolvency'
+import { ok, done } from './lib/probe'
 
 const SEASONS = Number(process.argv[2] ?? 15)
 const SEED = Number(process.argv[3] ?? 20260822)
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 
 const attrMean = (g: GameState, ids: string[]): number => {
   let sum = 0, n = 0
@@ -285,7 +280,4 @@ ok(last.news < 6000, `the news feed does not grow without bound (${last.news} it
     `the pyramid keeps its height: best-XV gap top to bottom league ${first.tierGap.toFixed(1)} -> ${lastRow.tierGap.toFixed(1)}`)
 }
 
-console.log(fails
-  ? `RELEASE SIM FAILED (${fails})`
-  : `RELEASE SIM PASSED: ${SEASONS} seasons, and the world still works`)
-if (fails) process.exit(1)
+done('RELEASE SIM', `${SEASONS} seasons, and the world still works`, { blank: false })

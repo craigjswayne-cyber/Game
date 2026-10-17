@@ -20,12 +20,7 @@ import { newGame } from '../src/game/newgame'
 import { activePlan, planCap } from '../src/game/season'
 import { FOCUS_MAX_AGE, FOCUS_SLOTS, focusBlock, focusIds, planBlock, planIds, setFocus, setPlan } from '../src/game/development'
 import type { Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'Picker', 41)
 const club = g.clubs[g.userClubId]
@@ -109,5 +104,4 @@ console.log('--- personal plans')
   if (scholar) ok(!setPlan(g, scholar.id, 'fitness') && planBlock(scholar) === 'training.whyAcademy', 'an academy scholar is refused, with the reason')
 }
 
-console.log(fails ? `\nDEV PICK PROBE FAILED (${fails})` : '\nDEV PICK PROBE PASSED: every man who qualifies can be picked, and the places are the game\'s')
-process.exit(fails ? 1 : 0)
+done('DEV PICK PROBE', 'every man who qualifies can be picked, and the places are the game\'s', { exit: true })

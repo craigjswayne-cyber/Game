@@ -19,11 +19,10 @@
 // Run: npm run build && node scripts/pressbaroprobe.mjs
 import { chromium } from 'playwright-core'
 import { mkdirSync, writeSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const SHOTS = process.env.SHOTS ?? '/tmp/pressbaro'
 mkdirSync(SHOTS, { recursive: true })
 
@@ -164,5 +163,4 @@ try {
   await browser.close().catch(() => {})
   server.stop()
 }
-say(fails ? `\nPRESS BAROMETER SCREEN FAILED (${fails})` : '\nPRESS BAROMETER SCREEN PASSED: the dial leads the room, says why, and the answers say what they did')
-done(fails)
+done('PRESS BAROMETER SCREEN', 'the dial leads the room, says why, and the answers say what they did', { exit: true })

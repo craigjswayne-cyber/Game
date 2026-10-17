@@ -21,11 +21,10 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, failures } from './lib/probe.mjs'
 
 const server = await startPreview(0, 2500)
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (cond, what) => { say(`${cond ? '  ok  ' : 'FAIL  '}${what}`); if (!cond) fails++ }
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
@@ -114,6 +113,6 @@ try {
   server.stop()
 }
 
-if (fails) { say(`\nINJURY GATE PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { say(`\nINJURY GATE PROBE: ${failures()} failures`); process.exit(1) }
 say('\nINJURY GATE PROBE PASSED: no unfit shirt goes down the tunnel')
 done(0)

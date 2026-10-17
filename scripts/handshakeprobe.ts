@@ -21,12 +21,8 @@ import { canAnswerRequest } from '../src/game/chats'
 import { executeTransfer, offerRenewalAt, renewalDemand } from '../src/game/ai'
 import { competitiveMatchIn, requestLocked, startPromise } from '../src/game/handshake'
 import type { GameState, Player, PressItem } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const clone = (g: GameState): GameState => JSON.parse(JSON.stringify(g))
 const userFixtureAt = (g: GameState, w: number) => g.fixtures.find(f => f.week === w && !f.played && f.compId !== 'fr' &&
   (f.homeId === g.userClubId || f.awayId === g.userClubId))
@@ -253,5 +249,4 @@ const newsFor = (g: GameState, p: Player, k: string) => g.news.some(n => n.k ===
     `${quiet} weeks without a match: the promise has not been judged broken`)
 }
 
-console.log(fails ? `HANDSHAKE PROBE FAILED (${fails})` : 'HANDSHAKE PROBE PASSED')
-process.exit(fails ? 1 : 0)
+done('HANDSHAKE PROBE', '', { exit: true, blank: false })

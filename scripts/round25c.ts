@@ -21,6 +21,7 @@ import { offersFor } from '../src/game/commercial'
 import { OBJECTIVE_DEFS } from '../src/game/objectives'
 import { weekDate } from '../src/game/model'
 import type { GameState } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
 /** Hold the board off.
  *
@@ -35,9 +36,6 @@ const keepJob = (g: GameState) => {
     g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
   }
 }
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 console.log('the calendar:\n')
 {
@@ -184,5 +182,5 @@ console.log('\nthe expectations decision and the annual stamp:\n')
   ok(g.stance === undefined, 'and the stance died with the old season')
 }
 
-if (fails) { console.error(`\nROUND 25C PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nROUND 25C PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nROUND 25C PROBE PASSED: the season has its real shape')

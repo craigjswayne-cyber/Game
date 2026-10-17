@@ -13,14 +13,12 @@ import { startPreview } from './lib/preview.mjs'
 // the release number comes from package.json, so a version bump cannot
 // silently diverge from what the title screen shows
 import { readFileSync } from 'node:fs'
+import { ok, failures } from './lib/probe.mjs'
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
 
 const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
-
-let fails = 0
-const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 try {
   await page.goto(`${server.origin}/`)
@@ -82,8 +80,8 @@ try {
     ok(icon.clear === 0, `and it bleeds to the edge rather than letterboxing (${icon.clear} transparent)`)
     ok(icon.corners.every(a => a === 255), 'including the corners, which a squircle keeps and a circle does not')
   }
-  console.log(fails ? `BRAND PROBE FAILED (${fails})` : `BRAND PROBE PASSED: PHASE: Rugby Manager, v${version}`)
-  process.exitCode = fails ? 1 : 0
+  console.log(failures() ? `BRAND PROBE FAILED (${failures()})` : `BRAND PROBE PASSED: PHASE: Rugby Manager, v${version}`)
+  process.exitCode = failures() ? 1 : 0
 } catch (e) {
   console.error('BRAND PROBE FAILED:', String(e).slice(0, 300))
   process.exitCode = 1

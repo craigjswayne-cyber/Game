@@ -32,11 +32,10 @@
 // Run: node scripts/dramaprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
 import { writeSync, readFileSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -277,5 +276,4 @@ try {
   server.stop()
 }
 
-say(fails ? `\nDRAMA PROBE FAILED (${fails})` : '\nDRAMA PROBE PASSED: the pitch reads the match, and the clock knows when to slow down')
-done(fails)
+done('DRAMA PROBE', 'the pitch reads the match, and the clock knows when to slow down', { exit: true })

@@ -29,10 +29,9 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, failures } from './lib/probe.mjs'
 
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 // A stranger has patience, but not infinite patience. If the walk from the title
 // screen to a live match takes more than this many taps, something in the middle
@@ -302,5 +301,5 @@ try {
   server.stop()
 }
 
-say(fails ? `\n${fails} FAILURES` : '\nSTRANGER PATH PASSED: the first ten minutes explain themselves')
-done(fails)
+say(failures() ? `\n${failures()} FAILURES` : '\nSTRANGER PATH PASSED: the first ten minutes explain themselves')
+done(failures())

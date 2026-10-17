@@ -18,12 +18,7 @@
 import { newGame } from '../src/game/newgame'
 import { devFactor } from '../src/game/rollover'
 import { absWeek, type Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'Growth', 9)
 
@@ -90,5 +85,4 @@ const g = newGame('northampton', 'Growth', 9)
   ok(hi <= 1.4, `while a senior at the same palace is priced as before (${hi.toFixed(3)})`)
 }
 
-console.log(fails ? `\nGROWTH PROBE FAILED (${fails})` : '\nGROWTH PROBE PASSED: development follows the inputs and the world mean stays put')
-process.exit(fails ? 1 : 0)
+done('GROWTH PROBE', 'development follows the inputs and the world mean stays put', { exit: true })

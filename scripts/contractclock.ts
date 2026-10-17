@@ -21,12 +21,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 // THE MANAGER STAYS IN POST (1.8.15). This measures the contract clock, and
 // a clock nobody is there to hear is not a measurement: after the AI economy
@@ -114,7 +109,7 @@ console.log('\n--- 2. a lapsed contract usually costs you the player\n')
     `but a rolling deal is a real outcome, not a rounding error (${stayed} of ${total} stayed on)`)
 }
 
-console.log(fails === 0
+console.log(failures() === 0
   ? '\nCONTRACT CLOCK PASSED: the clock counts down, and running it out costs you'
-  : `\nCONTRACT CLOCK FAILED: ${fails}`)
-process.exit(fails === 0 ? 0 : 1)
+  : `\nCONTRACT CLOCK FAILED: ${failures()}`)
+process.exit(failures() === 0 ? 0 : 1)

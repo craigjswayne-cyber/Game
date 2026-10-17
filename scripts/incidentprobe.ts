@@ -17,6 +17,7 @@
 import { newGame } from '../src/game/newgame'
 import { simMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
+import { ok, failures } from './lib/probe'
 
 const WORLDS: [string, number][] = [['leicester', 101], ['toulouse', 202], ['northampton', 303], ['leinster', 404]]
 const PER = 300
@@ -89,8 +90,6 @@ const ROWS: [string, string][] = [
 ]
 for (const [label, prefix] of ROWS) console.log(`  ${label.padEnd(26)} ${per(sum(prefix))}`)
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const rate = (p: string) => sum(p) / n
 if (process.argv.includes('--assert')) {
   ok(rate('comm.penTry') > 0.03 && rate('comm.penTry') < 0.3, 'penalty tries: present, not weekly')
@@ -101,6 +100,6 @@ if (process.argv.includes('--assert')) {
   ok(rate('comm.tmoFoul_') > 0.05 && rate('comm.tmoFoul_') < 0.6, 'TMO foul-play reviews: now and then')
   ok(yc / n > 0.8 && yc / n < 2.6, 'yellow cards: professional-game rate')
   ok(rc / n < 0.15, 'red cards: rare')
-  console.log(fails ? `INCIDENT PROBE FAILED: ${fails}` : 'INCIDENT PROBE PASSED')
-  process.exit(fails ? 1 : 0)
+  console.log(failures() ? `INCIDENT PROBE FAILED: ${failures()}` : 'INCIDENT PROBE PASSED')
+  process.exit(failures() ? 1 : 0)
 }

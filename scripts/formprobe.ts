@@ -26,12 +26,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { formGuide } from '../src/game/model'
 import type { Fixture, GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const g: GameState = newGame('northampton', 'Form Probe', 909)
 
@@ -96,5 +91,5 @@ ok(sawLoss, 'losses show up as L in somebody\'s guide, so the letters are live')
   ok(guide === 'W L W W W', `formGuide shows the loss: "${guide}"`)
 }
 
-if (fails) { console.error(`\nFORM PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nFORM PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nFORM PROBE PASSED: the last five means the last five Saturdays')

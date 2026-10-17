@@ -24,12 +24,7 @@
 import { readFileSync } from 'node:fs'
 import { W } from '../src/game/gender'
 import { kitPattern, kitTrim, kitQuarters, kitHoops, kitCycle, kitSleeves } from '../src/game/kits'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 /** Women's club id (without the prefix) -> the men's id for the same club.
  *  Kept here as well as in kits.ts ON PURPOSE: this probe is the second pair of
@@ -112,7 +107,4 @@ for (const lone of ['trailfinders', 'loughborough']) {
     `${lone} has no men's twin and inherits nothing`)
 }
 
-console.log(fails
-  ? `\nTWIN KIT PROBE FAILED (${fails})`
-  : '\nTWIN KIT PROBE PASSED: the same club wears the same shirt in both games')
-if (fails) process.exit(1)
+done('TWIN KIT PROBE', 'the same club wears the same shirt in both games')

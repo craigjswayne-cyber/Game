@@ -15,12 +15,7 @@
 // Run: npx vite-node scripts/listsavesprobe.ts
 import { newGame } from '../src/game/newgame'
 import { deleteSave, listSaves, putResume, saveGame } from '../src/game/save'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const a = newGame('leicester', 'Ann', 3)
 const b = newGame('northampton', 'Bea', 4)
@@ -57,5 +52,4 @@ ok(!keys2.includes('slot2') && !keys2.includes('slot2::meta'), 'deleting a save 
 rows = await listSaves()
 ok(rows.length === 2 && !rows.some(r => r.slot === 'slot2'), 'and it is gone from the list')
 
-console.log(fails ? `\nLIST SAVES PROBE FAILED (${fails})` : '\nLIST SAVES PROBE PASSED: the Load screen reads labels, not careers')
-process.exit(fails ? 1 : 0)
+done('LIST SAVES PROBE', 'the Load screen reads labels, not careers', { exit: true })

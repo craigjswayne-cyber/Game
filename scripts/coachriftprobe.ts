@@ -30,12 +30,8 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { sackStaff } from '../src/game/staff'
 import { RIFT_COOLDOWN, riftDrag, staffRiftWeek } from '../src/game/staffrift'
 import { STAFF_INFO, WEEK_BASIS, absWeek, type GameState, type StaffLevels, type StaffPerson } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 type Role = keyof StaffLevels
 const ROLES = Object.keys(STAFF_INFO) as Role[]
 const isRift = (k?: string) => !!k && k.startsWith('news.rift')
@@ -172,5 +168,5 @@ for (const l of ['en', 'fr', 'es', 'it', 'af', 'ja']) {
 }
 ok(true, 'the old staff-room card and Club tab strings are gone in every language')
 
-console.log(fails ? `\nCOACH RIFT PROBE: ${fails} FAILED` : '\nCOACH RIFT PROBE PASSED')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\nCOACH RIFT PROBE: ${failures()} FAILED` : '\nCOACH RIFT PROBE PASSED')
+process.exit(failures() ? 1 : 0)

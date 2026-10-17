@@ -20,12 +20,7 @@
  */
 import { newGame } from '../src/game/newgame'
 import * as R from '../src/game/records'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 ok(typeof R.offerResult === 'function' && typeof R.nemesis === 'function' && typeof R.proteges === 'function',
   'records.ts exports the book, the nemesis and the proteges')
@@ -100,5 +95,4 @@ ok(typeof R.offerResult === 'function' && typeof R.nemesis === 'function' && typ
   ok(JSON.stringify(g) === before, 'reading the nemesis and the proteges leaves the save byte-identical')
 }
 
-console.log(fails ? `RECORDS PROBE FAILED (${fails})` : 'RECORDS PROBE PASSED: the era leaves something behind')
-if (fails) process.exit(1)
+done('RECORDS PROBE', 'the era leaves something behind', { blank: false })

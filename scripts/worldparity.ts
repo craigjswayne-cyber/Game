@@ -36,12 +36,8 @@ import { CHALLENGES, challengesFor, LEAGUE_DEFS } from '../src/game/newgame'
 import { newGame } from '../src/game/newgame'
 import { isWomensId, type Gender } from '../src/game/gender'
 import { parseResultsParam, resultsParam } from '../src/game/schedule'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const say = (s: string) => console.log(s)
 
 const WORLDS: Gender[] = ['m', 'w']
@@ -211,7 +207,4 @@ say('\n--- 4. every competition id survives the round trip to a screen')
   leaks.slice(1, 5).forEach(l => console.log(`        ${l}`))
 }
 
-console.log(fails
-  ? `\nWORLD PARITY FAILED (${fails})`
-  : '\nWORLD PARITY PASSED: neither world promises anything it cannot deliver')
-if (fails) process.exit(1)
+done('WORLD PARITY', 'neither world promises anything it cannot deliver')

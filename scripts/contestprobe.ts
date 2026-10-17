@@ -17,9 +17,7 @@
 import { newGame } from '../src/game/newgame'
 import { resolveContest, carryScore, tackleScore, type ContestSide } from '../src/game/contest'
 import { mulberry32 } from '../src/game/rng'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'C', 3)
 const clubs = Object.values(g.clubs).filter(c => c.tactic?.lineup?.slice(0, 15).every(x => x != null))
@@ -67,5 +65,4 @@ ok(carry(18) > carry(6) + 0.02, `the same hands carry better with good decisions
 const tk = (pos: number) => tackleScore({ ...man, tac: 16, pos })
 ok(tk(18) > tk(6) + 0.03, `the same tackling works better from good positions (${tk(6).toFixed(3)} at 6, ${tk(18).toFixed(3)} at 18)`)
 
-console.log(fails ? `\nCONTEST PROBE FAILED (${fails})` : '\nCONTEST PROBE PASSED: the men decide the collision, centred so the world stands still')
-process.exit(fails ? 1 : 0)
+done('CONTEST PROBE', 'the men decide the collision, centred so the world stands still', { exit: true })

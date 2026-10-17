@@ -18,9 +18,8 @@ import { newGame } from '../src/game/newgame'
 import { beginMatch, playHalf, matchStats, visitsTo22 } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { LiveCtx } from '../src/game/matchEngine'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const g = newGame('leicester', 'Stats Probe', 90210)
 const fx = g.fixtures.find(f => f.week >= 4 && g.clubs[f.homeId] && g.clubs[f.awayId])!
@@ -222,5 +221,4 @@ console.log('\n--- a try is a visit to the 22 (1.8.1)\n')
   ok(over === 0, `and the points from the 22 never exceed the score (${over} sides that did)`)
 }
 
-console.log(fails ? `\nSTATS PROBE FAILED (${fails})` : '\nSTATS PROBE PASSED: the sheet answers to the match it came from')
-if (fails) process.exit(1)
+done('STATS PROBE', 'the sheet answers to the match it came from')

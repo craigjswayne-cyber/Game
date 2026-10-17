@@ -24,12 +24,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { sortTable } from '../src/game/schedule'
 import type { GameState, NewsItem } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const memosOf = (g: GameState): NewsItem[] =>
   g.news.filter(n => n.subject.includes('Board review'))
@@ -183,5 +178,4 @@ const claimed = (n: NewsItem): number | null => {
   }
 }
 
-console.log(fails ? `\nMEMO PROBE FAILED (${fails})` : '\nMEMO PROBE PASSED: the board reports the real table, in whole numbers, without repeating itself')
-process.exit(fails ? 1 : 0)
+done('MEMO PROBE', 'the board reports the real table, in whole numbers, without repeating itself', { exit: true })

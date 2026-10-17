@@ -14,12 +14,7 @@ import { newGame } from '../src/game/newgame'
 import { aiTransfers } from '../src/game/ai'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const g: GameState = newGame('northampton', 'Auction', 55)
 const club = g.clubs[g.userClubId]
@@ -73,5 +68,5 @@ ok(raised > 0, 'a pending offer eventually draws a rival')
   }
 }
 
-if (fails) { console.error(`\nAUCTION PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nAUCTION PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nAUCTION PROBE PASSED: hold your nerve and the price climbs, but not forever')

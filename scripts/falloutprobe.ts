@@ -31,12 +31,7 @@ import { canAnswerRequest } from '../src/game/chats'
 import { BLOCKED_HIT, SOLD_ROOM } from '../src/game/fallout'
 import { seniorVoices } from '../src/game/bonds'
 import type { GameState, NewsItem, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const seniors = (g: GameState, clubId = g.userClubId) =>
   g.clubs[clubId].players.map(id => g.players[id]).filter((p): p is Player => !!p && !p.acad && !p.onLoan)
@@ -190,5 +185,4 @@ const sell = (seed: number, setup: (g: GameState) => Player) => {
   ok(!openBidFor(g, { ...story, offerId: id2 }), 'a lapsed bid has no button either')
 }
 
-console.log(fails ? `FALLOUT PROBE FAILED (${fails})` : 'FALLOUT PROBE PASSED: a bid answered is felt where it should be')
-process.exit(fails ? 1 : 0)
+done('FALLOUT PROBE', 'a bid answered is felt where it should be', { exit: true, blank: false })

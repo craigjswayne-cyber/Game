@@ -16,12 +16,9 @@
 //
 // Run: node scripts/loannameui.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { startPreview, done } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
-
-const say = (s) => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe.mjs'
 
 const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -137,5 +134,4 @@ try {
 if (errors.length) ok(false, `page errors: ${[...new Set(errors)].join(' | ').slice(0, 200)}`)
 await browser.close()
 await server.stop?.()
-say(fails ? `\nLOAN NAME UI FAILED (${fails})` : '\nLOAN NAME UI PASSED: a loan man is coloured, not tagged, and every name keeps to one line')
-done(fails)
+done('LOAN NAME UI', 'a loan man is coloured, not tagged, and every name keeps to one line', { exit: true })

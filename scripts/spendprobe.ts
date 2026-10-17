@@ -33,11 +33,7 @@ const { useStore } = await import('../src/store')
 const { newGame } = await import('../src/game/newgame')
 const { loadGame, saveGame } = await import('../src/game/save')
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 const SKU = M.HEAL_SKU
 
 const g = newGame('leicester', 'Spender', 5)
@@ -82,5 +78,4 @@ ok(r4 === 'done' && M.creditCount(SKU) === 0, `a landed grant spends exactly one
 const disk = await loadGame('slot1')
 ok(disk?.managerName === 'Spent', `and the career is on disk when the call returns (${disk?.managerName})`)
 
-console.log(fails ? `\nSPEND PROBE FAILED (${fails})` : '\nSPEND PROBE PASSED: one credit, one effect, on disk')
-process.exit(fails ? 1 : 0)
+done('SPEND PROBE', 'one credit, one effect, on disk', { exit: true })
