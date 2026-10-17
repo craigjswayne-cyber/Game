@@ -39,6 +39,7 @@ const TOOLS = new Set([
 const LIBRARIES = new Set([
   'scripts/worldcheck.ts',
   'scripts/lib/preview.mjs',
+  'scripts/lib/sheet.mjs',        // answer the injury-wait sheet, then tap a match button (1.9.1)
   'scripts/lib/probe.ts',
   'scripts/lib/probe.mjs',
   'scripts/lib/storefiles.ts',     // the store's source files, for probes that read it (1.9.1)
