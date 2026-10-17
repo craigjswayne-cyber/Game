@@ -42,7 +42,7 @@ const TARGETS = [
 
 const LANGS = ['en', 'fr']
 
-const server = await startPreview('4210', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 let fails = 0
 
@@ -50,7 +50,7 @@ let fails = 0
 async function walk(page, dir) {
   const shot = (n) => page.screenshot({ path: `${dir}/${n}.png` })
 
-  await page.goto('http://localhost:4210/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('.title-screen', { timeout: 20000 })
   await page.waitForTimeout(400)
   await shot('1-title')

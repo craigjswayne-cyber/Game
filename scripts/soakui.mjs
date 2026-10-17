@@ -27,7 +27,7 @@ const SEASONS = Number(process.env.SOAK_SEASONS ?? 5)
 const SHOTS = process.env.SHOTS_DIR || 'shots-soak'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = await startPreview(process.env.SOAK_PORT ?? '4191', 2500)
+const server = await startPreview(0, 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // the phone he plays on, in the orientation he plays in
@@ -249,7 +249,7 @@ let seasonsPlayed = 0   // seasonsDone is scoped to the run; the verdict prints 
 const weekTrail = []
 
 try {
-  await page.goto(`http://localhost:${process.env.SOAK_PORT ?? '4191'}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await audit(await look(), 'title')
 
@@ -259,7 +259,7 @@ try {
   // that has never answered the question.
   {
     const clean = await browser.newPage({ viewport: { width: 412, height: 915 } })
-    await clean.goto('http://localhost:4191/')
+    await clean.goto(`${server.origin}/`)
     await clean.waitForTimeout(900)
     const veil = await clean.evaluate(() => !!document.querySelector('.rotate-veil'))
     if (veil) flaw('PORTRAIT-NAG', 'a first run in portrait is covered by the rotate-your-phone veil before anything can be touched', 'clean profile')

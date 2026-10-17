@@ -17,7 +17,6 @@ import { startPreview } from './lib/preview.mjs'
 
 const OUT = process.argv.find((a, i) => i > 1 && !a.startsWith('--')) ?? '/tmp/uiqa'
 const ONLY = (process.argv.find(a => a.startsWith('--only=')) ?? '').slice(7).split(',').filter(Boolean)
-const PORT = 4391
 mkdirSync(OUT, { recursive: true })
 
 const CONFIGS = [
@@ -30,7 +29,7 @@ const CONFIGS = [
   { id: '412fr', w: 412, h: 915, night: true, full: true, lang: 'fr' },
 ].filter(c => !ONLY.length || ONLY.includes(c.id))
 
-const server = await startPreview(String(PORT), 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 await page.addInitScript(() => {
@@ -127,7 +126,7 @@ const go = async (screen, param) => {
 }
 
 // ---- the title screen and the new-career wizard, photographed on the way in
-await page.goto(`http://localhost:${PORT}/`)
+await page.goto(`${server.origin}/`)
 await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 await page.waitForTimeout(600)
 for (const c of CONFIGS.filter(c => !c.lang)) {

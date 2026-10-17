@@ -12,10 +12,9 @@ import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
 import { done, startPreview } from './lib/preview.mjs'
 
-const PORT = 4287
 const OUT = process.argv[2] ?? 'shots/temper'
 mkdirSync(OUT, { recursive: true })
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -24,7 +23,7 @@ const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM 
 const errors = []
 
 async function career(page) {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

@@ -57,7 +57,7 @@ const SCREENS = [
   'academy', 'jobs', 'handbook', 'about', 'dreamteam', 'offers',
 ]
 
-const server = await startPreview(4231, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** Every run of visible text on the page, as its own trimmed string. */
@@ -81,7 +81,7 @@ try {
     await page.addInitScript(l => {
       localStorage.setItem('rm-night', '1'); localStorage.setItem('rm-lang', l)
     }, lang)
-    await page.goto('http://localhost:4231/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 20000 })
     await page.evaluate(() => window.rugbyStore.getState().start('northampton', 'Key Screen'))
     await until(page, () => !!window.rugbyStore.getState().game && !!document.querySelector('.bottom-nav'), null, 5000)

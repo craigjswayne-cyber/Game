@@ -15,7 +15,7 @@ import { startPreview } from './lib/preview.mjs'
 import { readFileSync } from 'node:fs'
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
 
-const server = await startPreview('4197', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
 
@@ -23,7 +23,7 @@ let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 try {
-  await page.goto('http://localhost:4197/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   const t = await page.evaluate(async () => {
     const h1 = document.querySelector('.title-screen h1')

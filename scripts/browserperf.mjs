@@ -13,6 +13,7 @@
 //            mode - mean, p95, share of frames over 33 ms - and long tasks
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
+import { freePort } from './lib/preview.mjs'
 
 const [dirA, dirB] = process.argv.slice(2, 4)
 const ROUNDS = Number(process.argv[4] ?? 3)
@@ -24,7 +25,9 @@ function serve(dir, port) {
   p.unref()
   return { stop: () => { try { process.kill(-p.pid, 'SIGTERM') } catch { /* gone */ } } }
 }
-const servers = [serve(dirA, 4241), serve(dirB, 4242)]
+// two free ports, so a run beside another preview does not collide (1.9.2)
+const [portA, portB] = [await freePort(), await freePort()]
+const servers = [serve(dirA, portA), serve(dirB, portB)]
 await new Promise(r => setTimeout(r, 4000))
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
@@ -92,7 +95,7 @@ async function run(port) {
 const res = { A: [], B: [] }
 try {
   for (let r = 0; r < ROUNDS; r++) {
-    for (const [k, port] of r % 2 ? [['B', 4242], ['A', 4241]] : [['A', 4241], ['B', 4242]]) {
+    for (const [k, port] of r % 2 ? [['B', portB], ['A', portA]] : [['A', portA], ['B', portB]]) {
       try {
         const o = await run(port)
         res[k].push(o)

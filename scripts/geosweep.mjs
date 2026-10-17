@@ -26,8 +26,7 @@ import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
-const PORT = 4251
-const server = await startPreview(PORT, 2500)
+const server = await startPreview(0, 2500)
 
 let fails = 0
 const seen = new Set()
@@ -86,7 +85,7 @@ try {
     // NIGHT MODE, because that is the theme the game is played in and the theme
     // two of the last three layout bugs only existed in.
     await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
-    await page.goto(`http://localhost:${PORT}/`)
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 
     // a career, quickly, the way every other browser harness starts one

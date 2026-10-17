@@ -25,7 +25,7 @@ const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview('4209', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** A page with, or without, a store attached before the app boots. */
@@ -117,7 +117,7 @@ const openPage = async ({ billing = false, ads = false, owns = [], deaf = false,
 
 /** Career, quickly: the till only has doors once you are inside the game. */
 const startCareer = async (page) => {
-  await page.goto('http://localhost:4209/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -177,7 +177,7 @@ try {
     ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
 
     // the policy itself, served from the app's own origin
-    const pol = await page.goto('http://localhost:4209/privacy.html')
+    const pol = await page.goto(`${server.origin}/privacy.html`)
     ok(pol.status() === 200, 'the privacy policy is served with the app (200)')
     const text = await page.locator('body').innerText()
     ok(/collects nothing about you/i.test(text), 'and says what the game actually does')
@@ -701,7 +701,7 @@ try {
   say('\n--- 3. a new phone, or a reinstall')
   {
     const page = await openPage({ billing: true, owns: ['phase.supporter'] })
-    await page.goto('http://localhost:4209/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('.title-screen')
     // the boot restore runs without being asked (src/main.tsx)
     await until(page, () => document.querySelectorAll('.supporter-mark').length === 1, null, 3000)

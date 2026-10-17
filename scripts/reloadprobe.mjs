@@ -34,8 +34,7 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 
-const PORT = 4179
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -160,7 +159,7 @@ const drive = async (wants, ms, what) => {
 }
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

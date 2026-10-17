@@ -10,7 +10,7 @@ import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 const SHOTS = 'shots'; mkdirSync(SHOTS, { recursive: true })
-const server = await startPreview('4182', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, colorScheme: 'dark' })
 const page = await ctx.newPage()
@@ -40,7 +40,7 @@ const REACH_GAME = `(() => {
 })()`
 
 try {
-  await page.goto('http://localhost:4182/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
