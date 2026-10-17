@@ -71,7 +71,17 @@ export default defineConfig({
   define: { __BUILD_TAG__: JSON.stringify(buildTag()) },
   build: {
     target: 'es2020',
-    chunkSizeWarningLimit: 1500,
+    // JUST ABOVE WHAT THE BUILD IS, so growth warns (1.9.1, measured on the
+    // build, minified, before gzip): index 1,295 kB (421 kB gzip), the five
+    // lazy dictionaries 728 to 803 kB each (fr the largest), lang-en 686 kB,
+    // data 278 kB, vendor 140 kB. The index is that size on purpose: the engine
+    // and the store are needed at boot, with the screens a session opens on
+    // (title, new game, Home, inbox, match day, the wire, saves, the day room),
+    // and the other screens are lazy chunks already. The dictionaries are lazy per
+    // language, so a phone downloads one of them, never all five. It was 1500,
+    // which hid the index growing by another fifth; at 1350 a regression of
+    // about 55 kB on the index says so in the build output.
+    chunkSizeWarningLimit: 1350,
     rollupOptions: {
       output: {
         // split the stable stuff out so routine updates only invalidate the
