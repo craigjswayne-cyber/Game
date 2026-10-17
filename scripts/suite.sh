@@ -38,8 +38,10 @@ REPORTERS="analysis leaguestrength gapreport icons shots qa-shots qa-shots2 news
 # LONG: in the fast run, but given 30 minutes rather than 15. memoryloopprobe
 # measures the rematch on 1,440 paired matches since 1.8.16, and frliveprobe
 # plays every line in French; both finish in 12 alone and ran past 15 under a
-# four-shard load.
-LONG="memoryloopprobe frliveprobe"
+# four-shard load. analystprobe joined them in 1.9.1: 13.7 minutes under a
+# four-shard load on a four-core box, printing its verdict as the 15-minute
+# timeout killed it.
+LONG="memoryloopprobe frliveprobe analystprobe"
 # runtimematrix (1.9.1, was scripts/qa2/matrix.ts): fifteen seasons on three
 # seeds in each world with every invariant checked every season.
 SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight optionsprobe autopilotprobe aiecon stackprobe distressprobe runtimematrix"
