@@ -87,10 +87,14 @@ this build, with a probe for each fix that fails without it.
 - **Continue answers the tap at once.** Turning the week takes a second or
   more on a budget phone; the button now says "Turning the week..." straight
   away instead of looking frozen.
-- **Faster to open and lighter to run.** Boot code 740 KB to 419 KB
-  (gzipped), screens load the first time they are opened, the picture assets
-  are a fifth of the size (3.1 MB to 0.65 MB WebP) and are no longer held
-  decoded all session, and the Load screen reads only each save's label.
+- **Opens faster and runs lighter.** A first frame paints before the script
+  runs, and on a 4x-throttled CPU the title screen is ready in 964 ms against
+  1,154 ms before (first paint 908 to 276 ms). Screens load the first time
+  they are opened, the dictionaries ship as JSON, the pictures are a fifth of
+  the size (3.1 MB to 0.65 MB WebP) and are no longer held decoded all
+  session, the Load screen reads only each save's label, saves are written
+  when the phone is idle, and the live match no longer redraws the whole app
+  for each line or simulated minute.
 - **The same seed plays the same on every phone.** Two shuffles and seventeen
   tie-breaks depended on the browser engine or the phone's language.
 - **Accessibility (WCAG 2.1 AA).** Text contrast meets 4.5:1 on every screen
@@ -111,8 +115,10 @@ this build, with a probe for each fix that fails without it.
 - `npm audit`: 0 vulnerabilities (Vite 8 removed the esbuild dev-server issue).
 
 **Under the hood**
-- Vite 8, React 19, Zustand 5, TypeScript 6.0. TypeScript 7 typechecks the
-  tree but typescript-eslint does not support it yet.
+- Vite 8, Zustand 5, TypeScript 6.0. React stays on 18.3: React 19 measured
+  270 ms slower to first paint at 4x CPU on the same code, for nothing a
+  player would see. TypeScript 7 typechecks the tree, but typescript-eslint
+  does not support it yet.
 - `noUnusedLocals` and `noUnusedParameters` on; 229 needless exports made
   local and 35 dead functions and constants removed, with the 24 strings only
   they used.
@@ -133,3 +139,17 @@ this build, with a probe for each fix that fails without it.
   Every old import path still works. Pure moves: the sim fingerprint, a
   full-state hash over 70 weeks of two careers and the built CSS are all
   identical before and after.
+
+**Known, and left for 1.9.2** (none blocks this release; each was measured or
+traced in the audit)
+- Turning a week still takes 230 to 480 ms of main-thread time on a desktop,
+  so a second or more on a budget phone; the button now says so. The fix is
+  moving the settle into a Web Worker or yielding between its phases.
+- Kick-off copies the 7.7 MB career twice (the resume record and the database
+  write).
+- `MatchDay.tsx`, `model.ts`, `rollover.ts`, `HighlightClip.tsx` and
+  `store.ts` are still 2,000 to 3,500 lines each; 40 exports are unused.
+- Browser harnesses use fixed preview ports, so two runs on one machine
+  collide; most of them run after merge rather than on pull requests.
+- The repository split (art masters to Git LFS, the bot, marketing and
+  design in their own repositories) follows the release.
