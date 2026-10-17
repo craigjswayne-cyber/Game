@@ -7,8 +7,8 @@ The counts:
 
 | group | how many | where it is listed | how it runs |
 |---|---|---|---|
-| engine probes | 272 | every top-level `scripts/*.ts` (the glob) | `npx vite-node`, 15 min timeout (30 for `LONG`) |
-| browser harnesses | 100 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
+| engine probes | 275 | every top-level `scripts/*.ts` (the glob) | `npx vite-node`, 15 min timeout (30 for `LONG`) |
+| browser harnesses | 102 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
 | soaks and audits | 13 | `SLOW` in `suite.sh` | 90 min timeout each, weekly |
 | reporters | 20 | `REPORTERS` in `suite.sh` | never: no verdict, run by hand |
 | unit tests | 4 files | `tests/*.test.ts` | `npm test` (vitest) |
@@ -20,8 +20,8 @@ which part of the game.
 ## Running them
 
 ```bash
-./scripts/suite.sh fast     # linters, unit tests, engine probes      (~4 h on 4 cores)
-./scripts/suite.sh browser  # linters, build, the 100 browser harnesses (~1.5 h)
+./scripts/suite.sh fast     # linters, unit tests, engine probes      (~2 h as 4 parallel shards on 4 cores)
+./scripts/suite.sh browser  # linters, build, the 102 browser harnesses (~2 h)
 ./scripts/suite.sh smoke    # linters, build, e2e storeprobe backupreach keyscreen (~6 min)
 ./scripts/suite.sh soak     # linters, build, the SLOW list            (hours)
 ./scripts/suite.sh          # fast + browser
@@ -73,8 +73,9 @@ over `tests/**/*.test.ts`: fast, deterministic, no browser, about a minute.
 | `tests/determinism.test.ts` | eight weeks with a save and load each week match eight without | short form of `scripts/reloaddetprobe.ts` |
 
 New fast, deterministic checks belong here rather than in a new probe. Watch
-mode while working: `npx vitest`. vitest 3.2 runs on the repo's own Vite 5;
-the probes keep `vite-node` 6, which brings its own Vite.
+mode while working: `npx vitest`. vitest 4.1 runs on the repo's Vite 8, the
+same Vite the build and `vite-node` 6 use. (vitest 5 needs Node 22.12; CI is on
+Node 20.)
 
 ## What runs automatically
 
@@ -82,7 +83,7 @@ the probes keep `vite-node` 6, which brings its own Vite.
 
 | job | when | what |
 |---|---|---|
-| Engine probes (8 shards) | every push, every PR, nightly | typecheck, textlint, tokenlint, cssaudit, **orphan check**, `npm test` (shard 1), build, **ipprobe**, `suite.sh fast` with `PROBE_QUICK=1`. 25 to 40 min a shard, 55 min ceiling |
+| Engine probes (8 shards) | every push, every PR, nightly | typecheck, textlint, tokenlint, cssaudit, accessibility lint (`npm run lint`), **orphan check**, `npm test` (shard 1), build, **ipprobe**, `suite.sh fast` with `PROBE_QUICK=1`. 25 to 40 min a shard, 55 min ceiling |
 | Browser smoke | pull requests, and pushes to any branch but `main` | build, Chromium, `suite.sh smoke`. About 6 min plus the Chromium install, 30 min ceiling |
 | Browser harnesses (3 shards) | `main`, 03:00 UTC nightly, manual | build, Chromium, `suite.sh browser`. About 40 min a shard, 75 min ceiling; screenshots kept on failure |
 
@@ -128,7 +129,7 @@ marked (b), soaks (s), unit tests (u).
 | **Exploits and fuzzing** | `actionfuzz` (every user action in any order), `marketfuzz`, `sheetfuzz`, `fuzz2`, `fuzz25d`, `breakit`, `breaker` (b), `chaosui` (b) |
 | **UI** | `e2e` (b: the whole flow), `portraitqa` (b), `devicematrix` (b), `overlapaudit` (b), `scrollaudit` (b), `stickyaudit` (b), `uiqaprobe` (b), `paletteqa` (b), `iconshots` (b), `tidyshots` (b), `cssaudit`, `tokenlint` |
 | **Words and languages** | `textlint`, `i18nprobe`, `keyprobe`, `frenchprobe`, `englishprobe`, `langparity`, `frliveprobe`, `langprobe` (b), `keyscreen` (b: 28 screens in both languages, no raw keys) |
-| **Accessibility** | `tapsize` (b) and `geosweep` (b) (44 px targets), `textscale` (b), `nightcontrast` (b) and `contrastprobe` (b) (contrast in both themes), `colouraudit` (b), `colourblind`, `motionprobe` (b: reduced motion), `tapcontrols` (b) |
+| **Accessibility** | `npm run lint` (eslint jsx-a11y over `src/ui`), `a11yprobe` (b), `smalltype` (b), `tapsize` (b) and `geosweep` (b) (44 px targets), `textscale` (b), `nightcontrast` (b) and `contrastprobe` (b) (contrast in both themes), `colouraudit` (b), `colourblind`, `motionprobe` (b: reduced motion), `tapcontrols` (b) |
 | **IP** | `ipprobe` (b: the build carries no real club, competition, sponsor or venue mark), `namedup`, `dataaudit` |
 
 ## The fingerprint
@@ -189,7 +190,7 @@ Seven lessons, each of them paid for:
 ## Known gaps
 
 - **The browser half is not on every PR.** The smoke job runs four harnesses;
-  the other 96 run on `main` and nightly. Run `./scripts/suite.sh browser`
+  the other 98 run on `main` and nightly. Run `./scripts/suite.sh browser`
   yourself before anything that touches the UI.
 - **About 730 fixed `waitForTimeout` sleeps remain** in the browser harnesses.
   The smoke set and the shared preview helper were converted in 1.9.1; convert
