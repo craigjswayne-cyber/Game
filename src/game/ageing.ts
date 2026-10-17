@@ -34,7 +34,7 @@
 
 import type { Pos } from '../data/types'
 import type { Attrs, GameState, Player } from './model'
-import { attrWeight } from './attributes'
+import { attrWeight } from './attrtemplates'
 import { clamp, mulberry32 } from './rng'
 import { learnTilt } from './devproject'
 

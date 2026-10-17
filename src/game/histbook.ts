@@ -24,7 +24,7 @@
 import type { GameState } from './model'
 import type { Vars } from './i18n'
 import { tIn } from './i18n'
-import { noteMemory } from './memory'
+import { noteMemory } from './memorylog'
 import { fileHeldNews } from './heldnews'
 
 /** A sentence kept as a key and its values, so it reads in any language. */
