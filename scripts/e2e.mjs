@@ -347,7 +347,7 @@ try {
   const bulletins = []
   for (let tap = 0; tap < 8; tap++) {
     const label = (await page.locator('.continue-btn').innerText()).trim()
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
     await clearOffers()
     const day = await page.evaluate(() => document.querySelector('.day-head .dh-day')?.textContent ?? null)
@@ -397,7 +397,7 @@ try {
 
   // burn through several weeks (mix of matchday + blank weeks)
   for (let i = 0; i < 8; i++) {
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(500)
     await clearOffers()
     await clearWire()

@@ -200,7 +200,7 @@ try {
   // longer than this probe has existed
   for (let tap = 0; tap < 12; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn').catch(() => {})
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(500)
   }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })

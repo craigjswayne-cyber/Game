@@ -84,6 +84,10 @@ this build, with a probe for each fix that fails without it.
   The credit is now taken first, given back if the career refuses it, and the
   career is on disk before the confirmation (`ui/purchase.spendCredit`,
   `scripts/spendprobe.ts`).
+- **Commentary on a white kit is readable again.** The new build tools write
+  white as `#fff`, which the kit colours took for grey, so a line about a
+  side in a white spare kit could come out white on white. Short colours are
+  now read as the colour they are (`ui/kit.hex6`, `tests/kit.test.ts`).
 - **Continue answers the tap at once.** Turning the week takes a second or
   more on a budget phone; the button now says "Turning the week..." straight
   away instead of looking frozen.

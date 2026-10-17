@@ -1,9 +1,17 @@
 // Kit colours on the match screen: which colour stands for each side.
 
+/** #rgb as #rrggbb, anything else as it came. The build's CSS minifier
+ *  writes #ffffff as #fff (Vite 8, 1.9.1), so a colour read back from a
+ *  token can arrive short, and every measure here reads six digits. */
+export function hex6(c: string): string {
+  const m = /^#?([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(c.trim())
+  return m ? `#${m[1]}${m[1]}${m[2]}${m[2]}${m[3]}${m[3]}` : c
+}
+
 /** perceived brightness of a #rrggbb colour, 0-255 (a CSS variable reads as
  *  mid-grey: it is one of ours, and ours are never near-black) */
 export function luma(c: string): number {
-  const hex = c.replace('#', '')
+  const hex = hex6(c).replace('#', '')
   if (hex.length < 6) return 128
   const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16)
   return (r * 299 + g * 587 + b * 114) / 1000
@@ -12,7 +20,7 @@ export function luma(c: string): number {
 /** how far apart two #rrggbb colours look, 0-765 (a CSS variable is far
  *  from everything: it is one of ours) */
 export function kitGap(a: string, b: string): number {
-  const x = a.replace('#', ''), y = b.replace('#', '')
+  const x = hex6(a).replace('#', ''), y = hex6(b).replace('#', '')
   if (x.length < 6 || y.length < 6) return 765
   let d = 0
   for (let i = 0; i < 6; i += 2) d += Math.abs(parseInt(x.slice(i, i + 2), 16) - parseInt(y.slice(i, i + 2), 16))
@@ -70,6 +78,7 @@ const wcag = (a: number[], b: number[]) => { const [x, y] = [relLum(a), relLum(b
 
 /** the ink a kit fill takes, and the fill to paint so that ink reads at 4.5:1 */
 export function kitInk(fill: string): { ink: string; fill: string } {
+  fill = hex6(fill)
   const hex = fill.replace('#', '')
   if (!/^[0-9a-f]{6}$/i.test(hex)) return { ink: luma(fill) > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)', fill }
   const rgb = [0, 2, 4].map(i => parseInt(hex.slice(i, i + 2), 16))

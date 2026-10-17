@@ -231,7 +231,7 @@ try {
   say('\n--- the game plan, applied once')
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
   const onMd = await page.locator('text=Kick Off ▸').count() > 0

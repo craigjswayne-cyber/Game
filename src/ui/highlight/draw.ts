@@ -1,6 +1,6 @@
 // The canvas's colours and the pitch drawn under the players.
 
-import { kitGap } from '../kit'
+import { hex6, kitGap } from '../kit'
 
 export const PAD = 7          // in-goal metres drawn each end
 export const FIELD_W = 100 + PAD * 2
@@ -32,7 +32,8 @@ export function isLight(bg: string): boolean {
 
 /** A colour token's value, for the canvas (which cannot read var()). */
 export function tokenColor(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  // six digits whatever the minifier wrote: the kit measures read #rrggbb
+  return hex6(getComputedStyle(document.documentElement).getPropertyValue(name).trim())
 }
 
 /** the canvas's colours, all from tokens.css */

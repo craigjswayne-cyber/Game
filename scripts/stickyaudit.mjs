@@ -189,7 +189,7 @@ try {
   // taps through the day bulletins
   for (let tap = 0; tap < 8; tap++) {
     if (await page.locator('text=Kick Off').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
   await page.waitForSelector('text=Kick Off', { timeout: 20000 })
