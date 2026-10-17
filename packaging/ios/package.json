@@ -10,7 +10,7 @@
     "shell:open": "npx cap open ios"
   },
   "dependencies": {
-    "@capacitor-community/admob": "8.1.0",
+    "@capacitor-community/admob": "8.2.1",
     "@capacitor/core": "8.5.3",
     "@capacitor/filesystem": "8.1.3",
     "@capacitor/ios": "8.5.3",
