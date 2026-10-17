@@ -16,7 +16,7 @@
 //
 // Run: npx vite-node scripts/settleguardprobe.ts
 import { newGame } from '../src/game/newgame'
-import { settleFault, useStore } from '../src/store'
+import { settleFault, settleInSlices, useStore } from '../src/store'
 import { loadGame, saveGame } from '../src/game/save'
 import type { GameState } from '../src/game/model'
 
@@ -96,6 +96,64 @@ await st.getState().persistNow()
 await quiet()
 const disk3 = await loadGame(SLOT)
 ok(disk3 != null && (disk3.week !== weekBefore || disk3.season !== seasonBefore), `and the turned week is saved (slot at week ${disk3?.week})`)
+
+// ---- the same, in slices (the game's path since 1.9.1) ----
+/** The desk holds a week for a bid or a press question; a probe answers them. */
+function clearGates() {
+  const g = st.getState().game!
+  for (const q of g.press) q.answered = true
+  for (const o of g.offers) if (o.status === 'pending') o.status = 'rejected'
+  g.annual = null
+}
+{
+  settleInSlices(true)
+  await st.getState().persistNow()
+  const before = st.getState().game!
+  const wk = before.week, ssn = before.season
+  booby(before)
+  // press until the week turns or a press throws, awaiting each sliced settle
+  let threw: unknown = null
+  for (let i = 0; i < 40 && !threw; i++) {
+    st.setState({ lastAdvanceAt: 0 })
+    clearGates()
+    try {
+      const s0 = st.getState()
+      if (s0.nav.some(n => n.screen === 'matchday')) await s0.instantResult()
+      else await s0.continueWeek()
+    } catch (e) { threw = e }
+    const g = st.getState().game!
+    if (g.week !== wk || g.season !== ssn) break
+    const top = st.getState().nav[st.getState().nav.length - 1]?.screen
+    if (top === 'day' || top === 'results') st.setState({ nav: [{ screen: 'home' }] })
+  }
+  await quiet()
+  ok(threw instanceof Error, `sliced: the planted failure reaches the caller (${threw instanceof Error ? threw.message : String(threw)})`)
+  ok(st.getState().turning === false, 'sliced: the veil comes down after a failure')
+  const disk = await loadGame(SLOT)
+  ok(disk?.week === wk && disk?.season === ssn, `sliced: nothing half-turned reached the slot (week ${disk?.week})`)
+  ok(st.getState().game?.week === wk, `sliced: the career is back at week ${wk} (${st.getState().game?.week})`)
+  st.getState().dismissWeekFailed()
+  // and a clean sliced week turns and saves
+  let clean: unknown = null
+  for (let i = 0; i < 40; i++) {
+    st.setState({ lastAdvanceAt: 0 })
+    clearGates()
+    try {
+      const s0 = st.getState()
+      if (s0.nav.some(n => n.screen === 'matchday')) await s0.instantResult()
+      else await s0.continueWeek()
+    } catch (e) { clean = e; break }
+    const g = st.getState().game!
+    if (g.week !== wk || g.season !== ssn) break
+    const top = st.getState().nav[st.getState().nav.length - 1]?.screen
+    if (top === 'day' || top === 'results') st.setState({ nav: [{ screen: 'home' }] })
+  }
+  await st.getState().persistNow()
+  await quiet()
+  const disk2 = await loadGame(SLOT)
+  ok(clean === null && disk2 != null && (disk2.week !== wk || disk2.season !== ssn), `sliced: a clean week turns and is saved (slot at week ${disk2?.week})`)
+  settleInSlices(false)
+}
 
 console.log(fails ? `\nSETTLE GUARD PROBE FAILED (${fails})` : '\nSETTLE GUARD PROBE PASSED: a week turns whole or not at all')
 process.exit(fails ? 1 : 0)
