@@ -129,9 +129,16 @@ async function sweep(label, height, stopAt, width = 412) {
     // open the match-day squad the way a manager does
     const openBtn = page.locator('.ticker.panel-area button', { hasText: 'Match-Day Squad' })
     if (!(await openBtn.count())) { ok(false, 'the panel offers a way into the match-day squad'); return }
-    // an injury stop at the same moment has the sheet open already (1.9.1):
-    // that is the sheet this sweep measures, so there is nothing to open
-    if (!(await page.locator('.squad-sheet').count())) await openBtn.first().click()
+    // an injury stop at the same moment opens the injury-wait sheet first
+    // (1.9.1), which greys every row but the ones that answer it. That is not
+    // the sheet this sweep measures: answer it, then open the manager's own
+    for (let i = 0; i < 6 && await page.locator('.squad-sheet').count(); i++) {
+      await page.locator('.squad-sheet .sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.squad-sheet .sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.squad-sheet .btn', { hasText: /Back to the Match|Done|Close/ }).first().click({ timeout: 3000 }).catch(() => {})
+      await page.waitForTimeout(400)
+    }
+    await openBtn.first().click()
     await page.waitForSelector('.squad-sheet', { timeout: 5000 })
     await page.waitForTimeout(350)
 
