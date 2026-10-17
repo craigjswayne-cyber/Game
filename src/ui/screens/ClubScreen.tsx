@@ -19,7 +19,7 @@ import { formTrend } from '../../game/formtraits'
 import { Glyph, FanFace } from '../glyphs'
 import { buildEra } from '../../game/erastory'
 import { EraCard } from '../EraCard'
-import { rowNav } from '../rowNav'
+import { rowNav, rowNavTr } from '../rowNav'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
@@ -517,7 +517,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         <thead><tr><th>{t('squad.colPos')}</th><th>{t('squad.colName')}</th><th>{t('squad.colAge')}</th><th>{t('squad.colNat')}</th><th>{t('transfers.colAbility')}</th><th>{t('transfers.colForm')}</th><th className="num">{t('squad.colValue')}</th></tr></thead>
         <tbody>
           {shown.map(p => (
-            <tr key={p.id} {...rowNav(() => go('player', p.id))}>
+            <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? <> <Glyph name="star" /></> : ''}</td>
               <td className="num">{p.age}</td>

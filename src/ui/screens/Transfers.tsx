@@ -11,7 +11,7 @@ import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 import { ScoutingBody } from './Scouting'
-import { ariaSort, refocus, rowNav } from '../rowNav'
+import { ariaSort, refocus, rowNav, rowNavTr } from '../rowNav'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -462,7 +462,7 @@ export default function Transfers() {
             </td></tr>
           )}
           {pageRows.map(p => (
-            <tr key={p.id} {...rowNav(() => openRow(p.id))}>
+            <tr key={p.id} {...rowNavTr(() => openRow(p.id))}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name" title={p.name}>{initialName(p.name)}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
               {view === 'contract'
@@ -498,7 +498,7 @@ export default function Transfers() {
             </td></tr>
           )}
           {pageRows.map(p => (
-            <tr key={p.id} {...rowNav(() => openRow(p.id))}>
+            <tr key={p.id} {...rowNavTr(() => openRow(p.id))}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name" title={p.name}>{initialName(p.name)}{deal === 'transfer' && p.transferListed && <> <Mark name="tag" color="var(--gold)" title={t('player.transferListed')} /></>}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
               <td className="num">{p.age}</td>

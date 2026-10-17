@@ -15,11 +15,11 @@ import { ageAttributes, gapGrowth, PRODIGY_PA, softCeilings, youthPace } from '.
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
 import { paRange, scoutPa } from './scout'
 import { intakePicks } from './devnews'
-import { PRESEASON_WEEKS } from './calendar'
+import { preseasonWeeksFor } from './calendar'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable, buildMrcCup } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
-import { genderOf, W } from './gender'
+import { genderOf, W, type Gender } from './gender'
 import { SLOTS, expireDeals, offersFor } from './commercial'
 import { settleSponsorBonuses } from './sponsortalks'
 import { book, closeBooks } from './books'
@@ -2179,7 +2179,7 @@ export function rebuildSeason(state: GameState) {
   // a new season wipes the promise ledger clean, except a promise made too
   // late to be judged in the season just gone (model.pledgeDue): that one is
   // owed in this season, counted from the first week, against fresh stats
-  state.pledges = carryPledges(state.pledges ?? [], state.season)
+  state.pledges = carryPledges(state.pledges ?? [], state.season, genderOf(state))
   state.takeover = null // deals not done by summer quietly collapse
   state.newOwnerUntil = null // the honeymoon does not survive the summer
   state.crisisAt = {} // week numbers reset with the calendar
@@ -2529,17 +2529,18 @@ function keepSheet(state: GameState, club: Club, kept: (number | null)[]): (numb
 
 /** The promises that fall due past the end of the season just closed, moved
  *  onto the new one: the same number of weeks still owed, counted from the
- *  end of pre-season, with appearances counted from zero because the season
+ *  end of the world's own pre-season (two weeks in the women's game,
+ *  three in the men's), with appearances counted from zero because the season
  *  stats have just been wiped. `season` is the new season. Exported for the
  *  probe. */
-export function carryPledges(pledges: Pledge[], season: number): Pledge[] {
+export function carryPledges(pledges: Pledge[], season: number, gender: Gender = 'm'): Pledge[] {
   return pledges
     .filter(pl => pl.kind !== 'start' && pl.season === season - 1 && pl.due > LAST_PLEDGE_WEEK)
     .map(pl => ({
       ...pl,
       season,
       week: pl.week - SEASON_WEEKS,
-      due: PRESEASON_WEEKS.length + Math.max(1, pl.due - SEASON_WEEKS),
+      due: preseasonWeeksFor(gender).length + Math.max(1, pl.due - SEASON_WEEKS),
       baseApps: 0,
     }))
 }

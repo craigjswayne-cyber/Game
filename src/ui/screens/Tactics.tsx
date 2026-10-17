@@ -21,7 +21,7 @@ import { OppReportCard, ResponsePlans, usePrepOpponent } from '../OppReport'
 import MovesSection from '../MovesSection'
 import StylesSection from '../StylesSection'
 import { atkName, defName, stylesOf } from '../../game/styles'
-import { rowNav } from '../rowNav'
+import { rowNavTr } from '../rowNav'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -404,7 +404,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
                 <div className="lead-list">
                   <table className="dtable"><tbody>
                     {squad.map(p => (
-                      <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNav(() => setKicker(p.id))}>
+                      <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNavTr(() => setKicker(p.id))}>
                         <td><PosBadge pos={p.pos} /></td>
                         <td className="name">{p.name}</td>
                         <td className="lead-bar"><span style={{ width: `${p.a.goa * 5}%` }} /></td>

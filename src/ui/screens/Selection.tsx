@@ -11,7 +11,7 @@ import { AvailTag, FormPill, LoanKey, LoanName, PosBadge, SectionTitle, Stars } 
 import { benchSeats } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { IcoAttack, IcoChevron, IcoHandshake, IcoPack, IcoShield } from '../icons'
-import { rowNav } from '../rowNav'
+import { rowNavTr } from '../rowNav'
 
 /* Keys, not words: this array is built once at module load and the language
    can change afterwards. The English wording is in src/locales/en.json. */
@@ -123,7 +123,7 @@ export default function SelectionPane() {
     const p = pid != null ? game.players[pid] : null
     const problem = p && (p.injury || p.bans > 0 || p.natSquad || p.clubId !== club.id)
     return (
-      <tr key={slot} {...rowNav(() => tapSlot(slot))}
+      <tr key={slot} {...rowNavTr(() => tapSlot(slot))}
         className={`${problem ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
@@ -186,7 +186,7 @@ export default function SelectionPane() {
               {pool.map(p => {
                 const away = awayReason(p)
                 return (
-                  <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNav(() => appoint(roleSheet, p.id))}>
+                  <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNavTr(() => appoint(roleSheet, p.id))}>
                     <td><PosBadge pos={p.pos} /></td>
                     <td className="name">{p.name}{p.injury ? <> {injCross}</> : away && <div className="meta">{away}</div>}</td>
                     <td className="lead-bar"><span style={{ width: `${p.a.lea * 5}%` }} /></td>
@@ -225,7 +225,7 @@ export default function SelectionPane() {
             <table className="dtable">
               <tbody>
                 {pool.map(p => (
-                  <tr key={p.id} {...rowNav(() => setSlot(pickSlot, p.id))}
+                  <tr key={p.id} {...rowNavTr(() => setSlot(pickSlot, p.id))}
                     style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                     <td><PosBadge pos={p.pos} /></td>
                     <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('selection.selected') : ''}</td>

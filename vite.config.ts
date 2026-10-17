@@ -66,7 +66,7 @@ export default defineConfig({
   // the dictionaries are 700 to 840 KB each: shipped as a JSON.parse of one
   // string rather than a JavaScript object literal, which a phone parses
   // several times faster (1.9.1)
-  json: { stringify: true },
+  json: { stringify: true, namedExports: false },
   base: './',
   define: { __BUILD_TAG__: JSON.stringify(buildTag()) },
   build: {

@@ -7,7 +7,7 @@ import { STATUSES, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } fr
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
-import { ariaSort, refocus, rowNav } from '../rowNav'
+import { ariaSort, refocus, rowNavTr } from '../rowNav'
 
 // Handheld squad layout: the team sheet first, then the tables - Pkd chip,
 // fitness ring, starred names, morale arrows, Av R and Value.
@@ -282,7 +282,7 @@ export default function Squad() {
           {players.map(p => {
             const avr = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
             return (
-              <tr key={p.id} {...rowNav(() => go('player', p.id))}>
+              <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
                 <NameCell p={p} />
                 {view === 'general' && (<>
                   <td><PosBadge pos={p.pos} /></td>

@@ -81,12 +81,12 @@ for (const night of [true, false]) {
     // the Team screen opens on Selection, whose rows pick a shirt; the
     // General Info list is the one whose rows open a player
     await page.click('.tab-bar >> text=General Info')
-    await page.waitForSelector('.dtable tbody tr[role="button"]')
-    const rows = await page.locator('.dtable tbody tr[role="button"][tabindex="0"]').count()
-    ok(rows >= 15, `${theme}: squad rows are buttons in the tab order (${rows})`)
+    await page.waitForSelector('.dtable tbody tr[data-row-nav]')
+    const rows = await page.locator('.dtable tbody tr[data-row-nav][tabindex="0"]').count()
+    ok(rows >= 15, `${theme}: squad rows are rows a keyboard opens, in the tab order (${rows})`)
     // Tab from the element just before the first row, the way a keyboard gets there
     await page.evaluate(() => {
-      const row = document.querySelector('.dtable tbody tr[role="button"]')
+      const row = document.querySelector('.dtable tbody tr[data-row-nav]')
       const all = [...document.querySelectorAll('button, [href], input, select, [tabindex="0"]')]
       const before = all[all.indexOf(row) - 1]
       before?.focus()
@@ -94,7 +94,7 @@ for (const night of [true, false]) {
     let landed = false
     for (let i = 0; i < 4 && !landed; i++) {
       await page.keyboard.press('Tab')
-      landed = await page.evaluate(() => document.activeElement?.matches('.dtable tbody tr[role="button"]') ?? false)
+      landed = await page.evaluate(() => document.activeElement?.matches('.dtable tbody tr[data-row-nav]') ?? false)
     }
     ok(landed, `${theme}: Tab lands on a squad row`)
     const ring = await page.evaluate(() => {
