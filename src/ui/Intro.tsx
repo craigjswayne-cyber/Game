@@ -47,7 +47,7 @@ import { Glyph } from './glyphs'
  * Automated browsers skip it (navigator.webdriver): some fifty harnesses open on
  * the title screen. scripts/introprobe.mjs plays it on purpose with ?intro=1.
  */
-export const INTRO_KEY = 'phase.intro'
+const INTRO_KEY = 'phase.intro'
 const LENGTH_MS = 5000
 let playedThisLaunch = false
 

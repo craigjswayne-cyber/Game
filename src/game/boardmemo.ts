@@ -35,10 +35,10 @@ import { leaguePos } from './schedule'
 import { chairMemoRow } from './chairman'
 
 /** Three weeks off the awards beat, so the two never share an inbox. */
-export const MEMO_OFFSET = 3
+const MEMO_OFFSET = 3
 
 /** Is this the week the board writes? */
-export function memoDue(state: GameState): boolean {
+function memoDue(state: GameState): boolean {
   return state.week > MEMO_OFFSET
     && state.week % AWARD_EVERY === MEMO_OFFSET
     && !state.unemployed

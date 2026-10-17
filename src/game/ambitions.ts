@@ -24,7 +24,7 @@ import type { Vars } from './i18n'
 import { dreamById, dreamPct, type DreamContext, type DreamDef, type DreamProgress } from './dream'
 import { ARC_OFF, arcFile, type Ambition } from './arcbook'
 
-export const MAX_AMBITIONS = 3
+const MAX_AMBITIONS = 3
 const STEPS = [25, 50, 75, 100]
 
 /** The ambitions of this career: the dream first, then the others, once each. */
@@ -39,7 +39,7 @@ export function ambitionsOf(state: GameState): Ambition[] {
 }
 
 /** The context an ambition's wording is filled from. */
-export function ambitionCtx(state: GameState, a: Ambition): DreamContext {
+function ambitionCtx(state: GameState, a: Ambition): DreamContext {
   const club = state.clubs[a.clubId]
   return { clubId: a.clubId, clubName: club?.short ?? club?.name ?? a.clubId, leagueId: club?.leagueId ?? 'prem', rep: club?.rep ?? 70 }
 }

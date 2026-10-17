@@ -336,7 +336,7 @@ export const anyCall = (c: MoveCalls) => !!(c.lineout || c.scrum || c.shape || c
  *  zone has its say: an AI coach's call for the set piece, or the manager's
  *  primary and secondary, whichever can run from it, and where both can the
  *  primary on `mix` of them by a hash `u` (0..1) of the fixture and the tick. */
-export function strikeFor(c: MoveCalls, launch: 'lineout' | 'scrum', u: number): string | undefined {
+function strikeFor(c: MoveCalls, launch: 'lineout' | 'scrum', u: number): string | undefined {
   if (c.main || c.alt) {
     const a = valid(c.main, launch), b = valid(c.alt, launch)
     if (a && b) return u < (c.mix ?? MIX_DEFAULT / 100) ? a : b
@@ -444,7 +444,7 @@ export function moveFit(m: Move, at: (shirt: number, a: keyof Attrs) => number |
 }
 
 /** How strongly the opponent's defence shows each trait, 0..1. */
-export function defTraits(tac: Tactic | undefined): Record<DefTrait, number> {
+function defTraits(tac: Tactic | undefined): Record<DefTrait, number> {
   const f = (v: number | undefined) => (Number.isFinite(v) ? clamp(((v as number) - 50) / 50, -1, 1) : 0)
   const line = f(tac?.defLine), width = f(tac?.defWidth)
   return { rush: Math.max(0, line), drift: Math.max(0, -line), narrow: Math.max(0, -width), wide: Math.max(0, width) }
@@ -473,8 +473,8 @@ export function moveMatchup(m: Move, oppTac: Tactic | undefined): number {
  * FAM_AI, which is exactly the move as it was before familiarity existed:
  * the world outside the manager's club plays the same rugby to the digit.
  */
-export const FAM_K = 7.3
-export const FAM_AI = 0.87
+const FAM_K = 7.3
+const FAM_AI = 0.87
 
 /** matches this club has run the call in: the playbook's reps, or on a save
  *  from before they were kept, this season's calls */
@@ -492,7 +492,7 @@ export function familiarityOf(state: GameState, club: Club, id: string): number 
 
 /** what familiarity does to a gain: 0.7 of it on the first run, all of it at
  *  the AI's familiarity, a shade more beyond */
-export const famMult = (fam: number) => 0.7 + 0.3 * fam / FAM_AI
+const famMult = (fam: number) => 0.7 + 0.3 * fam / FAM_AI
 
 /** a drilled move with average men against a neutral defence is a small plus */
 const Q_BASE = 0.15
@@ -567,8 +567,8 @@ export function moveTempoF(state: GameState, club: Club): number {
 /** Share of a side's ticks launched from each set piece. The match sheet
  *  counts about twenty-five lineouts and thirteen scrums a match between the
  *  two sides; the rest is open play. */
-export const LAUNCH_LINEOUT = 0.3
-export const LAUNCH_SCRUM = 0.15
+const LAUNCH_LINEOUT = 0.3
+const LAUNCH_SCRUM = 0.15
 
 /** How this side's tick began: a hash of the fixture, the tick and the side,
  *  never a draw on the match dice, so a watched match and a silent one are

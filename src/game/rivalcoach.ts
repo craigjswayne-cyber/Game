@@ -42,9 +42,9 @@ import { PHILOSOPHY_BY_ID } from './philosophy'
 
 /** heat and meetings it takes to be a rival */
 export const RIVAL_AT = 5
-export const RIVAL_MEETINGS = 4
+const RIVAL_MEETINGS = 4
 /** a rival fades below this */
-export const RIVAL_FADE = 1.5
+const RIVAL_FADE = 1.5
 /** summer cooling */
 const COOL = 0.7
 /** share of appointments that go to a known coach out of work, when one fits */
@@ -107,7 +107,7 @@ export function coachAt(state: GameState, clubId: string, create = false): Coach
   return c
 }
 
-export function coachById(state: GameState, id: number | undefined): Coach | null {
+function coachById(state: GameState, id: number | undefined): Coach | null {
   return id == null ? null : state.arc?.coaches.find(c => c.id === id) ?? null
 }
 

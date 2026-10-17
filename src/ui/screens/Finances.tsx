@@ -1,6 +1,6 @@
-import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useStore } from '../../store'
-import { facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, weeklyCentral } from '../../game/model'
+import { facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, weeklyCentral } from '../../game/model'
 import type { GameState } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
@@ -334,7 +334,7 @@ export default function Finances() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0 2px' }}>
                     <input type="range" style={{ flex: 1 }}
                       min={RELEASE_STEP} max={most} step={RELEASE_STEP}
-                      value={amount}
+                      value={amount} aria-label={t('finances.treasurySlide')} aria-valuetext={fmtMoney(amount)}
                       onChange={e => setRelAmt(Number(e.target.value))} />
                     <b style={{ minWidth: 74, textAlign: 'right' }}>{fmtMoney(amount)}</b>
                   </div>

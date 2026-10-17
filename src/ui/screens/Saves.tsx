@@ -33,6 +33,9 @@ export default function Saves() {
   const copy = () => useStore.getState().saveCopy() ?? game
 
   const doSave = async (slot: string) => {
+    // a week that threw and could not be put back: the career in memory is
+    // half-turned, and a manual save is the one write that would keep it
+    if (useStore.getState().weekFailed === 2) { setMsg(t('common.weekStuck')); return }
     try {
       await saveGame(slot, copy())
     } catch (e) {
@@ -258,7 +261,7 @@ export default function Saves() {
           <button className="btn" disabled={sharing} onClick={doExport}>{t('world.svExport')}</button>
           <button className="btn ghost" onClick={() => fileRef.current?.click()}>{t('world.svImport')}</button>
         </div>
-        <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }}
+        <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }} aria-label={t('world.svImport')}
           onChange={e => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = '' }} />
       </div>
 

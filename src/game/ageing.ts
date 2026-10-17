@@ -133,7 +133,7 @@ const GAP_MID = 11.5
  * flag keeps the summer pass from squeezing the same ceiling twice, and an old
  * save's men are softened at their first summer.
  */
-export const SOFT_FROM = 88
+const SOFT_FROM = 88
 export function softCeilings(state: GameState) {
   for (const p of Object.values(state.players)) {
     if (p.paN) continue

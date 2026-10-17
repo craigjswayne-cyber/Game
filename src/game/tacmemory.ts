@@ -34,16 +34,16 @@ export const MIN_MATCHES = 4
 /** a call is a strength when it scored in this many of them, and as many tries */
 export const STRONG_MATCHES = 3
 /** a set-piece trend: own feeds in each half, and the change in the share lost */
-export const SET_FEEDS = 10
-export const SET_SHIFT = 0.08
+const SET_FEEDS = 10
+const SET_SHIFT = 0.08
 /** a count a match (breaks, ball lost): the change, and the least spread
  *  a match it is read against */
-export const RATE_SHIFT = 2
-export const RATE_SD = 1.5
+const RATE_SHIFT = 2
+const RATE_SD = 1.5
 /** anticipation: runs lately, the share blunted lately, and the rise on before */
-export const READ_RUNS = 6
-export const READ_SHARE = 0.4
-export const READ_RISE = 0.2
+const READ_RUNS = 6
+const READ_SHARE = 0.4
+const READ_RISE = 0.2
 
 export type TacCat = 'attack' | 'defence' | 'setpiece' | 'adapt'
 
@@ -56,7 +56,7 @@ export interface TacNote {
 }
 
 /** The recent club matches, oldest first. */
-export function recentClubMatches(state: GameState): CausalEvidence[] {
+function recentClubMatches(state: GameState): CausalEvidence[] {
   const list = state.tacLoop?.evidence ?? []
   return list.slice(-WINDOW).filter(e => !!state.clubs[e.oppId] && e.oppId !== state.userClubId)
 }

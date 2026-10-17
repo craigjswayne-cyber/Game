@@ -35,7 +35,7 @@ function readSkin(): Skin {
  *  boot and the store answering - keeps what they picked; they simply wear
  *  the green one until the receipt turns up. Downgrading the saved value
  *  would turn a slow network into a lost preference. */
-export const FREE_SKIN: Skin = 'default'
+const FREE_SKIN: Skin = 'default'
 
 /** IS A PRO MANAGER PERK OUT OF REACH RIGHT NOW?
  *
@@ -74,8 +74,8 @@ export function skinLocked(s: Skin): boolean { return s !== FREE_SKIN && proLock
  *  Plans saved into the old slots C through F are not deleted, only hidden,
  *  the same way a chosen skin survives an entitlement that has not restored
  *  yet. planSlots() stays a function so the row still asks once per render. */
-export const FREE_PLANS = 2
-export const PRO_PLANS = 2
+const FREE_PLANS = 2
+const PRO_PLANS = 2
 export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLANS }
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
@@ -91,11 +91,11 @@ import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
 import { genderOf, type Gender } from './game/gender'
-import { isKnockoutTie, matchRng, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
+import { isKnockoutTie, matchRng, processWeekAndAdvance, resolveKnockoutDraw, userMatchThisWeek, weekRng } from './game/season'
 import { resultsParam } from './game/schedule'
 import {
   openDressingRoom, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, coverInjury, swapShirts, undoSubstitution,
-  playHalf, resolveDecision, stepTick, teamName, teamShort, type LiveCtx, forfeitSide, settleForfeit } from './game/matchEngine'
+  playHalf, resolveDecision, stepTick, teamName, type LiveCtx, forfeitSide, settleForfeit } from './game/matchEngine'
 import { applyForJob, resignJob, answerJobOffer } from './game/jobs'
 import { answerPress } from './game/media'
 import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
@@ -142,17 +142,6 @@ function countForPro(g: GameState, fx: Pick<Fixture, 'id' | 'compId'> | null | u
  * both sides of it rather than sleeping.
  */
 export const TAP_GUARD_MS = 220
-
-/**
- * How many stories the desk gate may insist on in one week before it relents.
- *
- * An ordinary week writes four or five (soakui measures 4.4 bulletins a week
- * over 218 weeks), so in the weeks the user was complaining about this is never
- * reached and the desk really is cleared before the match. A season rollover
- * writes fifty-four in one settle, and there the budget is what stops the game
- * asking for fifty-four taps. Exported so scripts/deskgate.mjs asserts against
- * the same number rather than a copy of it.
- */
 
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
@@ -262,6 +251,13 @@ interface Store {
    *  save-to-slot on the Saves screen. */
   noteSaveFail: (msg: string) => void
   dismissSaveFail: () => void
+  /** A week settle threw and the career was put back to its last save
+   *  (settleWeek below). 0 when nothing has gone wrong; 2 when the reload
+   *  itself failed and the career is held unsaved for a bug report. */
+  weekFailed: 0 | 1 | 2
+  dismissWeekFailed: () => void
+  /** Put the career back to what is on disk after a failed settle. */
+  rollBack: () => Promise<void>
   /** The message the inbox reader is showing (news id), or null for none.
    *
    *  The inbox reads one at a time (user: "tap the mail symbol it should open the
@@ -325,6 +321,11 @@ interface Store {
   home: () => void
   touch: () => void
   continueWeek: () => void
+  /** What a Continue button calls: continueWeek, after one painted frame when
+   *  the tap is going to turn the week (see below). */
+  continueTap: () => void
+  /** A week is being turned: the Continue buttons say so and ignore taps. */
+  turning: boolean
   kickOff: (preTalk?: import('./game/teamtalk').PreTone, mode?: 'full' | 'highlights') => void
   /** the assistant takes over: play the match out instantly with your team */
   instantResult: (preTalk?: import('./game/teamtalk').PreTone, review?: boolean) => void
@@ -496,6 +497,33 @@ function openDay(nav: NavEntry[]): NavEntry[] {
   return [...nav.filter(e => e.screen !== 'day' && e.screen !== 'wire'), { screen: 'day' as const }]
 }
 
+/** THE WEEK TURNS ALL AT ONCE OR NOT AT ALL (1.9.1).
+ *
+ *  processWeekAndAdvance changes the career in place, step by step: wages,
+ *  drills, knocks, the table, the calendar. A throw halfway left a career that
+ *  was neither last week nor this one, the next mark wrote it to disk, and a
+ *  second tap ran the steps that had already run. Now a throw holds the writer
+ *  so the half-turned career is never saved, puts the career back to the copy
+ *  on disk, and rethrows so the crash log still records it. The same week
+ *  failing twice in a row stops there rather than reloading forever. */
+let failedWeek: string | null = null
+/** settleguardprobe plants a failure here, after the week has been changed in
+ *  memory, to prove the change is never written. Nothing in the game sets it. */
+export const settleFault: { after: ((g: GameState) => void) | null } = { after: null }
+function settleWeek(g: GameState, get: () => Store): void {
+  const key = `${g.seed}:${g.season}:${g.week}`
+  try {
+    processWeekAndAdvance(g)
+    settleFault.after?.(g)
+    failedWeek = null
+  } catch (e) {
+    saveQueue.hold()
+    if (failedWeek === key) useStore.setState(s => ({ weekFailed: 2, tick: s.tick + 1 }))
+    else { failedWeek = key; void get().rollBack() }
+    throw e
+  }
+}
+
 /** Land on the first day of a freshly settled week.
  *
  *  Monday first, because that is where the results and the treatment room are.
@@ -640,6 +668,22 @@ export const useStore = create<Store>((set, get) => ({
   saveFailMsg: null,
   noteSaveFail: (msg) => set(s => ({ saveFail: s.saveFail + 1, saveFailMsg: msg, tick: s.tick + 1 })),
   dismissSaveFail: () => set({ saveFail: 0, saveFailMsg: null }),
+
+  weekFailed: 0,
+  dismissWeekFailed: () => set({ weekFailed: 0 }),
+  rollBack: async () => {
+    const slot = get().saveSlot
+    const g = await loadGame(slot).catch(() => null)
+    if (!g) {
+      // nothing on disk to go back to: keep the writer held so the half-settled
+      // career in memory never overwrites anything, and say so
+      set(s => ({ weekFailed: 2, tick: s.tick + 1 }))
+      return
+    }
+    saveQueue.release()
+    get().setGame(g, slot)
+    set(s => ({ weekFailed: 1, tick: s.tick + 1 }))
+  },
 
   /** The news reader's recall window: everything unread, plus what you have read
    *  in the last five days. Gossip is in this list too now that the wire and the
@@ -836,13 +880,13 @@ export const useStore = create<Store>((set, get) => ({
       // career that was opened, which is the career as it stood before kick-off
       // (the career slot is never written mid-match), on the same dice and the
       // same recorded calls. Never a fresh match.
-      if (!rec) rec = { ...(c.rec as LiveStamp), pre: JSON.parse(JSON.stringify(g)) as GameState }
+      if (!rec) rec = { ...(c.rec as LiveStamp), pre: structuredClone(g) }
       if (!resumeFits(rec, g)) continue
       const base = migrate(rec.pre)
       delete base.liveRec
       // kept untouched for a later copy to another slot or a file; the replay
       // below mutates `base`, exactly as the match mutated the career
-      const clean = JSON.parse(JSON.stringify(base)) as GameState
+      const clean = structuredClone(base)
       const out = replayMatch(base, rec)
       if (!out) continue
       const own: MatchResume = { ...rec, pre: clean }
@@ -868,7 +912,7 @@ export const useStore = create<Store>((set, get) => ({
       notePlayedOut(base, out.fixture, fromMin)
       countForPro(base, out.fixture)
       base.newsFrom = base.nextId
-      processWeekAndAdvance(base)
+      settleWeek(base, get)
       set(s => ({ game: base, matchRec: own, liveMatch: null, resuming: false, tick: s.tick + 1 }))
       get().dropResume()
       landOnNextWeek(base, set, get, [], true)
@@ -939,6 +983,28 @@ export const useStore = create<Store>((set, get) => ({
   touch: () => {
     set(s => ({ tick: s.tick + 1 }))
     if (get().game) saveQueue.mark(true)
+  },
+
+  turning: false,
+  /**
+   * PAINT FIRST, THEN TURN THE WEEK (1.9.1).
+   *
+   * Settling a week runs every match in the world and takes 230 to 480 ms on a
+   * desktop, so a second or more on a budget phone, all of it in the tap's own
+   * handler. Nothing could paint until it finished: the button did not even
+   * look pressed, and a player who tapped again had no way to know the first
+   * tap had landed. When this tap is the one that turns the week, the button
+   * shows that it is working and the settle runs on the frame after. Day steps
+   * and match day stay immediate: they are cheap, and nothing waits for them.
+   */
+  continueTap: () => {
+    const g = get().game
+    if (!g || get().turning) return
+    if (nextStep(g).kind !== 'week' || typeof requestAnimationFrame !== 'function') { get().continueWeek(); return }
+    set({ turning: true })
+    requestAnimationFrame(() => setTimeout(() => {
+      try { get().continueWeek() } finally { set({ turning: false }) }
+    }, 0))
   },
 
   /** CM-style Continue: play user's match if there is one, else process the week. */
@@ -1119,30 +1185,11 @@ export const useStore = create<Store>((set, get) => ({
           return
         }
       }
-      // THE PRESS HOLD YIELDS ON THE SECOND TAP, AND IT HAS TO.
-      //
-      // The first draft held the week until every question was answered, and
-      // scripts/soakui.mjs found the consequence within one season: 60 taps
-      // without the week moving, stuck on the Press Room at season 2 week 1.
-      // Season openings stack the room - the 25C expectations question and the
-      // pre-season camp decision both live in state.press - and a manager who
-      // does not realise a question is REQUIRED cannot tell a gate from a
-      // bricked save. That is the same "control that does nothing" failure the
-      // Annual shipped in Round 26, and it is worse here because it can happen
-      // on any week rather than one.
-      //
-      // So: tap once and you are taken to the room, which is the part the user
-      // actually asked for - the game stops walking you past it. Tap again from
-      // inside the room and the week goes on, and the question expires the way
-      // an unanswered question always has (season.ts, the desk-clears-itself
-      // block). Being made to LOOK is a gate; being unable to leave is a bug.
-      //
-      // Mail keeps the hard gate, because there the gate itself does the
-      // clearing: one tap hands the whole pile to the reader, and leaving the
-      // reader marks the rest read, so it cannot fail to terminate.
-      // (the press branch that used to live here has moved above and become
-      // hard - deskBlock still reports press so the button can label itself,
-      // but the hold is applied before this block is ever reached)
+      // The press room and the board hold the week at the top of
+      // continueWeek (pressBlock, above), and only questions with options can
+      // hold, so the hold always has a way out. Mail is gated here because the
+      // gate does its own clearing: one tap hands the pile to the reader, and
+      // leaving the reader marks the rest read, so it always terminates.
     }
     if (step.kind === 'match') {
       // stand the manager on the day the match actually falls, so the masthead
@@ -1165,7 +1212,7 @@ export const useStore = create<Store>((set, get) => ({
     // the week is spent: settle it, then start the new Monday. The watermark is
     // what tells the bulletins which stories are new.
     g.newsFrom = g.nextId
-    processWeekAndAdvance(g)
+    settleWeek(g, get)
     landOnNextWeek(g, set, get)
   },
 
@@ -1174,9 +1221,10 @@ export const useStore = create<Store>((set, get) => ({
    *  Shared by Continue and finishMatch so a week that ends in a match and a week
    *  that ends in a blank Saturday both resume on the same footing. */
   openWire: (ids, startId) => {
-    const queue = startId != null
-      ? [...ids.slice(ids.indexOf(startId)), ...ids.slice(0, Math.max(0, ids.indexOf(startId)))]
-      : ids
+    // a start that is not in the list reads from the top: indexOf's -1 used
+    // to slice the queue down to its last story alone (1.9.1)
+    const at = startId != null ? ids.indexOf(startId) : -1
+    const queue = at > 0 ? [...ids.slice(at), ...ids.slice(0, at)] : ids
     set(s => ({ wireQueue: queue, nav: [...s.nav.filter(e => e.screen !== 'wire'), { screen: 'wire' as const }], tick: s.tick + 1 }))
   },
 
@@ -1270,7 +1318,7 @@ export const useStore = create<Store>((set, get) => ({
     // Monday to Friday were meant to carry. The day walk is the reveal now, both
     // ways round; the round-up still comes first, with Monday under it.
     g.newsFrom = g.nextId
-    processWeekAndAdvance(g)
+    settleWeek(g, get)
     set(s => ({ liveMatch: null, tick: s.tick + 1 }))
     get().dropResume()
     landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
@@ -1319,7 +1367,7 @@ export const useStore = create<Store>((set, get) => ({
       countForPro(g, fx)
       const resultsKey = resultsParam(fx.compId, g.week)
       g.newsFrom = g.nextId
-      processWeekAndAdvance(g)
+      settleWeek(g, get)
       set(s => ({ liveMatch: null, tick: s.tick + 1 }))
       get().dropResume()
       landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
@@ -1327,7 +1375,9 @@ export const useStore = create<Store>((set, get) => ({
     }
     noteUse('watched')
     if (preTalk) noteUse('talk')
-    const pre = JSON.parse(JSON.stringify(g)) as GameState
+    // structuredClone, not a JSON round trip (1.9.1): the same copy IndexedDB
+    // would make, at a fraction of the main-thread time on a 7MB career
+    const pre = structuredClone(g)
     const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
     // he is watching, so his injuries wait for his pick (1.9.1)
     ctx.manualInj = true
@@ -1419,7 +1469,10 @@ export const useStore = create<Store>((set, get) => ({
       const step = liveMatch.mode === 'highlights'
         ? nextHighlight(ctx.events, cursor, liveMatch.fixture.homeId)
         : cursor + 1
-      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: step }, tick: s.tick + 1 } : {})
+      // NO TICK FOR A REVEAL (1.9.1). The line was simulated already, so the
+      // career has not changed: only the screens that read liveMatch need to
+      // draw, not the whole app shell under them, once per commentary line.
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: step } } : {})
       // THE REVEAL IS PROGRESS TOO. This branch used to return without writing
       // the record, so while the ticker read out a simulation burst the screen
       // ran ahead of what was on disk - and a reload mid-reveal came back a
@@ -1629,13 +1682,13 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   matchMode: (mode) => {
-    set(s => {
-      if (!s.liveMatch) return {}
-      // remembered for the competition too, so switching mid-match is also a
-      // standing answer for next week rather than a one-off
-      if (s.game) s.game.viewPref = { ...(s.game.viewPref ?? {}), [s.liveMatch.fixture.compId]: mode }
-      return { liveMatch: { ...s.liveMatch, mode }, tick: s.tick + 1 }
-    })
+    const { game, liveMatch } = get()
+    if (!liveMatch) return
+    // remembered for the competition too, so switching mid-match is also a
+    // standing answer for next week rather than a one-off. Written here, not
+    // inside the set() updater, which must not change anything it is handed.
+    if (game) game.viewPref = { ...(game.viewPref ?? {}), [liveMatch.fixture.compId]: mode }
+    set(s => (s.liveMatch ? { liveMatch: { ...s.liveMatch, mode }, tick: s.tick + 1 } : {}))
     // viewPref is on GameState and is meant to be a STANDING answer - the
     // comment above says so - but nothing wrote it, so "remembered for the
     // competition" lasted until the next reload. Named by the external audit.
@@ -1658,7 +1711,7 @@ export const useStore = create<Store>((set, get) => ({
       countForPro(g, live.fixture)
     }
     g.newsFrom = g.nextId
-    processWeekAndAdvance(g)
+    settleWeek(g, get)
     set(s => ({ liveMatch: null, tick: s.tick + 1 }))
     get().dropResume()
     // The full-time round-up still comes first - that is the moment you want
@@ -1968,17 +2021,21 @@ export const useStore = create<Store>((set, get) => ({
 const SAVE_IDLE_MS = 600
 
 /** What the harnesses read to prove coalescing happens. Not used by the game. */
-export const saveStats = { marks: 0, writes: 0, failures: 0 }
+const saveStats = { marks: 0, writes: 0, failures: 0 }
 
 const saveQueue = (() => {
   let timer: ReturnType<typeof setTimeout> | null = null
   let inFlight: Promise<void> | null = null
   let dirty = false
+  // a week settle threw (settleWeek): nothing in memory is fit to write until
+  // the career has been put back from disk
+  let held = false
 
   /** False when the write was held back and the save is still dirty. */
   const write = async (): Promise<boolean> => {
     const { game, saveSlot, liveMatch, matchRec } = useStore.getState()
     if (!game) return true
+    if (held) return false
     // NEVER A HALF-PLAYED MATCH (1.8.1). From the first tick the engine writes
     // tries, cards and injuries onto the players (game/resume.ts), so the game
     // object mid-match is neither the pre-match save nor the finished one. The
@@ -2022,6 +2079,8 @@ const saveQueue = (() => {
   }
 
   return {
+    hold() { held = true; if (timer) { clearTimeout(timer); timer = null } },
+    release() { held = false; dirty = false },
     /** soft: restart the idle timer rather than keep the first one, so a
      *  stream of marks (a slider dragged through twenty steps) is one write
      *  after the last of them, not one write in the middle of the drag */

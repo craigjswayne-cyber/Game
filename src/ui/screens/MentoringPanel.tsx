@@ -9,6 +9,7 @@ import {
 } from '../../game/mentoring'
 import { SectionTitle } from '../components'
 import { attrName, t } from '../../game/i18n'
+import { rowNav } from '../rowNav'
 
 const LINK_KEY: Record<PosLink, string> = {
   same: 'training.linkSame', related: 'training.linkRelated', other: 'training.linkOther',
@@ -89,7 +90,7 @@ export default function MentoringPanel() {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700 }}>
-                  <span style={{ cursor: 'pointer' }} onClick={() => go('player', k.id)}>{k.name}</span>{' '}
+                  <span style={{ cursor: 'pointer' }} {...rowNav(() => go('player', k.id))}>{k.name}</span>{' '}
                   <span className="muted" style={{ fontWeight: 600, fontSize: 12 }}>{k.pos} · {k.age}</span>
                 </div>
                 <div className="meta" style={{ fontSize: 12 }}>

@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
-import { AvailTag, LoanKey, LoanName, Mark, Nat, PosBadge, Stars, StickyControls } from '../components'
-import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
+import { AvailTag, LoanKey, LoanName, Mark, Nat, PosBadge, StickyControls } from '../components'
+import { STATUSES, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { ariaSort, refocus, rowNav } from '../rowNav'
 
 // Handheld squad layout: the team sheet first, then the tables - Pkd chip,
 // fitness ring, starred names, morale arrows, Av R and Value.
@@ -104,8 +105,11 @@ export default function Squad() {
 
   const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${sort === k ? ' active' : ''}${right ? ' num' : ''}`}
-      onClick={() => (sort === k ? setDesc(!desc) : (setSort(k), setDesc(false)))}>
-      {children}{sort === k ? (desc ? ' ▴' : ' ▾') : ''}
+      aria-sort={ariaSort(sort === k, desc, ['pkd', 'pos', 'name', 'age', 'until'].includes(k))}>
+      <button type="button" className="th-btn" data-focus-key={`sq-${k}`}
+        onClick={e => { refocus(`sq-${k}`, document.activeElement === e.currentTarget); if (sort === k) setDesc(!desc); else { setSort(k); setDesc(false) } }}>
+        {children}{sort === k ? (desc ? ' ▴' : ' ▾') : ''}
+      </button>
     </th>
   )
 
@@ -278,7 +282,7 @@ export default function Squad() {
           {players.map(p => {
             const avr = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
             return (
-              <tr key={p.id} onClick={() => go('player', p.id)}>
+              <tr key={p.id} {...rowNav(() => go('player', p.id))}>
                 <NameCell p={p} />
                 {view === 'general' && (<>
                   <td><PosBadge pos={p.pos} /></td>
@@ -322,13 +326,14 @@ export default function Squad() {
                   }
                   const [moodK, col] = MOOD[row.mood]
                   return (<>
+                    {/* eslint-disable-next-line no-restricted-syntax -- swallows the row's tap so choosing a status does not open the player; the select inside is the control */}
                     <td onClick={e => e.stopPropagation()}>
                       {/* the box you see is the span's, drawn small; the
                           select inside it keeps the 44px a thumb needs
                           (owner, round 183: "reduce the size of the box
                           around the key player") */}
                       <span className="gt-pick">
-                        <select className="inline-input gt-sel" value={cur}
+                        <select className="inline-input gt-sel" value={cur} aria-label={`${p.name}: ${t('squad.colStatus')}`}
                           onChange={e => { p.status = e.target.value as SquadStatus; touch() }}>
                           {/* the engine keeps the English name on the def; the
                               option shows the translated one, keyed by id */}

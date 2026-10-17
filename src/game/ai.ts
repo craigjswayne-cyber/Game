@@ -5,12 +5,12 @@ import { clubIntent } from './living'
 import { userCap, userWageBudget } from './grants'
 import { offerSigning } from './records'
 import { transferReaction } from './terraces'
-import {absWeek, SEASON_WEEKS, addGrudge, fmtMoney, fmtWage, isMyClub } from './model'
+import {absWeek, pledgeDue, addGrudge, fmtMoney, fmtWage, isMyClub } from './model'
 import { aiPayRate, aiWageRooms } from './aiecon'
 import { ensureCaptains } from './analysis'
 import { rivalsOf } from './rivalries'
 import { interestPremium, transferInterest } from './interest'
-import { playerValue, playerWage } from './attributes'
+import { playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { book } from './books'
 import { identitySigning } from './identity'
@@ -834,7 +834,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (promiseMinutes) {
     ;(state.pledges ??= []).push({
       playerId: p.id, kind: 'plans', week: state.week, season: state.season,
-      due: Math.min(state.week + 6, 44), baseApps: p.stats.apps,
+      due: pledgeDue(state.week, 6), baseApps: p.stats.apps,
     })
   }
   return { ok: true, msg: t('reply.signsFor', { name: p.name, club: user.name, fee: fmtMoney(fee), wage: fmtWage(wage), bonus: signOn > 0 ? t('reply.signsBonus', { bonus: fmtMoney(signOn) }) : '', promise: promiseMinutes ? t('reply.signsPromise') : '' }) }
@@ -1035,7 +1035,7 @@ export function seniorsOf(state: GameState, club: { players: number[] }): number
 
 /** What one man costs against the cap, or 0 where he sits outside it. The
  *  single reading capBill sums and every "replacing" figure must match. */
-export function capWage(state: GameState, club: { marquee?: number[] }, p: Player | undefined): number {
+export function capWage(_state: GameState, club: { marquee?: number[] }, p: Player | undefined): number {
   if (!p) return 0
   if ((club.marquee ?? []).slice(0, MARQUEE_SLOTS).includes(p.id)) return 0
   // Academy men sit outside the senior cap, as they do in the real game: a

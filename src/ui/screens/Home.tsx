@@ -4,7 +4,7 @@ import { isDeadlineWeek } from '../../game/window'
 import { useStore } from '../../store'
 import { dismiss, dismissed, isOldPlayApp } from '../../game/shell'
 import { snIdFor, snWeeksFor } from '../../game/schedule'
-import { nationByCode, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { leaguePos, sortTable } from '../../game/schedule'
 import { arrangeFriendly, assistantFixtureThisWeek, userFixtureThisWeek } from '../../game/season'
@@ -26,6 +26,7 @@ import { FanFace, Glyph } from '../glyphs'
 import { COMMUNITY_URL } from '../../game/community'
 import { buildDesk, deskText } from '../../game/desk'
 import { DeskCard, DeskTile, deskRows } from '../Desk'
+import { rowNav } from '../rowNav'
 
 
 /**
@@ -158,7 +159,7 @@ export default function Home() {
           a button to the door it always opened, and the gold edge is kept for
           the hero while something waits on him (Desk.tsx). */}
       <DeskCard desk={desk} hero match={fx ? (
-        <div className="desk-match" onClick={() => go(assistants ? 'country' : 'squad')} style={{
+        <div className="desk-match" {...rowNav(() => go(assistants ? 'country' : 'squad'))} style={{
           borderLeftColor: assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)',
         }}>
           <div className="desk-mhead">
@@ -241,7 +242,6 @@ export default function Home() {
           the card says plainly that this Saturday is your country's, with the
           assistant minding any club fixture. */}
       {game.natTeam && (() => {
-        const nat = nationByCode(game.natTeam)
         const next = game.fixtures
           .filter(f => !f.played && (f.homeId === game.natTeam || f.awayId === game.natTeam))
           .sort((a, b) => a.week - b.week)[0]

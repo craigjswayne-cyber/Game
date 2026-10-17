@@ -6,6 +6,7 @@ import { CrestT, Mark, PosBadge, SectionTitle, Stars } from '../components'
 import { acadLeagueName, acadStandings, academySquad, academyStrength, academyXV, ensureAcademyLeague, ACADEMY_SIZE } from '../../game/academy'
 import { ord, t } from '../../game/i18n'
 import { scoutPa } from '../../game/scout'
+import { rowNav } from '../rowNav'
 
 /** The academy section: the squad, the A League table, and the fixtures.
  *
@@ -70,7 +71,7 @@ export default function Academy() {
               <th className="num">{t('report.acColApps')}</th><th className="num">{t('report.acColForm')}</th><th /></tr></thead>
             <tbody>
               {[...squad].sort((a, b) => b.ca + scoutPa(game, b) / 2 - (a.ca + scoutPa(game, a) / 2)).map(p => (
-                <tr key={p.id} onClick={() => go('player', p.id)} style={{ cursor: 'pointer' }}>
+                <tr key={p.id} {...rowNav(() => go('player', p.id))} style={{ cursor: 'pointer' }}>
                   <td><PosBadge pos={p.pos} /></td>
                   <td className="name">{p.name}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
                   <td className="num muted">{p.age}</td>
@@ -99,7 +100,7 @@ export default function Academy() {
             <tbody>
               {rows.map((r, i) => (
                 <tr key={r.teamId} className={r.teamId === me ? 'me' : ''}
-                  onClick={() => game.clubs[r.teamId] && go('club', r.teamId)}
+                  {...rowNav(() => game.clubs[r.teamId] && go('club', r.teamId))}
                   style={{ cursor: 'pointer' }}>
                   <td className="center muted">{i + 1}</td>
                   <td className="name"><CrestT g={game} teamId={r.teamId} size={15} />{teamShort(game, r.teamId)}</td>

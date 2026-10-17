@@ -95,7 +95,7 @@ export const MEMORY_CAP = 160
 /** Most memory stories a season. The world remembers; it does not nag. */
 export const STORIES_PER_SEASON = 7
 
-export function memoryLog(state: GameState): MemoryLog {
+function memoryLog(state: GameState): MemoryLog {
   return (state.memory ??= { entries: [], next: 1 })
 }
 
@@ -568,7 +568,7 @@ function totyNames(state: GameState): Set<string> {
 
 /** What he has done since he left: games and tries, anywhere but the club
  *  he left, past the season so far he took with him (a0, t0). */
-export function sinceLeft(state: GameState, p: Player, e: MemoryEntry): { n: number; tr: number } {
+function sinceLeft(state: GameState, p: Player, e: MemoryEntry): { n: number; tr: number } {
   const from = e.clubId
   const a0 = Number(e.payload?.a0 ?? 0) || 0
   const t0 = Number(e.payload?.t0 ?? 0) || 0

@@ -62,3 +62,58 @@ unchanged.
 - Capital letters on the team talk reactions line, the day subtitles, "No
   games", the academy coach line and the player screen's help text, in every
   language that has capitals.
+
+## Release hardening (audit round, 16 to 17 Oct 2026)
+
+A full audit of the codebase (code review, security, testing, performance,
+tech debt and accessibility) before upload. Everything it found is fixed in
+this build, with a probe for each fix that fails without it.
+
+**For players**
+- **A week can no longer half-turn.** If anything goes wrong while the week
+  is being settled, the career is put back to its last save and a notice says
+  so; nothing half-done is ever written (`store.settleWeek`,
+  `scripts/settleguardprobe.ts`).
+- **Promises made in the summer window are kept, not broken on arrival.** A
+  promise was due by week 44, so one made in weeks 45 to 48 was judged broken
+  the next Saturday with no game played. It now carries into the new season
+  (`model.pledgeDue`, `rollover.carryPledges`, `scripts/pledgeprobe.ts`).
+- **Purchases are spent once and saved before they say so.** A full phone could
+  grant a Full Fitness, an injection or a second ground and keep the credit;
+  and the effect could be lost if the phone closed the app straight after.
+  The credit is now taken first, given back if the career refuses it, and the
+  career is on disk before the confirmation (`ui/purchase.spendCredit`,
+  `scripts/spendprobe.ts`).
+- **Continue answers the tap at once.** Turning the week takes a second or
+  more on a budget phone; the button now says "Turning the week..." straight
+  away instead of looking frozen.
+- **Faster to open and lighter to run.** Boot code 740 KB to 419 KB
+  (gzipped), screens load the first time they are opened, the picture assets
+  are a fifth of the size (3.1 MB to 0.65 MB WebP) and are no longer held
+  decoded all session, and the Load screen reads only each save's label.
+- **The same seed plays the same on every phone.** Two shuffles and seventeen
+  tie-breaks depended on the browser engine or the phone's language.
+- **Accessibility (WCAG 2.1 AA).** Text contrast meets 4.5:1 on every screen
+  in every palette (158 places fixed), a clear focus ring, every table row,
+  header and form control works from a keyboard and has a name, no text
+  smaller than 11px and all type follows the phone's text size, 44px tap
+  targets on chips, and the live match announces score changes, tries, cards
+  and full time to screen readers.
+
+**Security**
+- CI runs with a read-only token and every action pinned to a commit;
+  Dependabot watches actions and npm.
+- The page's Content-Security-Policy now also locks connections, fonts,
+  media, objects, base and form targets.
+- Android builds set `allowBackup="false"`.
+- Discord bot: `/setup` checks Manage Server itself, and the role picker only
+  hands out roles with no permissions below the bot's own.
+- `npm audit`: 0 vulnerabilities (Vite 8 removed the esbuild dev-server issue).
+
+**Under the hood**
+- Vite 8, React 19, Zustand 5, TypeScript 6.0. TypeScript 7 typechecks the
+  tree but typescript-eslint does not support it yet.
+- `noUnusedLocals` and `noUnusedParameters` on; 229 needless exports made
+  local and 35 dead functions and constants removed, with the 24 strings only
+  they used.
+- ESLint with jsx-a11y on `src/ui`.

@@ -202,7 +202,7 @@ export function identityOf(state: GameState): ClubIdentity {
 }
 const seedMemo = new WeakMap<GameState, { key: string; id: ClubIdentity }>()
 
-export const hasLabel = (state: GameState, l: IdLabel): boolean =>
+const hasLabel = (state: GameState, l: IdLabel): boolean =>
   !state.unemployed && identityOf(state).labels.includes(l)
 
 /**
@@ -290,7 +290,7 @@ function fitsLabel(p: Player, l: IdLabel): boolean {
 
 /** A label the club has held long enough to be KNOWN for it (repute.ts):
  *  read straight off the arc, so this file does not import its reader. */
-export const REPUTE_GAP = 2
+const REPUTE_GAP = 2
 function reputeLabel(state: GameState): IdLabel | null {
   const r = state.arc?.repute
   return !state.unemployed && r && r.c === state.userClubId ? (r.l as IdLabel) : null

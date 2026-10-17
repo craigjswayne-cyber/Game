@@ -109,6 +109,7 @@ run textlint npx vite-node scripts/textlint.ts
 # outside tokens.css passed ./scripts/suite.sh and failed the Gate
 run tokenlint npx vite-node scripts/tokenlint.ts
 run cssaudit node scripts/cssaudit.mjs
+run lint npx eslint src/ui
 # every harness is in a list (1.9.1): a new file in no list fails here
 run orphancheck node scripts/orphancheck.mjs
 
@@ -143,6 +144,7 @@ done
 
 BROWSER="e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate instantverdictprobe tapcontrols dealcardui unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe proprompt feedbackui backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe tryflash loanlistui floorad ruckui
   brandprobe chaosui coachriftui countryui devpickui exportui formerui ftprobe hlliveprobe injurysheet loannameui pressbaroprobe roomui screensave setpieceui sheetprobe spotadui teamtalkui temperui uiqaprobe telemetryui traitcard
+  a11yprobe smalltype
   purchasestate paletteqa iconshots tidyshots"
 # purchasestate (1.9.1, was scripts/qa/purchasestate.mjs), paletteqa, iconshots and tidyshots had a
 # verdict and sat in no list; scripts/orphancheck.mjs now fails on that.

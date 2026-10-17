@@ -77,13 +77,19 @@ monochrome and its one red.
 Worst measured pair, of the sixteen each palette is held to: Midnight 5.41:1,
 Heritage 6.20:1, Stealth 5.85:1 — all above the 4.5:1 floor.
 
+The WCAG pass (1.9.x) lifted each dark skin's muted and secondary ink so
+muted text clears 4.5:1 on the raised home card (surface-2), deepened the tour
+skin's hero to `#7A0A1C -> #9C0C24` so the masthead's soft ink reads on it,
+and gave every palette a `--focus-ring` at 3:1 or better against the canvas
+and all three surfaces. See docs/contrast-audit.md for the numbers.
+
 Heritage's daylight palette is worth one note. The brief supplied `#8C1D2A` as
 the interactive colour and the dark block could not use it: 1.73:1 on its own
 card, so it became the header gradient instead. On paper it measures 8.6:1, so
 daylight Heritage gives the owner's own burgundy back as the accent it was
 meant to be.
 | `--text-primary` | `#FFFFFF` | `#F4F1EA` | `#FFFFFF` |
-| `--text-secondary` | `#8E9AAF` | `#9A948D` | `#9A9AA0` |
+| `--text-secondary` | `#A3AEC2` | `#ABA59E` | `#A8A8AE` |
 | worst measured pair | 4.8:1 | 4.63:1 | 4.95:1 |
 
 ## Where the brief and the game disagreed

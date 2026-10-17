@@ -116,7 +116,7 @@ function starSold(state: GameState, p: Player, fee: number, toName: string, wasL
  * the top end, because that is what the owner asked for and because it is also
  * true: people really do name children after a signing.
  */
-function starSigned(state: GameState, p: Player, fee: number) {
+function starSigned(state: GameState, p: Player, _fee: number) {
   const club = state.clubs[state.userClubId]
   if (!club) return
   const standing = terraceStanding(state, p, club.id)

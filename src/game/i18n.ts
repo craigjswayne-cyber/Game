@@ -136,7 +136,6 @@ export const localeTag = (): string => NUMBER_LOCALE[current]
 export type World = 'm' | 'w'
 let world: World = 'm'
 export const setWorld = (g: World): void => { world = g }
-export const getWorld = (): World => world
 
 /**
  * THE SECOND AXIS: WHO THE STRING IS ABOUT.
@@ -160,7 +159,6 @@ export const getWorld = (): World => world
  */
 let mgr: World = 'm'
 export const setManagerGender = (g: World): void => { mgr = g }
-export const getManagerGender = (): World => mgr
 /** Every suffix a key may carry; probes treat these keys as optional siblings. */
 export const SIBLING = /_(f|w|fw)$/
 export const baseKey = (key: string): string => key.replace(SIBLING, '')
@@ -579,7 +577,6 @@ export const attrBandIndex = (v: number): number => {
 }
 export const persName = (p: string): string => t(`pers.${p}`)
 export const traitName = (name: string): string => t(`traits.${name}`)
-export const traitInfo = (name: string): string => t(`traits.${name}Info`)
 
 /** For a probe, or anything that needs a language it is not currently in. */
 export function tIn(lang: Lang, key: string, vars?: Vars): string {

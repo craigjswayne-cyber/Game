@@ -49,6 +49,8 @@ const STORE = 'saves'
  * IndexedDB clones them.
  */
 let memDb: IDBDatabase | null = null
+/** keys read from the in-memory database, for scripts/listsavesprobe.ts */
+const memReads: string[] = []
 function memoryDb(): IDBDatabase {
   if (memDb) return memDb
   const rows = new Map<IDBValidKey, unknown>()
@@ -63,7 +65,7 @@ function memoryDb(): IDBDatabase {
     transaction() {
       const store = {
         put(v: unknown, k: IDBValidKey) { rows.set(k, structuredClone(v)); return request(k) },
-        get(k: IDBValidKey) { return request(rows.has(k) ? structuredClone(rows.get(k)) : undefined) },
+        get(k: IDBValidKey) { if (memReads.push(String(k)) > 500) memReads.splice(0, 250); return request(rows.has(k) ? structuredClone(rows.get(k)) : undefined) },
         getAll() { return request([...rows.values()].map(v => structuredClone(v))) },
         getAllKeys() { return request([...rows.keys()]) },
         delete(k: IDBValidKey) { rows.delete(k); return request(undefined) },
@@ -77,6 +79,15 @@ function memoryDb(): IDBDatabase {
   return memDb
 }
 
+/**
+ * ONE CONNECTION, KEPT (1.9.1). Every read and write used to open the
+ * database and close it again: a save, a load, and during a live match one
+ * putResume per revealed commentary line, each paying for an open. The
+ * connection is now opened once and reused. If another tab upgrades the
+ * database or the browser closes it, it is dropped and the next call opens a
+ * fresh one.
+ */
+let dbOpen: Promise<IDBDatabase> | null = null
 function openDb(): Promise<IDBDatabase> {
   // a page with no database at all keeps its saves in memory (memoryDb)
   try {
@@ -84,7 +95,8 @@ function openDb(): Promise<IDBDatabase> {
   } catch {
     return Promise.resolve(memoryDb())
   }
-  return new Promise((resolve, reject) => {
+  if (dbOpen) return dbOpen
+  dbOpen = new Promise((resolve, reject) => {
     let req: IDBOpenDBRequest
     try {
       req = indexedDB.open(DB_NAME, 1)
@@ -97,9 +109,15 @@ function openDb(): Promise<IDBDatabase> {
         req.result.createObjectStore(STORE)
       }
     }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
+    req.onsuccess = () => {
+      const db = req.result
+      db.onversionchange = () => { db.close(); dbOpen = null }
+      db.onclose = () => { dbOpen = null }
+      resolve(db)
+    }
+    req.onerror = () => { dbOpen = null; reject(req.error) }
   })
+  return dbOpen
 }
 
 export interface SaveMeta {
@@ -141,18 +159,20 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
     // career and read the console. docs/testing.md records what was measured.
     const t0 = performance.now()
     tx.objectStore(STORE).put({ meta, state }, slot)
+    // the label on its own, so the Load screen never reads a career to list it
+    tx.objectStore(STORE).put(meta, metaKey(slot))
     const held = performance.now() - t0
     if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) {
       console.debug(`[save] ${slot}: put() held the main thread ${held.toFixed(0)} ms`)
     }
-    tx.oncomplete = () => { db.close(); resolve() }
-    tx.onerror = () => { db.close(); reject(tx.error) }
+    tx.oncomplete = () => { resolve() }
+    tx.onerror = () => { reject(tx.error) }
     // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota
     // overrun at commit, which fires only 'abort'; without this the promise
     // never settled, the save queue's write stayed in flight for ever, and
     // autosave stopped for the session with no banner. Settling twice is a
     // no-op, so an error followed by its abort is still one answer.
-    tx.onabort = () => { db.close(); reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
+    tx.onabort = () => { reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
   })
 }
 
@@ -188,15 +208,17 @@ export async function putResume(slot: string, rec: unknown, withPre = false): Pr
     const tx = db.transaction(STORE, 'readwrite')
     const store = tx.objectStore(STORE)
     store.put(JSON.parse(JSON.stringify(small)), resumeKey(slot))
-    if (withPre) store.put(JSON.parse(JSON.stringify(pre ?? null)), preKey(slot))
-    tx.oncomplete = () => { db.close(); resolve() }
-    tx.onerror = () => { db.close(); reject(tx.error) }
+    // put() clones the state itself; the JSON round trip this used to make
+    // first was a second full copy of the career at kick-off (1.9.1)
+    if (withPre) store.put(pre ?? null, preKey(slot))
+    tx.oncomplete = () => { resolve() }
+    tx.onerror = () => { reject(tx.error) }
     // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota
     // overrun at commit, which fires only 'abort'; without this the promise
     // never settled, the save queue's write stayed in flight for ever, and
     // autosave stopped for the session with no banner. Settling twice is a
     // no-op, so an error followed by its abort is still one answer.
-    tx.onabort = () => { db.close(); reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
+    tx.onabort = () => { reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
   })
 }
 
@@ -208,7 +230,6 @@ export async function getResume<T>(slot: string): Promise<T | null> {
     const req = store.get(resumeKey(slot))
     const preReq = store.get(preKey(slot))
     tx.oncomplete = () => {
-      db.close()
       const small = req.result as (Record<string, unknown> & { pre?: unknown }) | undefined
       if (!small) { resolve(null); return }
       // a record written before 1.6.3 still carries its own state
@@ -216,7 +237,7 @@ export async function getResume<T>(slot: string): Promise<T | null> {
       if (!pre) { resolve(null); return }
       resolve({ ...small, pre } as T)
     }
-    tx.onerror = () => { db.close(); resolve(null) }
+    tx.onerror = () => { resolve(null) }
   })
 }
 
@@ -253,8 +274,8 @@ export async function peekResumes<T>(): Promise<{ slot: string; rec: T; hasPre: 
         }
       }
     }
-    tx.oncomplete = () => { db.close(); resolve(out) }
-    tx.onerror = () => { db.close(); resolve(out) }
+    tx.oncomplete = () => { resolve(out) }
+    tx.onerror = () => { resolve(out) }
   })
 }
 
@@ -264,8 +285,8 @@ export async function clearResume(slot: string): Promise<void> {
     const tx = db.transaction(STORE, 'readwrite')
     tx.objectStore(STORE).delete(resumeKey(slot))
     tx.objectStore(STORE).delete(preKey(slot))
-    tx.oncomplete = () => { db.close(); resolve() }
-    tx.onerror = () => { db.close(); resolve() }
+    tx.oncomplete = () => { resolve() }
+    tx.onerror = () => { resolve() }
   })
 }
 
@@ -1267,7 +1288,6 @@ export async function loadGame(slot: string): Promise<GameState | null> {
     const tx = db.transaction(STORE, 'readonly')
     const req = tx.objectStore(STORE).get(slot)
     req.onsuccess = () => {
-      db.close()
       if (!req.result) { resolve(null); return }
       let healed: GameState | null = null
       try {
@@ -1281,27 +1301,60 @@ export async function loadGame(slot: string): Promise<GameState | null> {
       }
       resolve(isPlayable(healed) ? healed : null)
     }
-    req.onerror = () => { db.close(); reject(req.error) }
+    req.onerror = () => { reject(req.error) }
   })
 }
 
+/** Where a slot's label lives beside it (1.9.1, listSaves). */
+const metaKey = (slot: string) => `${slot}::meta`
+
+/**
+ * THE LABELS, NOT THE CAREERS (1.9.1). This used to getAll() the store, which
+ * holds every career (5 to 11 MB each) and every live match's pre-match copy
+ * (about 7 MB), and structured-clone the lot to read a few dozen bytes of
+ * meta from each. It ran on the title screen, the Saves screen, the new
+ * career wizard and every import. Now each save writes its label under its
+ * own key too, and this reads the keys and then only the labels. A slot
+ * written before 1.9.1 has no label key yet: it is read whole once, and its
+ * label is written so the next listing is cheap.
+ */
 export async function listSaves(): Promise<SaveMeta[]> {
   const db = await openDb()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readonly')
-    const req = tx.objectStore(STORE).getAll()
-    req.onsuccess = () => {
-      db.close()
-      // The store also holds the live-match records now (slot::live), which are
-      // not saves and have no meta. Without this filter the Load screen would
-      // list an undefined row for every career with a match in progress.
-      resolve((req.result ?? [])
-        .filter((r: { meta?: SaveMeta }) => !!r && !!r.meta && typeof r.meta.slot === 'string')
-        .map((r: { meta: SaveMeta }) => r.meta)
-        .sort((a, b) => b.savedAt - a.savedAt))
-    }
-    req.onerror = () => { db.close(); reject(req.error) }
+  const keys = await new Promise<string[]>((resolve, reject) => {
+    const req = db.transaction(STORE, 'readonly').objectStore(STORE).getAllKeys()
+    req.onsuccess = () => resolve((req.result ?? []).filter((k): k is string => typeof k === 'string'))
+    req.onerror = () => reject(req.error)
   })
+  const have = new Set(keys)
+  // The store also holds the live-match records (slot::live, slot::live.pre)
+  // and the labels themselves, which are not saves.
+  const slots = keys.filter(k => !k.includes('::'))
+  const legacy: SaveMeta[] = []
+  const metas = await new Promise<SaveMeta[]>((resolve, reject) => {
+    const store = db.transaction(STORE, 'readonly').objectStore(STORE)
+    const out: SaveMeta[] = []
+    let left = slots.length
+    if (!left) { resolve(out); return }
+    for (const slot of slots) {
+      const labelled = have.has(metaKey(slot))
+      const req = store.get(labelled ? metaKey(slot) : slot)
+      req.onsuccess = () => {
+        const r = req.result as SaveMeta | { meta?: SaveMeta } | undefined
+        const meta = labelled ? r as SaveMeta | undefined : (r as { meta?: SaveMeta } | undefined)?.meta
+        if (meta && typeof meta.slot === 'string') {
+          out.push(meta)
+          if (!labelled) legacy.push(meta)
+        }
+        if (--left === 0) resolve(out)
+      }
+      req.onerror = () => reject(req.error)
+    }
+  })
+  if (legacy.length) {
+    const tx = db.transaction(STORE, 'readwrite')
+    for (const m of legacy) tx.objectStore(STORE).put(m, metaKey(m.slot))
+  }
+  return metas.sort((a, b) => b.savedAt - a.savedAt)
 }
 
 export async function deleteSave(slot: string): Promise<void> {
@@ -1309,13 +1362,34 @@ export async function deleteSave(slot: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite')
     tx.objectStore(STORE).delete(slot)
-    tx.oncomplete = () => { db.close(); resolve() }
-    tx.onerror = () => { db.close(); reject(tx.error) }
+    tx.objectStore(STORE).delete(metaKey(slot))
+    tx.oncomplete = () => { resolve() }
+    tx.onerror = () => { reject(tx.error) }
     // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota
     // overrun at commit, which fires only 'abort'; without this the promise
     // never settled, the save queue's write stayed in flight for ever, and
     // autosave stopped for the session with no banner. Settling twice is a
     // no-op, so an error followed by its abort is still one answer.
-    tx.onabort = () => { db.close(); reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
+    tx.onabort = () => { reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
   })
 }
+
+/** For scripts/listsavesprobe.ts: write a row as a save before 1.9.1 did, list
+ *  the raw keys, and read which keys have been fetched. Node only: the page
+ *  never calls these. */
+export async function _rawPutForProbe(key: string, value: unknown): Promise<void> {
+  const db = await openDb()
+  await new Promise<void>(resolve => {
+    const tx = db.transaction(STORE, 'readwrite')
+    tx.objectStore(STORE).put(value, key)
+    tx.oncomplete = () => resolve()
+  })
+}
+export async function _rawKeysForProbe(): Promise<string[]> {
+  const db = await openDb()
+  return new Promise(resolve => {
+    const req = db.transaction(STORE, 'readonly').objectStore(STORE).getAllKeys()
+    req.onsuccess = () => resolve((req.result ?? []).map(String))
+  })
+}
+export const _readsForProbe = (): string[] => [...memReads]

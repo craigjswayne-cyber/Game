@@ -51,3 +51,38 @@ export function kitColours(sp: Spares, home: string[] | undefined, away: string[
   const spare = (dark ? [sp.white, sp.slate, sp.gold] : [sp.white, sp.ink, sp.gold]).find(c => kitGap(c, h[0]) >= CLEAR) ?? sp.gold
   return { home: h, away: [spare, away[0]] }
 }
+
+/* ---- a kit as a reading surface (WCAG pass) ----------------------------
+ * A commentary line about a side wears that side's shirt as its fill, with
+ * white or dark ink picked by a brightness guess (luma > 140). The guess is
+ * not the contrast ratio: Northampton's green took white at 4.17:1, under the
+ * 4.5 a line of commentary owes (nightcontrast, mid try-flash). So the ink is
+ * chosen by the real WCAG ratio, and when neither ink reaches 4.5 on the shirt
+ * itself the fill is mixed a step at a time toward the far ink until it does.
+ * Most kits come back untouched; a mid-tone one is a shade deeper (or paler)
+ * behind its text. The inks are --prop-ink and --prop-ink-dark, held here as
+ * channel triples so no hex lives outside tokens.css. */
+const INK_LIGHT = [255, 255, 255] // --prop-ink
+const INK_DARK = [29, 39, 51] // --prop-ink-dark
+const lin = (v: number) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+const relLum = ([r, g, b]: number[]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+const wcag = (a: number[], b: number[]) => { const [x, y] = [relLum(a), relLum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05) }
+
+/** the ink a kit fill takes, and the fill to paint so that ink reads at 4.5:1 */
+export function kitInk(fill: string): { ink: string; fill: string } {
+  const hex = fill.replace('#', '')
+  if (!/^[0-9a-f]{6}$/i.test(hex)) return { ink: luma(fill) > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)', fill }
+  const rgb = [0, 2, 4].map(i => parseInt(hex.slice(i, i + 2), 16))
+  const light = wcag(rgb, INK_LIGHT) >= wcag(rgb, INK_DARK)
+  const ink = light ? INK_LIGHT : INK_DARK
+  const inkVar = light ? 'var(--prop-ink)' : 'var(--prop-ink-dark)'
+  if (wcag(rgb, ink) >= 4.5) return { ink: inkVar, fill }
+  const far = light ? INK_DARK : INK_LIGHT
+  const farVar = light ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'
+  let p = 95
+  for (; p > 40; p -= 5) {
+    const mix = rgb.map((c, i) => (c * p + far[i] * (100 - p)) / 100)
+    if (wcag(mix, ink) >= 4.6) break
+  }
+  return { ink: inkVar, fill: `color-mix(in srgb, ${fill} ${p}%, ${farVar})` }
+}

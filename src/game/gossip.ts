@@ -4,7 +4,7 @@
 import type { GameState, Player } from './model'
 import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, isMyClub, mgrReputation, poss, weeksBetween100 } from './model'
 import { sortTable } from './schedule'
-import { clamp, gauss, pick, type Rng } from './rng'
+import { clamp, gauss, pick, shuffled, type Rng } from './rng'
 import { t, tIn, type Vars } from './i18n'
 import { nextTelling } from './tellings'
 import { JANUARY_SHUT, nextWeek, prevWeek, windowOpen as dealWeek } from './window'
@@ -274,7 +274,7 @@ function sicknessSweep(state: GameState, rng: Rng) {
   const squad = state.clubs[state.userClubId].players
     .map(id => state.players[id]).filter((p): p is Player => !!p && !p.injury)
   if (squad.length < 6) return
-  const hit = [...squad].sort(() => rng() - 0.5).slice(0, 2 + Math.floor(rng() * 3))
+  const hit = shuffled(rng, squad).slice(0, 2 + Math.floor(rng() * 3))
   for (const p of hit) p.cond = clamp(p.cond - (12 + rng() * 10), 20, 100)
   wire(state, voice(state, 26, ['news.wBug1', 'news.wBug2', 'news.wBug3']),
     { names: hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ') })
@@ -331,7 +331,7 @@ function moneyMen(state: GameState, rng: Rng) {
       // every result lands harder while he makes up his mind about you
       if (isMyClub(state, club.id)) {
         club.boardConfidence = 58
-        state.newOwnerUntil = Math.min(state.week + 8, 45)
+        state.newOwnerUntil = Math.min(state.week + 8, SEASON_WEEKS)
       }
     } else {
       wire(state, 'news.wTakeoverOff', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
@@ -855,7 +855,7 @@ export function punditPredictions(state: GameState, rng: Rng) {
 }
 
 /** Post the predictions column once pre-season is over (week 4). */
-export function postPredictionsNews(state: GameState) {
+function postPredictionsNews(state: GameState) {
   const club = state.clubs[state.userClubId]
   const comp = state.comps[club?.leagueId]
   if (!club || !comp || !state.preds) return

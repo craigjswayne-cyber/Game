@@ -143,7 +143,7 @@ export const newsGlyph = (type: string) => <Glyph name={type in PATHS ? type : '
  * reads in both themes, and labelled for a screen reader.
  */
 export type FanFaceLevel = 'angry' | 'sad' | 'neutral' | 'happy' | 'delighted'
-export const fanFaceLevel = (m: number): FanFaceLevel =>
+const fanFaceLevel = (m: number): FanFaceLevel =>
   m >= 80 ? 'delighted' : m >= 62 ? 'happy' : m >= 45 ? 'neutral' : m >= 30 ? 'sad' : 'angry'
 const FACE_TONE: Record<FanFaceLevel, string> = {
   delighted: 'var(--text-positive)', happy: 'var(--text-positive)', neutral: 'var(--gold)',

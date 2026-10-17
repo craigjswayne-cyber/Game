@@ -30,10 +30,21 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-// AA for body text is 4.5. This fires at 2.2, which is the "something is wrong"
-// line rather than the "could be better" line: the ghosted draw names scored 1.3,
-// and the softest legitimate caption in the game sits above 3.
-const FLOOR = 2.2
+// WCAG 2.1 AA, 1.4.3. This used to fire at a flat 2.2, the "something is wrong"
+// line rather than the reading standard, and an accessibility audit found the
+// mastheads and scoreboards sitting at 2.6 and 3.8 on the hero gradient with the
+// harness green. So it holds the real bar now: 4.5:1 for normal text, 3:1 for
+// large text, which WCAG defines as 24px and up, or 18.66px (14pt) and up when
+// bold. The size and weight are the computed ones, so the in-app zoom counts.
+const FLOOR = 4.5
+const FLOOR_LARGE = 3.0
+
+// EVERY PALETTE, not only the built-in pair. The four skins (Midnight, Heritage,
+// Stealth, and the tour red the game puts on by itself) each repaint every token,
+// so each one is its own pair of themes to read. CONTRAST_SKINS=default,tour
+// narrows the run while a palette is being tuned; the suite runs all of them.
+const SKINS = (process.env.CONTRAST_SKINS ?? 'default,midnight,heritage,stealth,tour').split(',')
+const THEMES = (process.env.CONTRAST_THEMES ?? 'night,day').split(',')
 
 const server = await startPreview('4185', 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -43,6 +54,7 @@ let measured = 0
 /** The page and the theme name for the sweep currently running. */
 let page = null
 let theme = 'floodlit'
+const ratios = []
 
 /** One pass over the visible text on whatever screen is open. */
 const MEASURE = `(() => {
@@ -65,6 +77,11 @@ const MEASURE = `(() => {
   }
   const out = []
   for (const el of document.querySelectorAll('*')) {
+    // an inactive control is exempt under 1.4.3, and the game paints a
+    // disabled button in muted ink on purpose so it reads as unavailable
+    if (el.closest(':disabled, [aria-disabled="true"]')) continue
+    // a visually hidden live region is read aloud, not seen
+    if (el.closest('.sr-only')) continue
     // only elements that own text directly: a wrapper's colour is not what is read
     const own = [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join(' ').trim()
     // one character counts: an arrow, a star and a tick are the entire message
@@ -115,10 +132,13 @@ const MEASURE = `(() => {
       bg = worstC
     }
     if (painted || !bg) continue
+    const px = parseFloat(cs.fontSize) || 16
+    const bold = (parseInt(cs.fontWeight, 10) || 400) >= 700
+    const large = px >= 24 || (px >= 18.66 && bold)
     const hex = (c) => '#' + [c.r, c.g, c.b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('')
     out.push({
-      text: own.slice(0, 42), cls: el.className || el.tagName.toLowerCase(),
-      r: Math.round(ratio(fg, bg) * 10) / 10, fg: hex(fg), bg: hex(bg), on: node.className || node.tagName.toLowerCase(),
+      text: own.slice(0, 42), cls: el.getAttribute('class') || el.tagName.toLowerCase(),
+      r: Math.floor(ratio(fg, bg) * 100) / 100, fg: hex(fg), px, large, bg: hex(bg), on: (node.getAttribute && node.getAttribute('class')) || node.tagName.toLowerCase(),
     })
   }
   return out
@@ -138,7 +158,7 @@ async function look(label) {
     return
   }
   measured += rows.length
-  const bad = rows.filter(x => x.r < FLOOR)
+  const bad = rows.filter(x => x.r < (x.large ? FLOOR_LARGE : FLOOR))
   // one line per distinct class, not one per row of a table
   const seen = new Set()
   for (const b of bad) {
@@ -154,6 +174,7 @@ async function look(label) {
     return
   }
   const worst = Math.min(...rows.map(x => x.r))
+  ratios.push(...rows.map(x => x.r))
   // The FAIL sits at column 0 on purpose. suite.sh keeps only lines matching
   // ^FAIL (plus the three under each) when a harness goes red - the indented
   // "  FAIL" this used to print was thrown away with everything else, so main
@@ -175,12 +196,23 @@ const world = async (item, label) => {
 }
 
 /** One full pass over the game in one theme. */
-async function sweep(night) {
-  theme = night ? 'floodlit' : 'daylight'
+async function sweep(night, skin) {
+  theme = `${skin}/${night ? 'floodlit' : 'daylight'}`
   console.log(`\n---- ${theme} ----`)
   const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 1 })
   page = await ctx.newPage()
   await page.addInitScript(v => localStorage.setItem('rm-night', v), night ? '1' : '0')
+  // The three chosen skins are a Settings choice, free on the website build
+  // this harness drives. The tour skin is not a choice at all - the game puts
+  // it on for the weeks of an Isles tour - so it is pinned onto the app root
+  // here and held there through React's re-renders.
+  if (skin !== 'default' && skin !== 'tour') await page.addInitScript(v => localStorage.setItem('rm-skin', v), skin)
+  if (skin === 'tour') {
+    await page.addInitScript(() => {
+      const pin = () => document.querySelectorAll('.app').forEach(a => { if (!a.classList.contains('skin-tour')) a.classList.add('skin-tour') })
+      new MutationObserver(pin).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] })
+    })
+  }
   try {
       await page.goto('http://localhost:4185/')
       await page.waitForSelector('text=RUGBY', { timeout: 15000 })
@@ -324,8 +356,7 @@ async function sweep(night) {
 }
 
 try {
-  await sweep(true)
-  await sweep(false)
+  for (const skin of SKINS) for (const th of THEMES) await sweep(th === 'night', skin)
 } catch (e) {
   findings.push({ label: 'the harness itself', cls: 'threw', text: String(e).slice(0, 120), r: 0 })
   console.log('THREW', e)
@@ -340,11 +371,12 @@ if (findings.length) {
   // log - see the note in look(). The element and its colours ARE the
   // diagnosis; a count without them is a symptom.
   for (const f of findings) {
-    console.log(`FAIL  ${f.label}: .${f.cls} at ${f.r}:1 - "${f.text}"`)
+    console.log(`FAIL  ${f.label}: .${f.cls} at ${f.r}:1 (${f.px}px${f.large ? ' large' : ''}) - "${f.text}"`)
     if (f.fg) console.log(`FAIL    ${f.fg} text on ${f.bg}, painted by .${f.on}`)
   }
 }
-console.log(`\n${measured} runs of text measured against the background painted behind them, across both themes`)
+console.log(`\n${measured} runs of text measured against the background painted behind them, across ${SKINS.length} palette(s) x ${THEMES.length} theme(s)`)
+if (ratios.length) console.log(`worst ratio anywhere: ${Math.min(...ratios)}:1`)
 // the floor under the floor: a sweep that reads nothing is a broken sweep
 const TOO_FEW = 400
 if (measured < TOO_FEW) {
@@ -352,6 +384,6 @@ if (measured < TOO_FEW) {
   process.exit(1)
 }
 console.log(findings.length
-  ? `CONTRAST FOUND ${findings.length} PLACE(S) BELOW ${FLOOR}:1`
-  : `CONTRAST PASSED: nothing on any screen, in either theme, falls below ${FLOOR}:1`)
+  ? `CONTRAST FOUND ${findings.length} PLACE(S) BELOW AA (${FLOOR}:1, large text ${FLOOR_LARGE}:1)`
+  : `CONTRAST PASSED: nothing on any screen, in any palette or theme, falls below AA (${FLOOR}:1, large text ${FLOOR_LARGE}:1)`)
 process.exit(findings.length ? 1 : 0)

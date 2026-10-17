@@ -37,7 +37,15 @@ change its tags. In the forum you can filter by any tag, for example
 "French + Translation + Open".
 
 `/setup` only adds. Anything already there with the same name is left alone,
-so you can run it again safely after changing `src/config.js`.
+so you can run it again safely after changing `src/config.js`. The bot checks
+for **Manage Server** itself before running it, whatever the command's
+visibility is set to under Integrations.
+
+The club and language pickers only hand out a role that has **no permissions**
+and sits **below the bot's role**. Roles the bot creates are made with no
+permissions. If a role with a club or language name has been given
+permissions, the picker refuses it and tells the member to ask a moderator,
+rather than handing that power to whoever picks the club.
 
 ## Setting it up (about 15 minutes)
 

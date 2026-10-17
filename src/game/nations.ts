@@ -203,7 +203,7 @@ export function keptRetiredNames(names: string[]): string[] {
   return kept.reverse()
 }
 
-export function nameRegistry(world: object, existing: () => Iterable<string>, onTake?: (name: string) => void): Set<string> {
+function nameRegistry(world: object, existing: () => Iterable<string>, onTake?: (name: string) => void): Set<string> {
   let set = REGISTRY.get(world)
   if (!set) {
     const s = new Set<string>()
@@ -507,7 +507,7 @@ export function clubQuotaLeft(state: GameState, nat: string, size: number, squad
 /** The user's own club's men the federation would take and who are not yet in
  *  camp: the ones his club must release, exactly as it would to an AI
  *  federation. Empty when he holds only one job. */
-export function clubDutyOwed(state: GameState, nat: string, size: number, squad: number[]): Player[] {
+function clubDutyOwed(state: GameState, nat: string, size: number, squad: number[]): Player[] {
   const mine = conflictedClub(state)
   if (!mine) return []
   const inCamp = new Set(squad)

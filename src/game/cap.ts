@@ -74,7 +74,7 @@ const OPENING_HEADROOM = 0.98
 export const MARQUEE_SLOTS = 2
 
 /** Breach it twice running and the board loses the transfer market for a year. */
-export const EMBARGO_SEASONS = 1
+const EMBARGO_SEASONS = 1
 
 function median(ns: number[]): number {
   if (!ns.length) return 0
@@ -320,7 +320,7 @@ export function capWord(pos: CapPosition): string {
  *  shoehorn. The need lives on the row itself: it was a second table keyed on
  *  the English names ('Front row') and looked up by the translation key, so
  *  no lookup ever matched and every unit fell back to 4 (1.8.1). */
-export const ROSTER_GROUPS: { label: string; pos: string[]; need: number }[] = [
+const ROSTER_GROUPS: { label: string; pos: string[]; need: number }[] = [
   { label: 'finances.unitFrontRow', pos: ['LP', 'HK', 'TP'], need: 6 },
   { label: 'finances.unitBackFive', pos: ['LK', 'FL', 'N8'], need: 8 },
   { label: 'finances.unitHalves', pos: ['SH', 'FH'], need: 4 },

@@ -12,6 +12,7 @@ import { t, localeTag, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { listSaves, type SaveMeta } from '../../game/save'
 import { SLOTS as SAVE_SLOTS, slotName } from './Saves'
+import { rowNav } from '../rowNav'
 
 // Guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
@@ -134,6 +135,11 @@ export default function NewGame() {
     // the ambition is stamped on the save the moment the career begins, and
     // never moves again: it is what this save is FOR
     if (g && ambitions.length) setAmbitions(g, ambitions)
+    // AND SAVED (1.9.1). start() has already asked for its first write, so
+    // the plan and the ambition reached the disk only because that write
+    // happened to wait a tick for the database. Marked here, they go in the
+    // next write whatever its timing.
+    if (g) void useStore.getState().persist()
   }
   const prev = () => {
     if (step === 0) { back(); return }
@@ -184,7 +190,7 @@ export default function NewGame() {
             <div className="crumbs">
               {trail.map((c, i) => (
                 <span key={c.at} className={`crumb${i === trail.length - 1 ? ' on' : ' done'}`}
-                  onClick={() => setStep(c.at)}>
+                  {...rowNav(() => setStep(c.at))}>
                   {c.label}
                 </span>
               ))}
@@ -323,8 +329,8 @@ export default function NewGame() {
                 the tiles at the bottom of it sat below the fold on a phone */}
             <div className="wiz-split narrow-left">
             <div className="card">
-              <label className="fact-label">{t('wizard.yourName')}</label>
-              <input className="inline-input" placeholder={t('wizard.namePlaceholder')}
+              <label className="fact-label" htmlFor="mgr-name">{t('wizard.yourName')}</label>
+              <input id="mgr-name" className="inline-input" placeholder={t('wizard.namePlaceholder')}
                 value={name} onChange={e => setName(e.target.value)}
                 onFocus={e => {
                   // keep the field visible above the software keyboard

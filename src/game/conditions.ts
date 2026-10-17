@@ -132,7 +132,7 @@ export function goalPenaltyOf(w: Weather | null | undefined): number {
 // ---------------------------------------------------------------- injuries
 
 /** what the surface does to the knocks: artificial is harder underfoot */
-export const SURF_INJ: Record<Surface, number> = { grass: 0.97, hybrid: 1.0, artificial: 1.1 }
+const SURF_INJ: Record<Surface, number> = { grass: 0.97, hybrid: 1.0, artificial: 1.1 }
 /** The world's mean of the raw factor below over every AI fixture of a season
  *  in three worlds (scripts/depthprobe.ts measures it), so the world's count
  *  of injuries stays where it was: the styles and the ground shift who is
@@ -153,7 +153,6 @@ export function injuryF(own: SideStyle | undefined, opp: SideStyle | undefined, 
 
 // ---------------------------------------------------------------- the words
 
-export const wxKey = (w: Weather) => `matchday.wx${w}`
 export const surfKey = (s: Surface) => `matchday.surf_${s}`
 
 /** One line for the conditions card: what the sky will do to the rugby. */

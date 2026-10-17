@@ -79,7 +79,6 @@ const CACHE_NAME = 'phase-rugby-career.json'
 /** One write at a time: a second tap while the first is still writing would
  *  interleave two careers into one file. */
 let busy = false
-export function shareBusy(): boolean { return busy }
 
 /**
  * Write `text` to the cache folder as `name` and open the share sheet on it.

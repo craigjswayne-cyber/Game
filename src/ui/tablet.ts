@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react'
 // window only gets there by being stood on its end, where the wide layout is
 // the better one anyway. On its side the coarse pointer is still required,
 // so a landscape desktop browser and a phone on its side are untouched.
-export const TABLET_Q = '(pointer: coarse) and (min-width: 700px) and (min-height: 700px), (orientation: portrait) and (min-width: 700px) and (min-height: 700px)'
+const TABLET_Q = '(pointer: coarse) and (min-width: 700px) and (min-height: 700px), (orientation: portrait) and (min-width: 700px) and (min-height: 700px)'
 // read through matchMedia rather than innerWidth: a media query measures the
 // viewport, never the zoom this very function is about to set
 export const bigTablet = () => typeof window !== 'undefined' && !!window.matchMedia?.('(min-width: 1000px)').matches

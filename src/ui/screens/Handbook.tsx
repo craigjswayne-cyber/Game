@@ -36,7 +36,7 @@ export default function Handbook() {
         ))}
       </div>
       <div className="preset-row hb-search">
-        <input className="inline-input" placeholder={t('handbook.searchPlaceholder')} value={query}
+        <input className="inline-input" placeholder={t('handbook.searchPlaceholder')} aria-label={t('handbook.searchPlaceholder')} value={query}
           onChange={e => { setQuery(e.target.value); setOpen(null) }} />
       </div>
 
