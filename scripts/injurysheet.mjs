@@ -25,15 +25,14 @@
 //   5. full time: no highlights list (owner: "Remove highlights from the
 //      after game bit")
 //
-// Run: node scripts/injurysheet.mjs [outdir]   (port 4231, PORT to override)
+// Run: node scripts/injurysheet.mjs [outdir]   (any free port; PREVIEW_PORT pins one)
 import { mkdirSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 
-const PORT = process.env.PORT ?? '4231'
 const OUT = process.argv[2] ?? 'shots-injurysheet'
 mkdirSync(OUT, { recursive: true })
-const server = await startPreview(PORT, 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
 let fails = 0
@@ -195,7 +194,7 @@ const playOn = async () => {
 }
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

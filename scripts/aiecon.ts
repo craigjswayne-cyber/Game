@@ -30,12 +30,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { aiWeek, moneyIndex } from '../src/game/aiecon'
 import { sellerWillingness } from '../src/game/ai'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const SEASONS = 10
 /** The median AI club's gain a season, as the reference the rate is held to.
@@ -244,5 +239,4 @@ ok(listedPeak >= 3, `and clubs in trouble put men on the market (peak ${listedPe
   ok(fires > 0, 'a club in the red really does come down on its asking price')
 }
 
-console.log(fails ? `\nAI ECON FAILED (${fails})` : '\nAI ECON PASSED: a hundred clubs with real books, and a world that survives it')
-process.exit(fails ? 1 : 0)
+done('AI ECON', 'a hundred clubs with real books, and a world that survives it', { exit: true })

@@ -22,7 +22,7 @@ import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4247', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -32,7 +32,7 @@ try {
   for (const [w, h] of [[412, 915], [820, 1180]]) {
     const page = await browser.newPage({ viewport: { width: w, height: h } })
     const t0 = Date.now()
-    await page.goto('http://localhost:4247/?intro=1')
+    await page.goto(`${server.origin}/?intro=1`)
     await page.waitForSelector('.intro', { timeout: 8000 })
     ok(true, `${w}px: the titles are up`)
     ok(await page.$('.title-screen') != null, `${w}px: and the title screen is underneath them`)
@@ -53,7 +53,7 @@ try {
   }
 
   const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
-  await page.goto('http://localhost:4247/?intro=1')
+  await page.goto(`${server.origin}/?intro=1`)
   await page.waitForSelector('.intro')
   await page.waitForTimeout(800)
   await page.click('.intro')
@@ -70,7 +70,7 @@ try {
     const os = OscillatorNode.prototype.start
     OscillatorNode.prototype.start = function (...a) { log.push({ kind: 'osc' }); return os.apply(this, a) }
   })
-  await page.goto('http://localhost:4247/?intro=1')
+  await page.goto(`${server.origin}/?intro=1`)
   await page.waitForSelector('.intro')
   const spk = await page.waitForSelector('.intro-sound', { timeout: 2000 }).catch(() => null)
   ok(!!spk, 'with sound held back, the speaker button is offered')
@@ -86,7 +86,7 @@ try {
     ok(bufs.every(x => x.secs <= 1.01), `no noise longer than the whoosh (${Math.max(0, ...bufs.map(x => x.secs)).toFixed(2)}s at most)`)
   }
   await page.waitForTimeout(2900)
-  await page.goto('http://localhost:4247/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('.title-screen')
   await page.waitForTimeout(300)
   ok(await page.$('.intro') == null, 'an automated browser without ?intro=1 never sees it')

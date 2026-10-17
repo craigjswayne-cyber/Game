@@ -14,9 +14,7 @@
 import { newGame } from '../src/game/newgame'
 import { simMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 let goals = 0, badGoals = 0, touches = 0, badTouches = 0, asks = 0, badAsks = 0, stamped = 0, lines = 0
 for (const seed of [3, 17, 29, 41]) {
@@ -42,5 +40,4 @@ ok(touches > 20, `own-half penalties happen, and go to touch (${touches})`)
 ok(badTouches === 0, 'and a kick to touch starts from the kicker\'s own half')
 ok(badAsks === 0, `the touchline call is never offered in the kicker's own half (${badAsks} of ${asks})`)
 
-console.log(fails ? `\nKICK RANGE PROBE FAILED (${fails})` : '\nKICK RANGE PROBE PASSED: the posts are only in play in the other half')
-process.exit(fails ? 1 : 0)
+done('KICK RANGE PROBE', 'the posts are only in play in the other half', { exit: true })

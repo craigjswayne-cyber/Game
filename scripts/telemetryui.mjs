@@ -26,8 +26,7 @@ import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
 import { startPreview, done } from './lib/preview.mjs'
 
-const PORT = 4281
-const server = await startPreview(PORT, 2500)
+const server = await startPreview(0, 2500)
 const SHOTS = 'shots/telemetry'
 mkdirSync(SHOTS, { recursive: true })
 
@@ -68,7 +67,7 @@ const clearInjury = async () => {
 }
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.click('text=English Premier Division')

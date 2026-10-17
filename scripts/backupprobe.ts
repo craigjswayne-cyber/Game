@@ -20,12 +20,7 @@ import { readFileSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { BASE_YEAR, SEASON_WEEKS, type NewsItem } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const SEASONS = 4
 const isNudge = (subject: string) => subject.includes('back it up')
@@ -75,5 +70,4 @@ for (const seed of [4242, 90210]) {
     'the headline names the season that just finished')
 }
 
-console.log(fails ? `\nBACKUP PROBE FAILED (${fails})` : '\nBACKUP PROBE PASSED: once a season, and it goes to the button')
-process.exit(fails ? 1 : 0)
+done('BACKUP PROBE', 'once a season, and it goes to the button', { exit: true })

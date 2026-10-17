@@ -32,12 +32,7 @@
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { join, extname } from 'node:path'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 /** Everywhere a file can reach a player's device. dist/ is deliberately NOT
  *  walked: it is generated from these, so a fault there is a fault here, and
@@ -132,7 +127,4 @@ for (const f of targets) {
 }
 
 console.log(`\nopened ${png} PNG, ${webp} WebP, ${svg} SVG, ${font} font, ${json} JSON, ${html} HTML`)
-console.log(fails
-  ? `\nVALIDITY PROBE FAILED (${fails})`
-  : '\nVALIDITY PROBE PASSED: every shipped file is the thing its name claims')
-if (fails) process.exit(1)
+done('VALIDITY PROBE', 'every shipped file is the thing its name claims')

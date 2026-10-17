@@ -45,16 +45,11 @@ import { sortTable } from '../src/game/schedule'
 import { appointStaff, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../src/game/staff'
 import { commissionScout } from '../src/game/commission'
 import type { GameState, Player } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
 const SEASONS = Number(process.argv[2] ?? 3)
 const SEEDS = [9, 777, 101]
 const CLUB = 'sale' // mid-table on purpose: room to climb and room to fall
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 
 type Arm = 'sleepwalk' | 'sheet' | 'stack'
 
@@ -171,5 +166,4 @@ ok(total < spread,
 ok(out.sleepwalk.reduce((s, r) => s + r.titles, 0) <= SEEDS.length,
   `a manager who never opens a screen does not walk the league (${out.sleepwalk.reduce((s, r) => s + r.titles, 0)} titles)`)
 
-console.log(fails ? `STACK PROBE FAILED (${fails})` : 'STACK PROBE PASSED: the toolbox is worth something, and not everything')
-if (fails) process.exit(1)
+done('STACK PROBE', 'the toolbox is worth something, and not everything', { blank: false })

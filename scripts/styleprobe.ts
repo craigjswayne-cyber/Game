@@ -40,9 +40,8 @@ import {
 } from '../src/game/styles'
 import { MOVE_BY_ID } from '../src/game/moves'
 import { STYLE_DIAGRAMS, StyleDiagram } from '../src/ui/tacticsArt'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length)
 const fmt = (d: number) => `${d >= 0 ? '+' : ''}${d.toFixed(2)}`
 
@@ -306,5 +305,4 @@ for (const a of ATK_STYLES) { cells[a] = {}; for (const d of DEF_STYLES) cells[a
   ok(told / 12 >= 1 && told / 12 <= 8, `the commentary names a style when it tells, ${(told / 12).toFixed(1)} times a match (1 to 8)`)
 }
 
-console.log(fails ? `\nSTYLE PROBE FAILED (${fails})` : '\nSTYLE PROBE PASSED: the table is balanced, the styles do what they say, and none is the answer')
-process.exit(fails ? 1 : 0)
+done('STYLE PROBE', 'the table is balanced, the styles do what they say, and none is the answer', { exit: true })

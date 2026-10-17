@@ -20,12 +20,7 @@
 import { newGame } from '../src/game/newgame'
 import { CLUB_CAPTAINS, CLUB_VICES } from '../src/data/captains'
 import { verifiedClub } from '../src/data/verified'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const g = newGame('bath', 'Window', 61)
 const clubOf = (name: string) => {
@@ -97,5 +92,4 @@ for (const want of CLUB_VICES['gloucester'] ?? []) ok(squad('gloucester').has(wa
   ok(g.players[glos.vice!]?.name === 'Seb Atkinson', 'Seb Atkinson is his vice-captain')
 }
 
-console.log(fails ? `\nTRANSFER WINDOW PROBE FAILED (${fails})` : '\nTRANSFER WINDOW PROBE PASSED: the window is in the world')
-process.exit(fails ? 1 : 0)
+done('TRANSFER WINDOW PROBE', 'the window is in the world', { exit: true })

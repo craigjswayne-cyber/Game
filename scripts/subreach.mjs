@@ -25,7 +25,7 @@ import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
-const server = await startPreview(4193, 2500)
+const server = await startPreview(0, 2500)
 
 // UNBUFFERED, ON PURPOSE. Piped to a file, node buffers stdout in blocks, so the
 // two runs of this probe that were killed by a timeout left a log containing the
@@ -52,7 +52,7 @@ async function sweep(label, height, stopAt, width = 412) {
   const page = await browser.newPage({ viewport: { width, height } })
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   try {
-    await page.goto('http://localhost:4193/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
     await page.click('text=New Career')
     await page.waitForSelector('text=English Premier Division')

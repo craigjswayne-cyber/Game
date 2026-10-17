@@ -13,12 +13,7 @@
 // fields that would break it are the ledgers that only exist after some rugby.
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'Clone Probe', 4242)
 const SEASONS = 5
@@ -68,5 +63,4 @@ console.log(`\n${SEASONS} seasons played, save is ${mb(json.length)}`)
 // and the size, so a ledger that starts growing without a cap is visible here
 ok(json.length < 20 * 1024 * 1024, `${SEASONS} seasons fits in 20 MB (${mb(json.length)})`)
 
-console.log(fails ? `\nCLONE PROBE FAILED (${fails})` : '\nCLONE PROBE PASSED: the save can be written without a hand-rolled copy')
-process.exit(fails ? 1 : 0)
+done('CLONE PROBE', 'the save can be written without a hand-rolled copy', { exit: true })

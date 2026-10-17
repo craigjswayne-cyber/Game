@@ -46,7 +46,7 @@ const FLOOR_LARGE = 3.0
 const SKINS = (process.env.CONTRAST_SKINS ?? 'default,midnight,heritage,stealth,tour').split(',')
 const THEMES = (process.env.CONTRAST_THEMES ?? 'night,day').split(',')
 
-const server = await startPreview('4185', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 const findings = []
@@ -226,7 +226,7 @@ async function sweep(night, skin) {
     })
   }
   try {
-      await page.goto('http://localhost:4185/')
+      await page.goto(`${server.origin}/`)
       await page.waitForSelector('text=RUGBY', { timeout: 15000 })
       await look('title screen')
       await page.click('text=New Career')

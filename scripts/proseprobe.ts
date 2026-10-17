@@ -23,13 +23,12 @@
 //
 // Run: npx vite-node scripts/proseprobe.ts
 import { readFileSync, readdirSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 
 /** ONLY EVER DECREASE. */
 const BUDGET = { decisions: 0, press: 0, touchline: 0, replies: 0 }
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const GAME = 'src/game'
 // recursive since season.ts and matchEngine.ts were split into src/game/season/
@@ -209,5 +208,4 @@ if (replies.length < BUDGET.replies) {
   ok(false, `THE REPLIES BUDGET IS STALE: ${replies.length} left but it still says ${BUDGET.replies}. Lower it`)
 }
 
-say(fails ? `\nPROSE PROBE FAILED (${fails})` : '\nPROSE PROBE PASSED: nothing reaches a reader in a language they did not choose')
-process.exitCode = fails ? 1 : 0
+done('PROSE PROBE', 'nothing reaches a reader in a language they did not choose')

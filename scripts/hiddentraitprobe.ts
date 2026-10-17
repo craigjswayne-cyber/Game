@@ -1,4 +1,5 @@
-// Probe: Round 25D-2 - hidden character, the big day, and the fog of war.
+// Hidden trait probe (Round 25D-2): hidden character, the big day, and the fog
+// of war.
 //
 // From the FM blueprint the user pasted: "hidden attributes like consistency
 // and big match temperament", plus the Fire Emblem/XCOM idea of assistant
@@ -22,17 +23,16 @@
 //   FAVOURITE PRESSURE SQUEEZES THE GAP. In a final the stronger side's
 //   attack/defence mods dip and the underdog's rise, zero-sum, and a league
 //   match between the same clubs is untouched.
+//
+// Was scripts/round25d2.ts until 1.9.2, named for the feedback round that asked
+// for it; renamed for what it holds. Nothing else asserts these properties.
 import { newGame } from '../src/game/newgame'
 import { bigMatchTemper, consistency } from '../src/game/attributes'
 import { beginMatch, teamUnits } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const mean = (a: number[]) => a.reduce((s, x) => s + x, 0) / a.length
 
 const g = newGame('northampton', 'Wobble', 9)
@@ -108,5 +108,4 @@ const ids = Object.values(g.players).map(p => p.id)
   ok(Math.abs(give + get - 2) < 1e-9, `and the squeeze is zero-sum: one side gives exactly what the other gets (x${give.toFixed(4)}, x${get.toFixed(4)})`)
 }
 
-console.log(fails ? `\n${fails} FAILURES` : '\nROUND 25D-2 PROBE PASSED')
-process.exit(fails ? 1 : 0)
+done('HIDDEN TRAIT PROBE', 'consistency and temperament are real, bounded and fogged', { exit: true })

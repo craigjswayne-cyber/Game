@@ -10,7 +10,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4179', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 })
 // ONE WORLD, EVERY RUN. The career seed is drawn from Math.random, so each run
@@ -104,7 +104,7 @@ const both = async (pg) => await pg.evaluate(MEASURE)
 const step = (s) => console.log(`  [${new Date().toISOString().slice(11, 19)}] ${s}`)
 const rows = []
 try {
-  await page.goto('http://localhost:4179/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   step('measuring title')
   rows.push(['title', await both(page)])

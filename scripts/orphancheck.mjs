@@ -33,12 +33,14 @@ const TOOLS = new Set([
   'scripts/titlebg.mjs',       // cuts the title background from the key art
   'scripts/browserperf.mjs',   // two builds side by side, for a release note
   'scripts/tools/voicepatch.mjs', // a one-off text rewriter run by hand
+  'scripts/tools/probemod.mjs',   // the codemod that moved probes onto lib/probe (1.9.2)
 ])
 // imported or spawned by harnesses, never run on their own
 const LIBRARIES = new Set([
   'scripts/worldcheck.ts',
   'scripts/lib/preview.mjs',
   'scripts/lib/probe.ts',
+  'scripts/lib/probe.mjs',
   'scripts/lib/bondstwin.ts',
   'scripts/lib/savegen.ts',
   'scripts/lib/frspace.mjs',
@@ -48,7 +50,7 @@ const LIBRARIES = new Set([
 
 const suite = readFileSync(join(SCRIPTS, 'suite.sh'), 'utf8')
 const listed = new Set()
-for (const v of ['REPORTERS', 'LONG', 'SLOW', 'SMOKE', 'BROWSER']) {
+for (const v of ['REPORTERS', 'LONG', 'SLOW', 'SMOKE', 'PRBROWSER', 'BROWSER']) {
   const m = suite.match(new RegExp(`^${v}="([^"]*)"`, 'm'))
   if (!m) { console.log(`FAIL  suite.sh has no ${v} list (has the file changed shape?)`); process.exit(1) }
   for (const n of m[1].split(/\s+/).filter(Boolean)) listed.add(n)
@@ -83,8 +85,42 @@ const missing = [...listed].filter(n => !files.includes(`scripts/${n}.ts`) && !f
 for (const f of orphans) console.log(`FAIL  ${f} is in no suite list and is not a tool: add it to suite.sh, or to TOOLS here`)
 for (const f of stale) console.log(`FAIL  ${f} is listed here but does not exist`)
 for (const n of missing) console.log(`FAIL  suite.sh lists ${n} but there is no scripts/${n}.ts or .mjs`)
-const bad = orphans.length + stale.length + missing.length
+// THE AREAS (1.9.2): suite.sh's AREA_<name> lists are what `suite.sh area`
+// runs, and docs/testing.md's area table names the same probes. Each name
+// must have a file (NAME.test is tests/NAME.test.ts), must not be a reporter
+// (a reporter has no verdict, so it covers nothing), and the table row for
+// the area must name exactly the list. Before this the table listed
+// summertest and disttest, reporters, as coverage.
+const reporters = new Set((suite.match(/^REPORTERS="([^"]*)"/m)?.[1] ?? '').split(/\s+/).filter(Boolean))
+const areaNames = (suite.match(/^AREAS="([^"]*)"/m)?.[1] ?? '').split(/\s+/).filter(Boolean)
+const areaFaults = []
+if (!areaNames.length) areaFaults.push('suite.sh has no AREAS list')
+const doc = readFileSync(join(ROOT, 'docs/testing.md'), 'utf8')
+const docRows = new Map()
+for (const m of doc.matchAll(/^\| \*\*[^*]+\*\* \(`(\w+)`\) \|(.*)\|\s*$/gm)) {
+  docRows.set(m[1], new Set([...m[2].matchAll(/`([a-z0-9-]+(?:\.test)?)`/g)].map(x => x[1])))
+}
+for (const a of areaNames) {
+  const m = suite.match(new RegExp(`^AREA_${a}="([^"]*)"`, 'm'))
+  if (!m) { areaFaults.push(`suite.sh lists area ${a} but has no AREA_${a}`); continue }
+  const list = new Set(m[1].split(/\s+/).filter(Boolean))
+  for (const n of list) {
+    const file = n.endsWith('.test') ? `tests/${n}.ts` : null
+    if (file ? !statSync(join(ROOT, file), { throwIfNoEntry: false }) : !files.includes(`scripts/${n}.ts`) && !files.includes(`scripts/${n}.mjs`)) {
+      areaFaults.push(`area ${a} lists ${n}, and there is no ${file ?? `scripts/${n}.ts or .mjs`}`)
+    }
+    if (reporters.has(n)) areaFaults.push(`area ${a} lists ${n}, a reporter with no verdict: it covers nothing`)
+  }
+  const row = docRows.get(a)
+  if (!row) { areaFaults.push(`docs/testing.md has no area row for \`${a}\``); continue }
+  for (const n of list) if (!row.has(n)) areaFaults.push(`docs/testing.md's ${a} row does not name ${n}, which suite.sh area ${a} runs`)
+  for (const n of row) if (!list.has(n)) areaFaults.push(`docs/testing.md's ${a} row names ${n}, which is not in AREA_${a}`)
+}
+for (const a of docRows.keys()) if (!areaNames.includes(a)) areaFaults.push(`docs/testing.md has a row for ${a}, which is not in AREAS`)
+for (const f of areaFaults) console.log(`FAIL  ${f}`)
+
+const bad = orphans.length + stale.length + missing.length + areaFaults.length
 console.log(bad
   ? `\nORPHAN CHECK FAILED (${bad})`
-  : `\nORPHAN CHECK PASSED: ${files.length} files, every one in a suite list, a tool or a library`)
+  : `\nORPHAN CHECK PASSED: ${files.length} files, every one in a suite list, a tool or a library; ${areaNames.length} areas agree with docs/testing.md`)
 process.exit(bad ? 1 : 0)

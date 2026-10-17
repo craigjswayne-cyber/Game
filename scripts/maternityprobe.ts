@@ -25,12 +25,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
 import { availablePlayers } from '../src/game/matchEngine'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const SEASONS = 10
 const wClub = LEAGUE_DEFS('w')[0].clubs[0].id
@@ -92,6 +87,6 @@ ok(!Object.values(men.players).some(p => p.maternity),
   'no player in the men\'s game is ever given the status')
 
 console.log('')
-if (fails === 0) console.log('MATERNITY PROBE PASSED: only invented players, and the leave behaves like leave')
-else console.log(`MATERNITY PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('MATERNITY PROBE PASSED: only invented players, and the leave behaves like leave')
+else console.log(`MATERNITY PROBE FAILED (${failures()})`)
+process.exit(failures())

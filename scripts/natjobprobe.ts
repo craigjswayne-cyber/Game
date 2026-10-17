@@ -25,12 +25,7 @@ import { mulberry32 } from '../src/game/rng'
 import { interestPremium, transferInterest } from '../src/game/interest'
 import { askingPrice, personalTermsDemand, sellerWillingness } from '../src/game/ai'
 import { t } from '../src/game/i18n'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const worlds: [string, GameState][] = [
   ['men', newGame('bath', 'Test', 4242)],
@@ -225,6 +220,6 @@ for (const [label, g] of worlds) {
 }
 
 console.log('')
-if (fails === 0) console.log('NAT JOB PROBE PASSED: the paid job exists in both worlds, and it comes with matches')
-else console.log(`NAT JOB PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('NAT JOB PROBE PASSED: the paid job exists in both worlds, and it comes with matches')
+else console.log(`NAT JOB PROBE FAILED (${failures()})`)
+process.exit(failures())

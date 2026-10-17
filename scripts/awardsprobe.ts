@@ -20,12 +20,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
 import { teamOfTheYear, awardWindfall, runTeamOfTheYear } from '../src/game/yearend'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const SEASONS = 4
 const g = newGame('bath', 'Test', 24601)
@@ -117,6 +112,6 @@ console.log(`  in the four-season walk the budget rose over ${paid} of ${paydays
 }
 
 console.log('')
-if (fails === 0) console.log('AWARDS PROBE PASSED: one awards night, a real fifteen, and it pays')
-else console.log(`AWARDS PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('AWARDS PROBE PASSED: one awards night, a real fifteen, and it pays')
+else console.log(`AWARDS PROBE FAILED (${failures()})`)
+process.exit(failures())

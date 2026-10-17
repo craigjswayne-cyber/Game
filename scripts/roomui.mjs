@@ -10,13 +10,11 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, failures } from './lib/probe.mjs'
 
-const PORT = 4944
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 page.setDefaultTimeout(8000)
@@ -26,7 +24,7 @@ page.on('pageerror', e => errors.push(String(e)))
 const bodyText = () => page.evaluate(() => document.body.innerText)
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -122,5 +120,5 @@ try {
   await browser.close()
   server.stop()
 }
-say(fails ? `ROOM UI FAILED: ${fails}` : 'ROOM UI PASSED: the office asks in words, in two languages, and the answers do what they say')
-done(fails)
+say(failures() ? `ROOM UI FAILED: ${failures()}` : 'ROOM UI PASSED: the office asks in words, in two languages, and the answers do what they say')
+done(failures())

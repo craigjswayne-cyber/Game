@@ -15,9 +15,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { seasonLabel } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const files = (dir: string): string[] => readdirSync(dir).flatMap(n => {
   const p = join(dir, n)
@@ -34,5 +32,4 @@ for (const h of hits) console.log(`       ${h}`)
 ok(hits.length === 0, `no screen writes a season out by hand (${hits.length})`)
 ok(/^20\d\d-\d\d$/.test(seasonLabel(0)), `seasonLabel(0) is a season (${seasonLabel(0)})`)
 
-console.log(fails ? `\nSEASON LABEL PROBE FAILED (${fails})` : '\nSEASON LABEL PROBE PASSED: every screen asks seasonLabel() what year it is')
-process.exit(fails ? 1 : 0)
+done('SEASON LABEL PROBE', 'every screen asks seasonLabel() what year it is', { exit: true })

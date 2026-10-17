@@ -23,12 +23,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { sortTable } from '../src/game/schedule'
 import type { Fixture, GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 ok(typeof S.matchStakes === 'function', 'stakes.ts exports matchStakes')
 ok(typeof S.seasonTentpoles === 'function', 'stakes.ts exports seasonTentpoles')
@@ -204,5 +199,4 @@ const nextLeague = (g: GameState): Fixture => {
   ok(JSON.stringify(g) === before, 'the calendar is a pure read too')
 }
 
-console.log(fails ? `BILLING PROBE FAILED (${fails})` : 'BILLING PROBE PASSED: every match knows what it is for')
-if (fails) process.exit(1)
+done('BILLING PROBE', 'every match knows what it is for', { blank: false })

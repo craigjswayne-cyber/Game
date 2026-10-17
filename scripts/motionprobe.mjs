@@ -26,7 +26,7 @@ const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview('4192', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({
   viewport: { width: 412, height: 780 },
@@ -47,7 +47,7 @@ const anim = (sel) => page.evaluate((s) => {
 }, sel)
 
 try {
-  await page.goto('http://localhost:4192/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

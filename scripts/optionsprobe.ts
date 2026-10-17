@@ -39,9 +39,8 @@ import { mulberry32 } from '../src/game/rng'
 import { DEF_SYSTEMS, PRESETS, zonePlan } from '../src/game/tactics'
 import { ATK_PRESET, ATK_STYLES, DEF_PRESET, DEF_STYLES } from '../src/game/styles'
 import type { Fixture, GameState, Tactic } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const userFixture = (g: GameState) =>
   g.fixtures.find(f => f.week === g.week && (f.homeId === g.userClubId || f.awayId === g.userClubId))!
 
@@ -238,5 +237,4 @@ console.log('\n--- against the other side: the defence matchups')
   ok(nT > nW, `a narrow defence is worth more against a forward attack (x${nT.toFixed(3)}) than a wide one (x${nW.toFixed(3)})`)
 }
 
-console.log(fails ? `\nOPTIONS PROBE FAILED (${fails})` : '\nOPTIONS PROBE PASSED: every option does something, the matchups hold, and none is a meta')
-process.exit(fails ? 1 : 0)
+done('OPTIONS PROBE', 'every option does something, the matchups hold, and none is a meta', { exit: true })

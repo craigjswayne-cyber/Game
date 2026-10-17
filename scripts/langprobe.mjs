@@ -26,7 +26,7 @@ const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview('4207', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
 page.setDefaultTimeout(8000)
@@ -43,7 +43,7 @@ const box = (sel) => page.evaluate((s) => {
 }, sel)
 
 try {
-  await page.goto('http://localhost:4207/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
 
   // ---- it is on the title screen, below the buttons -----------------------
@@ -70,7 +70,7 @@ try {
   {
     const small = await browser.newPage({ viewport: { width: 360, height: 640 }, locale: 'en-GB' })
     await small.addInitScript(() => localStorage.setItem('rm-night', '1'))
-    await small.goto('http://localhost:4207/')
+    await small.goto(`${server.origin}/`)
     await small.waitForSelector('.lang-row')
     const r = await small.evaluate(() => {
       const b = document.querySelector('.lang-row').getBoundingClientRect()

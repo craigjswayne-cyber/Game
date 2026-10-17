@@ -18,12 +18,11 @@ import { writeFileSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-const PORT = process.env.PORT ?? '4231'
-const URL = `http://localhost:${PORT}/`
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
+const URL = server.url
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 async function bridgeCtx({ owns = [], cancel = [] } = {}) {

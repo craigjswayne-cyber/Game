@@ -16,12 +16,11 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 
-const PORT = '4232'
 let fails = 0
 const say = (s) => console.log(s)
 const ok = (c, what) => { say(`  ${c ? 'ok  ' : 'FAIL'}  ${what}`); if (!c) fails++ }
 
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 780 } })
 page.setDefaultTimeout(6000)
@@ -53,7 +52,7 @@ const desk = () => page.evaluate(() => {
 })
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('#root >> text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

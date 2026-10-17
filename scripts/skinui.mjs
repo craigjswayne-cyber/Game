@@ -14,7 +14,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4217', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 let fails = 0
@@ -30,7 +30,7 @@ const SKINS = [
 /** The career walk, and the road to Settings - both needed twice now that
  *  there is a paid case and a free one. */
 const start = async (page) => {
-  await page.goto('http://localhost:4217/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -85,7 +85,7 @@ try {
   await page.addInitScript(() => localStorage.setItem('rm-ent', 'phase.supporter'))
 
   // a career, because the manager menu only exists inside one
-  await page.goto('http://localhost:4217/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

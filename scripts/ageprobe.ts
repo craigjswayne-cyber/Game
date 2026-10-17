@@ -24,9 +24,8 @@ import { answerPress } from '../src/game/media'
 import { ageAttributes, ageShape, attrLevel, slope } from '../src/game/ageing'
 import { SEASON_WEEKS, type GameState, type Player } from '../src/game/model'
 import type { Pos } from '../src/data/types'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const POS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8', 'SH', 'FH', 'CE', 'WG', 'FB']
 
 console.log('--- the shape moves no rating')
@@ -116,5 +115,4 @@ console.log('--- the slide reads the position, across a real summer')
     `the world agrees: pace against rating ${rel(young, 'pac').toFixed(1)} at 22-25, ${rel(old, 'pac').toFixed(1)} at 31+; scrum ${rel(young, 'scr').toFixed(1)} -> ${rel(old, 'scr').toFixed(1)}`)
 }
 
-console.log(fails ? `\nAGE PROBE FAILED (${fails})` : '\nAGE PROBE PASSED: legs go, craft grows, and nobody inflates')
-process.exit(fails ? 1 : 0)
+done('AGE PROBE', 'legs go, craft grows, and nobody inflates', { exit: true })

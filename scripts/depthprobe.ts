@@ -41,9 +41,8 @@ import { INJ_NORM, SURFACES, clubSurface, halfTimeHints, injuryF, matchCondition
 import { HABITS, HABIT_RATE, clutchKick, habitFx, habitHint, habits } from '../src/game/habits'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
 import { buildClip } from '../src/ui/HighlightClip'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const mean = (xs: number[]) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'af', 'ja']
@@ -565,5 +564,4 @@ console.log('\n--- 7. the leagues\n')
   ok([...ATK_STYLES, ...DEF_STYLES].every(s => favoured.has(s)), 'every style is favoured by at least one league')
 }
 
-console.log(fails ? `\nDEPTH PROBE FAILED (${fails})` : '\nDEPTH PROBE PASSED: the shapes, the weather, the whistle, the law, the habits, the ground and the leagues each do what they say')
-process.exit(fails ? 1 : 0)
+done('DEPTH PROBE', 'the shapes, the weather, the whistle, the law, the habits, the ground and the leagues each do what they say', { exit: true })

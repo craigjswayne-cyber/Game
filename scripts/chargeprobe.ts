@@ -27,9 +27,7 @@ import { beginMatch, playHalf, matchStats, CHARGE_RATE, CHARGE_TRY } from '../sr
 import { mulberry32 } from '../src/game/rng'
 import { buildClip, momentAt, lateAndClose } from '../src/ui/HighlightClip'
 import { readFileSync } from 'node:fs'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const labels = { try: 'TRY', review: 'TMO', notry: 'NO TRY', good: 'GOOD', wide: 'WIDE', turnover: 'TURNOVER', saved: 'TRY SAVER' }
 const colours = { home: ['#c00000', '#ffffff'] as [string, string], away: ['#0000c0', '#ffffff'] as [string, string] }
@@ -156,5 +154,4 @@ for (const l of ['en', 'fr', 'es', 'it', 'ja', 'af']) {
 }
 ok(bad.length === 0, `no dashes in the new commentary, in any language${bad.length ? ` (${bad.slice(0, 5).join(', ')})` : ''}`)
 
-console.log(fails ? `\nCHARGE PROBE FAILED (${fails})` : '\nCHARGE PROBE PASSED: kicks, charge-downs, drop goals and a match called as it is played')
-process.exit(fails ? 1 : 0)
+done('CHARGE PROBE', 'kicks, charge-downs, drop goals and a match called as it is played', { exit: true })

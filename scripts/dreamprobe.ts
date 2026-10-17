@@ -35,12 +35,7 @@ await ensureLang('fr')
 import { newGame } from '../src/game/newgame'
 import { migrate } from '../src/game/save'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 // ---- the module surface (red on any tree without the wave) ----
 ok(typeof D.dreamsFor === 'function', 'dream.ts exports dreamsFor')
@@ -288,5 +283,4 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
     'both worlds play THREE knockout ties')
 }
 
-console.log(fails ? `DREAM PROBE FAILED (${fails})` : 'DREAM PROBE PASSED: the save knows what it is for')
-if (fails) process.exit(1)
+done('DREAM PROBE', 'the save knows what it is for', { blank: false })

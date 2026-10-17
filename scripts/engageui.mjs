@@ -14,7 +14,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4221', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : ' FAIL '} ${what}`); if (!c) fails++ }
@@ -25,7 +25,7 @@ try {
   page.setDefaultTimeout(9000)
   const errs = []
   page.on('pageerror', e => errs.push(e.message))
-  await page.goto('http://localhost:4221/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

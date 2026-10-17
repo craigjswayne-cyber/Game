@@ -20,12 +20,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { arrangeMidweekFriendly, friendlySuggestions, friendlyWeekOk, friendlyWeeks, FRIENDLY_DAY } from '../src/game/season'
 import { fixtureDayOff, leagueTier } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const g = newGame('bath', 'Test', 77)
 const user = g.clubs[g.userClubId]
@@ -175,6 +170,6 @@ ok(acadAfter >= acadBefore, 'and no senior appearance was credited for it')
 ok(user.balance !== balBefore || true, 'the balance moved only by the ordinary weekly running of the club')
 
 console.log('')
-if (fails === 0) console.log('FRIENDLY PROBE PASSED: midweek, three clear days, a club below or abroad, and the academy on the pitch')
-else console.log(`FRIENDLY PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('FRIENDLY PROBE PASSED: midweek, three clear days, a club below or abroad, and the academy on the pitch')
+else console.log(`FRIENDLY PROBE FAILED (${failures()})`)
+process.exit(failures())

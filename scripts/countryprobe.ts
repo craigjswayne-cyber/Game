@@ -40,13 +40,8 @@ import type { Fixture, GameState } from '../src/game/model'
 // exist, and a missing named import would kill the whole run at load time -
 // this way the old-code demonstration shows every red on its own line
 import * as M from '../src/game/model'
+import { ok, done } from './lib/probe'
 const closeNatTenure = (M as { closeNatTenure?: (s: GameState) => void }).closeNatTenure
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 
 const g = newGame('northampton', 'CountryDesk', 61)
 g.natTeam = 'SCO'
@@ -379,6 +374,5 @@ console.log('\n--- 12. every nation has somebody fighting for the shirt\n')
      `and a team's worth of contenders on top of it (${noContest.join(', ') || 'all ' + NAT_TIERS.length + ' fine'})`)
 }
 
-console.log(fails ? `\nCOUNTRY PROBE FAILED (${fails})` : '\nCOUNTRY PROBE PASSED: the pinnacle has a desk of its own')
-process.exit(fails ? 1 : 0)
+done('COUNTRY PROBE', 'the pinnacle has a desk of its own', { exit: true })
 

@@ -43,9 +43,8 @@ import {
 import { drillWeek, playbookOf, routineEffect } from '../src/game/playbook'
 import { MOVE_DIAGRAMS, MoveDiagram } from '../src/ui/tacticsArt'
 import { CLIP_MOVES, buildClip, clipLength, clipTimeline, frameAt, type ClipSpec } from '../src/ui/HighlightClip'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length)
 
 // ------------------------------------------------------------------ 1
@@ -467,5 +466,4 @@ console.log('\n--- 7. the league still plays rugby\n')
   ok(pts >= 48 && pts <= 53 && tries >= 6.0 && tries <= 6.6 && home >= 0.51 && home <= 0.57, 'points, tries and home advantage inside bandcheck\'s bands')
 }
 
-console.log(fails ? `\nMOVES PROBE FAILED (${fails})` : '\nMOVES PROBE PASSED: the moves are drilled, fitted, matched, heard and drawn')
-process.exit(fails ? 1 : 0)
+done('MOVES PROBE', 'the moves are drilled, fitted, matched, heard and drawn', { exit: true })

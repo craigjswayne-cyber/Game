@@ -20,12 +20,8 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { carryPledges } from '../src/game/rollover'
 import { LAST_PLEDGE_WEEK, SEASON_WEEKS, pledgeDue, type GameState } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const settle = (g: GameState) => {
   for (const q of g.press) if (!q.answered) q.answered = true
   g.annual = null
@@ -82,5 +78,4 @@ for (const w of [45, 46, 47, 48]) ok(pledgeDue(w, 6) > w, `made in week ${w}, du
   ok(!g.news.some(n => n.k === 'news.brokePlans' && n.playerId === p.id), 'and it was never judged in the close season')
 }
 
-console.log(fails ? `\nPLEDGE PROBE FAILED (${fails})` : '\nPLEDGE PROBE PASSED: no promise falls due before it is made')
-process.exit(fails ? 1 : 0)
+done('PLEDGE PROBE', 'no promise falls due before it is made', { exit: true })

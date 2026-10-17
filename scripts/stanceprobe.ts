@@ -24,12 +24,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { answerPress } from '../src/game/media'
 import type { GameState, PressItem } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const stanceQ = (g: GameState): PressItem | undefined =>
   g.press.find(p => !p.answered && p.options.some(o => o.stance))
@@ -184,5 +179,4 @@ const meanMorale = (g: GameState) => {
   }
 }
 
-console.log(fails ? `\nSTANCEPROBE FAILED (${fails})` : '\nSTANCEPROBE PASSED')
-process.exit(fails ? 1 : 0)
+done('STANCEPROBE', '', { exit: true })

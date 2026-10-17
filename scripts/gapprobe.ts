@@ -34,9 +34,8 @@ import { agePlayers } from '../src/game/rollover'
 import { ageAttributes, attrLevel, attrOdds, attrRoll, gapGrowth, slope, trainPoint } from '../src/game/ageing'
 import { mulberry32 } from '../src/game/rng'
 import { SEASON_WEEKS, type GameState, type Player } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length)
 
 console.log('--- E5: the gap sets the pace')
@@ -172,5 +171,5 @@ console.log('--- the world mean: three seasons against the old curve')
   ok(hi18 < HI18_REF && hi18 > 100, `an 18 is rarer, and still exists (${hi18}, under ${HI18_REF})`)
 }
 
-console.log(fails ? `\n${fails} FAILURES` : '\nGAP PROBE PASSED: the gap is the pace, the top is hard, the world holds')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nGAP PROBE PASSED: the gap is the pace, the top is hard, the world holds')
+process.exit(failures() ? 1 : 0)

@@ -11,7 +11,10 @@
 #   ./scripts/suite.sh fast     linters + engine probes, no browser
 #   ./scripts/suite.sh browser  linters + build + the browser harnesses
 #   ./scripts/suite.sh smoke    linters + build + four browser harnesses (the PR job)
+#   ./scripts/suite.sh pr       linters + build + PRBROWSER, 25 more browser harnesses (the second PR job)
 #   ./scripts/suite.sh soak     the SLOW list only, soaks and audits  (the weekly job)
+#   ./scripts/suite.sh area A   the probes for one part of the game: A is one of
+#                               save money match rollover fuzz ui i18n a11y ip
 #   ./scripts/suite.sh          fast + browser
 #   ./scripts/suite.sh all      everything, soaks included      (hours)
 #
@@ -48,8 +51,37 @@ SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight option
 # THE PR SMOKE (1.9.1): the browser half only ran on main and overnight, so a
 # pull request that broke the wizard found out after it merged. These four
 # cover the whole flow end to end, the till, the way a career leaves the
-# phone, and every screen's words in both languages, in about ten minutes.
+# phone, and every screen's words in both languages, in about six minutes
+# (5m23s measured on a four-core box, 17 Oct 2026; docs/testing.md).
 SMOKE="e2e storeprobe backupreach keyscreen"
+# THE SECOND PR JOB (1.9.2): the whole browser list is 102 harnesses and about
+# forty minutes a shard in three, too long to sit on every pull request. These
+# 25 are the ones that guard what a player loses most by: reaching a control
+# and reading it (accessibility), keeping a career (save and load), keeping
+# what was bought (purchases), the match screen, and the layout on a phone.
+# The rest still run on main, nightly and in the release check.
+PRBROWSER="a11yprobe tapsize textscale nightcontrast contrastprobe motionprobe smalltype
+  savequeue reloadprobe resilience healrefresh
+  purchasestate proprompt exportui tillface adsprobe
+  dramaprobe subsprobe injurygate hlliveprobe
+  portraitqa devicematrix overlapaudit scrollaudit geosweep"
+
+# ---- AREAS (1.9.2) ----
+# Which probes cover which part of the game, in ONE place: `suite.sh area NAME`
+# runs the list, and docs/testing.md's area table names exactly these (the
+# orphan check fails when the two disagree, or when a name has no file).
+# NAME.test is a vitest file under tests/; soaks (SLOW) in an area run only
+# with AREA_SOAKS=1.
+AREA_save="savefuzz migrate.test savequeue.test settleweek.test listsaves.test savedetprobe reloaddetprobe determinism.test cloneprobe replayprobe resumeprobe backupprobe importprobe listsavesprobe settleguardprobe personaprobe deepsave savequeue reloadprobe resilience backupreach"
+AREA_money="moneyprobe refund.test spend.test tillprobe creditprobe spendprobe billprobe rewardedprobe netprobe storeprobe purchasestate proprompt exportui"
+AREA_match="fingerprint fingerprint.test bandcheck engine10k simtest splitprobe blowprobe scrumlaw packprobe forfeitprobe perfprobe dialweight stackprobe dramaprobe"
+AREA_rollover="rolloverprobe calinvariant invariants closeprobe seasonplanprobe pledgeprobe pledge.test runtimematrix releasesim soakhealth"
+AREA_fuzz="actionfuzz marketfuzz sheetfuzz fuzz2 fuzz25d breakit breaker chaosui"
+AREA_ui="e2e portraitqa devicematrix overlapaudit scrollaudit stickyaudit uiqaprobe paletteqa iconshots tidyshots cssaudit tokenlint"
+AREA_i18n="textlint i18nprobe keyprobe frenchprobe englishprobe langparity frliveprobe langprobe keyscreen"
+AREA_a11y="a11yprobe smalltype tapsize geosweep textscale nightcontrast contrastprobe colouraudit colourblind motionprobe tapcontrols"
+AREA_ip="ipprobe namedup"
+AREAS="save money match rollover fuzz ui i18n a11y ip"
 
 run() {
   local name="$1"; shift
@@ -96,25 +128,61 @@ FAIL  (exited 0 but printed a failure: the harness must set its exit code)"
     # probe had already written down exactly what it was looking at. A harness
     # that diagnoses itself into a bin is a harness that does not diagnose.
     printf '%s' "$out" \
-      | grep -E -A 3 --no-group-separator '^(FAIL|PROBE THREW|.*(stopped early|stuck with))' \
+      | grep -E -A 3 --no-group-separator '^(FAIL|PROBE THREW|[A-Z][A-Z0-9 ]* FAILED: |.*(stopped early|stuck with))' \
       | head -20 | sed 's/^/        /'
     FAILS=$((FAILS + 1))
   fi
 }
 
-echo "=== typecheck, prose and tokens ==="
-run tsc npx tsc -b
-run textlint npx vite-node scripts/textlint.ts
+# ---- AREA MODE ----
+# one part of the game, without the linters or anything else: a quick answer
+# to "did I break saving", not a gate
+AREA_RAN=""
+if [ "$MODE" = area ]; then
+  AREA="${2:-}"
+  list=""
+  case " $AREAS " in *" $AREA "*) eval "list=\"\$AREA_$AREA\"";; esac
+  if [ -z "$AREA" ] || [ -z "$list" ]; then
+    echo "usage: ./scripts/suite.sh area NAME, where NAME is one of: $AREAS"
+    exit 2
+  fi
+  echo "=== area: $AREA ==="
+  # a browser harness (.mjs) drives the build: make it once
+  built=0
+  for n in $list; do
+    case " $SLOW " in *" $n "*)
+      if [ -z "${AREA_SOAKS:-}" ]; then echo "SKIP  $n (a soak: AREA_SOAKS=1 to run it)"; continue; fi;;
+    esac
+    case "$n" in
+      *.test) run "$n" npx vitest run "tests/$n.ts" ;;
+      *)
+        if [ -f "scripts/$n.ts" ]; then
+          case " $SLOW " in *" $n "*) t=5400;; *) case " $LONG " in *" $n "*) t=1800;; *) t=900;; esac;; esac
+          run "$n" timeout $t npx vite-node "scripts/$n.ts"
+        elif [ -f "scripts/$n.mjs" ]; then
+          if [ $built = 0 ] && [ "$n" != cssaudit ]; then run build npm run build; built=1; fi
+          case " $SLOW " in *" $n "*) t=5400;; *) t=1200;; esac
+          run "$n" timeout $t node "scripts/$n.mjs"
+        else
+          run "$n" sh -c "echo 'FAIL  area $AREA lists $n, and there is no scripts/$n.ts or .mjs'; exit 1"
+        fi ;;
+    esac
+  done
+  AREA_RAN=1
+fi
+
+[ -z "$AREA_RAN" ] && echo "=== typecheck, prose and tokens ==="
+[ -z "$AREA_RAN" ] && run tsc npx tsc -b
+[ -z "$AREA_RAN" ] && run textlint npx vite-node scripts/textlint.ts
 # tokenlint was in CI's engine job and in no mode here (1.9.1), so a colour
 # outside tokens.css passed ./scripts/suite.sh and failed the Gate
-run tokenlint npx vite-node scripts/tokenlint.ts
-run cssaudit node scripts/cssaudit.mjs
-run lint npx eslint src/ui
+[ -z "$AREA_RAN" ] && run tokenlint npx vite-node scripts/tokenlint.ts
+[ -z "$AREA_RAN" ] && run cssaudit node scripts/cssaudit.mjs
+[ -z "$AREA_RAN" ] && run lint npx eslint src/ui
 # every harness is in a list (1.9.1): a new file in no list fails here
-run orphancheck node scripts/orphancheck.mjs
+[ -z "$AREA_RAN" ] && run orphancheck node scripts/orphancheck.mjs
 
-echo
-echo "=== engine ==="
+if [ -z "$AREA_RAN" ]; then echo; echo "=== engine ==="; fi
 # SHARDS (v1.2.2): CI runs the engine probes as two parallel jobs, each taking
 # every other file, so the wall clock halves without a single probe being
 # skipped. Locally SHARDS is unset and one loop runs everything, as before.
@@ -125,8 +193,8 @@ echo "=== engine ==="
 # `browser` skips it here, and so do `smoke` and `soak`, which have jobs of
 # their own.
 i=0
-case "$MODE" in browser|smoke|soak) ENGINE=0;; *) ENGINE=1;; esac
-[ $ENGINE = 1 ] || echo "(skipped in $MODE mode)"
+case "$MODE" in browser|smoke|pr|soak|area) ENGINE=0;; *) ENGINE=1;; esac
+[ $ENGINE = 1 ] || [ -n "$AREA_RAN" ] || echo "(skipped in $MODE mode)"
 # the vitest unit project (tests/). Unsharded runs only: the CI engine job
 # runs `npm test` as a step of its own on shard 1
 [ $ENGINE = 1 ] && [ -z "${SHARDS:-}" ] && run unit npm test
@@ -149,8 +217,9 @@ BROWSER="e2e e2enight backprobe savequeue resilience reloadprobe subsprobe drama
 # purchasestate (1.9.1, was scripts/qa/purchasestate.mjs), paletteqa, iconshots and tidyshots had a
 # verdict and sat in no list; scripts/orphancheck.mjs now fails on that.
 [ "$MODE" = smoke ] && BROWSER="$SMOKE"
+[ "$MODE" = pr ] && BROWSER="$PRBROWSER"
 
-if [ "$MODE" != fast ] && [ "$MODE" != soak ]; then
+if [ "$MODE" != fast ] && [ "$MODE" != soak ] && [ "$MODE" != area ]; then
   echo
   # ipprobe joins the browser list because it needs the BUILD, not a browser: it
 # scans dist/ for real-world marks. It was in the CI workflow and in no local
@@ -200,7 +269,7 @@ fi
 echo
 echo "SKIPPED (no verdict to give, run by hand when the numbers matter):"
 echo "  $REPORTERS"
-[ "$MODE" != all ] && [ "$MODE" != soak ] && echo "SKIPPED (long): $SLOW"
+[ "$MODE" != all ] && [ "$MODE" != soak ] && [ "$MODE" != area ] && echo "SKIPPED (long): $SLOW"
 echo
 if [ $FAILS -eq 0 ]; then echo "SUITE PASSED"; else echo "SUITE FAILED: $FAILS"; fi
 # THE LAST LINE IS FOR MACHINES (QA-GATE, 1.6.5): one JSON object, parse this

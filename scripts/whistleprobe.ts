@@ -26,12 +26,7 @@
 import { newGame } from '../src/game/newgame'
 import { beginMatch, playHalf, resolveDecision, stepTick } from '../src/game/matchEngine'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 let matches = 0, past40 = 0, past80 = 0, backwards = 0, afterWhistle = 0
 let sample = ''
@@ -100,5 +95,4 @@ console.log('\n--- the exact sequence he reported, built on purpose\n')
   ok(built, 'the sequence was reachable at all')
 }
 
-console.log(fails ? `\nWHISTLE PROBE FAILED (${fails})` : '\nWHISTLE PROBE PASSED: everything within the time')
-process.exit(fails ? 1 : 0)
+done('WHISTLE PROBE', 'everything within the time', { exit: true })

@@ -21,12 +21,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import type { Fixture } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'TestWeek', 61)
 // take the Scotland job and walk to a week with a club fixture
@@ -105,5 +100,4 @@ const home = readFileSync('src/ui/screens/Home.tsx', 'utf8')
 ok(home.includes('assistantFixtureThisWeek') && home.includes('home.assistantTakesIt'),
   'the Home card says the assistant takes the club game on a Test week')
 
-console.log(fails ? `\nTEST WEEK PROBE FAILED (${fails})` : '\nTEST WEEK PROBE PASSED: the pinnacle is on the touchline, not in the round-up')
-process.exit(fails ? 1 : 0)
+done('TEST WEEK PROBE', 'the pinnacle is on the touchline, not in the round-up', { exit: true })

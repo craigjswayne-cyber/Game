@@ -30,9 +30,8 @@ import { HT_TONES, PRE_TONES, TALK_CAP, baseState, bestTone, logPreTalk, roomMoo
 import { mulberry32 } from '../src/game/rng'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import type { Fixture, GameState } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const clone = <T,>(x: T): T => structuredClone(x)
 const QUICK = process.argv.includes('--quick')
 
@@ -430,5 +429,4 @@ if (!QUICK) {
   ok(draw >= 0.013 && draw <= 0.030, `draws in band (${(draw * 100).toFixed(1)}%, 1.3-3.0)`)
 } else console.log('     (skipped with --quick)')
 
-console.log(fails ? `\nTEAM TALK PROBE FAILED (${fails})` : '\nTEAM TALK PROBE PASSED')
-process.exit(fails ? 1 : 0)
+done('TEAM TALK PROBE', '', { exit: true })
