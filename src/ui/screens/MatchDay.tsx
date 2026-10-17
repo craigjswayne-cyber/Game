@@ -47,7 +47,7 @@ import { nationName } from '../../game/nations'
 import { kitColours, kitInk, pageSpares } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 import { Glyph } from '../glyphs'
-import { rowNav } from '../rowNav'
+import { rowNav, rowNavTr } from '../rowNav'
 import { MatchAnnouncer } from '../MatchAnnouncer'
 
 const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Damp: 'rain', Rain: 'rain', Wind: 'wind', Snow: 'snow' }
@@ -609,7 +609,7 @@ function Preview({ fxId }: { fxId: number }) {
     // stars are unaligned for subs"). Pin every column but the name and the
     // two sections read as one sheet.
     return (
-      <tr key={slot} {...rowNav(() => tapSlot(slot))}
+      <tr key={slot} {...rowNavTr(() => tapSlot(slot))}
         className={`${prob ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700, width: 26 }}>{shirt}</td>
         <td style={{ width: 38 }}><PosBadge pos={pos} /></td>
@@ -642,7 +642,7 @@ function Preview({ fxId }: { fxId: number }) {
           </SectionTitle>
           <table className="dtable"><tbody>
             {pool.map(p => (
-              <tr key={p.id} {...rowNav(() => setSlot(pickSlot, p.id))}
+              <tr key={p.id} {...rowNavTr(() => setSlot(pickSlot, p.id))}
                 style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                 <td><PosBadge pos={p.pos} /></td>
                 <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('matchday.selected') : ''}
@@ -1462,7 +1462,7 @@ function NationPreview({ fxId }: { fxId: number }) {
             const pid = myLineup[i]
             const p = pid != null ? game.players[pid] : null
             return (
-              <tr key={i} {...rowNav(() => tapSlot(i))} className={sel === i ? 'held-row' : undefined}>
+              <tr key={i} {...rowNavTr(() => tapSlot(i))} className={sel === i ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos} /></td>
                 <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
@@ -1478,7 +1478,7 @@ function NationPreview({ fxId }: { fxId: number }) {
             const pid = myLineup[slot]
             const p = pid != null ? game.players[pid] : null
             return (
-              <tr key={slot} {...rowNav(() => tapSlot(slot))} className={sel === slot ? 'held-row' : undefined}>
+              <tr key={slot} {...rowNavTr(() => tapSlot(slot))} className={sel === slot ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos[0]} /></td>
                 <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
@@ -1500,7 +1500,7 @@ function NationPreview({ fxId }: { fxId: number }) {
                 {availablePlayers(game, rosterOf(game, nat), true)
                   .sort((a, b) => effAt(b, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]) - effAt(a, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]))
                   .map(p => (
-                    <tr key={p.id} {...rowNav(() => setSlot(pickSlot, p.id))}
+                    <tr key={p.id} {...rowNavTr(() => setSlot(pickSlot, p.id))}
                       style={myLineup.includes(p.id) ? { opacity: .55 } : undefined}>
                       <td><PosBadge pos={p.pos} /></td>
                       <td className="name">{p.name}{myLineup.includes(p.id) ? t('matchday.selected') : ''}</td>

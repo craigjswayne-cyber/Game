@@ -10,7 +10,7 @@ import { ClubLink, SectionTitle } from '../components'
 import { answerIsles, islesCoach, islesEligible } from '../../game/isles'
 import { weekDate } from '../../game/model'
 import { t, compLabel } from '../../game/i18n'
-import { rowNav } from '../rowNav'
+import { rowNavTr } from '../rowNav'
 
 /** THE TEST RANKINGS, WITH THE REST OF INTERNATIONAL RUGBY (owner, 1.8.2).
  *  They sat as a third tab on the Scouting Agency, between two lists of club
@@ -113,7 +113,7 @@ export default function Nations() {
           </div>
           <div className="tblwrap" style={{ marginTop: 6 }}><table className="dtable"><tbody>
             {(mySquad.length ? mySquad : myPool).slice(0, 26).map(p => (
-              <tr key={p.id} {...rowNav(() => go('player', p.id))}>
+              <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
                 <td className="muted">{p.pos}</td>
                 <td className="name">{p.name}</td>
                 <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>

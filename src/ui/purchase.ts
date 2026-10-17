@@ -74,6 +74,10 @@ export const endingText = (out: Ending) => {
  * saying it landed.
  */
 export async function spendCredit(sku: string, grant: () => boolean): Promise<'done' | 'refused' | 'storage' | 'none'> {
+  // mid-match the career is not written until full time (the save queue
+  // holds), so nothing can be spent on it until then
+  const st = useStore.getState()
+  if (st.liveMatch || st.matchRec) return 'storage'
   // nothing banked is its own answer, not a storage fault: creditTake says no
   // to both, and the player should hear the right one (1.9.1 security re-audit)
   if (creditCount(sku) < 1) return 'none'
@@ -86,6 +90,13 @@ export async function spendCredit(sku: string, grant: () => boolean): Promise<'d
     throw e
   }
   if (!landed) { creditAdd(sku); return 'refused' }
-  await useStore.getState().persistNow()
-  return 'done'
+  // ON DISK OR NOT AT ALL (1.9.1 re-audit, N2). A full phone failed the write
+  // and this still said 'done': the credit was gone and the effect lived only
+  // in memory until the app was closed. If the career did not reach the disk,
+  // the credit goes back and the career is reopened from its save, so the
+  // effect and the credit are never both lost and never both kept.
+  if (await useStore.getState().persistNow()) return 'done'
+  creditAdd(sku)
+  await useStore.getState().revertToDisk()
+  return 'storage'
 }

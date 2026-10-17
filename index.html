@@ -49,7 +49,10 @@
          handbook still says so. -->
   </head>
   <body>
-    <div id="root"></div>
+    <!-- A FRAME BEFORE THE SCRIPT (1.9.1). Nothing painted until about 2 MB of
+         JavaScript had run; this mark paints with the stylesheet and React
+         replaces it on its first render. -->
+    <div id="root"><div class="boot-splash" aria-hidden="true">PHASE<span>RUGBY MANAGER</span></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

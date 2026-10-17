@@ -6,7 +6,7 @@ import { ClubLink, Jersey, SectionTitle } from '../components'
 import { t, compLabel } from '../../game/i18n'
 import { leadRow, onesToWatch } from '../../game/scout'
 import { lastLeagueWeek, roundXV } from '../../game/dreamxv'
-import { rowNav } from '../rowNav'
+import { rowNav, rowNavTr } from '../rowNav'
 
 /** Magazine-style Dream Team of the round + season leaderboards -
  *  straight off the rugby magazine's socials. */
@@ -53,7 +53,7 @@ export default function DreamTeam() {
       <SectionTitle>{title}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {rows.map((p, i) => (
-          <tr key={p.id} {...rowNav(() => go('player', p.id))}>
+          <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
             <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
             <td className="name">{p.name} <span className="muted">({p.clubId ? <ClubLink g={game} clubId={p.clubId}>{teamShort(game, p.clubId)}</ClubLink> : '-'})</span></td>
             <td className="num" style={{ fontWeight: 700 }}>{val(p)}</td>
@@ -106,7 +106,7 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
       <SectionTitle sub={t('world.dtOnesSub')}>{t('world.dtOnesToWatch')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {kids.map(p => (
-          <tr key={p.id} {...rowNav(() => go('player', p.id))}>
+          <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
             {/* the age rides with the position, as on the mentoring list: a
                 bare number in the first column, under three ranked boards,
                 read as a fourth ranking (UI QA, 1.8.0) */}

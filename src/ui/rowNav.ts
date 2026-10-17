@@ -36,6 +36,21 @@ export function rowNav<E extends SyntheticEvent>(onActivate: (e: E) => void, lab
 }
 
 /**
+ * THE SAME FOR A TABLE ROW, WITHOUT TAKING ITS ROLE AWAY (1.9.1 re-audit).
+ *
+ * role="button" on a <tr> replaces the row role, and a button's children are
+ * presentational, so a screen reader stopped reading the cells against their
+ * column headers: the squad list became a column of unlabelled buttons. A row
+ * keeps role row and stays a table row to assistive tech; it is still a tab
+ * stop that Enter and Space open, and a tap still opens it. data-row-nav marks
+ * it for the harnesses (a11yprobe).
+ */
+export function rowNavTr<E extends SyntheticEvent>(onActivate: (e: E) => void, label?: string) {
+  const { role: _role, ...rest } = rowNav(onActivate, label)
+  return { ...rest, 'data-row-nav': '' }
+}
+
+/**
  * Put focus back on a control that a re-render replaced. The sortable headers
  * are built by a component declared inside their screen, so every sort mounts
  * a fresh header row and the button a keyboard user just pressed is gone: the

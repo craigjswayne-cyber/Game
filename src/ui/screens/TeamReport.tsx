@@ -9,7 +9,7 @@ import { t } from '../../game/i18n'
 import MentoringPanel from './MentoringPanel'
 import DepthPane from './DepthChart'
 import { Glyph } from '../glyphs'
-import { rowNav } from '../rowNav'
+import { rowNav, rowNavTr } from '../rowNav'
 
 /** The assistant's full report on the squad, FM Team Report style. */
 export default function TeamReport({ initial }: { initial?: string }) {
@@ -86,7 +86,7 @@ export default function TeamReport({ initial }: { initial?: string }) {
         </colgroup>
         <tbody>
         {squad.filter(p => stars.has(p.id)).map(p => (
-          <tr key={p.id} {...rowNav(() => go('player', p.id))}>
+          <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
             <td><PosBadge pos={p.pos} /></td>
             <td className="name"><Glyph name="star" /> {p.name}</td>
             <td><Stars ca={p.ca} /></td>

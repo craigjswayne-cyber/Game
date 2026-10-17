@@ -258,6 +258,9 @@ interface Store {
   dismissWeekFailed: () => void
   /** Put the career back to what is on disk after a failed settle. */
   rollBack: () => Promise<void>
+  /** Reopen this slot's saved career in place of the one in memory, quietly.
+   *  False if there is nothing readable to go back to. */
+  revertToDisk: () => Promise<boolean>
   /** The message the inbox reader is showing (news id), or null for none.
    *
    *  The inbox reads one at a time (user: "tap the mail symbol it should open the
@@ -376,7 +379,7 @@ interface Store {
   persist: () => Promise<void>
   /** Write now and wait for it, for the few places that cannot afford to be
    *  coalesced. See the save queue above persist(). */
-  persistNow: () => Promise<void>
+  persistNow: () => Promise<boolean>
   /** Reopen the last save on the screen it was left on. False if there is none. */
   resume: () => Promise<boolean>
   /** Back to the title screen on purpose, and forget the resume bookmark. */
@@ -517,7 +520,7 @@ function settleWeek(g: GameState, get: () => Store): void {
     settleFault.after?.(g)
     failedWeek = null
   } catch (e) {
-    saveQueue.hold()
+    saveQueue.hold(g)
     if (failedWeek === key) useStore.setState(s => ({ weekFailed: 2, tick: s.tick + 1 }))
     else { failedWeek = key; void get().rollBack() }
     throw e
@@ -671,6 +674,13 @@ export const useStore = create<Store>((set, get) => ({
 
   weekFailed: 0,
   dismissWeekFailed: () => set({ weekFailed: 0 }),
+  revertToDisk: async () => {
+    const slot = get().saveSlot
+    const g = await loadGame(slot).catch(() => null)
+    if (!g) return false
+    get().setGame(g, slot)
+    return true
+  },
   rollBack: async () => {
     const slot = get().saveSlot
     const g = await loadGame(slot).catch(() => null)
@@ -778,7 +788,7 @@ export const useStore = create<Store>((set, get) => ({
     // in progress, and clearing it was a way to discard a losing match -
     // start a career over the slot, then import a backup of the old one.
     // The next kick-off in this slot writes over it.
-    set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1, tut: firstRun, matchRec: null, liveMatch: null })
+    set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1, tut: firstRun, matchRec: null, liveMatch: null, weekFailed: 0 })
     // a brand-new career goes to disk at once: there is nothing yet to lose, and
     // losing it is the one save failure a player would not understand
     void get().persistNow()
@@ -812,7 +822,8 @@ export const useStore = create<Store>((set, get) => ({
     // closing the game and pressing Continue threw the match away and offered
     // it again. Opening a career now looks for the match first, in this slot,
     // in any other slot the career was copied to, and inside the save itself.
-    set({ game: g, saveSlot: slot, nav, tick: get().tick + 1, matchRec: null, liveMatch: null, resuming: true })
+    // another career is not the one a failed settle held (weekFailed)
+    set({ game: g, saveSlot: slot, nav, tick: get().tick + 1, matchRec: null, liveMatch: null, resuming: true, weekFailed: 0 })
     void get().resumeLiveMatch().catch(() => false).finally(() => {
       if (get().game === g || get().liveMatch) set({ resuming: false })
     })
@@ -1002,8 +1013,14 @@ export const useStore = create<Store>((set, get) => ({
     if (!g || get().turning) return
     if (nextStep(g).kind !== 'week' || typeof requestAnimationFrame !== 'function') { get().continueWeek(); return }
     set({ turning: true })
+    // AND THE DESK IS ON DISK FIRST (1.9.1 re-audit, N3). A failed settle puts
+    // the career back to its save; a dial moved half a second before Continue
+    // was still waiting on the idle timer and would have gone with it. The
+    // pending write lands before the week starts to turn.
     requestAnimationFrame(() => setTimeout(() => {
-      try { get().continueWeek() } finally { set({ turning: false }) }
+      void get().persistNow().catch(() => false).then(() => {
+        try { get().continueWeek() } finally { set({ turning: false }) }
+      })
     }, 0))
   },
 
@@ -1447,9 +1464,11 @@ export const useStore = create<Store>((set, get) => ({
       // after whatever set() the caller makes next, since the queue will not
       // write while a live match is in the store
       await Promise.resolve()
-      await saveQueue.flush()
+      // the record is the only copy of the match until the finished career is
+      // on disk: a held or failed write keeps it (1.9.1 re-audit, N1)
+      const wrote = await saveQueue.flush()
       const s = get()
-      if (s.liveMatch || s.saveFail || s.saveSlot !== slot) return
+      if (!wrote || s.liveMatch || s.saveFail || s.saveSlot !== slot) return
       await clearResume(slot)
     })().catch(() => {})
   },
@@ -1968,8 +1987,8 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   persistNow: async () => {
-    if (!get().game) return
-    await saveQueue.flush()
+    if (!get().game) return false
+    return saveQueue.flush()
   },
 }))
 
@@ -2027,15 +2046,18 @@ const saveQueue = (() => {
   let timer: ReturnType<typeof setTimeout> | null = null
   let inFlight: Promise<void> | null = null
   let dirty = false
-  // a week settle threw (settleWeek): nothing in memory is fit to write until
-  // the career has been put back from disk
-  let held = false
+  // a week settle threw (settleWeek): that career, and only that one, is not
+  // fit to write until it has been put back from disk. Tied to the object, so
+  // opening or starting another career saves normally (1.9.1 re-audit, N1).
+  let heldFor: GameState | null = null
+  // did the last write attempt reach the disk? flush() answers with it
+  let lastOk = true
 
   /** False when the write was held back and the save is still dirty. */
   const write = async (): Promise<boolean> => {
     const { game, saveSlot, liveMatch, matchRec } = useStore.getState()
     if (!game) return true
-    if (held) return false
+    if (heldFor && game === heldFor) { lastOk = false; return false }
     // NEVER A HALF-PLAYED MATCH (1.8.1). From the first tick the engine writes
     // tries, cards and injuries onto the players (game/resume.ts), so the game
     // object mid-match is neither the pre-match save nor the finished one. The
@@ -2047,11 +2069,12 @@ const saveQueue = (() => {
     // AND NOT WHEN THE MATCH HAS ONLY LEFT THE SCREEN (1.8.2). The crash
     // screen's way out clears liveMatch and leaves the half-played career in
     // memory; the record (matchRec) is what says a match is still owed.
-    if (liveMatch || matchRec) return false
+    if (liveMatch || matchRec) { lastOk = false; return false }
     dirty = false
     try {
       saveStats.writes++
       await saveGame(saveSlot, game)
+      lastOk = true
       if (useStore.getState().saveFail) useStore.setState({ saveFail: 0, saveFailMsg: null })
     } catch (e) {
       // A REJECTED WRITE USED TO BE INVISIBLE. Every call site is
@@ -2061,6 +2084,7 @@ const saveQueue = (() => {
       const msg = e instanceof Error ? e.message : String(e)
       console.error('save failed', e)
       saveStats.failures++
+      lastOk = false
       useStore.setState(s => ({ saveFail: s.saveFail + 1, saveFailMsg: msg, tick: s.tick + 1 }))
     }
     return true
@@ -2079,8 +2103,8 @@ const saveQueue = (() => {
   }
 
   return {
-    hold() { held = true; if (timer) { clearTimeout(timer); timer = null } },
-    release() { held = false; dirty = false },
+    hold(g: GameState) { heldFor = g; if (timer) { clearTimeout(timer); timer = null } },
+    release() { heldFor = null; dirty = false },
     /** soft: restart the idle timer rather than keep the first one, so a
      *  stream of marks (a slider dragged through twenty steps) is one write
      *  after the last of them, not one write in the middle of the drag */
@@ -2091,9 +2115,13 @@ const saveQueue = (() => {
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => { timer = null; void run() }, SAVE_IDLE_MS)
     },
-    async flush() {
+    /** True only when the career in memory is now on disk: nothing left
+     *  dirty and the last write landed. A held, deferred or failed write
+     *  answers false, so a caller that needs the disk can tell (N2). */
+    async flush(): Promise<boolean> {
       if (timer) { clearTimeout(timer); timer = null }
       await run()
+      return !dirty && lastOk
     },
     /** Best effort on the way out: no await to give, so it starts the write and
      *  lets the platform finish it. */
