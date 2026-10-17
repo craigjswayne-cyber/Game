@@ -21,7 +21,7 @@
 import type { GameState, Player } from './model'
 import { careerRows } from './model'
 import { benchDrag, bigMatchTemper, consistency } from './attributes'
-import { analystSkill } from './analyst'
+import { analystSkill } from './analystskill'
 import { reportStage } from './scout'
 
 export const KNOWN_APPS = 10

@@ -38,7 +38,9 @@ let fails = 0
 const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const GAME = 'src/game'
-const files = readdirSync(GAME).filter(f => f.endsWith('.ts')).map(f => `${GAME}/${f}`)
+// recursive since season.ts and matchEngine.ts were split into src/game/season/
+// and src/game/match/
+const files = readdirSync(GAME, { recursive: true }).map(String).filter(f => f.endsWith('.ts')).sort().map(f => `${GAME}/${f}`)
 
 type Dict = { [k: string]: unknown }
 const load = (p: string) => JSON.parse(readFileSync(p, 'utf8')) as Dict
