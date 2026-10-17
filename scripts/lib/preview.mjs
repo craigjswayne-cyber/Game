@@ -27,9 +27,16 @@
 import { spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
+// WAIT FOR THE SERVER, NOT FOR THE CLOCK (1.9.1). Every browser harness gave
+// vite a fixed 2.5 or 3 seconds and then asked for the page. On a quiet box
+// that is two seconds wasted a harness, a hundred harnesses a run; on a
+// loaded runner it is sometimes not enough, and the first page.goto fails
+// with a refused connection that reads like a broken build. The server is
+// now asked until it answers, for up to `settleMs` x 10 (30 s by default).
+
 /**
- * @param {number} port
- * @param {number} settleMs how long to give vite before the first request
+ * @param {number|string} port
+ * @param {number} settleMs a tenth of the longest to wait for vite to answer
  * @returns {Promise<{stop: () => void}>}
  */
 export async function startPreview(port, settleMs = 3000) {
@@ -38,7 +45,15 @@ export async function startPreview(port, settleMs = 3000) {
     detached: true,
   })
   server.unref()
-  await new Promise(r => setTimeout(r, settleMs))
+  const until = Date.now() + settleMs * 10
+  for (;;) {
+    try {
+      const res = await fetch(`http://localhost:${port}/`)
+      if (res.ok) break
+    } catch { /* not listening yet */ }
+    if (Date.now() > until) break       // let the probe's own goto report it
+    await new Promise(r => setTimeout(r, 100))
+  }
   // IS IT OURS? --strictPort makes vite exit when the port is taken, and the
   // probe then drives whatever else is listening there: another checkout's
   // preview, an older build. Every probe here hard-codes its port, so two
@@ -65,6 +80,15 @@ export async function startPreview(port, settleMs = 3000) {
       try { server.kill('SIGKILL') } catch { /* already gone */ }
     },
   }
+}
+
+/**
+ * Wait for a condition in the page instead of a fixed sleep: resolves true as
+ * soon as `fn` (run in the page, given `arg`) is truthy, or false after
+ * `timeout` ms, so the probe's own assertion still decides. Never throws.
+ */
+export async function until(page, fn, arg, timeout = 5000) {
+  try { await page.waitForFunction(fn, arg, { timeout, polling: 50 }); return true } catch { return false }
 }
 
 /** End the probe on its verdict, without waiting for a stray handle. */

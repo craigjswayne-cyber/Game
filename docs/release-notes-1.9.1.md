@@ -117,3 +117,11 @@ this build, with a probe for each fix that fails without it.
   local and 35 dead functions and constants removed, with the 24 strings only
   they used.
 - ESLint with jsx-a11y on `src/ui`.
+- **Tests that can fail.** Two probes printed FAILED and still exited 0; the
+  suite now fails any harness that prints a FAIL line, and every probe in
+  `scripts/` must be in a suite list (`orphancheck.mjs`). The old `qa/` and
+  `qa2/` probes CI never ran are in the suite or deleted; a dedicated season
+  rollover probe asserts the new season. `npm test` (vitest) runs the fast
+  deterministic checks. The website deploy now waits for the Gate, pull
+  requests get a browser smoke run, and the soaks run weekly. See
+  `docs/testing.md`.

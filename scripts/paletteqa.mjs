@@ -25,7 +25,10 @@ const hex = (h) => {
 const readTokens = (page) => page.evaluate(() => {
   const el = document.querySelector('.app') ?? document.documentElement
   const cs = getComputedStyle(el)
-  const get = (t) => cs.getPropertyValue(t).trim()
+  // the build's CSS minifier writes #ffffff as #fff (Vite 8, 1.9.1): read
+  // every short hex at full length so the comparisons below stay exact
+  const get = (t) => cs.getPropertyValue(t).trim().toLowerCase()
+    .replace(/#([0-9a-f])([0-9a-f])([0-9a-f])(?![0-9a-f])/g, '#$1$1$2$2$3$3')
   return {
     night: el.classList?.contains('night') ?? false,
     canvas: get('--canvas'), s1: get('--surface-1'), border: get('--border'),

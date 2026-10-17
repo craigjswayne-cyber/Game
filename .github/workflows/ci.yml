@@ -9,13 +9,20 @@ name: Gate
 # ./scripts/suite.sh - and the one time that habit slipped, a rename broke 42
 # browser harnesses and the engine-only run reported green for a fortnight.
 #
-# Two jobs, because they cost different amounts of time:
+# Three jobs, because they cost different amounts of time:
 #
-#   engine   ~10 min, on every push and every PR. This is the one that must be
-#            green before anything merges.
-#   browser  ~40 min, on main and once a night. It needs a build, a preview
-#            server and Chromium, and it is the half that catches what the
-#            engine cannot see - tap targets, contrast, overflow, the wizard.
+#   engine   ~35 min a shard, on every push and every PR. This is the one that
+#            must be green before anything merges. Shard 1 also runs the
+#            vitest unit tests (npm test).
+#   smoke    ~10 min, on pull requests and pushes to branches other than main:
+#            four browser harnesses (suite.sh smoke), so a PR that breaks the
+#            wizard or the till hears about it before it merges, not after.
+#   browser  ~40 min a shard, on main and once a night. It needs a build, a
+#            preview server and Chromium, and it is the half that catches what
+#            the engine cannot see - tap targets, contrast, overflow, the wizard.
+#
+# The soaks (suite.sh soak) run weekly in soak.yml, and the Pages deploy
+# (pages.yml) waits for this workflow to pass on main.
 on:
   push:
     branches: ['**']
@@ -84,6 +91,15 @@ jobs:
         run: node scripts/cssaudit.mjs
       - name: Accessibility lint
         run: npm run lint
+      # every harness in scripts/ is in a suite list or named as a tool: a
+      # probe nobody lists is a probe nobody runs (1.9.1)
+      - name: Orphan check
+        run: node scripts/orphancheck.mjs
+      # the vitest unit project: fingerprint, migrations, refunds and a short
+      # determinism check, in about a minute. Once, not eight times.
+      - name: Unit tests
+        if: matrix.shard == 1
+        run: npm test
       # the IP tripwire needs a build, but it is 20 seconds and it guards the
       # thing that would pull the game from a store rather than break a career
       - name: Build
@@ -96,6 +112,40 @@ jobs:
           SHARD: ${{ matrix.shard }}
           PROBE_QUICK: 1
         run: bash scripts/suite.sh fast
+
+  smoke:
+    name: Browser smoke (PR)
+    # the browser job below is main and nightly only; this is the small part of
+    # it a pull request can afford: e2e, storeprobe, backupreach, keyscreen
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # pinned to playwright-core's own version: see the browser job
+      - name: Install Chromium
+        run: npx "playwright@$(node -p "require('playwright-core/package.json').version")" install --with-deps chromium
+      - name: Locate Chromium
+        run: echo "PW_CHROMIUM=$(node -e "console.log(require('playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
+      - name: Build
+        run: npm run build
+      - name: Browser smoke
+        run: bash scripts/suite.sh smoke
+      - name: Keep the screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: shots-smoke
+          path: |
+            shots/
+            shots-*/
+          if-no-files-found: ignore
+          retention-days: 7
 
   browser:
     name: Browser harnesses (shard ${{ matrix.bshard }} of 3)
