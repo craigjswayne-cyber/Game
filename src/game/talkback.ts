@@ -27,7 +27,7 @@
 import { absWeek, logDecision, type GameState, type Personality, type Player, type PressItem, type PressOption, type OfficeTopic } from './model'
 import { clamp, mulberry32 } from './rng'
 import { tIn } from './i18n'
-import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './media'
+import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './office'
 import { demands } from './culture'
 
 export type Fit = 'good' | 'mixed' | 'bad'

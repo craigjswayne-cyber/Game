@@ -16,7 +16,7 @@ import type { GameState, Player, PressOption } from './model'
 import {absWeek, mgrReputation, squadTrust, SEASON_WEEKS } from './model'
 import { clamp, mulberry32 } from './rng'
 import { t, tIn, type Vars } from './i18n'
-import { OFFICE_OUTLET } from './media'
+import { OFFICE_OUTLET } from './office'
 import { authorityEdge, resentment } from './culture'
 
 

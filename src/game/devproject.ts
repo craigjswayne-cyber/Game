@@ -46,7 +46,7 @@
 
 import type { Attrs, Club, GameState, Player, Pos, TrainingFocus } from './model'
 import { absWeek, XV_SLOTS } from './model'
-import { attrWeight, benchDrag, isLateBloomer } from './attributes'
+import { attrWeight, benchDrag, isLateBloomer } from './attrtemplates'
 import { clamp, mulberry32 } from './rng'
 
 type K = keyof Attrs

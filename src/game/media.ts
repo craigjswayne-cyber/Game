@@ -1,4 +1,4 @@
-import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './model'
+import type { GameState, Player, PressItem, PressOption } from './model'
 import { subjectVar } from './gender'
 import {absWeek, careerRows, SEASON_WEEKS, pledgeDue, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
 import { loanOut } from './loans'
@@ -14,6 +14,11 @@ import { applyMoodAnswer, moodRoom, settlePressMood, userResults, trailingRun } 
 import { clamp, pick, type Rng, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
 import { clubGamesPlayed, competitiveMatchIn } from './handshake'
+import { OFFICE_OUTLET, isBoardroom, askedRecently, rememberAsk } from './office'
+
+// The office outlet and its ask memory live in office.ts (a leaf) so the
+// office's conversation modules need not import media back.
+export { OFFICE_OUTLET, isBoardroom, askedRecently, rememberAsk } from './office'
 
 const OUTLETS = [
   'The Rugby Chronicle', 'Oval Times', 'The Breakdown Podcast', 'Rugby World Weekly',
@@ -23,53 +28,6 @@ const OUTLETS = [
 /** How long an answered press question stays in the room. Two weeks: the
  *  owner's rule, and about as long as anyone remembers a quote for. */
 export const PRESS_KEEP_WEEKS = 2
-
-/** Not an outlet at all: player conversations behind a closed door. */
-export const OFFICE_OUTLET = "The Manager's Office"
-/** BOARDROOM, NOT PRESS ROOM (owner, 28 Sep 2026: "anything that is financial
- *  related like this and goal setting should be in [the board room section of
- *  finances] not the press"). The pre-season camp, the season's expectations
- *  and the sponsor slot deals are still PressItems underneath, so they answer
- *  through the same path and the same saves load, but they are asked and
- *  answered on Finances > The Board, and the press room never shows them. */
-export function isBoardroom(p: { options: { camp?: unknown; stance?: unknown; deal?: unknown }[] }): boolean {
-  return p.options.some(o => o.camp != null || o.stance != null || o.deal != null)
-}
-
-/**
- * How long the office remembers a conversation.
- *
- * A live report: a prospect asked to go out on loan, the manager agreed, and
- * the same lad knocked again with the same speech seven days later. The office
- * was generating from squad state alone, so any player who still matched the
- * filter could be picked again the very next week - and agreeing to something
- * never changed the filter, because agreeing did nothing.
- *
- * Fourteen weeks is a third of a season: long enough that the repeat reads as
- * a man whose patience has run out rather than a bug, and short enough that
- * he does get to come back if you left him in the stand all year.
- */
-const OFFICE_COOLDOWN = 14
-
-
-/** Has this player raised this subject recently enough that raising it again
- *  would read as the game forgetting the last conversation? */
-export function askedRecently(state: GameState, pid: number, topic: OfficeTopic): boolean {
-  const now = absWeek(state.season, state.week)
-  return (state.officeMemo ?? []).some(m =>
-    m.pid === pid && m.topic === topic && now - absWeek(m.season, m.week) < OFFICE_COOLDOWN)
-}
-
-/** Record that he came in about it. Written when the conversation is raised,
- *  not when it is answered: ignoring a player is also an answer, and it does
- *  not entitle him to ask again next week. */
-export function rememberAsk(state: GameState, pid: number, topic: OfficeTopic) {
-  ;(state.officeMemo ??= []).push({ pid, topic, season: state.season, week: state.week })
-  // two seasons of memos is far more than the cooldown needs, and keeps the
-  // save from carrying a list that only ever grows
-  const cutoff = absWeek(state.season - 2, state.week)
-  state.officeMemo = state.officeMemo.filter(m => absWeek(m.season, m.week) >= cutoff).slice(-200)
-}
 
 /** A question the press ask, as a key and the variables it needs.
  *

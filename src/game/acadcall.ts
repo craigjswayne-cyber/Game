@@ -34,7 +34,7 @@ import type { Club, GameState, Player, PressItem, PressOption } from './model'
 import { LEDGER_WEEKS, fmtMoney, logDecision } from './model'
 import { firstProWage, playerWage } from './attributes'
 import { tIn, type Vars } from './i18n'
-import { OFFICE_OUTLET } from './media'
+import { OFFICE_OUTLET } from './office'
 import { planAcademyLoan } from './room'
 import { remember, rememberDeparture } from './memory'
 
