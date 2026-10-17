@@ -1,7 +1,7 @@
 import { isBoardroom } from './media'
 import type { GameState, NewsItem } from './model'
 import { seasonStart, dayAbbr, fixtureDayOff, fxDate, injuryDesc, monthName } from './model'
-import { userMatchThisWeek } from './season'
+import { userMatchThisWeek } from './season/whose'
 import { t } from './i18n'
 import { isDeadlineWeek, windowNoteDue } from './window'
 
