@@ -128,7 +128,7 @@ FAIL  (exited 0 but printed a failure: the harness must set its exit code)"
     # probe had already written down exactly what it was looking at. A harness
     # that diagnoses itself into a bin is a harness that does not diagnose.
     printf '%s' "$out" \
-      | grep -E -A 3 --no-group-separator '^(FAIL|PROBE THREW|[A-Z][A-Z0-9 ]* FAILED: |.*(stopped early|stuck with))' \
+      | grep -E -A 3 --no-group-separator '^ *(FAIL|PROBE THREW|[A-Z][A-Z0-9 ]* FAILED: |.*(stopped early|stuck with))' \
       | head -20 | sed 's/^/        /'
     FAILS=$((FAILS + 1))
   fi

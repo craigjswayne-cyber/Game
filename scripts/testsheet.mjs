@@ -105,14 +105,14 @@ try {
       return false
     })
     await page.waitForTimeout(40)
-    if (await page.locator('text=On to the Week').count()) { await page.click('text=On to the Week'); await page.waitForTimeout(80) }
-    else if (await page.locator('text=Next Story ▸').count()) { await page.click('text=Next Story ▸'); await page.waitForTimeout(60) }
+    if (await page.locator('text=On to the Week').count()) { await page.click('text=On to the Week', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(80) }
+    else if (await page.locator('text=Next Story ▸').count()) { await page.click('text=Next Story ▸', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(60) }
   }
   ok(reached, 'the walk reaches a Test week with the England job in hand')
 
   // a time budget, not a step count: each step waits on fixed timers, so a
   // slow runner used to spend its 80 steps before the sheet came up
-  for (const until = Date.now() + 120_000; Date.now() < until;) {
+  for (const until = Date.now() + 180_000; Date.now() < until;) {
     // the desk fills again as the week walks, and every hold stops Continue -
     // keep it clear and the camp legal, then press on to the sheet
     await page.evaluate(() => {
@@ -120,6 +120,8 @@ try {
       const g = st.game
       for (const n of g.news) { n.read = true; n.cleared = true }
       for (const q of g.press) if (!q.answered) q.answered = true
+      // an offer for the manager holds Continue ("Offers ▸") until answered
+      for (const o of g.offers ?? []) if (o.status === 'pending' && o.forUser) o.status = 'rejected'
       const camp = g.natSquads?.[g.natTeam]
       if (camp && camp.length < 23) {
         const spare = Object.values(g.players)
@@ -132,11 +134,13 @@ try {
     })
     if (await page.locator('text=YOUR TEST XV').count() &&
         await page.locator('button', { hasText: /Kick Off/i }).count()) break
-    if (await page.locator('text=On to the Week').count()) { await page.click('text=On to the Week'); await page.waitForTimeout(150); continue }
-    if (await page.locator('text=Next Story ▸').count()) { await page.click('text=Next Story ▸'); await page.waitForTimeout(100); continue }
-    if (await page.locator('button', { hasText: /^Reject$/ }).count()) { await page.locator('button', { hasText: /^Reject$/ }).first().click(); await page.waitForTimeout(200); continue }
-    if (await page.locator('text=Matchday ▸').count()) { await page.click('text=Matchday ▸'); await page.waitForTimeout(400); continue }
-    if (await page.locator('text=Continue ▸').count()) { await page.click('text=Continue ▸'); await page.waitForTimeout(400); continue }
+    if (await page.locator('text=On to the Week').count()) { await page.click('text=On to the Week', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(150); continue }
+    if (await page.locator('text=Next Story ▸').count()) { await page.click('text=Next Story ▸', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(100); continue }
+    if (await page.locator('button', { hasText: /^Reject$/ }).count()) { await page.locator('button', { hasText: /^Reject$/ }).first().click({ timeout: 3000 }).catch(() => {}); await page.waitForTimeout(200); continue }
+    if (await page.locator('text=Matchday ▸').count()) { await page.click('text=Matchday ▸', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(400); continue }
+    if (await page.locator('text=Continue ▸').count()) { await page.click('text=Continue ▸', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(400); continue }
+    // whatever the button says now (Offers, Results...), it is the way on
+    if (await page.locator('.continue-btn').count()) { await page.click('.continue-btn', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(400); continue }
     await page.waitForTimeout(150)
   }
   const onSheet = await page.locator('text=YOUR TEST XV').count() > 0
