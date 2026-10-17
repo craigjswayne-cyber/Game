@@ -57,6 +57,7 @@ say('\n--- 1. no difficulty lever, and an old save still plays')
   // the levers are gone from the engine, not merely from the wizard
   const src = engineSource()
     + readFileSync('src/game/rollover.ts', 'utf8')
+    + readdirSync('src/game/rollover').filter(f => f.endsWith('.ts')).sort().map(f => readFileSync(`src/game/rollover/${f}`, 'utf8')).join('\n')
     + readFileSync('src/game/newgame.ts', 'utf8')
   ok(!/difficultyOf\(/.test(src),
     'no engine file still asks a career how hard it wanted the game')
