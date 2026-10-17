@@ -21,6 +21,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { answerSheet } from './lib/sheet.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
 let fails = 0
@@ -105,7 +106,10 @@ try {
   ok(await page.getAttribute('html', 'lang') === 'en', 'and stamps <html lang="en">')
 
   await page.selectOption('.lang-select', 'fr')
-  await page.waitForTimeout(250)
+  // the French dictionary is a chunk fetched on first use (v1.2.0): wait for it
+  // to land rather than for a fixed 250ms, which a loaded runner can miss
+  await page.waitForFunction(() => document.documentElement.lang === 'fr', null, { timeout: 15000 }).catch(() => {})
+  await page.waitForTimeout(100)
   const fr = await page.locator('.tagline').innerText()
   say(`  tagline after the switch: "${fr}"`)
   ok(fr.includes('TROPHÉES'), 'the strapline is French straight away, with no navigation needed')
@@ -567,11 +571,13 @@ try {
       ok(!commEng.test(commSeen), `the commentary is French${commEng.test(commSeen) ? ` - found "${(commSeen.match(commEng) ?? [''])[0]}"` : ''}`)
 
       // to full time: Skip, and press through half-time and the hour
-      for (let i = 0; i < 30 && !(await page.locator('.ft-stamp').count()); i++) {
+      for (let i = 0; i < 60 && !(await page.locator('.ft-stamp').count()); i++) {
+        // the injury-wait sheet (1.9.1) holds the match until it is answered
+        await answerSheet(page)
         const skip = page.locator('.speed-controls [data-ctl=skip]')
-        if (await skip.count()) await skip.first().click().catch(() => {})
+        if (await skip.count()) await skip.first().click({ timeout: 3000 }).catch(() => {})
         else if (await page.locator('.panel-area .btn.gold').count()) {
-          await page.locator('.panel-area .btn.gold').first().click().catch(() => {})
+          await page.locator('.panel-area .btn.gold').first().click({ timeout: 3000 }).catch(() => {})
         }
         await page.waitForTimeout(700)
       }
