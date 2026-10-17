@@ -87,7 +87,8 @@ async function sweep(label, height, stopAt, width = 412) {
     // Play forward until the touchline panel we want is on screen. Half-time
     // comes first; the break is one resume further on.
     const reachPanel = async want => {
-      for (let i = 0; i < 120; i++) {
+      // 240 steps: a loaded runner plays fewer minutes a step (1.9.1)
+      for (let i = 0; i < 240; i++) {
         // A TOUCHLINE CALL STOPS EVERYTHING, INCLUDING SKIP. The Skip button is
         // disabled while a penalty decision is unanswered ("The touchline call is
         // yours first"), so a loop that only presses Skip sits at the same minute
