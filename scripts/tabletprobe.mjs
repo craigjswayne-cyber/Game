@@ -23,6 +23,7 @@
 // Run: npm run build && node scripts/tabletprobe.mjs
 import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
+import { answerSheet, tapPast } from './lib/sheet.mjs'
 import { startPreview } from './lib/preview.mjs'
 
 const server = await startPreview(0, 2500)
@@ -186,11 +187,11 @@ try {
       })
       ok(room.react && room.inPanel, `kick-off: the room's reactions sit in the stats panel (${JSON.stringify(room)})`)
       ok(room.feedH >= 200 && room.feedTop < d.h - 200, `kick-off: the commentary is on the glass beside them (${JSON.stringify(room)})`)
-      if (room.react) await page.click('.talk-react .tr-head .btn')
+      if (room.react) await tapPast(page, '.talk-react .tr-head .btn')
       await page.waitForTimeout(4000)
       // a touchline call takes the pitch's place, as on a phone: answer it
       for (let k = 0; k < 3 && await page.locator('text=Take the Points').count(); k++) {
-        await page.click('text=Take the Points')
+        await tapPast(page, 'text=Take the Points')
         await page.waitForTimeout(2500)
       }
       // 1.8.0: no always-on pitch. The tablet deck is the stage between
@@ -213,7 +214,10 @@ try {
       ok(head.crests === 2 && head.names === 0, `match: two crests over the stats, no names to collide (${JSON.stringify(head)})`)
       // "it doesn't fit on screen": a sheet is zoomed with the page, so its
       // height cap has to be divided back down or its top leaves the glass
-      await page.click('.speed-controls [data-ctl="squad"]')
+      // an injury the match waits on opens its own sheet over the controls
+      // at random: answer it first, as on the phone (lib/sheet.mjs)
+      await answerSheet(page)
+      await tapPast(page, '.speed-controls [data-ctl="squad"]')
       await page.waitForSelector('.squad-sheet', { timeout: 5000 })
       await page.waitForTimeout(500)
       const sh = await page.evaluate(() => { const b = document.querySelector('.squad-sheet').getBoundingClientRect(); return { top: Math.round(b.top), bottom: Math.round(b.bottom) } })

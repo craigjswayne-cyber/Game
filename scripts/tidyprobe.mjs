@@ -17,6 +17,7 @@
 // Run: npm run build && node scripts/tidyprobe.mjs
 import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
+import { tapPast } from './lib/sheet.mjs'
 import { startPreview } from './lib/preview.mjs'
 const SHOTS = process.env.SHOTS ?? '/tmp/tidy'
 mkdirSync(SHOTS, { recursive: true })
@@ -30,7 +31,7 @@ await page.addInitScript(() => {
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const clear = async () => {
-  if (await page.locator('text=Take the Points').count()) await page.click('text=Take the Points')
+  if (await page.locator('text=Take the Points').count()) await tapPast(page, 'text=Take the Points')
   if (await page.locator('.sheet-row.armed').count()) { await page.locator('.sheet-row.armed').first().click(); await page.waitForTimeout(150) }
   const sheet = page.locator('.modal-veil .btn.gold:enabled').first()
   if (await sheet.count() && !(await page.locator('.mpanels').count())) await sheet.click()
@@ -112,7 +113,7 @@ try {
   await page.screenshot({ path: `${SHOTS}/commentary.png` })
 
   // ---- stats ----
-  await page.click('.speed-controls .btn >> nth=0')
+  await tapPast(page, '.speed-controls .btn >> nth=0')
   await page.waitForTimeout(300)
   await clear()
   await page.click('[aria-label="Match menu"]')
