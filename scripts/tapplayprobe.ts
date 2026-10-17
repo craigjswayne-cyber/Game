@@ -31,9 +31,8 @@ import { playbookOf } from '../src/game/playbook'
 import { migratePlaybook } from '../src/game/armsrace'
 import { mulberry32 } from '../src/game/rng'
 import type { Club, GameState } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length)
 
@@ -201,5 +200,4 @@ console.log('\n--- 5. over a match, always tapping\n')
   ok(Object.values(g.clubs).filter(c => c.id !== ME).every(c => !callsOf(g, c).pen), 'no AI club has a penalty play: the world plays as it did')
 }
 
-console.log(fails ? `\nTAP PLAY PROBE FAILED (${fails})` : '\nTAP PLAY PROBE PASSED: the penalty slot picks the play, and the dice never notice')
-process.exit(fails ? 1 : 0)
+done('TAP PLAY PROBE', 'the penalty slot picks the play, and the dice never notice', { exit: true })

@@ -32,8 +32,7 @@ import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 
-const PORT = process.env.FEED_PORT ?? '4293'
-const server = await startPreview(PORT, 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -48,7 +47,7 @@ async function toMatch(reduced) {
     let a = 20261001
     Math.random = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 }
   })
-  await page.goto(`http://localhost:${PORT}/?motion=1`)
+  await page.goto(`${server.origin}/?motion=1`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career'); await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile'); await page.click('.tile >> text=Northampton')

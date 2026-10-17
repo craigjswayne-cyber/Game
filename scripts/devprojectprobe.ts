@@ -48,9 +48,8 @@ import {
   learningLines, markSights, outlookLine, PA_DRIFT_MAX, PHASE_F, planAffinity, seasonReview, styleFit,
   tempoF, TL, TL_MAX, weekGrowth,
 } from '../src/game/devproject'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length)
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x))
 
@@ -367,5 +366,4 @@ console.log('--- 5. saves')
   ok(dm.week > 0, 'and a week simulates on the healed save')
 }
 
-console.log(fails ? `\nDEV PROJECT PROBE FAILED (${fails})` : '\nDEV PROJECT PROBE PASSED: traits shape growth, the drivers are bounded, ceilings drift, estimates stay estimates')
-process.exit(fails ? 1 : 0)
+done('DEV PROJECT PROBE', 'traits shape growth, the drivers are bounded, ceilings drift, estimates stay estimates', { exit: true })

@@ -16,7 +16,7 @@
 // or the man will never be placed.
 import type { Pos } from './types'
 
-export interface Prospect {
+interface Prospect {
   name: string
   pos: Pos
   age: number
@@ -38,7 +38,7 @@ export interface Prospect {
   pa?: number
 }
 
-export const ACADEMY_PROSPECTS: Record<string, Prospect[]> = {
+const ACADEMY_PROSPECTS: Record<string, Prospect[]> = {
   bath: [
     { name: 'Harry Logan', pos: 'FL', age: 18, q: 52 },
     { name: 'Alex Logan', pos: 'CE', age: 19, q: 50 },

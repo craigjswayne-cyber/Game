@@ -14,13 +14,13 @@ import { startPreview } from './lib/preview.mjs'
 
 const OUT = 'shots-ipad'
 mkdirSync(OUT, { recursive: true })
-const server = await startPreview('4259', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 1024, height: 1366 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true })
 let n = 0
 const shot = async name => { n++; await page.waitForTimeout(700); await page.screenshot({ path: `${OUT}/${String(n).padStart(2, '0')}-${name}.png` }) }
 
-await page.goto('http://localhost:4259/')
+await page.goto(`${server.origin}/`)
 await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 await shot('title')
 await page.click('text=New Career')
@@ -51,7 +51,7 @@ await shot('transfers')
 await page.click('.bottom-nav button[title="Home"]').catch(() => {})
 for (let tap = 0; tap < 8; tap++) {
   if (await page.locator('text=Kick Off ▸').count()) break
-  await page.click('.continue-btn')
+  await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
   await page.waitForTimeout(450)
 }
 await page.locator('text=Kick Off ▸').first().click()

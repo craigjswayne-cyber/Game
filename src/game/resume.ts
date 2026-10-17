@@ -134,7 +134,7 @@ export interface MatchResume {
 export type LiveStamp = Omit<MatchResume, 'pre'>
 
 /** The shape of a live match, rebuilt. */
-export interface Resumed {
+interface Resumed {
   ctx: LiveCtx
   fixture: Fixture
   preTalkMsg: string | null
@@ -270,7 +270,7 @@ export function stampedSave(rec: MatchResume): GameState {
 export function stampedRecord(state: GameState): MatchResume | null {
   const stamp = state.liveRec
   if (!stamp || typeof stamp !== 'object' || stamp.v !== 1) return null
-  const pre = JSON.parse(JSON.stringify(state)) as GameState
+  const pre = structuredClone(state)
   delete pre.liveRec
   return { ...stamp, pre }
 }

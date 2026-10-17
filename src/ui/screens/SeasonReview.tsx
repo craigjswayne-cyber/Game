@@ -37,7 +37,7 @@ export default function SeasonReview() {
     : r.league.predicted && r.league.pos > r.league.predicted ? t('legacy.srHeadBelow')
     : t('legacy.srHeadLedger')
   const row = (label: string, value: string, strong = false) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border)', fontSize: '0.8125rem' }}>
       <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
       <b style={strong ? { color: 'var(--info)' } : undefined}>{value}</b>
     </div>
@@ -89,7 +89,7 @@ export default function SeasonReview() {
 
         <div className="card center" style={{ borderLeft: '4px solid var(--gold)' }}>
           {/* the record under the verdict said the season card's W D L again */}
-          <h3 style={{ fontSize: 18 }}>{headline}</h3>
+          <h3 style={{ fontSize: '1.125rem' }}>{headline}</h3>
         </div>
 
         {/* THE TURNING POINT (1.8.4, turning.ts): at most one a season, and
@@ -111,7 +111,7 @@ export default function SeasonReview() {
           <>
             <SectionTitle sub={t('legacy.srDreamSub')}>{t('legacy.lgTheDream')}</SectionTitle>
             <div className="card" style={{ borderLeft: `4px solid ${r.dream.done ? 'var(--primary)' : 'var(--gold)'}` }}>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>{r.dream.titleK ? t(r.dream.titleK, r.dream.titleV) : r.dream.title}</div>
+              <div style={{ fontWeight: 700, fontSize: '1rem' }}>{r.dream.titleK ? t(r.dream.titleK, r.dream.titleV) : r.dream.title}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
                 <div style={{ width: `${Math.min(100, Math.round((r.dream.at / Math.max(1, r.dream.goal)) * 100))}%`, height: '100%', background: r.dream.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
               </div>
@@ -206,7 +206,7 @@ export default function SeasonReview() {
           </>
         )}
 
-        <button className="btn gold block" style={{ marginTop: 12, fontSize: 16 }} onClick={back}>
+        <button className="btn gold block" style={{ marginTop: 12, fontSize: '1rem' }} onClick={back}>
           {t('legacy.srFileAway')}
         </button>
         <div className="spacer" />

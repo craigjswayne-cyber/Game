@@ -67,7 +67,7 @@ export default function Jobs() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Crest club={club} size={30} mr={4} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 style={{ fontSize: 16 }}>{club.name}</h3>
+            <h3 style={{ fontSize: '1rem' }}>{club.name}</h3>
             <div className="meta">
               {t('world.jbClubMeta', { league: compLabel(game.comps[club.leagueId]?.short) ?? '', rep: club.rep, squad: fmtMoney(squadValue(game, club.id)), budget: fmtMoney(club.budget) })}
             </div>
@@ -111,7 +111,7 @@ export default function Jobs() {
               except by applying for it - so the red dot sat there for a job he
               had no interest in. */}
           {!v.applied && (
-            <button className="btn ghost" style={{ fontSize: 13, flex: '0 0 auto' }}
+            <button className="btn ghost" style={{ fontSize: '0.8125rem', flex: '0 0 auto' }}
               onClick={() => {
                 // READ IT BEFORE THE CALL. passJob writes v.passed straight onto the
                 // vacancy in game state, and `v` here is that same object - so a
@@ -155,7 +155,7 @@ export default function Jobs() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Crest club={offer} size={30} mr={4} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h3 style={{ fontSize: 16 }}>{t('world.jbOfferHead', { club: offer.name })}</h3>
+              <h3 style={{ fontSize: '1rem' }}>{t('world.jbOfferHead', { club: offer.name })}</h3>
               <div className="meta">{t('world.jbOfferBody', { club: offer.short, stadium: offer.stadium, budget: fmtMoney(offer.budget) })}</div>
               <div className="meta" style={{ fontStyle: 'italic' }}>{t(`arc.profile.${jobProfile(game, offer.id)}`)}</div>
               {(() => {
@@ -176,7 +176,7 @@ export default function Jobs() {
         </div>
       )}
       <div className="card">
-        <h3 style={{ fontSize: 16 }}>{t(game.unemployed ? 'world.jbBetweenJobs' : 'world.jbMarket')}</h3>
+        <h3 style={{ fontSize: '1rem' }}>{t(game.unemployed ? 'world.jbBetweenJobs' : 'world.jbMarket')}</h3>
         <div className="meta">
           {t('world.jbYourRep')}<b style={{ color: 'var(--info)' }}>{rep}/95</b>
           {t(game.mgr.trophies.length === 1 ? 'world.jbRepBuiltOne' : 'world.jbRepBuilt', {
@@ -222,7 +222,7 @@ export default function Jobs() {
 
       {turned.length > 0 && (
         <>
-          <button className="btn ghost block" style={{ marginTop: 8, fontSize: 13 }}
+          <button className="btn ghost block" style={{ marginTop: 8, fontSize: '0.8125rem' }}
             onClick={() => setShowPassed(!showPassed)}>
             {showPassed ? t('world.jbHideTurned') : t('world.jbShowTurned', { n: turned.length })}
           </button>

@@ -115,6 +115,31 @@ if ! grep -q 'android:screenOrientation="portrait"' "$MANIFEST"; then
   echo "    portrait only"
 fi
 
+# ---- MANIFEST: no Android backup of the web view's storage ----
+# Capacitor's template says android:allowBackup="true", which lets Android copy
+# the app's data directory (IndexedDB careers, the localStorage that holds the
+# Pro Manager entitlement and settings) into the user's cloud backup, and on
+# older phones out over adb. The game does not rely on it: careers have their
+# own Export and share-sheet backup on the Saves screen, and Pro Manager comes
+# back through Play Billing's restore. So the manifest says false, every run,
+# and the result is read back because a sed that matches nothing says nothing.
+# (On Android 12 and later a device-to-device transfer still carries the data
+# to the owner's new phone; that is their own device, and their saves with it.)
+if grep -q 'android:allowBackup="true"' "$MANIFEST"; then
+  sed -i.bak 's|android:allowBackup="true"|android:allowBackup="false"|' "$MANIFEST"
+  rm -f "$MANIFEST.bak"
+elif ! grep -q 'android:allowBackup=' "$MANIFEST"; then
+  # no newline in the replacement: macOS sed does not understand one
+  sed -i.bak 's|<application|<application android:allowBackup="false"|' "$MANIFEST"
+  rm -f "$MANIFEST.bak"
+fi
+if grep -q 'android:allowBackup="false"' "$MANIFEST"; then
+  echo "    no Android backup of game data (allowBackup=false)"
+else
+  echo "    could not set android:allowBackup=\"false\" in $MANIFEST" >&2
+  exit 1
+fi
+
 # ---- ADVERTS: the bridge the game speaks to, and the App ID the SDK needs ----
 # @capacitor-community/admob is an npm plugin, so `cap sync` above already
 # registered its native side. What it cannot do is give the page a provider in

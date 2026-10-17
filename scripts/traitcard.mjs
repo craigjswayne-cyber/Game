@@ -15,14 +15,10 @@
 // Run: npm run build && node scripts/traitcard.mjs [port]
 import { chromium } from 'playwright-core'
 import { mkdirSync, readFileSync, writeSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
-const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
-
-const PORT = Number(process.argv[2] ?? 4397)
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 mkdirSync('shots/traitcard', { recursive: true })
 const EN = JSON.parse(readFileSync(new URL('../src/locales/en.json', import.meta.url), 'utf8'))
@@ -37,7 +33,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
   page.setDefaultTimeout(6000)
   await page.addInitScript(() => { localStorage.setItem('rm-lang', 'en') })
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.evaluate(() => window.rugbyStore.getState().start('bath', 'Trait Card'))
   await page.waitForTimeout(700)
@@ -126,5 +122,4 @@ try {
   server.stop()
 }
 
-say(fails ? `\nTRAIT CARD FAILED (${fails})` : '\nTRAIT CARD PASSED: a man\'s character is named, as far as the club knows it')
-done(fails)
+done('TRAIT CARD', 'a man\'s character is named, as far as the club knows it', { exit: true })

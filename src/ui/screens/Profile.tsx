@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { decisionText, mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
+import { decisionText, mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState } from '../../game/model'
 import { standing, standingWord } from '../../game/authority'
 import { CHALLENGES } from '../../game/newgame'
 import { nationName } from '../../game/nations'
@@ -123,8 +123,8 @@ export default function Profile() {
   return (
     <>
       <div className="card" style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 44, lineHeight: 1, color: badge.color }}><Glyph name={badge.icon} /></div>
-        <h3 style={{ fontSize: 18, marginTop: 6 }}>{game.managerName}</h3>
+        <div style={{ fontSize: '2.75rem', lineHeight: 1, color: badge.color }}><Glyph name={badge.icon} /></div>
+        <h3 style={{ fontSize: '1.125rem', marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">{game.unemployed ? t('profile.unemployed') : t('profile.directorOfRugby', { club: club.name })}</div>
         <div style={{ marginTop: 8, fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1, color: badge.color, textTransform: 'uppercase' }}>
           {badge.name}
@@ -146,7 +146,7 @@ export default function Profile() {
           <div className="meta" style={{ marginTop: 4 }}>
             {t('profile.dressingRoomLine', { n: Math.round(trust), word: trustWord(trust) })}
           </div>
-          <div className="meta" style={{ marginTop: 2, fontSize: 11 }}>
+          <div className="meta" style={{ marginTop: 2, fontSize: '0.6875rem' }}>
             {t('profile.teamTalkWorth', { pct: Math.round(trustFactor(game) * standing(game).talk * 100) })}
           </div>
           {(() => {
@@ -155,7 +155,7 @@ export default function Profile() {
             const a = standing(game)
             if (game.unemployed) return null
             return (
-              <div className="meta" style={{ marginTop: 6, fontSize: 11, color: a.bite > 0.35 ? 'var(--text-negative)' : undefined }}>
+              <div className="meta" style={{ marginTop: 6, fontSize: '0.6875rem', color: a.bite > 0.35 ? 'var(--text-negative)' : undefined }}>
                 {t('profile.squadStanding', { profile: a.profile, rep: a.rep, word: standingWord(a) })}
                 {a.bite > 0.05 && t('profile.drillLonger', { pct: Math.round((1 - a.familiarity) * 100) })}
               </div>
@@ -190,12 +190,12 @@ export default function Profile() {
             <div className="card mgr-ambitions">
               {list.map(({ a, s }, i) => (
                 <div key={a.id} style={{ marginTop: i ? 9 : 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: '0.8125rem' }}>
                     <b>{dreamTitle(s!.def, s!.ctx)}</b>
                     <span className="muted">{s!.pct}%</span>
                   </div>
                   <span className="rt-bar"><i style={{ width: `${s!.pct}%` }} /></span>
-                  <div className="meta" style={{ fontSize: 11 }}>
+                  <div className="meta" style={{ fontSize: '0.6875rem' }}>
                     {dreamNote(s!.p)}
                     {(a.log ?? []).map(x => ` · ${t('arc.ambMark', { pct: x.p, season: seasonLabel(x.s) })}`).join('')}
                   </div>
@@ -207,7 +207,7 @@ export default function Profile() {
       })()}
       {game.natOffer && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 16 }}>{t('profile.natOffer', { nat: nationName(game.natOffer.nat) })}</h3>
+          <h3 style={{ fontSize: '1rem' }}>{t('profile.natOffer', { nat: nationName(game.natOffer.nat) })}</h3>
           <div className="meta">{t('profile.natOfferBody')}</div>
           <div className="meta" style={{ fontStyle: 'italic' }}>{t('arc.profile.national')}</div>
           {/* v1.1.5 (owner): taking the national side asks about the club job
@@ -250,7 +250,7 @@ export default function Profile() {
           back on the screen. */}
       {game.natKeepAsk && game.natTeam && !game.unemployed && club && (
         <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 16 }}>{t('profile.natKeepAskTitle', { nat: nationName(game.natKeepAsk) })}</h3>
+          <h3 style={{ fontSize: '1rem' }}>{t('profile.natKeepAskTitle', { nat: nationName(game.natKeepAsk) })}</h3>
           <div className="meta">{t('profile.natKeepAskBody', { nat: nationName(game.natKeepAsk), club: club.short })}</div>
           <div className="btn-row" style={{ marginTop: 10 }}>
             <button className="btn danger" onClick={() => answerNatKeep(false)}>{t('profile.natResignClub')}</button>
@@ -262,7 +262,7 @@ export default function Profile() {
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="row-ico"><Glyph name="nations" /></span>
           <div style={{ flex: 1 }}>
-            <h3 style={{ fontSize: 14 }}><Flag code={game.natTeam} /> {t('profile.natHeadCoach', { nat: nationName(game.natTeam) })}</h3>
+            <h3 style={{ fontSize: '0.875rem' }}><Flag code={game.natTeam} /> {t('profile.natHeadCoach', { nat: nationName(game.natTeam) })}</h3>
             <div className="meta">
               {t('profile.testWeeksYours')}
               {game.natConfidence != null && (
@@ -271,8 +271,8 @@ export default function Profile() {
             </div>
           </div>
           {confirmNatResign
-            ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNatResign(false) }}>{t('profile.confirm')}</button>
-            : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => setConfirmNatResign(true)}>{t('profile.stepDown')}</button>}
+            ? <button className="btn danger" style={{ fontSize: '0.75rem' }} onClick={() => { resignNat(); setConfirmNatResign(false) }}>{t('profile.confirm')}</button>
+            : <button className="btn ghost" style={{ fontSize: '0.75rem', color: 'var(--text-negative)' }} onClick={() => setConfirmNatResign(true)}>{t('profile.stepDown')}</button>}
         </div>
       )}
       {/* the international record outlives the job (user: "your international
@@ -280,7 +280,7 @@ export default function Profile() {
           current, stays on the CV for good */}
       {((game.natHistory ?? []).length > 0 || (game.natTeam && game.natRecord)) && (
         <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 16 }}>{t('profile.intlRecord')}</h3>
+          <h3 style={{ fontSize: '1rem' }}>{t('profile.intlRecord')}</h3>
           {(game.natHistory ?? []).map((ten, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
               <Flag code={ten.nat} /> <b>{nationName(ten.nat)}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
@@ -295,7 +295,7 @@ export default function Profile() {
       )}
       {(game.challengesDone ?? []).length > 0 && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 16 }}>{t('profile.challengesConquered')}</h3>
+          <h3 style={{ fontSize: '1rem' }}>{t('profile.challengesConquered')}</h3>
           {(game.challengesDone ?? []).map(id => (
             <div key={id} className="meta" style={{ padding: '3px 0', fontWeight: 700 }}>
               {t(CHALLENGES.find(c => c.id === id)?.title ?? id)}
@@ -307,7 +307,7 @@ export default function Profile() {
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="row-ico"><Glyph name="target" /></span>
           <div>
-            <h3 style={{ fontSize: 14 }}>{t(CHALLENGES.find(c => c.id === game.challenge)?.title ?? game.challenge)}</h3>
+            <h3 style={{ fontSize: '0.875rem' }}>{t(CHALLENGES.find(c => c.id === game.challenge)?.title ?? game.challenge)}</h3>
             <div className="meta">{t('profile.challengeLive')}</div>
           </div>
         </div>
@@ -354,7 +354,7 @@ export default function Profile() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span className="row-ico"><Glyph name="crown" /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h3 style={{ fontSize: 14 }}>{t('profile.supportersClub')}</h3>
+              <h3 style={{ fontSize: '0.875rem' }}>{t('profile.supportersClub')}</h3>
               <div className="meta">{t('profile.supportersCount', { n: supportCount() })}</div>
             </div>
           </div>
@@ -383,7 +383,7 @@ export default function Profile() {
         <div className="card" style={{ padding: '6px 10px' }}>
           {game.decisions!.slice(0, 12).map((d, i) => (
             <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '3px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
-              <span className="muted" style={{ fontFamily: 'var(--cond)', fontSize: 11, width: 70, flexShrink: 0, whiteSpace: 'nowrap' }}>
+              <span className="muted" style={{ fontFamily: 'var(--cond)', fontSize: '0.6875rem', width: 70, flexShrink: 0, whiteSpace: 'nowrap' }}>
                 {seasonLabel(d.season)} w{d.week}
               </span>
               {/* A FIXED COLUMN FOR THE MARKER (owner: "on the decisions bit
@@ -394,10 +394,10 @@ export default function Profile() {
                   different x positions. Width plus centring makes the marker a
                   column rather than a character, and the size is pinned so the
                   triangles stop riding above the 11.5px line beside them. */}
-              <span style={{ flexShrink: 0, width: 13, textAlign: 'center', fontSize: 11, lineHeight: '13px', color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
+              <span style={{ flexShrink: 0, width: 13, textAlign: 'center', fontSize: '0.6875rem', lineHeight: '13px', color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
                 {d.good === true ? '▲' : d.good === false ? '▼' : '•'}
               </span>
-              <span className="meta" style={{ fontSize: 12 }}>{decisionText(d)}</span>
+              <span className="meta" style={{ fontSize: '0.75rem' }}>{decisionText(d)}</span>
             </div>
           ))}
         </div>

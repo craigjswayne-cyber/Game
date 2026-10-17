@@ -27,8 +27,7 @@ import { mkdirSync } from 'node:fs'
 import { startPreview } from './lib/preview.mjs'
 const SHOTS = process.env.SHOTS ?? '/tmp/devpick'
 mkdirSync(SHOTS, { recursive: true })
-const PORT = 4271
-const server = await startPreview(String(PORT), 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 await page.addInitScript(() => {
@@ -49,7 +48,7 @@ const noSideScroll = async label => {
 const go = (screen, param) => page.evaluate(([s, p]) => window.rugbyStore.getState().go(s, p), [screen, param])
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career'); await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile'); await page.click('.tile >> text=Northampton')

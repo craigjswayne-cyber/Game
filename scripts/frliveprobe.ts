@@ -31,10 +31,9 @@ import { newsBody, newsSubject, eventText, decisionText, pressQuestion, pressLab
 import { ensureLang, setLang } from '../src/game/i18n'
 import EN from '../src/locales/en.json'
 import FR from '../src/locales/fr.json'
+import { ok, done } from './lib/probe'
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 // WHAT COUNTS AS ENGLISH.
 //
@@ -193,5 +192,4 @@ const blank = lines.filter(l => l.text.trim() === '')
 for (const l of blank.slice(0, 10)) say(`  ${l.where}`)
 ok(blank.length === 0, `no line rendered as nothing${blank.length ? ` - ${blank.length}` : ''}`)
 
-say(fails ? `\nFR LIVE PROBE FAILED (${fails})` : `\nFR LIVE PROBE PASSED: ${lines.length} lines, all of them French, filled, resolved and non-empty`)
-process.exitCode = fails ? 1 : 0
+done('FR LIVE PROBE', `${lines.length} lines, all of them French, filled, resolved and non-empty`)

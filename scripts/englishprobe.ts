@@ -38,13 +38,12 @@
 // Run: npx vite-node scripts/englishprobe.ts
 import { SIBLING, baseKey } from '../src/game/i18n'
 import { readFileSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 
 /** English entries that hard-code a plural next to a count. ONLY EVER DECREASE. */
 const BUDGET = 0
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 type Dict = { [k: string]: unknown }
 const load = (p: string) => JSON.parse(readFileSync(p, 'utf8')) as Dict
@@ -249,5 +248,4 @@ for (const [key, want, what] of PINNED) {
   ok(typeof v === 'string' && want.test(v), `en.${key} ${what}`)
 }
 
-say(fails ? `\nENGLISH PROBE FAILED (${fails})` : '\nENGLISH PROBE PASSED: the English is not paying for the French')
-process.exitCode = fails ? 1 : 0
+done('ENGLISH PROBE', 'the English is not paying for the French')

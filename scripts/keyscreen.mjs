@@ -28,11 +28,10 @@
 import { chromium } from 'playwright-core'
 import { readFileSync } from 'node:fs'
 import { writeSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
+import { startPreview, until } from './lib/preview.mjs'
+import { ok, done } from './lib/probe.mjs'
 
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const en = JSON.parse(readFileSync('src/locales/en.json', 'utf8'))
 const keys = []
@@ -57,7 +56,7 @@ const SCREENS = [
   'academy', 'jobs', 'handbook', 'about', 'dreamteam', 'offers',
 ]
 
-const server = await startPreview(4231, 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** Every run of visible text on the page, as its own trimmed string. */
@@ -81,10 +80,10 @@ try {
     await page.addInitScript(l => {
       localStorage.setItem('rm-night', '1'); localStorage.setItem('rm-lang', l)
     }, lang)
-    await page.goto('http://localhost:4231/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 20000 })
     await page.evaluate(() => window.rugbyStore.getState().start('northampton', 'Key Screen'))
-    await page.waitForTimeout(700)
+    await until(page, () => !!window.rugbyStore.getState().game && !!document.querySelector('.bottom-nav'), null, 5000)
     await page.locator('.tut-close .btn').click({ timeout: 4000 }).catch(() => {})
 
     const caught = []
@@ -128,5 +127,4 @@ try {
   server.stop()
 }
 
-say(fails ? `\nKEY SCREEN FAILED (${fails})` : '\nKEY SCREEN PASSED: every label on every screen is words, not keys')
-done(fails)
+done('KEY SCREEN', 'every label on every screen is words, not keys', { exit: true })

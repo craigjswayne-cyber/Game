@@ -1,6 +1,6 @@
-import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useStore } from '../../store'
-import { facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, weeklyCentral } from '../../game/model'
+import { facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, weeklyCentral } from '../../game/model'
 import type { GameState } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
@@ -106,16 +106,16 @@ export default function Finances() {
                   <tr key={ev.id}>
                     <td className="name">
                       {t(`close.${ev.id}`)}
-                      <div className="muted" style={{ fontSize: 11 }}>{t(`close.${ev.id}D`)}</div>
+                      <div className="muted" style={{ fontSize: '0.6875rem' }}>{t(`close.${ev.id}D`)}</div>
                       {/* the risk is named but never priced: which events can
                           bite is knowledge worth having, and whether THIS one
                           will is the part you are being asked to gamble on */}
                       {ev.mishap > 0 && (
-                        <div className="muted" style={{ fontSize: 11, color: 'var(--text-negative)' }}>{t('close.risk')}</div>
+                        <div className="muted" style={{ fontSize: '0.6875rem', color: 'var(--text-negative)' }}>{t('close.risk')}</div>
                       )}
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }}>
-                      <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
+                      <button className="btn ghost" style={{ fontSize: '0.75rem', padding: '12px 14px', minHeight: 44 }}
                         onClick={() => { setDiaryMsg(bookEvent(game, ev.id)); touch() }}>
                         {t('close.fee', { fee: fmtMoney(eventFee(game, ev)) })}
                       </button>
@@ -334,7 +334,7 @@ export default function Finances() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0 2px' }}>
                     <input type="range" style={{ flex: 1 }}
                       min={RELEASE_STEP} max={most} step={RELEASE_STEP}
-                      value={amount}
+                      value={amount} aria-label={t('finances.treasurySlide')} aria-valuetext={fmtMoney(amount)}
                       onChange={e => setRelAmt(Number(e.target.value))} />
                     <b style={{ minWidth: 74, textAlign: 'right' }}>{fmtMoney(amount)}</b>
                   </div>
@@ -350,7 +350,7 @@ export default function Finances() {
                     const under = belowReserve(game, amount)
                     const safe = Math.max(0, club.balance - cashReserve(game))
                     return (
-                      <div className="meta" style={{ fontSize: 12, marginBottom: 8, color: under > 0 ? 'var(--text-negative)' : undefined }}>
+                      <div className="meta" style={{ fontSize: '0.75rem', marginBottom: 8, color: under > 0 ? 'var(--text-negative)' : undefined }}>
                         {under > 0
                           ? t('finances.treasuryDeep', { under: fmtMoney(under) })
                           : t('finances.treasurySafe', { safe: fmtMoney(safe) })}
@@ -363,7 +363,7 @@ export default function Finances() {
                 onClick={() => { const r = releaseToBudget(game, amount); setRelMsg(r.msg); setRelAmt(0); touch() }}>
                 {most > 0 ? t('finances.treasuryMove', { amount: fmtMoney(amount) }) : t('finances.moveMoney', { amount: fmtMoney(RELEASE_STEP) })}
               </button>
-              <div className="meta" style={{ paddingTop: 6, fontSize: 12 }}>
+              <div className="meta" style={{ paddingTop: 6, fontSize: '0.75rem' }}>
                 {block ?? t('finances.reserveNote', { reserve: fmtMoney(cashReserve(game)), step: fmtMoney(RELEASE_STEP) })}
               </div>
             </div>
@@ -674,7 +674,7 @@ export default function Finances() {
       {askMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{askMsg}</div>}
       {rewardedAvailable('collection') && canTownCollection(game) && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 14 }}>{t('till.townTitle')}</h3>
+          <h3 style={{ fontSize: '0.875rem' }}>{t('till.townTitle')}</h3>
           <div className="meta">{t('till.townBody')}</div>
           <RewardedButton place="collection" label={t('till.watchTown')} style={{ marginTop: 6 }}
             onDone={out => {
@@ -694,7 +694,7 @@ export default function Finances() {
       </button>
       <SectionTitle>{t('finances.seasonObjectives')}</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
-        <h3 style={{ fontSize: 16 }}>{t('finances.boardExpects', { objective: t(demandedFinish(game, club.id, game.comps[club.leagueId]?.table.length ?? 14).text) })}</h3>
+        <h3 style={{ fontSize: '1rem' }}>{t('finances.boardExpects', { objective: t(demandedFinish(game, club.id, game.comps[club.leagueId]?.table.length ?? 14).text) })}</h3>
         {(game.objectives ?? []).map(id => {
           const def = OBJECTIVE_DEFS.find(o => o.id === id)
           if (!def || !def.applies(game)) return null
@@ -704,7 +704,7 @@ export default function Finances() {
           // Bedford report behind it), so it reads as on course until then.
           const done = ok && def.banked
           return (
-            <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: 13, alignItems: 'flex-start' }}>
+            <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: '0.8125rem', alignItems: 'flex-start' }}>
               <span className="obj-mark" style={{ color: done ? 'var(--text-positive)' : ok ? 'var(--gold)' : 'var(--text-muted)' }}>
                 {done ? <IcoTick /> : ok ? <IcoClock /> : <IcoOpen />}
               </span>
@@ -775,7 +775,7 @@ function BoardFunds() {
 
       {game.uncapped ? (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 16 }}>{t('till.charterTitle')}</h3>
+          <h3 style={{ fontSize: '1rem' }}>{t('till.charterTitle')}</h3>
           <div className="meta">{t('till.charterSigned')}</div>
           {/* the signing tap's own answer renders HERE, because the card it
               belonged to just changed into this branch - dropping it is the
@@ -787,7 +787,7 @@ function BoardFunds() {
         </div>
       ) : (
         <div className="card">
-          <h3 style={{ fontSize: 16 }}>{t('till.charterTitle')}</h3>
+          <h3 style={{ fontSize: '1rem' }}>{t('till.charterTitle')}</h3>
           <div className="meta">{t('till.charterBody')}</div>
           {hasEntitlement(CHARTER_SKU) ? (
             !confirmCharter ? (
@@ -812,7 +812,7 @@ function BoardFunds() {
           )}
         </div>
       )}
-      <div className="muted" style={{ padding: '4px 16px 10px', fontSize: 12 }}>{t('till.fineprint')}</div>
+      <div className="muted" style={{ padding: '4px 16px 10px', fontSize: '0.75rem' }}>{t('till.fineprint')}</div>
     </>
   )
 }

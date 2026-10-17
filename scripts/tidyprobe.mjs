@@ -20,7 +20,7 @@ import { mkdirSync } from 'node:fs'
 import { startPreview } from './lib/preview.mjs'
 const SHOTS = process.env.SHOTS ?? '/tmp/tidy'
 mkdirSync(SHOTS, { recursive: true })
-const server = await startPreview('4261', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 await page.addInitScript(() => {
@@ -36,7 +36,7 @@ const clear = async () => {
   if (await sheet.count() && !(await page.locator('.mpanels').count())) await sheet.click()
 }
 try {
-  await page.goto('http://localhost:4261/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career'); await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile'); await page.click('.tile >> text=Northampton')

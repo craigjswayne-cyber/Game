@@ -56,7 +56,7 @@ export function habits(seed: number, id: number): Habits {
 
 /** what the habits of the men on the pitch do to their side, as multipliers
  *  (all exactly 1 for a side of average men) */
-export interface HabitFx { lineout: number; pen: number; defence: number; hands: number; mudAtk: number }
+interface HabitFx { lineout: number; pen: number; defence: number; hands: number; mudAtk: number }
 
 /** How big each is. The lineout is the unit's own scale; pen and defence are
  *  per man above or below the average side's count; hands per back; mud per

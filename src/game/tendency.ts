@@ -15,7 +15,7 @@
 import type { GameState } from './model'
 import { clamp } from './rng'
 
-export type TendencyEntry = NonNullable<GameState['tendency']>[number]
+type TendencyEntry = NonNullable<GameState['tendency']>[number]
 
 const DIALS = ['style', 'tempo', 'kicking', 'aggression', 'defLine', 'defWidth'] as const
 

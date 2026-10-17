@@ -36,13 +36,12 @@ import type { CurEra, Era } from './arcbook'
 import { moment } from './histbook'
 import { HIST_OFF } from './history'
 
-export const TP_PER_SEASON = 1
 export const TP_PER_ERA = 3
 /** An unbeaten run worth a line. */
 export const TP_RUN = 10
 
-export type TpWhy = 'title' | 'cup' | 'up' | 'down' | 'final' | 'run' | 'low' | 'signing'
-export interface TurningPoint { s: number; why: TpWhy; k: string; v: Vars; w: number }
+type TpWhy = 'title' | 'cup' | 'up' | 'down' | 'final' | 'run' | 'low' | 'signing'
+interface TurningPoint { s: number; why: TpWhy; k: string; v: Vars; w: number }
 
 /** The era's own facts a turning point may name: the worst defeat and the
  *  biggest fee, each with its season. */
@@ -131,7 +130,7 @@ export function eraTurns(state: GameState, clubId: string, from: number, to: num
 }
 
 /** What the era built, as numbers a manager can read at a glance. */
-export interface Built {
+interface Built {
   seasons: number
   w: number; d: number; l: number
   cups: number

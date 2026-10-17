@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
-import { nationByCode, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { MoveCell, sinceLine } from './Agency'
@@ -10,6 +10,7 @@ import { ClubLink, SectionTitle } from '../components'
 import { answerIsles, islesCoach, islesEligible } from '../../game/isles'
 import { weekDate } from '../../game/model'
 import { t, compLabel } from '../../game/i18n'
+import { rowNavTr } from '../rowNav'
 
 /** THE TEST RANKINGS, WITH THE REST OF INTERNATIONAL RUGBY (owner, 1.8.2).
  *  They sat as a third tab on the Scouting Agency, between two lists of club
@@ -24,7 +25,6 @@ function TestRankings({ game }: { game: GameState }) {
         <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
         <tbody>
           {order.map((code, i) => {
-            const n = nationByCode(code)
             const prevIdx = prevOrder.indexOf(code)
             const mine = game.natTeam === code
             return (
@@ -44,7 +44,7 @@ function TestRankings({ game }: { game: GameState }) {
           })}
         </tbody>
       </table></div>
-      <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
+      <div className="meta" style={{ padding: '4px 16px', fontSize: '0.75rem' }}>
         {sinceLine(game)}{t('world.agNatFoot')}
       </div>
     </>
@@ -100,12 +100,12 @@ export default function Nations() {
       {!game.isles && game.comps['lions'] && !islesCoach(game) && (
         <div className="card">
           <SectionTitle sub={compLabel(game.comps['lions']?.name)}>{t('isles.title')}</SectionTitle>
-          <div className="muted" style={{ padding: '0 10px 10px', fontSize: 12 }}>{t(islesEligible(game).why)}</div>
+          <div className="muted" style={{ padding: '0 10px 10px', fontSize: '0.75rem' }}>{t(islesEligible(game).why)}</div>
         </div>
       )}
       {myNat && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 14 }}>{t('world.natYouCoach', { nat: nationName(myNat) })}</h3>
+          <h3 style={{ fontSize: '0.875rem' }}>{t('world.natYouCoach', { nat: nationName(myNat) })}</h3>
           <div className="meta">
             {mySquad.length
               ? t('world.natWindowOpen', { n: mySquad.length })
@@ -113,7 +113,7 @@ export default function Nations() {
           </div>
           <div className="tblwrap" style={{ marginTop: 6 }}><table className="dtable"><tbody>
             {(mySquad.length ? mySquad : myPool).slice(0, 26).map(p => (
-              <tr key={p.id} onClick={() => go('player', p.id)}>
+              <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
                 <td className="muted">{p.pos}</td>
                 <td className="name">{p.name}</td>
                 <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>

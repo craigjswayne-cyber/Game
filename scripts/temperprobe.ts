@@ -26,9 +26,8 @@ import { devFactor } from '../src/game/rollover'
 import { benchNote, bigBand, consBand, FAIR_APPS, KNOWN_APPS, readLevel, temperRead } from '../src/game/temperament'
 import { tIn } from '../src/game/i18n'
 import type { Player } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const g = newGame('northampton', 'Temper', 9)
 
 console.log('--- E8: the words match the numbers')
@@ -106,5 +105,5 @@ console.log('--- E7: a professional loses less for sitting out')
   ok(benchNote(g, kid) === null, 'three starts: nothing to say')
 }
 
-console.log(fails ? `\n${fails} FAILURES` : '\nTEMPER PROBE PASSED: the scouts name his nerve, and a pro keeps working')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nTEMPER PROBE PASSED: the scouts name his nerve, and a pro keeps working')
+process.exit(failures() ? 1 : 0)

@@ -20,9 +20,7 @@ import {
   canTownCollection, physioFavour, townCollection,
 } from '../src/game/rewarded'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, failures } from './lib/probe'
 
 const hurt = (g: GameState, p: Player, weeks: number) => {
   p.injury = { desc: 'probe strain', dk: 'injury.hamstring', until: g.week + weeks }
@@ -127,5 +125,5 @@ console.log('\n--- 5. the ledger dies with the season\n')
   ok(g.rewarded === undefined, 'and the whole rewarded ledger went with it')
 }
 
-if (fails) { console.error(`\nREWARDED PROBE FAILED (${fails})`); process.exit(1) }
+if (failures()) { console.error(`\nREWARDED PROBE FAILED (${failures()})`); process.exit(1) }
 console.log('\nREWARDED PROBE PASSED: every favour is a fee replaced, on a leash')

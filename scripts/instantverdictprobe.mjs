@@ -16,7 +16,7 @@ import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
-const server = await startPreview(4181, 2500)
+const server = await startPreview(0, 2500)
 const say = s => writeSync(1, s + '\n')
 let fails = 0
 const ok = (cond, what) => { say(`${cond ? '  ok  ' : 'FAIL  '}${what}`); if (!cond) fails++ }
@@ -25,7 +25,7 @@ const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM 
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 
 try {
-  await page.goto('http://localhost:4181/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -43,7 +43,7 @@ try {
 
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })

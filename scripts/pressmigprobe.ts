@@ -16,10 +16,9 @@ import { migratePress, recover } from '../src/game/pressmigrate'
 import { pressQuestion, pressLabel, pressAnswer, pressReaction, type PressItem } from '../src/game/model'
 import { ensureLang, setLang, tIn } from '../src/game/i18n'
 import EN from '../src/locales/en.json'
+import { ok, done } from './lib/probe'
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 // ---- 1. the line a player actually saw ------------------------------------
 say('--- 1. the question on the screenshot')
@@ -117,5 +116,4 @@ ok(junk.qk === undefined, 'no key invented for a line the room never wrote')
 ok(pressQuestion(junk) === junk.question, 'and it still renders as what it says')
 
 setLang('en')
-say(fails ? `\nPRESS MIGRATION PROBE FAILED (${fails})` : '\nPRESS MIGRATION PROBE PASSED: an old career reads its own coverage back in French')
-process.exitCode = fails ? 1 : 0
+done('PRESS MIGRATION PROBE', 'an old career reads its own coverage back in French')

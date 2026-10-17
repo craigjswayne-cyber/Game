@@ -19,12 +19,7 @@ import { newGame } from '../src/game/newgame'
 import { aroundTheGrounds } from '../src/game/gossip'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const SEASONS = 6
 const g = newGame('bath', 'Test', 31337)
@@ -97,6 +92,6 @@ ok(ran > 0, `the beat fired on a live world (${ran} weeks of ${SEASON_WEEKS})`)
 ok(untouched, 'and it changed nothing but the feed: no money, no morale, no fitness, no table')
 
 console.log('')
-if (fails === 0) console.log('GROUNDS PROBE PASSED: funny, about somebody else, and it changes nothing')
-else console.log(`GROUNDS PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('GROUNDS PROBE PASSED: funny, about somebody else, and it changes nothing')
+else console.log(`GROUNDS PROBE FAILED (${failures()})`)
+process.exit(failures())

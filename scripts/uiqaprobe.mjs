@@ -25,8 +25,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const PORT = 4394
-const server = await startPreview(String(PORT), 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 await page.addInitScript(() => {
@@ -43,7 +42,7 @@ const go = async (screen, param) => {
 const tab = async (i) => { await page.locator('.content .tab-bar button').nth(i).click(); await page.waitForTimeout(300) }
 
 try {
-  await page.goto(`http://localhost:${PORT}/`)
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=New Career', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')

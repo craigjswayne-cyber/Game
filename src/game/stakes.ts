@@ -36,7 +36,7 @@ import { historyStakes } from './history'
 import { coachStakes } from './rivalcoach'
 import { JANUARY_SHUT, SUMMER_SHUT } from './window'
 
-export interface Stake {
+interface Stake {
   text: string
   /** loudest wins. Roughly: a title/relegation swing beats the boardroom beats
    *  a milestone beats a grudge beats a nice run. */
@@ -226,7 +226,7 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
  * in the engine; the player has simply never been able to see it coming.
  */
 /** `icon` is a glyphs.tsx name, not an emoji */
-export interface Tentpole { week: number; icon: string; label: string }
+interface Tentpole { week: number; icon: string; label: string }
 
 export function seasonTentpoles(state: GameState): Tentpole[] {
   const uid = state.userClubId

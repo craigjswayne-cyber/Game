@@ -10,14 +10,11 @@
 //
 // Run: node scripts/floorad.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { startPreview, done } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, done } from './lib/probe.mjs'
 
-const say = (s) => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
-
-const server = await startPreview('4293', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 393, height: 852 }, locale: 'en-GB' })
 page.setDefaultTimeout(15000)
@@ -28,7 +25,7 @@ await page.addInitScript(() => {
 const mounted = (place) => page.evaluate(p => globalThis.__mounts.includes(p), place)
 
 try {
-  await page.goto('http://localhost:4293/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.click('text=English Premier Division')
@@ -95,5 +92,4 @@ try {
 }
 await browser.close()
 await server.stop?.()
-say(fails ? `FLOOR AD PROBE FAILED (${fails})` : 'FLOOR AD PROBE PASSED: the news, press and finance floors carry a banner, never beside a question')
-done(fails)
+done('FLOOR AD PROBE', 'the news, press and finance floors carry a banner, never beside a question', { exit: true, blank: false })

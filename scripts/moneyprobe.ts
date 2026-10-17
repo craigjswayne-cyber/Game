@@ -22,6 +22,7 @@
  * Run: npx vite-node scripts/moneyprobe.ts
  */
 import { readdirSync, readFileSync } from 'node:fs'
+import { ok, failures } from './lib/probe'
 
 // a localStorage that behaves like the real one, because the module under test
 // is written to survive not having one at all and we want to test the path
@@ -38,12 +39,6 @@ const store = new Map<string, string>()
 
 const M = await import('../src/game/monetise')
 type Outcome = Awaited<ReturnType<typeof M.buySupporter>>
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 
 const g = globalThis as unknown as { rmBilling?: unknown; rmAds?: unknown }
 const clear = () => { store.clear(); delete g.rmBilling; delete g.rmAds }
@@ -1181,5 +1176,5 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
   delete gg.Capacitor
 }
 
-console.log(fails ? `\nMONEY PROBE FAILED (${fails})` : '\nMONEY PROBE PASSED: it fails open, it grants once, and the game is not for sale by the yard')
-if (fails) process.exit(1)
+console.log(failures() ? `\nMONEY PROBE FAILED (${failures()})` : '\nMONEY PROBE PASSED: it fails open, it grants once, and the game is not for sale by the yard')
+if (failures()) process.exit(1)

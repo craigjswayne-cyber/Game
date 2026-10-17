@@ -1,0 +1,282 @@
+/* ================= Broadcast-style match animations ================= */
+/* score pop when it changes */
+.scoreboard .score { animation: score-pop .55s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes score-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22); text-shadow: 0 0 26px rgba(255, 255, 255, .55); }
+  100% { transform: scale(1); }
+}
+
+/* scorer's dash for the line */
+/* The scorer's dash (run-r / run-l) was a transform animation: 46px of run
+   into the in-goal. Since 1.8.1 the glide carries him there from wherever he
+   was, which is the real run, and a transform animation would have overridden
+   the glide and doubled his size step, so the classes stay as hooks only. */
+
+/* the kick at goal: ball arcs for the posts, end over end */
+/* A KICK AT GOAL FLIES AT THE GOAL, AND STAYS GONE. The old arc rose towards
+   the posts for the first half-second and then spent the LONGER second half
+   returning the ball to the tee - so the dominant visible motion was away
+   from the posts, and the owner read it as the ball flying the wrong way
+   ("it goes in the opposite direction", 25 Aug, and he was right). The ball
+   now sails towards the posts, shrinks with distance and fades out there;
+   the next event re-keys the element and brings the ball back to earth. */
+/* THE PITCH IS SEEN FROM ABOVE, AND THE POSTS ARE AT THE ENDS.
+   Second correction, because the first one only half-understood the view.
+   The original arc spent its longer half returning the ball to the tee, so
+   the kick read as flying backwards; the fix sent it up and away, which on a
+   TOP-DOWN pitch is not "high", it is across the field towards a touchline -
+   so it then read as sliced to the corner (owner, 25 Aug: "kicks still
+   weirdly go off to the corner even though the kicker scored").
+   The posts sit at top:50%, left/right 7%. A kick that went over therefore
+   travels along the line to them: essentially horizontal, with only enough
+   vertical drift to settle onto the posts' line, swelling as it rises and
+   shrinking as it sails away over the bar. It fades before the far edge, so
+   the flight reads the same wherever on the field it was struck from. */
+
+.tick-event.tmo .txt { font-weight: 700; }
+
+/* ---- the broadcast card: half-time, the hour, full time (idea 5) ---- */
+.score-card { margin: 8px 14px; padding: 12px 14px 12px; animation: sc-in .35s ease-out both; }
+@keyframes sc-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.score-card .sc-head {
+  text-align: center; font-family: var(--cond); font-weight: 800; font-size: 0.75rem;
+  letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold);
+}
+.score-card .sc-teams { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.score-card .sc-team {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-family: var(--cond); font-weight: 700; font-size: 0.8125rem; letter-spacing: .5px;
+  text-align: center; color: var(--text-primary);
+}
+.score-card .sc-team span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score-card .sc-score {
+  flex: 0 0 auto; font-family: var(--cond); font-weight: 800; font-size: 2.125rem;
+  font-variant-numeric: tabular-nums; color: var(--text-primary);
+}
+.score-card .sc-score i { font-style: normal; margin: 0 7px; color: var(--text-muted); }
+/* a small phone cut "Northampton" to "Northa..." beside a 34px score: the
+   score gives up a few pixels so the names are whole (1.8.4 Phase 7; 400
+   since m12, when a 390 iPhone still cut it at full time) */
+@media (max-width: 400px) {
+  .score-card .sc-teams { gap: 6px; }
+  .score-card .sc-score { font-size: 1.625rem; }
+  .score-card .sc-score i { margin: 0 4px; }
+  .score-card .sc-team { letter-spacing: 0; font-size: 0.75rem; }
+}
+/* and at 320 the card itself gives up some padding and the score a little
+   more, or "Northampton" is still cut (1.8.4 m12) */
+@media (max-width: 340px) {
+  .score-card { margin: 8px 8px; padding: 12px 8px; }
+  .score-card .sc-teams { gap: 4px; }
+  .score-card .sc-score { font-size: 1.375rem; }
+  .score-card .sc-team { font-size: 0.6875rem; }
+}
+.score-card .sc-lists { display: flex; gap: 12px; margin-top: 8px; }
+.score-card .sc-story { margin-top: 10px; text-align: center; }
+.score-card .sc-scorers { flex: 1; min-width: 0; font-size: 0.75rem; line-height: 1.55; color: var(--text-primary); }
+.score-card .sc-scorers:last-child { text-align: right; }
+/* a scorer's name wraps rather than losing its end: "Lindsey-Brow..." (2c, 1p)
+   was the whole line at 390 and under (1.8.4 m12) */
+.score-card .sc-scorers div { overflow-wrap: anywhere; }
+.stat-bar { position: relative; display: block; height: 5px; border-radius: 3px; overflow: hidden; background: var(--border); }
+/* each half grows out from its own end, one row after another; transform, so
+   the fill runs on the compositor (motionprobe's rule for the strip) */
+.stat-bar i {
+  position: absolute; top: 0; bottom: 0; width: 100%;
+  animation: sc-grow .7s cubic-bezier(.2, .8, .3, 1) var(--d, 0ms) both;
+}
+.stat-bar i.h { left: 0; transform-origin: left center; }
+.stat-bar i.a { right: 0; transform-origin: right center; }
+@keyframes sc-grow { from { transform: scaleX(0); } }
+
+/* ---- set-piece animations (scrum / lineout / maul) ---- */
+.setp {
+  position: absolute; width: 58px; height: 34px; z-index: 5;
+  transform: translate(-50%, -50%); pointer-events: none;
+}
+
+/* ---- sin-bin countdown chips ---- */
+.bin-chip {
+  position: absolute; bottom: 3px; z-index: 4;
+  font-family: var(--cond); font-weight: 700; font-size: 0.6875rem; letter-spacing: .4px;
+  background: rgba(20, 20, 10, .68); color: var(--prop-yellow);
+  border: 1px solid rgba(255, 225, 77, .5); border-radius: 9px; padding: 1px 6px;
+  pointer-events: none;
+}
+
+/* The derby billing on the match-day card: its own line, its own colour,
+   and it wraps like a sentence rather than trailing off the weather. */
+.derby-line { color: var(--danger); line-height: 1.45; }
+.derby-line b { font-weight: 700; }
+
+/* ---- THE COMMENTARY FEED (round 5, owner: "smoother as it flicks between
+   stories. Like FM manager style") ----
+
+   It used to be ONE line in a box keyed on the cursor, so every beat the box
+   was torn down and rebuilt: the old line vanished in a frame, the new one
+   faded up from nothing, the whole box swapped to the other club's colours in
+   a frame, and the box took the height of the sentence, so the live stats
+   under it lurched up and down by a line every 640ms (feedprobe measured
+   29px). Now it is a short running feed in a box of FIXED height:
+
+     the lines stack newest at the foot, anchored to the bottom edge, and the
+       older ones leave over the top under a soft fade (the mask)
+     a new line slides the stack up by its own height (MatchDay.tsx
+       useFeedGlide, transform only, 220ms) and fades in as it comes
+     the current line wears the kit; when the next arrives it lets go of the
+       fill over 200ms and dims, and dims again a step each line it ages
+     a row is the same size current or old: only colour and opacity change,
+       never the font, so a demoted line never re-wraps and nothing above it
+       moves
+   The box's height is fixed, so the stats, a highlight or the talk's
+   reactions below it never move when a line arrives. */
+.now-strip { padding: 0 10px 2px; }
+.comm-feed {
+  position: relative; overflow: hidden;
+  height: clamp(96px, 17vh, 150px); height: clamp(96px, calc(17dvh / var(--zoom, 1)), 150px);
+  /* the older lines fade out over the top edge rather than being cut */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
+}
+.comm-list {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; gap: 4px;
+  will-change: transform;
+}
+.comm-line {
+  display: flex; gap: 10px; align-items: center;
+  padding: 8px 14px; border-radius: 10px;
+  border-left: 4px solid transparent;
+  font-size: 0.875rem; line-height: 1.4;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, opacity .2s ease, border-color .2s ease;
+}
+.comm-line .min {
+  font-family: var(--cond); font-weight: 800; font-size: 0.9375rem;
+  color: var(--info); flex-shrink: 0; min-width: 30px;
+  font-variant-numeric: tabular-nums;
+}
+.comm-line.cur { min-height: 54px; background: var(--surface-1); border-left-color: var(--border-strong); color: var(--text-primary); }
+.comm-line.cur.fresh { animation: comm-in .22s cubic-bezier(.25, .1, .25, 1) backwards; }
+.comm-line.old { opacity: .62; }
+.comm-line.old.a2 { opacity: .42; }
+.comm-line.old.a3 { opacity: .28; }
+/* a score is bold whether it is the current line or an old one: the weight
+   (and the size) belong to the line, not to being current, or a line would
+   re-wrap the moment it was demoted */
+.comm-line.big .txt { font-weight: 700; font-size: 1rem; }
+.comm-line.tmo .txt { font-weight: 700; }
+.comm-line.big { border-left-color: var(--gold); }
+.comm-line.big .min { color: var(--gold); }
+.comm-line.card-y { border-left-color: var(--prop-yellow-deep); }
+.comm-line.card-r { border-left-color: var(--prop-red); }
+.comm-line.inj { border-left-color: var(--danger); }
+.comm-line.tmo { border-left-color: var(--gold); }
+.comm-line.pen { border-left-color: var(--info); }
+/* a line about a side wears its kit while it is current (MatchDay.tsx
+   lineStyle): the text takes the colour worked out for the fill */
+.comm-line.kit.cur .min { color: inherit; opacity: .8; }
+.live-wrap.big-text .comm-line .txt { font-size: 1rem; line-height: 1.35; }
+.live-wrap.big-text .comm-line.big .txt { font-size: 1.125rem; }
+.live-wrap.big-text .comm-line .min { font-size: 1rem; }
+@keyframes comm-in { from { opacity: 0; } }
+/* A TRY FLASHES: for about a second the line wears its colours the other way
+   round (MatchDay.tsx flashStyle sets the pair), then eases back to its own
+   look. The arrival fade is listed again so the two do not fight over
+   `animation` while the line goes from current to old. */
+.comm-line.try-flash, .comm-line.cur.fresh.try-flash {
+  animation: comm-in .22s cubic-bezier(.25, .1, .25, 1) backwards, try-flash 1s linear;
+}
+@keyframes try-flash {
+  0%, 80% { background-color: var(--flash-bg); color: var(--flash-fg); box-shadow: inset 0 0 0 1px var(--flash-fg); }
+}
+/* the minute flashes with its line. A try line's minute is gold, and an old
+   line's gold minute stayed gold while the line behind it went white for
+   the flash: 1.7:1 (nightcontrast, caught mid-flash). The class is on for
+   1.1s only (MatchDay setFlash), so this never outlives the flash. */
+.comm-line.try-flash .min, .feed-line.try-flash .min { color: inherit; }
+@media (prefers-reduced-motion: reduce) {
+  .comm-line { transition: none; }
+  .comm-line.cur.fresh { animation: none; }
+  /* a still highlight for the second the class is on, no fade in or out
+     (important: the line's kit is an inline style) */
+  .comm-line.try-flash, .comm-line.cur.fresh.try-flash { animation: none; background-color: var(--flash-bg) !important; color: var(--flash-fg) !important; }
+  .comm-list { will-change: auto; }
+}
+/* THE STATS SHEET (v1.1.9). Home | label | away, the way a broadcast
+   graphic reads, in fixed columns so the numbers do not jump about as they
+   tick up. Tabular figures for the same reason. Deliberately quiet: it sits
+   under live commentary and must never compete with it. */
+
+/* match prep chips on a single scrollable line */
+.preset-row.oneline { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+.preset-row.oneline .preset-chip { flex: 0 0 auto; }
+
+/* title screen must fit short landscape viewports */
+.title-screen { overflow-y: auto; }
+@media (max-height: 480px) {
+  .title-screen h1 { font-size: 1.875rem; letter-spacing: 2.5px; }
+  .title-screen .rules { margin: 8px auto; }
+  .title-screen .tagline { font-size: 0.8125rem; margin-top: 4px; }
+  .title-screen .menu-btns { margin-top: 14px; gap: 8px; }
+}
+
+/* full-time review: two columns in landscape, one page, minimal scroll */
+.review-grid { display: grid; grid-template-columns: 1fr; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .review-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+}
+
+/* The ball is never dead between minutes: a small working loop - shifted at
+ * the base, tipped end over end a few degrees - on the same beat as the men.
+ * `translate`/`rotate` are the individual properties, so they compose with
+ * the centring transform above and with the left/top glide instead of
+ * replacing them; the kick classes below set `animation`, so a kicked ball
+ * flies its arc uninterrupted and the loop resumes on the next mount. */
+/* 1.7.4: the ball no longer bobs on a loop of its own between lines. It sits
+ * where the play is and moves when the play does (the passage for a kick,
+ * a pass or a run is still drawn by phasePlay.ts). The keyframes stay for
+ * anything that asks for them by name. */
+
+/* ---- the trophy moment: full-screen celebration ---- */
+.celebrate-veil {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(227, 185, 46, .18), transparent 55%),
+    rgba(6, 12, 26, .93);
+  cursor: pointer;
+  animation: cel-in .5s ease both;
+}
+@keyframes cel-in { from { opacity: 0; } to { opacity: 1; } }
+.celebrate-box { text-align: center; color: var(--text-primary); padding: 24px; max-width: 560px; }
+.celebrate-box h1 {
+  font-family: var(--serif); font-weight: 900; font-size: 1.875rem; letter-spacing: 2px;
+  margin-top: 12px; line-height: 1.15;
+  text-shadow: 0 2px 24px rgba(227, 185, 46, .45);
+  animation: cel-pop .7s cubic-bezier(.2, 1.5, .4, 1) both .15s;
+}
+.celebrate-box .sub {
+  margin-top: 8px; font-family: var(--cond); font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; font-size: 0.8125rem; color: var(--gold);
+}
+@keyframes cel-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
+.confetti {
+  position: absolute; top: -14px; width: 9px; height: 14px; border-radius: 2px;
+  animation-name: conf-fall; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+@keyframes conf-fall {
+  0% { transform: translateY(-4vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(106vh) rotate(720deg); opacity: .75; }
+}
+
+/* landscape tile grids: these overrides must come AFTER the base rules -
+   the copies inside the earlier media block lost the cascade and left
+   phones with two giant columns (8-batch feedback screenshot) */
+@media (orientation: landscape) and (min-width: 640px) {
+  .tile-grid { grid-template-columns: repeat(4, 1fr); max-width: 920px; }
+  .tile { padding: 9px 6px; gap: 4px; }
+}
+

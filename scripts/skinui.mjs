@@ -14,7 +14,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4217', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 let fails = 0
@@ -30,7 +30,7 @@ const SKINS = [
 /** The career walk, and the road to Settings - both needed twice now that
  *  there is a paid case and a free one. */
 const start = async (page) => {
-  await page.goto('http://localhost:4217/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -67,7 +67,8 @@ const openSettings = async (page) => {
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(300)
   await page.locator('.submenu-item', { hasText: 'Settings' }).click()
-  await page.waitForSelector('.content')
+  // screens load on demand (1.9.1): .content is always there, the skins are not
+  await page.waitForSelector('.content[data-screen="settings"] .skin-card')
 }
 
 try {
@@ -85,7 +86,7 @@ try {
   await page.addInitScript(() => localStorage.setItem('rm-ent', 'phase.supporter'))
 
   // a career, because the manager menu only exists inside one
-  await page.goto('http://localhost:4217/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -114,7 +115,8 @@ try {
   ok(iSet >= 0 && iBug >= 0 && iSet < iBug, `Settings sits ABOVE Report a Bug (${iSet} < ${iBug})`)
 
   await page.locator('.submenu-item', { hasText: 'Settings' }).click()
-  await page.waitForSelector('.content')
+  // screens load on demand (1.9.1): wait for Settings, not the frame around it
+  await page.waitForSelector('.content[data-screen="settings"] .skin-card', { timeout: 15000 }).catch(() => {})
   const body = await page.locator('.content').innerText()
   ok(/Skin/i.test(body), 'the page leads with the skin picker')
   for (const s of SKINS) ok(body.includes(s.label), `${s.label} is offered by name`)
@@ -179,7 +181,8 @@ try {
   // is that the PAINT changed and got lighter, in every skin.
   say('\n--- 4. day and night both work, on every skin')
   const lumOf = css => {
-    const m = css.trim().match(/^#?([0-9a-f]{6})$/i)
+    // the minifier writes #000000 as #000 (Vite 8, Lightning CSS)
+    const m = css.trim().replace(/^#?([0-9a-f])([0-9a-f])([0-9a-f])$/i, '#$1$1$2$2$3$3').match(/^#?([0-9a-f]{6})$/i)
     if (!m) return null
     const [r, g, b] = [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16) / 255)
       .map(v => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
@@ -187,18 +190,25 @@ try {
   }
   const canvasNow = () => page.evaluate(() =>
     getComputedStyle(document.querySelector('.app')).getPropertyValue('--canvas').trim())
+  // the floodlights by state, not by time: a loaded runner repaints late, and
+  // a fixed wait read the canvas before the class had changed (CI, 1.9.1)
+  const isNight = () => page.evaluate(() => document.querySelector('.app')?.classList.contains('night') ?? false)
+  const setNight = async (want) => {
+    if (await isNight() === want) return
+    await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
+    await page.waitForFunction(w => document.querySelector('.app')?.classList.contains('night') === w, want, { timeout: 5000 }).catch(() => {})
+    await page.waitForTimeout(100)
+  }
   for (const s of [...SKINS, { key: 'default', label: 'Clubhouse' }]) {
     await page.locator('.skin-card', { hasText: s.label }).click()
-    await page.waitForTimeout(200)
-    // start from night, whatever the previous loop left behind
-    let cls = await page.locator('.app').first().getAttribute('class')
-    if (!/\bnight\b/.test(cls ?? '')) {
-      await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
-      await page.waitForTimeout(250)
+    if (s.key !== 'default') {
+      await page.waitForFunction(k => document.querySelector('.app')?.classList.contains(`skin-${k}`), s.key, { timeout: 5000 }).catch(() => {})
     }
+    await page.waitForTimeout(100)
+    // start from night, whatever the previous loop left behind
+    await setNight(true)
     const dark = lumOf(await canvasNow())
-    await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
-    await page.waitForTimeout(250)
+    await setNight(false)
     const light = lumOf(await canvasNow())
     ok(dark !== null && light !== null && light > dark,
       `${s.label}: daylight actually lightens the page (canvas luminance ${dark?.toFixed(3)} to ${light?.toFixed(3)})`)
@@ -209,8 +219,7 @@ try {
     ok(inkLum !== null && light !== null && (Math.max(inkLum, light) + 0.05) / (Math.min(inkLum, light) + 0.05) >= 4.5,
       `${s.label}: and body text still clears 4.5:1 on it (${ink})`)
     // back to night for the next card
-    await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
-    await page.waitForTimeout(200)
+    await setNight(true)
   }
 
   // ---- 5. and it can be taken back off ----

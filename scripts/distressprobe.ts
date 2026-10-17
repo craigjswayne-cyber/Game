@@ -39,6 +39,7 @@ import { join } from 'node:path'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { leagueTier, LEDGER_WEEKS, type Club, type GameState } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
 const SEASONS = Number(process.env.S ?? 15)
 const SEEDS = (process.env.SEEDS ?? '4242,11,99,2025').split(',').map(Number)
@@ -111,11 +112,6 @@ const rows = (await Promise.all(SEEDS.map(runWorld))).flat()
 rmSync(scratch, { recursive: true, force: true })
 if (process.env.ROWS) writeFileSync(process.env.ROWS, JSON.stringify(rows))
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const M = (x: number) => (x / 1e6).toFixed(1)
 const q = (xs: number[], p: number) => {
   const s = [...xs].sort((a, b) => a - b)
@@ -222,5 +218,4 @@ if (last !== 14 || SEEDS.join() !== '4242,11,99,2025') {
   }
 }
 
-console.log(fails ? `\nDISTRESS PROBE FAILED (${fails})` : '\nDISTRESS PROBE PASSED: the lower leagues pay their way, and nobody banks the world')
-process.exit(fails ? 1 : 0)
+done('DISTRESS PROBE', 'the lower leagues pay their way, and nobody banks the world', { exit: true })

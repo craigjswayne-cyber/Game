@@ -3,15 +3,15 @@ import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, GROUND_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
-  adBridge, bankReceipts, buyConsumable, buyOwnable, claimHeld, creditCount, creditTake, hasEntitlement, hasSupporter,
-  billingReason, heldConsumables, markXlBought, recordSupport, restore, xlWaitMs,
+  adBridge, bankReceipts, buyConsumable, buyOwnable, claimHeld, creditCount, hasEntitlement, hasSupporter,
+  heldConsumables, markXlBought, recordSupport, restore, xlWaitMs,
   supportCount, tillHealth, tillOpen, type TillState,
 } from '../../game/monetise'
 import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
 import { NAT_TIERS, pickableNations, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
-import { endingText } from '../purchase'
+import { endingText, spendCredit } from '../purchase'
 import { Glyph } from '../glyphs'
 
 /**
@@ -60,9 +60,9 @@ function Row({ icon, title, line, right, msg, children, hero }: {
   return (
     <div className={`card${hero ? ' store-hero' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span className="row-ico" style={{ fontSize: hero ? 24 : 20 }}><Glyph name={icon} /></span>
+        <span className="row-ico" style={{ fontSize: hero ? '1.5rem' : '1.25rem' }}><Glyph name={icon} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: hero ? 16 : 14 }}>{title}</div>
+          <div style={{ fontWeight: 700, fontSize: hero ? '1rem' : '0.875rem' }}>{title}</div>
           <div className="meta" style={{ marginTop: 1 }}>{line}</div>
         </div>
         {right}
@@ -163,7 +163,6 @@ const OwnedChip = () => (
 
 export default function Supporter() {
   const game = useStore(s => s.game)
-  const go = useStore(s => s.go)
   const claim = useStore(s => s.claimSupporter)
   const { healSquad, buildEstate, makeTheCall, signCharter } = useStore.getState()
   const boardInject = useStore(s => s.boardInject)
@@ -228,8 +227,10 @@ export default function Supporter() {
     if (!inCareer) { say(HEAL_SKU, t('store.needCareer')); return }
     await bankReceipts(HEAL_SKU)
     if (creditCount(HEAL_SKU) < 1) { setHealPending(false); say(HEAL_SKU, t('store.creditGone')); return }
-    if (healSquad()) {
-      creditTake(HEAL_SKU)
+    const spent = await spendCredit(HEAL_SKU, healSquad)
+    if (spent === 'none') { setHealPending(false); say(HEAL_SKU, t('store.creditGone')) }
+    else if (spent === 'storage') { setHealPending(true); say(HEAL_SKU, t('store.creditNotSpent')) }
+    else if (spent === 'done') {
       setHealPending(creditCount(HEAL_SKU) > 0)
       say(HEAL_SKU, t('store.healDone'))
     } else {
@@ -262,8 +263,10 @@ export default function Supporter() {
     await bankReceipts(sku)
     if (creditCount(sku) < 1) { setPendingInj(p => p.filter(x => x !== tier)); say(sku, t('store.creditGone')); return }
     const amount = fmtMoney(injectionCash(game, tier))
-    if (boardInject(tier)) {
-      creditTake(sku)
+    const spent = await spendCredit(sku, () => boardInject(tier))
+    if (spent === 'none') { setPendingInj(p => p.filter(x => x !== tier)); say(sku, t('store.creditGone')) }
+    else if (spent === 'storage') { setPendingInj(p => (p.includes(tier) ? p : [...p, tier])); say(sku, t('store.creditNotSpent')) }
+    else if (spent === 'done') {
       setPendingInj(p => (creditCount(sku) > 0 ? p : p.filter(x => x !== tier)))
       say(sku, t('till.injLanded', { amount }))
     } else {
@@ -293,8 +296,10 @@ export default function Supporter() {
       // banked it, and the jar could be tipped a second time for free. Free
       // is the harmless end of that bug. See buyGround for the other end.
       if (owed !== 'credit') await bankReceipts(SUPPORT_SKU)
-      creditTake(SUPPORT_SKU) // the thank-you is the grant; the credit is burned saying it
-      say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
+      // the thank-you is the grant; the credit is burned saying it
+      let n = 0
+      const spent = await spendCredit(SUPPORT_SKU, () => { n = recordSupport(); return true })
+      say(SUPPORT_SKU, spent === 'done' ? t('store.supportDone', { n }) : spent === 'none' ? t('store.creditGone') : t('store.creditNotSpent'))
     } else say(SUPPORT_SKU, endingText(out))
   })
 
@@ -322,9 +327,9 @@ export default function Supporter() {
       // really there. This row now does the same thing in the same order.
       if (owed !== 'credit') await bankReceipts(GROUND_SKU)
       if (creditCount(GROUND_SKU) < 1) { say(ESTATE_SKU, t('till.owedHeld')); return }
-      const built = buildEstate()
-      if (built) creditTake(GROUND_SKU) // unbuilt stays banked for the next club
-      say(ESTATE_SKU, built ? t('store.estateDone') : t('store.estateRefused'))
+      // unbuilt stays banked for the next club
+      const spent = await spendCredit(GROUND_SKU, buildEstate)
+      say(ESTATE_SKU, spent === 'done' ? t('store.estateDone') : spent === 'refused' ? t('store.estateRefused') : spent === 'none' ? t('store.creditGone') : t('store.creditNotSpent'))
     } else say(ESTATE_SKU, endingText(out))
   })
 
@@ -458,7 +463,7 @@ export default function Supporter() {
           <div className="btn-row" style={{ alignItems: 'stretch' }}>
             {/* the game's own dropdown (owner, 1.8.8: a bare <select> drew as a
                 pill with "Canada" hard against its left edge) */}
-            <select className="inline-input nat-pick" value={natPick} onChange={e => setNatPick(e.target.value)}>
+            <select className="inline-input nat-pick" value={natPick} aria-label={t('store.nationSelect')} onChange={e => setNatPick(e.target.value)}>
               {natOptions.map(([code]) => (
                 <option key={code} value={code}>{nationName(code)}</option>
               ))}
@@ -547,7 +552,7 @@ export default function Supporter() {
             <div key={tier} style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid var(--edge, rgba(128,128,128,.18))', paddingTop: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13 }}>{t(TIER_KEY[tier])}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.8125rem' }}>{t(TIER_KEY[tier])}</div>
                   <div className="meta" style={{ marginTop: 1 }}>
                     {t('till.injAdds', { amount: fmtMoney(INJECT_TIERS[tier].amount) })}
                     {baseCap != null && <> {t('till.injWage', { weekly: fmtWage(Math.round(INJECT_TIERS[tier].wage * baseCap)) })}</>}
@@ -599,7 +604,7 @@ export default function Supporter() {
       </button>
       {msgs.restore && <div className="meta sheet-log" style={{ margin: '0 16px' }}>{msgs.restore}</div>}
 
-      <div className="muted" style={{ padding: '10px 16px', fontSize: 12 }}>{t('store.fineprint')}</div>
+      <div className="muted" style={{ padding: '10px 16px', fontSize: '0.75rem' }}>{t('store.fineprint')}</div>
       <div className="spacer" />
     </>
   )

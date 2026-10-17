@@ -26,12 +26,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const WORLDS: [string, number][] = [
   ['toulouse', 777],   // disttest's own world, so the two agree where they overlap
@@ -127,5 +122,5 @@ ok(pool.home >= 0.51 && pool.home <= 0.57, `home advantage is real and not decis
 ok(pool.draw >= 0.013 && pool.draw <= 0.030, `draws stay rare (${(pool.draw * 100).toFixed(1)}%, band 1.3-3.0)`)
 ok(pool.blow <= 0.11, `blowouts are the exception (${(pool.blow * 100).toFixed(1)}%, ceiling 11)`)
 
-console.log(fails ? `\n${fails} FAILURES` : '\nBAND CHECK PASSED: four worlds, every band inside tolerance on the pool')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nBAND CHECK PASSED: four worlds, every band inside tolerance on the pool')
+process.exit(failures() ? 1 : 0)

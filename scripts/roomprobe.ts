@@ -33,12 +33,8 @@ import {
 } from '../src/game/room'
 import { recall } from '../src/game/memory'
 import type { GameState, Player, PressItem } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const clone = (g: GameState): GameState => JSON.parse(JSON.stringify(g))
 const userFixtureAt = (g: GameState, w: number) => g.fixtures.find(f => f.week === w && !f.played &&
   (f.homeId === g.userClubId || f.awayId === g.userClubId))
@@ -441,5 +437,5 @@ console.log('\n--- 10. six languages\n')
   ok(fr.every(v => !/ [:;!?]/.test(v)), 'French punctuation is held to its sentence by a non-breaking space')
 }
 
-console.log(fails ? `\nROOM PROBE FAILED: ${fails}` : '\nROOM PROBE PASSED: the room takes sides, every call costs something, and the culture remembers')
-if (fails) process.exit(1)
+console.log(failures() ? `\nROOM PROBE FAILED: ${failures()}` : '\nROOM PROBE PASSED: the room takes sides, every call costs something, and the culture remembers')
+if (failures()) process.exit(1)

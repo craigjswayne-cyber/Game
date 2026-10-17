@@ -28,7 +28,7 @@ export const EXAM_PASS_PCT = 58
 export const RETAKE_WEEKS = 4
 export const courseFee = (tier: number) => 60_000 * tier
 
-export interface StaffCandidate {
+interface StaffCandidate {
   name: string
   /** the coin that named the candidate - kept on the person once hired */
   g: Gender
@@ -49,10 +49,6 @@ const TRAITS = [
   'Calm head', 'Motivator',
 ]
 
-/** A stored trait, shown in the reader's language. The stored value stays
- *  English because it is inside every save already. */
-export const traitLabel = (trait: string) =>
-  t(`staff.trait${trait.replace(/[^A-Za-z]+(.)/g, (_, c) => c.toUpperCase()).replace(/^./, c => c.toUpperCase())}`)
 
 const NATS = ['ENG', 'WAL', 'IRE', 'SCO', 'FRA', 'NZL', 'AUS', 'RSA', 'ARG', 'ITA', 'FIJ']
 
@@ -140,7 +136,7 @@ export function staffInterest(state: GameState, c: StaffCandidate): 'keen' | 'pe
  *   short - fits on the candidate row, next to the wage
  *   long  - the sentence shown when the refusal has to be spelled out
  */
-export interface AppointBlock { short: string; long: string }
+interface AppointBlock { short: string; long: string }
 
 /**
  * ---- THE BOARD'S BACKROOM FUND (boardroom.ts, v1.8.3) ----
@@ -159,7 +155,7 @@ export interface AppointBlock { short: string; long: string }
 export function backroomFund(state: GameState): number { return Math.max(0, state.staffRoom ?? 0) }
 
 /** What the backroom can find today: the club's balance plus the board's pot. */
-export function backroomCanPay(state: GameState, cost: number): boolean {
+function backroomCanPay(state: GameState, cost: number): boolean {
   const club = state.clubs[state.userClubId]
   return !!club && club.balance + backroomFund(state) >= cost
 }
@@ -324,7 +320,6 @@ export function courseBlock(state: GameState, role: StaffRole): AppointBlock | n
 export function sendToCourse(state: GameState, role: StaffRole): string {
   const block = courseBlock(state, role)
   if (block) return block.long
-  const club = state.clubs[state.userClubId]
   const p = state.staffPeople![role]!
   const info = STAFF_INFO[role]
   const abs = state.season * 100 + state.week

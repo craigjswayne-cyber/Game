@@ -14,14 +14,11 @@
 //
 // Run: node scripts/ruckui.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { startPreview, done } from './lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, done } from './lib/probe.mjs'
 
-const say = (s) => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
-
-const server = await startPreview('4297', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 393, height: 852 }, locale: 'en-GB' })
 page.setDefaultTimeout(15000)
@@ -32,7 +29,7 @@ const SUBJ = "LAW WATCH: captain's challenge proposed for league matches"
 const MINE = 'Ruck probe: a story in the neutral voice'
 
 try {
-  await page.goto('http://localhost:4297/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.click('text=English Premier Division')
@@ -170,5 +167,4 @@ try {
 if (errors.length) { ok(false, `page errors: ${[...new Set(errors)].join(' | ').slice(0, 200)}`) }
 await browser.close()
 await server.stop?.()
-say(fails ? `RUCK UI PROBE FAILED (${fails})` : 'RUCK UI PROBE PASSED: the RUCK.CO.UK byline and wordmark in the reader, neither on the club\'s own news, no sideways scroll')
-done(fails)
+done('RUCK UI PROBE', 'the RUCK.CO.UK byline and wordmark in the reader, neither on the club\'s own news, no sideways scroll', { exit: true, blank: false })

@@ -49,6 +49,8 @@ const STORE = 'saves'
  * IndexedDB clones them.
  */
 let memDb: IDBDatabase | null = null
+/** keys read from the in-memory database, for scripts/listsavesprobe.ts */
+const memReads: string[] = []
 function memoryDb(): IDBDatabase {
   if (memDb) return memDb
   const rows = new Map<IDBValidKey, unknown>()
@@ -63,7 +65,7 @@ function memoryDb(): IDBDatabase {
     transaction() {
       const store = {
         put(v: unknown, k: IDBValidKey) { rows.set(k, structuredClone(v)); return request(k) },
-        get(k: IDBValidKey) { return request(rows.has(k) ? structuredClone(rows.get(k)) : undefined) },
+        get(k: IDBValidKey) { if (memReads.push(String(k)) > 500) memReads.splice(0, 250); return request(rows.has(k) ? structuredClone(rows.get(k)) : undefined) },
         getAll() { return request([...rows.values()].map(v => structuredClone(v))) },
         getAllKeys() { return request([...rows.keys()]) },
         delete(k: IDBValidKey) { rows.delete(k); return request(undefined) },
@@ -73,10 +75,21 @@ function memoryDb(): IDBDatabase {
       return tx
     },
   }
+  // the stand-in implements only the calls this file makes, not IDBDatabase's
+  // whole surface, so the type has to be asserted rather than proved
   memDb = db as unknown as IDBDatabase
   return memDb
 }
 
+/**
+ * ONE CONNECTION, KEPT (1.9.1). Every read and write used to open the
+ * database and close it again: a save, a load, and during a live match one
+ * putResume per revealed commentary line, each paying for an open. The
+ * connection is now opened once and reused. If another tab upgrades the
+ * database or the browser closes it, it is dropped and the next call opens a
+ * fresh one.
+ */
+let dbOpen: Promise<IDBDatabase> | null = null
 function openDb(): Promise<IDBDatabase> {
   // a page with no database at all keeps its saves in memory (memoryDb)
   try {
@@ -84,7 +97,8 @@ function openDb(): Promise<IDBDatabase> {
   } catch {
     return Promise.resolve(memoryDb())
   }
-  return new Promise((resolve, reject) => {
+  if (dbOpen) return dbOpen
+  dbOpen = new Promise((resolve, reject) => {
     let req: IDBOpenDBRequest
     try {
       req = indexedDB.open(DB_NAME, 1)
@@ -97,9 +111,15 @@ function openDb(): Promise<IDBDatabase> {
         req.result.createObjectStore(STORE)
       }
     }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
+    req.onsuccess = () => {
+      const db = req.result
+      db.onversionchange = () => { db.close(); dbOpen = null }
+      db.onclose = () => { dbOpen = null }
+      resolve(db)
+    }
+    req.onerror = () => { dbOpen = null; reject(req.error) }
   })
+  return dbOpen
 }
 
 export interface SaveMeta {
@@ -141,18 +161,20 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
     // career and read the console. docs/testing.md records what was measured.
     const t0 = performance.now()
     tx.objectStore(STORE).put({ meta, state }, slot)
+    // the label on its own, so the Load screen never reads a career to list it
+    tx.objectStore(STORE).put(meta, metaKey(slot))
     const held = performance.now() - t0
-    if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) {
+    if (import.meta.env?.DEV) {
       console.debug(`[save] ${slot}: put() held the main thread ${held.toFixed(0)} ms`)
     }
-    tx.oncomplete = () => { db.close(); resolve() }
-    tx.onerror = () => { db.close(); reject(tx.error) }
+    tx.oncomplete = () => { resolve() }
+    tx.onerror = () => { reject(tx.error) }
     // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota
     // overrun at commit, which fires only 'abort'; without this the promise
     // never settled, the save queue's write stayed in flight for ever, and
     // autosave stopped for the session with no banner. Settling twice is a
     // no-op, so an error followed by its abort is still one answer.
-    tx.onabort = () => { db.close(); reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
+    tx.onabort = () => { reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
   })
 }
 
@@ -188,15 +210,17 @@ export async function putResume(slot: string, rec: unknown, withPre = false): Pr
     const tx = db.transaction(STORE, 'readwrite')
     const store = tx.objectStore(STORE)
     store.put(JSON.parse(JSON.stringify(small)), resumeKey(slot))
-    if (withPre) store.put(JSON.parse(JSON.stringify(pre ?? null)), preKey(slot))
-    tx.oncomplete = () => { db.close(); resolve() }
-    tx.onerror = () => { db.close(); reject(tx.error) }
+    // put() clones the state itself; the JSON round trip this used to make
+    // first was a second full copy of the career at kick-off (1.9.1)
+    if (withPre) store.put(pre ?? null, preKey(slot))
+    tx.oncomplete = () => { resolve() }
+    tx.onerror = () => { reject(tx.error) }
     // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota
     // overrun at commit, which fires only 'abort'; without this the promise
     // never settled, the save queue's write stayed in flight for ever, and
     // autosave stopped for the session with no banner. Settling twice is a
     // no-op, so an error followed by its abort is still one answer.
-    tx.onabort = () => { db.close(); reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
+    tx.onabort = () => { reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
   })
 }
 
@@ -208,7 +232,6 @@ export async function getResume<T>(slot: string): Promise<T | null> {
     const req = store.get(resumeKey(slot))
     const preReq = store.get(preKey(slot))
     tx.oncomplete = () => {
-      db.close()
       const small = req.result as (Record<string, unknown> & { pre?: unknown }) | undefined
       if (!small) { resolve(null); return }
       // a record written before 1.6.3 still carries its own state
@@ -216,7 +239,7 @@ export async function getResume<T>(slot: string): Promise<T | null> {
       if (!pre) { resolve(null); return }
       resolve({ ...small, pre } as T)
     }
-    tx.onerror = () => { db.close(); resolve(null) }
+    tx.onerror = () => { resolve(null) }
   })
 }
 
@@ -253,8 +276,8 @@ export async function peekResumes<T>(): Promise<{ slot: string; rec: T; hasPre: 
         }
       }
     }
-    tx.oncomplete = () => { db.close(); resolve(out) }
-    tx.onerror = () => { db.close(); resolve(out) }
+    tx.oncomplete = () => { resolve(out) }
+    tx.onerror = () => { resolve(out) }
   })
 }
 
@@ -264,8 +287,8 @@ export async function clearResume(slot: string): Promise<void> {
     const tx = db.transaction(STORE, 'readwrite')
     tx.objectStore(STORE).delete(resumeKey(slot))
     tx.objectStore(STORE).delete(preKey(slot))
-    tx.oncomplete = () => { db.close(); resolve() }
-    tx.onerror = () => { db.close(); resolve() }
+    tx.oncomplete = () => { resolve() }
+    tx.onerror = () => { resolve() }
   })
 }
 
@@ -324,6 +347,7 @@ function rebase(v: unknown): number | undefined {
 function rebaseStamps(s: GameState): void {
   const num = (x: unknown) => typeof x === 'number' && Number.isFinite(x)
   for (const p of Object.values(s.players ?? {})) {
+    // read as a bag of fields: these are old-save keys, some no longer on Player
     const q = p as unknown as Record<string, unknown>
     for (const f of ['joinedAt', 'loanSince', 'loanUntil', 'lastChatWk', 'retakeAt']) {
       if (num(q[f])) q[f] = rebase(q[f])
@@ -340,9 +364,11 @@ function rebaseStamps(s: GameState): void {
     }
   }
   for (const c of Object.values(s.clubs ?? {})) {
+    // the same for a club: an old save's field, read by name
     const q = c as unknown as Record<string, unknown>
     if (num(q.debtSince)) q.debtSince = rebase(q.debtSince)
   }
+  // and for the state itself, whose stamped fields are listed by name below
   const g = s as unknown as Record<string, unknown>
   for (const f of ['groundsAt', 'lawWatchAt', 'lawTalkAt', 'challengeAt', 'chatWk', 'natAskAt',
                    'natCoachAskAt', 'natCall']) {
@@ -359,7 +385,20 @@ export function safeColours(v: unknown): v is [string, string] {
   return Array.isArray(v) && v.length === 2 && v.every(x => typeof x === 'string' && HEX.test(x))
 }
 
-export function migrate(s: GameState): GameState {
+// The helpers the migration steps share. They were locals of migrate() and
+// close over nothing, so they live here now that migrate() is a list of
+// named steps.
+const int = (v: unknown, min: number, max: number, dflt: number) => {
+  const n = typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : Number.NaN
+  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
+}
+const num = (v: unknown, min: number, max: number, dflt: number) => {
+  const n = typeof v === 'number' && Number.isFinite(v) ? v : Number.NaN
+  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
+}
+const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
+
+function migrateWeekBasis(s: GameState): void {
   // ---- the week basis, before anything reads a stamp ----
   // Runs once in the life of a save and is marked done, so a career loaded
   // twice is not rebased twice - which would push every date out by a further
@@ -368,7 +407,9 @@ export function migrate(s: GameState): GameState {
     rebaseStamps(s)
     s.basis = WEEK_BASIS
   }
+}
 
+function migrateCollections(s: GameState): void {
   // ---- the collections the game reads without asking whether they are there ----
   //
   // A save written by an older build is simply missing the fields that build had
@@ -512,7 +553,9 @@ export function migrate(s: GameState): GameState {
   s.natSquads = asMap(s.natSquads)
   s.players = asMap(s.players)
   s.clubs = asMap(s.clubs)
+}
 
+function migrateCalendar(s: GameState): void {
   // ---- the scalars the whole calendar hangs off ----
   //
   // week and season index into the fixture list and the record books, so a week
@@ -520,10 +563,6 @@ export function migrate(s: GameState): GameState {
   // of an array and throws on the first tick after loading. Coerce them into
   // range instead. Anything unreadable starts the season at week one, which is a
   // playable career rather than a dead one.
-  const int = (v: unknown, min: number, max: number, dflt: number) => {
-    const n = typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : Number.NaN
-    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
-  }
   s.season = int(s.season, 0, 999, 0)
   s.week = int(s.week, 1, SEASON_WEEKS, 1)
   s.day = int(s.day, 0, 5, 0) as GameState['day']
@@ -531,7 +570,9 @@ export function migrate(s: GameState): GameState {
   // only means the next notice due is posted
   if (s.windowNote != null && !(typeof s.windowNote === 'number' && Number.isFinite(s.windowNote))) delete s.windowNote
   if (!Number.isFinite(s.seed)) s.seed = hashString(`${s.userClubId ?? 'rugby'}-${s.season}`)
+}
 
+function migratePruneLists(s: GameState): void {
   // ---- prune the rubbish out of the lists ----
   //
   // A story that is not an object at all - a null left by a bad write - throws
@@ -558,14 +599,18 @@ export function migrate(s: GameState): GameState {
   s.press = s.press.filter(p => story(p) && typeof (p as { question?: unknown }).question === 'string')
   s.offers = s.offers.filter(story)
   s.fixtures = s.fixtures.filter(story)
-  s.mentors = s.mentors.filter(story)
-  s.pledges = s.pledges.filter(story)
+  // (the non-null marks: migrateCollections made these three lists, and the
+  // compiler cannot see that across the step boundary)
+  s.mentors = s.mentors!.filter(story)
+  s.pledges = s.pledges!.filter(story)
   // a promise of a start settles on its two counts (handshake.ts): without
   // them it cannot be read, so it is dropped rather than broken by default
   s.pledges = s.pledges.filter(pl => pl.kind !== 'start' ||
     (Number.isFinite(pl.baseStarts) && Number.isFinite(pl.baseGames)))
-  s.preContracts = s.preContracts.filter(story)
+  s.preContracts = s.preContracts!.filter(story)
+}
 
+function migrateIdCounter(s: GameState): void {
   // ---- the id counter must clear everything already in the world ----
   //
   // nextId is shared by news, fixtures and offers. A save holding a NaN or a
@@ -589,7 +634,9 @@ export function migrate(s: GameState): GameState {
   for (const n of s.news) {
     if (typeof n.id !== 'number' || !Number.isFinite(n.id)) n.id = s.nextId++
   }
+}
 
+function migrateWorldRefs(s: GameState): void {
   // ---- the world has to point at itself ----
   //
   // Every one of these is a dangling reference, and a dangling reference in a
@@ -598,10 +645,6 @@ export function migrate(s: GameState): GameState {
   // played or tabulated, and a squad listing a player who is gone shows an empty
   // row the manager can tap. Repair them here, where there is still a chance to,
   // rather than discovering each one separately at kick-off.
-  const num = (v: unknown, min: number, max: number, dflt: number) => {
-    const n = typeof v === 'number' && Number.isFinite(v) ? v : Number.NaN
-    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
-  }
   const careerRow = (r: unknown): r is CareerRow => !!r && typeof r === 'object'
     && typeof (r as CareerRow).clubId === 'string'
     && ['season', 'apps', 'tries', 'points'].every(k => Number.isFinite((r as Record<string, unknown>)[k]))
@@ -673,6 +716,9 @@ export function migrate(s: GameState): GameState {
         })
       : []
   }
+}
+
+function migrateClubColours(s: GameState): void {
   // ---- CLUB COLOURS ARE COLOURS (1.8.18) ----
   // They go straight into inline CSS (club banners, the match-day bars, the
   // --club1/--club2 theme), and React does not check style values. A shared
@@ -723,7 +769,9 @@ export function migrate(s: GameState): GameState {
     typeof id === 'string' && (!!s.clubs[id] || NATIONS.some(n => n.code === id))
   s.fixtures = s.fixtures.filter(f => realTeam(f.homeId) && realTeam(f.awayId))
   for (const f of s.fixtures) f.week = int(f.week, 1, SEASON_WEEKS, 1)
+}
 
+function migrateStandings(s: GameState): void {
   // ---- and the standings have to match the results ----
   for (const comp of Object.values(s.comps)) {
     if (!comp || comp.type !== 'league' || !Array.isArray(comp.table)) continue
@@ -737,11 +785,12 @@ export function migrate(s: GameState): GameState {
     })
     if (wrong) rebuildTable(comp, s.fixtures, s)
   }
+}
 
+function migrateManagerAndNation(s: GameState): void {
   // SAVE-01 (1.6.5): ??= repairs null and nothing else. A save holding a string
   // or an object in a list field passed the null check and threw on the first
   // push. Every list the migration guarantees goes through the same gate.
-  const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
   s.shortlist = list(s.shortlist) as typeof s.shortlist
   // ??= is not enough here: a save holding a STRING in this field passes the
   // null check and then throws on the first property assignment, because you
@@ -799,6 +848,9 @@ export function migrate(s: GameState): GameState {
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist
   s.boardOwed ??= false
+}
+
+function migrateDialsAndRecords(s: GameState): void {
   // facilities moved onto the clubs (every club in the world has an estate,
   // and taking a new job means inheriting that club's buildings). Levels the
   // manager already paid for at his own club are kept, whichever is higher.
@@ -911,6 +963,9 @@ export function migrate(s: GameState): GameState {
   }
   if (s.ambitions != null && !Array.isArray(s.ambitions)) delete s.ambitions
   if (s.ambitions) s.ambitions = s.ambitions.filter(a => !!a && typeof a.id === 'string' && typeof a.clubId === 'string').slice(0, 5)
+}
+
+function migrateClubsAndPeople(s: GameState): Set<string> {
   // A CLUB BETWEEN COACHES STAYS BETWEEN COACHES (1.8.5 save QA). The fill
   // below is for a save written before AI coaches had names. A club whose
   // coach has just been sacked is MEANT to have none for the five weeks its
@@ -1001,6 +1056,10 @@ export function migrate(s: GameState): GameState {
       return !(p && l.season >= 0 && p.clubId === l.clubId && p.joinedAt != null && service(p, l.clubId).apps < LEGEND_APPS)
     })
   }
+  return settled
+}
+
+function migratePidCounter(s: GameState): void {
   // CRITICAL: restore the player-id counter. Only newGame resets it, so a
   // cold-started session that loads a save would otherwise mint new player
   // ids from 1, silently overwriting existing players at the next intake.
@@ -1008,7 +1067,9 @@ export function migrate(s: GameState): GameState {
   // and never below the counter the save carries (1.6.4): an id freed by a
   // retirement above the highest live one is not handed out again
   resetIds(Math.max(maxPid + 1, s.pidNext ?? 0))
+}
 
+function migrateWorldGrowth(s: GameState): void {
   // leagues added in later builds: inject their clubs & squads so existing
   // careers gain them (fixtures/tables arrive at the next season rebuild)
   //
@@ -1146,7 +1207,9 @@ export function migrate(s: GameState): GameState {
     if (!club.players.some(id => s.players[id]?.acad)) topUpAcademy(s, club, rng, 0xACAD)
   }
   ensureAcademyLeague(s)
+}
 
+function migrateDreamAndGrounds(s: GameState): void {
   // A CUP DREAM NOBODY CAN REACH (1.9.1). Until now "Win the Continental Cup"
   // and the league-and-cup double were offered at every club, the American,
   // Japanese and Pacific ones included, which can never enter the cup
@@ -1166,7 +1229,9 @@ export function migrate(s: GameState): GameState {
   // a save written before a following could be earned opens with the one it
   // was born with: every club starts level, and the ladder is climbed from here
   for (const c of Object.values(s.clubs)) c.following ??= 1
+}
 
+function migrateFormerClubsAndFinals(s: GameState): void {
   // pre-2025 former clubs (old-boy stories): fills only players still unset.
   // First, take back the ones the seeder should never have written: exClub is
   // only ever set by seedExClubs, so on a hand-written player it is always an
@@ -1188,7 +1253,9 @@ export function migrate(s: GameState): GameState {
       if (v) f.venue = v
     }
   }
+}
 
+function migrateMatchMemory(s: GameState): void {
   // the tactical loop's findings: healed and capped (#181), and the evidence
   // filed beside them (1.8.3): absent on an older save, and left absent.
   // Since 1.8.4 both keep the last against each other side as well as the
@@ -1198,6 +1265,8 @@ export function migrate(s: GameState): GameState {
   migrateEvidence(s)
   // the homework, now set on every match (coachfix fileHomework): one that
   // cannot be read is dropped, which is read as no homework
+  // untrusted JSON from a save: checked field by field below, so nothing about
+  // its shape is assumed
   const hw = s.fixHw as unknown as Record<string, unknown> | undefined
   if (hw !== undefined && (!hw || typeof hw !== 'object' || ![hw.fxId, hw.season, hw.week].every(n => typeof n === 'number' && Number.isFinite(n))
     || !Array.isArray(hw.tags) || !hw.tags.every(x => typeof x === 'string'))) delete s.fixHw
@@ -1205,7 +1274,9 @@ export function migrate(s: GameState): GameState {
     if (hw.test !== undefined && typeof hw.test !== 'boolean') delete hw.test
     if (hw.was !== undefined && !(Array.isArray(hw.was) && hw.was.every(x => typeof x === 'string'))) delete hw.was
   }
+}
 
+function migrateStylesAndPlans(s: GameState): void {
   // THE STYLES (1.8.2): a save from before them has dials and no style, so
   // the manager's side is named the nearest attack and defence to its dials,
   // and the dials are left exactly where he put them
@@ -1226,7 +1297,9 @@ export function migrate(s: GameState): GameState {
     if (!okOrder || !okRot) delete s.seasonPlan
     else if (typeof sp.season !== 'number') s.seasonPlan = { order: sp.order!, rot: sp.rot!, season: s.season }
   }
+}
 
+function migrateLeaders(s: GameState, settled: Set<string>): void {
   // LEADERS ARE NAMED FOR A CLUB THE SAVE HAS NEVER NAMED THEM FOR - a save
   // from before the armband, or a club injected above - and nowhere else
   // (1.8.5 save QA). This ran over every club on every load, and the game
@@ -1237,6 +1310,34 @@ export function migrate(s: GameState): GameState {
   // career played straight through (scripts/qa/savedet.ts).
   const fresh = Object.values(s.clubs).filter(c => !settled.has(c.id))
   if (fresh.length) ensureCaptains({ ...s, clubs: Object.fromEntries(fresh.map(c => [c.id, c])) }, true)
+}
+
+/**
+ * Bring a save of any age up to the current shape. The steps run in this
+ * order, which is the order they were written in when this was one long
+ * function: several read what an earlier one repaired (the leaders are
+ * named last, for the clubs migrateClubsAndPeople found unsettled), so the
+ * order is load-bearing.
+ */
+export function migrate(s: GameState): GameState {
+  migrateWeekBasis(s)
+  migrateCollections(s)
+  migrateCalendar(s)
+  migratePruneLists(s)
+  migrateIdCounter(s)
+  migrateWorldRefs(s)
+  migrateClubColours(s)
+  migrateStandings(s)
+  migrateManagerAndNation(s)
+  migrateDialsAndRecords(s)
+  const settled = migrateClubsAndPeople(s)
+  migratePidCounter(s)
+  migrateWorldGrowth(s)
+  migrateDreamAndGrounds(s)
+  migrateFormerClubsAndFinals(s)
+  migrateMatchMemory(s)
+  migrateStylesAndPlans(s)
+  migrateLeaders(s, settled)
   return s
 }
 
@@ -1267,7 +1368,6 @@ export async function loadGame(slot: string): Promise<GameState | null> {
     const tx = db.transaction(STORE, 'readonly')
     const req = tx.objectStore(STORE).get(slot)
     req.onsuccess = () => {
-      db.close()
       if (!req.result) { resolve(null); return }
       let healed: GameState | null = null
       try {
@@ -1281,27 +1381,60 @@ export async function loadGame(slot: string): Promise<GameState | null> {
       }
       resolve(isPlayable(healed) ? healed : null)
     }
-    req.onerror = () => { db.close(); reject(req.error) }
+    req.onerror = () => { reject(req.error) }
   })
 }
 
+/** Where a slot's label lives beside it (1.9.1, listSaves). */
+const metaKey = (slot: string) => `${slot}::meta`
+
+/**
+ * THE LABELS, NOT THE CAREERS (1.9.1). This used to getAll() the store, which
+ * holds every career (5 to 11 MB each) and every live match's pre-match copy
+ * (about 7 MB), and structured-clone the lot to read a few dozen bytes of
+ * meta from each. It ran on the title screen, the Saves screen, the new
+ * career wizard and every import. Now each save writes its label under its
+ * own key too, and this reads the keys and then only the labels. A slot
+ * written before 1.9.1 has no label key yet: it is read whole once, and its
+ * label is written so the next listing is cheap.
+ */
 export async function listSaves(): Promise<SaveMeta[]> {
   const db = await openDb()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readonly')
-    const req = tx.objectStore(STORE).getAll()
-    req.onsuccess = () => {
-      db.close()
-      // The store also holds the live-match records now (slot::live), which are
-      // not saves and have no meta. Without this filter the Load screen would
-      // list an undefined row for every career with a match in progress.
-      resolve((req.result ?? [])
-        .filter((r: { meta?: SaveMeta }) => !!r && !!r.meta && typeof r.meta.slot === 'string')
-        .map((r: { meta: SaveMeta }) => r.meta)
-        .sort((a, b) => b.savedAt - a.savedAt))
-    }
-    req.onerror = () => { db.close(); reject(req.error) }
+  const keys = await new Promise<string[]>((resolve, reject) => {
+    const req = db.transaction(STORE, 'readonly').objectStore(STORE).getAllKeys()
+    req.onsuccess = () => resolve((req.result ?? []).filter((k): k is string => typeof k === 'string'))
+    req.onerror = () => reject(req.error)
   })
+  const have = new Set(keys)
+  // The store also holds the live-match records (slot::live, slot::live.pre)
+  // and the labels themselves, which are not saves.
+  const slots = keys.filter(k => !k.includes('::'))
+  const legacy: SaveMeta[] = []
+  const metas = await new Promise<SaveMeta[]>((resolve, reject) => {
+    const store = db.transaction(STORE, 'readonly').objectStore(STORE)
+    const out: SaveMeta[] = []
+    let left = slots.length
+    if (!left) { resolve(out); return }
+    for (const slot of slots) {
+      const labelled = have.has(metaKey(slot))
+      const req = store.get(labelled ? metaKey(slot) : slot)
+      req.onsuccess = () => {
+        const r = req.result as SaveMeta | { meta?: SaveMeta } | undefined
+        const meta = labelled ? r as SaveMeta | undefined : (r as { meta?: SaveMeta } | undefined)?.meta
+        if (meta && typeof meta.slot === 'string') {
+          out.push(meta)
+          if (!labelled) legacy.push(meta)
+        }
+        if (--left === 0) resolve(out)
+      }
+      req.onerror = () => reject(req.error)
+    }
+  })
+  if (legacy.length) {
+    const tx = db.transaction(STORE, 'readwrite')
+    for (const m of legacy) tx.objectStore(STORE).put(m, metaKey(m.slot))
+  }
+  return metas.sort((a, b) => b.savedAt - a.savedAt)
 }
 
 export async function deleteSave(slot: string): Promise<void> {
@@ -1309,13 +1442,34 @@ export async function deleteSave(slot: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite')
     tx.objectStore(STORE).delete(slot)
-    tx.oncomplete = () => { db.close(); resolve() }
-    tx.onerror = () => { db.close(); reject(tx.error) }
+    tx.objectStore(STORE).delete(metaKey(slot))
+    tx.oncomplete = () => { resolve() }
+    tx.onerror = () => { reject(tx.error) }
     // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota
     // overrun at commit, which fires only 'abort'; without this the promise
     // never settled, the save queue's write stayed in flight for ever, and
     // autosave stopped for the session with no banner. Settling twice is a
     // no-op, so an error followed by its abort is still one answer.
-    tx.onabort = () => { db.close(); reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
+    tx.onabort = () => { reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
   })
 }
+
+/** For scripts/listsavesprobe.ts: write a row as a save before 1.9.1 did, list
+ *  the raw keys, and read which keys have been fetched. Node only: the page
+ *  never calls these. */
+export async function _rawPutForProbe(key: string, value: unknown): Promise<void> {
+  const db = await openDb()
+  await new Promise<void>(resolve => {
+    const tx = db.transaction(STORE, 'readwrite')
+    tx.objectStore(STORE).put(value, key)
+    tx.oncomplete = () => resolve()
+  })
+}
+export async function _rawKeysForProbe(): Promise<string[]> {
+  const db = await openDb()
+  return new Promise(resolve => {
+    const req = db.transaction(STORE, 'readonly').objectStore(STORE).getAllKeys()
+    req.onsuccess = () => resolve((req.result ?? []).map(String))
+  })
+}
+export const _readsForProbe = (): string[] => [...memReads]

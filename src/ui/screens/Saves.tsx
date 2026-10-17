@@ -33,6 +33,9 @@ export default function Saves() {
   const copy = () => useStore.getState().saveCopy() ?? game
 
   const doSave = async (slot: string) => {
+    // a week that threw and could not be put back: the career in memory is
+    // half-turned, and a manual save is the one write that would keep it
+    if (useStore.getState().weekFailed === 2) { setMsg(t('common.weekStuck')); return }
     try {
       await saveGame(slot, copy())
     } catch (e) {
@@ -189,7 +192,7 @@ export default function Saves() {
   return (
     <>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-        <h3 style={{ fontSize: 14 }}>{t('world.svAutosaveOn')}</h3>
+        <h3 style={{ fontSize: '0.875rem' }}>{t('world.svAutosaveOn')}</h3>
         <div className="meta">
           {t('world.svAutosaveBody')}<b>{slotName(saveSlot)}</b>{t('world.svAutosaveRest')}
         </div>
@@ -209,7 +212,7 @@ export default function Saves() {
           <div key={slot} className="card" style={isCurrent ? { borderLeft: '4px solid var(--club1)' } : undefined}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h3 style={{ fontSize: 14 }}>
+                <h3 style={{ fontSize: '0.875rem' }}>
                   {slotName(slot)}{isCurrent ? t('world.svActive') : ''}
                 </h3>
                 {meta ? (
@@ -222,18 +225,18 @@ export default function Saves() {
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button className="btn slot-act" style={{ fontSize: 12, padding: '7px 14px' }} onClick={() => void doSave(slot)}>
+                <button className="btn slot-act" style={{ fontSize: '0.75rem', padding: '7px 14px' }} onClick={() => void doSave(slot)}>
                   {t('world.svSave')}
                 </button>
                 {meta && !isCurrent && (
-                  <button className="btn ghost slot-act" style={{ fontSize: 12, padding: '7px 14px' }} onClick={() => void doLoad(slot)}>
+                  <button className="btn ghost slot-act" style={{ fontSize: '0.75rem', padding: '7px 14px' }} onClick={() => void doLoad(slot)}>
                     {t('world.svLoad')}
                   </button>
                 )}
                 {meta && (
                   confirmDel === slot
-                    ? <button className="btn danger slot-act" style={{ fontSize: 12, padding: '7px 8px' }} onClick={() => void doDelete(slot)}>{t('world.svSure')}</button>
-                    : <button className="btn ghost slot-act" style={{ fontSize: 12, padding: '7px 14px', color: 'var(--text-negative)' }} onClick={() => setConfirmDel(slot)}>{t('world.svDelete')}</button>
+                    ? <button className="btn danger slot-act" style={{ fontSize: '0.75rem', padding: '7px 8px' }} onClick={() => void doDelete(slot)}>{t('world.svSure')}</button>
+                    : <button className="btn ghost slot-act" style={{ fontSize: '0.75rem', padding: '7px 14px', color: 'var(--text-negative)' }} onClick={() => setConfirmDel(slot)}>{t('world.svDelete')}</button>
                 )}
               </div>
             </div>
@@ -258,7 +261,7 @@ export default function Saves() {
           <button className="btn" disabled={sharing} onClick={doExport}>{t('world.svExport')}</button>
           <button className="btn ghost" onClick={() => fileRef.current?.click()}>{t('world.svImport')}</button>
         </div>
-        <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }}
+        <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }} aria-label={t('world.svImport')}
           onChange={e => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = '' }} />
       </div>
 
@@ -269,10 +272,10 @@ export default function Saves() {
             <div key={s.slot} className="card">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ flex: 1 }}>
-                  <h3 style={{ fontSize: 14 }}>{s.slot}</h3>
+                  <h3 style={{ fontSize: '0.875rem' }}>{s.slot}</h3>
                   <div className="meta">{t('world.svOtherLine', { manager: s.managerName, club: s.club, season: seasonLabel(s.season), week: s.week })}</div>
                 </div>
-                <button className="btn ghost slot-act" style={{ fontSize: 12 }} onClick={() => void doLoad(s.slot)}>{t('world.svLoad')}</button>
+                <button className="btn ghost slot-act" style={{ fontSize: '0.75rem' }} onClick={() => void doLoad(s.slot)}>{t('world.svLoad')}</button>
               </div>
             </div>
           ))}

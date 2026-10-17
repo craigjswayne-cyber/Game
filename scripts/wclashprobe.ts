@@ -19,12 +19,7 @@ import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { SEASON_WEEKS } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 for (const [gender, club, seed] of [['w', 'w:saracens', 7], ['w', 'w:blues', 3], ['m', 'leicester', 7]] as const) {
   const g = newGame(club, 'Clash', seed, undefined, 'coach', gender, gender)
@@ -59,5 +54,4 @@ for (const [gender, club, seed] of [['w', 'w:saracens', 7], ['w', 'w:blues', 3],
   ok(stolen.length === 0, `${gender}/${club}: no user fixture is settled by the AI path (${stolen.length}: ${stolen.slice(0, 4).join(' ')})`)
 }
 
-console.log(fails ? `CLASH PROBE FAILED (${fails})` : 'CLASH PROBE PASSED: one match a week for everybody, in both worlds')
-process.exit(fails ? 1 : 0)
+done('CLASH PROBE', 'one match a week for everybody, in both worlds', { exit: true, blank: false })

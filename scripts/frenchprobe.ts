@@ -21,13 +21,12 @@
 //
 // Run: npx vite-node scripts/frenchprobe.ts
 import { readFileSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 
 /** French entries still carrying an English habit. ONLY EVER DECREASE. */
 const BUDGET = { wrap: 0, english: 0, quotes: 0 }
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 type Dict = { [k: string]: unknown }
 const EN = JSON.parse(readFileSync('src/locales/en.json', 'utf8')) as Dict
@@ -76,5 +75,4 @@ say(`  ${straight.length} entries using a double quote (budget ${BUDGET.quotes})
 if (straight.length) say('  ' + straight.slice(0, 8).map(([k, v]) => `${k}: ${v.slice(0, 60)}`).join('\n  '))
 ok(straight.length <= BUDGET.quotes, `no more than ${BUDGET.quotes} entries use English quote marks`)
 
-say(fails ? `\nFRENCH PROBE FAILED (${fails})` : `\nFRENCH PROBE PASSED: ${Object.keys(F).length} entries, and they read like French`)
-process.exitCode = fails ? 1 : 0
+done('FRENCH PROBE', `${Object.keys(F).length} entries, and they read like French`)

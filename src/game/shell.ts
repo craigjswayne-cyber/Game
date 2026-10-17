@@ -41,7 +41,7 @@ type WithCap = { Capacitor?: { isNativePlatform?: () => boolean; getPlatform?: (
 
 /** Running inside the new Play app (the Capacitor shell). */
 export function isAndroidShell(): boolean {
-  const cap = (globalThis as unknown as WithCap).Capacitor
+  const cap = (globalThis as WithCap).Capacitor
   return !!cap && cap.isNativePlatform?.() === true && cap.getPlatform?.() === 'android'
 }
 
@@ -49,7 +49,7 @@ export function isAndroidShell(): boolean {
  *  both come from the shell rather than from the game, so a page that wants to
  *  say why one of them is silent has to know it is inside one. */
 export function nativePlatform(): string | null {
-  const cap = (globalThis as unknown as WithCap).Capacitor
+  const cap = (globalThis as WithCap).Capacitor
   if (!cap || cap.isNativePlatform?.() !== true) return null
   return cap.getPlatform?.() ?? 'native'
 }

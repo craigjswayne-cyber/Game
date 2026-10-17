@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { OfferAnswer, PeopleChips, RequestAnswer } from './Inbox'
-import { ContextCard, ResponseNeeded } from '../ContextCard'
+import { ContextCard } from '../ContextCard'
 import { NewsBody, NewsGo } from '../NewsBody'
 import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
@@ -23,7 +23,6 @@ export default function Wire() {
   const game = useStore(s => s.game)!
   const queue = useStore(s => s.wireQueue)
   const home = useStore.getState().home
-  const go = useStore(s => s.go)
   const [idx, setIdx] = useState(0)
 
   const items = queue.map(id => game.news.find(n => n.id === id)).filter((n): n is NonNullable<typeof n> => !!n)
@@ -55,7 +54,7 @@ export default function Wire() {
           <span><Byline n={n} sep />{t('week.wireDateNews', { date: weekDate(n.season, n.week) })}</span>
           <span>{t('week.wirePos', { i: idx + 1, n: items.length })}</span>
         </div>
-        <h2 style={{ fontSize: 18, lineHeight: 1.3, margin: '8px 0 10px' }}>
+        <h2 style={{ fontSize: '1.125rem', lineHeight: 1.3, margin: '8px 0 10px' }}>
           {newsGlyph(n.type)} {newsSubject(n)}
         </h2>
         {/* PARAGRAPHS, not a wall (user: "news graphics seem so messy, tidy them

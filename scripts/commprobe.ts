@@ -23,14 +23,13 @@
 //
 // Run: npx vite-node scripts/commprobe.ts
 import { SIBLING } from '../src/game/i18n'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
+import { ok, done } from './lib/probe'
 
 /** Commentary lines still called as finished English. ONLY EVER DECREASE. */
 const BUDGET = 0
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 type Dict = { [k: string]: unknown }
 const load = (p: string) => JSON.parse(readFileSync(p, 'utf8')) as Dict
@@ -38,8 +37,11 @@ const LANGS: Record<string, Dict> = { en: load('src/locales/en.json'), fr: load(
 const lookup = (d: Dict, key: string): unknown =>
   key.split('.').reduce<unknown>((o, part) => (o && typeof o === 'object' ? (o as Dict)[part] : undefined), d)
 
-const SRC = 'src/game/matchEngine.ts'
-const src = readFileSync(SRC, 'utf8')
+// matchEngine.ts is a facade since the engine was split by phase into
+// src/game/match/; the text read is the facade and every part, joined (line
+// numbers in the report count through the joined text).
+const SRC = 'src/game/matchEngine.ts + src/game/match/*.ts'
+const src = ['src/game/matchEngine.ts', ...readdirSync('src/game/match').filter(f => f.endsWith('.ts')).sort().map(f => `src/game/match/${f}`)].map(f => readFileSync(f, 'utf8')).join('\n')
 
 // ---- 1. how much English is left ------------------------------------------
 say('--- 1. every line is called with a key')
@@ -133,5 +135,4 @@ for (const phrase of PINNED) {
     `"${phrase}" still appears in the English commentary (saves from before MatchEvent.fx match on it)`)
 }
 
-say(fails ? `\nCOMM PROBE FAILED (${fails})` : `\nCOMM PROBE PASSED: ${wanted.size} commentary keys, every one of them in every language`)
-process.exitCode = fails ? 1 : 0
+done('COMM PROBE', `${wanted.size} commentary keys, every one of them in every language`)

@@ -10,10 +10,9 @@
 // Run: npx vite-node scripts/quoteprobe.ts
 import { readFileSync } from 'node:fs'
 import { speech, unwrap, prose } from '../src/game/quotes'
+import { ok, done } from './lib/probe'
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 type Dict = { [k: string]: unknown }
 const flat = (d: Dict, path = '', out: Record<string, string> = {}) => {
@@ -59,5 +58,4 @@ ok(speech('', 'en') === '', 'an empty answer stays empty, so the screen can say 
 ok(unwrap("'Judge us in May - aim high' (+£400k war chest)") === 'Judge us in May - aim high (+£400k war chest)', 'an answer with a note keeps the note')
 ok(prose('He says "crisis".', 'en') === 'He says “crisis”.', 'an old saved question has its straight quotes set')
 
-say(fails ? `\nQUOTE PROBE FAILED (${fails})` : '\nQUOTE PROBE PASSED: one pair of quotes, in the reader\'s language, every time')
-process.exitCode = fails ? 1 : 0
+done('QUOTE PROBE', 'one pair of quotes, in the reader\'s language, every time')

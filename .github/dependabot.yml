@@ -1,0 +1,48 @@
+# Keeps the pinned action SHAs in .github/workflows and the npm lockfiles
+# current (the game, the bot and both shells' Capacitor toolchains). A short
+# cooldown keeps a release published minutes ago, malicious or broken, out
+# of the first pull request. Actions are pinned to a full commit SHA with the tag as a comment;
+# Dependabot updates both together.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /discord
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /packaging/android
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: npm
+    directory: /packaging/ios
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    open-pull-requests-limit: 3

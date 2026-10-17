@@ -26,12 +26,7 @@
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 /** Every way a browser can start a request, by name. */
 const BANNED: [RegExp, string][] = [
@@ -143,5 +138,4 @@ ok(found.length === 0, `nothing in src/ or index.html can reach the network (${f
   ok(/globalThis/.test(m), 'and it finds that bridge on globalThis, where a wrapper can put it')
 }
 
-console.log(fails ? `\nNET PROBE FAILED (${fails})` : '\nNET PROBE PASSED: nothing shipped can send anything anywhere')
-if (fails) process.exit(1)
+done('NET PROBE', 'nothing shipped can send anything anywhere')

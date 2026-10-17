@@ -9,7 +9,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4233', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625 })
 await page.addInitScript(() => {
@@ -55,10 +55,12 @@ const mastheadCollisions = () => page.evaluate(() => {
   // is an icon has no text node to match on
   const boxes = [...mh.querySelectorAll('*')]
     .filter(e => (!e.querySelector('*') && (e.textContent ?? '').trim()) || e.tagName === 'BUTTON')
-    .map(e => ({ t: ((e.textContent ?? '').trim() || e.getAttribute('aria-label') || e.tagName).slice(0, 22), r: e.getBoundingClientRect() }))
+    .map(e => ({ e, t: ((e.textContent ?? '').trim() || e.getAttribute('aria-label') || e.tagName).slice(0, 22), r: e.getBoundingClientRect() }))
     .filter(b => b.r.width > 4 && b.r.height > 4)
   const hits = []
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+    // a button and the glyph inside it are one control, not two that collide
+    if (boxes[i].e.contains(boxes[j].e) || boxes[j].e.contains(boxes[i].e)) continue
     const a = boxes[i].r, b = boxes[j].r
     const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left)
     const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)
@@ -139,7 +141,7 @@ const report = async (label) => {
 }
 
 try {
-  await page.goto('http://localhost:4233/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   const s = await scheme()
   console.log(`color-scheme: root "${s.root}", meta ${s.meta ?? 'absent'}`)
@@ -252,7 +254,7 @@ try {
   let sawBulletin = false
   for (let tap = 0; tap < 8 && !sawBulletin; tap++) {
     if (await page.locator('text=Kick Off').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
     const head = await page.evaluate(() => {
       const d = document.querySelector('.day-head')

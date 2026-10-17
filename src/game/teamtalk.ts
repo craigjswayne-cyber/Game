@@ -50,7 +50,7 @@ import { mulberry32 } from './rng'
 
 export type PreTone = 'calm' | 'faith' | 'expect' | 'fire'
 export type HtTone = 'calm' | 'faith' | 'praise' | 'demand' | 'criticise' | 'fire'
-export type Tone = PreTone | HtTone
+type Tone = PreTone | HtTone
 
 /**
  * FOUR TONES AND SILENCE (owner, round 6: "Reduce pre-match chat to four... 4
@@ -114,13 +114,13 @@ const HT_FLAT = 0.15
  * manager's room: no AI club has a log, so the world's matches never move.
  * No draws, no numbers on screen, no trait names.
  */
-export const SILENCE_WINDOW = 5
+const SILENCE_WINDOW = 5
 const SILENCE_FORGIVEN = 2
 const SILENCE_BELIEF = 0.08
 const SILENCE_R = 0.035
 
 /** Silences among the last SILENCE_WINDOW rooms in a log. */
-export function silenceCount(log: string | undefined): number {
+function silenceCount(log: string | undefined): number {
   return [...(log ?? '').slice(-SILENCE_WINDOW)].filter(c => c === 'N').length
 }
 /** Steps of neglect a log adds up to, 0..3. */

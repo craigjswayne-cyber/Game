@@ -30,13 +30,13 @@
  * and the fingerprint is untouched. Same rule as dialweight and the Dream.
  */
 import { absWeek, fmtMoney, poss } from './model'
-import { INK_WEEKS } from './ai'
+import { INK_WEEKS } from './transferRules'
 import type { Club, GameState, Player } from './model'
 import { hashString, mulberry32 } from './rng'
 import { t } from './i18n'
 import { JANUARY_OPEN, nextWeek, windowOpen } from './window'
 
-export type Intent = 'rebuild' | 'consolidate' | 'allin' | 'breakup'
+type Intent = 'rebuild' | 'consolidate' | 'allin' | 'breakup'
 
 /**
  * What this club is trying to do this season. A PURE LENS: same club, same
@@ -82,7 +82,7 @@ export function talismanOf(state: GameState, clubId: string): Player | null {
 }
 
 /** How far the circling has got. 0 = nobody is looking. */
-export type HuntStage = 0 | 1 | 2 | 3
+type HuntStage = 0 | 1 | 2 | 3
 
 export interface Hunt {
   clubId: string

@@ -26,9 +26,7 @@ import { regenName } from '../src/game/nations'
 import { mulberry32 } from '../src/game/rng'
 import { migrate } from '../src/game/save'
 import { MRC_CUP } from '../src/game/schedule'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 console.log('--- 1. the league')
 const g = newGame('newengland', 'MRC Probe', 1776)
@@ -108,5 +106,4 @@ console.log('--- 6. a career saved before 1.7.3')
   ok(!!m.comps.mrc && m.fixtures.some(f => f.compId === 'mrc'), 'and the league is drawn at the next summer')
 }
 
-console.log(fails ? `\nMRC PROBE FAILED (${fails})` : '\nMRC PROBE PASSED: six clubs, ten rounds each, a champion, and nothing real in the names')
-process.exit(fails ? 1 : 0)
+done('MRC PROBE', 'six clubs, ten rounds each, a champion, and nothing real in the names', { exit: true })

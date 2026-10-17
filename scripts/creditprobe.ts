@@ -26,9 +26,7 @@ import {
 } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, failures } from './lib/probe'
 
 const g = newGame('leicester', 'Credit Probe', 5150)
 const me = g.userClubId
@@ -261,5 +259,5 @@ console.log('\n--- a kicker who has gone does not kick\n')
   ok(binBack === binTested, `and takes the tee back when his ten are up (${binBack} of ${binTested})`)
 }
 
-console.log(fails ? `\n${fails} FAILED` : '\nall ok')
-if (fails) process.exit(1)
+console.log(failures() ? `\n${failures()} FAILED` : '\nall ok')
+if (failures()) process.exit(1)

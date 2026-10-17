@@ -199,12 +199,16 @@ export function PosBadge({ pos }: { pos: string }) {
  *  asked for, so every pill in a column starts at the same x. */
 export function FormPill({ v, trend }: { v: number; trend?: 'up' | 'flat' | 'down' | null }) {
   const bg = v >= 7.5 ? 'var(--text-positive)' : v >= 6 ? 'var(--primary-pressed)' : v >= 4.5 ? 'var(--border-strong)' : 'var(--text-negative)'
+  // each band's own ink, so the figure clears 4.5:1 on its fill in every
+  // palette (white on the night greens was 2.3 to 4.3:1); the grey band keeps
+  // the stylesheet's ink, which the day theme darkens
+  const ink = v >= 7.5 ? 'var(--on-positive)' : v >= 6 ? 'var(--on-primary-pressed)' : v >= 4.5 ? undefined : 'var(--on-danger)'
   // the grey band is marked so the day theme can ink it dark: white on its
   // light grey was under 2:1 (UI QA, 1.8.0)
   const mid = v < 6 && v >= 4.5
   const label = trend ? t(trend === 'up' ? 'common.formRising' : trend === 'down' ? 'common.formFalling' : 'common.formSteady') : undefined
   const pill = (
-    <span className={`form-pill${mid ? ' mid' : ''}`} style={{ background: bg }} title={label} aria-label={label ? `${v.toFixed(1)}, ${label}` : undefined}>
+    <span className={`form-pill${mid ? ' mid' : ''}`} style={{ background: bg, color: ink }} title={label} aria-label={label ? `${v.toFixed(1)}, ${label}` : undefined}>
       {v.toFixed(1)}
     </span>
   )
@@ -235,7 +239,7 @@ export function Stars({ ca }: { ca: number }) {
   // number 20" - row 20 was the one three-star man in a list of halves).
   // Every glyph gets the same 1em cell, so five cells is five ems on every row.
   return (
-    <span style={{ color: 'var(--gold)', fontSize: 11 }}>
+    <span style={{ color: 'var(--gold)', fontSize: '0.6875rem' }}>
       {Array.from({ length: 5 }, (_, i) => {
         const lit = i < full
         const isHalf = i === full && half
@@ -270,7 +274,7 @@ export function Stars({ ca }: { ca: number }) {
 const REP_FLOOR = 36
 const REP_CEIL = 94
 
-export function clubStars(rep: number): number {
+function clubStars(rep: number): number {
   const n = Math.round(((rep - REP_FLOOR) / (REP_CEIL - REP_FLOOR)) * 10) / 2
   return Math.max(0.5, Math.min(5, n))
 }
@@ -342,24 +346,10 @@ export function AvailTag({ p, g }: { p: Player; g: GameState }) {
   // `tag`, not `t`: t() is the translator
   const tag = availabilityTag(p, g.week)
   if (!tag) return null
-  return <span style={{ color: tag.color, fontWeight: 700, fontSize: 11 }}>{tag.txt}</span>
+  return <span style={{ color: tag.color, fontWeight: 700, fontSize: '0.6875rem' }}>{tag.txt}</span>
 }
 
-export function attrClass(v: number): string {
-  return v >= 16 ? 'elite' : v >= 12 ? 'good' : v <= 7 ? 'poor' : ''
-}
 
-/** Small club-colour swatch shown next to team names. */
-export function TeamDot({ g, teamId }: { g: GameState; teamId: string }) {
-  const c = g.clubs[teamId]
-  if (!c) return null
-  return (
-    <span
-      className="team-dot"
-      style={{ background: `linear-gradient(135deg, ${c.colors[0]} 55%, ${c.colors[1]} 55%)` }}
-    />
-  )
-}
 
 interface CrestClub {
   id: string
@@ -702,13 +692,6 @@ export function ClubLink({ g, clubId, children }: {
   )
 }
 
-/** Colour for an attribute bar by value. */
-export function attrBarColor(v: number): string {
-  if (v >= 16) return 'var(--gold-fill)'
-  if (v >= 12) return 'var(--primary)'
-  if (v >= 8) return 'var(--border-strong)'
-  return 'var(--surface-3)'
-}
 
 
 /**

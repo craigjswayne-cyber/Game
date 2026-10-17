@@ -2,11 +2,12 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
+import { tapPast } from './lib/sheet.mjs'
 
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = await startPreview('4174', 2500)
+const server = await startPreview(0, 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: Number(process.env.W || 390), height: Number(process.env.H || 844) }, deviceScaleFactor: 2 })
@@ -15,7 +16,7 @@ page.on('pageerror', e => errors.push(String(e)))
 const shot = (n) => page.screenshot({ path: `${SHOTS}/${n}.png` })
 
 try {
-  await page.goto('http://localhost:4174/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await shot('r1-title')
   await page.click('text=New Career')
@@ -57,11 +58,11 @@ try {
   await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Start Second Half', { timeout: 15000 })
   await shot('r8a-halftime')
-  await page.click('text=▸ Start Second Half')
+  await tapPast(page, 'text=▸ Start Second Half')
   await page.waitForTimeout(400)
   await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Play the Final Quarter', { timeout: 15000 })
-  await page.click('text=▸ Play the Final Quarter')
+  await tapPast(page, 'text=▸ Play the Final Quarter')
   await page.waitForTimeout(400)
   await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Continue to Results', { timeout: 15000 })

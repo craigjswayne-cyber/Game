@@ -1,6 +1,6 @@
 import { CAMPUS_PLOTS } from '../game/campusPlots'
 import { groundLevel, type GameState } from '../game/model'
-import tacticsPitch from './tactics-pitch.png'
+import tacticsPitch from './tactics-pitch.webp'
 
 const ART = import.meta.env.BASE_URL + 'art/'
 
@@ -37,16 +37,16 @@ export function preloadCampus(game: GameState): void {
   if (!club) return
   started = true
 
-  const urls = [`${ART}campus/plate.png`, `${ART}campus/construction.png`]
+  const urls = [`${ART}campus/plate.webp`, `${ART}campus/construction.webp`]
   const build = game.facilityBuild ?? null
   for (const plot of CAMPUS_PLOTS) {
     const lvl = plot.fid === 'stadium'
       ? groundLevel(club.capacity)
       : club.facilities?.[plot.fid] ?? 0
-    urls.push(`${ART}facilities/${plot.art}-L${lvl}.png`)
+    urls.push(`${ART}facilities/${plot.art}-L${lvl}.webp`)
     // the rung the builders are climbing to, so the week it opens is instant
     if (build?.id === plot.fid && build.level <= 5) {
-      urls.push(`${ART}facilities/${plot.art}-L${build.level}.png`)
+      urls.push(`${ART}facilities/${plot.art}-L${build.level}.webp`)
     }
   }
 
@@ -83,13 +83,18 @@ export function preloadCampus(game: GameState): void {
  * the same session) the same list is fetched when the browser is idle, as the
  * campus art always was. Either way it never blocks anything: a picture that
  * has not arrived loads itself when its page opens, exactly as before.
+ *
+ * FETCHED AND DECODED, NOT HELD (1.9.1). Every image used to be kept in an
+ * array for the whole session, which pinned about 13 MB of decoded pixels on
+ * phones that kill apps for less. The files are now WebP (3.1 MB to 0.65 MB)
+ * and stay in the browser's cache once fetched, so a page that opens later
+ * decodes a small local file rather than waiting on anything.
  */
-const held: HTMLImageElement[] = []
 let allStarted = false
 
-export function allArtUrls(): string[] {
-  const urls = [tacticsPitch, `${ART}campus/plate.png`, `${ART}campus/construction.png`]
-  for (const plot of CAMPUS_PLOTS) for (let l = 0; l <= 5; l++) urls.push(`${ART}facilities/${plot.art}-L${l}.png`)
+function allArtUrls(): string[] {
+  const urls = [tacticsPitch, `${ART}campus/plate.webp`, `${ART}campus/construction.webp`]
+  for (const plot of CAMPUS_PLOTS) for (let l = 0; l <= 5; l++) urls.push(`${ART}facilities/${plot.art}-L${l}.webp`)
   return urls
 }
 
@@ -102,7 +107,6 @@ export function preloadAllArt(opts: { now?: boolean } = {}): void {
       img.decoding = 'async'
       img.src = src
       img.decode?.().catch(() => { /* a missing file loads on its page instead */ })
-      held.push(img)
     }
   }
   if (opts.now) { fetchAll(); return }

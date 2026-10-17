@@ -41,12 +41,8 @@ import { fileFindings } from '../src/game/matchfindings'
 import { buildReport, lastMeeting, opponentIn, planOptions, isClubFixture } from '../src/game/oppreport'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
 import type { Fixture, GameState } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'ja', 'af']
 for (const l of LANGS) await ensureLang(l)
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0)
@@ -337,5 +333,5 @@ console.log('\n--- 4. a season the assistant plays: homework, memory, the rematc
 }
 
 lap()
-console.log(fails ? `\nLOOP PROBE FAILED: ${fails}` : '\nLOOP PROBE PASSED')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\nLOOP PROBE FAILED: ${failures()}` : '\nLOOP PROBE PASSED')
+process.exit(failures() ? 1 : 0)

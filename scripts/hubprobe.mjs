@@ -18,12 +18,13 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { tapPast } from './lib/sheet.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview('4188', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // the user's phone, in portrait, in night mode
 const page = await browser.newPage({ viewport: { width: 412, height: 780 } })
@@ -44,7 +45,7 @@ const WANT = [
 ]
 
 try {
-  await page.goto('http://localhost:4188/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -129,7 +130,7 @@ try {
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off').count()) break
     walk.push((await page.locator('.continue-btn').innerText().catch(() => '?')).trim())
-    await page.click('.continue-btn').catch(() => {})
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(500)
   }
   say(`\nContinue taps: ${walk.join(' > ') || '(none)'}`)
@@ -168,8 +169,8 @@ try {
           return { lines: [...card.querySelectorAll('.meta')].map(m => ({ tag: m.getAttribute('data-ht-tag'), text: (m.textContent ?? '').trim() })) }
         })
       }
-      await page.click('text=▸ Start Second Half')
-        .catch(() => page.click('text=▸ Play the Final Quarter').catch(() => {}))
+      await tapPast(page, 'text=▸ Start Second Half')
+        .catch(() => tapPast(page, 'text=▸ Play the Final Quarter').catch(() => {}))
     } else {
       await page.click('.speed-controls [data-ctl=skip]').catch(() => {})
     }

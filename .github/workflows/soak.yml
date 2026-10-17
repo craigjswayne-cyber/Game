@@ -1,0 +1,71 @@
+name: Soak
+
+# THE LONG ONES, WEEKLY (1.9.1).
+#
+# The SLOW list in scripts/suite.sh (soakhealth, soakui, stresstest, deepsave,
+# e2edeep, releasesim, dialweight, optionsprobe, autopilotprobe, aiecon,
+# stackprobe, distressprobe, runtimematrix) ran in no CI job at all: only
+# `suite.sh all` by hand before a release. They take hours, so they get their
+# own workflow, once a week, rather than a place in the Gate.
+#
+# A workflow of its own and not a job in ci.yml because the Gate cancels
+# itself on a new push to the same ref: a soak four hours in would be thrown
+# away by the next merge to main.
+#
+# Seven shards, each taking every seventh soak (SSHARDS/SSHARD), so no shard
+# holds more than two of the thirteen (1.9.2; six shards put three on one).
+# Each soak has 90 minutes inside suite.sh, so a shard is three hours at the
+# very worst, with the build and Chromium, inside the 300-minute ceiling.
+#
+# release-check.yml runs these same shards, plus the whole browser list, on
+# a ref of your choosing before a release is cut.
+on:
+  schedule:
+    # Sunday 04:00 UTC, an hour after the nightly Gate
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: soak
+  cancel-in-progress: false
+
+jobs:
+  soak:
+    name: Soaks (shard ${{ matrix.sshard }} of 7)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        sshard: [1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # soakui and e2edeep drive the built game in a browser; pinned to
+      # playwright-core's own version for the reason given in ci.yml
+      - name: Install Chromium
+        run: npx "playwright@$(node -p "require('playwright-core/package.json').version")" install --with-deps chromium
+      - name: Locate Chromium
+        run: echo "PW_CHROMIUM=$(node -e "console.log(require('playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
+      - name: Soaks
+        env:
+          SSHARDS: 7
+          SSHARD: ${{ matrix.sshard }}
+        run: bash scripts/suite.sh soak
+      - name: Keep the screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: soak-shots-${{ matrix.sshard }}
+          path: |
+            shots/
+            shots-*/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -27,7 +27,7 @@
 import { absWeek, logDecision, type GameState, type Personality, type Player, type PressItem, type PressOption, type OfficeTopic } from './model'
 import { clamp, mulberry32 } from './rng'
 import { tIn } from './i18n'
-import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './media'
+import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './office'
 import { demands } from './culture'
 
 export type Fit = 'good' | 'mixed' | 'bad'
@@ -100,7 +100,7 @@ export const FIT: Record<string, Record<string, Record<Personality, Fit>>> = {
 const MORALE: Record<Fit, number> = { good: 0.9, mixed: -0.2, bad: -1.1 }
 
 /** Does what this man says in the office get out into the dressing room? */
-export function seniorVoice(state: GameState, p: Player): boolean {
+function seniorVoice(state: GameState, p: Player): boolean {
   const club = state.clubs[state.userClubId]
   return club?.captain === p.id || club?.vice === p.id || p.pers === 'Leader'
     || (p.age >= 29 && p.status === 'key')
@@ -122,7 +122,7 @@ function room(state: GameState, moraleDelta: number, trustDelta: number, but?: n
   state.mgrTrust = clamp((state.mgrTrust ?? 30) + trustDelta, 0, 100)
 }
 
-export interface TalkOutcome {
+interface TalkOutcome {
   fit: Fit
   /** the morale the answer carries, before the Temperamental swing */
   morale: number

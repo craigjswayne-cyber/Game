@@ -64,13 +64,13 @@ export type DefStyle = 'drift' | 'blitz' | 'pendulum' | 'man' | 'choke'
 export const ATK_STYLES: AtkStyle[] = ['direct', 'pods', 'width', 'kick', 'offload']
 export const DEF_STYLES: DefStyle[] = ['drift', 'blitz', 'pendulum', 'man', 'choke']
 
-export const isAtkStyle = (v: unknown): v is AtkStyle => typeof v === 'string' && (ATK_STYLES as string[]).includes(v)
-export const isDefStyle = (v: unknown): v is DefStyle => typeof v === 'string' && (DEF_STYLES as string[]).includes(v)
+const isAtkStyle = (v: unknown): v is AtkStyle => typeof v === 'string' && (ATK_STYLES as string[]).includes(v)
+const isDefStyle = (v: unknown): v is DefStyle => typeof v === 'string' && (DEF_STYLES as string[]).includes(v)
 
 /** the levers an attacking style sets */
-export type AtkPreset = Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'ruckCommit' | 'kickStyle'>
+type AtkPreset = Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'ruckCommit' | 'kickStyle'>
 /** the levers a defensive style sets */
-export type DefPreset = Required<Pick<Tactic, 'defLine' | 'defWidth' | 'ruckContest'>>
+type DefPreset = Required<Pick<Tactic, 'defLine' | 'defWidth' | 'ruckContest'>>
 
 export const ATK_PRESET: Record<AtkStyle, AtkPreset> = {
   direct: { style: 22, tempo: 46, kicking: 50, ruckCommit: 62, kickStyle: 'territory' },
@@ -114,9 +114,9 @@ export const MATCHUP: Record<AtkStyle, Record<DefStyle, number>> = {
 
 /** what one step of the matchup is worth on the try chance (0.04 = 4%): measured
  *  on the pitch (styleprobe) at a little under a point of margin a match */
-export const MATCH_K = 0.04
+const MATCH_K = 0.04
 
-export interface StyleFx {
+interface StyleFx {
   /** multiplier on the attack's try chance: the line breaks it makes (an
    *  attack) or allows (a defence, read on the other side's attack) */
   tryF: number
@@ -144,7 +144,7 @@ export const ATK_FX: Record<AtkStyle, StyleFx> = {
   offload: { tryF: 1.15, penF: 0.97, turn: 1.2, ground: 0, terr: 0, drain: 1.03 },
 }
 
-export const DEF_FX: Record<DefStyle, StyleFx> = {
+const DEF_FX: Record<DefStyle, StyleFx> = {
   drift: { tryF: 1.015, penF: 0.94, turn: 0.95, ground: 0, terr: 1, drain: 1.0 },
   blitz: { tryF: 0.96, penF: 1.08, turn: 1.1, ground: 0, terr: 1.2, drain: 1.04 },
   pendulum: { tryF: 1.04, penF: 0.98, turn: 0.95, ground: 0, terr: 0.4, drain: 0.99 },
@@ -173,7 +173,7 @@ export const TURN_M = 6
  *  At 0.2 the home side's edge thinned in single worlds (bandcheck's
  *  toulouse/777 fell from 55% home wins to 50%): the fit is a second draw on
  *  who is better, on top of the players, and it must stay the smaller one */
-export const FIT_K = 0.12
+const FIT_K = 0.12
 /** THE WORLD STAYS WHERE IT WAS CALIBRATED. Across a world where every club
  *  plays a style, the effects above need not average exactly neutral (the
  *  AI plays the kicking game a little more often than the others, and it
@@ -185,7 +185,7 @@ export const TRY_NORM = 0.995
 
 // ---------------------------------------------------------------- the fit
 
-export interface StyleNeed { shirts: number[]; attrs: (keyof Attrs)[] }
+interface StyleNeed { shirts: number[]; attrs: (keyof Attrs)[] }
 
 export const STYLE_NEEDS: Record<AtkStyle | DefStyle, StyleNeed[]> = {
   direct: [{ shirts: [1, 3, 8], attrs: ['str', 'han'] }, { shirts: [12], attrs: ['str'] }],
@@ -257,14 +257,6 @@ export function styleFitsRel(ids: (AtkStyle | DefStyle)[], at: (shirt: number, a
   return ids.map(id => clamp(raw[id] - mean, -1, 1))
 }
 
-/** a club's fit for a style, off its team sheet as it stands */
-export function clubStyleFit(state: GameState, club: Club, id: AtkStyle | DefStyle, lineup = club.tactic.lineup): number {
-  return styleFitRel(id, (shirt, a) => {
-    const pid = lineup[shirt - 1]
-    const p = pid != null ? state.players[pid] : undefined
-    return p ? p.a[a] : null
-  })
-}
 
 // ---------------------------------------------------------------- the moves
 
@@ -282,7 +274,7 @@ export const STYLE_MOVES: Record<AtkStyle, string[]> = {
   kick: ['mv_crosskick', 'mv_grubber'],
   offload: ['mv_backdoor', 'mv_decoy', 'mv_inside', 'mv_peel'],
 }
-export const MOVE_AFFINITY = 0.2
+const MOVE_AFFINITY = 0.2
 /** what the style does to a called move's fit: plus for a move that belongs
  *  to the style; a kicking side runs its open-play shapes a little worse */
 export function moveAffinity(atk: AtkStyle | undefined, moveId: string, shape: boolean): number {
@@ -353,7 +345,7 @@ export const PH_STYLES: Record<string, { atk: [AtkStyle, AtkStyle]; def: [DefSty
  */
 export type PodShape = '1331' | '242' | 'nine'
 export const POD_SHAPES: PodShape[] = ['1331', '242', 'nine']
-export const isPodShape = (v: unknown): v is PodShape => typeof v === 'string' && (POD_SHAPES as string[]).includes(v)
+const isPodShape = (v: unknown): v is PodShape => typeof v === 'string' && (POD_SHAPES as string[]).includes(v)
 
 /** multipliers on the Pods style's try chance, penalty window, turnovers and
  *  drain, and metres added to its ground (all 1 and 0 for the 1-3-3-1) */
@@ -362,8 +354,6 @@ export const POD_FX: Record<PodShape, { tryF: number; penF: number; turn: number
   '242': { tryF: 1.04, penF: 0.98, turn: 1.06, ground: -0.08, drain: 1.005 },
   nine: { tryF: 0.97, penF: 1.03, turn: 0.86, ground: 0.12, drain: 1.01 },
 }
-/** the forwards across the field, touch to touch, for anything that draws it */
-export const POD_GROUPS: Record<PodShape, number[]> = { '1331': [1, 3, 3, 1], '242': [2, 4, 2], nine: [3, 2, 3] }
 
 /** An attacking style's effect with its pod shape folded in. */
 export function atkFx(atk: AtkStyle, pod?: PodShape): StyleFx {
@@ -421,7 +411,7 @@ export const LEAGUE_LEAN: Record<string, Lean> = {
   mrc: { atk: { direct: 1.8, width: 1.5, kick: 0.7 }, def: { man: 1.8, pendulum: 0.8 } },
 }
 /** a league's lean, the women's leagues ('w:pwr') read as their own culture */
-export const leanOf = (leagueId: string | undefined): Lean => LEAGUE_LEAN[(leagueId ?? '').replace(/^w:/, '')] ?? {}
+const leanOf = (leagueId: string | undefined): Lean => LEAGUE_LEAN[(leagueId ?? '').replace(/^w:/, '')] ?? {}
 
 /** which of two by a hash fraction u (0..1), in proportion to the weights */
 function leanPick<T extends string>(pair: [T, T], w: Partial<Record<T, number>> | undefined, u: number): T {
@@ -429,7 +419,7 @@ function leanPick<T extends string>(pair: [T, T], w: Partial<Record<T, number>> 
   return u * (a + b) < a ? pair[0] : pair[1]
 }
 
-export interface Styles { atk: AtkStyle; def: DefStyle; pod?: PodShape }
+interface Styles { atk: AtkStyle; def: DefStyle; pod?: PodShape }
 
 /**
  * The styles a club plays. The manager's are his, on the tactic (or read off
@@ -491,7 +481,7 @@ export function migrateStyles(state: GameState) {
  *  the engine at kick-off and on every rebuild of the units (SideCtx.sty). */
 export interface SideStyle extends Styles { atkFit: number; defFit: number }
 
-export interface StyleTick {
+interface StyleTick {
   /** the matchup this tick, -2..2 */
   m: number
   tryF: number
@@ -545,11 +535,11 @@ export interface StyleWx { wet: number; windy: boolean }
 /** how much more often a wet ball is turned over, at full wetness, for an
  *  attack that handles an average amount (x WET_HANDLE for each style) */
 export const WET_TURN = 0.4
-export const WET_HANDLE: Record<AtkStyle, number> = { direct: 0.55, pods: 0.9, width: 1.25, kick: 0.6, offload: 1.6 }
+const WET_HANDLE: Record<AtkStyle, number> = { direct: 0.55, pods: 0.9, width: 1.25, kick: 0.6, offload: 1.6 }
 /** what the wet does to each attack's try chance, at full wetness: the
  *  carrying and kicking games suit it, the handling games do not. Averages
  *  close to zero over the five, so the wet moves who scores more than how much */
-export const WET_TRY: Record<AtkStyle, number> = { direct: 0.04, pods: 0, width: -0.04, kick: 0.04, offload: -0.05 }
+const WET_TRY: Record<AtkStyle, number> = { direct: 0.04, pods: 0, width: -0.04, kick: 0.04, offload: -0.05 }
 /** the share of a kicking game's territory the wind leaves it: a long kick
  *  into a gale comes back, and one with it runs dead */
 export const WIND_TERR = 0.6
@@ -582,8 +572,6 @@ export const styleDrain = (s: Styles | null): number => (s ? atkFx(s.atk, s.pod)
 
 export const atkName = (id: AtkStyle) => `styles.atk_${id}`
 export const defName = (id: DefStyle) => `styles.def_${id}`
-export const atkDesc = (id: AtkStyle) => `styles.atk_${id}Desc`
-export const defDesc = (id: DefStyle) => `styles.def_${id}Desc`
 /** the style as the commentary says it mid-sentence ("the blitz") */
 export const atkSay = (id: AtkStyle) => `styles.sayAtk_${id}`
 export const defSay = (id: DefStyle) => `styles.sayDef_${id}`
@@ -595,49 +583,6 @@ export function atkBeats(id: AtkStyle): { beats: DefStyle[]; weak: DefStyle[] } 
 }
 export function defBeats(id: DefStyle): { beats: AtkStyle[]; weak: AtkStyle[] } {
   return { beats: ATK_STYLES.filter(a => MATCHUP[a][id] < 0), weak: ATK_STYLES.filter(a => MATCHUP[a][id] > 0) }
-}
-
-// ---------------------------------------------------------------- the shapes
-
-/**
- * THE SHAPE OF EACH STYLE, for anything that draws a side playing it (the
- * highlight clip; the Tactics screen draws its own whiteboard versions in
- * ui/tacticsArt.tsx). Numbers in metres and seconds, taken from the coaching
- * study's keyframes: nothing here feeds back into the engine. A picture is
- * free to ignore any field it has no use for.
- *
- * ATTACK
- *   width       how far across the field the ball typically travels in a phase
- *   depth       how deep the first receivers stand behind the ruck
- *   passes      passes before contact in a typical phase
- *   pods        forwards grouped across the field, touch to touch (1-3-3-1)
- *   kick        the phase ends in a kick: hang time and distance of a box kick
- *   offload     the share of tackles the ball comes out of
- * DEFENCE
- *   lineSpeed   m/s the line comes up at
- *   slide       m/s the line slides outwards as the ball goes wide (the drift)
- *   deep        men standing back in the field (the full-back is one)
- *   track       each defender follows his own man rather than a channel
- *   tacklers    men into each tackle (the choke brings two, and keeps it up)
- *   upright     the tackle is made high, the carrier kept on his feet
- */
-export interface AtkShape { width: number; depth: number; passes: number; pods?: number[]; kick?: { hang: number; dist: number }; offload: number }
-export interface DefShape { lineSpeed: number; slide: number; deep: number; track: boolean; tacklers: number; upright: boolean }
-
-export const ATK_SHAPE: Record<AtkStyle, AtkShape> = {
-  direct: { width: 10, depth: 3.5, passes: 1, offload: 0.05 },
-  pods: { width: 35, depth: 3, passes: 2, pods: [1, 3, 3, 1], offload: 0.12 },
-  width: { width: 60, depth: 5.5, passes: 4, offload: 0.1 },
-  kick: { width: 20, depth: 4, passes: 1, kick: { hang: 4.3, dist: 38 }, offload: 0.05 },
-  offload: { width: 30, depth: 2.5, passes: 2, offload: 0.45 },
-}
-
-export const DEF_SHAPE: Record<DefStyle, DefShape> = {
-  drift: { lineSpeed: 2.5, slide: 3, deep: 1, track: false, tacklers: 1, upright: false },
-  blitz: { lineSpeed: 5.5, slide: 0, deep: 1, track: false, tacklers: 1, upright: false },
-  pendulum: { lineSpeed: 3, slide: 1, deep: 2, track: false, tacklers: 1, upright: false },
-  man: { lineSpeed: 3.5, slide: 0, deep: 1, track: true, tacklers: 1, upright: false },
-  choke: { lineSpeed: 4, slide: 0.5, deep: 1, track: false, tacklers: 2, upright: true },
 }
 
 /**

@@ -30,12 +30,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { effAt } from '../src/game/attributes'
 import { XV_SLOTS } from '../src/game/model'
 import type { GameState, Player } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 // ---- the module surface exists (red on any tree without the wave) ----
 const judgeFn = (ME as Record<string, unknown>).assistantJudgement as
@@ -167,5 +162,4 @@ if (typeof judgeFn === 'function') {
     `and 0.4 fan mood (saw ${(dMood - cMood).toFixed(2)})`)
 }
 
-console.log(fails ? `ABSENT PROBE FAILED (${fails})` : 'ABSENT PROBE PASSED')
-if (fails) process.exit(1)
+done('ABSENT PROBE', '', { blank: false })

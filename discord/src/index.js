@@ -3,8 +3,10 @@
 // slash commands, none of which require reading members' messages.
 import { Client, Events, GatewayIntentBits, MessageFlags } from 'discord.js'
 import { bugModal, submitBug } from './bug.js'
+import { bugWait, bugWaitText, noteBug } from './cooldown.js'
 import { clubMenu, findTeam, languagePanel, leagueMenu, startPanel } from './menus.js'
 import { clearTeams, explainRoleError, languagesOf, setLanguages, setTeam } from './roles.js'
+import { canRunSetup, SETUP_REFUSAL } from './commands.js'
 import { runSetup } from './setup.js'
 
 const token = process.env.DISCORD_TOKEN
@@ -23,8 +25,13 @@ client.on(Events.InteractionCreate, async i => {
     if (i.isChatInputCommand()) {
       if (i.commandName === 'club') return i.reply({ ...startPanel(), ...ephemeral })
       if (i.commandName === 'language') return i.reply({ ...languagePanel(languagesOf(i.member)), ...ephemeral })
-      if (i.commandName === 'bug') return i.showModal(bugModal())
+      if (i.commandName === 'bug') {
+        const wait = bugWait(i.user.id)
+        if (wait) return i.reply({ content: bugWaitText(wait), ...ephemeral })
+        return i.showModal(bugModal())
+      }
       if (i.commandName === 'setup') {
+        if (!canRunSetup(i)) return i.reply({ content: SETUP_REFUSAL, ...ephemeral })
         await i.deferReply(ephemeral)
         const made = await runSetup(i.guild, console.log)
         return i.editReply(made.length ? `Added: ${made.join(', ')}.` : 'Everything is already in place.')
@@ -64,7 +71,12 @@ client.on(Events.InteractionCreate, async i => {
       }
     }
 
-    if (i.isModalSubmit() && i.customId === 'bug:submit') return submitBug(i)
+    if (i.isModalSubmit() && i.customId === 'bug:submit') {
+      const wait = bugWait(i.user.id)
+      if (wait) return i.reply({ content: bugWaitText(wait), ...ephemeral })
+      noteBug(i.user.id)
+      return submitBug(i)
+    }
   } catch (err) {
     console.error(err)
     const content = explainRoleError(err)

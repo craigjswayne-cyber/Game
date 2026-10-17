@@ -30,12 +30,8 @@ import { SEASON_WEEKS, type GameState } from '../src/game/model'
 import { JOB_FIT, NEED, clubNeed, jobChance, jobFitLine, traitFits } from '../src/game/jobs'
 import type { Trait } from '../src/game/repute'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'ja', 'af']
 for (const l of LANGS) await ensureLang(l)
 const TRAITS: Trait[] = ['youth', 'turnaround', 'spender', 'innovator', 'hard', 'players', 'attack', 'defence']
@@ -104,5 +100,5 @@ ok(share('attack') >= 0.08 && share('defence') >= 0.08, `the traits careers earn
 ok(!needWrong && !needEarly, `a club's need is its own table row against its league's rate, from four matches (${needWrong} wrong, ${needEarly} early)`)
 ok(raw === 0 && shown.size >= 3, `the card says why in six languages (${shown.size} different lines)`)
 ok(JOB_FIT === 0.06 && typeof jobChance === 'function', 'the lift is still six points')
-console.log(fails ? `\nJOB FIT PROBE FAILED: ${fails}` : '\nJOB FIT PROBE PASSED')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\nJOB FIT PROBE FAILED: ${failures()}` : '\nJOB FIT PROBE PASSED')
+process.exit(failures() ? 1 : 0)

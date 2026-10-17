@@ -25,7 +25,7 @@ import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
-const server = await startPreview(4193, 2500)
+const server = await startPreview(0, 2500)
 
 // UNBUFFERED, ON PURPOSE. Piped to a file, node buffers stdout in blocks, so the
 // two runs of this probe that were killed by a timeout left a log containing the
@@ -52,7 +52,7 @@ async function sweep(label, height, stopAt, width = 412) {
   const page = await browser.newPage({ viewport: { width, height } })
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   try {
-    await page.goto('http://localhost:4193/')
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
     await page.click('text=New Career')
     await page.waitForSelector('text=English Premier Division')
@@ -70,7 +70,8 @@ async function sweep(label, height, stopAt, width = 412) {
 
     for (let tap = 0; tap < 10; tap++) {
       if (await page.locator('text=Kick Off ▸').count()) break
-      await page.click('.continue-btn')
+      // a turning week covers the button for a moment: try again next tap
+      await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
       await page.waitForTimeout(450)
     }
     await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
@@ -86,7 +87,10 @@ async function sweep(label, height, stopAt, width = 412) {
     // Play forward until the touchline panel we want is on screen. Half-time
     // comes first; the break is one resume further on.
     const reachPanel = async want => {
-      for (let i = 0; i < 120; i++) {
+      // 240 steps, and four minutes at most: a loaded runner plays fewer
+      // minutes a step (1.9.1), and nothing may hold the suite for longer
+      const until = Date.now() + 240000
+      for (let i = 0; i < 240 && Date.now() < until; i++) {
         // A TOUCHLINE CALL STOPS EVERYTHING, INCLUDING SKIP. The Skip button is
         // disabled while a penalty decision is unanswered ("The touchline call is
         // yours first"), so a loop that only presses Skip sits at the same minute
@@ -97,6 +101,14 @@ async function sweep(label, height, stopAt, width = 412) {
           await page.waitForTimeout(300)
           continue
         }
+        // any injury stop has to be answered before play goes on, and before
+        // the panel under it: the sheet covers the panel's buttons, so a loop
+        // that tried Resume first tapped a covered button until time ran out
+        if (await page.locator('.squad-sheet').count()) {
+          await answerSheet(page)
+          await page.waitForTimeout(300)
+          continue
+        }
         const panel = page.locator('.ticker.panel-area .card h3')
         if (await panel.count()) {
           const t = (await panel.first().textContent()) ?? ''
@@ -104,19 +116,10 @@ async function sweep(label, height, stopAt, width = 412) {
           if (want === 'BRK' && /break in play/.test(t)) return true
           // the wrong panel: resume and keep going
           const resume = page.locator('.ticker.panel-area .btn.gold')
-          if (await resume.count()) { await resume.first().click(); await page.waitForTimeout(400); continue }
-        }
-        // any injury stop has to be answered before play goes on
-        if (await page.locator('.squad-sheet').count()) {
-          const first = page.locator('.squad-sheet .sheet-col >> nth=1').locator('.sheet-row').first()
-          if (await first.count()) await first.click().catch(() => {})
-          const done = page.locator('.squad-sheet .btn.gold')
-          if (await done.count()) await done.first().click().catch(() => {})
-          await page.waitForTimeout(300)
-          continue
+          if (await resume.count()) { await resume.first().click({ timeout: 5000 }).catch(() => {}); await page.waitForTimeout(400); continue }
         }
         const skip = page.locator('.speed-controls .btn').nth(1)
-        if (await skip.count()) await skip.click().catch(() => {})
+        if (await skip.count()) await skip.click({ timeout: 3000 }).catch(() => {})
         await page.waitForTimeout(500)
       }
       return false
@@ -126,6 +129,13 @@ async function sweep(label, height, stopAt, width = 412) {
     // open the match-day squad the way a manager does
     const openBtn = page.locator('.ticker.panel-area button', { hasText: 'Match-Day Squad' })
     if (!(await openBtn.count())) { ok(false, 'the panel offers a way into the match-day squad'); return }
+    // an injury stop at the same moment opens the injury-wait sheet first
+    // (1.9.1), which greys every row but the ones that answer it. That is not
+    // the sheet this sweep measures: answer it, then open the manager's own
+    for (let i = 0; i < 6 && await page.locator('.squad-sheet').count(); i++) {
+      await answerSheet(page)
+      await page.waitForTimeout(400)
+    }
     await openBtn.first().click()
     await page.waitForSelector('.squad-sheet', { timeout: 5000 })
     await page.waitForTimeout(350)
@@ -304,6 +314,22 @@ async function sweep(label, height, stopAt, width = 412) {
   } finally {
     await page.close()
   }
+}
+
+// Answer an open squad sheet the way a manager would: the man the match is
+// waiting on (or any man on), then each tappable bench row in turn until one
+// is taken, then back to the match. Bounded, so a refused row cannot spin it.
+async function answerSheet(page) {
+  await page.locator('.squad-sheet .sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+  const rows = page.locator('.squad-sheet .sheet-col >> nth=1').locator('.sheet-row:not([disabled])')
+  const n = await rows.count().catch(() => 0)
+  for (let k = 0; k < Math.min(n, 8); k++) {
+    const done = page.locator('.squad-sheet .btn.gold:not([disabled])')
+    if (await done.count()) break
+    await rows.nth(k).click({ timeout: 3000 }).catch(() => {})
+    await page.waitForTimeout(150)
+  }
+  await page.locator('.squad-sheet .btn.gold:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
 }
 
 try {

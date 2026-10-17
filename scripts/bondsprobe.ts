@@ -37,9 +37,8 @@ import {
   groupsOf, migrateBonds, seedBonds, seniorVoices, type BondState,
 } from '../src/game/bonds'
 import type { GameState, Player } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x))
 const squad = (g: GameState) => g.clubs[g.userClubId].players.map(id => g.players[id]).filter((p): p is Player => !!p && !p.acad)
 
@@ -432,5 +431,4 @@ function weekIndex(t: { weeks: string[]; weekLabels?: string[] }, row: string): 
   rmSync(dir, { recursive: true, force: true })
 }
 
-console.log(fails ? `BONDS PROBE FAILED (${fails})` : 'BONDS PROBE PASSED: seeded quietly, moved by events, capped, bounded, migrated and in six languages')
-process.exit(fails ? 1 : 0)
+done('BONDS PROBE', 'seeded quietly, moved by events, capped, bounded, migrated and in six languages', { exit: true, blank: false })

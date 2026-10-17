@@ -14,18 +14,18 @@
 //
 // Run: node scripts/backupreach.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { startPreview, done } from './lib/preview.mjs'
+import { startPreview, done, until } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
 const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const server = await startPreview('4211', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 const startCareer = async (page) => {
-  await page.goto('http://localhost:4211/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -72,7 +72,7 @@ try {
     const share = page.locator('.btn.gold', { hasText: 'Send a copy' })
     ok(await share.count() === 1, 'the Saves screen offers Send a copy')
     await share.click()
-    await page.waitForTimeout(500)
+    await until(page, () => !!globalThis.__shared, null, 3000)
 
     const shared = await page.evaluate(() => globalThis.__shared)
     ok(!!shared, 'the share sheet was handed something')

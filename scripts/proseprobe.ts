@@ -23,16 +23,18 @@
 //
 // Run: npx vite-node scripts/proseprobe.ts
 import { readFileSync, readdirSync } from 'node:fs'
+import { ok, done } from './lib/probe'
+import { storeFiles } from './lib/storefiles'
 
 /** ONLY EVER DECREASE. */
 const BUDGET = { decisions: 0, press: 0, touchline: 0, replies: 0 }
 
 const say = (s: string) => console.log(s)
-let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const GAME = 'src/game'
-const files = readdirSync(GAME).filter(f => f.endsWith('.ts')).map(f => `${GAME}/${f}`)
+// recursive since season.ts and matchEngine.ts were split into src/game/season/
+// and src/game/match/
+const files = readdirSync(GAME, { recursive: true }).map(String).filter(f => f.endsWith('.ts')).sort().map(f => `${GAME}/${f}`)
 
 /** Does this argument carry a SENTENCE, rather than a key or an expression that
  *  picks between keys?
@@ -153,10 +155,10 @@ say('\n--- 3. what the touchline says back')
 // bare `return '...'` in matchEngine, which is easy to grep and easy to miss.
 const touchline: string[] = []
 {
-  // src/store.ts as well as the engine: the same replies are given there when
+  // the store (src/store.ts and src/store/) as well as the engine: the same replies are given there when
   // the action arrives after the whistle, and only counting one file is how a
   // category gets declared finished while half of it is still English.
-  for (const f of ['src/game/matchEngine.ts', 'src/store.ts']) {
+  for (const f of [...files.filter(f => f === 'src/game/matchEngine.ts' || f.startsWith('src/game/match/')), ...storeFiles()]) {
     const src = readFileSync(f, 'utf8')
     for (const m of src.matchAll(/\breturn\s+(`[^`]{14,}`|'[^']{14,}')/g)) {
       if (isProse(m[1])) touchline.push(`${f}:${src.slice(0, m.index).split('\n').length}`)
@@ -177,7 +179,7 @@ say('\n--- 4. and what it says back everywhere else')
 // reply whichever screen asked for it.
 const replies: string[] = []
 for (const f of files) {
-  if (f.endsWith('matchEngine.ts')) continue
+  if (f.endsWith('matchEngine.ts') || f.startsWith('src/game/match/')) continue
   const src = readFileSync(f, 'utf8')
   // A few functions return something that LOOKS like a sentence and is not: a
   // trait's id, which traitName() turns into a key, and the English body a
@@ -207,5 +209,4 @@ if (replies.length < BUDGET.replies) {
   ok(false, `THE REPLIES BUDGET IS STALE: ${replies.length} left but it still says ${BUDGET.replies}. Lower it`)
 }
 
-say(fails ? `\nPROSE PROBE FAILED (${fails})` : '\nPROSE PROBE PASSED: nothing reaches a reader in a language they did not choose')
-process.exitCode = fails ? 1 : 0
+done('PROSE PROBE', 'nothing reaches a reader in a language they did not choose')

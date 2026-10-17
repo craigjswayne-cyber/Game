@@ -17,9 +17,7 @@
 import { newGame } from '../src/game/newgame'
 import { beginMatch, playHalf, matchStats } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const play = (seed: number, fxIndex: number, detail: boolean) => {
   const g = newGame('leicester', 'Detail Probe', seed)
@@ -92,5 +90,4 @@ ok(sameStats === N, `and the same match sheet and the same thirty men on at the 
   ok(sameMarks === M, `with the same marks and the same man of the match (${sameMarks}/${M})`)
 }
 
-console.log(fails ? `\nDETAIL PROBE FAILED (${fails})` : '\nDETAIL PROBE PASSED: watching a match does not change it')
-process.exit(fails ? 1 : 0)
+done('DETAIL PROBE', 'watching a match does not change it', { exit: true })

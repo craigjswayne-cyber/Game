@@ -11,12 +11,11 @@
 // Run: node scripts/paletteqa.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
+import { ok, failures } from './lib/probe.mjs'
 
-const server = await startPreview('4193', 2500)
+const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
-let fails = 0
-const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const hex = (h) => {
   const n = h.replace('#', '')
   return `rgb(${parseInt(n.slice(0, 2), 16)}, ${parseInt(n.slice(2, 4), 16)}, ${parseInt(n.slice(4, 6), 16)})`
@@ -25,7 +24,10 @@ const hex = (h) => {
 const readTokens = (page) => page.evaluate(() => {
   const el = document.querySelector('.app') ?? document.documentElement
   const cs = getComputedStyle(el)
-  const get = (t) => cs.getPropertyValue(t).trim()
+  // the build's CSS minifier writes #ffffff as #fff (Vite 8, 1.9.1): read
+  // every short hex at full length so the comparisons below stay exact
+  const get = (t) => cs.getPropertyValue(t).trim().toLowerCase()
+    .replace(/#([0-9a-f])([0-9a-f])([0-9a-f])(?![0-9a-f])/g, '#$1$1$2$2$3$3')
   return {
     night: el.classList?.contains('night') ?? false,
     canvas: get('--canvas'), s1: get('--surface-1'), border: get('--border'),
@@ -38,19 +40,19 @@ const readTokens = (page) => page.evaluate(() => {
 try {
   // ---- NIGHT IS THE DEFAULT: no localStorage at all ----
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
-  await page.goto('http://localhost:4193/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   const t = await readTokens(page)
   ok(t.night, 'a fresh install opens under the floodlights (night default)')
   ok(t.canvas === '#1a201e', `night canvas #1a201e (saw ${t.canvas})`)
   ok(t.s1 === '#242b29', `night surface-1 #242b29 (saw ${t.s1})`)
   ok(t.border === '#333c3a', `night border #333c3a (saw ${t.border})`)
-  ok(t.tp === '#f0f4f2' && t.ts === '#b3bdb9' && t.tm === '#8b958f',
+  ok(t.tp === '#f0f4f2' && t.ts === '#b3bdb9' && t.tm === '#a5afa9',
     `chalk text ramp resolves (saw ${t.tp}/${t.ts}/${t.tm})`)
-  ok(t.primary === '#34c06f' && t.gold === '#e9be68' && t.danger === '#ef6c63',
+  ok(t.primary === '#34c06f' && t.gold === '#e9be68' && t.danger === '#f27a71',
     `the three signals resolve: green ${t.primary}, gold ${t.gold}, red ${t.danger}`)
   ok(t.positive === '#34c06f', 'the --text-positive alias follows --primary through the mode')
-  ok(t.hero.includes('#16523a') && t.hero.includes('#1e8c4e'), 'night hero gradient is the deep green pair')
+  ok(t.hero.includes('#16523a') && t.hero.includes('#135c39'), 'night hero gradient is the deep green pair')
 
   // ---- into a save: the applied rules ----
   await page.click('text=New Career')
@@ -105,24 +107,24 @@ try {
     return { active: active && getComputedStyle(active).color, idle: idle && getComputedStyle(idle).color }
   })
   ok(nav.active === hex('34c06f'), `the selected nav icon is primary (saw ${nav.active})`)
-  ok(nav.idle === hex('8b958f'), `a resting nav icon is muted, not coloured (saw ${nav.idle})`)
+  ok(nav.idle === hex('a5afa9'), `a resting nav icon is muted, not coloured (saw ${nav.idle})`)
   await page.close()
 
   // ---- DAY: the same names, the other values ----
   const day = await browser.newPage({ viewport: { width: 390, height: 844 } })
   await day.addInitScript(() => localStorage.setItem('rm-night', '0'))
-  await day.goto('http://localhost:4193/')
+  await day.goto(`${server.origin}/`)
   await day.waitForSelector('text=RUGBY', { timeout: 15000 })
   const d = await readTokens(day)
   ok(!d.night, 'rm-night=0 turns the daylight on')
   ok(d.canvas === '#f1f4f1' && d.s1 === '#ffffff', `day surfaces resolve (saw ${d.canvas}/${d.s1})`)
-  ok(d.primary === '#0f7a43' && d.gold === '#8a6516' && d.danger === '#c0362c',
+  ok(d.primary === '#0f7a43' && d.gold === '#7a5a12' && d.danger === '#c0362c',
     `day signals resolve: green ${d.primary}, gold ${d.gold}, red ${d.danger}`)
   ok(d.positive === '#0f7a43', 'the alias follows the mode: --text-positive is the day green')
   await day.close()
 
-  console.log(fails ? `PALETTE QA FAILED (${fails})` : 'PALETTE QA PASSED: two accents, both modes, meanings held')
-  process.exitCode = fails ? 1 : 0
+  console.log(failures() ? `PALETTE QA FAILED (${failures()})` : 'PALETTE QA PASSED: two accents, both modes, meanings held')
+  process.exitCode = failures() ? 1 : 0
 } catch (e) {
   console.error('PALETTE QA FAILED:', String(e).slice(0, 400))
   process.exitCode = 1

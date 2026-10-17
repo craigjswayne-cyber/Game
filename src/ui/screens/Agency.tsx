@@ -6,6 +6,7 @@ import { agencyKids, agencySeniors } from '../../game/agency'
 import { seenValue } from '../../game/scout'
 import { ClubLink, CrestT, Nat, PosBadge, SectionTitle } from '../components'
 import { t } from '../../game/i18n'
+import { rowNavTr } from '../rowNav'
 
 /** The Scouting Agency: monthly world rankings, FM-style. */
 /** What the movement arrows are measured from.
@@ -35,7 +36,7 @@ export function MoveCell({ from, to, compared }: { from: number; to: number; com
   if (compared && from < 0) mark = <span style={{ color: 'var(--info)' }}>★</span>
   else if (compared && from > to) mark = <span style={{ color: 'var(--text-positive)' }}>▲{from - to}</span>
   else if (compared && from >= 0 && from < to) mark = <span style={{ color: 'var(--text-negative)' }}>▼{to - from}</span>
-  return <td className="rk-move" style={{ fontSize: 11, whiteSpace: 'nowrap' }}>{mark}</td>
+  return <td className="rk-move" style={{ fontSize: '0.6875rem', whiteSpace: 'nowrap' }}>{mark}</td>
 }
 
 export default function Agency() {
@@ -65,7 +66,7 @@ export default function Agency() {
             const prevIdx = prev.indexOf(p.id)
             const mine = p.clubId === game.userClubId
             return (
-              <tr key={p.id} onClick={() => go('player', p.id)}
+              <tr key={p.id} {...rowNavTr(() => go('player', p.id))}
                 style={mine ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
                 <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
                 <MoveCell from={prevIdx} to={i} compared={prev.length > 0} />
@@ -86,7 +87,7 @@ export default function Agency() {
           })}
         </tbody>
       </table></div>
-      <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
+      <div className="meta" style={{ padding: '4px 16px', fontSize: '0.75rem' }}>
         {sinceLine(game)}{t('world.agFoot')}
       </div>
       <div className="spacer" />

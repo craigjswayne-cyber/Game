@@ -32,7 +32,7 @@ export function EraCard({ e, live }: { e: Era; live: boolean }) {
       <div className="fact-label">
         {e.cn} · {seasonLabel(e.f)}{e.t !== e.f ? ` - ${seasonLabel(e.t)}` : ''}{live ? ` · ${t('arc.eraSoFar')}` : ''}
       </div>
-      <div style={{ fontWeight: 700, fontSize: 14, margin: '3px 0 4px' }}>{t(e.sk, e.sv)}</div>
+      <div style={{ fontWeight: 700, fontSize: '0.875rem', margin: '3px 0 4px' }}>{t(e.sk, e.sv)}</div>
       <div className="meta era-built">{line1}</div>
       {line2 && <div className="meta era-built">{line2}</div>}
       {e.gp && <div className="dash-line"><span className="dl-t">{t('arc.eraPlayer')}</span><b>{e.gp.n}</b></div>}

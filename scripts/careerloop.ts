@@ -43,12 +43,8 @@ import { advanceHunt, talismanOf } from '../src/game/living'
 import { SEASON_WEEKS, type Fixture, type GameState } from '../src/game/model'
 import { RETOLD, nextTelling, tellingsOf } from '../src/game/tellings'
 import { readFileSync } from 'node:fs'
+import { ok, failures } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
 const runTo = (g: GameState, season: number, week: number) => {
   let guard = 0
   while ((g.season < season || (g.season === season && g.week < week)) && guard++ < 400) processWeekAndAdvance(g)
@@ -313,6 +309,6 @@ console.log('\n--- 7. the same story does not read the same way twice running')
 }
 
 console.log('')
-if (fails === 0) console.log('CAREER LOOP PASSED: the summer, the sack, the women\'s world and the wider one all hold')
-else console.log(`CAREER LOOP FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('CAREER LOOP PASSED: the summer, the sack, the women\'s world and the wider one all hold')
+else console.log(`CAREER LOOP FAILED (${failures()})`)
+process.exit(failures())

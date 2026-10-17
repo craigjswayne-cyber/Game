@@ -11,6 +11,8 @@ import { AvailTag, FormPill, LoanKey, LoanName, PosBadge, SectionTitle, Stars } 
 import { benchSeats } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { IcoAttack, IcoChevron, IcoHandshake, IcoPack, IcoShield } from '../icons'
+import { rowNavTr } from '../rowNav'
+import { Veil } from '../Veil'
 
 /* Keys, not words: this array is built once at module load and the language
    can change afterwards. The English wording is in src/locales/en.json. */
@@ -122,7 +124,7 @@ export default function SelectionPane() {
     const p = pid != null ? game.players[pid] : null
     const problem = p && (p.injury || p.bans > 0 || p.natSquad || p.clubId !== club.id)
     return (
-      <tr key={slot} onClick={() => tapSlot(slot)}
+      <tr key={slot} {...rowNavTr(() => tapSlot(slot))}
         className={`${problem ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
@@ -174,30 +176,28 @@ export default function SelectionPane() {
       .filter((x): x is Player => !!x && (roleSheet === 'captain' || !x.acad) && !(roleSheet === 'vice' && x.id === club.captain))
       .sort((a, b) => b.a.lea - a.a.lea)
     return (
-      <div className="modal-veil" onClick={() => setRoleSheet(null)}>
-        <div className="modal lead-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
-          <div className="grab" />
-          <SectionTitle sub={t('selection.roleSheetSub')}>{title}</SectionTitle>
-          <div className="lead-list">
-            <table className="dtable"><tbody>
-              {pool.map(p => {
-                const away = awayReason(p)
-                return (
-                  <tr key={p.id} className={p.id === cur ? 'sel' : undefined} onClick={() => appoint(roleSheet, p.id)}>
-                    <td><PosBadge pos={p.pos} /></td>
-                    <td className="name">{p.name}{p.injury ? <> {injCross}</> : away && <div className="meta">{away}</div>}</td>
-                    <td className="lead-bar"><span style={{ width: `${p.a.lea * 5}%` }} /></td>
-                    <td className="num"><b>{p.a.lea}</b></td>
-                  </tr>
-                )
-              })}
-            </tbody></table>
-          </div>
-          {roleSheet !== 'captain' && (
-            <button className="btn ghost block" onClick={() => appoint(roleSheet, null)}>{t('selection.nobodyHasIt')}</button>
-          )}
+      <Veil onClose={() => setRoleSheet(null)} boxClassName="modal lead-sheet" role="dialog" label={title}>
+        <div className="grab" />
+        <SectionTitle sub={t('selection.roleSheetSub')}>{title}</SectionTitle>
+        <div className="lead-list">
+          <table className="dtable"><tbody>
+            {pool.map(p => {
+              const away = awayReason(p)
+              return (
+                <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNavTr(() => appoint(roleSheet, p.id))}>
+                  <td><PosBadge pos={p.pos} /></td>
+                  <td className="name">{p.name}{p.injury ? <> {injCross}</> : away && <div className="meta">{away}</div>}</td>
+                  <td className="lead-bar"><span style={{ width: `${p.a.lea * 5}%` }} /></td>
+                  <td className="num"><b>{p.a.lea}</b></td>
+                </tr>
+              )
+            })}
+          </tbody></table>
         </div>
-      </div>
+        {roleSheet !== 'captain' && (
+          <button className="btn ghost block" onClick={() => appoint(roleSheet, null)}>{t('selection.nobodyHasIt')}</button>
+        )}
+      </Veil>
     )
   }
 
@@ -210,31 +210,29 @@ export default function SelectionPane() {
     const pool = availablePlayers(game, club.players)
       .sort((a, b) => (openSeat ? effAt(b, b.pos) - effAt(a, a.pos) : effAt(b, pos) - effAt(a, pos)))
     return (
-      <div className="modal-veil" onClick={() => setPickSlot(null)}>
-        <div className="modal" onClick={e => e.stopPropagation()}>
-          <div className="grab" />
-          <div style={{ padding: '0 12px 10px' }}>
-            <SectionTitle sub={t('selection.slot', { shirt: pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt })}>
-              {openSeat ? t('selection.pickAnybody') : t('selection.pickA', { pos })}
-            </SectionTitle>
-            <table className="dtable">
-              <tbody>
-                {pool.map(p => (
-                  <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
-                    style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
-                    <td><PosBadge pos={p.pos} /></td>
-                    <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('selection.selected') : ''}</td>
-                    <td><Stars ca={effAt(p, pos)} /></td>
-                    <td><FormPill v={p.form} trend={formTrend(p)} /></td>
-                    <td className="num">{Math.round(p.cond)}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button className="btn ghost block" onClick={() => setSlot(pickSlot, null)}>{t('selection.clearSlot')}</button>
-          </div>
+      <Veil onClose={() => setPickSlot(null)}>
+        <div className="grab" />
+        <div style={{ padding: '0 12px 10px' }}>
+          <SectionTitle sub={t('selection.slot', { shirt: pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt })}>
+            {openSeat ? t('selection.pickAnybody') : t('selection.pickA', { pos })}
+          </SectionTitle>
+          <table className="dtable">
+            <tbody>
+              {pool.map(p => (
+                <tr key={p.id} {...rowNavTr(() => setSlot(pickSlot, p.id))}
+                  style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
+                  <td><PosBadge pos={p.pos} /></td>
+                  <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('selection.selected') : ''}</td>
+                  <td><Stars ca={effAt(p, pos)} /></td>
+                  <td><FormPill v={p.form} trend={formTrend(p)} /></td>
+                  <td className="num">{Math.round(p.cond)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button className="btn ghost block" onClick={() => setSlot(pickSlot, null)}>{t('selection.clearSlot')}</button>
         </div>
-      </div>
+      </Veil>
     )
   }
 

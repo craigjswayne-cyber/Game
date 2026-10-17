@@ -1,12 +1,12 @@
-import type { Competition, Fixture, GameState, TableRow } from './model'
+import type { Competition, GameState, TableRow } from './model'
 import { W, genderOf, type Gender } from './gender'
-import {absWeek, BASE_YEAR, fixtureDayOff, worldCupSeasonFor } from './model'
+import {BASE_YEAR, fixtureDayOff, worldCupSeasonFor } from './model'
 import {
   AUTUMN_WEEKS, CC_KO_WEEKS, CC_POOL_WEEKS, MRC_CUP_KO_WEEKS, MRC_CUP_POOL_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS, TRC_WEEKS,
   WC_KO_WEEKS, WC_POOL_WEEKS, W_AUTUMN_WEEKS, W_CC_KO_WEEKS, W_CC_POOL_WEEKS, W_PAC4_WEEKS, W_SIX_NATIONS_WEEKS,
   W_SUMMER_TEST_WEEKS, W_WC_KO_WEEKS, W_WC_POOL_WEEKS, leagueWeeksFor, playoffWeeksFor, preseasonWeeksFor,
 } from './calendar'
-import { hashString, mulberry32, shuffled, type Rng } from './rng'
+import { hashString, mulberry32, shuffled, type Rng, cmpStr } from './rng'
 import { seedNatRank } from './natrank'
 import { nationNameIn, nationVars } from './nations'
 
@@ -17,14 +17,11 @@ const ordinalWord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' 
 // type, and the invariant a built season has to pass. The names below are
 // re-exported so nothing that imported them from here has to move.
 export {
-  PRESEASON_WEEKS, LEAGUE_WEEKS, CC_POOL_WEEKS, CC_KO_WEEKS, AUTUMN_WEEKS, SIX_NATIONS_WEEKS,
-  TRC_WEEKS, PNC_WEEKS, WC_POOL_WEEKS, WC_KO_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS,
-  W_PRESEASON_WEEKS, W_LEAGUE_WEEKS, W_CC_POOL_WEEKS, W_CC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS,
-  W_SUMMER_TEST_WEEKS, W_PAC4_WEEKS, W_WC_POOL_WEEKS, W_WC_KO_WEEKS,
+  LEAGUE_WEEKS, CC_KO_WEEKS, TRC_WEEKS, TOUR_WEEKS, W_CC_KO_WEEKS,
 } from './calendar'
 /** The six who play the Northern Championship, and the six who do not. */
-export const W_NORTH = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
-export const W_SOUTH = ['NZL', 'AUS', 'CAN', 'USA', 'JPN', 'RSA']
+const W_NORTH = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
+const W_SOUTH = ['NZL', 'AUS', 'CAN', 'USA', 'JPN', 'RSA']
 
 /** Berger-style round robin. Returns rounds of [home, away] pairs. */
 export function roundRobin(teams: string[], rng: Rng, double: boolean): [string, string][][] {
@@ -65,7 +62,7 @@ export function emptyRow(teamId: string): TableRow {
   return { teamId, p: 0, w: 0, d: 0, l: 0, pf: 0, pa: 0, tf: 0, ta: 0, bp: 0, pts: 0 }
 }
 
-export interface LeagueSpec {
+interface LeagueSpec {
   id: string
   name: string
   short: string
@@ -93,7 +90,7 @@ export interface LeagueSpec {
  * phase; the shield legs mirror each other. The derby legs open and close the
  * season, which is roughly where the real competition puts them.
  */
-export function shieldRoundRobin(shields: string[][], rng: Rng): [string, string][][] {
+function shieldRoundRobin(shields: string[][], rng: Rng): [string, string][][] {
   const groups = shields.map(s => shuffled(rng, s))
   const shieldLegs = groups.map(g => roundRobin(g, rng, false)) // 3 rounds each
   const legRounds = (mirror: boolean): [string, string][][] => {
@@ -331,7 +328,7 @@ export const MRC_CUP = 'mrcc'
 export function buildMrcCup(clubIds: readonly string[], state: GameState): Competition | null {
   if (clubIds.length !== 6) return null
   const rng = mulberry32(hashString(`mrc-cup:${state.seed}:${state.season}`))
-  const ranked = [...clubIds].sort((a, b) => (state.clubs[b]?.rep ?? 0) - (state.clubs[a]?.rep ?? 0) || a.localeCompare(b))
+  const ranked = [...clubIds].sort((a, b) => (state.clubs[b]?.rep ?? 0) - (state.clubs[a]?.rep ?? 0) || cmpStr(a, b))
   const pools = [[ranked[0], ranked[3], ranked[4]], [ranked[1], ranked[2], ranked[5]]]
   const comp: Competition = {
     id: MRC_CUP,

@@ -31,7 +31,7 @@ import { effAt } from './attributes'
 
 export type BenchSplit = '5-3' | '6-2' | '4-4'
 
-export interface BenchSeat {
+interface BenchSeat {
   shirt: number
   pos: Pos[]
   /** An OPEN seat takes whoever you put in it and is labelled with HIS position
@@ -44,7 +44,7 @@ export interface BenchSeat {
   open?: boolean
 }
 
-export interface SplitDef {
+interface SplitDef {
   id: BenchSplit
   name: string
   desc: string
@@ -112,7 +112,7 @@ export const SPLITS: SplitDef[] = [
 export const SPLIT_BY_ID: Record<string, SplitDef> =
   Object.fromEntries(SPLITS.map(s => [s.id, s]))
 
-export const DEFAULT_SPLIT: BenchSplit = '5-3'
+const DEFAULT_SPLIT: BenchSplit = '5-3'
 
 /** Which bench a club names when nobody has told it otherwise.
  *
@@ -244,7 +244,7 @@ export function refillBench(state: GameState, club: Club) {
 
 export type Brief = 'orders' | 'impact' | 'shore' | 'manage'
 
-export interface BriefDef {
+interface BriefDef {
   id: Brief
   name: string
   /** two words at most, for the chip in a table row */
@@ -266,7 +266,7 @@ export const BRIEFS: BriefDef[] = [
 export const BRIEF_BY_ID: Record<string, BriefDef> =
   Object.fromEntries(BRIEFS.map(b => [b.id, b]))
 
-export const DEFAULT_BRIEF: Brief = 'orders'
+const DEFAULT_BRIEF: Brief = 'orders'
 
 /** THE BENCH COMES WITH JOBS (1.8.1, owner: "make it so the bench have a few
  *  different options selected from default to show people they have

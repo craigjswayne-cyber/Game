@@ -31,18 +31,13 @@ import { pressBlock, deskBlock } from '../src/game/days'
 import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
+import { ok, failures } from './lib/probe'
 
 /** Read the inbox, the way a manager does before the press get to him. The
  *  press hold defers to unread mail on purpose - the questions are ABOUT the
  *  week's news - so nothing below can be asserted until the pile is cleared. */
 function readTheMail(g: GameState) {
   for (const n of g.news) n.read = true
-}
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
 }
 
 /** Put a real question in the room, however many rolls it takes. */
@@ -143,7 +138,7 @@ console.log('\n--- 3. a season of it, answered every time, and the clock still r
     'and the room is either clear or holding something answerable')
 }
 
-console.log(fails === 0
+console.log(failures() === 0
   ? '\nPRESS GATE PASSED: the week waits for an answer, and an answer always exists'
-  : `\nPRESS GATE FAILED: ${fails}`)
-process.exit(fails === 0 ? 0 : 1)
+  : `\nPRESS GATE FAILED: ${failures()}`)
+process.exit(failures() === 0 ? 0 : 1)

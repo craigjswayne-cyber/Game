@@ -1,12 +1,13 @@
 // End-to-end smoke test: drive the built app in mobile Chromium (landscape).
 import { chromium } from 'playwright-core'
-import { startPreview } from './lib/preview.mjs'
+import { startPreview, until } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
+import { tapPast } from './lib/sheet.mjs'
 
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = await startPreview('4173', 2500)
+const server = await startPreview(0, 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
@@ -91,20 +92,42 @@ async function playMatch(speech = 'Calm the nerves') {
     await page.click('text=▸ Take the Field')
   } catch { /* no modal - straight to the tunnel */ }
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Start Second Half', { timeout: 20000 })
-  await page.click('text=▸ Start Second Half')
+  await skipTo('Start Second Half')
+  await tapPast(page, 'text=▸ Start Second Half')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Play the Final Quarter', { timeout: 20000 })
-  await page.click('text=▸ Play the Final Quarter')
+  await skipTo('Play the Final Quarter')
+  await tapPast(page, 'text=▸ Play the Final Quarter')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Continue to Results', { timeout: 20000 })
+  await skipTo('Continue to Results')
+}
+
+/**
+ * Skip on to a break, answering whatever stops the clock on the way. A bad
+ * injury holds the match until a man is named (the 1.9.1 wait), and a kickable
+ * penalty asks the touchline: both used to leave this waiting for a break that
+ * could not come, which read as a flaky timeout about one run in five.
+ */
+async function skipTo(label) {
+  const until = Date.now() + 40000
+  while (Date.now() < until) {
+    if (await page.locator(`text=${label}`).first().isVisible().catch(() => false)) return
+    if (await page.locator('.sheet-col').first().isVisible().catch(() => false)) {
+      // arm a man who is on, then take a bench option, then close the sheet
+      await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.btn', { hasText: /Back to the Match|Done|Close/ }).first().click({ timeout: 3000 }).catch(() => {})
+    } else if (await page.locator('.btn', { hasText: 'Take the Points' }).first().isVisible().catch(() => false)) {
+      await page.locator('.btn', { hasText: 'Take the Points' }).first().click().catch(() => {})
+    } else {
+      await page.click('.speed-controls [data-ctl=skip]', { timeout: 2000 }).catch(() => {})
+    }
+    await page.waitForTimeout(250)
+  }
+  await page.waitForSelector(`text=${label}`, { timeout: 1000 })
 }
 
 try {
-  await page.goto('http://localhost:4173/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await shot('01-title')
 
@@ -151,7 +174,8 @@ try {
   for (let i = 0; i < 4; i++) {
     await page.click('.bottom-nav button[title="News"]')
     await page.waitForSelector('.reader', { timeout: 15000 })
-    await page.waitForTimeout(200)
+    // the next letter is up when the subject changes (or 3 s, and the order check says why)
+    await until(page, prev => { const t = document.querySelector('.reader h2')?.textContent ?? ''; return t !== '' && t !== prev }, opening.at(-1) ?? '', 3000)
     opening.push((await page.locator('.reader h2').innerText()).trim())
   }
   console.log(`opening inbox: ${opening.map(x => `"${x.slice(0, 34)}"`).join(' > ')}`)
@@ -188,7 +212,10 @@ try {
   await shot('06-selection')
   if (await page.locator('text=In-Form XV').count()) throw new Error('In-Form XV button is back')
   await page.click('text=Best XV')
-  await page.waitForTimeout(400)
+  await until(page, () => {
+    const g = window.rugbyStore.getState().game
+    return (g?.clubs[g.userClubId]?.tactic.lineup ?? []).filter(x => x != null).length >= 15
+  }, null, 3000)
   {
     const s = await careerState()
     ok(s.picked >= 15, `Best XV filled the team sheet (${s.picked} shirts named)`)
@@ -321,7 +348,7 @@ try {
   const bulletins = []
   for (let tap = 0; tap < 8; tap++) {
     const label = (await page.locator('.continue-btn').innerText()).trim()
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
     await clearOffers()
     const day = await page.evaluate(() => document.querySelector('.day-head .dh-day')?.textContent ?? null)
@@ -353,7 +380,8 @@ try {
   await shot('11b-inbox')
   const firstSubject = await page.locator('.reader h2').innerText()
   await page.click('.bottom-nav button[title="News"]')
-  await page.waitForTimeout(250)
+  // the next unread is up when the subject changes; "all read" leaves it, so 2 s at most
+  await until(page, prev => (document.querySelector('.reader h2')?.textContent ?? '') !== prev, firstSubject, 2000)
   const secondSubject = await page.locator('.reader h2').innerText()
   const posDbg = await page.locator('.reader-pos').innerText()
   console.log(`inbox queue: "${firstSubject.slice(0, 40)}" then "${secondSubject.slice(0, 40)}" | pos: ${posDbg}`)
@@ -370,7 +398,7 @@ try {
 
   // burn through several weeks (mix of matchday + blank weeks)
   for (let i = 0; i < 8; i++) {
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(500)
     await clearOffers()
     await clearWire()

@@ -14,7 +14,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
-const server = await startPreview('4195', 2500)
+const server = await startPreview(0, 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // PORTRAIT, because that is the orientation the game is played in and the one
@@ -28,7 +28,7 @@ let fails = 0
 const ok = (cond, what) => { console.log(`${cond ? '  ok' : 'FAIL'} ${what}`); if (!cond) fails++ }
 
 try {
-  await page.goto('http://localhost:4195/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -49,7 +49,7 @@ try {
   // waited twenty seconds for a button that was several days away.
   for (let tap = 0; tap < 8; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })

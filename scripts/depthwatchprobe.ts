@@ -17,9 +17,7 @@ import { newGame } from '../src/game/newgame'
 import { depthNeed, depthWatch, fitAt } from '../src/game/depthwatch'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
 import type { GameState, Player, Pos } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { ok, done } from './lib/probe'
 
 const g: GameState = newGame('leicester', 'Depth Watch', 4242)
 const club = g.clubs[g.userClubId]
@@ -147,5 +145,4 @@ ok(!/DepthPane|'depth'/.test(squad) && /DepthPane/.test(readFileSync('src/ui/scr
     `the back row is counted as one (${fit} fit across FL and N8)`)
   for (const p of fl) p.injury = null as never
 }
-console.log(fails ? `\nDEPTH WATCH FAILED (${fails})` : '\nDEPTH WATCH PASSED: one word per spell, and the chart is just a chart')
-process.exit(fails ? 1 : 0)
+done('DEPTH WATCH', 'one word per spell, and the chart is just a chart', { exit: true })

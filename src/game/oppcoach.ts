@@ -20,7 +20,7 @@
 // and the fingerprint reads the exact game it was calibrated on - the
 // analyst only wakes when a real manager leans on the dials.
 import { mgrReputation, type GameState } from './model'
-import { lineupFor, teamUnits } from './matchEngine'
+import { lineupFor, teamUnits } from './match/selection'
 import { hashString, mulberry32 } from './rng'
 import { tendencyProfile, type TendencyProfile } from './tendency'
 import { COUNTER } from './philosophy'
@@ -46,7 +46,7 @@ export type Archetype = 'stubborn' | 'analyst' | 'reactive'
  * exclusively" a sharp dugout the review called for, without a discontinuity
  * anywhere the manager could feel as a cliff-edge.
  */
-export function archetypeWeights(rep: number): { stubborn: number; analyst: number; reactive: number } {
+function archetypeWeights(rep: number): { stubborn: number; analyst: number; reactive: number } {
   const t = Math.max(0, Math.min(1, (rep - 38) / (93 - 38)))
   const lerp = (a: number, b: number) => a + (b - a) * t
   return { stubborn: lerp(0.85, 0.08), analyst: lerp(0.10, 0.46), reactive: lerp(0.05, 0.46) }
@@ -85,7 +85,7 @@ function dialFactor(unit: 'attack' | 'scrum' | 'breakdown' | 'kicking' | 'defenc
   }
 }
 
-export interface AnalystShift {
+interface AnalystShift {
   /** multiplier per unit, ready for layer() */
   layers: Partial<Record<'attack' | 'scrum' | 'breakdown' | 'kicking' | 'defence' | 'tempo', number>>
   /** how far toward the counter the plan moved, 0..0.45 */
@@ -173,7 +173,7 @@ export function repetitionFatigue(state: GameState): number {
  * known quantity the next, if it did well. RESPECT is how far that standing
  * sits above the opposing club's reputation, 0 at level and 1 at 15 clear.
  */
-export function userStanding(state: GameState): number {
+function userStanding(state: GameState): number {
   const club = state.clubs[state.userClubId]
   if (!club) return 0
   let s = (club.rep + mgrReputation(state)) / 2
@@ -209,10 +209,10 @@ export function respectLayers(state: GameState, clubId: string): Partial<Record<
 /** below this a coach does not change a thing */
 export const RESPECT_MIN = 0.15
 
-export type Weak = 'scrum' | 'lineout' | 'breakdown' | 'kicking' | 'defence'
+type Weak = 'scrum' | 'lineout' | 'breakdown' | 'kicking' | 'defence'
 
 /** The manager's weakest unit, measured against the side he is about to play. */
-export function userWeakness(state: GameState, oppId: string): Weak | null {
+function userWeakness(state: GameState, oppId: string): Weak | null {
   // his sheet as it stands, read and never written: lineupFor would tidy a
   // stale sheet on the way, a week before the match does
   const sheet = state.clubs[state.userClubId]?.tactic.lineup ?? []

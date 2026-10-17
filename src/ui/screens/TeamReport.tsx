@@ -9,6 +9,7 @@ import { t } from '../../game/i18n'
 import MentoringPanel from './MentoringPanel'
 import DepthPane from './DepthChart'
 import { Glyph } from '../glyphs'
+import { rowNav, rowNavTr } from '../rowNav'
 
 /** The assistant's full report on the squad, FM Team Report style. */
 export default function TeamReport({ initial }: { initial?: string }) {
@@ -57,7 +58,7 @@ export default function TeamReport({ initial }: { initial?: string }) {
         <button className={rtab === 'mentoring' ? 'active' : ''} onClick={() => setRtab('mentoring')}>{t('training.mentoring')}</button>
       </div>
       {(rtab === 'standing' || rtab === 'xv') && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-        <h3 style={{ fontSize: 14 }}>{t('report.trVerdict')}</h3>
+        <h3 style={{ fontSize: '0.875rem' }}>{t('report.trVerdict')}</h3>
         <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
       </div>}
       {rtab === 'mentoring' && <MentoringPanel />}
@@ -85,7 +86,7 @@ export default function TeamReport({ initial }: { initial?: string }) {
         </colgroup>
         <tbody>
         {squad.filter(p => stars.has(p.id)).map(p => (
-          <tr key={p.id} onClick={() => go('player', p.id)}>
+          <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
             <td><PosBadge pos={p.pos} /></td>
             <td className="name"><Glyph name="star" /> {p.name}</td>
             <td><Stars ca={p.ca} /></td>
@@ -103,9 +104,9 @@ export default function TeamReport({ initial }: { initial?: string }) {
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 102, padding: '12px 24px 4px' }}>
         {buckets.map(b => (
           <div key={b.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontSize: 11, fontWeight: 700 }}>{b.n}</span>
+            <span style={{ fontSize: '0.6875rem', fontWeight: 700 }}>{b.n}</span>
             <div style={{ width: '100%', height: `${(b.n / maxB) * 58}px`, background: 'var(--club-show, var(--club1))', borderRadius: '4px 4px 0 0', minHeight: 2 }} />
-            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{b.label}</span>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{b.label}</span>
           </div>
         ))}
       </div>
@@ -115,7 +116,7 @@ export default function TeamReport({ initial }: { initial?: string }) {
       <SectionTitle>{t('report.trCurrentXV')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {bestXi.map(({ slot, p }, i) => (
-          <tr key={i} onClick={() => p && go('player', p.id)}>
+          <tr key={i} {...(p ? rowNav(() => go('player', p.id)) : {})}>
             <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{slot.shirt}</td>
             <td><PosBadge pos={slot.pos} /></td>
             <td className="name">{p?.name ?? '-'}</td>

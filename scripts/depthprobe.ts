@@ -25,7 +25,10 @@
 //      is still played, and every club still plays its coach's philosophy.
 //
 // Run: npx vite-node scripts/depthprobe.ts
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
+// matchEngine.ts is a facade since the engine was split by phase into
+// src/game/match/; the engine's source is the facade and every part.
+const engineSource = (): string => ['src/game/matchEngine.ts', ...readdirSync('src/game/match').filter(f => f.endsWith('.ts')).sort().map(f => `src/game/match/${f}`)].map(f => readFileSync(f, 'utf8')).join('\n')
 import { newGame } from '../src/game/newgame'
 import { beginMatch, checkFrontRow, liveFrontRowCover, resolveDecision, specialistGaps, stepTick, teamUnits, SPEC_PROP, type LiveCtx, type SideCtx } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
@@ -38,9 +41,8 @@ import { INJ_NORM, SURFACES, clubSurface, halfTimeHints, injuryF, matchCondition
 import { HABITS, HABIT_RATE, clutchKick, habitFx, habitHint, habits } from '../src/game/habits'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
 import { buildClip } from '../src/ui/HighlightClip'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const mean = (xs: number[]) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'af', 'ja']
@@ -213,9 +215,9 @@ console.log('\n--- 3. the briefing\n')
   const keys = [...WX.flatMap(w => [`matchday.wx${w}`, wxEffectKey(w)]), ...SURFACES.flatMap(s => [surfKey(s), surfaceNote(s)]), 'matchday.theConditions', 'matchday.htWord',
     ...['htPensBin', 'htRefTight', 'htRefLoose', 'htWetHands', 'htWetTight', 'htWind', 'htUncontested', 'htWorking', 'htHurting'].map(k => `matchday.${k}`)]
   ok(LANGS.every(l => keys.every(k => has(l, k))), `the conditions card and the half-time read speak six languages (${keys.length} keys)`)
-  const src = readFileSync('src/game/matchEngine.ts', 'utf8')
+  const src = engineSource()
   ok(['L. Pearce', 'K. Dickson', 'N. Amashukeli', 'P. Brousset'].every(n => src.includes(`name: '${n}'`)), 'the referee panel keeps its real names')
-  const md = readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
+  const md = readFileSync('src/ui/screens/matchday/Preview.tsx', 'utf8')
   ok(md.includes('data-conditions') && md.includes('refNotes(ref)') && md.includes('surfaceOf(game, fx)'), 'the pre-match card reads the referee, the weather and the ground')
   const ref = { name: 'A. Referee', scrum: 1, breakdown: 0.9, patience: 5, flow: 1 }
   const calm = { consPens: 1, turnLost: 0, turnWon: 1, scrum: 15, score: 7 }
@@ -317,7 +319,7 @@ console.log('\n--- 4. the specialist shirts and Law 3\n')
     checkFrontRow(h, ctx, side, 30, p, 'hia')
     ok(!!ctx.uncontested && side.short === 0, 'a head injury replacement made permanent is treated like a blood one: no player lost')
   }
-  const src = readFileSync('src/game/matchEngine.ts', 'utf8')
+  const src = engineSource()
   ok(/THE LAW AS IMPLEMENTED \(World Rugby Law 3/.test(src), 'the rule implemented is stated in the engine, with its source')
   ok(LANGS.every(l => ['comm.uncontestedNoRep', 'comm.uncontestedBin', 'comm.specProp', 'comm.specHook', 'comm.specNine'].every(k => has(l, k))), 'the law and the specialist shirts are said in six languages')
   // and the commentary names a non-specialist when he is out there
@@ -438,7 +440,8 @@ console.log('\n--- 5. the secret habits\n')
   if (hits.length) console.log(hits.slice(0, 20).map(h => `        ${h}`).join('\n'))
   ok(hits.length === 0, `${rendered} strings rendered across six languages, none names a habit`)
   // the only UI door is habitHint, own men only, at the full read
-  const ui = ['src/ui/screens/PlayerScreen.tsx', 'src/ui/screens/MatchDay.tsx', 'src/ui/StylesSection.tsx', 'src/ui/screens/Squad.tsx']
+  const ui = ['src/ui/screens/PlayerScreen.tsx', 'src/ui/screens/MatchDay.tsx', 'src/ui/StylesSection.tsx', 'src/ui/screens/Squad.tsx',
+    ...readdirSync('src/ui/screens/matchday').map(f => `src/ui/screens/matchday/${f}`)]
     .map(f => { try { return readFileSync(f, 'utf8') } catch { return '' } }).join('\n')
   ok(!/\bhabits\(|habitFx|HABIT_RATE/.test(ui), 'no screen reads the habits themselves, only the plain-words hint')
   let shown = 0, strangers = 0
@@ -561,5 +564,4 @@ console.log('\n--- 7. the leagues\n')
   ok([...ATK_STYLES, ...DEF_STYLES].every(s => favoured.has(s)), 'every style is favoured by at least one league')
 }
 
-console.log(fails ? `\nDEPTH PROBE FAILED (${fails})` : '\nDEPTH PROBE PASSED: the shapes, the weather, the whistle, the law, the habits, the ground and the leagues each do what they say')
-process.exit(fails ? 1 : 0)
+done('DEPTH PROBE', 'the shapes, the weather, the whistle, the law, the habits, the ground and the leagues each do what they say', { exit: true })

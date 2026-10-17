@@ -30,10 +30,11 @@ import { respectFor, restoreOpposition, RESPECT_MIN } from '../src/game/oppcoach
 import { PHILOSOPHY_BY_ID } from '../src/game/philosophy'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
-import { readFileSync } from 'node:fs'
-
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+import { readFileSync, readdirSync } from 'node:fs'
+import { ok, failures } from './lib/probe'
+// matchEngine.ts is a facade since the engine was split by phase into
+// src/game/match/; the engine's source is the facade and every part.
+const engineSource = (): string => ['src/game/matchEngine.ts', ...readdirSync('src/game/match').filter(f => f.endsWith('.ts')).sort().map(f => `src/game/match/${f}`)].map(f => readFileSync(f, 'utf8')).join('\n')
 
 // 24, not 8: at 8 the margin check sat inside its own noise (0.39 against
 // 1.02 on the same code at 24, 27-28 Sep 2026)
@@ -158,7 +159,7 @@ const mHi = (hiMOff - hiMOn) / hiN
 // breakdown at full respect), 33.1% against 37.2%, 2.0 points of margin a
 // match. Which one is live depends on whether the engine reads it, so the
 // cost is asserted only when it does; either way it must never help him.
-const wired = readFileSync(new URL('../src/game/matchEngine.ts', import.meta.url), 'utf8').includes('respectLayers(')
+const wired = engineSource().includes('respectLayers(')
 // the margin is the firm test: 1.10 to 1.50 points a match on four
 // reshuffled lists against a floor of 0.5. The win rate it becomes is about
 // 2pp with a standard error near 1 over six worlds, so a 1.5pp floor failed
@@ -170,5 +171,5 @@ else {
 }
 ok(dHi <= 10, `...and it is a nudge, not a wall (${dHi.toFixed(1)}pp, ceiling 10)`)
 ok(leaks === 0, `every plan came off the week after (${leaks} leaks)`)
-console.log(fails ? `\n${fails} FAILURES` : '\nRESPECT PROBE PASSED: the league sets up for a big name, and only for his matches')
-process.exit(fails ? 1 : 0)
+console.log(failures() ? `\n${failures()} FAILURES` : '\nRESPECT PROBE PASSED: the league sets up for a big name, and only for his matches')
+process.exit(failures() ? 1 : 0)

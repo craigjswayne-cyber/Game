@@ -8,6 +8,10 @@
 <title>PHASE: Rugby Manager</title>
 <meta name="description" content="Take a club from the bottom to the top. A deep, offline rugby union manager for iPhone and Android, with 171 clubs in fifteen leagues across the men's and women's game.">
 <link rel="canonical" href="https://phaserugbymanager.com/">
+<!-- the hero picture is a CSS background and the font is named in CSS, so
+     the browser found both late: asked for here, they arrive with the page -->
+<link rel="preload" as="image" href="./img/hero.webp" type="image/webp" fetchpriority="high">
+<link rel="preload" as="font" href="./space-grotesk-latin.woff2" type="font/woff2" crossorigin>
 <link rel="icon" href="./img/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" sizes="180x180" href="./img/icon-180.png">
 
@@ -80,7 +84,7 @@
   --border-strong: #4a5553;
   --text-primary: #f0f4f2;
   --text-secondary: #b3bdb9;
-  --text-muted: #8b958f;
+  --text-muted: #a5afa9;
   --primary: #34c06f;
   --primary-hover: #4ed88c;
   --on-primary: #070d0a;

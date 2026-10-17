@@ -26,12 +26,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { migrate } from '../src/game/save'
 import { setWorld } from '../src/game/i18n'
 import { newsByline, SEASON_WEEKS, type GameState, type NewsItem } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 const isLaw = (n: NewsItem) => !!n.k && /^news\.law(Watch|Talk)\d/.test(n.k)
 // the power rankings are the whole table's column, so they name every club in
@@ -216,6 +211,6 @@ ok(lawTalks >= RUNS.length * SEASONS, `the plausible proposals land on the calen
 }
 
 console.log('')
-if (fails === 0) console.log('RUCK PROBE PASSED: the rest of the league under Ruck\'s byline, and his own club in its own voice')
-else console.log(`RUCK PROBE FAILED (${fails})`)
-process.exit(fails)
+if (failures() === 0) console.log('RUCK PROBE PASSED: the rest of the league under Ruck\'s byline, and his own club in its own voice')
+else console.log(`RUCK PROBE FAILED (${failures()})`)
+process.exit(failures())

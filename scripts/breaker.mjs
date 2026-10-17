@@ -27,8 +27,7 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 
-const PORT = 4181
-const server = await startPreview(PORT, 3000)
+const server = await startPreview(0, 3000)
 
 /** What the script is doing, for tagging any error the page throws. */
 let phase = 'boot'
@@ -104,7 +103,7 @@ let atKick = false
 try {
   // ---- 1. the wizard, abused --------------------------------------------
   await step('wizard', async () => {
-    await page.goto(`http://localhost:${PORT}/`)
+    await page.goto(`${server.origin}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 20000 })
     await tap('text=New Career', 3)                      // triple tap
     await page.waitForSelector('text=English Premier Division', { timeout: 8000 })

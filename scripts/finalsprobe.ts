@@ -32,12 +32,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { EURO_FINAL_VENUES } from '../src/game/model'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, failures } from './lib/probe'
 
 // settle two full seasons, snapshotting each final at the week it is played -
 // the rollover sweeps the fixture list, so a final has to be caught in passing
@@ -149,5 +144,5 @@ for (const s of [0, 1]) {
   ok(dashes.length === 0, 'no em dashes in the finals coverage')
 }
 
-if (fails) { console.error(`\nFINALS PROBE: ${fails} failures`); process.exit(1) }
+if (failures()) { console.error(`\nFINALS PROBE: ${failures()} failures`); process.exit(1) }
 console.log('\nFINALS PROBE PASSED: the final is a showpiece and the whole game knows it')

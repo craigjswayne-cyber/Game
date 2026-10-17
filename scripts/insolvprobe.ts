@@ -23,12 +23,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
 import { ADMIN_PENALTY, adminPenalty, insolvencyRisk, settleInsolvency } from '../src/game/insolvency'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const wagesOf = (g: ReturnType<typeof newGame>, id: string) =>
   g.clubs[id].players.reduce((s, pid) => s + (g.players[pid]?.wage ?? 0), 0)
@@ -118,5 +113,4 @@ const wagesOf = (g: ReturnType<typeof newGame>, id: string) =>
     'and it is spent once that season has been played, not carried forever')
 }
 
-console.log(fails ? `INSOLVENCY PROBE FAILED (${fails})` : 'INSOLVENCY PROBE PASSED: going broke costs points, and ends')
-if (fails) process.exit(1)
+done('INSOLVENCY PROBE', 'going broke costs points, and ends', { blank: false })

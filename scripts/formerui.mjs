@@ -17,13 +17,13 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, failures } from './lib/probe.mjs'
+import { tapPast } from './lib/sheet.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
-let fails = 0
-const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const raw = s => /[{}]|\b(mem|oppreport|matchday)\.[a-zA-Z_]+/.test(s)
 
-const server = await startPreview('4196', 3000)
+const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 const errors = []
@@ -32,7 +32,7 @@ page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.setDefaultTimeout(4000)
 
 try {
-  await page.goto('http://localhost:4196/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -77,7 +77,7 @@ try {
   await page.waitForSelector('.continue-btn', { timeout: 15000 })
   for (let tap = 0; tap < 40; tap++) {
     if (await page.locator('text=Kick Off').count()) break
-    await page.click('.continue-btn').catch(() => {})
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(400)
   }
   ok(await page.locator('text=Kick Off').count() > 0, 'Continue walked to the matchday')
@@ -112,8 +112,8 @@ try {
     if (s.ft) break
     if (s.call) await page.click('text=Take the Points').catch(() => {})
     else if (s.interval) {
-      await page.click('text=▸ Start Second Half')
-        .catch(() => page.click('text=▸ Play the Final Quarter').catch(() => {}))
+      await tapPast(page, 'text=▸ Start Second Half')
+        .catch(() => tapPast(page, 'text=▸ Play the Final Quarter').catch(() => {}))
     } else await page.click('.speed-controls [data-ctl=skip]').catch(() => {})
     await page.waitForTimeout(250)
   }
@@ -129,5 +129,5 @@ try {
   await browser.close()
   server.stop()
 }
-say(fails ? `\n${fails} FAILED` : '\nFORMER UI PASSED')
-done(fails)
+say(failures() ? `\n${failures()} FAILED` : '\nFORMER UI PASSED')
+done(failures())

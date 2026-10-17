@@ -41,7 +41,7 @@ import { isForward } from './bench'
 import type { Club, GameState, Tactic } from './model'
 import { t } from './i18n'
 
-export interface Philosophy {
+interface Philosophy {
   id: string
   /** the pair this belongs to; the two members mirror about 50 */
   pair: string
@@ -218,7 +218,7 @@ export function pickPhilosophy(state: GameState, club: Club, gen = 0, median?: n
 }
 
 /** Write a philosophy onto a club: the id it is remembered by, and the dials. */
-export function applyPhilosophy(club: Club, id: string) {
+function applyPhilosophy(club: Club, id: string) {
   const ph = PHILOSOPHY_BY_ID[id]
   if (!ph) return
   club.philosophy = id

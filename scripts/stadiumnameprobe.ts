@@ -17,9 +17,8 @@
  */
 import { newGame } from '../src/game/newgame'
 import { migrate } from '../src/game/save'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const reload = <T,>(g: T): T => migrate(structuredClone(g) as any) as T
 
 // 1
@@ -46,5 +45,4 @@ signed.season = 1
 const healed = reload(signed)
 ok(healed.clubs.gloucester.stadium.startsWith('Brightwater'), `a signed naming deal still goes over the gates on load ("${healed.clubs.gloucester.stadium}")`)
 
-console.log(fails ? `STADIUM NAME PROBE FAILED (${fails})` : 'STADIUM NAME PROBE PASSED: the ground is the same ground either side of a save')
-process.exit(fails ? 1 : 0)
+done('STADIUM NAME PROBE', 'the ground is the same ground either side of a save', { exit: true, blank: false })

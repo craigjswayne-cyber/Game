@@ -12,11 +12,10 @@
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
+import { ok, failures } from './lib/probe.mjs'
 
-const server = await startPreview(4201, 2500)
+const server = await startPreview(0, 2500)
 const say = s => writeSync(1, s + '\n')
-let fails = 0
-const ok = (cond, what) => { say(`${cond ? '  ok  ' : 'FAIL  '}${what}`); if (!cond) fails++ }
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
@@ -29,7 +28,7 @@ const overflow = () => page.evaluate(() => {
 })
 
 try {
-  await page.goto('http://localhost:4201/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -101,11 +100,11 @@ try {
   await page.waitForTimeout(400)
   ok((await overflow()) <= 1, `Home dashboard holds over the wreckage (${await overflow()}px)`)
 
-  say(fails ? `\nCHAOS UI: ${fails} FAILURES` : '\nCHAOS UI PASSED: the screens hold whatever state the engine hands them')
+  say(failures() ? `\nCHAOS UI: ${failures()} FAILURES` : '\nCHAOS UI PASSED: the screens hold whatever state the engine hands them')
 } catch (e) {
   ok(false, `chaos UI leg threw: ${String(e).slice(0, 200)}`)
 } finally {
   await browser.close()
   server.stop()
-  done(fails)
+  done(failures())
 }

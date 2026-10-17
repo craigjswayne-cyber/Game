@@ -11,12 +11,7 @@ import { runSpotlight } from '../src/game/season'
 import { invinciblesCheck } from '../src/game/rollover'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 /** Mark a club's next n unplayed competitive fixtures as results. */
 const stamp = (g: GameState, clubId: string, results: ('W' | 'L' | 'D' | 'FRW')[]) => {
@@ -110,5 +105,4 @@ const stamp = (g: GameState, clubId: string, results: ('W' | 'L' | 'D' | 'FRW')[
   ok(!h.news.some(n => n.subject.includes('THE INVINCIBLES')), 'one defeat and there is no crown')
 }
 
-console.log(fails ? `\nUNBEATEN PROBE FAILED (${fails})` : '\nUNBEATEN PROBE PASSED: the run is counted, felt, reported and crowned')
-process.exit(fails ? 1 : 0)
+done('UNBEATEN PROBE', 'the run is counted, felt, reported and crowned', { exit: true })

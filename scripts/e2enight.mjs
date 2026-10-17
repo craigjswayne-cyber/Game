@@ -7,7 +7,7 @@ import { mkdirSync } from 'node:fs'
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = await startPreview('4175', 2500)
+const server = await startPreview(0, 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
@@ -32,7 +32,7 @@ const clearTalk = async () => {
 const shot = (name) => page.screenshot({ path: `${SHOTS}/night-${name}.png` })
 
 try {
-  await page.goto('http://localhost:4175/')
+  await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await shot('01-title')
 
@@ -269,7 +269,7 @@ try {
   // until Matchday takes over.
   for (let tap = 0; tap < 8; tap++) {
     if (await page.locator('text=Kick Off ▸').count()) break
-    await page.click('.continue-btn')
+    await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
     const day = await page.evaluate(() => document.querySelector('.day-head .dh-day')?.textContent ?? null)
     if (day) await shot(`06z-day-${day.toLowerCase()}`)

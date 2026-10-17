@@ -48,7 +48,7 @@
  */
 import { W, type Gender } from './gender'
 
-export const SEASON_LEN = 48
+const SEASON_LEN = 48
 
 // ---- the men's year ---------------------------------------------------------
 // Week N's date is its Saturday, anchored to 16 August: week 34 is early
@@ -72,7 +72,7 @@ export const SEASON_LEN = 48
 // 43     league FINALS (June), and nothing else in England
 // 44-45  summer Tests (north heads south)
 // 44-48  an Isles XV tour, every fourth year
-export const PRESEASON_WEEKS = [1, 2, 3]
+const PRESEASON_WEEKS = [1, 2, 3]
 export const LEAGUE_WEEKS = [
   4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
   20, 21, 24, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 39,
@@ -111,9 +111,9 @@ export const TOUR_WEEKS = [44, 45, 46, 47, 48]
 // 44,45  summer Tests
 // 46-48  the Southern Four (not in a tour year: the host is busy)
 // 44-48  a women's Isles XV tour, every fourth year from 2031
-export const W_PRESEASON_WEEKS = [1, 2]
-export const W_LEAGUE_WEEKS = [3, 4, 5, 6, 7, 9, 10, 16, 17, 20, 21, 24, 25, 26, 27, 29, 30, 39]
-export const W_LEAGUE_WEEKS_WC = [7, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 24, 25, 26, 27, 29, 30, 39]
+const W_PRESEASON_WEEKS = [1, 2]
+const W_LEAGUE_WEEKS = [3, 4, 5, 6, 7, 9, 10, 16, 17, 20, 21, 24, 25, 26, 27, 29, 30, 39]
+const W_LEAGUE_WEEKS_WC = [7, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 24, 25, 26, 27, 29, 30, 39]
 export const W_CC_POOL_WEEKS = [8, 11, 18, 19, 22, 23]
 export const W_CC_KO_WEEKS = [28, 37, 38]
 export const W_AUTUMN_WEEKS = [13, 14, 15]
@@ -138,14 +138,14 @@ export const W_WC_KO_WEEKS = [4, 5, 6]
 // 24-29   the Northern Championship window: no cup ties in it
 // 30-33   MRC Cup pools, rounds 3-6
 // 34, 35  MRC Cup semi-finals, final
-export const MRC_LEAGUE_WEEKS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-export const MRC_PLAYOFF_WEEKS = [20, 21]
+const MRC_LEAGUE_WEEKS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+const MRC_PLAYOFF_WEEKS = [20, 21]
 export const MRC_CUP_POOL_WEEKS = [22, 23, 30, 31, 32, 33]
 export const MRC_CUP_KO_WEEKS = [34, 35]
 
 /** The four women's top tiers, whose clubs play the Hemispheric Championship
  *  and so cannot use its weeks for league rounds. The second tiers can. */
-export const W_CUP_LEAGUES = [W + 'pwr', W + 'pac', W + 'e1', W + 'celt']
+const W_CUP_LEAGUES = [W + 'pwr', W + 'pac', W + 'e1', W + 'celt']
 
 /** The weeks a league's rounds may use. Zero spare in the women's lists is
  *  deliberate: every week of the women's year is spoken for. */
@@ -178,7 +178,7 @@ export const BARRAGE_WEEK = 42
  *  moves back to 37), the final in 40, clear of the Shield final in 41 that a
  *  Championship club can also be in (scripts/qa2/matrix.ts caught Exeter drawn
  *  twice). Four clubs only: there is no free week for a bigger bracket. */
-export const CHAMP_KO_WEEKS = [39, 40]
+const CHAMP_KO_WEEKS = [39, 40]
 
 export function playoffWeeksFor(playoffTeams: number, leagueId = ''): number[] {
   if (leagueId === 'champ') return CHAMP_KO_WEEKS
@@ -216,7 +216,7 @@ export function windowSpan(compId: string, gender: Gender): [number, number] | n
 /** Does a Test window in this world cover the week? The competition ids are
  *  the ones present in the season (a tour year has a tour, a World
  *  Championship year has no autumn). */
-export function windowsCovering(week: number, compIds: string[], gender: Gender): string[] {
+function windowsCovering(week: number, compIds: string[], gender: Gender): string[] {
   return compIds.filter(id => {
     const span = windowSpan(id, gender)
     return !!span && week >= span[0] && week <= span[1]

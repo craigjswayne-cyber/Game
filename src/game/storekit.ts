@@ -130,7 +130,7 @@ const asOutcome = (s: string): PurchaseOutcome =>
  * it. Returns null in every browser, which is everywhere else.
  */
 export function storeKitBridge(): BillingBridge | null {
-  const cap = (globalThis as unknown as WithCapacitor).Capacitor
+  const cap = (globalThis as WithCapacitor).Capacitor
   if (!cap) return null
   const p = phaseBilling(cap)
   if (!p || typeof p.buy !== 'function' || typeof p.owned !== 'function') return null
@@ -244,7 +244,7 @@ export function storeKitBridge(): BillingBridge | null {
  * calls in main.tsx is not load-bearing.
  */
 export function attachStoreKit(): boolean {
-  const g = globalThis as unknown as { rmBilling?: BillingBridge }
+  const g = globalThis as { rmBilling?: BillingBridge }
   if (g.rmBilling) return false
   const b = storeKitBridge()
   if (!b) return false

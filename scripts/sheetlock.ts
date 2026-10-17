@@ -17,12 +17,7 @@
 import { newGame } from '../src/game/newgame'
 import { beginMatch, makeSubstitution, resolveDecision, stepTick } from '../src/game/matchEngine'
 import { weekRng } from '../src/game/season'
-
-let fails = 0
-const ok = (c: boolean, what: string) => {
-  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
-  if (!c) fails++
-}
+import { ok, done } from './lib/probe'
 
 const g = newGame('northampton', 'Sheet', 11)
 const club = g.clubs[g.userClubId]
@@ -69,5 +64,4 @@ const diffs = club.tactic.lineup
 ok(diffs.length === 0,
   `the saved team sheet is untouched by the afternoon${diffs.length ? ` - ${diffs.length} slots rewritten (first at slot ${diffs[0]})` : ''}`)
 
-console.log(fails ? `\nSHEETLOCK FAILED (${fails})` : '\nSHEETLOCK PASSED')
-process.exit(fails ? 1 : 0)
+done('SHEETLOCK', '', { exit: true })
