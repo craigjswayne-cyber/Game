@@ -88,6 +88,10 @@ this build, with a probe for each fix that fails without it.
   white as `#fff`, which the kit colours took for grey, so a line about a
   side in a white spare kit could come out white on white. Short colours are
   now read as the colour they are (`ui/kit.hex6`, `tests/kit.test.ts`).
+- **Running it out of your own 22 is a trade again, not a trap.** The plan
+  gave away so much ground that it cost about four points a match; it now
+  gives up two thirds as much and costs about two (`tactics.ts`,
+  `scripts/optionsprobe.ts`).
 - **Continue answers the tap at once.** Turning the week takes a second or
   more on a budget phone; the button now says "Turning the week..." straight
   away instead of looking frozen.
