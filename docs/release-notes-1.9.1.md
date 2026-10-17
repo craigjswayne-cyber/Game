@@ -140,16 +140,31 @@ this build, with a probe for each fix that fails without it.
   full-state hash over 70 weeks of two careers and the built CSS are all
   identical before and after.
 
-**Known, and left for 1.9.2** (none blocks this release; each was measured or
-traced in the audit)
-- Turning a week still takes 230 to 480 ms of main-thread time on a desktop,
-  so a second or more on a budget phone; the button now says so. The fix is
-  moving the settle into a Web Worker or yielding between its phases.
-- Kick-off copies the 7.7 MB career twice (the resume record and the database
-  write).
-- `MatchDay.tsx`, `model.ts`, `rollover.ts`, `HighlightClip.tsx` and
-  `store.ts` are still 2,000 to 3,500 lines each; 40 exports are unused.
-- Browser harnesses use fixed preview ports, so two runs on one machine
-  collide; most of them run after merge rather than on pull requests.
-- The repository split (art masters to Git LFS, the bot, marketing and
-  design in their own repositories) follows the release.
+**The last of the audit list**
+- **Continue no longer freezes the phone.** The week settles in slices
+  (`season.weekSteps`): the same code in the same order with the same dice,
+  handing the screen back between matches. In Chromium at 4x CPU the longest
+  block while a week turns went from 965 to 1,433 ms to 211 to 342 ms. A
+  "Turning the week..." veil holds every tap until it is done, the save is
+  held for the half-turned career, and a failure rolls back as before.
+- Kick Off shows the match before the 7.7 MB pre-match copy is written.
+- The page's security policy now allows scripts and styles from the game
+  only; the Discord bot works on servers only and takes one bug report per
+  member every two minutes; `npm audit` is 0 in the game, the bot and both
+  shells (uuid 11 under Capacitor's Xcode tooling).
+- The big files are modules: `MatchDay.tsx`, `HighlightClip.tsx`,
+  `model.ts`, `rollover.ts` and `store.ts` are short facades over
+  `screens/matchday/`, `highlight/`, `model/`, `rollover/` and `store/`; the
+  nineteen copies of the tap-outside sheet are one `Veil`. 135 needless
+  exports and 15 unchecked casts gone. No runtime import cycles.
+- Tests: browser harnesses pick a free port, 25 of them run on every pull
+  request, a manual release check runs the soaks and the full browser list,
+  `suite.sh area <name>` runs one area, 202 probes share one assertion helper,
+  and `npm test` covers the save queue, the week settle, purchases, promises
+  and the save list (65 tests).
+
+**Still to come** (none blocks this release)
+- The repository split (art masters to Git LFS; the bot, marketing and design
+  in their own repositories), right after this release.
+- React 19 and TypeScript 7 wait on the startup cost and on typescript-eslint
+  respectively.
