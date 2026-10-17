@@ -12,7 +12,7 @@ export function hex6(c: string): string {
  *  mid-grey: it is one of ours, and ours are never near-black) */
 export function luma(c: string): number {
   const hex = hex6(c).replace('#', '')
-  if (hex.length < 6) return 128
+  if (!/^[0-9a-f]{6}$/i.test(hex)) return 128
   const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16)
   return (r * 299 + g * 587 + b * 114) / 1000
 }
@@ -21,7 +21,7 @@ export function luma(c: string): number {
  *  from everything: it is one of ours) */
 export function kitGap(a: string, b: string): number {
   const x = hex6(a).replace('#', ''), y = hex6(b).replace('#', '')
-  if (x.length < 6 || y.length < 6) return 765
+  if (!/^[0-9a-f]{6}$/i.test(x) || !/^[0-9a-f]{6}$/i.test(y)) return 765
   let d = 0
   for (let i = 0; i < 6; i += 2) d += Math.abs(parseInt(x.slice(i, i + 2), 16) - parseInt(y.slice(i, i + 2), 16))
   return d
@@ -30,11 +30,14 @@ export function kitGap(a: string, b: string): number {
 /** The stand-in colours for a side whose own kit clashes: real colour
  *  values, read from tokens.css by the caller (--kit-spare-*), because the
  *  choice is made by measuring the distance between two colours. */
-export interface Spares { white: string; slate: string; gold: string; ink: string }
+export interface Spares { white: string; slate: string; gold: string; ink: string; home: string; away: string }
 
-/** the spares, from the tokens on the page */
+/** the spares, from the tokens on the page, and the kit a side with no club
+ *  colours wears (a national side, the Isles): --kit-home and --kit-away, the
+ *  same the pitch draws them in */
 export const pageSpares = (read: (name: string) => string): Spares => ({
   white: read('--kit-spare-white'), slate: read('--kit-spare-slate'), gold: read('--kit-spare-gold'), ink: read('--kit-spare-ink'),
+  home: read('--kit-home'), away: read('--kit-away'),
 })
 
 /** THE AWAY KIT (owner, 27 Sep 2026: "Northampton vs Connacht - the colours
@@ -51,8 +54,12 @@ export function kitColours(sp: Spares, home: string[] | undefined, away: string[
     !dark || luma(kit[0]) >= 40 ? [kit[0], kit[1]]
       : kit[1] && luma(kit[1]) >= 40 ? [kit[1], kit[0]]
       : [sp.slate, kit[0]]
-  const h: [string, string | undefined] = home?.length ? pick(home) : ['var(--gold-fill)', 'var(--ramp-g9)']
-  if (!away?.length) return { home: h, away: ['var(--ramp-n4)', undefined] }
+  // A SIDE WITH NO CLUB COLOURS WEARS THE MATCH KIT, NOT A CSS NAME (1.9.1 bug
+  // hunt). Nations are not clubs, and these used to fall back to
+  // 'var(--gold-fill)': a name no measure here can read, so a Test had both
+  // sides in gold and the home lines white on gold at 1.75:1.
+  const h: [string, string | undefined] = home?.length ? pick(home) : [sp.home, sp.white]
+  if (!away?.length) away = [sp.away, sp.white]
   const CLEAR = 150
   const tries: [string, string | undefined][] = [pick(away), [away[0], away[1]], ...(away[1] ? [[away[1], away[0]] as [string, string]] : [])]
   for (const c of tries) if (kitGap(c[0], h[0]) >= CLEAR && !(dark && luma(c[0]) < 40)) return { home: h, away: c }

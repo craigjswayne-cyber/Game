@@ -19,6 +19,7 @@
 // A table that genuinely cannot fit opts out with .wide and gets its scroll
 // back; this names the ones that need it rather than leaving it to guesswork.
 import { chromium } from 'playwright-core'
+import { skipTo, tapPast } from './lib/sheet.mjs'
 import { startPreview } from './lib/preview.mjs'
 
 const server = await startPreview(0, 2500)
@@ -207,13 +208,11 @@ try {
   } catch { /* a clean team sheet skips the ready-check */ }
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
   for (const next of ['▸ Start Second Half', '▸ Play the Final Quarter']) {
-    await page.click('.speed-controls [data-ctl=skip]')
-    await page.waitForSelector(`text=${next.slice(2)}`, { timeout: 25000 })
-    await page.click(`text=${next}`)
+    await skipTo(page, next.slice(2))
+    await tapPast(page, `text=${next}`)
     await page.waitForTimeout(300)
   }
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Continue to Results', { timeout: 25000 })
+  await skipTo(page, 'Continue to Results')
   await page.click('text=Continue to Results')
   await page.waitForSelector("text=This Week's Results", { timeout: 15000 })
   await check('week results')

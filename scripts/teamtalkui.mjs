@@ -18,6 +18,7 @@
 import { mkdirSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
+import { tapPast } from './lib/sheet.mjs'
 
 const OUT = process.argv[2] ?? 'shots-teamtalk'
 mkdirSync(OUT, { recursive: true })
@@ -162,7 +163,7 @@ try {
   // a sensible call for the scoreline, the way a manager would make it
   const pick = score >= 10 ? 'Demand more' : score >= 0 ? 'Stay calm' : 'Show faith'
   console.log(`  margin at the break ${score}: giving "${pick}"`)
-  await page.click(`.panel-area button >> text=${pick}`)
+  await tapPast(page, `.panel-area button >> text=${pick}`)
   await page.locator('.panel-area .talk-react').waitFor({ timeout: 5000 })
   const ht = await audit('.panel-area .talk-react')
   console.log(`  half-time reactions: ${ht.words.join(' / ')}`)

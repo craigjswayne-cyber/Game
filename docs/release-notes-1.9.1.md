@@ -88,6 +88,31 @@ this build, with a probe for each fix that fails without it.
   white as `#fff`, which the kit colours took for grey, so a line about a
   side in a white spare kit could come out white on white. Short colours are
   now read as the colour they are (`ui/kit.hex6`, `tests/kit.test.ts`).
+- **Running it out of your own 22 is a trade again, not a trap.** The plan
+  gave away so much ground that it cost about four points a match; it now
+  gives up two thirds as much and costs about two (`tactics.ts`,
+  `scripts/optionsprobe.ts`).
+- **An injury with nobody left on the bench no longer stops the match.** If a
+  head-injury check took the last fresh replacement in the same minute, the
+  squad sheet had nobody to send on and could not be closed. The side now
+  plays on a man short, as the sheet says (`SquadSheet.tsx`,
+  `scripts/nobenchprobe.mjs`).
+- **A week that fails twice stays stopped.** Continue could run it a third
+  time on the half-turned career and save the result. Nothing turns on a
+  stuck career now, and the screen stays covered until a failed week is back
+  from the save (`store/week.ts`, `tests/settlehold.test.ts`).
+- **"Saved" means saved.** A save that started while another was still being
+  written could report success before its own change reached the disk; a
+  purchase relies on that answer. It now waits for its own write (`saveQueue`).
+  A purchase is also refused while a week is turning, and a career with no
+  save to fall back to keeps the credit spent with its effect, not both.
+- **The web game works offline again on screens not yet opened.** Screens now
+  load when first opened, and an installed web game taken offline lost the
+  ones never visited. The offline cache now holds them all
+  (`public/sw.js`, `scripts/offlineprobe.mjs`). The phone apps were not affected.
+- **Test matches show both sides in their own colours.** National sides have
+  no club kit, and both teams' commentary was drawn in gold, the home lines
+  white on gold. They now wear the match kit the pitch draws them in.
 - **Continue answers the tap at once.** Turning the week takes a second or
   more on a budget phone; the button now says "Turning the week..." straight
   away instead of looking frozen.

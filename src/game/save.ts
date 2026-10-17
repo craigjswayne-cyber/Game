@@ -1431,8 +1431,14 @@ export async function listSaves(): Promise<SaveMeta[]> {
     }
   })
   if (legacy.length) {
+    // only where there is still no label: a save that landed between the read
+    // above and this write has put its own, newer one (1.9.1 bug hunt)
     const tx = db.transaction(STORE, 'readwrite')
-    for (const m of legacy) tx.objectStore(STORE).put(m, metaKey(m.slot))
+    const st = tx.objectStore(STORE)
+    for (const m of legacy) {
+      const has = st.get(metaKey(m.slot))
+      has.onsuccess = () => { if (has.result === undefined) st.put(m, metaKey(m.slot)) }
+    }
   }
   return metas.sort((a, b) => b.savedAt - a.savedAt)
 }

@@ -65,10 +65,14 @@ const bundleOf = html => (html.match(/assets\/index-[^"]+\.js/) ?? [])[0]
  * @param {number|string} [port] 0 or nothing for a free port (the default);
  *   a number only for a tool that must hold a known address
  * @param {number} settleMs a tenth of the longest to wait for vite to answer
+ * @param {string} [host] the address vite binds; left to vite (localhost) unless
+ *   a probe must reach it by IP. A runner whose localhost is ::1 refuses
+ *   127.0.0.1, so offlineprobe asks for 127.0.0.1 here rather than rewriting
+ *   the origin it was given.
  * @returns {Promise<{stop: () => void, port: number, origin: string, url: string}>}
  *   `origin` is http://localhost:PORT, `url` the same with a trailing slash
  */
-export async function startPreview(port = 0, settleMs = 3000) {
+export async function startPreview(port = 0, settleMs = 3000, host) {
   const pinned = Number(port) || Number(process.env.PREVIEW_PORT) || 0
   let want
   try { want = bundleOf(readFileSync('dist/index.html', 'utf8')) } catch { /* no build: the probe's goto says so */ }
@@ -78,7 +82,7 @@ export async function startPreview(port = 0, settleMs = 3000) {
   // one attempt.
   for (let attempt = 1; ; attempt++) {
     const p = pinned || await freePort()
-    const server = spawn('npx', ['vite', 'preview', '--port', String(p), '--strictPort'], {
+    const server = spawn('npx', ['vite', 'preview', '--port', String(p), '--strictPort', ...(host ? ['--host', host] : [])], {
       stdio: 'ignore',
       detached: true,
     })
@@ -90,7 +94,7 @@ export async function startPreview(port = 0, settleMs = 3000) {
       try { process.kill(-server.pid, 'SIGKILL') } catch { /* already gone */ }
       try { server.kill('SIGKILL') } catch { /* already gone */ }
     }
-    const origin = `http://localhost:${p}`
+    const origin = `http://${host ?? 'localhost'}:${p}`
     const until = Date.now() + settleMs * 10
     let html
     for (;;) {
