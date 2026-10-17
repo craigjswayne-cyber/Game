@@ -225,10 +225,16 @@ export const ZONE_PLANS: Record<ZoneId, ZonePlan[]> = {
   // sitting on optionsprobe's meta line so that the verdict was the dice's.
   // At 4 it reads +1.7 over 480 matches: still the plan that wins the most
   // ground (advprobe), no longer the one every career ends up on.
+  //
+  // RUNNING IT OUT GIVES 4 BACK, NOT 6, for the same reason from the other
+  // side. At -6 the first release check (1.9.1) read it at -4.03 points a
+  // match, past the line the other way: not a meta, a trap nobody should
+  // pick. At -4 it reads -2.28, still the plan that costs ground for the
+  // ball, and no longer one that loses a career its matches.
   own22: [
     { id: 'long', name: 'tactics.z22Long', desc: 'tactics.z22LongDesc', tryF: 0.85, penF: 0.90, terr: 4 },
     { id: 'box', name: 'tactics.z22Box', desc: 'tactics.z22BoxDesc', tryF: 1, penF: 1, terr: 0 },
-    { id: 'play', name: 'tactics.z22Play', desc: 'tactics.z22PlayDesc', tryF: 1.20, penF: 1.16, terr: -6 },
+    { id: 'play', name: 'tactics.z22Play', desc: 'tactics.z22PlayDesc', tryF: 1.20, penF: 1.16, terr: -4 },
   ],
   // THE MIDDLE THIRD: where a match is won slowly. Territory or possession.
   middle: [
