@@ -48,15 +48,24 @@ function swCacheName() {
       // no @types/node in this project (see the note above), so the module is
       // named through a variable and typed by hand
       const fsName = 'node:fs/promises'
-      const { readFile, writeFile } = await import(/* @vite-ignore */ fsName) as {
+      const { readFile, writeFile, readdir } = await import(/* @vite-ignore */ fsName) as {
         readFile: (f: string, e: string) => Promise<string>
         writeFile: (f: string, d: string) => Promise<void>
+        readdir: (d: string) => Promise<string[]>
       }
       const file = `${outDir}/sw.js`
       const src = await readFile(file, 'utf8').catch(() => null)
       if (src == null) return
       const name = `rugby-manager-${buildTag().replace(/[^\w.]+/g, '-')}`
-      await writeFile(file, src.replace(/const CACHE = '[^']*'/, `const CACHE = '${name}'`))
+      // every script and stylesheet the game is built from, so a screen never
+      // opened online still opens offline; not the other languages' dictionaries
+      // (fr-, es-, ...), which a player fetches only on switching to one
+      const assets = (await readdir(`${outDir}/assets`).catch(() => [] as string[]))
+        .filter(f => /\.(js|css)$/.test(f) && !/^[a-z]{2}-/.test(f))
+        .map(f => `./assets/${f}`)
+      await writeFile(file, src
+        .replace(/const CACHE = '[^']*'/, `const CACHE = '${name}'`)
+        .replace(/const PRECACHE = \[\]/, `const PRECACHE = ${JSON.stringify(assets)}`))
     },
   }
 }

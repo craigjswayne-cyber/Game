@@ -17,6 +17,7 @@
 //
 // Run: npm run build && node scripts/overlayprobe.mjs
 import { chromium } from 'playwright-core'
+import { tapPast } from './lib/sheet.mjs'
 import { startPreview } from './lib/preview.mjs'
 const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -54,7 +55,7 @@ const tap = async sel => {
 // an injury sheet (the assistant has already sent a man on) or a touchline
 // call can stop the clock in a seeded match: clear it and carry on
 const clear = async () => {
-  if (await page.locator('text=Take the Points').count()) await page.click('text=Take the Points')
+  if (await page.locator('text=Take the Points').count()) await tapPast(page, 'text=Take the Points')
   // the injury sheet: tapping the man the assistant sent on keeps him
   if (await page.locator('.sheet-row.armed').count()) { await page.locator('.sheet-row.armed').first().click(); await page.waitForTimeout(150) }
   const sheet = page.locator('.modal-veil .btn.gold:enabled').first()

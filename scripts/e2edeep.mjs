@@ -1,12 +1,16 @@
 // Deep-save visual QA: inject a 12-season save into IndexedDB, load it,
 // and screenshot the late-game screens a fresh-game e2e can never reach.
-// Prereq: npx vite-node scripts/deepsave.ts (writes scripts/deepsave.json)
+// The save comes from scripts/deepsave.ts (writes scripts/deepsave.json).
+// The release check shards the soaks, so deepsave can run on another runner:
+// the save is made here when it is missing rather than assumed (1.9.1).
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
-import { mkdirSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
+if (!existsSync('scripts/deepsave.json')) execFileSync('npx', ['vite-node', 'scripts/deepsave.ts'], { stdio: 'inherit' })
 const record = JSON.parse(readFileSync('scripts/deepsave.json', 'utf8'))
 
 const server = await startPreview(0, 2500)

@@ -31,3 +31,21 @@ export async function tapPast(page, selector, timeout = 30000) {
     }
   }
 }
+
+/**
+ * Skip the match on until `label` shows, answering whatever stops the clock on
+ * the way: the injury sheet, or a kickable penalty's touchline call. Throws
+ * if the label has not come in `timeout` ms.
+ */
+export async function skipTo(page, label, timeout = 40000) {
+  const until = Date.now() + timeout
+  while (Date.now() < until) {
+    if (await page.locator(`text=${label}`).first().isVisible().catch(() => false)) return
+    if (await page.locator('.squad-sheet').count()) await answerSheet(page)
+    else if (await page.locator('.btn', { hasText: 'Take the Points' }).first().isVisible().catch(() => false)) {
+      await page.locator('.btn', { hasText: 'Take the Points' }).first().click().catch(() => {})
+    } else await page.click('.speed-controls [data-ctl=skip]', { timeout: 2000 }).catch(() => {})
+    await page.waitForTimeout(250)
+  }
+  await page.waitForSelector(`text=${label}`, { timeout: 1000 })
+}
