@@ -117,20 +117,25 @@ have verdicts and are browser harnesses.
 
 ## Which probes cover what
 
-Not every probe, but where to start for each area. Browser harnesses are
-marked (b), soaks (s), unit tests (u).
+Where to start for each part of the game. Browser harnesses are marked (b),
+soaks (s), unit tests (u). The lists are the `AREA_<name>` lists in
+`scripts/suite.sh`, and `./scripts/suite.sh area <name>` runs one (soaks
+only with `AREA_SOAKS=1`). `orphancheck` fails when a row here and its list
+disagree, when a name has no file, or when a name is a reporter: `summertest`,
+`disttest` and `dataaudit` print numbers and have no verdict, so they cover
+nothing and are not listed.
 
 | area | probes |
 |---|---|
-| **Save and load** | `savefuzz` (every damaged save healed or refused), `migrate.test` (u), `savedetprobe` and `reloaddetprobe` (a save and load every week changes nothing), `determinism.test` (u), `cloneprobe`, `replayprobe`, `resumeprobe`, `backupprobe`, `importprobe`, `deepsave` (s), `savequeue` (b), `reloadprobe` (b), `resilience` (b), `backupreach` (b), `personaprobe` (the store driven for two seasons, with and without a reload every week) |
-| **Purchases and money** | `moneyprobe` (the till's four rules), `refund.test` (u), `tillprobe`, `creditprobe`, `billprobe`, `rewardedprobe`, `netprobe` (nothing phones home), `storeprobe` (b), `purchasestate` (b: what was bought stays bought through reload, language, import, new career and reinstall), `proprompt` (b), `exportui` (b) |
-| **Match simulation** | `fingerprint` and `fingerprint.test` (u), `bandcheck` (the calibration gate), `engine10k` (ten thousand matches against the rules), `simtest`, `disttest`, `splitprobe`, `blowprobe`, `scrumlaw`, `packprobe`, `forfeitprobe`, `perfprobe` (speed, relative to the machine), `dialweight` (s), `stackprobe` (s), `dramaprobe` (b: the match as it looks) |
-| **Season rollover** | `rolloverprobe` (tables reset, a new fixture list, champions in the roll of honour, contracts and players a year on), `calinvariant`, `invariants`, `summertest`, `closeprobe`, `seasonplanprobe`, `runtimematrix` (s: fifteen seasons, three seeds, both worlds), `releasesim` (s), `soakhealth` (s) |
-| **Exploits and fuzzing** | `actionfuzz` (every user action in any order), `marketfuzz`, `sheetfuzz`, `fuzz2`, `fuzz25d`, `breakit`, `breaker` (b), `chaosui` (b) |
-| **UI** | `e2e` (b: the whole flow), `portraitqa` (b), `devicematrix` (b), `overlapaudit` (b), `scrollaudit` (b), `stickyaudit` (b), `uiqaprobe` (b), `paletteqa` (b), `iconshots` (b), `tidyshots` (b), `cssaudit`, `tokenlint` |
-| **Words and languages** | `textlint`, `i18nprobe`, `keyprobe`, `frenchprobe`, `englishprobe`, `langparity`, `frliveprobe`, `langprobe` (b), `keyscreen` (b: 28 screens in both languages, no raw keys) |
-| **Accessibility** | `npm run lint` (eslint jsx-a11y over `src/ui`), `a11yprobe` (b), `smalltype` (b), `tapsize` (b) and `geosweep` (b) (44 px targets), `textscale` (b), `nightcontrast` (b) and `contrastprobe` (b) (contrast in both themes), `colouraudit` (b), `colourblind`, `motionprobe` (b: reduced motion), `tapcontrols` (b) |
-| **IP** | `ipprobe` (b: the build carries no real club, competition, sponsor or venue mark), `namedup`, `dataaudit` |
+| **Save and load** (`save`) | `savefuzz` (every damaged save healed or refused), `migrate.test` (u), `savequeue.test` (u: a burst of marks is one write, never two in flight, never mid-match, a failed write raises the banner), `settleweek.test` (u: a week that throws half way is never saved and the career goes back to disk), `listsaves.test` (u), `savedetprobe` and `reloaddetprobe` (a save and load every week changes nothing), `determinism.test` (u), `cloneprobe`, `replayprobe`, `resumeprobe`, `backupprobe`, `importprobe`, `listsavesprobe` (the Load screen reads labels, not careers), `settleguardprobe`, `personaprobe` (the store driven for two seasons, with and without a reload every week), `deepsave` (s), `savequeue` (b), `reloadprobe` (b), `resilience` (b), `backupreach` (b) |
+| **Purchases and money** (`money`) | `moneyprobe` (the till's four rules), `refund.test` (u), `spend.test` (u: one credit, one effect, on disk), `tillprobe`, `creditprobe`, `spendprobe`, `billprobe`, `rewardedprobe`, `netprobe` (nothing phones home), `storeprobe` (b), `purchasestate` (b: what was bought stays bought through reload, language, import, new career and reinstall), `proprompt` (b), `exportui` (b) |
+| **Match simulation** (`match`) | `fingerprint` and `fingerprint.test` (u), `bandcheck` (the calibration gate), `engine10k` (ten thousand matches against the rules), `simtest`, `splitprobe`, `blowprobe`, `scrumlaw`, `packprobe`, `forfeitprobe`, `perfprobe` (speed, relative to the machine), `dialweight` (s), `stackprobe` (s), `dramaprobe` (b: the match as it looks) |
+| **Season rollover** (`rollover`) | `rolloverprobe` (tables reset, a new fixture list, champions in the roll of honour, contracts and players a year on), `calinvariant`, `invariants`, `closeprobe`, `seasonplanprobe`, `pledgeprobe` and `pledge.test` (u) (no promise falls due before it is made), `runtimematrix` (s: fifteen seasons, three seeds, both worlds), `releasesim` (s), `soakhealth` (s) |
+| **Exploits and fuzzing** (`fuzz`) | `actionfuzz` (every user action in any order), `marketfuzz`, `sheetfuzz`, `fuzz2`, `fuzz25d`, `breakit`, `breaker` (b), `chaosui` (b) |
+| **UI** (`ui`) | `e2e` (b: the whole flow), `portraitqa` (b), `devicematrix` (b), `overlapaudit` (b), `scrollaudit` (b), `stickyaudit` (b), `uiqaprobe` (b), `paletteqa` (b), `iconshots` (b), `tidyshots` (b), `cssaudit`, `tokenlint` |
+| **Words and languages** (`i18n`) | `textlint`, `i18nprobe`, `keyprobe`, `frenchprobe`, `englishprobe`, `langparity`, `frliveprobe`, `langprobe` (b), `keyscreen` (b: 28 screens in both languages, no raw keys) |
+| **Accessibility** (`a11y`) | `a11yprobe` (b), `smalltype` (b), `tapsize` (b) and `geosweep` (b) (44 px targets), `textscale` (b), `nightcontrast` (b) and `contrastprobe` (b) (contrast in both themes), `colouraudit` (b), `colourblind`, `motionprobe` (b: reduced motion), `tapcontrols` (b). Not in the area run: `npm run lint` (eslint jsx-a11y over `src/ui`), which every mode's linters run |
+| **IP** (`ip`) | `ipprobe` (b: the build carries no real club, competition, sponsor or venue mark), `namedup` |
 
 ## The fingerprint
 
