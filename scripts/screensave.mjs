@@ -39,6 +39,8 @@ const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (
 const say = s => console.log(s)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
+// bypassCSP: onDisk() reads a save with new Function, which the page's CSP
+// (no unsafe-eval, 1.9.1) refuses. The rest of the browser list runs under it.
 
 async function career(page, club = 'Leicester') {
   await page.goto(`${server.origin}/`)
@@ -71,7 +73,7 @@ const onDisk = (page, pick) => page.evaluate(async (pick) => {
 const go = (page, screen, param) => page.evaluate(([s, p]) => window.rugbyStore.getState().go(s, p), [screen, param])
 
 try {
-  const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
+  const page = await browser.newPage({ viewport: { width: 412, height: 915 }, bypassCSP: true })
   const errors = []
   page.on('pageerror', e => errors.push(String(e).slice(0, 200)))
   await career(page)
@@ -320,7 +322,7 @@ try {
 
   say('\n--- a save shaped file with nothing to play is refused on import')
   {
-    const p2 = await browser.newPage({ viewport: { width: 412, height: 915 } })
+    const p2 = await browser.newPage({ viewport: { width: 412, height: 915 }, bypassCSP: true })
     await career(p2, 'Bath')
     await p2.evaluate(() => window.rugbyStore.getState().go('saves'))
     await p2.waitForTimeout(400)
@@ -367,7 +369,7 @@ try {
 
   say('\n--- a till with no advert bridge locks no skin')
   {
-    const p3 = await browser.newPage({ viewport: { width: 412, height: 915 } })
+    const p3 = await browser.newPage({ viewport: { width: 412, height: 915 }, bypassCSP: true })
     await p3.addInitScript(() => {
       globalThis.rmBilling = {
         details: async (sku) => ({ sku }), buy: async () => 'cancelled', owned: async () => [], consume: async () => {},

@@ -56,10 +56,12 @@ const mastheadCollisions = (page) => page.evaluate(() => {
   if (!mh) return []
   const boxes = [...mh.querySelectorAll('*')]
     .filter(e => (!e.querySelector('*') && (e.textContent ?? '').trim()) || e.tagName === 'BUTTON')
-    .map(e => ({ t: ((e.textContent ?? '').trim() || e.getAttribute('aria-label') || e.tagName).slice(0, 22), r: e.getBoundingClientRect() }))
+    .map(e => ({ e, t: ((e.textContent ?? '').trim() || e.getAttribute('aria-label') || e.tagName).slice(0, 22), r: e.getBoundingClientRect() }))
     .filter(b => b.r.width > 4 && b.r.height > 4)
   const hits = []
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+    // a button and the glyph inside it are one control, not two that collide
+    if (boxes[i].e.contains(boxes[j].e) || boxes[j].e.contains(boxes[i].e)) continue
     const a = boxes[i].r, b = boxes[j].r
     const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left)
     const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)

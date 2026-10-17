@@ -41,6 +41,7 @@ const LIBRARIES = new Set([
   'scripts/lib/preview.mjs',
   'scripts/lib/probe.ts',
   'scripts/lib/probe.mjs',
+  'scripts/lib/storefiles.ts',     // the store's source files, for probes that read it (1.9.1)
   'scripts/lib/bondstwin.ts',
   'scripts/lib/savegen.ts',
   'scripts/lib/frspace.mjs',

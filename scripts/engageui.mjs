@@ -64,6 +64,8 @@ try {
   ok(rec.hasVars, 'with the vars the line needs to compose, so a screen can still be built on it')
   // and Legacy renders without it, which is the half that regressed: the page
   // still had to survive a ledger it no longer reads
+  // screens load on demand (1.9.1): wait for Legacy to arrive before reading it
+  await page.waitForSelector('.content[data-screen="legacy"] > *', { timeout: 10000 }).catch(() => {})
   const legacy = await page.locator('.content').innerText()
   ok(!/Gaffer.s Ledger/i.test(legacy), 'and Legacy no longer shows the section, as asked in 1.5.8')
   ok(legacy.trim().length > 40, 'while still rendering a page rather than an empty one')

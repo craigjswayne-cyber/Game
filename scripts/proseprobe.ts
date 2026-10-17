@@ -24,6 +24,7 @@
 // Run: npx vite-node scripts/proseprobe.ts
 import { readFileSync, readdirSync } from 'node:fs'
 import { ok, done } from './lib/probe'
+import { storeFiles } from './lib/storefiles'
 
 /** ONLY EVER DECREASE. */
 const BUDGET = { decisions: 0, press: 0, touchline: 0, replies: 0 }
@@ -154,10 +155,10 @@ say('\n--- 3. what the touchline says back')
 // bare `return '...'` in matchEngine, which is easy to grep and easy to miss.
 const touchline: string[] = []
 {
-  // src/store.ts as well as the engine: the same replies are given there when
+  // the store (src/store.ts and src/store/) as well as the engine: the same replies are given there when
   // the action arrives after the whistle, and only counting one file is how a
   // category gets declared finished while half of it is still English.
-  for (const f of [...files.filter(f => f === 'src/game/matchEngine.ts' || f.startsWith('src/game/match/')), 'src/store.ts']) {
+  for (const f of [...files.filter(f => f === 'src/game/matchEngine.ts' || f.startsWith('src/game/match/')), ...storeFiles()]) {
     const src = readFileSync(f, 'utf8')
     for (const m of src.matchAll(/\breturn\s+(`[^`]{14,}`|'[^']{14,}')/g)) {
       if (isProse(m[1])) touchline.push(`${f}:${src.slice(0, m.index).split('\n').length}`)

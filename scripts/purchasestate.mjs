@@ -114,7 +114,10 @@ try {
 
   console.log('--- reload')
   await page.reload()
-  await page.waitForSelector('text=RUGBY')
+  // a device with a career reopens it, so the title may never show: wait for
+  // whichever the boot lands on (the splash also says RUGBY, which is how this
+  // used to pass by a race)
+  await page.locator('text=New Career').or(page.locator('.bottom-nav')).first().waitFor()
   s = await storage(page)
   check(s, 'after a reload')
   await page.click('text=Continue').catch(() => {})

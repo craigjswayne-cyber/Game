@@ -22,6 +22,7 @@ import {
   type Usage,
 } from '../src/game/usage'
 import { ok, done } from './lib/probe'
+import { storeSource } from './lib/storefiles'
 
 // an in-memory localStorage, as safeStorage.ts puts in place in a sandbox
 const mem = new Map<string, string>()
@@ -210,7 +211,7 @@ console.log('--- the first season')
   ok(!feedbackDue(readUsage()), 'a month in is not yet a season')
   // a ledger from before 1.9.0, a month in and never offered: it now waits
   ok(!feedbackDue(parseUsage(JSON.stringify({ v: 1, weeks: 6, matches: 3, offered: false }))), 'an old ledger a month in waits for the season too')
-  const st = readFileSync('src/store.ts', 'utf8')
+  const st = storeSource()
   const low = st.slice(st.indexOf('function landOnNextWeek('), st.indexOf('function landOnNextWeek(') + 1100)
   ok(/countWeek\(`\$\{g\.seed\}:\$\{g\.season\}:\$\{g\.week\}`\)/.test(low), 'every way a week ends counts it (landOnNextWeek)')
   ok(/if \(g\.annual\) countFinished\(`\$\{g\.seed\}:\$\{g\.annual\.season\}`\)/.test(low), 'and the Monday a season review opens counts the season finished')
@@ -221,7 +222,7 @@ console.log('--- the first season')
   const src = readFileSync('src/game/usage.ts', 'utf8') + readFileSync('src/ui/FeedbackPrompt.tsx', 'utf8')
   ok(!/\bfetch\(|XMLHttpRequest|sendBeacon|WebSocket/.test(src), 'no network call in the counters or the card')
   ok(!/Math\.random|matchRng|from '\.\/rng'/.test(readFileSync('src/game/usage.ts', 'utf8')), 'no randomness in the counters')
-  const store = readFileSync('src/store.ts', 'utf8')
+  const store = storeSource()
   const cfp = store.slice(store.indexOf('function countForPro'), store.indexOf('function countForPro') + 600)
   ok(/compId === 'fr'\) return[\s\S]*countMatch\(/.test(cfp), 'friendlies return before the match is counted')
 }

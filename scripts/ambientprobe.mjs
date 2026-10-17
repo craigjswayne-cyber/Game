@@ -58,8 +58,16 @@ try {
   await career(page, `${server.origin}/?motion=1`)
   ok(await page.evaluate(() => document.documentElement.dataset.motion === 'on'), 'the layer is on with ?motion=1')
   await page.click('.bottom-nav button[title="Hub"]')
+  // screens load on demand (1.9.1), so the new screen can arrive a beat after
+  // the tap: listen for the animations as they start rather than sampling the
+  // running set once, which missed a rise that had not begun yet
+  await page.evaluate(() => {
+    window.__anims = []
+    document.addEventListener('animationstart', e => window.__anims.push(e.animationName))
+  })
   await page.click('.submenu-item >> text=Transfer Centre')
-  const names = await page.evaluate(() => [...new Set(document.getAnimations().map(a => a.animationName))])
+  await page.waitForFunction(() => window.__anims.includes('m-rise'), null, { timeout: 5000 }).catch(() => {})
+  const names = await page.evaluate(() => [...new Set(window.__anims)])
   ok(names.includes('m-rise'), `a new screen rises into place (${names.join(', ')})`)
   await page.click('.filter-btn')
   const sheet = await page.evaluate(() => [...new Set(document.getAnimations().map(a => a.animationName))])
