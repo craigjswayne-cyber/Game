@@ -367,6 +367,7 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
 export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, inId: number): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   if (ctx.seg === 3) return t('touch.matchOver')
+  if (mine.hia && mine.hia.subId === onId) return swapHiaCover(state, ctx, mine, onId, inId)
   const slotOn = mine.lineup.indexOf(onId)
   const slotIn = mine.lineup.indexOf(inId)
   const pon = state.players[onId]
@@ -473,6 +474,49 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
     pushLine(state, ctx, min, 'SUB', mine, 'comm.subChangeOfPlan',
       { on: pin.name, off: pon.name, brief_k: brief ?? 'common.nothing' }, pin.id)
   }
+  return t('touch.takesShirtInstead', { on: pin.name, off: pon.name })
+}
+
+/** A HEAD ASSESSMENT'S STAND-IN, CHANGED (1.9.2, owner: "Make sure its clear
+ *  that the manager always has to decide who to pick from the bench"). The
+ *  assessed man keeps his name on the shirt while the doctors work, so his
+ *  stand-in has no shirt of his own (fieldLineup puts him in it for the
+ *  engine): the change is who is on the pitch, not who is in the lineup. The
+ *  man picked here is the one who gives the shirt back if the assessment is
+ *  passed, or keeps it if it is failed. Free, and only at the stoppage. */
+function swapHiaCover(state: GameState, ctx: LiveCtx, mine: SideCtx, onId: number, inId: number): string {
+  const h = mine.hia!
+  const pon = state.players[onId]
+  const pin = state.players[inId]
+  const hurt = state.players[h.pid]
+  if (!pon || !mine.onPitch.has(onId)) return t('touch.notOnPitch')
+  if (!pin || pin.injury || mine.onPitch.has(inId) || mine.ratings.has(inId) || mine.lineup.indexOf(inId) < 15) return t('touch.notAvailable')
+  const inj = mine.lastInj && mine.lastInj.coverId === onId ? mine.lastInj : null
+  if (!inj || (inj.atTick != null && ctx.tick !== inj.atTick)) return t('touch.tooLateToUndo')
+  for (let i = inj.upTo; i < ctx.events.length; i++) {
+    if (ctx.events[i].playerId === onId) return t('touch.tooLateToUndo')
+  }
+  // a front-rower stands in for a front-rower while one is on the bench
+  if (hurt && isFrontRower(hurt) && isFrontRower(pon) && !isFrontRower(pin)) return t('touch.frontRowOnly')
+  mine.onPitch.delete(onId)
+  mine.onPitch.add(inId)
+  cameOn(mine, inId, mine.onAt?.get(onId) ?? Math.min(79, Math.max(1, ctx.lastMin)))
+  mine.ratings.delete(onId)
+  mine.energy.delete(onId)
+  mine.ratings.set(inId, 6)
+  mine.energy.set(inId, benchTank(pin))
+  const from = mine.since?.get(onId)
+  if (from != null) { mine.since!.delete(onId); mine.since!.set(inId, from) }
+  h.subId = inId
+  inj.coverId = inId
+  // the assessment line named the assistant's pick: it is the record, so it
+  // names the man who actually went on
+  const hl = [...ctx.events].reverse().find(e => (e.k === 'comm.hiaLedAway' || e.k === 'comm.hiaMouthguard') && e.v?.sub === pon.name)
+  if (hl?.k) {
+    hl.v = { ...hl.v, sub: pin.name }
+    hl.text = tIn('en', hl.k, hl.v as Record<string, string | number>)
+  }
+  fieldChanged(state, ctx, mine, ctx.lastMin)
   return t('touch.takesShirtInstead', { on: pin.name, off: pon.name })
 }
 

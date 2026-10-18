@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../../store'
 import { MAX_SUBS, isFrontRower, needsFrontRower, type SideCtx, shirtNumber } from '../../../game/matchEngine'
+import { fieldLineup } from '../../../game/match/side'
 import { XV_SLOTS, type Player, type Pos } from '../../../game/model'
 import { BRIEF_BY_ID, briefForSeat } from '../../../game/bench'
 import { BriefIcon } from '../../tacticsArt'
@@ -64,7 +65,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // on with what it has, and the sheet can always be closed (owner, round 6:
   // "I can't continue in the game").
   const live0 = live.ctx.home.teamId === live.ctx.userSideId ? live.ctx.home : live.ctx.away
-  const coverOn = freeCoverId != null && live0.onPitch.has(freeCoverId) && live0.lineup.slice(0, 15).includes(freeCoverId)
+  const coverOn = freeCoverId != null && live0.onPitch.has(freeCoverId) && fieldLineup(live0).slice(0, 15).includes(freeCoverId)
   const [offId, setOffId] = useState<number | null>(waitId != null && waiting() ? waitId : coverOn ? freeCoverId! : null)
   const [freeLeft, setFreeLeft] = useState(coverOn)
   /** a decision has been made: a change, a swap, or keeping the assistant's man.
@@ -89,7 +90,10 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // The XV in shirt order, because that is how a team sheet reads and how the
   // man you are looking for is found.
   // the number he walked out in: a replacement in 23 stays 23 (1.8.16)
-  const xv = mine.lineup.slice(0, 15).map((id, i) => ({
+  // the shirts as they are worn: a head assessment's stand-in in the
+  // assessed man's shirt (fieldLineup), so he is the one the manager taps
+  const worn = fieldLineup(mine)
+  const xv = worn.slice(0, 15).map((id, i) => ({
     shirt: (id != null ? shirtNumber(mine, id) : undefined) ?? i + 1,
     p: id != null ? game.players[id] : null,
   })).filter((r): r is { shirt: number; p: Player } => !!r.p)
@@ -124,7 +128,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // shirt being filled is the injured man's: a back sent on for a flanker is
   // wearing 6, and the bench should be read for 6, not for wherever the back
   // usually plays.
-  const offSlot = offId != null ? mine.lineup.indexOf(offId) : -1
+  const offSlot = offId != null ? worn.indexOf(offId) : -1
   const shirtPos: Pos | null = off ? (offSlot >= 0 && offSlot < 15 ? XV_SLOTS[offSlot].pos : off.pos) : null
   // Natural cover first, same as the engine's own bench discipline, so the
   // like-for-like choice is the one at the top of the list. Everybody else is

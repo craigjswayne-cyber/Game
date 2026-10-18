@@ -237,7 +237,9 @@ export interface SideCtx {
    *  written at the same stoppage (playing out of position, uncontested
    *  scrums) is not mistaken for the cover having played. Never read by the
    *  simulation, never a draw. */
-  lastInj?: { hurtId: number; coverId: number | null; upTo: number }
+  /** `atTick` (head assessments, 1.9.2): the ctx.tick the stoppage is
+   *  answered at; once play has moved past it the cover is settled */
+  lastInj?: { hurtId: number; coverId: number | null; upTo: number; atTick?: number }
   /** goal-kicking bonus from the kicking coach */
   goalBonus: number
   /** players in this side facing a former club today - the old boys */
