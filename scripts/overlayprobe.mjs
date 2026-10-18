@@ -88,7 +88,7 @@ try {
   ok(before.btns.length === 2 && before.btns[0].on && !before.btns[1].on, `Highlights: two choices, Key Moments by default (${before.btns.map(b => b.text + (b.on ? '*' : '')).join(' / ')})`)
   const sw = await page.evaluate(() => [...document.querySelectorAll('.settings-sheet [role=switch]')].map(e => e.getAttribute('aria-checked')))
   ok(sw.length === 2 && sw.every(v => v === 'true'), `two switches (sound, large commentary), both on (${sw.join(',')})`)
-  await page.click(`.settings-sheet .btn >> text=${before.btns[1].text}`)
+  await tapPast(page, `.settings-sheet .btn >> text=${before.btns[1].text}`)
   await page.waitForTimeout(200)
   const after = await seg()
   ok(after.btns[1].on && !after.btns[0].on, 'picking Extended selects it')
@@ -108,7 +108,7 @@ try {
   // speed joined the stored keys in 1.8.9 (the owner asked for it remembered)
   ok(saved.highlights === 'extended' && saved.bigText === false && saved.speed === 2 && Object.keys(saved).sort().join() === 'bigText,highlights,speed',
     `the choices are remembered on this device, and nothing else is (${JSON.stringify(saved)})`)
-  await page.click('.settings-sheet > .btn.gold.block')
+  await tapPast(page, '.settings-sheet > .btn.gold.block')
   await page.waitForTimeout(300)
   ok(await page.evaluate(() => !document.querySelector('.settings-sheet')), 'closing Match Settings goes back to the match')
   // the pace survives the app being closed and a new career: everything but
@@ -122,7 +122,7 @@ try {
   await page.waitForSelector('.settings-sheet')
   const sp1 = await speedSeg()
   ok(sp1[2]?.startsWith('*'), `after a restart the commentary is still Fast (${sp1.join(' / ')})`)
-  await page.click('.settings-sheet > .btn.gold.block')
+  await tapPast(page, '.settings-sheet > .btn.gold.block')
   await page.waitForTimeout(300)
   // an old save with the retired switches in it (1.8.0 betas) reads cleanly
   const errors = []

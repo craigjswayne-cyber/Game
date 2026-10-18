@@ -124,7 +124,7 @@ try {
   ok(pre.out === 0, 'every reaction sits inside a 390px screen')
   ok(pre.digits === 0, 'and none of them is a number')
   await page.screenshot({ path: `${OUT}/talk-pre-reactions.png` })
-  await page.click('.talk-react >> text=Got it')
+  await tapPast(page, '.talk-react >> text=Got it')
   ok(await page.locator('.talk-react').count() === 0, 'and it goes when waved away')
 
   // ---- 3. half time
