@@ -121,6 +121,11 @@ async function startCareer(page) {
   await page.click('.action-bar >> text=Confirm')
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Gaffer')
   await page.click('.action-bar >> text=Confirm')
+  // A FREE DEVICE KEEPS ONE CAREER (1.9.2, monetise.saveSlotLimit): this
+  // phone already has one, so the wizard asks which to replace before it
+  // will start another. Pick the first career offered.
+  const replace = page.locator('.card:has-text("Your free save slot is in use") .speech-tile:not([disabled])')
+  if (await replace.count()) await replace.first().click()
   await page.click('text="Start Career"')
   await page.locator('.tut-box').or(page.locator('.bottom-nav')).first().waitFor({ timeout: 20000 })
   // the tutorial is a modal: no card may open over it

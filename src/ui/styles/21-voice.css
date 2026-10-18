@@ -20,7 +20,7 @@
   display: inline-block;
 }
 .section-title .sub::first-letter { text-transform: uppercase; }
-.tab-bar button { text-transform: none; letter-spacing: 0; font-size: 0.875rem; }
+.tab-bar button { text-transform: none; letter-spacing: 0; font-size: 0.875rem; min-width: 44px; }
 .submenu-head { text-transform: none; letter-spacing: 0; }
 .set-label, .bug-label, .press-label, .desk-sub { text-transform: none; letter-spacing: 0; }
 @media (max-width: 480px) and (orientation: portrait) {
