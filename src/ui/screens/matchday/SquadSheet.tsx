@@ -278,7 +278,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
                     it is the one place that wants a hard number rather than a
                     feel. The words keep their home in the assistant's read
                     below, where they are commentary rather than an input. */}
-                <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{e}%</span>
+                <span className={`sh-nrg ${energyTone(e)}`}>{e}%</span>
               </button>
             )
           })}
@@ -353,6 +353,17 @@ export function condWord(e: number): string {
     : e >= 40 ? 'matchday.cwTiring' : e >= 25 ? 'matchday.cwEmpty' : 'matchday.cwSpent')
 }
 
+/** Every man coloured by how much he has left, from the first minute (owner,
+ *  18 Oct 2026). It was always the percentage, never the clock: amber under 50
+ *  and red under 25, which nobody reached before the hour, so the colours
+ *  seemed to switch on at 60 minutes. Three bands now, on the same breaks as
+ *  the assistant's words: fresh or going well is green, blowing or tiring is
+ *  amber, empty or spent is red. */
+export function energyTone(e: number): 'green' | 'amber' | 'red' {
+  return e >= 70 ? 'green' : e >= 40 ? 'amber' : 'red'
+}
+const TONE_VAR = { green: 'var(--text-positive)', amber: 'var(--gold)', red: 'var(--text-negative)' } as const
+
 /** The assistant's condition report on the XV, most worrying first. */
 export function EnergyBars({ mine }: { mine: SideCtx }) {
   const game = useStore(s => s.game)!
@@ -371,7 +382,7 @@ export function EnergyBars({ mine }: { mine: SideCtx }) {
           <div style={{ flex: 1, height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden' }}>
             {/* the true width, not a banded one: a gauge that rounds to fifths
                 is a gauge that quietly lies, and the number sits beside it */}
-            <div style={{ width: `${e}%`, height: '100%', background: e < 25 ? 'var(--text-negative)' : e < 50 ? 'var(--gold)' : 'var(--text-positive)' }} />
+            <div style={{ width: `${e}%`, height: '100%', background: TONE_VAR[energyTone(e)] }} />
           </div>
           <span style={{ width: 118, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
             <b>{Math.round(e)}%</b> <span style={{ opacity: .7, fontStyle: 'italic' }}>{condWord(e)}</span>

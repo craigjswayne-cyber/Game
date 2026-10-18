@@ -1450,7 +1450,7 @@
     "refJackal": "Laisse travailler le gratteur - un bon jeu au sol produira des turnovers.",
     "refNothing": "Rien dans le carnet : laisse les joueurs décider.",
     "refCrowd": "Grosse ambiance à domicile : les décisions serrées pourraient pencher du côté de {team}.",
-    "refPatient": "Patient : en tolère {n} avant de sortir un carton.",
+    "refPatient": "Patient : une équipe peut concéder {n} pénalités avant qu'un carton ne sorte.",
     "refScrumLoose": "Expédie les mêlées - vos phases statiques valent moins aujourd'hui.",
     "refScrumTight": "Pointilleux en mêlée - la première ligne dominante est récompensée.",
     "refShortFuse": "Patience courte : {n} pénalités et quelqu'un sort.",

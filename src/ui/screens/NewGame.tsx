@@ -336,7 +336,11 @@ export default function NewGame() {
             <div className="card">
               <label className="fact-label" htmlFor="mgr-name">{t('wizard.yourName')}</label>
               <input id="mgr-name" className="inline-input" placeholder={t('wizard.namePlaceholder')}
-                value={name} onChange={e => setName(e.target.value)}
+                autoCapitalize="words"
+                // a name starts with a capital, whatever the keyboard did (owner,
+                // 18 Oct 2026): the first letter of each word, the rest as typed,
+                // so an inner capital such as McAllister's survives
+                value={name} onChange={e => setName(capitaliseName(e.target.value))}
                 onFocus={e => {
                   // keep the field visible above the software keyboard
                   const el = e.target
@@ -424,4 +428,9 @@ export default function NewGame() {
       </div>
     </>
   )
+}
+
+/** Upper-case the first letter of every word, leaving the rest as typed. */
+export function capitaliseName(s: string): string {
+  return s.replace(/(^|[\s-])(\p{Ll})/gu, (_, sep: string, ch: string) => sep + ch.toLocaleUpperCase(localeTag()))
 }

@@ -526,6 +526,7 @@
 /* nowrap, because this column is 32px and a four-line wrap tears the whole row
    open - which is exactly what a long condition phrase did here (Round 27) */
 .sh-nrg { flex: 0 0 32px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sh-nrg.green { color: var(--text-positive); }
 .sh-nrg.amber { color: var(--gold); }
 .sh-nrg.red { color: var(--danger); font-weight: 700; }
 .sheet-log { margin-top: 4px; }

@@ -41,7 +41,11 @@
 @media (orientation: landscape) and (min-width: 640px) {
   .card-grid.home-tiles { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); align-items: stretch; padding: 0 14px 8px; }
 }
-.app.tablet .card-grid.home-tiles { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); align-items: stretch; padding: 0 14px 8px; }
+/* 12px ON TOP on a tablet (owner, 18 Oct 2026: "space between Store box and
+   next match box too close"). The tablet round gives the hero no bottom margin
+   and every grid a 12px top pad, and this rule's padding put the top back to
+   0, so the Store sat 2px under the match. */
+.app.tablet .card-grid.home-tiles { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); align-items: stretch; padding: 12px 14px 8px; }
 /* a card that is not a tile (the store shelf, the old app's warning) keeps
    its own look and takes the whole row */
 .card-grid.home-tiles > .card { grid-column: 1 / -1; margin: 0; width: auto; }

@@ -77,12 +77,37 @@ html, body, #root { height: 100%; }
   @keyframes turning-in { from { opacity: 0; } }
 }
 /* the first frame, before the script (index.html) */
+/* The first paint, before the script: the title screen's own art, scrim and
+   wordmark (06-title.css), always in the night palette because no theme class
+   exists yet. The thin bar under it breathes while the game loads. */
 .boot-splash {
   height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 0.375rem; background: var(--canvas); color: var(--text-primary);
-  font-family: var(--cond); font-weight: 800; font-size: 2.5rem; letter-spacing: 0.06em;
+  color: var(--text-primary); text-align: center;
+  padding: calc(var(--safe-area-inset-top, 0px) + 28px) 24px calc(var(--safe-area-inset-bottom, 0px) + 24px);
+  background:
+    radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
+    linear-gradient(to bottom, rgba(8, 12, 10, 0.62) 0%, rgba(8, 12, 10, 0.44) 22%, rgba(8, 12, 10, 0.40) 44%,
+      rgba(8, 12, 10, 0.58) 58%, rgba(8, 12, 10, 0.88) 74%, rgba(8, 12, 10, 0.92) 100%),
+    url('../title-bg.webp') 6% center / cover no-repeat,
+    var(--canvas);
 }
-.boot-splash span { font-size: 0.875rem; letter-spacing: 0.3em; color: var(--text-secondary); }
+.boot-splash .bs-rule { width: 64px; border: none; border-top: 2px solid var(--text-primary); margin: 16px auto; }
+.boot-splash .bs-word {
+  font-family: var(--serif); font-size: 2.875rem; font-weight: 900; line-height: 1.02;
+  letter-spacing: 4px; text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
+}
+.boot-splash .bs-word b { color: var(--primary); font-weight: 900; }
+.boot-splash .bs-load {
+  width: 120px; height: 3px; margin-top: 22px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent) 0 0 / 50% 100% no-repeat,
+    color-mix(in srgb, var(--text-primary) 14%, transparent);
+  animation: bs-sweep 1.2s ease-in-out infinite;
+}
+@keyframes bs-sweep { from { background-position: -60px 0, 0 0; } to { background-position: 180px 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { .boot-splash .bs-load { animation: none; background-position: 30px 0, 0 0; } }
+@media (prefers-reduced-data: reduce) {
+  .boot-splash { background: radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%), var(--canvas); }
+}
 /* PULL-TO-REFRESH IS A GAME-LOSING GESTURE HERE.
    A drag downwards on the phone reloaded the page, and a reload mid-match throws
    the live match away - the eighty minutes are held in memory, not in the save.

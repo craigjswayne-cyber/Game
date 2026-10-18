@@ -1438,7 +1438,7 @@
   "refJackal": "Deja trabajar al jackal: un ruck fuerte robará balones.",
   "refNothing": "Nada en la libreta: deja que lo decidan los jugadores.",
   "refCrowd": "Gran ambiente local: las decisiones ajustadas pueden caer del lado de {team}.",
-  "refPatient": "Paciente: permite {n} antes de echar mano de la tarjeta.",
+  "refPatient": "Paciente: un equipo puede conceder {n} castigos antes de que salga una tarjeta.",
   "refScrumLoose": "Le quita hierro a la melé - hoy tu fase estática vale menos.",
   "refScrumTight": "Pedante en la melé - la primera línea dominante tendrá premio.",
   "refShortFuse": "Mecha corta: {n} castigos y alguien se va a la caseta.",
