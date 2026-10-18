@@ -456,7 +456,7 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
           that was closing up the counters at 7px. */}
       <text
         x="12" y={wide ? 16.6 : 16.4} textAnchor="middle"
-        fontFamily="'Space Grotesk', 'Segoe UI', sans-serif"
+        fontFamily="'Saira Condensed', 'Arial Narrow', sans-serif"
         fontWeight="700" fontSize={wide ? 8.6 : 12.4} letterSpacing={wide ? '-.35' : '.1'}
         fill="var(--prop-white)" stroke="rgba(6,10,8,.9)" strokeWidth={wide ? 1.0 : 1.5}
         paintOrder="stroke"

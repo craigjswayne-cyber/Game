@@ -27,24 +27,70 @@
   .section-title { font-size: 1rem; }
 }
 
-/* The "?" that holds a screen's instructions (components HelpButton). A
-   small round button in the heading's line; its text opens on a line of its
-   own under the heading, and closes on a second tap. */
+/* The "?" that holds a screen's instructions (components HelpButton).
+   Small (18px) and quiet, centred on the line of text it sits beside: after
+   a heading it is a flex item of the heading's own row, so it lines up with
+   the words whatever the heading's size; on its own (HelpTip) it sits at the
+   content's left edge, 16px in like the text around it. The tap target stays
+   44px through the invisible ::after. Its text opens on its own line. */
 .help-q {
-  display: inline-grid; place-items: center; flex-shrink: 0;
-  width: 24px; height: 24px; margin-left: 8px; padding: 0; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 18px; height: 18px; margin: 0 0 0 6px; padding: 0; border-radius: 50%;
   border: 1px solid var(--border-strong); background: transparent;
-  color: var(--text-secondary); font: 700 0.75rem/1 var(--sans);
-  position: relative; vertical-align: middle; cursor: pointer;
+  color: var(--text-muted); font: 700 0.6875rem/1 var(--sans);
+  position: relative; align-self: center; cursor: pointer;
 }
-.help-q::after { content: ''; position: absolute; inset: -12px; }
-.help-q.on { background: var(--surface-3); color: var(--text-primary); }
+.help-q::after { content: ''; position: absolute; inset: -14px; }
+.help-q.on { background: var(--surface-3); color: var(--text-primary); border-color: var(--text-muted); }
+.section-title > span:first-child { align-items: center; }
 .help-text {
   flex-basis: 100%; display: block; margin-top: 4px;
   font: 500 0.8125rem/1.4 var(--sans); color: var(--text-secondary);
   text-transform: none; letter-spacing: 0;
 }
 .help-text::first-letter { text-transform: uppercase; }
-.help-tip { display: flex; flex-wrap: wrap; align-items: center; padding: 10px 0; }
-.help-tip.pad { padding: 10px 16px; }
+.help-tip { display: flex; flex-wrap: wrap; align-items: center; padding: 13px 0; }
+.help-tip.pad { padding: 13px 16px; }
 .help-tip .help-q { margin-left: 0; }
+
+/* ---- Header bands (1.9.2, ui/accent.ts) ----
+   A highlighted card names its colour in --band. With a title as its first
+   child, the title becomes a band across the top of the card in a wash of
+   that colour and the card itself stays plain. Without one, the card takes
+   the wash. The band runs edge to edge whatever the card's own padding:
+   the card clips, and the title reaches 16px past both sides, more than
+   any card's own padding. */
+[style*="--band"] {
+  background: color-mix(in srgb, var(--band) 10%, var(--surface-1));
+  border-color: color-mix(in srgb, var(--band) 38%, var(--border));
+}
+[style*="--band"]:has(> :is(h3, .fact-label):first-child) {
+  background: var(--surface-1);
+  border-color: color-mix(in srgb, var(--band) 30%, var(--border));
+  padding-top: 0;
+  overflow: hidden;
+}
+[style*="--band"] > :is(h3, .fact-label):first-child {
+  margin: 0 -16px 9px;
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--band) 18%, var(--surface-2));
+  border-bottom: 1px solid color-mix(in srgb, var(--band) 30%, var(--border));
+  color: var(--text-primary);
+}
+
+/* ---- Flat rows (1.9.2, owner's choice for lists) ----
+   A list of figures is a list, not a box: the ledger cards lose their
+   surface and border and sit on the page, with the row dividers doing the
+   separating. Cards that are things to tap or read stay cards. */
+.card:has(> .ledger-row), .card.bs-cash {
+  background: none;
+  border-color: transparent;
+  box-shadow: none;
+  padding-left: 2px; padding-right: 2px;
+}
+.card:has(> .ledger-row) + .card:has(> .ledger-row) { margin-top: 2px; }
+
+/* Libre Franklin sets a taller line than Space Grotesk did at the same size,
+   which pushed the squad list past its three-screen budget (scrollaudit:
+   3.01). Table cells take a fixed line height so a row is the height it was. */
+.dtable td { line-height: 1.3; }

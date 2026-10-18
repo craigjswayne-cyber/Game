@@ -333,11 +333,12 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* ---- Space Grotesk, applied by job ----
-   One family, three voices, separated by weight and tracking. Space Grotesk is
-   a wider face than Montserrat at the same size, so the tracking matters more
-   than it used to: left alone, a 44-man squad table would need another 40px it
-   does not have.
+/* ---- Type, applied by job (1.9.2: Saira Condensed + Libre Franklin) ----
+   Two families now (01-base.css): the condensed face for anything that is a
+   label, a heading, a button or a score, the text face for anything read.
+   The tracking below was tuned for Space Grotesk, a wide face; on a
+   condensed one negative tracking closes letters up, so the display rules
+   sit at zero or just above.
 
    Tables and rosters   medium weight, tight tracking, to buy back landscape
    Scores and ratings   bold and tabular, so columns of numbers line up
@@ -362,21 +363,26 @@
 .scoreboard { letter-spacing: -0.5px; font-weight: 700; }
 .form-pill { font-weight: 700; letter-spacing: -0.3px; }
 
-/* nav and buttons: semi-bold caps. Space Grotesk's caps are wide and want
-   positive tracking to stop them reading as one long word */
+/* the condensed face, by job: headings, buttons, tabs, nav, stat labels and
+   scores (owner's choice, 18 Oct 2026, from the three pairings shown) */
+h1, h2, h3, .masthead h1, .section-title, .btn, .continue-btn, .tab-bar button,
+.bottom-nav button, .fact-label, .fact-grid label, .ht-l, .scoreboard, .fx-line,
+.submenu-head, .dash-head, .sc-head, .score-card, .desk-sub {
+  font-family: var(--cond);
+}
+/* nav and buttons: semi-bold */
 .bottom-nav button, .tab-bar button, .btn, .preset-chip, .submenu-item {
   font-weight: 600;
 }
-.tab-bar button { letter-spacing: 0.6px; }
-.btn { letter-spacing: 0.7px; font-weight: 700; }
-.section-title { letter-spacing: 1.3px; font-weight: 700; }
+.tab-bar button { letter-spacing: 0.2px; }
+.btn { letter-spacing: 0.5px; font-weight: 700; }
+.section-title { font-weight: 700; }
 .fact-label, .dash-head { letter-spacing: 0.9px; }
 
-/* headlines: the display voice, tight and heavy, which is where a grotesque
-   earns its keep against a geometric sans */
-.masthead h1 { letter-spacing: -0.8px; font-weight: 700; }
-.card h3, .news-item .subj { letter-spacing: -0.3px; }
-.title-screen h1 { letter-spacing: -1.5px; font-weight: 700; }
+/* headlines: the display voice, heavy, tracked at zero for a condensed face */
+.masthead h1 { letter-spacing: 0.2px; font-weight: 700; }
+.card h3, .news-item .subj { letter-spacing: 0; }
+.title-screen h1 { letter-spacing: 1px; font-weight: 800; }
 
 /* the dressing room opens itself on match day, so it has to fit a short
    landscape screen without scrolling: four speeches two-up, not four-up */
