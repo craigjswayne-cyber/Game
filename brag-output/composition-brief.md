@@ -7,7 +7,7 @@ Create a 28s dark showreel for PHASE: Rugby Manager (v2, see brag-plan.md for th
 - Composition directory: `brag-output/composition/`
 - Rendered video: `brag-output/brag.mp4`
 - Format: vertical, 1080x1920
-- Duration: 20.5 seconds
+- Duration: 28 seconds
 
 ## Source Material
 - Project root: repository root
