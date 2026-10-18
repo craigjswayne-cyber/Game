@@ -12,6 +12,7 @@
 // rows at 412px wide, with no side padding on the modal, was never once looked at.
 // User screenshot: the numbers down the right-hand column were cut in half.
 import { chromium } from 'playwright-core'
+import { tapPast } from './lib/sheet.mjs'
 import { startPreview } from './lib/preview.mjs'
 
 const server = await startPreview(0, 2500)
@@ -75,13 +76,13 @@ try {
   ok(plays <= 1, `only one play button on the row (found ${plays})`)
 
   // ---- the settings sheet holds speed and sound
-  await page.click('.speed-controls .btn >> nth=-1')  // settings is the last button on the row
+  await tapPast(page, '.speed-controls .btn >> nth=-1')  // settings is the last button on the row
   await page.waitForSelector('text=Match Settings', { timeout: 5000 })
   ok(await page.locator('text=Commentary speed').count() > 0, 'settings sheet has the speed control')
   ok(await page.locator('.modal .btn >> text=Fast').count() > 0, 'settings sheet has the Fast speed')
-  await page.click('.modal .btn >> text=Fast')
+  await tapPast(page, '.modal .btn >> text=Fast')
   ok(await page.locator('.modal .btn.gold >> text=Fast').count() > 0, 'the chosen speed is marked')
-  await page.click('.modal >> text=Back to the Match')
+  await tapPast(page, '.modal >> text=Back to the Match')
   await page.waitForTimeout(300)
   ok(await page.locator('text=Match Settings').count() === 0, 'settings sheet closes')
 
@@ -291,7 +292,7 @@ try {
   ok(await page.locator('text=Match-Day Squad').count() > 0, 'half-time offers the match-day squad')
   ok(await page.locator('select').count() === 0, 'the quick-sub dropdowns are gone')
 
-  await page.click('text=Match-Day Squad')
+  await tapPast(page, 'text=Match-Day Squad')
   await page.waitForSelector('.squad-sheet', { timeout: 5000 })
   const rows = await page.locator('.sheet-col >> nth=0').locator('.sheet-row').count()
   ok(rows === 15, `the XV is listed in full (${rows} rows)`)

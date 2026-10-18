@@ -24,6 +24,7 @@
 // Run: npm run build && node scripts/telemetryui.mjs
 import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
+import { tapPast } from './lib/sheet.mjs'
 import { startPreview, done } from './lib/preview.mjs'
 
 const server = await startPreview(0, 2500)
@@ -160,7 +161,7 @@ try {
   ok(ht, 'the match reached half time')
 
   // ---- THE TELEMETRY PANEL
-  await page.click('[data-ctl=menu]')
+  await tapPast(page, '[data-ctl=menu]')
   await page.waitForSelector('.tele', { timeout: 5000 })
   await page.waitForTimeout(500) // the bars grow in
   const read = () => page.evaluate(() => {
@@ -257,7 +258,7 @@ try {
   await page.evaluate(() => window.rugbyStore.getState().toggleNight())
 
   // the panel still closes and hands back the match
-  await page.click('.mpanels .btn.gold.block')
+  await tapPast(page, '.mpanels .btn.gold.block')
   ok(await page.locator('.mpanels').count() === 0, 'Back to the match closes the panel')
   ok(errors.length === 0, `no page errors${errors.length ? ': ' + errors[0] : ''}`)
 } catch (e) {
