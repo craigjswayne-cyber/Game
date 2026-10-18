@@ -27,3 +27,9 @@ list is complete.
     one rewarded spot per tap (`ads-bridge.js` showRewarded, one
     `showRewardVideoAd` call, the button locked while it runs); find where
     the extra adverts come from and stop them.
+11. **Half-time recovery: +10%.** Everyone on the pitch gets 10 points of
+    energy back at the half-time whistle (today energy only drains,
+    `match/energy.ts`; `blowHalfTime` does not touch it). Keep the balance
+    where it is: retune the drain so scoring, late-game tiredness and the
+    value of the bench stay at today's figures (balance probes, soak), and
+    record the fingerprint change with its reason.
