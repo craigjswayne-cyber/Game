@@ -11,6 +11,7 @@ import { fmtMoney, seasonLabel } from '../../game/model'
 import { t, localeTag, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { listSaves, type SaveMeta } from '../../game/save'
+import { saveSlotLimit } from '../../game/monetise'
 import { SLOTS as SAVE_SLOTS, slotName } from './Saves'
 import { rowNav } from '../rowNav'
 
@@ -61,7 +62,14 @@ export default function NewGame() {
   const [pickSlot, setPickSlot] = useState<string | null>(null)
   useEffect(() => { void listSaves().then(setSaves).catch(() => setSaves([])) }, [])
   const usedSlots = new Set((saves ?? []).map(sv => sv.slot))
-  const freeSlot = !usedSlots.has(activeSlot) ? activeSlot : SAVE_SLOTS.find(sl => !usedSlots.has(sl)) ?? null
+  // the free game keeps one career (monetise.saveSlotLimit): at the limit a
+  // new career replaces one, it never takes an empty slot
+  const limited = saveSlotLimit() < SAVE_SLOTS.length
+  const atLimit = (saves ?? []).length >= saveSlotLimit()
+  const freeSlot = atLimit ? null : !usedSlots.has(activeSlot) ? activeSlot : SAVE_SLOTS.find(sl => !usedSlots.has(sl)) ?? null
+  // the tiles to replace from: the four slots, and an imported career too,
+  // so a free player whose one career is an import can still replace it
+  const pickSlots = [...SAVE_SLOTS, ...(saves ?? []).map(sv => sv.slot).filter(sl => !SAVE_SLOTS.includes(sl))]
   const targetSlot = saves == null ? null : freeSlot ?? pickSlot
   // the Manager's License (v1.1.0): offered here and only here, and only to
   // an owner - the receipt is bought on the Supporter page, the choice is made
@@ -372,13 +380,13 @@ export default function NewGame() {
               <div className="meta muted" style={{ margin: '0 0 8px' }}>{t('wizard.savesTo', { slot: slotName(freeSlot) })}</div>
             ) : (
               <div className="card">
-                <label className="fact-label">{t('wizard.slotsFull')}</label>
-                <div className="meta" style={{ marginBottom: 6 }}>{t('wizard.slotsFullBlurb')}</div>
+                <label className="fact-label">{t(limited ? 'wizard.slotsFreeFull' : 'wizard.slotsFull')}</label>
+                <div className="meta" style={{ marginBottom: 6 }}>{t(limited ? 'wizard.slotsFreeBlurb' : 'wizard.slotsFullBlurb')}</div>
                 <div className="speech-grid" style={{ padding: 0 }}>
-                  {SAVE_SLOTS.map(sl => {
+                  {pickSlots.map(sl => {
                     const sv = saves.find(x => x.slot === sl)
                     return (
-                      <button key={sl} className={`speech-tile${pickSlot === sl ? ' sel' : ''}`} onClick={() => setPickSlot(sl)}>
+                      <button key={sl} className={`speech-tile${pickSlot === sl ? ' sel' : ''}`} disabled={!sv} onClick={() => setPickSlot(sl)}>
                         <b>{slotName(sl)}</b>
                         {sv && <span className="d">{sv.managerName} · {sv.club} · {seasonLabel(sv.season)}</span>}
                       </button>
