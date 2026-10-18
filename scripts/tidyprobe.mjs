@@ -116,9 +116,9 @@ try {
   await tapPast(page, '.speed-controls .btn >> nth=0')
   await page.waitForTimeout(300)
   await clear()
-  await page.click('[aria-label="Match menu"]')
+  await tapPast(page, '[aria-label="Match menu"]')
   await page.waitForSelector('.mpanels')
-  await page.click('.mp-dots button[aria-label="Who did what"]')
+  await tapPast(page, '.mp-dots button[aria-label="Who did what"]')
   await page.waitForSelector('.mp-grid')
   const st = await page.evaluate(() => {
     const tables = [...document.querySelectorAll('.mpanels .mp-grid')]
