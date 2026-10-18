@@ -22,3 +22,8 @@ list is complete.
 9. **Injuries:** the manager always decides who comes on. The case seen was a
    head injury assessment (HIA), which swaps a temporary replacement on
    automatically. Make HIA ask the manager too, or at least make it plain.
+10. **One advert per reward, never more.** Tapping a rewarded button (a
+    favour for an ad) must play exactly one advert. The game asks Google for
+    one rewarded spot per tap (`ads-bridge.js` showRewarded, one
+    `showRewardVideoAd` call, the button locked while it runs); find where
+    the extra adverts come from and stop them.
