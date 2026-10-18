@@ -197,13 +197,13 @@ function talkLine(state: GameState, ctx: LiveCtx, tone: string, half: 'pre' | 'h
 /** Fold a talk into the side: per-man multipliers, the cards a room pushed
  *  over the edge gives away, and the reaction kept for full time. `prior`
  *  is how much of an earlier talk's reaction is still in each man. */
-function landTalk(state: GameState, ctx: LiveCtx, side: SideCtx, reads: TalkRead[], prior: number, fire: boolean) {
+function landTalk(state: GameState, ctx: LiveCtx, side: SideCtx, reads: TalkRead[], prior: number, fire: boolean, exp: number) {
   const f = new Map<number, number>()
   const rr = new Map<number, number>()
   for (const x of reads) {
     const r = (side.talkR?.get(x.pid) ?? 0) * prior + x.r
     rr.set(x.pid, r)
-    f.set(x.pid, talkFactor(r))
+    f.set(x.pid, talkFactor(r, exp))
   }
   side.talkF = f
   side.talkR = rr
@@ -227,7 +227,7 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: PreTone): str
   const reads = talkReads(state, mine.lineup.slice(0, 23), s, kind, ctx.fx.id, talkListen(state))
   ctx.preReads = reads
   mine.talkShift = new Map(reads.map(x => [x.pid, x.after - x.before]))
-  landTalk(state, ctx, mine, reads, 0, kind === 'fire')
+  landTalk(state, ctx, mine, reads, 0, kind === 'fire', s.exp)
   return talkLine(state, ctx, kind, 'pre', roomVerdict(reads))
 }
 
@@ -253,10 +253,11 @@ export function openDressingRoom(state: GameState, ctx: LiveCtx, kind: PreTone |
   if (k > 0) {
     const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
     const opp = mine === ctx.home ? ctx.away : ctx.home
-    const reads = silenceReads(state, mine.lineup.slice(0, 23), talkSettingFor(state, ctx, mine, opp), ctx.fx.id, talkListen(state), k)
+    const s = talkSettingFor(state, ctx, mine, opp)
+    const reads = silenceReads(state, mine.lineup.slice(0, 23), s, ctx.fx.id, talkListen(state), k)
     ctx.preReads = reads
     mine.talkShift = new Map(reads.map(x => [x.pid, x.after - x.before]))
-    landTalk(state, ctx, mine, reads, 0, false)
+    landTalk(state, ctx, mine, reads, 0, false, s.exp)
     // the assistant says it once, plainly; the reactions say the rest
     const n = (hashString(`${state.seed}:${ctx.fx.id}:pre:silent`) % TALK_LINES) + 1
     msg = t(`tt.pre_silent${n}`)
@@ -280,7 +281,7 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: HtTone): str
   const ids = mine.lineup.slice(0, 23).filter((id): id is number => id != null && (mine.onPitch.has(id) || !mine.ratings.has(id)))
   const reads = talkReads(state, ids, s, kind, ctx.fx.id, talkListen(state), mine.talkShift)
   ctx.htReads = reads
-  landTalk(state, ctx, mine, reads, PRE_CARRY, kind === 'fire')
+  landTalk(state, ctx, mine, reads, PRE_CARRY, kind === 'fire', s.exp)
   return talkLine(state, ctx, kind, 'ht', roomVerdict(reads))
 }
 
