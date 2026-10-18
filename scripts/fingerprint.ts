@@ -24,6 +24,21 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED for 1.9.2 (owner feedback, 18 Oct 2026). FOUR of six moved,
+  // none from a new draw on the shared stream:
+  //   - fifteen referees where there were thirteen (Sara Cox and Aimee
+  //     Barrett-Theron, on the column means), so refFor deals most fixtures
+  //     a different man or woman with the whistle
+  //   - ten energy back for everyone on the pitch at half-time, paid for by a
+  //     1.09x drain so the eighty-minute average holds (energy.ts DRAIN_HT_K:
+  //     27.42 before, 27.44 after, 1,401 fixtures of seed 4242)
+  //   - the manager's team talks carry bigger stakes, most against a stronger
+  //     side (teamtalk.ts); AI sides still hear no talk, so only his fixture
+  //     can move for that reason
+  // sale-bristol and newcastle-northampton held. bandcheck, four worlds,
+  // 8,184 league games, before and after:
+  //   pts 49.8 -> 49.9   tries 6.52 -> 6.52   home 53.8% -> 53.8%
+  //   draws 2.0% -> 2.0%   blowouts 8.1% -> 8.2%   (every band holds)
   // REBASELINED for 1.9.0: the set piece is played and a man tires by his own
   // work (matchEngine.ts setPieceContest, roleDrain). Scrums and lineouts are
   // contested each tick on their own stream (incRng salt 0x5E7), so the main
@@ -629,12 +644,12 @@ export const EXPECTED: string[] = [
   // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
-  'saracens 13-24 bath',
-  'exeter 38-35 gloucester',
+  'saracens 6-24 bath',
+  'exeter 17-28 gloucester',
   'sale 39-25 bristol',
-  'harlequins 48-24 leicester',
+  'harlequins 41-29 leicester',
   'newcastle 37-10 northampton',
-  'exeter 40-20 saracens',
+  'exeter 40-17 saracens',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw
