@@ -199,7 +199,18 @@ try {
     ok(await page.evaluate(() => window.rugbyStore.getState().nav.at(-1).screen) === 'annual', 'the season review is on screen')
     ok(!(await fbCard(page, 2500)), 'and the card does not open over it')
     // put it away the way a player does: its own button
-    await start2.click()
+    // the review's own button: if it is not there, say what the page holds
+    // instead (the Gate once timed out here with the review on the nav)
+    await start2.click({ timeout: 15000 }).catch(async e => {
+      const st = await page.evaluate(() => {
+        const s = window.rugbyStore?.getState()
+        return { nav: s?.nav.map(n => n.screen), turning: s?.turning, annual: !!s?.game?.annual, week: s?.game?.week,
+          chunkReload: sessionStorage.getItem('rm-chunk-reload'), text: document.body.innerText.slice(0, 300) }
+      }).catch(x => String(x))
+      await page.screenshot({ path: 'shots/feedbackui-annual.png' }).catch(() => {})
+      say('FAIL  the review had no button: ' + JSON.stringify(st))
+      throw e
+    })
     const shown = await fbCard(page, 6000)
     const shownAt = shown ? await page.evaluate(() => { const st = window.rugbyStore.getState(); return { week: st.game.week, season: st.game.season, screen: st.nav.at(-1).screen } }) : null
     const u = await use(page)
