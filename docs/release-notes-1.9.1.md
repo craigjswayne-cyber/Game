@@ -1,7 +1,7 @@
 # PHASE: Rugby Manager 1.9.1: release notes
 
-Version 1.9.1, Play versionCode 59 (confirm 58 is accepted on the Console
-first), iOS MARKETING_VERSION 1.9.1 (from `package.json`). Baseline: 1.9.0,
+Version 1.9.1, Play versionCode 60 (59 was refused on upload as already
+used), iOS MARKETING_VERSION 1.9.1 (from `package.json`). Baseline: 1.9.0,
 code 58. Package and bundle id, signing, product ids and permissions are
 unchanged.
 
