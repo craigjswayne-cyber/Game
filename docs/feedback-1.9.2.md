@@ -47,3 +47,13 @@ list is complete.
     guess from a hash of the club (`conditions.ts` clubSurface), which made
     Bristol hybrid; Bristol is not. Replace the guess with a researched
     surface for every PREM ground at least, grass where unconfirmed.
+15. **Team talks must matter.** The right talk against the right opponent
+    should be a real bonus; a bad talk against a good side should hurt the
+    team heavily. Today (`teamtalk.ts`) the effect is a per-player multiplier
+    capped at plus or minus 8% (`TALK_CAP` 0.08, slope `TALK_K_UP` 0.13 up,
+    `TALK_K_DOWN` 0.1 down), so a wrong call barely shows. Raise the ceiling
+    and make it depend on the setting (`talkSetting`: strength gap, home or
+    away, big match): a bigger upside for the right tone, and a steeper
+    penalty for the wrong tone against a stronger side. Retune so an average
+    talk leaves results where they are today (balance probes, soak), and
+    record the fingerprint change.
