@@ -26,7 +26,13 @@ list is complete.
     favour for an ad) must play exactly one advert. The game asks Google for
     one rewarded spot per tap (`ads-bridge.js` showRewarded, one
     `showRewardVideoAd` call, the button locked while it runs); find where
-    the extra adverts come from and stop them.
+    the extra adverts come from and stop them. Confirmed by the user: the
+    extras play straight after each other with no second tap (3 adverts for
+    one reward, 2 for another). The code path checked so far makes a single
+    show call per tap (`components.tsx` busy lock, `monetise.ts`,
+    `ads-bridge.js` showRewarded), so look at what is served for that one
+    call: the AdMob ad unit and mediation settings, and a device log of the
+    plugin events during one reward.
 11. **Half-time recovery: +10%.** Everyone on the pitch gets 10 points of
     energy back at the half-time whistle (today energy only drains,
     `match/energy.ts`; `blowHalfTime` does not touch it). Keep the balance
