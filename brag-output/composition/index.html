@@ -394,18 +394,18 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding-bottom: 200px;
+        padding-bottom: 140px;
       }
       .icon {
         display: block;
-        width: 240px;
-        height: 240px;
-        margin-bottom: 48px;
+        width: 170px;
+        height: 170px;
+        margin-bottom: 36px;
       }
       .wordmark {
         display: block;
         font-weight: 700;
-        font-size: 210px;
+        font-size: 170px;
         line-height: 0.95;
         letter-spacing: -4px;
         color: var(--green);
@@ -413,10 +413,10 @@
       .sub {
         display: block;
         font-weight: 700;
-        font-size: 92px;
+        font-size: 74px;
         line-height: 1;
         letter-spacing: 2px;
-        margin-top: 12px;
+        margin-top: 10px;
       }
       .tagline {
         display: block;
@@ -433,10 +433,50 @@
         margin-top: 60px;
       }
       .fine {
+        text-shadow: 0 2px 14px #000, 0 0 5px #000;
         display: block;
         font-size: 30px;
         color: var(--text-2);
         margin-top: 12px;
+      }
+      .dl {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 64px;
+        padding: 36px 70px 40px;
+        border-radius: 36px;
+        background: rgba(10, 16, 13, 0.82);
+        box-shadow: 0 0 0 3px #3ddc84, 0 0 80px rgba(61, 220, 132, 0.35);
+      }
+      .droid {
+        display: block;
+        width: 150px;
+        height: 90px;
+        margin-bottom: 18px;
+      }
+      .dl-now {
+        display: block;
+        font-weight: 700;
+        font-size: 96px;
+        line-height: 1;
+        letter-spacing: -1px;
+      }
+      .dl-on {
+        display: block;
+        font-weight: 700;
+        font-size: 52px;
+        letter-spacing: 6px;
+        margin-top: 12px;
+        color: #3ddc84;
+      }
+      .soon {
+        display: block;
+        font-weight: 500;
+        font-size: 42px;
+        margin-top: 40px;
+        color: var(--text);
+        text-shadow: 0 2px 18px #000, 0 0 6px #000;
       }
       .grain {
         position: absolute;
@@ -596,8 +636,18 @@
           <img id="logo-icon" class="icon" src="assets/img/icon.svg" alt="" />
           <span id="wm" class="wordmark">PHASE</span>
           <span id="sub" class="sub">RUGBY MANAGER</span>
-          <span id="tag" class="tagline">Build something worth remembering.</span>
-          <span id="url" class="url">phaserugbymanager.com</span>
+          <div id="dl" class="dl">
+            <svg class="droid" viewBox="0 0 120 72" aria-hidden="true">
+              <line x1="32" y1="24" x2="20" y2="5" stroke="#3ddc84" stroke-width="5" stroke-linecap="round" />
+              <line x1="88" y1="24" x2="100" y2="5" stroke="#3ddc84" stroke-width="5" stroke-linecap="round" />
+              <path d="M8 68 A52 52 0 0 1 112 68 Z" fill="#3ddc84" />
+              <circle cx="38" cy="46" r="5.5" fill="#0b1a12" />
+              <circle cx="82" cy="46" r="5.5" fill="#0b1a12" />
+            </svg>
+            <span class="dl-now">DOWNLOAD NOW</span>
+            <span class="dl-on">ON ANDROID</span>
+          </div>
+          <span id="soon" class="soon">iPhone &middot; coming soon</span>
           <span id="fine" class="fine">Unofficial and independent</span>
         </div>
       </section>
@@ -605,7 +655,7 @@
       <div class="grain" data-layout-ignore></div>
 
       <!-- audio -->
-      <audio id="bg-music" data-start="4.4" data-duration="23.6" data-media-start="12.02" data-track-index="10" data-volume="0.42" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":21.7,"v":1},{"t":23.55,"v":0}]}]}' src="assets/music/happy-beats-business-moves-vol-1-by-ende-dot-app.mp3"></audio>
+      <audio id="bg-music" data-start="0" data-duration="28" data-track-index="10" data-volume="0.9" src="assets/music/phase-score.mp3"></audio>
       <audio id="sfx-step0" data-start="0.39" data-track-index="12" data-volume="0.45" src="assets/sfx/impact/footstep_wood_000.ogg"></audio>
       <audio id="sfx-step1" data-start="0.92" data-track-index="13" data-volume="0.52" src="assets/sfx/impact/footstep_wood_001.ogg"></audio>
       <audio id="sfx-step2" data-start="1.45" data-track-index="14" data-volume="0.59" src="assets/sfx/impact/footstep_wood_002.ogg"></audio>
@@ -613,27 +663,11 @@
       <audio id="sfx-step4" data-start="2.5" data-track-index="16" data-volume="0.73" src="assets/sfx/impact/footstep_wood_000.ogg"></audio>
       <audio id="sfx-step5" data-start="3.03" data-track-index="17" data-volume="0.8" src="assets/sfx/impact/footstep_wood_001.ogg"></audio>
       <audio id="sfx-latch" data-start="3.3" data-track-index="18" data-volume="0.7" src="assets/sfx/impact/impactWood_medium_001.ogg"></audio>
-      <audio id="sfx-burst" data-start="4.38" data-track-index="19" data-volume="0.9" src="assets/sfx/impact/impactSoft_heavy_003.ogg"></audio>
-      <audio id="sfx-h0" data-start="4.88" data-track-index="20" data-volume="0.75" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
-      <audio id="sfx-h1" data-start="5.88" data-track-index="21" data-volume="0.75" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
-      <audio id="sfx-h2" data-start="6.88" data-track-index="22" data-volume="0.75" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
       <audio id="sfx-phone" data-start="7.9" data-track-index="23" data-volume="0.6" src="assets/sfx/casino/card-slide-1.ogg"></audio>
       <audio id="sfx-flick0" data-start="8.4" data-track-index="24" data-volume="0.35" src="assets/sfx/casino/card-slide-3.ogg"></audio>
       <audio id="sfx-flick1" data-start="9.3" data-track-index="25" data-volume="0.35" src="assets/sfx/casino/card-slide-3.ogg"></audio>
       <audio id="sfx-flick2" data-start="10.2" data-track-index="26" data-volume="0.35" src="assets/sfx/casino/card-slide-3.ogg"></audio>
-      <audio id="sfx-zoom" data-start="11.38" data-track-index="27" data-volume="0.7" src="assets/sfx/impact/impactPunch_heavy_000.ogg"></audio>
-      <audio id="sfx-cut0" data-start="12.88" data-track-index="28" data-volume="0.6" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
-      <audio id="sfx-cut1" data-start="14.38" data-track-index="29" data-volume="0.6" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
-      <audio id="sfx-cut2" data-start="15.38" data-track-index="30" data-volume="0.6" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
-      <audio id="sfx-feat0" data-start="16.88" data-track-index="31" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
-      <audio id="sfx-feat1" data-start="17.88" data-track-index="32" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
-      <audio id="sfx-feat2" data-start="18.88" data-track-index="33" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
-      <audio id="sfx-feat3" data-start="19.88" data-track-index="34" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
-      <audio id="sfx-feat4" data-start="20.88" data-track-index="35" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
-      <audio id="sfx-feat5" data-start="21.88" data-track-index="36" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
       <audio id="sfx-glitch" data-start="22.9" data-track-index="37" data-volume="0.5" src="assets/sfx/interface/glitch_002.ogg"></audio>
-      <audio id="sfx-sacked" data-start="23.58" data-track-index="38" data-volume="0.85" src="assets/sfx/impact/impactPunch_heavy_000.ogg"></audio>
-      <audio id="sfx-logo" data-start="24.88" data-track-index="39" data-volume="0.8" src="assets/sfx/impact/impactBell_heavy_000.ogg"></audio>
     </div>
 
     <script>
@@ -750,7 +784,7 @@
       // beat-locked: 8.40s (strong cue). Flicks every half beat.
       const flicks = gsap.utils.toArray("#s3-phone .flick");
       flicks.forEach((img, j) => {
-        tl.fromTo(img, { xPercent: 100 }, { xPercent: 0, duration: 0.12, ease: "power3.out" }, 8.4 + 0.2245 * j);
+        tl.fromTo(img, { xPercent: 100 }, { xPercent: 0, duration: 0.12, ease: "power3.out" }, 8.4 + 0.25 * j);
       });
       tl.fromTo("#t1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 8.4);
       tl.fromTo("#t2", slamIn, slamTo, 9.4);
@@ -798,8 +832,10 @@
       tl.fromTo("#logo-icon", { scale: 0.3, rotation: -40, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, 24.9);
       tl.fromTo("#wm", slamIn, slamTo, 24.98);
       tl.fromTo("#sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 25.25);
-      tl.fromTo("#tag", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 25.9);
-      tl.fromTo(["#url", "#fine"], { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 26.4);
+      // beat-grid: download card on 25.40, coming soon on 26.40
+      tl.fromTo("#dl", { scale: 1.4, opacity: 0, filter: "blur(12px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.32, ease: "power4.out" }, 25.4);
+      tl.fromTo(".droid", { y: 18, rotation: -8 }, { y: 0, rotation: 0, duration: 0.5, ease: "back.out(2.2)" }, 25.45);
+      tl.fromTo(["#soon", "#fine"], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.1, ease: "power2.out" }, 26.4);
 
       // ---- audio-reactive: the green light behind the phone and the logo breathes with the bass
       const glows = ["#s3-glow", "#s7-glow"].map((s) => document.querySelector(s));

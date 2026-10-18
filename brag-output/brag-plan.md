@@ -22,7 +22,7 @@ Longer than /brag's usual 15-25s because the brief asked for the corridor intro,
 | 11.4-16.9 | Full-bleed fast cuts: live match TRY + 32-12 full time ("THE CALLS ARE YOURS."), tactics pitch + starting XV ("BUILD YOUR DREAM TEAM."), campus map ("BUILD THE CLUB."), Wonderkid Watch + academy ("FIND THE WONDERKIDS."). |
 | 16.9-22.9 | Feature run, one per second: MEN'S & WOMEN'S GAME, 171 CLUBS 15 LEAGUES, 11,000+ PLAYERS, PLAYS OFFLINE, TAKE CHARGE OF YOUR COUNTRY, FACE THE PRESS. |
 | 22.9-24.9 | Job Centre, almost black: FAIL BADLY ENOUGH / YOU'RE SACKED. |
-| 24.9-28 | PHASE / RUGBY MANAGER, "Build something worth remembering.", phaserugbymanager.com, "Unofficial and independent". |
+| 24.9-28 | PHASE / RUGBY MANAGER, then the Android robot with DOWNLOAD NOW / ON ANDROID, then "iPhone · coming soon" and "Unofficial and independent". |
 
 ## Grounding
 - 171 clubs, 15 leagues, men's and women's game, plays offline, the press, "Fail badly enough and you're sacked": README / store listing.
@@ -31,8 +31,13 @@ Longer than /brag's usual 15-25s because the brief asked for the corridor intro,
 - Wonderkids: the Scouting Agency's Wonderkid Watch screen.
 
 ## Audio
-- Music: happy-beats-business-moves-vol-1 (120 BPM) from 12.02s, entering on the door burst at 4.4s; fades over the last 2s. Silence plus footsteps in the corridor.
-- Beat grid: hook 4.9/5.9/6.9, strong cue 8.4 (flicks start), cuts on the beat, features every other beat, outro at 24.9 where the track drops.
+- Music: an original score, synthesised by `brag-output/score/score.py` (numpy only, no samples, no licence to clear). 120 BPM in A minor, timed to the cuts.
+- Corridor: low drone, a heartbeat that quickens towards the door, a ticking clock, footsteps, a riser.
+- 4.4s: trailer braam, sub drop and taiko on the door burst; stabs on each hook line.
+- 7.9-11.4: kick, 16th-note ostinato, bass and hats build with a snare roll and riser into the zoom.
+- 11.4-22.9: full drive (kick, snare on 2 and 4, taiko, ostinato, string pad Am-F-Dm-E), taiko and sub hits on every cut and feature.
+- 22.9: the drive drops out to a dissonant drone; 23.6 a clustered braam on "YOU'RE SACKED."
+- 24.9: final braam, ringing pad and taiko under the logo and download card.
 - Audio-reactive: bass drives the green glow behind the phone and the logo.
 
 ## Safe zones
@@ -40,3 +45,5 @@ All text sits between y=150 and y=1450 and inside x=80-1000, clear of the TikTok
 
 ## Notes
 Screens come from the production build (scripts/storeart.mjs plus a one-off menu walk). Real player names appear in them, as in the store screenshots; none is used as headline copy.
+
+The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License. Credit it in the post caption.
