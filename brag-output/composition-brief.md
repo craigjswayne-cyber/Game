@@ -1,7 +1,7 @@
 # Hyperframes Composition Brief: PHASE: Rugby Manager
 
 ## Objective
-Create a 20.5s epic launch trailer for PHASE: Rugby Manager.
+Create a 28s dark showreel for PHASE: Rugby Manager (v2, see brag-plan.md for the storyboard).
 
 ## Output
 - Composition directory: `brag-output/composition/`

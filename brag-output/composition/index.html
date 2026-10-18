@@ -19,10 +19,11 @@
         --green: #34c06f;
         --green-hi: #4ed88c;
         --gold: #e9be68;
+        --danger: #ff6b5e;
       }
       body {
         margin: 0;
-        background: var(--canvas);
+        background: #050706;
         color: var(--text);
         font-family: "Space Grotesk", sans-serif;
       }
@@ -31,13 +32,179 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background: var(--canvas);
+        background: #050706;
       }
       .clip {
         position: absolute;
         inset: 0;
         overflow: hidden;
       }
+      .fill {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* ---------- scene 1: the corridor ---------- */
+      .stage {
+        position: absolute;
+        inset: 0;
+        perspective: 800px;
+        perspective-origin: 50% 50%;
+        background: #030404;
+      }
+      #cam {
+        position: absolute;
+        left: 540px;
+        top: 960px;
+        width: 0;
+        height: 0;
+        transform-style: preserve-3d;
+      }
+      .seg {
+        position: absolute;
+        backface-visibility: visible;
+      }
+      .shade {
+        position: absolute;
+        inset: 0;
+        background: #000;
+      }
+      .wall {
+        width: 600px;
+        height: 1700px;
+        left: -300px;
+        top: -850px;
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 60%, #3a2a1d 60%, #4a3524 61.2%, rgba(0, 0, 0, 0.35) 61.2%),
+          repeating-linear-gradient(90deg, #22190f 0 146px, #2d2116 146px 150px);
+      }
+      .ceil {
+        width: 1400px;
+        height: 600px;
+        left: -700px;
+        top: -300px;
+        background: #0b0d0c;
+      }
+      .lamp {
+        position: absolute;
+        left: 560px;
+        top: 120px;
+        width: 280px;
+        height: 360px;
+        background: #e9efe9;
+        box-shadow: 0 0 90px 40px rgba(210, 232, 220, 0.32);
+      }
+      .floor {
+        width: 1400px;
+        height: 600px;
+        left: -700px;
+        top: -300px;
+        background:
+          linear-gradient(90deg, rgba(0, 0, 0, 0) 0 440px, #b08a47 440px 446px, #12241c 446px 954px, #b08a47 954px 960px, rgba(0, 0, 0, 0) 960px),
+          #141210;
+      }
+      .floor-glint {
+        position: absolute;
+        left: 520px;
+        top: 140px;
+        width: 360px;
+        height: 320px;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(220, 235, 225, 0.16), rgba(220, 235, 225, 0));
+      }
+      .frame {
+        position: absolute;
+        left: 140px;
+        top: 360px;
+        width: 320px;
+        height: 320px;
+        border: 18px solid #2b1f14;
+        box-shadow: 0 0 0 4px #6e5432, 0 30px 60px rgba(0, 0, 0, 0.7);
+        overflow: hidden;
+      }
+      .frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .picture-light {
+        position: absolute;
+        left: 200px;
+        top: 250px;
+        width: 240px;
+        height: 380px;
+        background: radial-gradient(60% 50% at 50% 0%, rgba(233, 190, 104, 0.42), rgba(233, 190, 104, 0));
+      }
+      .endwall {
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0) 60%, #3a2a1d 60%, #4a3524 61.2%, rgba(0, 0, 0, 0.35) 61.2%),
+          repeating-linear-gradient(90deg, #22190f 0 146px, #2d2116 146px 150px);
+      }
+      .office-plane {
+        background: url("assets/img/title-bg.webp") center / cover no-repeat;
+      }
+      .door {
+        background: linear-gradient(90deg, #1b120b, #2a1c11 50%, #1b120b);
+        box-shadow: inset 0 0 0 14px #120c07, inset 0 0 0 18px #4a3524;
+        transform-origin: 0 50%;
+      }
+      .plaque {
+        position: absolute;
+        left: 120px;
+        top: 300px;
+        width: 320px;
+        height: 84px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #e9c983, #b48a3f);
+        color: #1f1708;
+        font-weight: 700;
+        font-size: 44px;
+        letter-spacing: 8px;
+      }
+      .handle {
+        position: absolute;
+        left: 470px;
+        top: 640px;
+        width: 54px;
+        height: 18px;
+        border-radius: 9px;
+        background: #c9a35a;
+      }
+      .leak {
+        background: linear-gradient(to top, rgba(255, 214, 140, 0.95), rgba(255, 214, 140, 0));
+        box-shadow: 0 0 60px 20px rgba(255, 200, 120, 0.45);
+      }
+      .vignette {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(75% 55% at 50% 48%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.85) 100%);
+      }
+      .whisper {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        top: 300px;
+        display: flex;
+        justify-content: center;
+      }
+      .whisper span {
+        display: block;
+        font-weight: 600;
+        font-size: 54px;
+        letter-spacing: 10px;
+        color: #dfe5e1;
+        white-space: nowrap;
+      }
+      #flash {
+        position: absolute;
+        inset: 0;
+        background: #fff3dc;
+        opacity: 0;
+      }
+
+      /* ---------- shared type ---------- */
       .bg-art {
         position: absolute;
         inset: 0;
@@ -46,17 +213,7 @@
       .bg-veil {
         position: absolute;
         inset: 0;
-        background: radial-gradient(90% 60% at 50% 40%, rgba(26, 32, 30, 0.55), rgba(10, 13, 12, 0.94));
-      }
-      .glow {
-        position: absolute;
-        left: 90px;
-        top: 260px;
-        width: 900px;
-        height: 1100px;
-        border-radius: 50%;
-        background: radial-gradient(closest-side, rgba(52, 192, 111, 0.55), rgba(52, 192, 111, 0));
-        opacity: 0.5;
+        background: radial-gradient(90% 60% at 50% 45%, rgba(10, 13, 12, 0.5), rgba(3, 4, 4, 0.95));
       }
       .center-stack {
         position: absolute;
@@ -76,19 +233,36 @@
         text-transform: uppercase;
         white-space: nowrap;
       }
-      .slam.green {
+      .green {
         color: var(--green);
       }
-      /* the phone: a 0.6x window onto a real 1080x1920 screen */
+      .gold {
+        color: var(--gold);
+      }
+      .red {
+        color: var(--danger);
+      }
+
+      /* ---------- scene 3: phone montage ---------- */
+      .glow {
+        position: absolute;
+        left: 90px;
+        top: 380px;
+        width: 900px;
+        height: 1200px;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(52, 192, 111, 0.5), rgba(52, 192, 111, 0));
+        opacity: 0.4;
+      }
       .phone {
         position: absolute;
         left: 204px;
-        top: 150px;
+        top: 400px;
         width: 672px;
         height: 1176px;
         border-radius: 64px;
         background: #0b0e0d;
-        box-shadow: 0 0 0 3px #384240;
+        box-shadow: 0 0 0 3px #384240, 0 40px 120px rgba(0, 0, 0, 0.8);
       }
       .screen {
         position: absolute;
@@ -108,63 +282,111 @@
         height: 1152px;
         display: block;
       }
-      .caption {
+      .top-cap {
         position: absolute;
-        left: 60px;
-        right: 60px;
-        top: 1430px;
+        left: 80px;
+        right: 80px;
+        top: 150px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 14px;
+        gap: 10px;
       }
-      .cap {
+      .top-cap .l1 {
         display: block;
         font-weight: 700;
-        font-size: 96px;
-        line-height: 1;
-        letter-spacing: -1px;
-        text-transform: uppercase;
+        font-size: 62px;
+        letter-spacing: 1px;
         white-space: nowrap;
       }
-      .cap.green {
-        color: var(--green);
+      .top-cap .l2 {
+        display: block;
+        font-weight: 700;
+        font-size: 92px;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      /* ---------- scene 4: full-bleed showcase ---------- */
+      .shot {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background: var(--canvas);
+      }
+      .shot img {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1080px;
+        height: 1920px;
+        display: block;
+      }
+      .shot-dim {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(to bottom, rgba(3, 5, 4, 0.94) 0%, rgba(3, 5, 4, 0.82) 26%, rgba(3, 5, 4, 0) 42%),
+          radial-gradient(90% 70% at 50% 55%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.6) 100%);
+      }
+      .show-cap {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        top: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .show-cap span {
+        display: block;
+        font-weight: 700;
+        font-size: 104px;
+        line-height: 1;
+        letter-spacing: -1px;
+        white-space: nowrap;
       }
       .ring {
         position: absolute;
-        left: 8px;
-        top: 324px;
-        width: 630px;
-        height: 92px;
-        border-radius: 14px;
-        box-shadow: 0 0 0 5px var(--green-hi), 0 0 40px 8px rgba(78, 216, 140, 0.6);
+        left: 14px;
+        top: 548px;
+        width: 1050px;
+        height: 150px;
+        border-radius: 22px;
+        box-shadow: 0 0 0 7px var(--green-hi), 0 0 60px 12px rgba(78, 216, 140, 0.6);
         opacity: 0;
       }
-      .stats {
+
+      /* ---------- scene 5: features ---------- */
+      .feat-dim {
         position: absolute;
-        left: 60px;
-        right: 60px;
-        top: 1400px;
+        inset: 0;
+        background: radial-gradient(80% 50% at 50% 50%, rgba(3, 5, 4, 0.78), rgba(3, 5, 4, 0.96));
+      }
+      .feat {
+        position: absolute;
+        inset: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 20px;
+        justify-content: center;
+        gap: 12px;
+        padding-bottom: 120px;
       }
-      .stat {
+      .feat span {
         display: block;
         font-weight: 700;
-        font-size: 84px;
+        font-size: 120px;
         line-height: 1;
-        text-transform: uppercase;
+        letter-spacing: -2px;
         white-space: nowrap;
       }
-      .stat b {
-        color: var(--gold);
+      .feat .small {
+        font-size: 88px;
       }
-      .stat.small {
-        font-size: 60px;
-        color: var(--text-2);
-      }
+
+      /* ---------- scene 7: outro ---------- */
       .lockup {
         position: absolute;
         inset: 0;
@@ -172,12 +394,13 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        padding-bottom: 200px;
       }
       .icon {
         display: block;
-        width: 260px;
-        height: 260px;
-        margin-bottom: 56px;
+        width: 240px;
+        height: 240px;
+        margin-bottom: 48px;
       }
       .wordmark {
         display: block;
@@ -200,184 +423,393 @@
         font-weight: 500;
         font-size: 54px;
         line-height: 1.2;
-        margin-top: 80px;
-        color: var(--text);
-      }
-      .foot {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 150px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 14px;
+        margin-top: 70px;
       }
       .url {
         display: block;
         font-size: 44px;
         font-weight: 600;
         color: var(--gold);
+        margin-top: 60px;
       }
       .fine {
         display: block;
         font-size: 30px;
         color: var(--text-2);
+        margin-top: 12px;
+      }
+      .grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.09;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
       }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="20.5" data-fps="30">
-      <!-- Scene 1: hook -->
-      <section id="s1" class="clip" data-start="0" data-duration="3.8" data-track-index="0">
-        <div id="s1-art" class="bg-art" data-layout-allow-overflow></div>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="28" data-fps="30">
+      <!-- Scene 1: the walk to the manager's office -->
+      <section id="s1" class="clip" data-start="0" data-duration="4.4" data-track-index="0" data-layout-allow-overflow>
+        <div class="stage" data-layout-ignore>
+          <div id="cam"></div>
+        </div>
+        <div class="vignette"></div>
+        <div id="whisper" class="whisper"><span>THE BOARD IS WAITING.</span></div>
+        <div id="flash"></div>
+      </section>
+
+      <!-- Scene 2: the hook -->
+      <section id="s2" class="clip" data-start="4.4" data-duration="3.5" data-track-index="0">
+        <div id="s2-art" class="bg-art" data-layout-allow-overflow></div>
         <div class="bg-veil"></div>
-        <div id="s1-stack" class="center-stack">
+        <div id="s2-stack" class="center-stack">
           <span id="h1" class="slam">Your club.</span>
           <span id="h2" class="slam">Your legacy.</span>
           <span id="h3" class="slam green">Your time.</span>
         </div>
+        <div id="flash2" class="fill" style="background: #fff3dc"></div>
       </section>
 
-      <!-- Scene 2: the week -->
-      <section id="s2" class="clip" data-start="3.8" data-duration="4.94" data-track-index="0">
-        <div id="s2-glow" class="glow"></div>
-        <div id="s2-phone" class="phone">
-          <div class="screen">
-            <img id="s2-home" src="assets/img/2-home.png" alt="" />
-            <img id="s2-squad" data-layout-allow-overflow src="assets/img/4-squad.png" alt="" />
-          </div>
-        </div>
-        <div class="caption">
-          <span id="c1" class="cap">Pick the XV.</span>
-          <span id="c2" class="cap green">And live with it.</span>
-        </div>
-      </section>
-
-      <!-- Scene 3: Saturday -->
-      <section id="s3" class="clip" data-start="8.74" data-duration="4.37" data-track-index="0">
-        <div id="s3-glow" class="glow"></div>
-        <div id="s3-title" class="center-stack">
-          <span id="sat1" class="slam" style="font-size: 150px">Then</span>
-          <span id="sat2" class="slam green" style="font-size: 190px">Saturday.</span>
-        </div>
-        <div id="s3-phone" class="phone" data-layout-allow-overflow>
-          <div id="s3-screen" class="screen">
-            <img src="assets/img/6-match.png" alt="" />
-            <div id="s3-ring" class="ring"></div>
-          </div>
-        </div>
-        <div id="s3-cap" class="caption">
-          <span class="cap">The calls</span>
-          <span class="cap green">are yours.</span>
-        </div>
-      </section>
-
-      <!-- Scene 4: full time -->
-      <section id="s4" class="clip" data-start="13.11" data-duration="4.36" data-track-index="0">
-        <div id="s4-glow" class="glow"></div>
-        <div id="s4-phone" class="phone">
-          <div class="screen">
-            <img src="assets/img/7-fulltime.png" alt="" />
-          </div>
-        </div>
-        <div class="stats">
-          <span id="st1" class="stat"><b>171</b> clubs</span>
-          <span id="st2" class="stat"><b>15</b> leagues</span>
-          <span id="st3" class="stat small">Men's and women's game</span>
-        </div>
-      </section>
-
-      <!-- Scene 5: outro -->
-      <section id="s5" class="clip" data-start="17.47" data-duration="3.03" data-track-index="0">
-        <div id="s5-art" class="bg-art" data-layout-allow-overflow></div>
+      <!-- Scene 3: the phone, flicking through the game -->
+      <section id="s3" class="clip" data-start="7.9" data-duration="3.5" data-track-index="0">
+        <div id="s3-art" class="bg-art" data-layout-allow-overflow style="filter: blur(6px) brightness(0.5)"></div>
         <div class="bg-veil"></div>
+        <div id="s3-glow" class="glow"></div>
+        <div id="s3-phone" class="phone" data-layout-allow-overflow>
+          <div class="screen">
+            <img src="assets/img/s/home.jpg" alt="" />
+            <img class="flick" src="assets/img/s/news.jpg" alt="" />
+            <img class="flick" src="assets/img/s/squad.jpg" alt="" />
+            <img class="flick" src="assets/img/s/lineout.jpg" alt="" />
+            <img class="flick" src="assets/img/s/press.jpg" alt="" />
+            <img class="flick" src="assets/img/s/finances.jpg" alt="" />
+            <img class="flick" src="assets/img/s/transfers.jpg" alt="" />
+            <img class="flick" src="assets/img/s/gameplan.jpg" alt="" />
+            <img class="flick" src="assets/img/s/teamtalk.jpg" alt="" />
+            <img class="flick" src="assets/img/s/tables.jpg" alt="" />
+            <img class="flick" src="assets/img/s/depth.jpg" alt="" />
+            <img class="flick" src="assets/img/s/dreamteam.jpg" alt="" />
+            <img class="flick" src="assets/img/s/match.jpg" alt="" />
+          </div>
+        </div>
+        <div id="s3-cap" class="top-cap">
+          <span id="t1" class="l1">THIS IS YOUR CHANCE</span>
+          <span id="t2" class="l2 green">TO TAKE CONTROL.</span>
+        </div>
+      </section>
+
+      <!-- Scene 4: inside the phone, fast cuts -->
+      <section id="s4" class="clip" data-start="11.4" data-duration="5.5" data-track-index="0">
+        <div id="sh-match" class="shot clip" data-start="11.4" data-duration="1.0">
+          <img id="i-match" src="assets/img/s/match.jpg" alt="" />
+          <div id="ring" class="ring"></div>
+        </div>
+        <div id="sh-ft" class="shot clip" data-start="12.4" data-duration="0.5">
+          <img id="i-ft" src="assets/img/s/fulltime.jpg" alt="" />
+        </div>
+        <div id="sh-tac" class="shot clip" data-start="12.9" data-duration="0.75">
+          <img id="i-tac" src="assets/img/s/tactics.jpg" alt="" />
+        </div>
+        <div id="sh-xv" class="shot clip" data-start="13.65" data-duration="0.75">
+          <img id="i-xv" src="assets/img/s/xv.jpg" alt="" />
+        </div>
+        <div id="sh-campus" class="shot clip" data-start="14.4" data-duration="1.0">
+          <img id="i-campus" src="assets/img/s/campus.jpg" alt="" />
+        </div>
+        <div id="sh-kids" class="shot clip" data-start="15.4" data-duration="0.75">
+          <img id="i-kids" src="assets/img/s/wonderkids.jpg" alt="" />
+        </div>
+        <div id="sh-acad" class="shot clip" data-start="16.15" data-duration="0.75">
+          <img id="i-acad" src="assets/img/s/academy.jpg" alt="" />
+        </div>
+        <div class="shot-dim"></div>
+        <div id="c-calls" class="show-cap clip" data-start="11.4" data-duration="1.5">
+          <span>THE CALLS</span>
+          <span class="green">ARE YOURS.</span>
+        </div>
+        <div id="c-team" class="show-cap clip" data-start="12.9" data-duration="1.5">
+          <span>BUILD YOUR</span>
+          <span class="green">DREAM TEAM.</span>
+        </div>
+        <div id="c-club" class="show-cap clip" data-start="14.4" data-duration="1.0">
+          <span>BUILD</span>
+          <span class="green">THE CLUB.</span>
+        </div>
+        <div id="c-kids" class="show-cap clip" data-start="15.4" data-duration="1.5">
+          <span>FIND THE</span>
+          <span class="gold">WONDERKIDS.</span>
+        </div>
+        <div id="cut-flash" class="fill" style="background: #ffffff; opacity: 0"></div>
+      </section>
+
+      <!-- Scene 5: the feature run -->
+      <section id="s5" class="clip" data-start="16.9" data-duration="6.0" data-track-index="0">
+        <div id="f1" class="fill clip" data-start="16.9" data-duration="1.0">
+          <img class="fill" src="assets/img/s/women.jpg" alt="" style="width: 1080px; height: 1920px" />
+          <div class="feat-dim"></div>
+          <div class="feat"><span class="small">MEN'S &amp;</span><span class="green">WOMEN'S GAME</span></div>
+        </div>
+        <div id="f2" class="fill clip" data-start="17.9" data-duration="1.0">
+          <img class="fill" src="assets/img/s/tables.jpg" alt="" style="width: 1080px; height: 1920px" />
+          <div class="feat-dim"></div>
+          <div class="feat"><span><b class="gold">171</b> CLUBS</span><span><b class="gold">15</b> LEAGUES</span></div>
+        </div>
+        <div id="f3" class="fill clip" data-start="18.9" data-duration="1.0">
+          <img class="fill" src="assets/img/s/squad.jpg" alt="" style="width: 1080px; height: 1920px" />
+          <div class="feat-dim"></div>
+          <div class="feat"><span class="gold" style="font-size: 170px">11,000+</span><span>PLAYERS</span></div>
+        </div>
+        <div id="f4" class="fill clip" data-start="19.9" data-duration="1.0">
+          <img class="fill" src="assets/img/s/news.jpg" alt="" style="width: 1080px; height: 1920px" />
+          <div class="feat-dim"></div>
+          <div class="feat"><span>PLAYS</span><span class="green">OFFLINE</span></div>
+        </div>
+        <div id="f5" class="fill clip" data-start="20.9" data-duration="1.0">
+          <img class="fill" src="assets/img/s/international.jpg" alt="" style="width: 1080px; height: 1920px" />
+          <div class="feat-dim"></div>
+          <div class="feat"><span class="small">TAKE CHARGE OF</span><span class="gold">YOUR COUNTRY</span></div>
+        </div>
+        <div id="f6" class="fill clip" data-start="21.9" data-duration="1.0">
+          <img class="fill" src="assets/img/s/press.jpg" alt="" style="width: 1080px; height: 1920px" />
+          <div class="feat-dim"></div>
+          <div class="feat"><span>FACE</span><span class="green">THE PRESS</span></div>
+        </div>
+      </section>
+
+      <!-- Scene 6: the pressure -->
+      <section id="s6" class="clip" data-start="22.9" data-duration="2.0" data-track-index="0">
+        <img id="s6-bg" class="fill" src="assets/img/s/jobs.jpg" alt="" style="width: 1080px; height: 1920px; opacity: 0.16" />
+        <div class="vignette"></div>
+        <div class="center-stack" style="padding-bottom: 120px">
+          <span id="p1" class="slam" style="font-size: 76px; letter-spacing: 2px">FAIL BADLY ENOUGH</span>
+          <span id="p2" class="slam red" style="font-size: 104px">YOU'RE SACKED.</span>
+        </div>
+      </section>
+
+      <!-- Scene 7: outro -->
+      <section id="s7" class="clip" data-start="24.9" data-duration="3.1" data-track-index="0">
+        <div id="s7-art" class="bg-art" data-layout-allow-overflow></div>
+        <div class="bg-veil"></div>
+        <div id="s7-glow" class="glow" style="top: 160px"></div>
         <div class="lockup">
           <img id="logo-icon" class="icon" src="assets/img/icon.svg" alt="" />
           <span id="wm" class="wordmark">PHASE</span>
           <span id="sub" class="sub">RUGBY MANAGER</span>
           <span id="tag" class="tagline">Build something worth remembering.</span>
-        </div>
-        <div id="foot" class="foot">
-          <span class="url">phaserugbymanager.com</span>
-          <span class="fine">Unofficial and independent</span>
+          <span id="url" class="url">phaserugbymanager.com</span>
+          <span id="fine" class="fine">Unofficial and independent</span>
         </div>
       </section>
 
+      <div class="grain" data-layout-ignore></div>
+
       <!-- audio -->
-      <audio id="bg-music" data-start="0" data-duration="20.5" data-track-index="10" data-volume="0.38" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":19.2,"v":1},{"t":20.45,"v":0}]}]}' src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"></audio>
-      <audio id="sfx-h1" data-start="0.54" data-duration="0.18" data-track-index="11" data-volume="0.75" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
-      <audio id="sfx-h2" data-start="1.62" data-duration="0.15" data-track-index="12" data-volume="0.75" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
-      <audio id="sfx-h3" data-start="2.71" data-duration="0.18" data-track-index="13" data-volume="0.85" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
-      <audio id="sfx-ph1" data-start="3.8" data-duration="0.6" data-track-index="14" data-volume="0.6" src="assets/sfx/casino/card-slide-1.ogg"></audio>
-      <audio id="sfx-ph2" data-start="6.0" data-duration="0.6" data-track-index="15" data-volume="0.6" src="assets/sfx/casino/card-slide-1.ogg"></audio>
-      <audio id="sfx-sat" data-start="8.72" data-duration="0.54" data-track-index="16" data-volume="0.9" src="assets/sfx/impact/impactSoft_heavy_003.ogg"></audio>
-      <audio id="sfx-ph3" data-start="10.35" data-duration="0.6" data-track-index="17" data-volume="0.6" src="assets/sfx/casino/card-slide-1.ogg"></audio>
-      <audio id="sfx-ft" data-start="13.09" data-duration="0.15" data-track-index="18" data-volume="0.8" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
-      <audio id="sfx-st1" data-start="13.64" data-duration="0.01" data-track-index="19" data-volume="0.6" src="assets/sfx/interface/click_003.ogg"></audio>
-      <audio id="sfx-st2" data-start="14.73" data-duration="0.01" data-track-index="20" data-volume="0.6" src="assets/sfx/interface/click_003.ogg"></audio>
-      <audio id="sfx-st3" data-start="15.84" data-duration="0.01" data-track-index="21" data-volume="0.6" src="assets/sfx/interface/click_003.ogg"></audio>
-      <audio id="sfx-logo" data-start="17.45" data-duration="1.48" data-track-index="22" data-volume="0.8" src="assets/sfx/impact/impactBell_heavy_000.ogg"></audio>
+      <audio id="bg-music" data-start="4.4" data-duration="23.6" data-media-start="12.02" data-track-index="10" data-volume="0.42" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":21.7,"v":1},{"t":23.55,"v":0}]}]}' src="assets/music/happy-beats-business-moves-vol-1-by-ende-dot-app.mp3"></audio>
+      <audio id="sfx-step0" data-start="0.39" data-track-index="12" data-volume="0.45" src="assets/sfx/impact/footstep_wood_000.ogg"></audio>
+      <audio id="sfx-step1" data-start="0.92" data-track-index="13" data-volume="0.52" src="assets/sfx/impact/footstep_wood_001.ogg"></audio>
+      <audio id="sfx-step2" data-start="1.45" data-track-index="14" data-volume="0.59" src="assets/sfx/impact/footstep_wood_002.ogg"></audio>
+      <audio id="sfx-step3" data-start="1.97" data-track-index="15" data-volume="0.66" src="assets/sfx/impact/footstep_wood_003.ogg"></audio>
+      <audio id="sfx-step4" data-start="2.5" data-track-index="16" data-volume="0.73" src="assets/sfx/impact/footstep_wood_000.ogg"></audio>
+      <audio id="sfx-step5" data-start="3.03" data-track-index="17" data-volume="0.8" src="assets/sfx/impact/footstep_wood_001.ogg"></audio>
+      <audio id="sfx-latch" data-start="3.3" data-track-index="18" data-volume="0.7" src="assets/sfx/impact/impactWood_medium_001.ogg"></audio>
+      <audio id="sfx-burst" data-start="4.38" data-track-index="19" data-volume="0.9" src="assets/sfx/impact/impactSoft_heavy_003.ogg"></audio>
+      <audio id="sfx-h0" data-start="4.88" data-track-index="20" data-volume="0.75" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-h1" data-start="5.88" data-track-index="21" data-volume="0.75" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-h2" data-start="6.88" data-track-index="22" data-volume="0.75" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-phone" data-start="7.9" data-track-index="23" data-volume="0.6" src="assets/sfx/casino/card-slide-1.ogg"></audio>
+      <audio id="sfx-flick0" data-start="8.4" data-track-index="24" data-volume="0.35" src="assets/sfx/casino/card-slide-3.ogg"></audio>
+      <audio id="sfx-flick1" data-start="9.3" data-track-index="25" data-volume="0.35" src="assets/sfx/casino/card-slide-3.ogg"></audio>
+      <audio id="sfx-flick2" data-start="10.2" data-track-index="26" data-volume="0.35" src="assets/sfx/casino/card-slide-3.ogg"></audio>
+      <audio id="sfx-zoom" data-start="11.38" data-track-index="27" data-volume="0.7" src="assets/sfx/impact/impactPunch_heavy_000.ogg"></audio>
+      <audio id="sfx-cut0" data-start="12.88" data-track-index="28" data-volume="0.6" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-cut1" data-start="14.38" data-track-index="29" data-volume="0.6" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-cut2" data-start="15.38" data-track-index="30" data-volume="0.6" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-feat0" data-start="16.88" data-track-index="31" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-feat1" data-start="17.88" data-track-index="32" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-feat2" data-start="18.88" data-track-index="33" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-feat3" data-start="19.88" data-track-index="34" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-feat4" data-start="20.88" data-track-index="35" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-feat5" data-start="21.88" data-track-index="36" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-glitch" data-start="22.9" data-track-index="37" data-volume="0.5" src="assets/sfx/interface/glitch_002.ogg"></audio>
+      <audio id="sfx-sacked" data-start="23.58" data-track-index="38" data-volume="0.85" src="assets/sfx/impact/impactPunch_heavy_000.ogg"></audio>
+      <audio id="sfx-logo" data-start="24.88" data-track-index="39" data-volume="0.8" src="assets/sfx/impact/impactBell_heavy_000.ogg"></audio>
     </div>
 
     <script>
+      // ================= the corridor, built once =================
+      // A box 1400 wide, 1700 tall, 4200 deep, in 600-deep segments so the ones
+      // the camera has walked past can be dropped instead of crossing its plane.
+      const SEG = 600, NSEG = 8, W = 700, H = 850, END = -4200;
+      const cam = document.getElementById("cam");
+      const segs = [];
+      function el(cls, css, parent) {
+        const d = document.createElement("div");
+        d.className = cls;
+        if (css) d.style.cssText = css;
+        (parent || cam).appendChild(d);
+        return d;
+      }
+      const frames = ["frame0", "frame1", "frame2", "frame3", "frame4", "frame5"];
+      for (let i = -1; i < NSEG - 1; i++) {
+        const zc = -(i + 0.5) * SEG;
+        const parts = [];
+        const floor = el("seg floor", `transform: translate3d(0, ${H}px, ${zc}px) rotateX(90deg)`);
+        el("floor-glint", null, floor);
+        parts.push(floor);
+        const ceil = el("seg ceil", `transform: translate3d(0, ${-H}px, ${zc}px) rotateX(-90deg)`);
+        const lamp = el("lamp", null, ceil);
+        parts.push(ceil);
+        const lw = el("seg wall", `transform: translate3d(${-W}px, 0, ${zc}px) rotateY(90deg)`);
+        const rw = el("seg wall", `transform: translate3d(${W}px, 0, ${zc}px) rotateY(-90deg)`);
+        parts.push(lw, rw);
+        if (i >= 0 && i < 6) {
+          const wall = i % 2 ? rw : lw;
+          el("picture-light", null, wall);
+          const fr = el("frame", null, wall);
+          const img = document.createElement("img");
+          img.src = "assets/img/" + frames[i] + ".jpg";
+          fr.appendChild(img);
+        }
+        const shades = parts.map((p) => el("shade", null, p));
+        segs.push({ zc, parts, shades, lamp });
+      }
+      // the end wall, the door and the office behind it
+      const endParts = [
+        el("seg endwall", `left:-700px; top:-850px; width:420px; height:1700px; transform: translateZ(${END}px)`),
+        el("seg endwall", `left:280px; top:-850px; width:420px; height:1700px; transform: translateZ(${END}px)`),
+        el("seg endwall", `left:-280px; top:-850px; width:560px; height:500px; transform: translateZ(${END}px)`),
+      ];
+      const office = el("seg office-plane", `left:-900px; top:-1100px; width:1800px; height:2200px; transform: translateZ(${END - 380}px)`);
+      const leak = el("seg leak", `left:-280px; top:826px; width:560px; height:24px; transform: translateZ(${END + 2}px)`);
+      const door = el("seg door", `left:-280px; top:-350px; width:560px; height:1200px; transform: translateZ(${END + 1}px)`);
+      const plaque = el("plaque", null, door);
+      plaque.textContent = "MANAGER";
+      el("handle", null, door);
+      const endShades = endParts.concat([door]).map((p) => el("shade", null, p));
+
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const smooth = (x) => x * x * (3 - 2 * x);
+      // camera depth over time: walk, slow at the door, then push through it
+      function camZ(t) {
+        if (t < 3.4) return 3800 * (0.12 * (t / 3.4) + 0.88 * smooth(t / 3.4));
+        if (t < 3.9) return 3800 + 60 * ((t - 3.4) / 0.5);
+        const k = clamp((t - 3.9) / 0.5, 0, 1);
+        return 3860 + 1000 * k * k;
+      }
+      const STEP_HZ = 1.9;
+      function drawCorridor(t) {
+        const z = camZ(t);
+        const walk = clamp(1 - (t - 3.1) / 0.5, 0, 1);
+        const bob = Math.sin(2 * Math.PI * STEP_HZ * t);
+        const y = 16 * bob * walk;
+        const x = 7 * Math.sin(Math.PI * STEP_HZ * t) * walk;
+        const rz = 0.5 * Math.sin(Math.PI * STEP_HZ * t) * walk;
+        cam.style.transform = `translate3d(${-x}px, ${-y}px, ${z}px) rotateZ(${rz}deg)`;
+        for (const s of segs) {
+          const rel = s.zc + z; // depth of the segment centre from the screen plane
+          const gone = rel - SEG / 2 > 640;
+          for (const p of s.parts) p.style.display = gone ? "none" : "block";
+          const dark = clamp((-rel - 200) / 3800, 0, 0.9);
+          for (const sh of s.shades) sh.style.opacity = String(dark);
+        }
+        // one tired tube light
+        segs[4].lamp.style.opacity = String(t % 0.9 < 0.08 || (t > 1.6 && t < 1.68) ? 0.15 : 1);
+        const endDark = clamp((-(END + z) - 200) / 3800, 0, 0.9);
+        for (const sh of endShades) sh.style.opacity = String(endDark);
+        // the door: unlatch at 3.3, swing open by 3.9
+        const open = smooth(clamp((t - 3.35) / 0.55, 0, 1));
+        door.style.transform = `translateZ(${END + 1}px) rotateY(${open * 104}deg)`;
+        leak.style.opacity = String(1 - open);
+      }
+
+      // ================= the timeline =================
       const tl = gsap.timeline({ paused: true });
+      const proxy = { t: 0 };
+      drawCorridor(0);
+      tl.to(proxy, { t: 4.4, duration: 4.4, ease: "none", onUpdate: () => drawCorridor(proxy.t) }, 0);
+      tl.fromTo("#whisper", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 1.0);
+      tl.to("#whisper", { opacity: 0, duration: 0.4, ease: "power2.in" }, 2.85);
+      tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.95, duration: 0.25, ease: "power2.in" }, 4.15);
+
       const slamIn = { scale: 1.6, opacity: 0, filter: "blur(12px)" };
-      const slamTo = { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.32, ease: "power4.out" };
+      const slamTo = { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power4.out" };
 
-      // ---- Scene 1: hook (beat-grid: 0.56, 1.64, 2.73; every other beat so each line reads)
-      tl.fromTo("#s1-art", { scale: 1.12 }, { scale: 1.0, duration: 3.8, ease: "none" }, 0);
-      tl.fromTo("#h1", slamIn, slamTo, 0.56);
-      tl.fromTo("#h2", slamIn, slamTo, 1.64);
-      tl.fromTo("#h3", slamIn, slamTo, 2.73);
-      tl.to("#s1-stack", { scale: 1.25, opacity: 0, duration: 0.25, ease: "power2.in" }, 3.52);
+      // ---- Scene 2: hook. beat-locked: 4.4s (music enters on the door burst)
+      tl.fromTo("#flash2", { opacity: 0.95 }, { opacity: 0, duration: 0.4, ease: "power2.out" }, 4.4);
+      tl.fromTo("#s2-art", { scale: 1.18 }, { scale: 1.04, duration: 3.5, ease: "power1.out" }, 4.4);
+      // beat-grid: 4.90, 5.90, 6.90 (every other beat, each line held)
+      tl.fromTo("#h1", slamIn, slamTo, 4.9);
+      tl.fromTo("#h2", slamIn, slamTo, 5.9);
+      tl.fromTo("#h3", slamIn, slamTo, 6.9);
+      tl.to("#s2-stack", { scale: 1.3, opacity: 0, duration: 0.22, ease: "power2.in" }, 7.66);
 
-      // ---- Scene 2: the week
-      tl.fromTo("#s2-phone", { y: 700, rotation: -4 }, { y: 0, rotation: 0, duration: 0.6, ease: "power3.out" }, 3.8);
-      tl.fromTo("#c1", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 4.39);
-      tl.fromTo("#s2-squad", { xPercent: 100 }, { xPercent: 0, duration: 0.45, ease: "power3.inOut" }, 6.0);
-      tl.fromTo("#s2-squad", { scale: 1 }, { scale: 1.08, duration: 2.2, ease: "none" }, 6.45);
-      tl.fromTo("#c2", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 6.56);
-      tl.to("#s2-phone", { y: -40, duration: 4.9, ease: "none" }, 3.8 + 0.6);
+      // ---- Scene 3: phone montage
+      tl.fromTo("#s3-phone", { y: 1500, rotation: -6 }, { y: 0, rotation: 0, duration: 0.45, ease: "power3.out" }, 7.9);
+      tl.fromTo("#s3-phone", { scale: 1 }, { scale: 1.08, duration: 3.0, ease: "none" }, 8.0);
+      // beat-locked: 8.40s (strong cue). Flicks every half beat.
+      const flicks = gsap.utils.toArray("#s3-phone .flick");
+      flicks.forEach((img, j) => {
+        tl.fromTo(img, { xPercent: 100 }, { xPercent: 0, duration: 0.12, ease: "power3.out" }, 8.4 + 0.2245 * j);
+      });
+      tl.fromTo("#t1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 8.4);
+      tl.fromTo("#t2", slamIn, slamTo, 9.4);
+      tl.to("#s3-cap", { opacity: 0, y: -40, duration: 0.25, ease: "power2.in" }, 10.9);
+      // the zoom into the screen: 648x1152 screen x 1.667 = 1080x1920, centred
+      tl.to("#s3-phone", { scale: 1.6667, y: -28, duration: 0.32, ease: "power2.in" }, 11.08);
 
-      // ---- Scene 3: Saturday
-      // beat-locked: 8.74s (strong cue)
-      tl.fromTo("#sat1", slamIn, slamTo, 8.74);
-      tl.fromTo("#sat2", { scale: 2.2, opacity: 0, filter: "blur(16px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power4.out" }, 8.84);
-      tl.to("#s3-title", { scale: 0.85, opacity: 0, duration: 0.3, ease: "power2.in" }, 10.1);
-      tl.fromTo("#s3-phone", { y: 1900 }, { y: 0, duration: 0.55, ease: "power3.out" }, 10.37);
-      tl.fromTo("#s3-cap", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 10.6);
-      tl.fromTo("#s3-ring", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }, 11.0);
-      tl.fromTo("#s3-phone", { scale: 1 }, { scale: 1.06, duration: 2.0, ease: "power1.inOut" }, 11.0);
+      // ---- Scene 4: full-bleed showcase, hard cuts
+      const cutFlash = (t) => tl.fromTo("#cut-flash", { opacity: 0.55 }, { opacity: 0, duration: 0.14, ease: "power1.out", immediateRender: false }, t);
+      tl.fromTo("#i-match", { scale: 1 }, { scale: 1.16, duration: 1.0, ease: "power1.out", transformOrigin: "50% 32%" }, 11.4);
+      tl.fromTo("#ring", { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 11.55);
+      tl.fromTo("#i-ft", { scale: 1.35 }, { scale: 1.2, duration: 0.5, ease: "power2.out", transformOrigin: "50% 8%" }, 12.4);
+      cutFlash(12.4);
+      // beat-grid: cuts at 12.90, 13.65, 14.40, 15.40, 16.15
+      tl.fromTo("#i-tac", { scale: 1.25 }, { scale: 1.05, duration: 0.75, ease: "power2.out", transformOrigin: "50% 55%" }, 12.9);
+      cutFlash(12.9);
+      tl.fromTo("#i-xv", { scale: 1.2, y: 0 }, { scale: 1.12, y: -120, duration: 0.75, ease: "power1.out", transformOrigin: "50% 40%" }, 13.65);
+      cutFlash(13.65);
+      tl.fromTo("#i-campus", { scale: 1.05 }, { scale: 1.45, duration: 1.0, ease: "power1.inOut", transformOrigin: "50% 62%" }, 14.4);
+      cutFlash(14.4);
+      tl.fromTo("#i-kids", { scale: 1.3 }, { scale: 1.18, duration: 0.75, ease: "power2.out", transformOrigin: "50% 30%" }, 15.4);
+      cutFlash(15.4);
+      tl.fromTo("#i-acad", { scale: 1.3 }, { scale: 1.18, duration: 0.75, ease: "power2.out", transformOrigin: "50% 30%" }, 16.15);
+      cutFlash(16.15);
+      ["#c-calls", "#c-team", "#c-club", "#c-kids"].forEach((id, k) => {
+        const t0 = [11.45, 12.95, 14.45, 15.45][k];
+        tl.fromTo(id + " span", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.24, stagger: 0.08, ease: "power3.out" }, t0);
+      });
 
-      // ---- Scene 4: full time
-      // beat-locked: 13.11s (strong cue)
-      tl.fromTo("#s4-phone", { scale: 1.3, opacity: 0 }, { scale: 0.92, opacity: 1, duration: 0.4, ease: "power4.out" }, 13.11);
-      tl.to("#s4-phone", { y: -40, duration: 3.8, ease: "none" }, 13.51);
-      // beat-grid: stat 1 at 13.64s, stat 2 at 14.73s, stat 3 at 15.84s (every other beat, held to scene end)
-      tl.fromTo("#st1", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 13.64);
-      tl.fromTo("#st2", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 14.73);
-      tl.fromTo("#st3", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 15.84);
+      // ---- Scene 5: features. beat-grid: every other beat from 16.90
+      ["#f1", "#f2", "#f3", "#f4", "#f5", "#f6"].forEach((id, k) => {
+        const t0 = 16.9 + k;
+        tl.fromTo(id + " img", { scale: 1.12 }, { scale: 1.0, duration: 1.0, ease: "power1.out" }, t0);
+        tl.fromTo(id + " .feat span", { scale: 1.5, opacity: 0, filter: "blur(10px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.26, stagger: 0.07, ease: "power4.out" }, t0);
+      });
 
-      // ---- Scene 5: outro
-      // beat-locked: 17.47s (strong cue)
-      tl.fromTo("#s5-art", { scale: 1.0 }, { scale: 1.1, duration: 3.03, ease: "none" }, 17.47);
-      tl.fromTo("#logo-icon", { scale: 0.3, rotation: -40, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, 17.47);
-      tl.fromTo("#wm", slamIn, slamTo, 17.55);
-      tl.fromTo("#sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 17.8);
-      // beat-locked: 18.56s
-      tl.fromTo("#tag", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 18.56);
-      tl.fromTo("#foot", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 19.1);
+      // ---- Scene 6: the pressure
+      tl.fromTo("#s6-bg", { scale: 1.0 }, { scale: 1.1, duration: 2.0, ease: "none" }, 22.9);
+      tl.fromTo("#p1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 22.95);
+      tl.fromTo("#p2", { scale: 2.2, opacity: 0, filter: "blur(16px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.28, ease: "power4.out" }, 23.6);
+      tl.fromTo("#p2", { x: -14 }, { x: 0, duration: 0.3, ease: "elastic.out(1.2, 0.25)" }, 23.88);
 
-      // ---- audio-reactive: the floodlight glow behind the phone breathes with the bass
-      const glows = ["#s2-glow", "#s3-glow", "#s4-glow"].map((s) => document.querySelector(s));
+      // ---- Scene 7: outro. beat-locked: 24.90s
+      tl.fromTo("#s7-art", { scale: 1.0 }, { scale: 1.1, duration: 3.1, ease: "none" }, 24.9);
+      tl.fromTo("#logo-icon", { scale: 0.3, rotation: -40, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, 24.9);
+      tl.fromTo("#wm", slamIn, slamTo, 24.98);
+      tl.fromTo("#sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 25.25);
+      tl.fromTo("#tag", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 25.9);
+      tl.fromTo(["#url", "#fine"], { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 26.4);
+
+      // ---- audio-reactive: the green light behind the phone and the logo breathes with the bass
+      const glows = ["#s3-glow", "#s7-glow"].map((s) => document.querySelector(s));
       const bass = window.BASS || [];
       for (let f = 0; f < bass.length; f++) {
         tl.call(
           (function (v) {
             return function () {
               for (const g of glows) {
-                g.style.opacity = String(0.3 + 0.55 * v);
+                g.style.opacity = String(0.25 + 0.55 * v);
                 g.style.transform = "scale(" + (0.94 + 0.12 * v) + ")";
               }
             };

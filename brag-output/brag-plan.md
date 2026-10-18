@@ -1,78 +1,42 @@
-# Brag Plan: PHASE: Rugby Manager
+# Brag Plan: PHASE: Rugby Manager (v2, showreel)
 
 ## What is this app?
-A rugby union management game for phones: pick a club, pick the XV, live with it through a week of decisions and a Saturday of live text commentary, across 171 clubs in 15 leagues.
+A rugby union management game for phones: take the job, pick the XV, build the club, and answer for all of it on Saturday.
 
 ## The angle
-An epic sports-film trailer, played straight, for a game whose drama is spreadsheets and commentary lines. The game's own store copy already sounds like a trailer ("Your club. Your legacy. Your time.", "Then Saturday.", "Build something worth remembering."), so the video lifts those lines word for word and lets the real screens carry the weight.
-
-## Hook (first 2-3 seconds)
-Black floodlit stadium. Three lines slam in on the beat and stack: YOUR CLUB. / YOUR LEGACY. / YOUR TIME. (store listing, verbatim).
-
-## Key moments (the middle)
-- The real Home screen pushes in, then the real squad table: "PICK THE XV." / "AND LIVE WITH IT."
-- "THEN SATURDAY." hard slam on a strong cue, then the live match screen with the commentary card "TRY! ... Nobody within five metres of him!" lit up.
-- The real full-time screen, 32-12, with scale stats counting in: 171 CLUBS, 15 LEAGUES, MEN'S AND WOMEN'S GAME.
-
-## Outro / punchline
-PHASE / RUGBY MANAGER lockup with the ball icon, bell hit. Tagline: "Build something worth remembering." Small line: phaserugbymanager.com · Unofficial and independent.
-
-## User flow worth showing
-Home (the week, Continue) -> squad table (pick the XV) -> live match commentary (Saturday) -> full-time verdict (result).
+A dark, high-pressure showreel. A first-person walk down a club corridor to the manager's office, then the game itself in fast cuts. The darkness comes from the title card art; the pressure comes from the job: the board is waiting, and fail badly enough and you're sacked.
 
 ## Tone
-- Preset: cinematic
-- Creative direction: epic sports-film trailer for a text-sim manager
-- Interpretation: big ALL CAPS type, dramatic slams on strong beats, phone screens treated like hero footage, long confident holds on each line.
+- Preset: cinematic, with chaotic-speed cuts in the middle
+- Creative direction: dark sports-drama showreel, the weight of the top job
 
-## Format: vertical, 1080x1920
-## Duration: 20.5s
-
-## Visual identity (from the project, src/ui/tokens.css)
-- Background: #1a201e (--canvas), title art src/ui/title-bg.webp dimmed
-- Accent: #34c06f (--primary green), #e9be68 (--gold) for value/stat figures
-- Text: #f0f4f2 (--text-primary), #b3bdb9 (--text-secondary)
-- Display font: Space Grotesk (shipped in src/ui/fonts)
-- Body font: Space Grotesk
-- Strongest visual element: the live commentary card + scoreboard on match day; the green brand ball icon
-
-## Share copy (draft)
-Your club. Your legacy. Your time. PHASE: Rugby Manager: pick the XV and live with it.
-
-## Audio direction
-- Role: cinematic support
-- Music: happy-beats-business-moves-vol-12 (steady, clean; cinematic pick), bed at 0.38, fade out over the last 1.2s
-- Music cue guidance: preset read (109.96 BPM). Strong cues: 8.74s ("THEN SATURDAY."), 13.11s (full-time screen), 17.47s (logo). Hook lines on beats 0.56 / 1.64 / 2.73 (every other beat, held). Stats on every other beat from 13.64.
-- Audio-reactive treatment: subtle; bass drives the green floodlight glow behind the phone. No waveform visuals.
-- SFX posture: sparse, 2-3 big ones plus a few soft hits
-- Audio-coupled moments: hook slams (soft impacts), Saturday slam (heavy soft impact), phone swaps (card slide), logo (bell)
-- Restraint rule: no SFX on every beat; nothing bright or clicky repeated.
+## Format: vertical 9:16, 1080x1920. Duration: 28s
+Longer than /brag's usual 15-25s because the brief asked for the corridor intro, a phone montage, a four-part showcase and a feature run.
 
 ## Storyboard
+| Time | Scene |
+|---|---|
+| 0-4.4 | First-person walk down a dark wood-panelled corridor (CSS 3D), tube lights, framed facility plans from the game's art, footsteps. "THE BOARD IS WAITING." The MANAGER door opens onto the title-card office. |
+| 4.4-7.9 | Music hits. YOUR CLUB. / YOUR LEGACY. / YOUR TIME. over the office. |
+| 7.9-11.4 | Phone rises in; 12 real screens flick past on the half beat while it slowly zooms. "THIS IS YOUR CHANCE / TO TAKE CONTROL." Zoom into the screen. |
+| 11.4-16.9 | Full-bleed fast cuts: live match TRY + 32-12 full time ("THE CALLS ARE YOURS."), tactics pitch + starting XV ("BUILD YOUR DREAM TEAM."), campus map ("BUILD THE CLUB."), Wonderkid Watch + academy ("FIND THE WONDERKIDS."). |
+| 16.9-22.9 | Feature run, one per second: MEN'S & WOMEN'S GAME, 171 CLUBS 15 LEAGUES, 11,000+ PLAYERS, PLAYS OFFLINE, TAKE CHARGE OF YOUR COUNTRY, FACE THE PRESS. |
+| 22.9-24.9 | Job Centre, almost black: FAIL BADLY ENOUGH / YOU'RE SACKED. |
+| 24.9-28 | PHASE / RUGBY MANAGER, "Build something worth remembering.", phaserugbymanager.com, "Unofficial and independent". |
 
-### Scene 1 - Hook - 0 to 3.8s
-Floodlit title art, dark. YOUR CLUB. / YOUR LEGACY. / YOUR TIME. slam in one by one and stack; "TIME." in green.
-Sequential: yes, 3 lines on beats 0.56, 1.64, 2.73, all held to 3.6s.
-Audio: soft impact per line. Transition: scale-through dramatic cut.
+## Grounding
+- 171 clubs, 15 leagues, men's and women's game, plays offline, the press, "Fail badly enough and you're sacked": README / store listing.
+- 11,000+ players: a fresh world has 6,977 players (men's) and 4,217 (women's), counted from newGame().
+- Take charge of your country: store listing, "a national job may follow".
+- Wonderkids: the Scouting Agency's Wonderkid Watch screen.
 
-### Scene 2 - The week - 3.8 to 8.7s
-Phone with the real Home screen rises in; caption PICK THE XV. At ~6.0s the phone swaps to the real squad table (slow upward drift); caption AND LIVE WITH IT.
-Audio: card slide on each phone swap. Transition: hard cut to black.
+## Audio
+- Music: happy-beats-business-moves-vol-1 (120 BPM) from 12.02s, entering on the door burst at 4.4s; fades over the last 2s. Silence plus footsteps in the corridor.
+- Beat grid: hook 4.9/5.9/6.9, strong cue 8.4 (flicks start), cuts on the beat, features every other beat, outro at 24.9 where the track drops.
+- Audio-reactive: bass drives the green glow behind the phone and the logo.
 
-### Scene 3 - Saturday - 8.74 to 13.1s
-THEN SATURDAY. slams full-frame on the 8.74 strong cue, held to 10.3. Phone with the live match screen; the commentary card highlighted by a green ring and slight push-in.
-Audio: heavy soft impact on the slam, card slide on the phone.
-
-### Scene 4 - Full time - 13.11 to 17.4s
-Real full-time screen in the phone (32-12) lands on the 13.11 cue. Below it three stats arrive on alternate beats: 171 CLUBS, 15 LEAGUES, MEN'S AND WOMEN'S GAME, held together to 17.3.
-Audio: soft impact on the landing, light click per stat.
-
-### Scene 5 - Outro - 17.47 to 20.5s
-Ball icon + PHASE / RUGBY MANAGER slams on 17.47; tagline on 18.56; URL and disclaimer small. Hold.
-Audio: bell on the logo, music fades.
-
-**Music mood:** cinematic
-**Audio summary:** steady bed with soft slams on the hook, one heavy hit for Saturday, a bell for the logo, fading out on the tagline.
+## Safe zones
+All text sits between y=150 and y=1450 and inside x=80-1000, clear of the TikTok/Reels caption and button overlays.
 
 ## Notes
-Player names visible in the screenshots are the game's real database names, the same ones in the store screenshots generated by scripts/storeart.mjs. No player name is used as headline copy.
+Screens come from the production build (scripts/storeart.mjs plus a one-off menu walk). Real player names appear in them, as in the store screenshots; none is used as headline copy.
