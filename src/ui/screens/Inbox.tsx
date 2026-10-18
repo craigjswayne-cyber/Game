@@ -126,7 +126,7 @@ export function PeopleChips({ n }: { n: NewsItem }) {
         return (
           <button key={id} className="who-chip" onClick={e => { e.stopPropagation(); go('player', id) }}>
             <b>{p.name}</b>
-            <span>{p.pos}{club ? ` · ${club.short}` : t('inbox.freeAgent')} ▸</span>
+            <span>{p.pos}{club ? ` · ${club.short}` : t('inbox.freeAgent')}</span>
           </button>
         )
       })}

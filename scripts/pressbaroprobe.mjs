@@ -103,7 +103,7 @@ try {
     await page.click('text=New Career'); await page.click('text=English Premier Division'); await page.waitForSelector('.club-tile')
     await page.click('.tile >> text=Northampton'); await page.waitForSelector('text=Star Player'); await page.click('.action-bar >> text=Confirm')
     await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Barometer'); await page.click('.speech-tile >> text=Forward Dominance'); await page.click('.action-bar >> text=Confirm')
-    await page.click('text=▸ Start Career'); await page.waitForSelector('.tut-box', { timeout: 20000 }); await page.click('.tut-close .btn')
+    await page.click('text="Start Career"'); await page.waitForSelector('.tut-box', { timeout: 20000 }); await page.click('.tut-close .btn')
     await page.waitForSelector('.continue-btn', { timeout: 20000 })
 
     // ---- a slump ----

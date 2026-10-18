@@ -117,7 +117,7 @@ try {
   await page.click('.action-bar >> text=Confirm')
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Gaffer')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 20000 })
   await page.click('.tut-box >> text=Got it').catch(() => {})
   ok(true, 'a women\'s career reaches the home screen')

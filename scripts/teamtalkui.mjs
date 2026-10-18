@@ -56,15 +56,15 @@ const toKickOff = async (pg, name) => {
   await pg.fill('input[placeholder="e.g. A. Gaffer"]', name)
   await pg.click('.speech-tile >> text=Forward Dominance')
   await pg.click('.action-bar >> text=Confirm')
-  await pg.click('text=▸ Start Career')
+  await pg.click('text="Start Career"')
   await pg.waitForSelector('.tut-box', { timeout: 15000 })
   await pg.click('.tut-close .btn')
   for (let tap = 0; tap < 8; tap++) {
-    if (await pg.locator('text=Kick Off ▸').count()) break
+    if (await pg.locator('text="Kick Off"').count()) break
     await pg.click('.continue-btn')
     await pg.waitForTimeout(450)
   }
-  await pg.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
+  await pg.waitForSelector('text="Kick Off"', { timeout: 20000 })
 }
 
 try {
@@ -80,16 +80,16 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Talker')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   for (let tap = 0; tap < 8; tap++) {
-    if (await page.locator('text=Kick Off ▸').count()) break
+    if (await page.locator('text="Kick Off"').count()) break
     await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
-  await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.waitForSelector('text="Kick Off"', { timeout: 20000 })
+  await page.locator('text="Kick Off"').first().click()
 
   // ---- 1. the room before the talk
   await page.locator('.talk-modal').waitFor({ timeout: 5000 })
@@ -108,8 +108,8 @@ try {
   // ---- 2. give it, and see how every man took it
   await page.click('.talk-modal .speech-tile >> text=I believe in you')
   try {
-    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-    await page.click('text=▸ Take the Field')
+    await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+    await page.click('text="Take the Field"')
   } catch { /* clean sheet */ }
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
   await page.evaluate(() => {
@@ -177,12 +177,12 @@ try {
   await toKickOff(p2, 'Silent')
   // four silences already behind this room: the deepest the habit goes
   await p2.evaluate(() => { window.rugbyStore.getState().game.preTalkLog = 'NNNN' })
-  await p2.locator('text=Kick Off ▸').first().click()
+  await p2.locator('text="Kick Off"').first().click()
   await p2.locator('.talk-modal').waitFor({ timeout: 5000 })
   await p2.click('.talk-modal >> text=Say nothing. Straight out.')
   try {
-    await p2.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-    await p2.click('text=▸ Take the Field')
+    await p2.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+    await p2.click('text="Take the Field"')
   } catch { /* clean sheet */ }
   await p2.waitForSelector('.scoreboard', { timeout: 20000 })
   await p2.evaluate(() => {

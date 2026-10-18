@@ -391,7 +391,7 @@ export default function Finances() {
             style={{ ...acc('var(--gold)'), width: '100%', textAlign: 'left', display: 'block' }}>
             <div className="fact-label">{t('store.funding')}</div>
             <div className="meta" style={{ marginTop: 2 }}>{t('store.fundingLine')}</div>
-            <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>{t('store.title')} ▸</div>
+            <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>{t('store.title')}</div>
           </button>
         )
       })()}

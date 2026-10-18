@@ -99,7 +99,7 @@ try {
     await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Audit')
     await page.click('.speech-tile >> text=Forward Dominance')
     await page.click('.action-bar >> text=Confirm')
-    await page.click('text=▸ Start Career')
+    await page.click('text="Start Career"')
     await page.waitForSelector('.tut-box', { timeout: 15000 })
     await page.click('.tut-close .btn')
 
@@ -108,7 +108,7 @@ try {
     // and an inbox with a fortnight of mail in it is the hard one. Walk forward
     // to the edge of the first match and stop, so no live-match state leaks in.
     for (let tap = 0; tap < 12; tap++) {
-      if (await page.locator('text=Kick Off ▸').count()) break
+      if (await page.locator('text="Kick Off"').count()) break
       const cont = page.locator('.continue-btn')
       if (!(await cont.count())) break
       await cont.first().click().catch(() => {})

@@ -220,7 +220,7 @@ for (const { code, label } of LANGS) {
     // the new-career wizard, which every browser harness walks through before
     // it can measure anything at all
     ['wizard.confirm', 'Confirm'],
-    ['wizard.startCareer', '▸ Start Career'],
+    ['wizard.startCareer', 'Start Career'],
     ['wizard.namePlaceholder', 'e.g. A. Gaffer'],
     ['wizard.starPlayer', 'Star Player'],
     ['selection.bestXV', 'Best XV'],
@@ -229,13 +229,13 @@ for (const { code, label } of LANGS) {
     ['groups.tactics', 'Tactics'],
     // match day, which half the harnesses have to walk through to reach a
     // second season: the tunnel, the touchline and the way back out
-    ['matchday.kickOff', 'Kick Off ▸'],
-    ['matchday.takeField', '▸ Take the Field'],
+    ['matchday.kickOff', 'Kick Off'],
+    ['matchday.takeField', 'Take the Field'],
     ['matchday.spCalm', 'Calm the nerves'],
     ['matchday.sayNothing', 'Say nothing. Straight out.'],
-    ['matchday.startSecondHalf', '▸ Start Second Half'],
-    ['matchday.playFinalQuarter', '▸ Play the Final Quarter'],
-    ['matchday.continueToResults', 'Continue to Results ▸'],
+    ['matchday.startSecondHalf', 'Start Second Half'],
+    ['matchday.playFinalQuarter', 'Play the Final Quarter'],
+    ['matchday.continueToResults', 'Continue to Results'],
     ['matchday.matchDaySquad', 'Match-Day Squad'],
     ['matchday.takeBack', 'Take back the last change'],
     ['matchday.optPosts', 'Take the Points'],

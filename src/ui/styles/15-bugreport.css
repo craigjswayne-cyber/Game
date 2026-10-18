@@ -377,8 +377,18 @@
 .mood-chip.low { border-color: var(--danger); background: var(--danger-tint); }
 .mood-fold { margin: 6px 0 2px; }
 .mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 0.8125rem; padding: 6px 0; color: var(--info); min-height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; }
-.mood-fold > summary::before { content: '▸'; font-size: 0.6875rem; }
-.mood-fold[open] > summary::before { content: '▾'; }
+.mood-fold > summary::before, .ft-units > summary::before {
+  /* a drawn chevron, turned down when open (1.9.2: no text triangles) */
+  content: ''; flex-shrink: 0; width: 6px; height: 6px; margin: 0 3px 2px 1px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s ease;
+}
+.mood-fold[open] > summary::before, .ft-units[open] > summary::before { transform: rotate(45deg); }
+.ft-units > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.ft-units > summary::-webkit-details-marker { display: none; }
+.ft-units > summary { list-style: none; }
+.mood-fold > summary { list-style: none; }
+@media (prefers-reduced-motion: reduce) { .mood-fold > summary::before, .ft-units > summary::before { transition: none; } }
 .mood-fold > summary::-webkit-details-marker { display: none; }
 /* the full-time memory lines, under the two fixes (1.8.6) */
 .ft-context:not(:empty) { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--border); }

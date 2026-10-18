@@ -42,17 +42,17 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Gate')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
 
   // walk to match day
   for (let tap = 0; tap < 10; tap++) {
-    if (await page.locator('text=Kick Off ▸').count()) break
+    if (await page.locator('text="Kick Off"').count()) break
     await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
-  await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
+  await page.waitForSelector('text="Kick Off"', { timeout: 20000 })
 
   // match morning: the starting loosehead pulls up in the warm-up - and so
   // does a man on the bench, because the gate has to hold for all 23 (round
@@ -73,7 +73,7 @@ try {
   })
   say(`  injured the starting loosehead: ${hurt.name}, and on the bench: ${hurt.benchName}`)
 
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.locator('text="Kick Off"').first().click()
   await page.locator('.talk-modal').waitFor({ timeout: 5000 })
   await page.click('.talk-modal .speech-tile >> nth=0')
   await page.locator('.modal .btn.gold').waitFor({ timeout: 5000 })

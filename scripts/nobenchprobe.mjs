@@ -21,13 +21,13 @@ await page.goto(server.origin + '/')
 await page.click('text=New Career'); await page.click('text=English Premier Division')
 await page.click('.tile >> text=Leicester'); await page.click('.action-bar >> text=Confirm')
 await page.fill('input[placeholder="e.g. A. Gaffer"]', 'T'); await page.click('.action-bar >> text=Confirm')
-await page.click('text=▸ Start Career')
+await page.click('text="Start Career"')
 await page.locator('.tut-box').or(page.locator('.bottom-nav')).first().waitFor({ timeout: 20000 })
 if (await page.locator('.tut-box').count()) await page.click('.tut-close .btn')
-for (let i = 0; i < 15 && !(await page.locator('text=Kick Off ▸').count()); i++) { await page.evaluate(() => { const s = window.rugbyStore; s.setState({ lastAdvanceAt: 0 }); for (const q of s.getState().game.press) q.answered = true; s.getState().continueWeek() }); await page.waitForTimeout(600) }
-await page.locator('text=Kick Off ▸').first().click()
+for (let i = 0; i < 15 && !(await page.locator('text="Kick Off"').count()); i++) { await page.evaluate(() => { const s = window.rugbyStore; s.setState({ lastAdvanceAt: 0 }); for (const q of s.getState().game.press) q.answered = true; s.getState().continueWeek() }); await page.waitForTimeout(600) }
+await page.locator('text="Kick Off"').first().click()
 try { await page.locator('.talk-modal').waitFor({ timeout: 3000 }); await page.click('.talk-modal .speech-tile >> nth=0') } catch {}
-try { await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 }); await page.click('text=▸ Take the Field') } catch {}
+try { await page.locator('text="Take the Field"').waitFor({ timeout: 2500 }); await page.click('text="Take the Field"') } catch {}
 await page.waitForSelector('.scoreboard', { timeout: 20000 })
 await page.waitForTimeout(1500)
 // stage: one of ours down, nobody left on the bench, the match waiting

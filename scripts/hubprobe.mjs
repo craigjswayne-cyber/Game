@@ -57,7 +57,7 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Hub Probe')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 20000 })
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav', { timeout: 20000 })
@@ -136,12 +136,12 @@ try {
   say(`\nContinue taps: ${walk.join(' > ') || '(none)'}`)
   ok(await page.locator('text=Kick Off').count() > 0, 'Continue walked the week to a matchday')
 
-  await page.locator('text=Kick Off ▸').first().click().catch(() => {})
+  await page.locator('text="Kick Off"').first().click().catch(() => {})
   // the dressing room, then the ready check: both optional depending on the sheet
   await page.locator('.talk-modal').waitFor({ timeout: 3000 })
     .then(() => page.click('.talk-modal .speech-tile >> text=Calm the nerves')).catch(() => {})
-  await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-    .then(() => page.click('text=▸ Take the Field')).catch(() => {})
+  await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+    .then(() => page.click('text="Take the Field"')).catch(() => {})
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
   ok(true, 'reached the pitch')
 
@@ -162,15 +162,15 @@ try {
     if (s.ft) break
     if (s.call) await page.click('text=Take the Points').catch(() => {})
     else if (s.interval) {
-      if (!htWord && await page.locator('text=▸ Start Second Half').count()) {
+      if (!htWord && await page.locator('text="Start Second Half"').count()) {
         htWord = await page.evaluate(() => {
           const card = document.querySelector('[data-halftime-word]')
           if (!card) return { lines: [] }
           return { lines: [...card.querySelectorAll('.meta')].map(m => ({ tag: m.getAttribute('data-ht-tag'), text: (m.textContent ?? '').trim() })) }
         })
       }
-      await tapPast(page, 'text=▸ Start Second Half')
-        .catch(() => tapPast(page, 'text=▸ Play the Final Quarter').catch(() => {}))
+      await tapPast(page, 'text="Start Second Half"')
+        .catch(() => tapPast(page, 'text="Play the Final Quarter"').catch(() => {}))
     } else {
       await page.click('.speed-controls [data-ctl=skip]').catch(() => {})
     }

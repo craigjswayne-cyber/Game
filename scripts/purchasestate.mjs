@@ -68,7 +68,7 @@ async function startCareerInner(page) {
   await page.click('.action-bar >> text=Confirm')
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Gaffer')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   // the tutorial is a first-run thing: a second career goes straight to Home
   await page.locator('.tut-box').or(page.locator('.bottom-nav')).first().waitFor({ timeout: 15000 })
   if (await page.locator('.tut-box').count()) await page.click('.tut-close .btn')

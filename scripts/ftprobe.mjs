@@ -65,19 +65,19 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'FT Probe')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   for (let tap = 0; tap < 12; tap++) {
-    if (await page.locator('text=Kick Off ▸').count()) break
+    if (await page.locator('text="Kick Off"').count()) break
     const rej = page.locator('.btn.danger >> text=Reject')
     if (await rej.count()) { await rej.first().click(); await page.waitForTimeout(200); continue }
     // a turning week covers the button for a moment: try again next tap
     await page.click('.continue-btn', { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(450)
   }
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.locator('text="Kick Off"').first().click()
   try { await page.locator('.talk-modal').waitFor({ timeout: 3000 }); await page.click('.talk-modal .speech-tile >> nth=0') } catch {}
-  try { await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 }); await page.click('text=▸ Take the Field') } catch {}
+  try { await page.locator('text="Take the Field"').waitFor({ timeout: 2500 }); await page.click('text="Take the Field"') } catch {}
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
 
   // ---- skip to full time ----
@@ -91,7 +91,7 @@ try {
       continue
     }
     if (await answer()) continue
-    for (const label of ['▸ Start Second Half', '▸ Play the Final Quarter']) {
+    for (const label of ['Start Second Half', 'Play the Final Quarter']) {
       const b = page.locator(`text=${label}`)
       if (await b.count()) await b.first().click({ timeout: 3000 }).catch(() => {})
     }

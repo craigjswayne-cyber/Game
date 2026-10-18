@@ -148,7 +148,7 @@ await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Sam Carter')
 await page.click('.speech-tile >> text=Forward Dominance')
 await page.click('.action-bar >> text=Confirm')
 await shot('412n-newgame-5', true); await note('412n-newgame-5')
-await page.click('text=▸ Start Career')
+await page.click('text="Start Career"')
 await page.waitForSelector('.tut-box', { timeout: 15000 })
 await shot('412n-tutorial', false)
 await page.click('.tut-close .btn')
@@ -263,11 +263,11 @@ for (const c of CONFIGS) {
     try {
       await go('matchday')
       await page.evaluate(() => { window.rugbyStore.setState({ lastAdvanceAt: 0 }) })
-      const ko = page.locator('text=Kick Off ▸').first()
+      const ko = page.locator('text="Kick Off"').first()
       if (await ko.count()) {
         await ko.click()
         if (await page.locator('.talk-modal').count()) { await shot(`${c.id}-talk-modal`, false); await page.click('.talk-modal .speech-tile >> nth=0') }
-        try { await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 }); await page.click('text=▸ Take the Field') } catch {}
+        try { await page.locator('text="Take the Field"').waitFor({ timeout: 2500 }); await page.click('text="Take the Field"') } catch {}
         await page.waitForSelector('.scoreboard', { timeout: 15000 })
         await page.waitForTimeout(2500)
         await shot(`${c.id}-live`, false); await note(`${c.id}-live`)

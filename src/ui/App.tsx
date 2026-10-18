@@ -472,6 +472,8 @@ function useHardwareBack(depth: number, screen: Screen, menuOpen: boolean, close
 interface MenuItem {
   ico: ReactNode
   label: string
+  /** the short heading this row sits under (1.9.2, Hub and Manager menus) */
+  sec?: string
   /** doubles as the react key, so it stays required even for action items */
   screen: Screen
   badge?: number
@@ -708,21 +710,20 @@ export default function App() {
         // Team opens on the team sheet now (user: "Selection should be the
         // team section"), so the tactics screen is just Tactics - the how,
         // not the who.
-        { ico: <Glyph name="team" />, label: t('groups.team'), screen: 'squad' },
-        { ico: <Glyph name="report" />, label: t('groups.teamReport'), screen: 'report' },
-        { ico: <Glyph name="tactics" />, label: t('groups.tactics'), screen: 'tactics' },
-        { ico: <Glyph name="academy" />, label: t('groups.academy'), screen: 'academy' },
-        { ico: <Glyph name="training" />, label: t('groups.trainingStaff'), screen: 'training' },
-        // SCOUTING, UNDER TRAINING AND STAFF (owner: "Scouting needs to be
-        // more visible as an option"). It was a tab inside the Transfer
-        // Centre; the verdicts list and the reports now have a door here too.
-        { ico: <Glyph name="scout" />, label: t('groups.scouting'), screen: 'scouting' },
-        { ico: <Glyph name="medical" />, label: t('groups.medical'), screen: 'medical', badge: injuredCount },
-        { ico: <Glyph name="fixtures" />, label: t('groups.fixturesResults'), screen: 'fixtures' },
-        { ico: <Glyph name="finances" />, label: t('groups.finances'), screen: 'finances', badge: boardOpen },
-        { ico: <Glyph name="transfers" />, label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
-        { ico: <Glyph name="infra" />, label: t('groups.infra'), screen: 'infra' },
-        { ico: <Glyph name="club" />, label: t('groups.clubInfo'), screen: 'club' },
+        { ico: <Glyph name="team" />, label: t('groups.team'), screen: 'squad', sec: t('groups.secSquad') },
+        { ico: <Glyph name="report" />, label: t('groups.teamReport'), screen: 'report', sec: t('groups.secSquad') },
+        { ico: <Glyph name="tactics" />, label: t('groups.tactics'), screen: 'tactics', sec: t('groups.secSquad') },
+        { ico: <Glyph name="academy" />, label: t('groups.academy'), screen: 'academy', sec: t('groups.secSquad') },
+        { ico: <Glyph name="training" />, label: t('groups.trainingStaff'), screen: 'training', sec: t('groups.secSquad') },
+        { ico: <Glyph name="medical" />, label: t('groups.medical'), screen: 'medical', badge: injuredCount, sec: t('groups.secSquad') },
+        { ico: <Glyph name="fixtures" />, label: t('groups.fixturesResults'), screen: 'fixtures', sec: t('groups.secMatches') },
+        // SCOUTING HAS ITS OWN DOOR (owner: "Scouting needs to be more
+        // visible as an option"); it reads with the matches since 1.9.2
+        { ico: <Glyph name="scout" />, label: t('groups.scouting'), screen: 'scouting', sec: t('groups.secMatches') },
+        { ico: <Glyph name="finances" />, label: t('groups.finances'), screen: 'finances', badge: boardOpen, sec: t('groups.secClub') },
+        { ico: <Glyph name="transfers" />, label: t('groups.transfers'), screen: 'transfers', badge: offersOpen, sec: t('groups.secClub') },
+        { ico: <Glyph name="infra" />, label: t('groups.infra'), screen: 'infra', sec: t('groups.secClub') },
+        { ico: <Glyph name="club" />, label: t('groups.clubInfo'), screen: 'club', sec: t('groups.secClub') },
         // THE STORE HAD NO NAME ANYWHERE (owner, 27 Aug: "no shop showing").
         // Everything was reachable and nothing was findable: the door sat on
         // About & legal, under the manager's own menu, next to the privacy
@@ -735,38 +736,35 @@ export default function App() {
         // keeps the web build honest: no bridge, no row, and the menu is the
         // same eleven items it has always been (storeprobe asserts exactly
         // this on a page with no bridge attached).
-        ...(tillOpen() ? [{ ico: <Glyph name="store" />, label: t('groups.store'), screen: 'supporter' as Screen }] : []),
+        ...(tillOpen() ? [{ ico: <Glyph name="store" />, label: t('groups.store'), screen: 'supporter' as Screen, sec: t('groups.secClub') }] : []),
       ],
     },
     manager: {
       title: game.managerName,
       items: [
-        { ico: <Glyph name="profile" />, label: t('groups.profile'), screen: 'profile' },
+        { ico: <Glyph name="profile" />, label: t('groups.profile'), screen: 'profile', sec: t('groups.secCareer') },
         // the manager is the one in front of the cameras, so the press room
         // belongs to him rather than to the team sheet
-        { ico: <Glyph name="press" />, label: t('groups.press'), screen: 'press', badge: pressOpen },
-        { ico: <Glyph name="legacy" />, label: t('groups.legacy'), screen: 'legacy' },
-        { ico: <Glyph name="handbook" />, label: t('groups.handbook'), screen: 'handbook' },
-        // Settings sits ABOVE Report a Bug (owner, v1.2.1): the page you
-        // want when the game looks wrong comes before the page you want when
-        // it IS wrong.
-        { ico: <Glyph name="settings" />, label: t('groups.settings'), screen: 'settings' },
-        { ico: <Glyph name="bug" />, label: t('groups.bug'), screen: 'bug' },
+        { ico: <Glyph name="press" />, label: t('groups.press'), screen: 'press', badge: pressOpen, sec: t('groups.secCareer') },
+        { ico: <Glyph name="legacy" />, label: t('groups.legacy'), screen: 'legacy', sec: t('groups.secCareer') },
+        { ico: <Glyph name="handbook" />, label: t('groups.handbook'), screen: 'handbook', sec: t('groups.secHelp') },
+        // dismissing the welcome dialog used to be final and irreversible
+        { ico: <Glyph name="help" />, label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut(), sec: t('groups.secHelp') },
+        { ico: <Glyph name="bug" />, label: t('groups.bug'), screen: 'bug', sec: t('groups.secHelp') },
         // what this is, who made it, and what it does with your data - the page
         // a store reviewer looks for and the page a player ends up on when they
         // want the privacy policy without leaving the game
-        { ico: <Glyph name="about" />, label: t('groups.about'), screen: 'about' },
-        // dismissing the welcome dialog used to be final and irreversible
-        { ico: <Glyph name="help" />, label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut() },
-        { ico: <Glyph name="save" />, label: t('groups.saveLoad'), screen: 'saves' },
+        { ico: <Glyph name="about" />, label: t('groups.about'), screen: 'about', sec: t('groups.secHelp') },
+        { ico: <Glyph name="settings" />, label: t('groups.settings'), screen: 'settings', sec: t('groups.secGame') },
+        { ico: <Glyph name="save" />, label: t('groups.saveLoad'), screen: 'saves', sec: t('groups.secGame') },
         // A reload now resumes the career where it was left, so a refresh is no
         // longer the way back to the title screen - and without a deliberate
         // route there, starting a second career would be impossible.
-        { ico: <Glyph name="exit" />, label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle() },
+        { ico: <Glyph name="exit" />, label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle(), sec: t('groups.secGame') },
         // THE COMMUNITY, under the way out (owner, 1.8.1: off the title
         // screen, onto the manager's own list and the foot of Home). `screen`
         // is only its key here; the href is what it does.
-        { ico: <Glyph name="gossip" />, label: t('menu.community'), screen: 'about', href: COMMUNITY_URL },
+        { ico: <Glyph name="gossip" />, label: t('menu.community'), screen: 'about', href: COMMUNITY_URL, sec: t('groups.secGame') },
       ],
     },
     world: {
@@ -866,7 +864,7 @@ export default function App() {
               return (
                 <button className="continue-btn" onClick={continueTap} disabled={turning} aria-busy={turning}
                   title={desk ? t('common.deskWaits') : undefined}>
-                  {turning ? t('common.turningWeek') : desk ? `${desk.label} ▸` : t(step.kind === 'match' ? 'common.matchdayBtn' : 'common.continueBtn')}
+                  {turning ? t('common.turningWeek') : desk ? desk.label : t(step.kind === 'match' ? 'common.matchdayBtn' : 'common.continueBtn')}
                 </button>
               )
             })()}
@@ -930,22 +928,27 @@ export default function App() {
           {menu === 'hub' && firstWeeks && (
             <div className="submenu-note">{t('groups.firstJobs')}</div>
           )}
-          {MENUS[menu].items.map(it => it.href ? (
+          {/* GROUPED, NOT ICONED (1.9.2, owner): the Hub and Manager menus
+              read as short sections under small headings, without the line
+              icon on every row that made them look like a template */}
+          {MENUS[menu].items.map((it, i, all) => [
+            it.sec && it.sec !== all[i - 1]?.sec ? <div key={`sec-${it.sec}`} className="submenu-sec">{it.sec}</div> : null,
+            it.href ? (
             <a key={it.label} className="submenu-item" href={it.href} target="_blank" rel="noopener noreferrer"
               onClick={() => setMenu(null)}>
-              <span className="mico">{it.ico}</span>
+              {!it.sec && <span className="mico">{it.ico}</span>}
               <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
             </a>
           ) : (
             <button key={it.label} className="submenu-item"
               onClick={() => { setMenu(null); if (it.action) it.action(); else go(it.screen) }}>
-              <span className="mico">{it.ico}</span>
+              {!it.sec && <span className="mico">{it.ico}</span>}
               <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
               {menu === 'hub' && firstWeeks && FIRST_JOBS.has(it.screen)
                 ? <span className="mstart">{t('groups.startHere')}</span> : null}
               {it.badge ? <span className="mbadge">{it.badge > 9 ? '9+' : it.badge}</span> : null}
             </button>
-          ))}
+          )])}
         </Veil>
       )}
       <Overlays />

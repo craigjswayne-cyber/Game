@@ -106,7 +106,7 @@ export default function Infrastructure() {
           <div className="fact-label">{t('store.estate')}</div>
           <div className="meta" style={{ marginTop: 2 }}>{t('store.estateLine')}</div>
           <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>
-            {t(hasEntitlement(ESTATE_SKU) ? 'store.estateBuild' : 'store.title')} ▸
+            {t(hasEntitlement(ESTATE_SKU) ? 'store.estateBuild' : 'store.title')}
           </div>
         </button>
       )}

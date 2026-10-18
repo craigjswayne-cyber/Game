@@ -206,21 +206,21 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Physio')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   for (let tap = 0; tap < 8; tap++) {
-    if (await page.locator('text=Kick Off ▸').count()) break
+    if (await page.locator('text="Kick Off"').count()) break
     await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
-  await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.waitForSelector('text="Kick Off"', { timeout: 20000 })
+  await page.locator('text="Kick Off"').first().click()
   await page.locator('.talk-modal').waitFor({ timeout: 5000 })
   await page.click('.talk-modal .speech-tile >> text=Calm the nerves')
   try {
-    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-    await page.click('text=▸ Take the Field')
+    await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+    await page.click('text="Take the Field"')
   } catch { /* clean sheet */ }
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
   await page.waitForTimeout(1500)

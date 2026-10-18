@@ -67,8 +67,8 @@ const clearWire = async () => {
       await page.waitForTimeout(250)
       return
     }
-    if (await page.locator('text=Next Story ▸').count()) {
-      await page.click('text=Next Story ▸')
+    if (await page.locator('text="Next Story"').count()) {
+      await page.click('text="Next Story"')
       await page.waitForTimeout(120)
       continue
     }
@@ -78,7 +78,7 @@ const clearWire = async () => {
 
 /** Play a full interactive match from the preview screen. */
 async function playMatch(speech = 'Calm the nerves') {
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.locator('text="Kick Off"').first().click()
   // Kick Off opens the dressing room first now (feedback 9-1: "the team talk
   // should come as you press kick off"), and choosing a speech in there is what
   // carries on down the tunnel.
@@ -88,15 +88,15 @@ async function playMatch(speech = 'Calm the nerves') {
   } catch { /* no dressing room - a talk was already given */ }
   // a clean team sheet skips the ready-check modal entirely
   try {
-    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-    await page.click('text=▸ Take the Field')
+    await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+    await page.click('text="Take the Field"')
   } catch { /* no modal - straight to the tunnel */ }
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
   await skipTo('Start Second Half')
-  await tapPast(page, 'text=▸ Start Second Half')
+  await tapPast(page, 'text="Start Second Half"')
   await page.waitForTimeout(300)
   await skipTo('Play the Final Quarter')
-  await tapPast(page, 'text=▸ Play the Final Quarter')
+  await tapPast(page, 'text="Play the Final Quarter"')
   await page.waitForTimeout(300)
   await skipTo('Continue to Results')
 }
@@ -152,7 +152,7 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Test Gaffer')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   // the box swallows its own taps now, so a click on the veil's centre lands on
   // the box and does nothing. Use the button a real thumb would use.
@@ -355,7 +355,7 @@ try {
     if (day) { bulletins.push(day); continue }
     if (await page.locator('text=Kick Off').count()) break
     // not a bulletin and not the match: something else took the screen
-    if (label === 'Matchday ▸') break
+    if (label === 'Matchday') break
   }
   console.log(`walked to kick-off through: ${bulletins.length ? bulletins.join(' > ') : '(no bulletins)'}`)
   if (!bulletins.length) throw new Error('Continue reached the match without a single day bulletin')
@@ -402,7 +402,7 @@ try {
     await page.waitForTimeout(500)
     await clearOffers()
     await clearWire()
-    const kick = page.locator('text=Kick Off ▸')
+    const kick = page.locator('text="Kick Off"')
     if (await kick.count()) {
       await playMatch()
       await page.click('text=Continue to Results')

@@ -185,7 +185,7 @@ try {
   const finalTrail = await trailAt('on the summary')
   ok(finalTrail.some(c => /Northampton/i.test(c.text)),
     `the club is named in full on the last step (${finalTrail.map(c => c.text).join(' | ')})`)
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })

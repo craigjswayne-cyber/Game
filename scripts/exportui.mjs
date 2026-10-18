@@ -69,7 +69,7 @@ async function phone(mode) {
   await page.click('.action-bar >> text=Confirm')
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Gaffer')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.locator('.tut-box').or(page.locator('.bottom-nav')).first().waitFor()
   if (await page.locator('.tut-box').count()) await page.click('.tut-close .btn')
   await page.evaluate(() => window.rugbyStore.getState().go('saves'))

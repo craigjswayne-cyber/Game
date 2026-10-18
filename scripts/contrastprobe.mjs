@@ -138,7 +138,7 @@ async function sweep(label, { night, systemScheme }) {
 
     await page.click('.speech-tile >> text=Forward Dominance')
     await page.click('.action-bar >> text=Confirm')
-    await page.click('text=▸ Start Career')
+    await page.click('text="Start Career"')
     await page.waitForSelector('.tut-box', { timeout: 15000 })
     await page.click('.tut-close .btn')
     await page.waitForSelector('.bottom-nav', { timeout: 15000 })
