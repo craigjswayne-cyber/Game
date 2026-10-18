@@ -369,7 +369,8 @@ export default function Home() {
           // a drawn face, five of them from angry to delighted (owner, round
           // 6), never an emoji (27 Sep 2026); the word under it says it too
           return <>
-            <b className="ht-v fan-row"><FanFace mood={m} label={word} className="hub-face" /> <span>{word}</span></b>
+            <b className="ht-v"><FanFace mood={m} label={word} className="hub-face" /></b>
+            <span className="ht-s">{word}</span>
           </>
         })()}
       </button>

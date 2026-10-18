@@ -82,9 +82,7 @@
 /* the hub widgets were centred chips: in the grid they read like the rest */
 .hub-widget.home-tile { align-items: stretch; padding: 7px 10px 8px; }
 .hub-widget.home-tile .ht-v { line-height: 1.2; }
-.hub-widget.home-tile .hub-face { display: inline-flex; align-items: center; }
-.hub-widget.home-tile .fan-row { display: flex; align-items: center; gap: 8px; }
-.hub-widget.home-tile .fan-row svg { width: 34px; height: 22px; }
+.hub-widget.home-tile .hub-face { width: 22px; height: 22px; }
 .dash-panel.home-tile { padding: 7px 10px 8px; }
 /* Two-up starves a fixture line below 400px (device matrix, round 22: "La
    Ro..." on a 360px Android), so the fixtures panel takes the row there. */
@@ -171,5 +169,3 @@
 @media (prefers-reduced-motion: no-preference) {
   [data-motion="on"] .tele-bar i { transition: transform .45s cubic-bezier(.2, 0, 0, 1); animation: m-grow .6s cubic-bezier(.2, 0, 0, 1) backwards; }
 }
-.hub-widget.home-tile .fan-row > span:last-child { display: inline-block; font-size: 1rem; font-weight: 700; color: var(--text-primary); }
-.hub-widget.home-tile .fan-row > span:last-child::first-letter { text-transform: uppercase; }

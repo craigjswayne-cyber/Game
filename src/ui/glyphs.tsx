@@ -151,18 +151,11 @@ const FACE_TONE: Record<FanFaceLevel, string> = {
 }
 export function FanFace({ mood, label, className }: { mood: number; label: string; className?: string }) {
   const lvl = fanFaceLevel(mood)
-  // THE CROWD, NOT A FACE (1.9.2, owner's pick from four options): the drawn
-  // face read as an emoji. Three supporters in the mood's colour, arms up
-  // when they are delighted; the word beside it says the rest.
+  const name = `face${lvl[0].toUpperCase()}${lvl.slice(1)}`
   return (
     <span className={`fan-face${className ? ` ${className}` : ''}`} data-face={lvl} role="img" aria-label={label}
       style={{ color: FACE_TONE[lvl] }}>
-      <svg viewBox="0 0 40 26" width="1.6em" height="1.05em" fill="currentColor" aria-hidden="true" focusable="false">
-        <circle cx="8" cy="9" r="4.6" /><path d="M0 26c0-6.5 3.6-9.5 8-9.5s8 3 8 9.5z" />
-        <circle cx="32" cy="9" r="4.6" /><path d="M24 26c0-6.5 3.6-9.5 8-9.5s8 3 8 9.5z" />
-        <circle cx="20" cy="7" r="5.2" /><path d="M11 26c0-7.5 4-10.5 9-10.5s9 3 9 10.5z" />
-        {lvl === 'delighted' && <path d="M12.5 15 9 4.5M27.5 15 31 4.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />}
-      </svg>
+      <Glyph name={name} />
     </span>
   )
 }
