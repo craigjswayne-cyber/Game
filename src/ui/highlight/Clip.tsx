@@ -102,9 +102,11 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       for (let i = 0; i < 15; i++) dot(f.att[i], spec.att[0], spec.att[1], spec.attNum?.[i] ?? i + 1, f.carrying[i] > 0.5 && !finishing, f.down[i] > 0.5, f.aloft[i])
 
       // THE REFEREE (owner, 1.8.0): a circle like everybody else, told apart
-      // by the colour neither side wears, no number, a little smaller, and a
-      // dark edge
-      const rx = X(f.ref.x), ry = Y(clamp(f.ref.y, 0.5, 69.5)), rs = R * 0.78
+      // by the colour neither side wears, no number, and a dark edge. Full
+      // size since 1.9.2: at 0.78 of a player he was near the ball's size and
+      // read as the ball (owner, 18 Oct 2026). His colour is never white or
+      // cream: pink, orange or cyan, never within reach of the ball's.
+      const rx = X(f.ref.x), ry = Y(clamp(f.ref.y, 0.5, 69.5)), rs = R
       g.beginPath(); g.arc(rx, ry + 1, rs, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()
       g.beginPath(); g.arc(rx, ry, rs, 0, Math.PI * 2); g.fillStyle = refKit; g.fill()
       g.lineWidth = 2; g.strokeStyle = ink.dark; g.stroke()
