@@ -76,7 +76,7 @@ Owner column: **O** = owner (needs a human, an account, money or a signature) ·
 - 🟢 Store art generator `scripts/storeart.mjs` (Play 1080x2340 and iOS 1290x2796, en and fr; feature graphic) and `scripts/ipadshots.mjs` (2048x2732). Output is gitignored.
 - 🟢 Website: `landing/index.html` on phaserugbymanager.com via `.github/workflows/pages.yml`; `public/privacy.html` (28 Sep 2026).
 - 🟢 Store copy: `docs/store-listing.md` (Play and App Store, en and fr; What's New in six languages up to 1.8.2).
-- 🟢 Discord server with invites in `src/game/community.ts`; bot code in `discord/` (not hosted).
+- 🟢 Discord server with invites in `src/game/community.ts`; bot code in the `phase-rugby-discord` repository (not hosted).
 - 🟢 Ruck: byline, About credit, `public/ruck-logo.webp`.
 - 🟢 Feedback: on-device usage report (`src/game/usage.ts`), player-sent by email or copy.
 

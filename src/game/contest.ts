@@ -5,7 +5,7 @@
 // the one every balance probe is built on and it stays exactly as it is.
 //
 // This is the layer under it, ported from the design in
-// design/match-engine-csharp (Resolution.cs): every tick, each side's phase of
+// match-engine-csharp (Resolution.cs) in the phase-rugby-design repository: every tick, each side's phase of
 // attack is a contest between PEOPLE. A carrier is chosen, runs into a
 // tackler, and a jackal from the defending side competes for the ball against
 // the carrier's support. Who wins that collision is decided by those men's own

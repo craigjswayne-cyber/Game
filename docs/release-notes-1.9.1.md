@@ -192,8 +192,12 @@ this build, with a probe for each fix that fails without it.
   and `npm test` covers the save queue, the week settle, purchases, promises
   and the save list (65 tests).
 
+**Done after the build was finished** (no change to the game)
+- The repository split: the Discord bot, the marketing files and the design
+  material now live in their own repositories (`phase-rugby-discord`,
+  `phase-rugby-marketing`, `phase-rugby-design`), and the art masters are in
+  Git LFS.
+
 **Still to come** (none blocks this release)
-- The repository split (art masters to Git LFS; the bot, marketing and design
-  in their own repositories), right after this release.
 - React 19 and TypeScript 7 wait on the startup cost and on typescript-eslint
   respectively.
