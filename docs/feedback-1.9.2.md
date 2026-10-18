@@ -33,3 +33,17 @@ list is complete.
     where it is: retune the drain so scoring, late-game tiredness and the
     value of the bench stay at today's figures (balance probes, soak), and
     record the fingerprint change with its reason.
+12. **Demand more on offers.** About 60% of the time the bidder raises by
+    10% to 20%. Today (`ai.ts` counterIncomingOffer) it is a 55% roll, a
+    raise of 6% to 22% anchored to how far under value they opened, capped
+    at 140% of value and the bidder's budget; otherwise they walk, or say
+    best and final when already at the cap.
+13. **Referee "allows 7 before reaching for a card": 7 what?** It counts
+    infringements (`referee.ts` patience). Say so: "allows 7 infringements
+    before reaching for a card", in all six languages.
+14. **Pitches.** Saracens (StoneX), Newcastle (Kingston Park) and Gloucester
+    (Kingsholm) are the three artificial pitches in the PREM; the game
+    already has those three as artificial. Every other ground's surface is a
+    guess from a hash of the club (`conditions.ts` clubSurface), which made
+    Bristol hybrid; Bristol is not. Replace the guess with a researched
+    surface for every PREM ground at least, grass where unconfirmed.
