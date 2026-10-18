@@ -84,6 +84,14 @@ const SCRUM_DRAIN: Record<string, number> = { LP: 0.30, HK: 0.27, TP: 0.30, LK: 
  *  the old (8 x 1.1 + 7 x 1.0) / 15 = 1.053, so the world tires as fast as it
  *  did and only who tires moves (scripts/packprobe.ts measures it) */
 const DRAIN_NORM = 0.97
+/** THE PRICE OF THE HALF-TIME BREAK (1.9.2). blowHalfTime gives everyone on
+ *  the pitch 10 points back (finalize.ts HT_RECOVERY), and the drain is this
+ *  much steeper so a side's energy averaged over the eighty minutes is where
+ *  it was. Measured on 1,401 fixtures of seed 4242: mean on-pitch energy 27.42
+ *  before, 27.44 with the break and 1.09; at the final whistle 21.5 against
+ *  20.6; points a game inside the seed's noise (49.2 against 50.2, with the
+ *  unchanged engine itself moving 49.2 to 49.8 between drain settings). */
+const DRAIN_HT_K = 1.09
 function roleDrain(pos: string, scrums: number): number {
   return ((ROLE_DRAIN[pos] ?? 1) + (SCRUM_DRAIN[pos] ?? 0) * scrums) * DRAIN_NORM
 }
@@ -112,6 +120,6 @@ export function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
     // scoring bands do not move, but who is spent at 60 minutes does.
     const posF = roleDrain(p.pos, side.spScrums ?? 0)
     const e = side.energy.get(id) ?? 80
-    side.energy.set(id, Math.max(0, e - base * side.tempoF * side.drainF * (side.repF ?? 1) * posF * wF))
+    side.energy.set(id, Math.max(0, e - base * side.tempoF * side.drainF * (side.repF ?? 1) * posF * wF * DRAIN_HT_K))
   }
 }

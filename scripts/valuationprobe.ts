@@ -172,16 +172,20 @@ for (const seed of [9, 777]) {
   ok(msg.includes('best and final'), 'and the message says so plainly')
   ok(counterIncomingOffer(g, big.id).includes('already'), 'but there is no second bite at the same offer')
   // a lowball has road: sometimes they pay up, sometimes they walk - a real roll
-  let raised = 0, walked = 0
+  let raised = 0, walked = 0, minUp = Infinity, maxUp = 0
   for (let i = 0; i < 200; i++) {
     const o = tender(star.value * 0.9)
     const before = o.fee
     counterIncomingOffer(g, o.id)
-    if (o.status === 'pending' && o.fee > before) raised++
-    else if (o.status === 'rejected') walked++
+    if (o.status === 'pending' && o.fee > before) {
+      raised++
+      minUp = Math.min(minUp, o.fee / before); maxUp = Math.max(maxUp, o.fee / before)
+    } else if (o.status === 'rejected') walked++
   }
   ok(raised + walked === 200, `every lowball counter resolves one way or the other (${raised} raised, ${walked} walked)`)
-  ok(raised >= 80 && raised <= 140, `the 55% roll is real: ${raised}/200 paid up (expected about 110)`)
+  // owner, 18 Oct 2026: "about 60% of the time this offer increases by 10-20%"
+  ok(raised >= 95 && raised <= 145, `the 60% roll is real: ${raised}/200 paid up (expected about 120)`)
+  ok(minUp >= 1.095 && maxUp <= 1.205, `and each raise is 10% to 20% (${((minUp - 1) * 100).toFixed(1)}% to ${((maxUp - 1) * 100).toFixed(1)}%)`)
   ok(walked > 0, `and walking away still happens (${walked}/200) - the gamble has teeth`)
 }
 

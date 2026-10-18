@@ -104,7 +104,7 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       // THE REFEREE (owner, 1.8.0): a circle like everybody else, told apart
       // by the colour neither side wears, no number, and a dark edge. Full
       // size since 1.9.2: at 0.78 of a player he was near the ball's size and
-      // read as the ball (owner, 18 Oct 2026). His colour is never white or
+      // read as the ball (owner, 18 Oct 2026). The colour is never white or
       // cream: pink, orange or cyan, never within reach of the ball's.
       const rx = X(f.ref.x), ry = Y(clamp(f.ref.y, 0.5, 69.5)), rs = R
       g.beginPath(); g.arc(rx, ry + 1, rs, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()

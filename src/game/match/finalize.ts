@@ -34,6 +34,7 @@ import { FW_POS, teamRatingTerm } from './energy'
 export function blowHalfTime(state: GameState, ctx: LiveCtx) {
   ctx.heldWhistle = null
   ctx.awaiting = 'HT'
+  halfTimeRecovery(ctx)
   pushLine(state, ctx, 40, 'HT', null, 'comm.halfTime', {
     home: teamShort(state, ctx.fx.homeId), away: teamShort(state, ctx.fx.awayId),
     hs: ctx.home.score, ascore: ctx.away.score,
@@ -47,6 +48,23 @@ export function blowHalfTime(state: GameState, ctx: LiveCtx) {
     const ev = buildEvidence(state, ctx)
     if (ev) ctx.htEv = ev
     ctx.htDials = userDials(state, ctx)
+  }
+}
+
+/** TEN MINUTES IN THE SHED (owner, 18 Oct 2026: "do players recover 10% at
+ *  half-time?" - they did not; energy only ever drained). Everyone on the
+ *  pitch gets HT_RECOVERY points of energy back at the interval. The drain is
+ *  steeper to pay for it (energy.ts DRAIN_HT_K), so a man's average energy
+ *  over the eighty minutes, and his tank at the final whistle, are where they
+ *  were: the balance holds and the second half starts fresher than the first
+ *  ended. */
+export const HT_RECOVERY = 10
+function halfTimeRecovery(ctx: LiveCtx) {
+  for (const side of [ctx.home, ctx.away]) {
+    for (const id of side.onPitch) {
+      const e = side.energy.get(id)
+      if (e != null) side.energy.set(id, Math.min(100, e + HT_RECOVERY))
+    }
   }
 }
 
