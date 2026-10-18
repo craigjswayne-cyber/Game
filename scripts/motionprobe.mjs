@@ -21,7 +21,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
-import { tapPast } from './lib/sheet.mjs'
+import { skipTo, tapPast } from './lib/sheet.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
 let fails = 0
@@ -148,16 +148,13 @@ try {
      'and not left, which is what made it judder')
 
   // play it out
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Start Second Half', { timeout: 25000 })
+  await skipTo(page, 'Start Second Half')
   await tapPast(page, 'text=▸ Start Second Half')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Play the Final Quarter', { timeout: 25000 })
+  await skipTo(page, 'Play the Final Quarter')
   await tapPast(page, 'text=▸ Play the Final Quarter')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls [data-ctl=skip]')
-  await page.waitForSelector('text=Continue to Results', { timeout: 25000 })
+  await skipTo(page, 'Continue to Results')
 
   // THE MOMENT. The stamp is mounted for as long as the match is done, so its
   // opacity is the only thing that says whether full time was announced at all.
