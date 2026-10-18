@@ -105,18 +105,6 @@ const TITLES: readonly string[] = [
   'scouting',
 ]
 
-const IcoMoon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" />
-  </svg>
-)
-const IcoSun = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="4.2" />
-    <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" />
-  </svg>
-)
-
 /* There used to be a "turn your phone sideways" veil here, softened to a nudge
  * with a Play anyway escape (blocker A3). It is gone, because it was telling a
  * lie: portrait is now the orientation this game is designed and tuned for -
@@ -512,7 +500,7 @@ export default function App() {
   // else happened to re-render it
   useStore(s => s.lang)
   useStore(s => s.tick)
-  const { back, go, home, continueTap, toggleNight, openInbox } = useStore.getState()
+  const { back, go, home, continueTap, openInbox } = useStore.getState()
   const turning = useStore(s => s.turning)
   const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
   const tablet = useTablet()
@@ -845,9 +833,8 @@ export default function App() {
           {/* grouped, so portrait can drop both onto one row of their own and
               leave the first row to the back arrow, the title and the date */}
           <div className="mast-ctl">
-            <button className="night-btn" onClick={toggleNight} aria-label={t('common.floodlitToggle')}>
-              {night ? <IcoSun /> : <IcoMoon />}
-            </button>
+            {/* the light/dark switch lived here, beside Continue, until 1.9.2
+                (owner, 18 Oct 2026: "Move to settings"). Settings has it. */}
             {/* One button, one label, one decision function. It used to read
                 Matchday for the whole week of a match, so Monday's button
                 promised a game that was five days away. */}

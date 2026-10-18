@@ -100,7 +100,7 @@
 .store-card {
   position: relative;
   overflow: hidden;
-  border-left: 4px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
   /* The scrim runs ACROSS, not down. title-bg.webp is a portrait photograph
      and this card is a wide strip, so `cover` crops it to one thin band: at
      76% that band is the desk itself - the mug, the notebook, the team sheet,

@@ -1,0 +1,50 @@
+/* ================= Headings in normal case (1.9.2) =================
+   Owner, 18 Oct 2026, on what made the game read as template-built: small
+   letter-spaced capitals on every section ("WHERE WE STAND", "STAR PLAYERS",
+   "THE DRESSING ROOM", "HOW WILL YOU WATCH THIS ONE?"). Headings, tabs, menu
+   heads and their subtitles now read in sentence case, a size up and tracked
+   normally. Capitals stay where a broadcast or a stats sheet would use them:
+   stat labels (.fact-label, .ht-l), table heads, dates, positions, the score
+   clock and the Continue button. */
+.section-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.section-title .sub {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+}
+.section-title .sub::first-letter { text-transform: uppercase; }
+.tab-bar button { text-transform: none; letter-spacing: 0; font-size: 0.875rem; }
+.submenu-head { text-transform: none; letter-spacing: 0; }
+.set-label, .bug-label, .press-label, .desk-sub { text-transform: none; letter-spacing: 0; }
+@media (max-width: 480px) and (orientation: portrait) {
+  .section-title { font-size: 1rem; }
+}
+
+/* The "?" that holds a screen's instructions (components HelpButton). A
+   small round button in the heading's line; its text opens on a line of its
+   own under the heading, and closes on a second tap. */
+.help-q {
+  display: inline-grid; place-items: center; flex-shrink: 0;
+  width: 24px; height: 24px; margin-left: 8px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--border-strong); background: transparent;
+  color: var(--text-secondary); font: 700 0.75rem/1 var(--sans);
+  position: relative; vertical-align: middle; cursor: pointer;
+}
+.help-q::after { content: ''; position: absolute; inset: -12px; }
+.help-q.on { background: var(--surface-3); color: var(--text-primary); }
+.help-text {
+  flex-basis: 100%; display: block; margin-top: 4px;
+  font: 500 0.8125rem/1.4 var(--sans); color: var(--text-secondary);
+  text-transform: none; letter-spacing: 0;
+}
+.help-text::first-letter { text-transform: uppercase; }
+.help-tip { display: flex; flex-wrap: wrap; align-items: center; padding: 10px 0; }
+.help-tip.pad { padding: 10px 16px; }
+.help-tip .help-q { margin-left: 0; }

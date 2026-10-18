@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Club, GameState } from '../game/model'
 import { MOVES, MOVE_BY_ID, isPenCall, isRedCall, isStrike, mixOf, type Move } from '../game/moves'
 import { t } from '../game/i18n'
-import { SectionTitle } from './components'
+import { HelpTip, SectionTitle } from './components'
 import MovePreview from './MovePreview'
 
 /**
@@ -127,7 +127,7 @@ export default function MovesSection({ club, touch }: { game: GameState; club: C
               ? <>
                 {/* THE SLOT PICKER, in the look of the main menu's saves: one
                     row a slot, what it holds under its name */}
-                <div className="meta mv-hint" data-hint="slot">{t('moves.slotHint')}</div>
+                <HelpTip text={t('moves.slotHint')} className="mv-hint" />
                 <div className="mv-slots">
                   {SLOTS.map(s => {
                     const [slot, heading, k, f] = s
@@ -144,7 +144,7 @@ export default function MovesSection({ club, touch }: { game: GameState; club: C
                 <button className="btn ghost block" data-act="cancel" onClick={() => setChoosing(false)}>{t('player.cancel')}</button>
               </>
               : <button className="btn gold block" data-act="add" onClick={() => setChoosing(true)}>{t('moves.add')}</button>}
-      </div> : !wantS && <div className="meta mv-hint">{t('moves.tapHint')}</div>}
+      </div> : !wantS && <HelpTip text={t('moves.tapHint')} className="mv-hint" />}
 
       {wantS && <div className="mv-want" data-want={wantS[0]}>
         <span className="meta">{t('moves.pickFor', { slot: t(wantS[1]) })}</span>

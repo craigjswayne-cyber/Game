@@ -3,6 +3,7 @@ import { seasonLabel } from '../../game/model'
 import { SectionTitle } from '../components'
 import { t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { acc } from '../accent'
 
 /**
  * The Annual: the forced page between seasons (user: "when a season is
@@ -36,7 +37,7 @@ export default function Annual() {
           {[game.licensed && t('till.stampLicensed'), game.uncapped && t('till.stampCharter')].filter(Boolean).join(' · ')}
         </div>
       )}
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ ...acc('var(--gold)') }}>
         <div className="meta" style={{ fontSize: '0.8125rem' }}>
           {myPots.length > 0
             ? t('week.annualSilver', { n: myPots.length === 1 ? t('week.annualOneTrophy') : t('week.annualNTrophies', { n: myPots.length }) })

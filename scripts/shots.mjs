@@ -71,7 +71,11 @@ try {
   // floodlit mode
   await page.click('text=Continue to Results')
   await page.waitForSelector('.news-item', { timeout: 15000 })
-  await page.click('.night-btn')
+  // the switch is in Settings since 1.9.2 (it left the masthead)
+  await page.click('.bottom-nav >> text=Manager')
+  await page.click('text=Settings')
+  await page.locator('.card:has(.row-ico) .btn.ghost.block').first().click()
+  await page.click('.bottom-nav >> text=News')
   await page.waitForTimeout(400)
   await shot('n1-inbox-night')
   await page.click('.bottom-nav button[title="Hub"]')

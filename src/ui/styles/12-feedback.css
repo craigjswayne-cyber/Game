@@ -445,7 +445,7 @@
   font-size: 0.8125rem; font-weight: 600;
   color: var(--text-primary);
   background: var(--surface-1);
-  border-left: 3px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px;
   border-radius: 6px;
   padding: 5px 8px;
   margin: 2px 0 5px;
@@ -787,7 +787,7 @@
 .club-pick.sel .muted { color: var(--text-primary); }
 
 /* the one line of the inbox that stays on Home: whether there is anything to read */
-.inbox-cue { border-left: 4px solid var(--pick); display: block; width: auto; text-align: left; }
+.inbox-cue { background: color-mix(in srgb, var(--pick) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--pick) 38%, var(--border)); display: block; width: auto; text-align: left; }
 .inbox-cue h3 { font-size: 1rem; }
 /* seven rail buttons instead of six, on a screen that is 390px tall: they still
    need a thumb-sized target, so the icon gives up two pixels rather than the row
@@ -1217,7 +1217,7 @@
 .news-quotes { margin: 0 0 10px; }
 .news-quotes blockquote {
   margin: 0 0 6px; padding: 2px 0 2px 10px;
-  border-left: 3px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px;
   font-size: 0.875rem; line-height: 1.5; font-style: italic; color: var(--text-secondary);
 }
 .wire-body .news-fact, .wire-body .news-list li, .wire-body .news-quotes blockquote { font-size: 0.875rem; }
@@ -1248,7 +1248,7 @@
   display: flex; flex-direction: row; align-items: baseline; gap: 5px;
   flex: 0 0 auto; white-space: nowrap;
   background: var(--surface-2); border: 1px solid var(--border);
-  border-left: 3px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px;
   border-radius: 7px; padding: 6px 10px; text-align: left;
 
 }
@@ -1262,7 +1262,7 @@
 .first-hint {
   margin: 8px 14px 2px;
   padding: 9px 12px;
-  border-left: 3px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px;
   border-radius: 7px;
   background: var(--gold-tint);
   font-size: 0.8125rem; line-height: 1.45; color: var(--text-secondary);

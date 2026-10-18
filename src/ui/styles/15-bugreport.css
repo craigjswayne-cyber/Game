@@ -203,11 +203,11 @@
   .read-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; margin: 6px 12px; }
   .read-pair > .card { margin: 0; }
 }
-.respect-line { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
-.temper-card .bench-note { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
+.respect-line { margin-top: 6px; padding-left: 8px; background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px; }
+.temper-card .bench-note { margin-top: 6px; padding-left: 8px; background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px; }
 
 /* development as a project (1.8.2): the staff's read, and the timeline */
-.dev-card { border-left: 4px solid var(--info); }
+.dev-card { background: color-mix(in srgb, var(--info) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--info) 38%, var(--border)); }
 .dev-card .meta { font-size: 0.8125rem; line-height: 1.45; margin-top: 2px; }
 .dev-timeline { padding: 4px 12px; }
 .dev-timeline .tl-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); min-width: 0; }

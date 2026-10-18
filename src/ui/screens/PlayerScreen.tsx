@@ -36,6 +36,7 @@ const TL_KEYS: [number, string][] = [
   [TL.up, 'dev.tlUp'], [TL.down, 'dev.tlDown'],
 ]
 import ScoutReportCard from '../ScoutReport'
+import { acc } from '../accent'
 
 /** Set by the scout report's Make an offer (Scouting.tsx): the page opens
  *  scrolled to the deal, once. */
@@ -182,7 +183,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           sign-on perks (user: "player profiles need work. they should be
           clearer"). The verdict line reads them out loud first, and every chip
           below now carries a plain-language title so a long-press explains it. */}
-      <div className="card" style={{ borderLeft: `4px solid ${p.injury || p.bans > 0 ? 'var(--danger)' : p.form >= 7 ? 'var(--text-positive)' : 'var(--gold)'}` }}>
+      <div className="card" style={{ ...acc(p.injury || p.bans > 0 ? 'var(--danger)' : p.form >= 7 ? 'var(--text-positive)' : 'var(--gold)') }}>
         <div className="meta" style={{ fontSize: '0.8125rem', lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
       </div>
 
@@ -420,7 +421,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         if (!d) return null
         const to = d.kind === 'buy' ? game.clubs[game.userClubId] : game.clubs[d.clubId]
         return (
-          <div className="card" data-deal={d.kind} style={{ borderLeft: '4px solid var(--gold)' }}>
+          <div className="card" data-deal={d.kind} style={{ ...acc('var(--gold)') }}>
             <div className="meta" style={{ fontWeight: 600 }}>
               {t('player.dealPendingBuy', { club: to?.short ?? '', fee: fmtMoney(d.fee), ...openDate(game) })}
             </div>
@@ -438,7 +439,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           canChat never lets him in, and the card told the manager his week's
           conversations were used up when they were not (1.8.4 RC). */}
       {mine && !p.onLoan && !p.acad && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <div className="fact-label">{t('player.theOffice')}</div>
           {chatMsg
             ? <div className="meta" style={{ fontStyle: 'italic' }}>{chatMsg}</div>
@@ -621,7 +622,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </>
       )}
 
-      {msg && <div ref={msgRef} className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      {msg && <div ref={msgRef} className="card" style={{ ...acc('var(--gold)') }}>
         {msg}
         {counter != null && (
           <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
@@ -635,7 +636,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       </div>}
 
       {termsFee != null && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <h3 style={{ fontSize: '1rem' }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
           <div className="meta" style={{ margin: '4px 0' }}>{t('player.campOpensAt')}<b>{fmtWage(personalTermsDemand(game, p))}{t('common.perWeek')}</b>{t('player.campOpensRest')}</div>
           {/* a rival that agreed the same fee (rivalbids.ts): who, and what they offer */}
@@ -729,7 +730,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           : boost === 3 ? 'player.loanGrowing'
           : 'player.loanSteady')
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <div className="card" style={{ ...acc('var(--gold)') }}>
             <div className="fact-label">{t('player.outOnLoan')}</div>
             <div className="meta" style={{ marginTop: 4 }}>{verdict}</div>
             <div className="meta" style={{ marginTop: 4 }}>
@@ -890,7 +891,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               and there was nothing to do about it but pick him or sell him.
               Both answers cost something, and chats.answerRequest says what. */}
           {canAnswerRequest(game, p) && (
-            <div className="card" style={{ borderLeft: '4px solid var(--text-negative)', marginBottom: 8 }}>
+            <div className="card" style={{ ...acc('var(--text-negative)'), marginBottom: 8 }}>
               <div className="fact-label">{t('player.requestAnswerTitle')}</div>
               <div className="meta">{t('player.requestAnswerSub')}</div>
               <div className="btn-row" style={{ margin: '10px 0 0' }}>

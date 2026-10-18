@@ -32,6 +32,7 @@ import { rowNavTr } from '../../rowNav'
 import { SPEECHES, type SpeechId, ViewPicker } from './prematch'
 import { WEATHER_ICON, weatherWord } from './weather'
 import { Veil } from '../../Veil'
+import { acc, accLine } from '../../accent'
 
 export function Preview({ fxId }: { fxId: number }) {
   const game = useStore(s => s.game)!
@@ -581,7 +582,7 @@ export function Preview({ fxId }: { fxId: number }) {
         {(() => {
           const bill = matchStakes(game, fx)
           return bill ? (
-            <div className="card" style={{ borderLeft: '4px solid var(--gold)', fontWeight: 600 }}>{bill}</div>
+            <div className="card" style={{ ...acc('var(--gold)'), fontWeight: 600 }}>{bill}</div>
           ) : null
         })()}
 
@@ -608,7 +609,7 @@ export function Preview({ fxId }: { fxId: number }) {
             // season's status on it, and the card should say exactly that
             const relBar = fx.stage === 'BAR' && comp.id === 'prem'
             return (
-              <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+              <div className="card" style={{ ...acc('var(--gold)') }}>
                 <div className="fact-label">{t('matchday.stakes')}</div>
                 <div className="meta">{relBar
                   ? t('matchday.stakesRelBar')
@@ -651,7 +652,7 @@ export function Preview({ fxId }: { fxId: number }) {
             }
           }
           return (
-            <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+            <div className="card" style={{ ...acc('var(--gold)') }}>
               <div className="fact-label">{t('matchday.stakes')}</div>
               <div className="meta">{bits.join(' ')}</div>
             </div>
@@ -671,7 +672,7 @@ export function Preview({ fxId }: { fxId: number }) {
           return (
             <>
               {game.matchPrep && (
-                <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                <div className="card" style={{ ...acc('var(--gold)') }}>
                   <div className="fact-label">{t('matchday.prepTitle')}</div>
                   <div className="meta">
                     {t({
@@ -685,7 +686,7 @@ export function Preview({ fxId }: { fxId: number }) {
                 </div>
               )}
               {fx.stage === 'F' && (
-                <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                <div className="card" style={{ ...acc('var(--gold)') }}>
                   <div className="fact-label">{t('matchday.finalTitle')}</div>
                   <div className="meta">
                     {t('matchday.finalBody', { comp: compLabel(game.comps[fx.compId]?.name) ?? t('matchday.finalTrophy') })}
@@ -698,7 +699,7 @@ export function Preview({ fxId }: { fxId: number }) {
                 const rec = game.derbyBook?.[opp]
                 const played = rec ? rec.w + rec.d + rec.l : 0
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+                  <div className="card" style={{ ...acc('var(--danger)') }}>
                     <div className="fact-label"><Glyph name="derby" /> {dn}</div>
                     <div className="meta">
                       {t('matchday.derbyBody')}
@@ -712,7 +713,7 @@ export function Preview({ fxId }: { fxId: number }) {
               {(() => {
                 const g = !derbyName(fx.homeId, fx.awayId) ? grudgeBetween(game, fx.homeId, fx.awayId) : null
                 return g ? (
-                  <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+                  <div className="card" style={{ ...acc('var(--danger)') }}>
                     <div className="fact-label">{t('matchday.badBlood')}</div>
                     <div className="meta">
                       {t('matchday.badBloodPre')}<b>{g.reason}</b>{t('matchday.badBloodRest')}
@@ -725,7 +726,7 @@ export function Preview({ fxId }: { fxId: number }) {
                   day itself, then the history and the men you know. The
                   Apply button used to sit under eleven cards. */}
               {danger && (
-                <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+                <div className="card" style={{ ...acc('var(--danger)') }}>
                   <div className="fact-label">{t('matchday.dangerMan')}</div>
                   <div className="meta">
                     <b>{danger.name}</b>{t('matchday.dangerBody', { pos: danger.pos, club: oppClub?.short ?? t('matchday.theyShort') })}
@@ -740,7 +741,7 @@ export function Preview({ fxId }: { fxId: number }) {
               {bar(t('matchday.h2hDefence'), myUnits.defence, oppUnits.defence)}
 
               {gamePlan.length > 0 && (
-                <div className="card" style={{ borderLeft: '4px solid var(--gold)', marginTop: 8 }}>
+                <div className="card" style={{ ...acc('var(--gold)'), marginTop: 8 }}>
                   <div className="fact-label">{t('matchday.gamePlanTitle')}</div>
                   {gamePlan.map((p, i) => (
                     <div key={i} className="meta" style={{ padding: '2px 0' }}>• {p.text}</div>
@@ -757,7 +758,7 @@ export function Preview({ fxId }: { fxId: number }) {
                       }} />
                   )}
                   {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}
-                  {spotMsg && <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{spotMsg}</div>}
+                  {spotMsg && <div className="meta sheet-log" style={{ marginTop: 6, ...accLine('var(--gold)'), paddingLeft: 8 }}>{spotMsg}</div>}
                 </div>
               )}
               {(() => {
@@ -841,7 +842,7 @@ export function Preview({ fxId }: { fxId: number }) {
                   .sort((a, b) => oldBoyApps(b, opp) - oldBoyApps(a, opp))
                 if (!formers.length && !theirs.length && !ours.length) return null
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                  <div className="card" style={{ ...acc('var(--gold)') }}>
                     <div className="fact-label">{t('matchday.oldBoys')}</div>
                     {formers.map(f => (
                       <div key={f.p.id} className="meta" data-former={f.p.id}>{t(f.k, f.v)}</div>
@@ -869,7 +870,7 @@ export function Preview({ fxId }: { fxId: number }) {
                 if (!bowing) return null
                 const home = fx.homeId === game.userClubId
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                  <div className="card" style={{ ...acc('var(--gold)') }}>
                     <div className="fact-label">{t('matchday.farewell')}</div>
                     <div className="meta">
                       <b>{bowing.name}</b>{t('matchday.farewellPre', { age: bowing.age, pos: bowing.pos })}
@@ -906,7 +907,7 @@ export function Preview({ fxId }: { fxId: number }) {
                 }
                 if (!lines.length) return null
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                  <div className="card" style={{ ...acc('var(--gold)') }}>
                     <div className="fact-label">{t('matchday.onTheBrink')}</div>
                     {lines.slice(0, 3).map(({ p, text }) => (
                       <div key={p.id} className="meta">
@@ -1022,7 +1023,7 @@ export function Preview({ fxId }: { fxId: number }) {
 
         {ptab === 'team' && <>
         {rotWindow && rotFlagged.length >= 2 && (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <div className="card" style={{ ...acc('var(--gold)') }}>
             <div className="fact-label">{t('matchday.rotationTitle')}</div>
             <div className="meta">
               {comp?.type !== 'league'
@@ -1046,7 +1047,7 @@ export function Preview({ fxId }: { fxId: number }) {
         )}
         <SectionTitle sub={sel != null
           ? t('matchday.moving', { player: game.players[tac.lineup[sel] ?? -1]?.name ?? t('matchday.emptySlot') })
-          : t('matchday.tapSwapHint')}>{t('matchday.yourXV')}</SectionTitle>
+          : undefined} help={t('matchday.tapSwapHint')}>{t('matchday.yourXV')}</SectionTitle>
         {/* forwards left, backs right, exactly as the Tactics team sheet does it.
             The same information was laid out two different ways one screen apart. */}
         <div className="xv-split">

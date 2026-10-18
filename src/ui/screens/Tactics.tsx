@@ -3,7 +3,7 @@ import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
 import { DEF_SLIDER_INFO, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, sliderReadout, zonePlan, type ZoneId, BRK_SLIDER_INFO, brkSliderReadout } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
-import { Jersey, PosBadge, SectionTitle } from '../components'
+import { HelpTip, Jersey, PosBadge, SectionTitle } from '../components'
 import { analystClaim, analystForm, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { assistantAdvice } from '../../game/analysis'
 import { userFixtureThisWeek } from '../../game/season'
@@ -23,6 +23,7 @@ import StylesSection from '../StylesSection'
 import { atkName, defName, stylesOf } from '../../game/styles'
 import { rowNavTr } from '../rowNav'
 import { Veil } from '../Veil'
+import { acc, accLine } from '../accent'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -239,7 +240,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
       </div>
 
       {repPct > 0 && worstDial && (
-        <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
+        <div className="card" style={{ ...accLine('var(--gold)') }}>
           <div className="fact-label">{t('tacticsScreen.condCoach')}</div>
           <div style={{ fontSize: '0.8125rem', lineHeight: 1.45, marginTop: 4 }}>
             {t('tacticsScreen.condLine', {
@@ -278,9 +279,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
             )
           })}
         </div>
-        <div className="meta" style={{ padding: '4px 16px' }}>
-          {t('tacticsScreen.rolesNote')}
-        </div>
+        <HelpTip text={t('tacticsScreen.rolesNote')} className="pad" />
       </>}
 
       {ttab === 'setp' && <div className="game-pick sp-sub" role="tablist" aria-label={t('tacticsScreen.tabSetPiece')}>
@@ -299,7 +298,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
             one: how well drilled the move is, and what that is worth today. The
             explainers are gone and the page states its own rule once, at the
             top. */}
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <div className="meta">
             {t('tacticsScreen.setPieceRuleRest')}
           </div>
@@ -520,7 +519,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
           const legal = benchFrontRow(game, club)
           if (legal && want === got) return null
           return (
-            <div className="card" style={{ borderLeft: `4px solid ${legal ? 'var(--gold)' : 'var(--danger)'}` }}>
+            <div className="card" style={{ ...acc(legal ? 'var(--gold)' : 'var(--danger)') }}>
               <div className="meta">
                 {!legal && <b style={{ color: 'var(--danger)' }}>{t('tacticsScreen.noFrontRow')}</b>}
                 {!legal
@@ -714,7 +713,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
             <div className="meta">{t('styles.tuneNote', { atk: t(atkName(sty.atk)), def: t(defName(sty.def)) })}</div>
           </div>
         })()}
-        <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ marginTop: 4, ...acc('var(--gold)') }}>
           <div className="meta">{assistantAdvice(game)}</div>
         </div>
         <SectionTitle sub={t('tacticsScreen.quickGamePlansSub')}>{t('tacticsScreen.quickGamePlans')}</SectionTitle>
@@ -770,7 +769,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
         {/* the quick plans move the same four dials from the same distance, so
             they get the same answer */}
         {planMsg && (
-          <div className="meta sheet-log" style={{ margin: '6px 16px 0', borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
+          <div className="meta sheet-log" style={{ margin: '6px 16px 0', ...accLine('var(--gold)'), paddingLeft: 8 }}>
             {t('tacticsScreen.planSet', { dials: planMsg })}
           </div>
         )}
@@ -843,7 +842,7 @@ function AnalystCard() {
   const fx = userFixtureThisWeek(game)
   if (!fx) {
     return (
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ ...acc('var(--gold)') }}>
         <div className="fact-label">{t('analyst.theAnalyst')}</div>
         <div className="meta">{t('analyst.noMatchToStudy', subjectVar(game.analystGender))}</div>
       </div>
@@ -854,7 +853,7 @@ function AnalystCard() {
   const read = analystRead(game, oppId)
   if (!read || !opp) return null
   return (
-    <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+    <div className="card" style={{ ...acc('var(--gold)') }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <div className="fact-label">{t('analyst.analystOn', { club: opp.short })}</div>
         <div className="meta" style={{ fontSize: '0.6875rem' }}>{analystForm(game)}</div>

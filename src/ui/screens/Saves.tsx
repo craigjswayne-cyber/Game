@@ -6,6 +6,7 @@ import { SectionTitle } from '../components'
 import { t, localeTag } from '../../game/i18n'
 import { canShareNatively, shareSaveNatively } from '../../game/nativeshare'
 import { saveSlotLimit } from '../../game/monetise'
+import { acc } from '../accent'
 
 export const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
 /* keys, not words - t()d wherever a slot is named */
@@ -197,7 +198,7 @@ export default function Saves() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ ...acc('var(--gold)') }}>
         <h3 style={{ fontSize: '0.875rem' }}>{t('world.svAutosaveOn')}</h3>
         <div className="meta">
           {t('world.svAutosaveBody')}<b>{slotName(saveSlot)}</b>{t('world.svAutosaveRest')}
@@ -218,7 +219,7 @@ export default function Saves() {
         const meta = saves.find(s => s.slot === slot)
         const isCurrent = slot === saveSlot
         return (
-          <div key={slot} className="card" style={isCurrent ? { borderLeft: '4px solid var(--club1)' } : undefined}>
+          <div key={slot} className="card" style={isCurrent ? { ...acc('var(--club1)') } : undefined}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h3 style={{ fontSize: '0.875rem' }}>

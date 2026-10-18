@@ -12,6 +12,7 @@ import { Glyph } from '../../glyphs'
 import { rowNav } from '../../rowNav'
 import { condWord, EnergyBars, SquadSheet, usableChanges } from './SquadSheet'
 import { StatsPanel } from './Stats'
+import { acc } from '../../accent'
 
 /** The touchline panel: team talk (HT only), tactics with plain-English
  *  readouts and one-tap presets, and substitutions with energy bars. */
@@ -85,7 +86,7 @@ export function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
   }
 
   return (
-    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
+    <div className="card" style={{ margin: '12px 0', ...acc('var(--gold)') }}>
       <h3 style={{ fontSize: '1rem' }}>{title}</h3>
       {advice.length > 0 && (
         <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: 'color-mix(in srgb, var(--gold) 14%, var(--surface-1))', borderRadius: 8 }}>

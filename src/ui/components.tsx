@@ -149,12 +149,38 @@ export function paragraphs(body: string): string[] {
  * screen for a single word. Auto-Pick Best XV belongs to the Starting XV, so
  * it sits on the Starting XV's heading.
  */
-export function SectionTitle({ children, sub, right }: { children: ReactNode; sub?: string; right?: ReactNode }) {
+export function SectionTitle({ children, sub, right, help }: { children: ReactNode; sub?: string; right?: ReactNode; help?: string }) {
+  const [open, setOpen] = useState(false)
   return (
     <div className="section-title">
-      <span>{children}</span>
+      <span>{children}{help && <HelpButton open={open} onToggle={() => setOpen(o => !o)} />}</span>
       {sub && <span className="sub">{sub}</span>}
       {right && <span className="sect-act">{right}</span>}
+      {help && open && <span className="help-text">{help}</span>}
+    </div>
+  )
+}
+
+/**
+ * HOW TO, ON ASK (1.9.2, owner: "show once then move hints to a question
+ * mark"). Instructions that used to sit permanently under a heading or a
+ * panel ("tap a player, tap another to swap") live behind a small "?" now:
+ * a manager who knows the screen sees the screen, and one who does not taps.
+ */
+export function HelpButton({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <button type="button" className={`help-q${open ? ' on' : ''}`} aria-expanded={open}
+      aria-label={t('common.howThisWorks')} onClick={e => { e.stopPropagation(); onToggle() }}>?</button>
+  )
+}
+
+/** A "?" with its instruction underneath when opened, for anywhere that is not a heading. */
+export function HelpTip({ text, className }: { text: string; className?: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className={`help-tip${className ? ` ${className}` : ''}`}>
+      <HelpButton open={open} onToggle={() => setOpen(o => !o)} />
+      {open && <span className="help-text">{text}</span>}
     </div>
   )
 }
@@ -228,30 +254,18 @@ export function Nat({ code }: { code: string }) {
   return <Flag code={code} />
 }
 
-/** Star display for overall ability, CM-style (out of 5). */
+/** A player's overall ability as a number out of 99 (owner, 18 Oct 2026:
+ *  "lets update them to number out of 99"). It was five stars in half steps,
+ *  which read like a review site and threw away most of the scale: ability
+ *  runs from about 32 to 96 across the world, and the stars showed eleven
+ *  values. The number is the ability itself, clamped to 1-99, banded by
+ *  colour so a list still scans at a glance: 85+ gold (the best in the game),
+ *  75+ green (international class), 60+ plain, below that muted. The name is
+ *  kept so every screen that showed stars shows this. */
 export function Stars({ ca }: { ca: number }) {
-  const n = Math.round(((ca - 40) / 60) * 10) / 2
-  const full = Math.max(0, Math.floor(n))
-  const half = n - full >= 0.5
-  // FIXED-WIDTH CELLS. The half glyph is narrower than the star, so a rating
-  // with a half in it rendered a narrower block and the column's edge wandered
-  // row to row (user screenshot: "the stars have gone out of alignment at
-  // number 20" - row 20 was the one three-star man in a list of halves).
-  // Every glyph gets the same 1em cell, so five cells is five ems on every row.
-  return (
-    <span style={{ color: 'var(--gold)', fontSize: '0.6875rem' }}>
-      {Array.from({ length: 5 }, (_, i) => {
-        const lit = i < full
-        const isHalf = i === full && half
-        return (
-          <span key={i} style={{ display: 'inline-block', width: '1em', textAlign: 'center',
-            color: lit || isHalf ? undefined : 'var(--text-muted)' }}>
-            {isHalf ? '½' : '★'}
-          </span>
-        )
-      })}
-    </span>
-  )
+  const n = Math.max(1, Math.min(99, Math.round(ca)))
+  const tone = n >= 85 ? 'elite' : n >= 75 ? 'good' : n >= 60 ? 'mid' : 'low'
+  return <span className={`ovr ovr-${tone}`}>{n}</span>
 }
 
 /**

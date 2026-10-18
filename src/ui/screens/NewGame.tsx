@@ -14,6 +14,7 @@ import { listSaves, type SaveMeta } from '../../game/save'
 import { saveSlotLimit } from '../../game/monetise'
 import { SLOTS as SAVE_SLOTS, slotName } from './Saves'
 import { rowNav } from '../rowNav'
+import { acc } from '../accent'
 
 // Guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
@@ -333,7 +334,7 @@ export default function NewGame() {
           <>
             <div className="wizard-hint">{t('wizard.profileAt', { club: club.name })}</div>
             {challenge && (
-              <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+              <div className="card" style={{ ...acc('var(--gold)') }}>
                 <h3 style={{ fontSize: '1rem' }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
                 <div className="meta">{t(challenge.desc)}</div>
               </div>

@@ -12,6 +12,7 @@ import { coachFixes, gradeHomework, gradeLine, homeworkFor, unitBattles, type Fi
 import { formerDecided } from '../../../game/memory'
 import { ADAPT_WORTH } from '../../../game/armsrace'
 import { Glyph } from '../../glyphs'
+import { acc, accLine } from '../../accent'
 
 /** ONE FOLLOW-UP LINE (1.8.4): a count before and after, which way it went,
  *  and for the half-time one whether the answering dial moved at the break;
@@ -21,7 +22,7 @@ function FollowLine({ f, label, pair, moved }: { f: Follow; label: string; pair:
   const dial = LEVERS[f.cause] ? SLIDER_INFO.find(s => s.key === LEVERS[f.cause]!.dial) : undefined
   return (
     <div className="meta" data-follow={label.slice(-2) === 'Ht' ? 'half' : 'match'} data-trend={f.trend}
-      style={{ borderLeft: `3px solid ${good ? 'var(--text-positive)' : f.trend === 'worse' ? 'var(--text-negative)' : 'var(--border)'}`, paddingLeft: 6, marginTop: 3 }}>
+      style={{ ...accLine(good ? 'var(--text-positive)' : f.trend === 'worse' ? 'var(--text-negative)' : 'var(--border)'), paddingLeft: 6, marginTop: 3 }}>
       <b>{t(label)} </b>
       {t(pair, { what_k: `matchday.fuM_${f.cause}`, a: f.a, b: f.b })}{' '}
       {t(`matchday.fuTrend_${f.trend}`)}
@@ -96,7 +97,7 @@ export function MatchVerdict() {
   // match is filed (coachfix fileHomework), so a match the assistant played
   // sets it too
   return (
-    <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+    <div className="card" style={{ ...acc('var(--gold)') }}>
       {star && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -118,7 +119,7 @@ export function MatchVerdict() {
       <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.coachsVerdict')}</div>
       {why.map((w, i) => (
         <div key={w.cause} className="meta" data-why={w.cause} data-why-lead={leads[i] ?? undefined}
-          style={{ borderLeft: `3px solid ${w.sig > 0 ? 'var(--text-positive)' : 'var(--text-negative)'}`, paddingLeft: 6, marginTop: 3 }}>
+          style={{ ...accLine(w.sig > 0 ? 'var(--text-positive)' : 'var(--text-negative)'), paddingLeft: 6, marginTop: 3 }}>
           {leads[i] && <b>{t(leads[i]!)} </b>}
           {t(w.k, w.v)}
         </div>
@@ -157,7 +158,7 @@ export function MatchVerdict() {
           return fs.map(f => <div key={f.p} className="meta" data-former-ft={f.p} style={{ marginTop: 6 }}>{t(f.k, f.v)}</div>)
         })()}
         {told && (
-          <div className="meta" data-why="read" data-why-told="1" style={{ borderLeft: '3px solid var(--border)', paddingLeft: 6, marginTop: 3 }}>
+          <div className="meta" data-why="read" data-why-told="1" style={{ ...accLine('var(--border)'), paddingLeft: 6, marginTop: 3 }}>
             {t(told.k, told.v)}
           </div>
         )}

@@ -11,6 +11,7 @@ import { ord as ordUI, t, localeTag } from '../../game/i18n'
 import CampusMap from '../CampusMap'
 import type { CampusId } from '../../game/campusPlots'
 import { Glyph } from '../glyphs'
+import { acc } from '../accent'
 
 /** What each level actually buys, in the manager's language. */
 const EFFECT: Record<FacilityId, (lvl: number) => string> = {
@@ -101,7 +102,7 @@ export default function Infrastructure() {
           a sign pointing at it. */}
       {tillOpen() && !estateBuiltHere(game) && (
         <button className="card" onClick={() => go('supporter')}
-          style={{ borderLeft: '4px solid var(--gold)', padding: '10px 12px', width: '100%', textAlign: 'left', display: 'block' }}>
+          style={{ ...acc('var(--gold)'), padding: '10px 12px', width: '100%', textAlign: 'left', display: 'block' }}>
           <div className="fact-label">{t('store.estate')}</div>
           <div className="meta" style={{ marginTop: 2 }}>{t('store.estateLine')}</div>
           <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>
@@ -110,7 +111,7 @@ export default function Infrastructure() {
         </button>
       )}
 
-      <div className="card" id="fac-stadium" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px', ...ring('stadium') }}>
+      <div className="card" id="fac-stadium" style={{ ...acc('var(--gold)'), padding: '8px 12px', ...ring('stadium') }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
             {/* THE GROUND IS A LADDER TOO (owner, v1.6.8): six grounds from a

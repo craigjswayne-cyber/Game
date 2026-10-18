@@ -7,6 +7,7 @@ import { LEVERS, buildEvidence, halfSides, htEvidence, type WhyCause } from '../
 import { SLIDER_INFO } from '../../../game/tactics'
 import { t } from '../../../game/i18n'
 import { Glyph } from '../../glyphs'
+import { acc } from '../../accent'
 
 /** THE ASSISTANT'S WORD AT HALF TIME (1.8.2 depth): one or two plain lines
  *  read off what the first forty did against the referee and the day
@@ -87,7 +88,7 @@ export function DecisionPanel() {
   ]
 
   return (
-    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--danger)' }}>
+    <div className="card" style={{ margin: '12px 0', ...acc('var(--danger)') }}>
       <h3 style={{ fontSize: '1rem' }}>{t('matchday.penCall')}</h3>
       <div className="meta" style={{ marginBottom: 8 }}>
         {t('matchday.penScore', { home: teamShort(game, mine.teamId), hs: mine.score, as: opp.score, away: teamShort(game, opp.teamId) })}

@@ -8,6 +8,7 @@ import { Flag } from '../flags'
 import { SectionTitle, TwoStep } from '../components'
 import { t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { acc } from '../accent'
 
 /* keys, not words - see docs/i18n.md */
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -104,7 +105,7 @@ function StaffPanel() {
           a coach he could not afford last week become affordable and have no
           idea why. Shown only when there is something in it. */}
       {backroomFund(game) > 0 && (
-        <div className="card" style={{ padding: '7px 10px', marginBottom: 6, borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ padding: '7px 10px', marginBottom: 6, ...acc('var(--gold)') }}>
           <div className="fact-label">{t('training.boardFund')}</div>
           <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{fmtMoney(backroomFund(game))}</div>
         </div>

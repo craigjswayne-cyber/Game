@@ -12,6 +12,7 @@ import { Glyph } from '../glyphs'
 import { mgrTraits, traitLine, trendLines } from '../../game/repute'
 import { ambitionState, ambitionsOf } from '../../game/ambitions'
 import { dreamNote, dreamTitle } from '../../game/dream'
+import { acc } from '../accent'
 
 /** Coaching badge tiers, earned through reputation. */
 export function badgeOf(rep: number): { name: string; icon: string; color: string; next: string | null; at: number | null } {
@@ -206,7 +207,7 @@ export default function Profile() {
         )
       })()}
       {game.natOffer && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <h3 style={{ fontSize: '1rem' }}>{t('profile.natOffer', { nat: nationName(game.natOffer.nat) })}</h3>
           <div className="meta">{t('profile.natOfferBody')}</div>
           <div className="meta" style={{ fontStyle: 'italic' }}>{t('arc.profile.national')}</div>
@@ -249,7 +250,7 @@ export default function Profile() {
           drops the tenure without clearing the ask cannot put the question
           back on the screen. */}
       {game.natKeepAsk && game.natTeam && !game.unemployed && club && (
-        <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
+        <div className="card" style={{ ...acc('var(--text-positive)') }}>
           <h3 style={{ fontSize: '1rem' }}>{t('profile.natKeepAskTitle', { nat: nationName(game.natKeepAsk) })}</h3>
           <div className="meta">{t('profile.natKeepAskBody', { nat: nationName(game.natKeepAsk), club: club.short })}</div>
           <div className="btn-row" style={{ marginTop: 10 }}>
@@ -279,7 +280,7 @@ export default function Profile() {
           record still stays on your profile") - every tenure, closed or
           current, stays on the CV for good */}
       {((game.natHistory ?? []).length > 0 || (game.natTeam && game.natRecord)) && (
-        <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
+        <div className="card" style={{ ...acc('var(--text-positive)') }}>
           <h3 style={{ fontSize: '1rem' }}>{t('profile.intlRecord')}</h3>
           {(game.natHistory ?? []).map((ten, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
@@ -294,7 +295,7 @@ export default function Profile() {
         </div>
       )}
       {(game.challengesDone ?? []).length > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <h3 style={{ fontSize: '1rem' }}>{t('profile.challengesConquered')}</h3>
           {(game.challengesDone ?? []).map(id => (
             <div key={id} className="meta" style={{ padding: '3px 0', fontWeight: 700 }}>

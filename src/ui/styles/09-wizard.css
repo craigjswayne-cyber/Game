@@ -65,7 +65,7 @@
 
 .challenge-card {
   display: flex; align-items: center; width: calc(100% - 28px);
-  border-left: 4px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
 }
 
 .action-bar {
@@ -215,7 +215,7 @@
 .pro-usual { font-size: 0.8125rem; color: var(--text-secondary); }
 .pro-btn { width: 100%; min-height: 44px; font-size: 0.875rem; }
 .pro-card .btn.ghost.pro-btn { border: 1px solid var(--border-strong); }
-.pro-msg { border-left: 3px solid var(--gold); padding-left: 8px; }
+.pro-msg { background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px; padding-left: 8px; }
 .pro-fine { margin: 0; font-size: 0.75rem; line-height: 1.45; color: var(--text-secondary); }
 .pro-light { gap: 8px; }
 
@@ -239,20 +239,4 @@
 .fb-card .btn.ghost.fb-btn { border: 1px solid var(--border-strong); }
 .fb-discord { color: var(--gold); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
-/* floodlit toggle in masthead */
-.night-btn {
-  position: relative;
-  width: 34px; height: 34px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  /* same trap as .back-btn: 2.33:1 in day mode, on the theme toggle itself */
-  color: var(--on-hero);
-  background: rgba(255, 255, 255, .08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
-  flex-shrink: 0;
-}
-.night-btn svg { width: 18px; height: 18px; }
-/* 34px of tile, 44px of target. It grows 5px into the 10px .mast-ctl gap on the
-   Continue side and 5px into dead masthead space on the other, so it reaches the
-   guideline without taking a pixel off the button next to it. */
-.night-btn::after { content: ''; position: absolute; inset: -5px; }
 

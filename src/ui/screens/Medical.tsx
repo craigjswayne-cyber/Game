@@ -12,6 +12,7 @@ import FullFitness from '../FullFitness'
 import { t } from '../../game/i18n'
 import { rowNav } from '../rowNav'
 import { Veil } from '../Veil'
+import { acc } from '../accent'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
 export default function Medical() {
@@ -130,7 +131,7 @@ export default function Medical() {
       <FullFitness />
 
       {allClear && (
-        <div className="card center bar-sq" style={{ borderLeft: '4px solid var(--text-positive)' }}>
+        <div className="card center bar-sq" style={{ ...acc('var(--text-positive)') }}>
           <h3 style={{ fontSize: '1rem' }}>{t(q ? 'medical.nothingOnHim' : 'medical.quietRoom')}</h3>
           <div className="meta">{t(q ? 'medical.nothingOnHimSub' : 'medical.quietRoomSub')}</div>
         </div>

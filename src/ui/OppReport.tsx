@@ -22,6 +22,7 @@ import { buildFindings, lineText } from '../game/matchfindings'
 import { rewardedAvailable } from '../game/monetise'
 import { canTapeRoom } from '../game/rewarded'
 import { RewardedButton } from './components'
+import { acc } from './accent'
 
 function leverLine(L: PlanLevers): string {
   const parts: string[] = []
@@ -105,7 +106,7 @@ export function OppReportCard() {
   const shown = more ? ordered : ordered.slice(0, 4)
   const opts = club ? planOptions(game, fx) : []
   return (
-    <div className="card opp-report" style={{ borderLeft: '4px solid var(--gold)' }}>
+    <div className="card opp-report" style={{ ...acc('var(--gold)') }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
         <div className="fact-label">{t('oppreport.title', { club: teamShort(game, oppId) })}</div>
         <b className="meta" style={{ fontSize: '0.6875rem' }} data-band={rep.band}>{t(`oppreport.band_${rep.band}`)}</b>
@@ -165,7 +166,7 @@ export function MatchFindings() {
   const items = [...rec.items].sort((a, b) => CAT_ORDER.indexOf(a.cat) - CAT_ORDER.indexOf(b.cat))
   const colour = (tone: number) => tone > 0 ? 'var(--text-positive)' : tone < 0 ? 'var(--text-negative)' : 'var(--text-muted)'
   return (
-    <div className="card match-findings" style={{ borderLeft: '4px solid var(--gold)', marginTop: 12 }}>
+    <div className="card match-findings" style={{ ...acc('var(--gold)'), marginTop: 12 }}>
       <div className="fact-label">{t('oppreport.findingsTitle')}</div>
       {items.map((f, i) => (
         <div key={i} className="fix-row" data-cat={f.cat}>

@@ -13,6 +13,7 @@ import { transferInterest } from '../../game/interest'
 import { ScoutingBody } from './Scouting'
 import { ariaSort, refocus, rowNav, rowNavTr } from '../rowNav'
 import { Veil } from '../Veil'
+import { accLine } from '../accent'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -312,7 +313,7 @@ export default function Transfers() {
                 {lp && <div className="meta muted">{t('transfers.loanCostLine', { wage: fmtWage(Math.round(lp.wage * loanDeal.share)) })}</div>}
               </div>
             )}
-            {reply && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8, margin: '8px 14px 0', whiteSpace: 'normal' }}>{reply}</div>}
+            {reply && <div className="meta sheet-log" style={{ ...accLine('var(--gold)'), paddingLeft: 8, margin: '8px 14px 0', whiteSpace: 'normal' }}>{reply}</div>}
             <div className="btn-row" style={{ margin: '12px 14px 4px' }}>
               <button className="btn ghost" onClick={() => setLoanDeal(null)}>{t(gone ? 'transfers.loanDone' : 'transfers.loanClose')}</button>
               {!gone && (
