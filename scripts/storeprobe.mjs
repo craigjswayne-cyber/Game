@@ -543,7 +543,7 @@ try {
     await page.locator('.card', { hasText: 'Remove the salary cap' }).locator('.btn.gold').click()
     await page.waitForSelector('text=You own this')
     await page.locator('button', { hasText: 'Remove it on this save' }).click()
-    await page.locator('button', { hasText: 'Remove it - there is no way back' }).click()
+    await page.locator('button', { hasText: 'Remove it for good. There is no way back.' }).click()
     await page.waitForSelector('text=The salary cap no longer applies')
     const chartered = await page.evaluate(() => {
       const g = window.rugbyStore.getState().game

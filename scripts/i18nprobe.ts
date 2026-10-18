@@ -232,7 +232,7 @@ for (const { code, label } of LANGS) {
     ['matchday.kickOff', 'Kick Off ▸'],
     ['matchday.takeField', '▸ Take the Field'],
     ['matchday.spCalm', 'Calm the nerves'],
-    ['matchday.sayNothing', 'Say nothing - straight out'],
+    ['matchday.sayNothing', 'Say nothing. Straight out.'],
     ['matchday.startSecondHalf', '▸ Start Second Half'],
     ['matchday.playFinalQuarter', '▸ Play the Final Quarter'],
     ['matchday.continueToResults', 'Continue to Results ▸'],

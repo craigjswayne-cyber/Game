@@ -97,7 +97,7 @@ try {
   console.log(`  pre-match tones: ${tiles.join(' | ')}`)
   ok(tiles.length === 4, `four pre-match tones (${tiles.length})`)
   ok(!tiles.some(x => /no pressure/i.test(x)), 'and "No pressure on us" is gone')
-  ok(await page.locator('.talk-modal >> text=Say nothing - straight out').count() === 1, 'with Say nothing under them')
+  ok(await page.locator('.talk-modal >> text=Say nothing. Straight out.').count() === 1, 'with Say nothing under them')
   await page.screenshot({ path: `${OUT}/talk-pre-four.png` })
   await page.click('.talk-modal .mood-fold > summary')
   await page.waitForTimeout(250)
@@ -179,7 +179,7 @@ try {
   await p2.evaluate(() => { window.rugbyStore.getState().game.preTalkLog = 'NNNN' })
   await p2.locator('text=Kick Off ▸').first().click()
   await p2.locator('.talk-modal').waitFor({ timeout: 5000 })
-  await p2.click('.talk-modal >> text=Say nothing - straight out')
+  await p2.click('.talk-modal >> text=Say nothing. Straight out.')
   try {
     await p2.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
     await p2.click('text=▸ Take the Field')

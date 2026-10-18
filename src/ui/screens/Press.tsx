@@ -26,8 +26,13 @@ function youSaid(item: PressItem): string {
   const answer = speech(pressAnswer(item))
   const reaction = prose(pressReaction(item))
   if (!answer) return reaction ? `${t('world.prNoAnswer')} ${reaction}` : t('world.prNoAnswer')
-  // no reaction filed: the line ends on the answer, not on a dangling dash
-  return t('world.prYouSaid', { answer, reaction }).replace(/\s+-\s*$/, '')
+  if (reaction) return t('world.prYouSaid', { answer, reaction })
+  // no reaction filed: the line ends on the answer. Cut where the reaction
+  // would go and drop whatever joined it (a colon, a full stop, a bracket),
+  // since each language joins the two its own way
+  const full = t('world.prYouSaid', { answer, reaction: '\u0001' })
+  const at = full.indexOf('\u0001')
+  return at < 0 ? full : full.slice(0, at).replace(/[\s\-:;,.(（、。]+$/u, '')
 }
 
 export default function Press() {

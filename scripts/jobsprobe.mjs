@@ -67,7 +67,7 @@ try {
 
   // ---- resign, which puts Northampton itself in the vacancy list
   await page.click('text=Resign from')
-  await page.click('text=Confirm - walk away')
+  await page.click('text=Confirm and walk away')
   await page.waitForTimeout(400)
   // unemployed now, so Jobs is on the bottom rail in its own right
   await page.click('.bottom-nav button[title="Jobs"]')

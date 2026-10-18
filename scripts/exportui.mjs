@@ -129,7 +129,7 @@ try {
     await page.click('button:has-text("Export Career")')
     await page.waitForTimeout(800)
     const m = await msg(page)
-    ok(!/exported - keep the file safe/i.test(m), 'never "exported" for a file that was not written')
+    ok(!/exported\. keep the file safe/i.test(m), 'never "exported" for a file that was not written')
     ok(/could not be written/i.test(m), `the player is told it did not happen ("${m.slice(0, 60)}")`)
     await ctx.close()
   }
