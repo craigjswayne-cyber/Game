@@ -68,10 +68,23 @@ const VENUES: Record<string, Venue> = {
   Sale: { lat: 53.4, lon: -2.3, alt: 30 },
   Salford: { lat: 53.5, lon: -2.3, alt: 35 },
   Wirral: { lat: 53.4, lon: -3.1, alt: 20 },
+  // the clubs the 2026-27 Championship and National One brought in
+  Ampthill: { lat: 52.0, lon: -0.5, alt: 90 },
+  'Bury St Edmunds': { lat: 52.2, lon: 0.7, alt: 40 },
+  Camborne: { lat: 50.2, lon: -5.3, alt: 100 },
+  Rotherham: { lat: 53.4, lon: -1.4, alt: 50 },
+  Sheffield: { lat: 53.4, lon: -1.5, alt: 100 },
+  Tonbridge: { lat: 51.2, lon: 0.3, alt: 30 },
+  Worcester: { lat: 52.2, lon: -2.2, alt: 25 },
   // ---- Fiji
   Suva: { lat: -18.1, lon: 178.4, alt: 6 },
   // ---- France
   Agen: { lat: 44.2, lon: 0.6, alt: 50 },
+  // the clubs the 2026-27 Pro D2 brought in
+  'Angoulême': { lat: 45.65, lon: 0.16, alt: 100 },
+  Aurillac: { lat: 44.9, lon: 2.4, alt: 630 },
+  Narbonne: { lat: 43.2, lon: 3.0, alt: 10 },
+  Nice: { lat: 43.7, lon: 7.3, alt: 20 },
   'Aix-en-Provence': { lat: 43.5, lon: 5.4, alt: 173 },
   Bayonne: { lat: 43.5, lon: -1.5, alt: 6 },
   Biarritz: { lat: 43.5, lon: -1.6, alt: 20 },

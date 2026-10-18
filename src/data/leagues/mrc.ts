@@ -6,12 +6,26 @@
 // ended, which would leave five, too thin to be worth a career. Names follow
 // docs/ip-rename-map.md: the place plus RFC, no nicknames, and a near-miss of
 // each ground (the "MLR" section there lists every one). Capacities are the real
-// grounds'. California's real side took its 2026 home games round five cities;
+// grounds'. California's real side took its 2026 home games round three regions;
 // here it keeps the San Diego ground it came from.
 //
-// Squads are generated (an American core with southern-hemisphere and European
-// imports), like Japan's, and the names are drawn so that none of them can be a
-// real man's: no marquee stars are named.
+// SQUADS ARE REAL NOW (owner, 18 Oct 2026). They were generated - an American
+// core with southern-hemisphere and European imports, drawn so that no name
+// could be a real man's - until the owner decided the league uses real
+// players like every other men's top flight. REAL below holds each club's 2026
+// roster as the research of 18 Oct 2026 found it (club roster announcements,
+// the 2026 season's squad lists, matchday team sheets; search summaries, since
+// page fetches were blocked). 2027 rosters were not out yet: the league plays
+// March to June. Only names graded high or medium with a position and an age
+// are real here, and the ages are ESTIMATES the research made (age at 1 Feb
+// 2026; no birth dates could be checked) - check them before shipping. Rufus
+// McLean is not among Seattle's: he spends 2026-27 at Stade Français.
+//
+// Each real man takes the shirt of a generated man in his position
+// (withReal), so the generator still fills what they leave and each squad
+// covers every position, and CHARLOTTE STAYS ENTIRELY GENERATED: the real
+// club folded after the 2026 season and its players were released, so it has
+// no squad to be real about (owner's call to keep six clubs, as above).
 //
 // THE STANDARD IS THE CHAMPIONSHIP'S (reputations 52-60). The first cut sat at
 // 58-66, which built squads better than English second-tier ones on revenue a
@@ -39,6 +53,116 @@ const TEMPLATE: Pos[] = [
 // one name per man across the whole competition
 const usedNames = new Set<string>()
 
+/** Real men at a club, by id (see the header and withReal). q sits on the league's own 50-72 scale:
+ *  capped tier-one internationals near the top, Eagles and foreign pros in
+ *  the low sixties, depth and rookies in the fifties. */
+const REAL: Record<string, RawPlayer[]> = {
+  chicago: [
+    { name: 'Jake Turnbull', pos: 'LP', age: 27, nat: 'USA', q: 58 },
+    { name: 'Fakaosifolau Pifeleti', pos: 'LP', age: 29, nat: 'USA', q: 62, intl: true },
+    { name: 'Charlie Abel', pos: 'TP', age: 27, nat: 'USA', q: 60 },
+    { name: 'Koby Baker', pos: 'TP', age: 25, nat: 'USA', q: 55 },
+    { name: 'Theo Fourie', pos: 'HK', age: 26, nat: 'RSA', q: 62 },
+    { name: 'Jackson Zabierek', pos: 'HK', age: 25, nat: 'USA', q: 55 },
+    { name: 'Nathan Den Hoedt', pos: 'LK', age: 26, nat: 'AUS', q: 64 },
+    { name: 'Malcolm May', pos: 'LK', age: 27, nat: 'USA', q: 60 },
+    { name: 'Luke White', pos: 'LK', age: 25, nat: 'USA', q: 55 },
+    { name: 'Brandon Harvey', pos: 'LK', age: 23, nat: 'USA', q: 58, intl: true },
+    { name: 'Tomas Casares', pos: 'FL', age: 27, nat: 'USA', q: 64, intl: true },
+    { name: 'Mason Flesch', pos: 'FL', age: 27, nat: 'CAN', q: 64, intl: true },
+    { name: 'Maclean Jones', pos: 'FL', age: 28, nat: 'NZL', q: 65 },
+    { name: 'Lucas Rumball', pos: 'N8', age: 30, nat: 'CAN', q: 70, intl: true },
+    { name: 'Jake Kinneeveauk', pos: 'FL', age: 23, nat: 'USA', q: 52 },
+    { name: 'Ruben de Haas', pos: 'SH', age: 27, nat: 'RSA', q: 68 },
+    { name: 'Michael Baska', pos: 'SH', age: 24, nat: 'USA', q: 52 },
+    { name: 'Christopher Hilsenbeck', pos: 'FH', age: 29, nat: 'USA', q: 62, intl: true },
+    { name: 'Ollie Devoto', pos: 'CE', age: 32, nat: 'ENG', q: 72, intl: true },
+    { name: 'Tiaan Loots', pos: 'CE', age: 27, nat: 'RSA', q: 60 },
+    { name: "Mark O'Keeffe", pos: 'WG', age: 28, nat: 'IRE', q: 60 },
+    { name: 'Santiago Videla', pos: 'FB', age: 27, nat: 'ARG', q: 64 },
+    { name: 'Brock Webster', pos: 'FB', age: 30, nat: 'CAN', q: 62, intl: true },
+  ],
+  newengland: [
+    { name: 'Kyle Ciquera', pos: 'LP', age: 28, nat: 'USA', q: 60, intl: true },
+    { name: 'Kaleb Geiger', pos: 'HK', age: 26, nat: 'USA', q: 56 },
+    { name: 'Filipe Vakasiuola', pos: 'TP', age: 27, nat: 'NZL', q: 58 },
+    { name: 'Sione Tupou', pos: 'HK', age: 26, nat: 'NZL', q: 58 },
+    { name: 'Tayne Hemopo', pos: 'N8', age: 27, nat: 'NZL', q: 60 },
+    { name: 'Joe Johnston', pos: 'FL', age: 30, nat: 'NZL', q: 64 },
+    { name: 'Jacob Norris', pos: 'FL', age: 27, nat: 'NZL', q: 60 },
+    { name: 'Joel Hodgson', pos: 'FH', age: 30, nat: 'ENG', q: 62 },
+    { name: 'Ben LeSage', pos: 'CE', age: 30, nat: 'CAN', q: 66, intl: true },
+    { name: 'Wayne van der Bank', pos: 'CE', age: 34, nat: 'RSA', q: 64 },
+    { name: 'Mitch Wilson', pos: 'WG', age: 28, nat: 'USA', q: 62, intl: true },
+  ],
+  seattle: [
+    { name: 'Dewald Donald', pos: 'TP', age: 29, nat: 'RSA', q: 60 },
+    { name: 'Ezekiel Lindenmuth', pos: 'LP', age: 27, nat: 'USA', q: 56 },
+    { name: 'Ignacio Péculo', pos: 'TP', age: 27, nat: 'ARG', q: 60 },
+    { name: 'Charles Walsh', pos: 'LP', age: 26, nat: 'USA', q: 54 },
+    { name: 'LaRome White', pos: 'TP', age: 28, nat: 'USA', q: 56 },
+    { name: 'Rhyno Herbst', pos: 'LK', age: 27, nat: 'RSA', q: 64 },
+    { name: 'Riekert Hattingh', pos: 'N8', age: 35, nat: 'USA', q: 66, intl: true },
+    { name: 'Marno Redelinghuys', pos: 'FL', age: 30, nat: 'RSA', q: 62 },
+    { name: 'Nick Boyer', pos: 'SH', age: 28, nat: 'USA', q: 58, intl: true },
+    { name: 'André Warner', pos: 'SH', age: 32, nat: 'RSA', q: 66 },
+    { name: 'Davy Coetzer', pos: 'FH', age: 27, nat: 'RSA', q: 60 },
+    { name: 'Dorian Jones', pos: 'FH', age: 28, nat: 'WAL', q: 62 },
+    { name: 'Mark Bennett', pos: 'CE', age: 32, nat: 'SCO', q: 70, intl: true },
+    { name: 'Dan Kriel', pos: 'CE', age: 31, nat: 'RSA', q: 66 },
+    { name: 'Duncan Matthews', pos: 'WG', age: 28, nat: 'RSA', q: 62 },
+    { name: 'Divan Rossouw', pos: 'FB', age: 30, nat: 'RSA', q: 64 },
+  ],
+  california: [
+    { name: "Ma'ake Muti", pos: 'LP', age: 26, nat: 'USA', q: 62, intl: true },
+    { name: 'Tonga Kofe', pos: 'TP', age: 25, nat: 'USA', q: 60, intl: true },
+    { name: "Joe Taufete'e", pos: 'HK', age: 33, nat: 'USA', q: 66, intl: true },
+    { name: 'Jason Damm', pos: 'LK', age: 30, nat: 'USA', q: 66, intl: true },
+    { name: 'Christian Poidevin', pos: 'FL', age: 28, nat: 'AUS', q: 64 },
+    { name: 'Lance Williams', pos: 'N8', age: 27, nat: 'USA', q: 62, intl: true },
+    { name: 'Gonzalo Bertranou', pos: 'SH', age: 32, nat: 'ARG', q: 72, intl: true },
+    { name: 'Coby Miln', pos: 'FH', age: 27, nat: 'AUS', q: 62 },
+    { name: 'Billy Meakes', pos: 'CE', age: 34, nat: 'AUS', q: 64 },
+    { name: 'Cassh Maluia', pos: 'CE', age: 27, nat: 'USA', q: 66, intl: true },
+    { name: 'Joe Mano', pos: 'WG', age: 26, nat: 'USA', q: 62, intl: true },
+  ],
+  washington: [
+    { name: 'KoiKoi Neligan', pos: 'HK', age: 27, nat: 'USA', q: 56 },
+    { name: 'Robert Harley', pos: 'LK', age: 35, nat: 'SCO', q: 68, intl: true },
+    { name: 'Billy Whiteside', pos: 'LK', age: 28, nat: 'USA', q: 56 },
+    { name: 'Benjamin Bonasso', pos: 'FL', age: 28, nat: 'ARG', q: 62 },
+    { name: 'Collin Grosse', pos: 'FL', age: 27, nat: 'USA', q: 58 },
+    { name: 'Jay Renton', pos: 'SH', age: 30, nat: 'NZL', q: 62 },
+    { name: 'John LeFevre', pos: 'SH', age: 29, nat: 'USA', q: 58 },
+    { name: 'Jason Robertson', pos: 'FH', age: 31, nat: 'USA', q: 64 },
+    { name: 'Jordan Jackson-Hope', pos: 'CE', age: 29, nat: 'AUS', q: 64 },
+    { name: 'Ross Depperschmidt', pos: 'CE', age: 29, nat: 'USA', q: 58 },
+    { name: 'John Powers', pos: 'CE', age: 28, nat: 'USA', q: 56 },
+    { name: 'Damien Hoyland', pos: 'FB', age: 32, nat: 'SCO', q: 66, intl: true },
+    { name: 'John Rizzo', pos: 'WG', age: 27, nat: 'USA', q: 56 },
+  ],
+}
+
+/** A club's real men take the shirts of the generated men drawn for them: the
+ *  first generated player in each real man's position gives way to him, and a
+ *  real man with no generated shirt left to take is simply added. The whole
+ *  template is still drawn first, exactly as before REAL existed, so the same
+ *  random numbers produce the same names for every OTHER club - adding real
+ *  players to one squad does not rename another club's generated men. */
+function withReal(generated: RawPlayer[], real: RawPlayer[]): RawPlayer[] {
+  const out = [...generated]
+  const taken = new Set<number>()
+  const extra: RawPlayer[] = []
+  for (const rp of real) {
+    const i = out.findIndex((p, k) => !taken.has(k) && p.pos === rp.pos)
+    if (i < 0) { extra.push(rp); continue }
+    out[i] = rp
+    taken.add(i)
+  }
+  // real men first, the convention every squad file keeps
+  return [...[...taken].sort((a, b) => a - b).map(k => out[k]), ...extra, ...out.filter((_, k) => !taken.has(k))]
+}
+
 function genSquad(clubId: string, rep: number): RawPlayer[] {
   const rng = mulberry32(0x05a ^ clubId.split('').reduce((h, c) => (h * 33 + c.charCodeAt(0)) | 0, 5381))
   const out: RawPlayer[] = []
@@ -63,7 +187,7 @@ function genSquad(clubId: string, rep: number): RawPlayer[] {
     if (gk) gkGiven++
     out.push({ name, pos, age, nat: isImport ? IMP_NAT[Math.floor(rng() * IMP_NAT.length)] : 'USA', q, gk })
   }
-  return out
+  return withReal(out, REAL[clubId] ?? [])
 }
 
 const club = (

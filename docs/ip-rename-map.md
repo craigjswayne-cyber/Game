@@ -77,6 +77,14 @@ step safer if it ever matters.
 | Cambridge Rugby | Cambridge RFC | Volac Park | Camside Park |
 | Chinnor RFC | Chinnor RFC (unchanged) | Kingsey Road | keep |
 | Caldy RFC | Caldy RFC (unchanged) | Paton Field | Payton Field |
+| Worcester Warriors (2026-27) | Worcester RFC | Sixways Stadium | Sixwell Stadium |
+| Ampthill RUFC (2026-27) | Ampthill RFC | Dillingham Park | Dellingham Park |
+| Rotherham Titans (2026-27) | Rotherham RFC | Clifton Lane | Clifton Road |
+
+2026-27 membership (18 Oct 2026): Worcester, Ampthill and Rotherham join,
+Blackheath comes up from National One (its row below still applies), and
+Cambridge and London Scottish go down to National One with their names and
+grounds unchanged.
 
 ## National League One (natl1.ts)
 
@@ -94,6 +102,17 @@ step safer if it ever matters.
 | Bishop's Stortford | Bishop's Stortford RFC | Silver Leys | keep |
 | Sedgley Park | Sedgley Park RFC | Park Lane | keep |
 | Esher RFC | Esher RFC (unchanged) | Molesey Road | keep |
+| Bury St Edmunds RUFC (2026-27) | Bury St Edmunds RFC | The Haberden | Haberden Fields (as the women's club) |
+| Camborne RFC (2026-27) | Camborne RFC (unchanged) | Recreation Ground | The Recreation Ground (keep, generic) |
+| Dings Crusaders (2026-27) | Dings RFC (district; Bristol is taken) | Shaftesbury Park | Shaftesbury Fields |
+| Sheffield RUFC (2026-27) | Sheffield RFC | Abbeydale Park | keep (district) |
+| Tonbridge Juddians (2026-27) | Tonbridge RFC | The Slade | keep (place) |
+
+2026-27 membership (18 Oct 2026): Blackheath went up; Darlington Mowden Park,
+Esher, Sedgley Park and Cinderford are no longer in the game (the first three
+were relegated; Cinderford was the unconfirmed candidate for the fourteenth
+place, which went to Rosslyn Park). Their rows above are kept as the record of
+the names the game used.
 
 ## Top 14 (top14_a.ts, top14_b.ts)
 
@@ -137,6 +156,14 @@ Club de Paris. Shorts stay the bare place ("Toulouse", "Paris").
 | Valence Romans Drôme | RC Valence | Stade Georges-Pompidou | Stade Georges-Pontier |
 | US Dax | RC Dax | Stade Maurice-Boyau | Stade Maurice-Boyer |
 | US Carcassonne | RC Carcassonne | Stade Albert-Domec | Stade Albert-Daumec |
+| RC Narbonne Méditerranée (2026-27) | AS Narbonne (RC Narbonne is the real short name) | Parc des Sports et de l'Amitié | keep (generic) |
+| Stade Niçois / Nissa Rugby (2026-27) | AS Nice (RC Nice was Rugby Club Nice Côte d'Azur) | Stade Marcel-Volot | Stade Marcel-Valot |
+| Stade Aurillacois (2026-27) | RC Aurillac | Stade Jean-Alric | Stade Jean-Alaric |
+| Soyaux Angoulême XV (2026-27) | RC Angoulême | Stade Chanzy | Stade Chansy |
+
+2026-27 membership (18 Oct 2026): the real sixteen. Mont-de-Marsan and
+Carcassonne went down and are no longer in the game; their rows above are
+kept as the record of the names it used.
 
 ## United Rugby Championship (urc_a.ts, urc_b.ts)
 
@@ -206,14 +233,17 @@ so it takes the Mikawa region.
 
 The owner named the competition: **Major Rugby Competition** ("MRC"). The six
 clubs of the 2026 season, kept as six by the owner even though Charlotte folded
-at the end of it. Squads are generated with no real names.
+at the end of it. Squads were generated with no real names until 18 Oct 2026,
+when the owner moved the league to real players: five clubs now carry their
+real 2026 rosters (mrc.ts REAL), topped up by the generator, and Charlotte
+alone stays generated. Club and ground names are unchanged.
 
 | Real club | In game | Real ground | In game |
 |---|---|---|---|
 | New England Free Jacks | New England RFC | Veterans Memorial Stadium, Quincy | Quincy Veterans Field |
 | Chicago Hounds | Chicago RFC | SeatGeek Stadium, Bridgeview | Bridgeview Stadium (sponsor stripped, district kept) |
 | Seattle Seawolves | Seattle RFC | Starfire Stadium, Tukwila | Starlight Stadium |
-| California Legion | California RFC | Torero Stadium, San Diego (2026 home games were spread over five cities) | Toreador Stadium |
+| California Legion | California RFC | Torero Stadium, San Diego (2026 home games were spread over San Diego, Los Angeles and Orange County) | Toreador Stadium |
 | Old Glory DC | Washington RFC | Maryland SoccerPlex, Germantown | Germantown Park |
 | Anthem RC | Charlotte RFC | American Legion Memorial Stadium | Legion Memorial Field |
 

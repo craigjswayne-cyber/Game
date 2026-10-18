@@ -1,6 +1,19 @@
 // The English third tier - National League One. Real community clubs,
 // real grounds. Semi-pro squads generated deterministically: plumbers
 // with quick feet, students, and old pros winding down. Quality 32-58.
+//
+// THE 2026-27 LEAGUE (research of 18 Oct 2026, from the 2026-27 and 2025-26
+// National League 1 season pages). Thirteen members are confirmed: the six
+// clubs below that were already here, Cambridge and London Scottish down from
+// the Championship, and five the game never had - Bury St Edmunds, Camborne
+// and Sheffield (the three National Two champions), Dings Crusaders and
+// Tonbridge Juddians. Blackheath went up; Darlington Mowden Park and Esher
+// went down at the end of 2024-25 and Sedgley Park at the end of 2025-26.
+// The fourteenth member could not be confirmed. Rosslyn Park (2024-25 runners-
+// up, no relegation found) is kept as the likeliest; Cinderford, the other
+// candidate, is not, because the double round robin needs an even field.
+// The new clubs' grounds, capacities and colours are from general knowledge,
+// not the research - check them; Bury St Edmunds reuses the women's club's.
 
 import type { Pos, RawClub, RawPlayer } from '../types'
 import { mulberry32 } from '../../game/rng'
@@ -72,13 +85,20 @@ export const NATL1: RawClub[] = [
   club('rosslyn', 'Roehampton RFC', 'Roehampton', 'London', 'The Crag', 2000, ['#c02f3a', '#ffffff'], 44, 140_000),
   club('salefc', 'Sale FC', 'Sale FC', 'Sale', 'Heywood Road', 3000, ['#12295c', '#ffffff'], 43, 130_000),
   club('rams', 'Reading RFC', 'Reading', 'Reading', 'Old Bath Road', 2000, ['#0e0e0e', '#c9a227'], 43, 130_000),
-  club('cinderford', 'Cinderford RFC', 'Cinderford', 'Cinderford', 'Dockham Road', 2200, ['#0a5c36', '#c02f3a'], 42, 120_000),
-  club('blackheath', 'Blackheath RFC', 'Blackheath', 'London', 'Well Hall', 2500, ['#c02f3a', '#0e0e0e'], 42, 120_000),
   club('plymouth', 'Plymouth RFC', 'Plymouth', 'Plymouth', 'Brickfields', 3500, ['#0a3b2e', '#ffffff'], 41, 115_000),
   club('moseley', 'Birmingham RFC', 'Birmingham', 'Birmingham', 'Billesley Common', 3000, ['#c02f3a', '#0e0e0e'], 41, 110_000),
-  club('darlington', 'Darlington RFC', 'Darlington', 'Darlington', 'The Darlington Arena', 25000, ['#12295c', '#c9a227'], 40, 110_000),
   club('leedstykes', 'Leeds RFC', 'Leeds', 'Leeds', 'Leeds College Ground', 1500, ['#1e5aa8', '#c9a227'], 40, 105_000),
   club('stortford', "Bishop's Stortford RFC", 'Stortford', "Bishop's Stortford", 'Silver Leys', 1800, ['#12295c', '#8fc1e3'], 39, 100_000),
-  club('sedgley', 'Sedgley Park RFC', 'Sedgley Pk', 'Manchester', 'Park Lane', 1500, ['#0a5c36', '#ffffff'], 38, 95_000),
-  club('esher', 'Esher RFC', 'Esher', 'Esher', 'Molesey Road', 2700, ['#7a0c2e', '#ffffff'], 38, 95_000),
+  // down from the Championship for 2026-27, with their numbers unchanged
+  club('lscottish', 'London Caledonians RFC', 'Caledonians', 'Richmond', 'The Athletic Ground', 4500, ['#12295c', '#c02f3a'], 50, 250_000),
+  club('cambridge', 'Cambridge RFC', 'Cambridge', 'Cambridge', 'Camside Park', 3000, ['#7a1027', '#f0eadc'], 47, 200_000),
+  // new for 2026-27. Place plus RFC; a ground named for a road or district
+  // keeps its name, as the rest of this file does. Dings Crusaders take
+  // their district, as the map does for clubs whose name is not a place
+  // (Bristol already being Bristol RFC); Tonbridge Juddians their town.
+  club('buryse', 'Bury St Edmunds RFC', 'Bury St Ed', 'Bury St Edmunds', 'Haberden Fields', 2500, ['#14663b', '#e0a80d'], 40, 105_000),
+  club('camborne', 'Camborne RFC', 'Camborne', 'Camborne', 'The Recreation Ground', 3000, ['#8b1a2b', '#ffffff'], 39, 100_000),
+  club('dings', 'Dings RFC', 'Dings', 'Bristol', 'Shaftesbury Fields', 2000, ['#0e0e0e', '#c02f3a'], 40, 105_000),
+  club('sheffield', 'Sheffield RFC', 'Sheffield', 'Sheffield', 'Abbeydale Park', 2000, ['#12295c', '#c02f3a'], 39, 100_000),
+  club('tonbridge', 'Tonbridge RFC', 'Tonbridge', 'Tonbridge', 'The Slade', 2000, ['#7a0c2e', '#ffffff'], 40, 105_000),
 ]

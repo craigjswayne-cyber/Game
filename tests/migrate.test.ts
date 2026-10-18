@@ -34,8 +34,10 @@ beforeAll(() => {
 }, 60_000)
 
 describe('an old save without natl1 and jl1', () => {
-  it('gets the 24 clubs injected', () => {
-    expect(Object.keys(m.clubs).length - before).toBe(24)
+  // 24 until 18 Oct 2026: National One is fourteen clubs in the real 2026-27
+  // league (natl1.ts), Japan Division One still twelve
+  it('gets the 26 clubs injected', () => {
+    expect(Object.keys(m.clubs).length - before).toBe(26)
   })
 
   // A club the migration invents needs an academy too (feedback 10G): the

@@ -147,12 +147,20 @@ export const MRC_CUP_KO_WEEKS = [34, 35]
  *  and so cannot use its weeks for league rounds. The second tiers can. */
 const W_CUP_LEAGUES = [W + 'pwr', W + 'pac', W + 'e1', W + 'celt']
 
+/** Pro D2 is the real sixteen from 2026-27 (prod2.ts), and sixteen clubs play
+ *  thirty rounds: two more than LEAGUE_WEEKS holds, and buildLeague throws
+ *  rather than drop a round. No Pro D2 club plays in either continental cup,
+ *  so - exactly as the women's second tiers do - the league borrows two of
+ *  the cup's pool weeks, one in each half of the season. */
+const PROD2_EXTRA_WEEKS = [18, 32]
+
 /** The weeks a league's rounds may use. Zero spare in the women's lists is
  *  deliberate: every week of the women's year is spoken for. */
 export function leagueWeeksFor(gender: Gender, worldCup: boolean, leagueId: string): number[] {
   // the Championship gives up week 39 to its semi-finals (CHAMP_KO_WEEKS)
   if (gender !== 'w') {
     if (leagueId === 'mrc') return MRC_LEAGUE_WEEKS
+    if (leagueId === 'prod2') return [...LEAGUE_WEEKS, ...PROD2_EXTRA_WEEKS].sort((a, b) => a - b)
     return leagueId === 'champ' ? LEAGUE_WEEKS.filter(w => !CHAMP_KO_WEEKS.includes(w)) : LEAGUE_WEEKS
   }
   const base = worldCup ? W_LEAGUE_WEEKS_WC : W_LEAGUE_WEEKS

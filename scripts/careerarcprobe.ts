@@ -196,14 +196,21 @@ const keepBoard = (g: GameState) => {
   ok(Object.keys(prof).length >= 5, `the world reads as ${Object.keys(prof).length} kinds of job`)
   ok(jobProfile(g, 'toulouse') === 'giant', `Toulouse is a giant (${jobProfile(g, 'toulouse')})`)
   ok(jobProfile(g, 'newcastle') === 'newcomer', `Newcastle's money is new (${jobProfile(g, 'newcastle')})`)
-  ok(jobProfile(g, 'darlington') === 'fallen', `Darlington's great empty ground makes a fallen giant (${jobProfile(g, 'darlington')})`)
+  // Darlington Mowden Park and their 25,000-seat arena were the world's one
+  // fallen giant until 18 Oct 2026, when the real 2026-27 National One no
+  // longer had them. The rule is still the rule: hand Roehampton that ground and
+  // the same reading has to follow (Roehampton, whose squad is good enough that
+  // the board's ask is not trimmed back for the squad it has).
+  g.clubs.rosslyn.capacity0 = 25_000
+  g.clubs.rosslyn.capacity = 25_000
+  ok(jobProfile(g, 'rosslyn') === 'fallen', `a great empty ground makes a fallen giant (${jobProfile(g, 'rosslyn')})`)
   g.clubs.bedford.balance = -50_000
   ok(jobProfile(g, 'bedford') === 'troubled', 'a club in the red is a club in trouble')
   const nc = g.clubs.newcastle
   const base = boardObjective(nc.rep, 10).pos, asked = demandedFinish(g, 'newcastle', 10).pos
   ok(asked < base, `a newcomer's board asks for more than its stature would (${base} -> ${asked})`)
-  const dar = g.clubs.darlington
-  ok(demandedFinish(g, 'darlington', 12).pos < boardObjective(dar.rep, 12).pos, 'and so does a fallen giant\'s')
+  const dar = g.clubs.rosslyn
+  ok(demandedFinish(g, 'rosslyn', 14).pos < boardObjective(dar.rep, 14).pos, 'and so does a fallen giant\'s')
   const acad = Object.values(g.clubs).find(c => c.players.length && jobProfile(g, c.id) === 'academy')
   ok(!!acad && demandedFinish(g, acad.id, 12).pos >= boardObjective(acad.rep, 12).pos, `an academy club's board is more patient (${acad?.short})`)
 }

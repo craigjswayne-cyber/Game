@@ -22,7 +22,8 @@
  *
  *   scripts/tools/womens-verified.json holds ages, positions and unions checked
  *     one player at a time, each with the source it came from. Those are facts
- *     and nothing overwrites them. 93 players are in it, which is most of this
+ *     and nothing overwrites them. 100 players are in it (93 until the seven
+ *     corrections of 18 Oct 2026), which is most of this
  *     league's internationals, and the error rate found while filling it is the
  *     reason the claim above was withdrawn: a fly-half listed as a tighthead, a
  *     lock as a hooker, a scrum-half's shirt on a lock, four players carrying
@@ -329,7 +330,9 @@ export const W_PWR: RawClub[] = [
       { name: 'Nancy McGillivray', pos: 'FH', age: 19, nat: 'ENG', q: 54, gk: true },
       { name: 'Liv McGoverne', pos: 'FH', age: 26, nat: 'NZL', q: 76, gk: true, intl: true },
       { name: 'DaLeaka Menin', pos: 'TP', age: 31, nat: 'CAN', q: 85, intl: true },
-      { name: 'Claudia Moloney-MacDonald', pos: 'WG', age: 30, nat: 'ENG', q: 70, intl: true },
+      // also hand-added as 'Claudia MacDonald' until 18 Oct 2026: one woman,
+      // who keeps the owner's database rating and her scrum-half cover
+      { name: 'Claudia Moloney-MacDonald', pos: 'WG', alt: ['SH'], age: 30, nat: 'ENG', q: 85, intl: true },
       { name: 'Cliodhna Moloney-MacDonald', pos: 'HK', age: 33, nat: 'IRE', q: 76, intl: true },
       { name: 'Gabriella Nigrelli', pos: 'LP', age: 27, nat: 'ENG', q: 77 },
       { name: 'Lucy Nye', pos: 'HK', age: 27, nat: 'ENG', q: 82 },
@@ -340,7 +343,8 @@ export const W_PWR: RawClub[] = [
       { name: 'Emily Robinson', pos: 'WG', age: 28, nat: 'ENG', q: 72 },
       { name: 'Flo Robinson', pos: 'SH', age: 25, nat: 'ENG', q: 70, intl: true },
       { name: 'Hope Rogers', pos: 'LP', age: 33, nat: 'USA', q: 87, intl: true },
-      { name: 'Amy Rule', pos: 'LP', age: 20, nat: 'ENG', q: 63 },
+      // a Black Ferns World Cup-winning tighthead, born 15 Jul 2000
+      { name: 'Amy Rule', pos: 'TP', age: 26, nat: 'NZL', q: 80, intl: true },
       { name: 'Tilly Ryall', pos: 'HK', age: 33, nat: 'ENG', q: 60 },
       { name: 'Hannah Sams', pos: 'TP', age: 18, nat: 'ENG', q: 54 },
       { name: 'Eilidh Sinclair', pos: 'LK', age: 19, nat: 'ENG', q: 57 },
@@ -423,7 +427,8 @@ export const W_PWR: RawClub[] = [
       { name: 'Clodagh Dunne', pos: 'CE', age: 20, nat: 'ENG', q: 50 },
       { name: 'Hermione Farmer', pos: 'LP', age: 32, nat: 'ENG', q: 56 },
       { name: 'Tess Feury', pos: 'FB', age: 30, nat: 'USA', q: 75, intl: true },
-      { name: 'Abbie Fleming', pos: 'HK', age: 31, nat: 'ENG', q: 55 },
+      // a Wales international back-five forward (wru.wales)
+      { name: 'Abbie Fleming', pos: 'FL', alt: ['LK'], age: 31, nat: 'WAL', q: 70, intl: true },
       { name: 'Grace Freeman', pos: 'TP', age: 27, nat: 'ENG', q: 66 },
       { name: 'Tiana Gordon', pos: 'N8', age: 30, nat: 'ENG', q: 61 },
       { name: 'Freya Greensmith', pos: 'FL', age: 25, nat: 'ENG', q: 62 },
@@ -445,7 +450,8 @@ export const W_PWR: RawClub[] = [
       { name: 'Rowann Sinclair', pos: 'LP', age: 20, nat: 'ENG', q: 53 },
       { name: 'Eve Slater', pos: 'HK', age: 26, nat: 'ENG', q: 63 },
       { name: 'Ellie Smith', pos: 'TP', age: 18, nat: 'ENG', q: 49 },
-      { name: 'Lagi Tuima', pos: 'LK', age: 33, nat: 'ENG', q: 50 },
+      // an England centre, born 16 Jun 1998, from Quins
+      { name: 'Lagi Tuima', pos: 'CE', age: 28, nat: 'ENG', q: 74, intl: true },
       { name: 'Tabua Tuinakauvadra', pos: 'FL', age: 24, nat: 'AUS', q: 74, intl: true },
       { name: 'Kat Turner', pos: 'FL', age: 34, nat: 'ENG', q: 51 },
       { name: 'Nadine Vincent', pos: 'CE', age: 26, nat: 'ENG', q: 62 },
@@ -507,7 +513,9 @@ export const W_PWR: RawClub[] = [
       { name: 'Beatrice Rigoni', pos: 'CE', age: 31, nat: 'ITA', q: 78, intl: true },
       { name: 'Evie Roach', pos: 'FL', age: 23, nat: 'ENG', q: 59 },
       { name: 'Annie Roue', pos: 'SH', age: 28, nat: 'ENG', q: 59 },
-      { name: 'Zoe Stratford', pos: 'FH', age: 21, nat: 'ENG', q: 88 },
+      // Zoe Stratford nee Aldcroft: England captain and World Rugby Player of
+      // the Year, a lock and back-rower born in 1996
+      { name: 'Zoe Stratford', pos: 'FL', alt: ['LK'], age: 30, nat: 'ENG', q: 92, intl: true },
       { name: 'Morwenna Talling', pos: 'LK', age: 24, nat: 'ENG', q: 79, intl: true },
       { name: 'Holly Thorpe', pos: 'CE', age: 32, nat: 'ENG', q: 52 },
       { name: 'Kendall Waudby', pos: 'FB', age: 23, nat: 'ENG', q: 50 },

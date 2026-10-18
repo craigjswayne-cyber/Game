@@ -22,6 +22,7 @@ import * as S from '../src/game/stakes'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { sortTable } from '../src/game/schedule'
+import { isDerby } from '../src/game/rivalries'
 import type { Fixture, GameState } from '../src/game/model'
 import { ok, done } from './lib/probe'
 
@@ -151,7 +152,13 @@ const nextLeague = (g: GameState): Fixture => {
   const club = g.clubs[g.userClubId]
   const p = g.players[club.players[0]]
   p.stats.tries = 49
-  const line = S.matchStakes(g, nextLeague(g))
+  // the first league fixture that is not a derby: a derby rightly outranks a
+  // milestone, and since the 2026-27 squads (18 Oct 2026) this seed's world
+  // opens at Leicester, which is the one thing this case is not about
+  const club2 = g.userClubId
+  const fx = g.fixtures.find(f => !f.played && f.compId === club.leagueId &&
+    (f.homeId === club2 || f.awayId === club2) && !isDerby(f.homeId, f.awayId))!
+  const line = S.matchStakes(g, fx)
   ok(!!line && line.includes(p.name) && line.includes('50'),
     `a man one try short of fifty gets his moment (got "${line}")`)
 }

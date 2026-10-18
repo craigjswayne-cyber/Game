@@ -46,7 +46,9 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
 {
   const prem = D.dreamsFor({ clubId: 'northampton', clubName: 'Saints', leagueId: 'prem', rep: 86 }).map(d => d.id)
   const champ = D.dreamsFor({ clubId: 'ealing', clubName: 'Ealing', leagueId: 'champ', rep: 62 }).map(d => d.id)
-  const nl1 = D.dreamsFor({ clubId: 'esher', clubName: 'Esher', leagueId: 'natl1', rep: 38 }).map(d => d.id)
+  // (Esher until 18 Oct 2026, when it left National One for the real
+  // 2026-27 league; Bishop's Stortford is the nearest club in standing)
+  const nl1 = D.dreamsFor({ clubId: 'stortford', clubName: 'Stortford', leagueId: 'natl1', rep: 39 }).map(d => d.id)
   ok(!prem.includes('topflight'), 'a Premiership club is not offered "reach the top flight"')
   ok(champ.includes('topflight'), 'a Championship club is')
   ok(nl1.includes('topflight'), 'and so is a National League One club')
@@ -97,7 +99,7 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
   const worlds: [string, GameState][] = [
     ['northampton', newGame('northampton', 'Dreamer', 21)],
     ['ealing', newGame('ealing', 'Dreamer', 22)],
-    ['esher', newGame('esher', 'Dreamer', 23)],
+    ['stortford', newGame('stortford', 'Dreamer', 23)],
   ]
   for (const [clubId, g] of worlds) {
     const club = g.clubs[clubId]

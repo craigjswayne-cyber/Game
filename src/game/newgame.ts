@@ -2,7 +2,7 @@ import { softCeilings } from './ageing'
 import type { RawClub, RawPlayer } from '../data/types'
 import { migrateStyles } from './styles'
 import { refreshCaps } from './cap'
-import { GONE, verifiedClub } from '../data/verified'
+import { DECEASED, GONE, verifiedClub } from '../data/verified'
 import { extraPlayers } from '../data/additions'
 import { prospectsFor } from '../data/prospects'
 import { PREM_A } from '../data/leagues/prem_a'
@@ -306,7 +306,7 @@ export function resolveSquads(defs: LeagueDef[]): Map<string, RawPlayer[]> {
     for (const rc of def.clubs) {
       for (const rp of rc.players) {
         const to = verifiedClub(rp.name, rc.id)
-        if (!to || to === rc.id || !clubIds.has(to)) continue
+        if (!to || to === rc.id || !clubIds.has(to) || DECEASED.has(rp.name.toLowerCase())) continue
         const list = relocate.get(to) ?? []
         // his old club may list him twice over; he only signs for one of them
         if (!list.some(x => x.name === rp.name)) list.push(rp)
@@ -341,6 +341,8 @@ export function resolveSquads(defs: LeagueDef[]): Map<string, RawPlayer[]> {
         // a checked departure out of the world (released, retired, or signed
         // by a club the game does not model): the listing is not built at all
         if (to === GONE) continue
+        // a man who has died is never built, whatever a file says (DECEASED)
+        if (DECEASED.has(rp.name.toLowerCase())) continue
         if (to && clubIds.has(to) && to !== rc.id) continue
         // A SHARED NAME IS NOT THE SAME MAN, and keyed on the bare name this
         // deleted 24 real players from every world - a 26-year-old winger and a
@@ -482,6 +484,14 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   }
 
   // every club fields a full senior squad plus a real academy of 27
+  /** The depth a matchday squad needs in each shirt, a secondary position
+   *  counting half - the same table scripts/dataaudit.ts holds the world to. */
+  const SHIRT_MIN: [Pos, number][] = [['LP', 2], ['HK', 2], ['TP', 2], ['LK', 3], ['FL', 3], ['N8', 1], ['SH', 2], ['FH', 2], ['CE', 3], ['WG', 3], ['FB', 1]]
+  const seniorCover = (club: Club, pos: Pos): number => club.players.reduce((n, id) => {
+    const p = state.players[id]
+    if (!p || p.acad) return n
+    return n + (p.pos === pos ? 1 : 0) + ((p.alt ?? []).includes(pos) ? 0.5 : 0)
+  }, 0)
   const FILL_POS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB']
   for (const club of Object.values(state.clubs)) {
     const mkExtra = (age: number, q: number, youth: boolean, i: number, want?: Pos) => {
@@ -564,6 +574,22 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     let guard = 0
     while (club.players.length < 38 + ACADEMY_SIZE && guard++ < 40) {
       mkExtra(21 + Math.floor(rng() * 9), Math.max(42, club.rep - 16 + Math.floor(rng() * 10)), false, guard + 50)
+    }
+    // ...and no shirt below a matchday's minimum (the 2026-27 squads, 18 Oct
+    // 2026). The thinnest-first fill above covers a squad that is SHORT, but a
+    // real squad already at 36 or 37 gets one or two fillers and they go to its
+    // thinnest shirts - so when the window took three of Glasgow's centres, or
+    // Benetton's, the club was built with two and a half (scripts/dataaudit.ts
+    // check 1b). Only a squad below the minimum draws anything here, so every
+    // club the old data built in full is built exactly as before. Men's world
+    // only, for now: two women's clubs sit below this line today (Gloucester-
+    // Hartpury on the wing, Bristol at fly-half), and drawing for them would
+    // rebuild every women's world - an owner's call, not a data import's.
+    for (const [want, n] of gender === 'w' ? [] : SHIRT_MIN) {
+      let more = 0
+      while (seniorCover(club, want) < n && more++ < 3) {
+        mkExtra(21 + Math.floor(rng() * 9), Math.max(42, club.rep - 16 + Math.floor(rng() * 10)), false, 90 + more, want)
+      }
     }
   }
 

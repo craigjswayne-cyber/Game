@@ -24,6 +24,22 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED for the 2026-27 squads (research of 18 Oct 2026). A DATA
+  // change, not a mechanical one: about two hundred relocations and GONE pins
+  // and two hundred additions across the real leagues, the Championship,
+  // National One and Pro D2 rebuilt to their real 2026-27 membership, the MRC
+  // on real rosters, and the builder's new shirt minimum (newgame.ts
+  // SHIRT_MIN) drawing fillers for the three clubs the window left short of
+  // centres; and Josaia Raisuqe, who died in 2025, taken out of Montauban's
+  // list (DECEASED, verified.ts). The world build consumes different rng draws, so the
+  // Premiership's pairings fall differently and ALL SIX re-deal. No dial, no
+  // rule, no rating changed. bandcheck, eight worlds, before (the 1.9.2 tree)
+  // and after - 8,184 league games then 9,336 now, the extra clubs playing
+  // more rounds:
+  //   pts 49.9 -> 49.0   tries 6.52 -> 6.42   home 53.8% -> 53.3%
+  //   draws 2.0% -> 1.6%   blowouts 8.2% -> 8.1%   (every band holds)
+  // (measured after venue.ts RAW_MEAN was re-centred to 0.0778 for the new
+  // world's shorter average trip; that re-centring left these six unchanged)
   // REBASELINED for 1.9.2 (owner feedback, 18 Oct 2026). FOUR of six moved,
   // none from a new draw on the shared stream:
   //   - fifteen referees where there were thirteen (Sara Cox and Aimee
@@ -644,12 +660,12 @@ export const EXPECTED: string[] = [
   // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
-  'saracens 6-24 bath',
-  'exeter 17-28 gloucester',
-  'sale 39-25 bristol',
-  'harlequins 41-29 leicester',
-  'newcastle 37-10 northampton',
-  'exeter 40-17 saracens',
+  'saracens 55-17 exeter',
+  'leicester 33-0 harlequins',
+  'newcastle 14-46 northampton',
+  'sale 36-12 bristol',
+  'gloucester 42-24 bath',
+  'leicester 44-34 saracens',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw

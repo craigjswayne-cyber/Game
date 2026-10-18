@@ -30,7 +30,13 @@ const SEASONS = Number(process.env.SEASONS ?? 5)
  *  name, and Northampton's Tom James (a scrum-half) to Saracens alongside
  *  the Cornish Pirates full-back. Both pairs are two real men - exactly the
  *  case the namesake-aware dedup exists for. */
-const NAMESAKE_BUDGET = 26
+// 26 -> 30 on 18 Oct 2026 (the real 2026-27 squads and leagues): the MRC's
+// real Chicago hooker Theo Fourie alongside the Waratahs' 20-year-old of the
+// same name, and the rest pairs of men drawn by two different lower-tier
+// generators (champ.ts and natl1.ts each keep their own used-name list, and
+// the leagues' new and moved clubs drew new names). Two men each; none is a
+// generated man wearing a real name, which this probe also holds.
+const NAMESAKE_BUDGET = 30
 let fails = 0
 
 function report(g: GameState, when: string) {
