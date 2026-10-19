@@ -246,13 +246,19 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
  * side should match up to the mens side even if in real life that isnt the
  * case but it preserves the challenge of the game."
  *
- * Nine puts the women's opening median at £1.26m against the men's £1.30m, and
+ * Nine put the women's opening median at £1.26m against the men's £1.30m, and
  * keeps the shape of the data - the spread between a rich club and a poor one
  * is preserved exactly, every figure simply carries the same multiplier. The
  * ceiling stays a little below the men's (£3.4m against £6.5m), which is the
  * one distinction worth keeping: no women's club is Toulouse.
+ *
+ * 8.5 SINCE 1.9.2. The 2026-27 line-ups added six men's lower-tier clubs
+ * (Championship and National One to 14, Pro D2 to 16), which pulled the men's
+ * opening median from £1.30m to £1.00m with no women's club changing; at nine
+ * the women's world opened on 126% of the men's (econparity: within a
+ * fifth). 8.5 is the smallest step back inside the owner's parity rule.
  */
-export const W_OPENING_MONEY = 9
+export const W_OPENING_MONEY = 8.5
 export function openingBudget(raw: number, leagueId: string): number {
   return leagueId.startsWith(W) ? Math.round(raw * W_OPENING_MONEY) : raw
 }
