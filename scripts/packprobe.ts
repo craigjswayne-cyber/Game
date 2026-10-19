@@ -78,8 +78,12 @@ ok(frE < wgE - 4, `the front row ends the match more tired than the wings (${frE
 // and 1.0) over these same forty fixtures, 13 Oct 2026: home side with the
 // AI's bench 54.3 at full time, away side with no changes 32.5. 1.9.0 read
 // 53.8 and 32.4 on the day roleDrain went in.
+// REBASELINED 19 Oct 2026 (1.9.2): half-time gives every man ten back (owner:
+// "+10% energy at half time"), with the second-half drain raised to keep the
+// match balance (energy.ts DRAIN_HT_K). A side that makes no changes now
+// ends fresher than it did, by design: 53.3 and 36.9 on the 2026-27 squads.
 const homeE = fresh.homeE / N, awayE = fresh.awayE / N
-ok(Math.abs(homeE - 54.3) <= 2.5 && Math.abs(awayE - 32.5) <= 2.5,
-  `a side tires as fast as it did, only different men (${homeE.toFixed(1)} and ${awayE.toFixed(1)} at full time, were 54.3 and 32.5)`)
+ok(Math.abs(homeE - 53.3) <= 2.5 && Math.abs(awayE - 36.9) <= 2.5,
+  `a side tires as fast as it did, only different men (${homeE.toFixed(1)} and ${awayE.toFixed(1)} at full time, were 53.3 and 36.9)`)
 
 done('PACK PROBE', 'the scrum and the lineout are contested, and the front row tires by its own work', { exit: true, blank: false })

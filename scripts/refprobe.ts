@@ -47,11 +47,13 @@ ok(new Set(refs.map(r => r.patience)).size >= 3, 'patience takes at least three 
 // Not every referee: two of the thirteen are deliberately unremarkable men with
 // every dial near neutral, and the briefing says so rather than inventing a
 // tendency. What matters is that the panel is mostly legible, so the appointment
-// is usually worth reading.
+// is usually worth reading. 1.9.2 added Sara Cox and Aimee Barrett-Theron on
+// the column means (referee.ts), with no habit put on a real official that we
+// could not stand behind: four of fifteen read neutral, and that is the cap.
 const blank = new Set(refs.filter(r => refNotes(r).length === 0).map(r => r.name)).size
 const named = new Set(refs.map(r => r.name)).size
 console.log(`  ${named - blank} of ${named} referees have a readable tendency`)
-ok(named - blank >= named - 3, `most of the panel is legible (${named - blank}/${named})`)
+ok(named - blank >= named - 4, `most of the panel is legible (${named - blank}/${named})`)
 
 // a strict man and a permissive man must not read the same
 const strict = refFor(0)
