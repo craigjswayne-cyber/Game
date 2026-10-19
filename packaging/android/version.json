@@ -94,10 +94,11 @@
     "46 IS 1.8.7: advert placement from the owner's simulator pass. The live match banner now shows only while a highlight animation plays, never over the live stats; new banners on the floor of the day room and of every Finances tab; the news reader's top bar laid out as two tidy rows on a phone. Ruck (ruck.co.uk) is the named source on news about other clubs, the rumour mill, league signings and law-change talk (news only). Check the Console's highest accepted code before building.",
     "45 IS 1.8.6: the Pro Manager prompts. One card before the first competitive match, a one-time offer on phase.supporter.intro (a new non-consumable about 25% under Pro Manager; create it in Play Console first, see docs/pro-manager.md) after it, and a light reminder every ten competitive matches while free; never for Pro owners. Nothing in the rugby changes. Check the Console's highest accepted code before building.",
     "60 IS 1.9.1 AS UPLOADED. 59 was refused as already used when the 1.9.1 bundle went up (18 Oct 2026, owner), so 59 is spent and 1.9.1 ships on 60.",
+    "61 IS 1.9.2, the owner's feedback round of 18 Oct 2026: 2026-27 squads, the real pitch for every club, head injury checks that ask the manager, team talks with bigger stakes, half-time recovery, female referees, one save slot free and four with Pro Manager, and the new fonts and cards. Check the Console's highest accepted code before building: 61 assumes 60 was the last.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 60,
+  "versionCode": 61,
   "billingLibrary": "8.0.0"
 }

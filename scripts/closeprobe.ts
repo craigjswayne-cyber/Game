@@ -41,7 +41,7 @@ for (const id of want) ok(CLOSE_EVENTS.some(e => e.id === id), `  ${id}`)
 
 // ---- 3. the ground decides what it can hold -----------------------------
 console.log('\n--- 3. a clubhouse is not a stadium')
-const small = newGame('cinderford', 'Test', 5)
+const small = newGame('leedstykes', 'Test', 5)
 const big = newGame('leicester', 'Test', 5)
 const openSmall = CLOSE_EVENTS.filter(e => eventOpen(small, e)).length
 const openBig = CLOSE_EVENTS.filter(e => eventOpen(big, e)).length

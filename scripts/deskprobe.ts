@@ -31,6 +31,14 @@ import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
+
+/** The board kept on side (as historyprobe): a sacked manager has no club
+ *  rows, and with the real pitches (1.9.2) one of these careers was sacked
+ *  before week 22. */
+const keepJob = (g: GameState) => {
+  const c = g.clubs[g.userClubId]
+  if (!g.unemployed && c) c.boardConfidence = Math.max(c.boardConfidence, 55)
+}
 import { buildDesk, continueHold, deskDecisions, deskText, type Desk } from '../src/game/desk'
 import { isBoardroom, OFFICE_OUTLET } from '../src/game/media'
 import { natSquadHold } from '../src/game/country'
@@ -144,6 +152,7 @@ if (process.argv.includes('--walk')) {
     for (const wk of CHECK_WEEKS) {
       while (g.week < wk) {
         if (withDesk) { buildDesk(g); continueHold(g) }
+        keepJob(g)
         processWeekAndAdvance(g)
       }
       out.push(`${c.club}@${wk}:${hash(g)}`)
@@ -178,6 +187,7 @@ for (const c of CASES) {
       Math.random = () => { throw new Error('the desk drew from Math.random') }
       try { buildDesk(g); continueHold(g) } catch (e) { ok(false, `${c.club} wk${g.week}: ${(e as Error).message}`) } finally { Math.random = realRandom }
       ok(stamp(g) === before, `${c.club} wk${g.week}: building the desk left the save untouched`)
+      keepJob(g)
       processWeekAndAdvance(g)
     }
 

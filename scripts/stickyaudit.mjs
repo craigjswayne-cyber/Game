@@ -126,7 +126,7 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Sticky Audit')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
 
@@ -196,18 +196,18 @@ try {
   await page.waitForSelector('text=Kick Off', { timeout: 20000 })
   await clearTalk()
   await check('match day')
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.locator('text="Kick Off"').first().click()
   // Kick Off opens the dressing room; the speech carries on down the tunnel
   try {
     await page.locator('.talk-modal').waitFor({ timeout: 3000 })
     await page.click('.talk-modal .speech-tile >> nth=0')
   } catch { /* no dressing room */ }
   try {
-    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-    await page.click('text=▸ Take the Field')
+    await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+    await page.click('text="Take the Field"')
   } catch { /* a clean team sheet skips the ready-check */ }
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
-  for (const next of ['▸ Start Second Half', '▸ Play the Final Quarter']) {
+  for (const next of ['Start Second Half', 'Play the Final Quarter']) {
     await skipTo(page, next.slice(2))
     await tapPast(page, `text=${next}`)
     await page.waitForTimeout(300)

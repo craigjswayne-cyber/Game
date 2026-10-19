@@ -211,6 +211,7 @@ export function ProPrompt() {
               <ul className="pro-list">
                 {ads && <li>{t('pro.benefitAds')}</li>}
                 <li>{t('pro.benefitSkins')}</li>
+                <li>{t('pro.benefitSlots')}</li>
                 <li>{t('pro.benefitBack')}</li>
               </ul>
             )}

@@ -78,14 +78,28 @@ export interface TalkSetting {
   margin?: number
 }
 
-/** Per-man multiplier ceiling, either way. */
-export const TALK_CAP = 0.08
+/** Per-man multiplier ceiling, either way, in an even game.
+ *
+ *  RAISED IN 1.9.2 (owner, 18 Oct 2026: "The right team talk against the right
+ *  team should be a real bonus. A bad team talk against a good side and it
+ *  heavily impacts the team."). It was 8% with slopes of 0.13 up and 0.1 down,
+ *  which a manager could not feel. 12% now, the slopes half as steep again,
+ *  and the stakes grow with the opposition (TALK_UNDERDOG_*): in front of a
+ *  stronger side a wrong word costs up to 1.75x what it does in an even game,
+ *  and the right one is worth up to 1.4x, because that is where an upset is
+ *  made. Favourites keep the even-game scale. */
+export const TALK_CAP = 0.12
 /** reaction -> multiplier slope: a reaction of +1 is worth +TALK_K_UP, one
  *  of -1 costs TALK_K_DOWN. The engine gives back less for a lift than it
  *  takes for a slump (measured, scripts/teamtalkprobe.ts), so the upside is
  *  set a little steeper to keep a well-judged talk worth having. */
-const TALK_K_UP = 0.13
-const TALK_K_DOWN = 0.1
+const TALK_K_UP = 0.2
+const TALK_K_DOWN = 0.15
+/** extra stake per unit of underdog (exp -1 is a heavy underdog) */
+const TALK_UNDERDOG_DOWN = 0.75
+const TALK_UNDERDOG_UP = 0.4
+/** The largest multiplier swing any talk can reach, either way. */
+export const TALK_CAP_MAX = TALK_CAP * (1 + TALK_UNDERDOG_DOWN)
 /** how much of the pre-match reaction is still in the legs after the break */
 export const PRE_CARRY = 0.5
 /** where an unspoken-to room sits, below settled, before kick-off and at the break */
@@ -317,9 +331,17 @@ export function roomMood(before: number, p: Player): { k: string; tone: 'good' |
   return { k: 'mood.lowConfidence', tone: 'low' }
 }
 
-/** A reaction as a match-day multiplier on the man, capped. */
-export function talkFactor(r: number): number {
-  return 1 + clampN(r * (r > 0 ? TALK_K_UP : TALK_K_DOWN), -TALK_CAP, TALK_CAP)
+/** A reaction as a match-day multiplier on the man, capped. `exp` is the
+ *  game in front of him (TalkSetting.exp): the further the underdog, the more
+ *  a talk is worth either way, the downside most. */
+export function talkFactor(r: number, exp = 0): number {
+  const dog = clampN(-exp, 0, 1)
+  if (r > 0) {
+    const k = 1 + TALK_UNDERDOG_UP * dog
+    return 1 + clampN(r * TALK_K_UP * k, 0, TALK_CAP * k)
+  }
+  const k = 1 + TALK_UNDERDOG_DOWN * dog
+  return 1 - clampN(-r * TALK_K_DOWN * k, 0, TALK_CAP * k)
 }
 
 /** How the room took it, overall: what the summary line says. */

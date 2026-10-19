@@ -52,21 +52,21 @@ async function run(port) {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Perf')
   await page.click('.action-bar >> text=Confirm')
   t = Date.now()
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box')
   out.career = Date.now() - t
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')
   // walk to the first match (reloadprobe's walk)
   for (let tap = 0; tap < 14; tap++) {
-    if (await page.locator('text=Kick Off ▸').count()) break
+    if (await page.locator('text="Kick Off"').count()) break
     await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(600)
   }
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.locator('text="Kick Off"').first().click()
   await page.locator('.talk-modal').waitFor({ timeout: 8000 }).catch(() => {})
   await page.click('.talk-modal .speech-tile >> nth=1').catch(() => {})
-  await page.locator('text=▸ Take the Field').click({ timeout: 4000 }).catch(() => {})
+  await page.locator('text="Take the Field"').click({ timeout: 4000 }).catch(() => {})
   await page.waitForSelector('.scoreboard')
   await page.waitForTimeout(1500)
   out.match = await page.evaluate(() => new Promise(res => {

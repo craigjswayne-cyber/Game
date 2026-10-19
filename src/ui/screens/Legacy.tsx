@@ -15,6 +15,7 @@ import { coachRows } from '../../game/rivalcoach'
 import { buildEra } from '../../game/erastory'
 import type { Era } from '../../game/arcbook'
 import { EraCard } from '../EraCard'
+import { acc } from '../accent'
 
 export default function Legacy() {
   const game = useStore(s => s.game)!
@@ -71,7 +72,7 @@ export default function Legacy() {
         return (
           <>
             <SectionTitle sub={t(d.progress.done ? 'legacy.lgRealised' : 'legacy.lgWhatFor')}>{t('legacy.lgTheDream')}</SectionTitle>
-            <div className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}>
+            <div className="card" style={{ ...acc(d.progress.done ? 'var(--primary)' : 'var(--gold)') }}>
               <div style={{ fontWeight: 700, fontSize: '1rem' }}>{dreamTitle(d.def, d.ctx)}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
                 <div style={{ width: `${dreamPct(d.progress)}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
@@ -113,7 +114,7 @@ export default function Legacy() {
         const v = careerVerdict(game)
         if (game.retired) {
           return (
-            <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+            <div className="card" style={{ ...acc('var(--gold)') }}>
               <div className="meta" style={{ letterSpacing: 1 }}>
                 {t('legacy.lgRetiredLine', { how: t(game.retired.forced ? 'legacy.lgForced' : 'legacy.lgOwnTerms'), age: game.retired.age })}
               </div>

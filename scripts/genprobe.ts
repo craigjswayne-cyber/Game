@@ -32,9 +32,16 @@
 //   w_pwr    375 real, 0 generated    owner's squad sheet
 //   w_celt   185 real, 0 generated    competition team pages
 //   w_pac    279 real, 0 generated    2026 Aupiki + Super W
-//   w_e1     300 real, 57 generated   FFR workbook plus three club pages
-//   w_e2     116 real, 184 generated  workbook carries one club of ten
-//   w_champ    0 real, 600 generated  no reachable source carries this division
+//   w_e1     297 real, 57 generated   FFR workbook plus three club pages
+//                                     (300 until 18 Oct 2026: three women
+//                                     listed twice lost the duplicate row -
+//                                     Baleinadogo, Boulard, Brosseau)
+//   w_e2     160 real, 152 generated  workbook carries one club of ten; 44
+//                                     more from 2025-26 match sheets (owner,
+//                                     19 Oct 2026: last season's names, ages
+//                                     estimated), 12 of them added outright
+//   w_champ   28 real, 577 generated  Richmond's club squad page (owner,
+//                                     19 Oct 2026); five added outright
 //
 // Change a squad and this fails until the table is changed with it, in the same
 // commit, by somebody who decided the number. That is the whole point.
@@ -48,9 +55,9 @@ const EXPECT: Record<string, [number, number]> = {
   pwr: [375, 0],
   celt: [185, 0],
   pac: [279, 0],
-  e1: [300, 57],
-  e2: [116, 184],
-  champ: [0, 600],
+  e1: [297, 57],
+  e2: [160, 152],
+  champ: [28, 577],
 }
 
 let fails = 0
@@ -84,7 +91,14 @@ for (const def of LEAGUE_DEFS('w')) {
   }
 }
 console.log(`  ${'total'.padEnd(6)} ${String(totReal).padStart(4)} real ${String(totGen).padStart(4)} generated`)
-if (totReal + totGen !== 2096) fail(`women's database is ${totReal + totGen} players, expected 2096`)
+// 2096 until 18 Oct 2026, when the research of that day found three women
+// listed twice in w_e1.ts (a misspelt Baleinadogo, a 37-year-old Bobigny
+// copy of Blagnac's Emilie Boulard, Brosseau at Montpellier as well as
+// Romagnat) and the extra rows went: 2093, every one of them still a real
+// woman listed once. 2110 from 19 Oct 2026: seventeen names from last
+// season's match sheets and Richmond's squad page added outright where no
+// generated shirt in their position was left (owner).
+if (totReal + totGen !== 2110) fail(`women's database is ${totReal + totGen} players, expected 2110`)
 
 // ---- 3. the per-club comments must say what the rows say ----
 // These are what went stale last time, so they are held rather than trusted.
@@ -93,7 +107,7 @@ for (const f of ['w_pwr', 'w_celt', 'w_pac', 'w_e1', 'w_e2', 'w_champ']) {
   const blocks = src.split(/\n  \{\n/).slice(1)
   for (const b of blocks) {
     const short = /short: '([^']+)'/.exec(b)?.[1] ?? '?'
-    const rows = [...b.matchAll(/\{ name: '/g)].length
+    const rows = [...b.matchAll(/\{ name: ['"]/g)].length
     const gen = [...b.matchAll(/gen: true/g)].length
     const m = /\/\/ (\d+) players(?:, (\d+) (?:real|of them from the workbook))?/.exec(b)
     if (!m) { fail(`${f} ${short}: no "// N players" comment to check`); continue }
@@ -105,7 +119,7 @@ for (const f of ['w_pwr', 'w_celt', 'w_pac', 'w_e1', 'w_e2', 'w_champ']) {
 }
 
 // ---- 4. nothing checked against a source may be marked invented ----
-// womens-verified.json is 93 players checked one at a time, each with the source
+// womens-verified.json is 100 players checked one at a time, each with the source
 // it came from. A name in there is a fact about a living person and marking it
 // generated would hand her to the maternity model.
 const verified = JSON.parse(readFileSync('scripts/tools/womens-verified.json', 'utf8')) as Record<string, unknown>
@@ -117,7 +131,7 @@ for (const def of LEAGUE_DEFS('w')) {
 }
 for (const k of Object.keys(verified)) {
   if (k === '_meta') continue
-  // 93 plain names today. The men's verified.ts scopes a disputed one as
+  // 100 plain names today. The men's verified.ts scopes a disputed one as
   // name@club, so split on it in case this file ever needs to as well.
   const name = k.split('@')[0].trim().toLowerCase()
   if (genNames.has(name)) fail(`${k} is in womens-verified.json and is marked generated`)

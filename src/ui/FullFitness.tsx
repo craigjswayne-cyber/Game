@@ -5,6 +5,7 @@ import { healReady } from '../game/grants'
 import { t } from '../game/i18n'
 import { endingText, spendCredit } from './purchase'
 import { Glyph } from './glyphs'
+import { accLine } from './accent'
 
 /**
  * ---- FULL FITNESS, WHERE THE INJURIES ARE ----
@@ -113,7 +114,7 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
         </button>
       </div>
       {spent && <div className="meta muted heal-next">{t('store.healNext')}</div>}
-      {msg && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg}</div>}
+      {msg && <div className="meta sheet-log" style={{ ...accLine('var(--gold)'), paddingLeft: 8 }}>{msg}</div>}
     </div>
   )
 }

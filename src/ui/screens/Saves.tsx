@@ -5,6 +5,8 @@ import { seasonLabel, weekDate, type GameState } from '../../game/model'
 import { SectionTitle } from '../components'
 import { t, localeTag } from '../../game/i18n'
 import { canShareNatively, shareSaveNatively } from '../../game/nativeshare'
+import { saveSlotLimit } from '../../game/monetise'
+import { acc } from '../accent'
 
 export const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
 /* keys, not words - t()d wherever a slot is named */
@@ -21,6 +23,10 @@ export default function Saves() {
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
 
   const refresh = () => { void listSaves().then(setSaves) }
+  // the free game keeps one career (monetise.saveSlotLimit): an empty slot
+  // takes a copy only while there is room, and so does an import
+  const slotLimit = saveSlotLimit()
+  const atLimit = saves.length >= slotLimit
   useEffect(refresh, [])
 
   // the one save in the game that does not go through the store's persist(), so
@@ -142,6 +148,7 @@ export default function Saves() {
   const IMPORT_MAX_BYTES = 64 * 1024 * 1024
 
   const doImport = (file: File) => {
+    if (atLimit) { setMsg(t('world.svFreeLimit')); return }
     if (file.size > IMPORT_MAX_BYTES) { setMsg(t('world.svNotASave')); return }
     file.text().then(txt => {
       const raw = JSON.parse(txt) as GameState
@@ -191,7 +198,7 @@ export default function Saves() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ ...acc('var(--gold)') }}>
         <h3 style={{ fontSize: '0.875rem' }}>{t('world.svAutosaveOn')}</h3>
         <div className="meta">
           {t('world.svAutosaveBody')}<b>{slotName(saveSlot)}</b>{t('world.svAutosaveRest')}
@@ -205,11 +212,14 @@ export default function Saves() {
           owner to grandfather and no stamp on any save. */}
 
       <SectionTitle>{t('world.svSaveSlots')}</SectionTitle>
+      {slotLimit < SLOTS.length && (
+        <div className="meta" style={{ margin: '0 0 8px' }}>{t('world.svFreeLimit')}</div>
+      )}
       {SLOTS.map(slot => {
         const meta = saves.find(s => s.slot === slot)
         const isCurrent = slot === saveSlot
         return (
-          <div key={slot} className="card" style={isCurrent ? { borderLeft: '4px solid var(--club1)' } : undefined}>
+          <div key={slot} className="card" style={isCurrent ? { ...acc('var(--club1)') } : undefined}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h3 style={{ fontSize: '0.875rem' }}>
@@ -225,7 +235,7 @@ export default function Saves() {
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button className="btn slot-act" style={{ fontSize: '0.75rem', padding: '7px 14px' }} onClick={() => void doSave(slot)}>
+                <button className="btn slot-act" style={{ fontSize: '0.75rem', padding: '7px 14px' }} disabled={!meta && atLimit} onClick={() => void doSave(slot)}>
                   {t('world.svSave')}
                 </button>
                 {meta && !isCurrent && (

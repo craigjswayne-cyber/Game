@@ -641,25 +641,27 @@ export function userBid(state: GameState, playerId: number, fee: number): { ok: 
 export function counterIncomingOffer(state: GameState, offerId: number): string {
   const o = state.offers.find(x => x.id === offerId)
   if (!o || o.status !== 'pending') return t('reply.offerGone')
-  // one round of haggling: the fee rises 18% on a 55% roll and the bid stays
-  // pending, so an unlimited counter would be a money printer
+  // one round of haggling: the fee rises 10-20% on a 60% roll and the bid
+  // stays pending, so an unlimited counter would be a money printer
   if (o.countered) return t('reply.alreadyCountered')
   o.countered = true
   const p = state.players[o.playerId]
   const bidder = state.clubs[o.fromClubId]
   if (!p || !bidder) { o.status = 'rejected'; return t('reply.offerWithdrawn') }
-  // THE RAISE IS ANCHORED TO THE PLAYER, NOT TO THE BID (user: "sometimes they
-  // offer more... but it should be balanced so not crazy that it makes the game
-  // easy"). A flat +18% rewarded holding out on a bid that was already generous
-  // exactly as much as on a cheeky one. Now the further under his value they
-  // opened, the more road they have: a lowball comes back up to 22% higher, a
-  // full-price bid barely moves, and NOTHING goes past 140% of his value or
-  // their budget. Selling well stays possible; printing money does not.
+  // SIX TIMES IN TEN, TEN TO TWENTY PER CENT (owner, 18 Oct 2026: "about 60%
+  // of the time this offer increases by 10-20%"). It was a 55% roll on a
+  // raise of 6% to 22% anchored to how far under value they opened. The raise
+  // is still steeper for a lowball (the top of the range) than for a bid at
+  // full price (the bottom), and the two caps stay, because they are what
+  // stop haggling being a money printer (user, earlier: "not crazy that it
+  // makes the game easy"): NOTHING goes past 140% of his value or the
+  // bidder's budget, so a bid already near the ceiling moves less, or not.
+  const rng = mulberry32(state.seed ^ (o.id * 17))
   const rich = o.fee / Math.max(1, p.value)
-  const uplift = clamp(1.26 - rich * 0.16, 1.06, 1.22)
+  const lean = clamp(1.3 - rich, 0, 1)   // 1 for a bid at 30% of value, 0 at full price
+  const uplift = 1.1 + 0.1 * clamp(lean * 0.6 + rng() * 0.4, 0, 1)
   const ceiling = Math.round((p.value * 1.4) / 10_000) * 10_000
   const newFee = Math.min(Math.round((o.fee * uplift) / 10_000) * 10_000, ceiling, bidder.budget)
-  const rng = mulberry32(state.seed ^ (o.id * 17))
   if (newFee <= o.fee) {
     // BEST AND FINAL, NOT A FLOUNCE (25D, live feedback: "they always walk
     // away"). Spontaneous bids for stars open at 1.2 to 1.6x value, so most
@@ -669,7 +671,7 @@ export function counterIncomingOffer(state: GameState, offerId: number): string 
     // asked; it just stops moving. Greed now costs the raise, not the sale.
     return t('reply.bidderFinal', { club: bidder.short, fee: fmtMoney(o.fee) })
   }
-  if (rng() < 0.55) {
+  if (rng() < 0.6) {
     o.fee = newFee
     o.raised = true
     return t('reply.bidderRaises', { club: bidder.short, fee: fmtMoney(newFee), last: p.name.split(' ').slice(-1)[0] })

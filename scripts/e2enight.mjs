@@ -70,7 +70,7 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Night Gaffer')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   // The club is "Leicester RFC" since the IP rename; matching on the
@@ -185,7 +185,9 @@ try {
     })
     console.log(`selection heading: ${head.parts} parts, ${head.h.toFixed(0)}px tall, ${head.spread.toFixed(1)}px spread`)
     if (head.spread > 8) throw new Error(`selection heading wrapped (${head.spread.toFixed(0)}px spread)`)
-    if (head.h > 34) throw new Error(`selection heading is ${head.h.toFixed(0)}px tall, so it is more than one line`)
+    // 36, not 34, since 1.9.2's heading face (Saira Condensed) sets a taller
+    // line box: 35px on one line. The spread check above is what holds one line.
+    if (head.h > 36) throw new Error(`selection heading is ${head.h.toFixed(0)}px tall, so it is more than one line`)
   } catch (e) {
     if (String(e).includes('selection heading')) throw e
     /* no lineup yet */
@@ -268,15 +270,15 @@ try {
   // on - tap through the bulletins (in the dark, which is the point of this run)
   // until Matchday takes over.
   for (let tap = 0; tap < 8; tap++) {
-    if (await page.locator('text=Kick Off ▸').count()) break
+    if (await page.locator('text="Kick Off"').count()) break
     await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
     const day = await page.evaluate(() => document.querySelector('.day-head .dh-day')?.textContent ?? null)
     if (day) await shot(`06z-day-${day.toLowerCase()}`)
   }
-  await page.waitForSelector('text=Kick Off ▸', { timeout: 15000 })
+  await page.waitForSelector('text="Kick Off"', { timeout: 15000 })
   await shot('07-matchday')
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.locator('text="Kick Off"').first().click()
   // Kick Off opens the dressing room first now, and the speech is what carries
   // on down the tunnel
   try {
@@ -285,8 +287,8 @@ try {
     await page.click('.talk-modal .speech-tile >> nth=0')
   } catch { /* no dressing room */ }
   try {
-    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-    await page.click('text=▸ Take the Field')
+    await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+    await page.click('text="Take the Field"')
   } catch { /* straight to the tunnel */ }
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
   await page.waitForTimeout(1500)

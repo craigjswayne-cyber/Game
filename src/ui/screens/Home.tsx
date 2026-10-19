@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { genderOf } from '../../game/gender'
 import { isDeadlineWeek } from '../../game/window'
 import { useStore } from '../../store'
@@ -27,6 +27,7 @@ import { COMMUNITY_URL } from '../../game/community'
 import { buildDesk, deskText } from '../../game/desk'
 import { DeskCard, DeskTile, deskRows } from '../Desk'
 import { rowNav } from '../rowNav'
+import { acc } from '../accent'
 
 
 /**
@@ -115,12 +116,16 @@ export default function Home() {
   const recent = formGuide(game, club.id)
 
   const desk = buildDesk(game)
+  // shown on the first Home this device opens, and marked seen as it is
+  // shown, so the next visit is the dashboard alone
+  const [firstHint] = useState(() => !dismissed('rm-first-hint'))
+  useEffect(() => { if (firstHint) dismiss('rm-first-hint') }, [firstHint])
   const hook = weekHook(game, fx)
 
   if (game.unemployed) {
     return (
       <>
-        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
+        <button className="card" style={{ ...acc('var(--gold)') }}
           onClick={() => go('jobs')}>
           <h3>{t('home.jobCentre')}</h3>
           <div className="meta">{t('home.betweenJobs', { n: game.vacancies.length })}</div>
@@ -142,7 +147,9 @@ export default function Home() {
           board confidence, fan mood, objectives, money and mail with no way to
           know which of it is a job and which is a readout. One line, for three
           weeks of a first season, then it is gone for good. */}
-      {game.season === 0 && game.mgr.m === 0 && (
+      {/* ONCE (1.9.2, owner: "show once then move hints to a question
+          mark"): the first Home a device sees, then never again (FirstHint) */}
+      {game.season === 0 && game.mgr.m === 0 && firstHint && (
         <div className="first-hint">
           <b>{t('home.hintBold')}</b> {t('home.hintRest')}
         </div>
@@ -314,7 +321,7 @@ export default function Home() {
           is inside the old wrapper is asked, once, to back up before they
           update. Never shown on the website, in the PWA or in the new app. */}
       {isOldPlayApp() && !dismissed('rm-twa-warned') && (
-        <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+        <div className="card" style={{ ...acc('var(--danger)') }}>
           <div className="fact-label">{t('home.handoverTitle')}</div>
           <div className="meta" style={{ marginTop: 3 }}>{t('home.handoverBody')}</div>
           <div className="btn-row" style={{ margin: '10px 0 0' }}>

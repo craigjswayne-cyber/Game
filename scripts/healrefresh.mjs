@@ -52,7 +52,7 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Heal Test')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   await page.waitForTimeout(500)

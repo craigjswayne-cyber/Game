@@ -834,6 +834,19 @@ export function tillOpen(): boolean {
   return edition() === 'free' && !!bridge()
 }
 
+/** HOW MANY CAREERS A DEVICE KEEPS (owner, 18 Oct 2026: "Save slots should be
+ *  1 for non paying players, 4 slots for pro manager"). One in a free store
+ *  build, four with Pro Manager. The web build and the paid edition keep all
+ *  four: there is nowhere to buy Pro Manager there, and a limit nobody can
+ *  lift is not an offer. A free player who already has more careers than the
+ *  limit keeps every one of them, playable and saveable; what the limit stops
+ *  is starting another (a new career, a copy into an empty slot, an import)
+ *  until they are back under it or have gone Pro. */
+export const PRO_SAVE_SLOTS = 4
+export function saveSlotLimit(): number {
+  return tillOpen() && !hasSupporter() ? 1 : PRO_SAVE_SLOTS
+}
+
 /** Should the Supporter page be reachable?
  *
  *  Either because something can be bought, or because something already has

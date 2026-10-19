@@ -28,10 +28,10 @@ try {
     await page.click('text=New Career'); await page.click('text=English Premier Division'); await page.waitForSelector('.club-tile')
     await page.click('.tile >> text=Northampton'); await page.waitForSelector('text=Star Player'); await page.click('.action-bar >> text=Confirm')
     await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Pressure'); await page.click('.speech-tile >> text=Forward Dominance'); await page.click('.action-bar >> text=Confirm')
-    await page.click('text=▸ Start Career'); await page.waitForSelector('.tut-box', { timeout: 20000 }); await page.click('.tut-close .btn')
-    for (let t = 0; t < 10 && !(await page.locator('text=Kick Off ▸').count()); t++) { await page.click('.continue-btn'); await page.waitForTimeout(400) }
-    await page.locator('text=Kick Off ▸').first().click(); await page.click('.talk-modal .speech-tile >> nth=0')
-    try { await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 }); await page.click('text=▸ Take the Field') } catch {}
+    await page.click('text="Start Career"'); await page.waitForSelector('.tut-box', { timeout: 20000 }); await page.click('.tut-close .btn')
+    for (let t = 0; t < 10 && !(await page.locator('text="Kick Off"').count()); t++) { await page.click('.continue-btn'); await page.waitForTimeout(400) }
+    await page.locator('text="Kick Off"').first().click(); await page.click('.talk-modal .speech-tile >> nth=0')
+    try { await page.locator('text="Take the Field"').waitFor({ timeout: 2500 }); await page.click('text="Take the Field"') } catch {}
     await page.waitForSelector('.momo-track', { timeout: 20000 })
     for (const momo of [1, -1]) {
       const sw = await page.evaluate(async (m) => {

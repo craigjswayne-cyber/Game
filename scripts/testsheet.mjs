@@ -54,7 +54,7 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Test Sheet')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   await page.waitForTimeout(500)
@@ -106,7 +106,7 @@ try {
     })
     await page.waitForTimeout(40)
     if (await page.locator('text=On to the Week').count()) { await page.click('text=On to the Week', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(80) }
-    else if (await page.locator('text=Next Story ▸').count()) { await page.click('text=Next Story ▸', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(60) }
+    else if (await page.locator('text="Next Story"').count()) { await page.click('text="Next Story"', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(60) }
   }
   ok(reached, 'the walk reaches a Test week with the England job in hand')
 
@@ -135,10 +135,10 @@ try {
     if (await page.locator('text=YOUR TEST XV').count() &&
         await page.locator('button', { hasText: /Kick Off/i }).count()) break
     if (await page.locator('text=On to the Week').count()) { await page.click('text=On to the Week', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(150); continue }
-    if (await page.locator('text=Next Story ▸').count()) { await page.click('text=Next Story ▸', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(100); continue }
+    if (await page.locator('text="Next Story"').count()) { await page.click('text="Next Story"', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(100); continue }
     if (await page.locator('button', { hasText: /^Reject$/ }).count()) { await page.locator('button', { hasText: /^Reject$/ }).first().click({ timeout: 3000 }).catch(() => {}); await page.waitForTimeout(200); continue }
-    if (await page.locator('text=Matchday ▸').count()) { await page.click('text=Matchday ▸', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(400); continue }
-    if (await page.locator('text=Continue ▸').count()) { await page.click('text=Continue ▸', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(400); continue }
+    if (await page.locator('text="Matchday"').count()) { await page.click('text="Matchday"', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(400); continue }
+    if (await page.locator('text="Continue"').count()) { await page.click('text="Continue"', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(400); continue }
     // whatever the button says now (Offers, Results...), it is the way on
     if (await page.locator('.continue-btn').count()) { await page.click('.continue-btn', { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(400); continue }
     await page.waitForTimeout(150)

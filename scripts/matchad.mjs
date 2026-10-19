@@ -98,7 +98,7 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Test Gaffer')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
 
@@ -108,7 +108,7 @@ try {
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off').count()) break
     if (await page.locator('.day-next').count()) { weekSeen++; if (await slotUp()) weekWithSlot++ }
-    for (const label of ['On to the Week', 'Next Story ▸', 'Get On With The Week']) {
+    for (const label of ['On to the Week', 'Next Story', 'Get On With The Week']) {
       const b = page.locator(`text=${label}`)
       if (await b.count()) { await b.first().click(); await page.waitForTimeout(200) }
     }
@@ -122,15 +122,15 @@ try {
   await page.waitForSelector('text=Kick Off', { timeout: 20000 })
   ok(weekSeen > 0 && weekWithSlot === weekSeen, `the floor of the week carries a banner (${weekWithSlot} of ${weekSeen} days)`)
 
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.locator('text="Kick Off"').first().click()
   try {
     await page.locator('.talk-modal').waitFor({ timeout: 3000 })
     ok(!(await slotUp()), 'no banner over the dressing-room team talk')
     await page.click('.talk-modal .speech-tile >> text=Calm the nerves')
   } catch { /* no dressing room */ }
   try {
-    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-    await page.click('text=▸ Take the Field')
+    await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+    await page.click('text="Take the Field"')
   } catch { /* straight down the tunnel */ }
 
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
@@ -187,7 +187,7 @@ try {
 
   // an injury in the last minutes before the break is answered first
   await answer()
-  await tapPast(page, 'text=▸ Start Second Half')
+  await tapPast(page, 'text="Start Second Half"')
   await page.waitForTimeout(500)
 
   // ---- the hour break ----
@@ -198,7 +198,7 @@ try {
 
   // an injury in the last minutes before the break is answered first
   await answer()
-  await tapPast(page, 'text=▸ Play the Final Quarter')
+  await tapPast(page, 'text="Play the Final Quarter"')
   await page.waitForTimeout(500)
 
   // ---- full time ----

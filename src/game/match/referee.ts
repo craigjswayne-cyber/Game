@@ -64,21 +64,38 @@ export interface Referee {
  *  scrum 1.011. The bands were tuned with the panel as it is, so the drift is
  *  written down here rather than corrected on its own, which would move the
  *  world's scoring without a rebalance behind it. */
-const REF_PANEL: Referee[] = [
-  { name: 'L. Pearce', style: 'strict', scrum: 1.10, breakdown: 0.92, patience: 4, flow: 0.99, cards: 1.28 },
-  { name: 'K. Dickson', style: 'fair', scrum: 1.00, breakdown: 1.06, patience: 5, flow: 1.03, cards: 1.00 },
-  { name: 'M. Carley', style: 'fair', scrum: 1.08, breakdown: 0.98, patience: 5, flow: 1.00, cards: 1.05 },
-  { name: 'C. Ridley', style: 'lenient', scrum: 0.90, breakdown: 1.10, patience: 7, flow: 1.04, cards: 0.60 },
-  { name: 'A. Gardner', style: 'strict', scrum: 1.10, breakdown: 0.90, patience: 4, flow: 0.98, cards: 1.30 },
-  { name: 'N. Amashukeli', style: 'fair', scrum: 1.08, breakdown: 1.00, patience: 5, flow: 1.01, cards: 1.02 },
-  { name: 'A. Piardi', style: 'fair', scrum: 0.94, breakdown: 1.04, patience: 6, flow: 1.02, cards: 0.92 },
-  { name: 'P. Williams', style: 'strict', scrum: 1.06, breakdown: 0.94, patience: 4, flow: 0.99, cards: 1.24 },
-  { name: "B. O'Keeffe", style: 'lenient', scrum: 0.92, breakdown: 1.08, patience: 7, flow: 1.04, cards: 0.58 },
-  { name: 'N. Berry', style: 'fair', scrum: 1.02, breakdown: 1.02, patience: 5, flow: 1.01, cards: 0.98 },
-  { name: 'H. Davidson', style: 'fair', scrum: 0.96, breakdown: 0.96, patience: 6, flow: 1.00, cards: 1.06 },
-  { name: 'A. Brace', style: 'lenient', scrum: 0.88, breakdown: 1.06, patience: 7, flow: 1.03, cards: 0.64 },
-  { name: 'P. Brousset', style: 'strict', scrum: 1.10, breakdown: 0.94, patience: 4, flow: 0.98, cards: 1.26 },
-]
+/** THE CARD COLUMN STAYS WHERE THE WORLD WAS TUNED (1.9.2). Two strict
+ *  referees joining a panel of thirteen lifted the mean card dial from 0.995
+ *  to 1.031, the size of rise that once cost three and a half points a game.
+ *  So every card dial is scaled to keep the mean at 0.995: who is strict and
+ *  who is lenient is unchanged, and cards are not in the briefing notes, so
+ *  no referee reads differently. */
+const CARD_MEAN = 0.995
+
+const REF_PANEL: Referee[] = ([
+  { name: 'Luke Pearce', style: 'strict', scrum: 1.10, breakdown: 0.92, patience: 4, flow: 0.99, cards: 1.28 },
+  { name: 'Karl Dickson', style: 'fair', scrum: 1.00, breakdown: 1.06, patience: 5, flow: 1.03, cards: 1.00 },
+  { name: 'Matthew Carley', style: 'fair', scrum: 1.08, breakdown: 0.98, patience: 5, flow: 1.00, cards: 1.05 },
+  { name: 'Christophe Ridley', style: 'lenient', scrum: 0.90, breakdown: 1.10, patience: 7, flow: 1.04, cards: 0.60 },
+  { name: 'Angus Gardner', style: 'strict', scrum: 1.10, breakdown: 0.90, patience: 4, flow: 0.98, cards: 1.30 },
+  { name: 'Nika Amashukeli', style: 'fair', scrum: 1.08, breakdown: 1.00, patience: 5, flow: 1.01, cards: 1.02 },
+  { name: 'Andrea Piardi', style: 'fair', scrum: 0.94, breakdown: 1.04, patience: 6, flow: 1.02, cards: 0.92 },
+  { name: 'Paul Williams', style: 'strict', scrum: 1.06, breakdown: 0.94, patience: 4, flow: 0.99, cards: 1.24 },
+  { name: "Ben O'Keeffe", style: 'lenient', scrum: 0.92, breakdown: 1.08, patience: 7, flow: 1.04, cards: 0.58 },
+  { name: 'Nic Berry', style: 'fair', scrum: 1.02, breakdown: 1.02, patience: 5, flow: 1.01, cards: 0.98 },
+  { name: 'Hollie Davidson', style: 'fair', scrum: 0.96, breakdown: 0.96, patience: 6, flow: 1.00, cards: 1.06 },
+  { name: 'Andrew Brace', style: 'lenient', scrum: 0.88, breakdown: 1.06, patience: 7, flow: 1.03, cards: 0.64 },
+  { name: 'Pierre Brousset', style: 'strict', scrum: 1.10, breakdown: 0.94, patience: 4, flow: 0.98, cards: 1.26 },
+  // FEMALE REFEREES (owner, 18 Oct 2026: "make sure female referees are in the
+  // game too"). Hollie Davidson was already here, hidden behind an initial, so
+  // the panel now names everyone in full. Sara Cox (England, the first woman
+  // to referee a men's Premiership match) and Aimee Barrett-Theron (South
+  // Africa) join her. Their dials are the owner's read (19 Oct 2026): Cox
+  // "strict and clear, similar to a Luke Pearce"; Barrett-Theron "more like a
+  // head teacher, not afraid to use a card".
+  { name: 'Sara Cox', style: 'strict', scrum: 1.08, breakdown: 0.93, patience: 4, flow: 0.99, cards: 1.24 },
+  { name: 'Aimee Barrett-Theron', style: 'strict', scrum: 1.04, breakdown: 0.94, patience: 4, flow: 0.98, cards: 1.30 },
+] as Referee[]).map((r, _i, all) => ({ ...r, cards: +(r.cards * CARD_MEAN / (all.reduce((t, x) => t + x.cards, 0) / all.length)).toFixed(3) }))
 
 /** The man (or woman) in the middle - fixed per fixture, big influence. */
 export function refFor(fxId: number): Referee {

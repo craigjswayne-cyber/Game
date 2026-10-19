@@ -459,18 +459,26 @@
     var ad = plugin()
     if (!ad) return 'unavailable'
     return new Promise(function (resolve) {
-      var earned = false, done = false, handles = []
+      var earned = false, done = false, handles = [], shown = 0, impressions = 0
       function finish(v) {
         if (done) return
         done = true
         clearTimeout(timer)
         handles.forEach(function (p) { p.then(function (h) { h && h.remove && h.remove() }).catch(function () {}) })
+        // ONE TAP, ONE CALL (owner, 18 Oct 2026: three adverts for one reward,
+        // two for another, no second tap). The game makes exactly one show
+        // call per tap; this counts what the SDK reports for it, so a device
+        // log tells us whether the extras are separate shows or what the
+        // advert network serves inside one rewarded slot.
+        log('rewarded spot over: ' + v + ', shown ' + shown + 'x, impressions ' + impressions + ' (' + place + ')')
         if (v === 'completed') countSpot()
         // and start fetching the next one, so the following tap is instant too
         setTimeout(prime, 1500)
         resolve(v)
       }
       function on(ev, fn) { handles.push(Promise.resolve(ad.addListener(ev, fn))) }
+      on('onRewardedVideoAdShowed', function () { shown++ })
+      on('onRewardedVideoAdImpression', function () { impressions++ })
       on('onRewardedVideoAdReward', function () { earned = true })
       on('onRewardedVideoAdDismissed', function () { finish(earned ? 'completed' : 'skipped') })
       on('onRewardedVideoAdFailedToShow', function () { finish('unavailable') })

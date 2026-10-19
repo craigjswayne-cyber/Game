@@ -6,6 +6,7 @@ import { jobProfile } from '../../game/chairman'
 import { squadValue } from '../../game/analysis'
 import { Crest, SectionTitle } from '../components'
 import { t, compLabel } from '../../game/i18n'
+import { acc, accLine } from '../accent'
 
 /** The reply slot for a tap whose card is no longer in the pile. Falling back
  *  above the list is right (the card it belongs on is gone) but the thumb that
@@ -19,7 +20,7 @@ function FallbackReply({ text }: { text: string }) {
   const ref = useRef<HTMLDivElement | null>(null)
   useEffect(() => { ref.current?.scrollIntoView({ block: 'center' }) }, [text])
   return (
-    <div ref={ref} className="meta sheet-log" style={{ margin: '0 16px 8px', borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
+    <div ref={ref} className="meta sheet-log" style={{ margin: '0 16px 8px', ...accLine('var(--gold)'), paddingLeft: 8 }}>
       {text}
     </div>
   )
@@ -132,7 +133,7 @@ export default function Jobs() {
           )}
         </div>
         {msg?.key === club.id && (
-          <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
+          <div className="meta sheet-log" style={{ marginTop: 8, ...accLine('var(--gold)'), paddingLeft: 8 }}>
             {msg.text}
           </div>
         )}
@@ -151,7 +152,7 @@ export default function Jobs() {
   return (
     <>
       {offer && (
-        <div className="card job-offer" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card job-offer" style={{ ...acc('var(--gold)') }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Crest club={offer} size={30} mr={4} />
             <div style={{ flex: 1, minWidth: 0 }}>

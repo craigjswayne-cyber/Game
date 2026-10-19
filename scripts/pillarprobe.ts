@@ -23,7 +23,9 @@ console.log('PILLAR 1: the room compares your name to its own\n')
 const g = newGame('northampton', 'Pillars', 61)
 
 const profNor = squadProfile(g, 'northampton')
-const profEsh = squadProfile(g, 'esher')
+// (Esher until 18 Oct 2026, when it left National One for the real
+// 2026-27 league; Bishop's Stortford is the nearest club in standing)
+const profEsh = squadProfile(g, 'stortford')
 ok(profNor > profEsh + 25, `a title squad outranks a National 1 one (${profNor} v ${profEsh})`)
 
 const rookie = standing(g)

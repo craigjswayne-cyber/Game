@@ -307,8 +307,9 @@ async function dieDuringPlayOut(seed: number): Promise<void> {
 
 const reached: Record<Point, number> = { kickoff: 0, mid1: 0, decision: 0, inj: 0, ht: 0, ft: 0 }
 
-// 4242 has a touchline call in the first minutes, 34 has five of them
-for (const seed of [4242, 34]) {
+// 34 has five touchline calls; seed 1 has an injured man waiting for his pick
+// on the 2026-27 squads (1.9.2: 4242, the old first seed, no longer has one)
+for (const seed of [1, 34]) {
   console.log(`\nseed ${seed}: straight through, no interruptions`)
   const base = await play(seed, null)
   const again = await play(seed, null)

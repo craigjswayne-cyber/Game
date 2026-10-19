@@ -116,7 +116,7 @@ export function Live() {
   const [settings, setSettings] = useState(false)
   const [showLog, setShowLog] = useState(false)
   const [showRatings, setShowRatings] = useState(false)
-  const [injury, setInjury] = useState<{ hurt: string; hurtId: number; desc: string; weeks: number; coverId: number | null; wait?: boolean } | null>(null)
+  const [injury, setInjury] = useState<{ hurt: string; hurtId: number; desc: string; weeks: number; coverId: number | null; wait?: boolean; hia?: boolean } | null>(null)
   /** the match-day squad, opened from the Squad button in the control row */
   const [sheet, setSheet] = useState(false)
   const [mpanels, setMpanels] = useState(false)
@@ -197,6 +197,20 @@ export function Live() {
     const e = events[cursor - 1]
     if (!e || e.type !== 'INJ' || e.teamId !== ctx.userSideId || e.playerId == null) return
     const hurt = game.players[e.playerId]
+    // A HEAD ASSESSMENT STOPS THE GAME TOO (1.9.2, owner: "its auto replaced
+    // him. Its confusing to people who dont know what to press"). He is not
+    // injured, he is off for checks, and the assistant's stand-in is on: the
+    // sheet says so and lets the manager keep him or send another man on.
+    if (hurt && (e.k === 'comm.hiaLedAway' || e.k === 'comm.hiaMouthguard')) {
+      const side = ctx.home.teamId === e.teamId ? ctx.home : ctx.away
+      const h = side.hia && side.hia.pid === hurt.id ? side.hia : null
+      injSeen.current = cursor
+      matchCursor(cursor, false)
+      setDrawer(false)
+      setSettings(false)
+      setInjury({ hurt: hurt.name, hurtId: hurt.id, desc: '', weeks: 0, coverId: h?.subId ?? null, hia: true })
+      return
+    }
     const weeks = hurt?.injury?.weeks ?? 0
     // ANY injury stops the game, not only a three-week one. It used to wave a
     // one-week knock through on the reasoning that stopping for it would be
@@ -755,11 +769,11 @@ export function Live() {
       )}
       {injury && (
         <SquadSheet
-          title={t('matchday.injOff', { player: injury.hurt })}
+          title={t(injury.hia ? 'matchday.hiaOff' : 'matchday.injOff', { player: injury.hurt })}
           hurtName={injury.hurt}
-          hurtDesc={t('matchday.injDesc', { desc: injury.desc, n: injury.weeks })}
+          hurtDesc={injury.hia ? t('matchday.hiaDesc') : t('matchday.injDesc', { desc: injury.desc, n: injury.weeks })}
           hurtId={injury.hurtId}
-          note={injury.coverId != null ? t('matchday.injNote') : undefined}
+          note={injury.coverId != null ? t(injury.hia ? 'matchday.hiaNote' : 'matchday.injNote') : undefined}
           freeCoverId={injury.coverId ?? undefined}
           waitId={injury.wait ? injury.hurtId : undefined}
           /* forced: the physio is on, the clock is stopped, and the only way back

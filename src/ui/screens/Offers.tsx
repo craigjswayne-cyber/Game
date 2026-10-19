@@ -5,6 +5,7 @@ import { counterIncomingOffer, respondToOffer } from '../../game/ai'
 import { CrestT, PosBadge, Stars, TwoStep } from '../components'
 import { statusOf } from '../../game/gametime'
 import { t } from '../../game/i18n'
+import { acc } from '../accent'
 
 /** A bid for one of your players, and you are answering it now (feedback 10E).
  *
@@ -75,7 +76,7 @@ export default function Offers({ focus }: { focus?: number }) {
         </div>
       </div>
       <div style={{ padding: 14 }}>
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <div className="offer-head">
             <CrestT g={game} teamId={bidder.id} size={34} />
             <div>

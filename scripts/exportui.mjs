@@ -69,7 +69,7 @@ async function phone(mode) {
   await page.click('.action-bar >> text=Confirm')
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Gaffer')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.locator('.tut-box').or(page.locator('.bottom-nav')).first().waitFor()
   if (await page.locator('.tut-box').count()) await page.click('.tut-close .btn')
   await page.evaluate(() => window.rugbyStore.getState().go('saves'))
@@ -129,7 +129,7 @@ try {
     await page.click('button:has-text("Export Career")')
     await page.waitForTimeout(800)
     const m = await msg(page)
-    ok(!/exported - keep the file safe/i.test(m), 'never "exported" for a file that was not written')
+    ok(!/exported\. keep the file safe/i.test(m), 'never "exported" for a file that was not written')
     ok(/could not be written/i.test(m), `the player is told it did not happen ("${m.slice(0, 60)}")`)
     await ctx.close()
   }

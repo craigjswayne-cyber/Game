@@ -32,6 +32,7 @@ import { optionParts, prose } from '../../game/quotes'
 import { OptionLabel } from '../OptionLabel'
 import { isBoardroom } from '../../game/media'
 import { INJECT_TIERS, injectionsLeft, userWageBudget, type InjectTier } from '../../game/grants'
+import { acc, accLine } from '../accent'
 
 export default function Finances() {
   // two pages rather than one long scroll
@@ -326,7 +327,7 @@ export default function Finances() {
         const amount = Math.max(RELEASE_STEP, Math.min(most, relAmt || RELEASE_STEP))
         return (
           <>
-            {relMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{relMsg}</div>}
+            {relMsg && <div className="card" style={{ ...acc('var(--gold)') }}>{relMsg}</div>}
             <div className="card">
               <div className="fact-label">{t('finances.treasurySlide')}</div>
               {most > 0 && (
@@ -387,10 +388,10 @@ export default function Finances() {
         if (left <= 0) return null
         return (
           <button className="card" onClick={() => go('supporter')}
-            style={{ borderLeft: '4px solid var(--gold)', width: '100%', textAlign: 'left', display: 'block' }}>
+            style={{ ...acc('var(--gold)'), width: '100%', textAlign: 'left', display: 'block' }}>
             <div className="fact-label">{t('store.funding')}</div>
             <div className="meta" style={{ marginTop: 2 }}>{t('store.fundingLine')}</div>
-            <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>{t('store.title')} ▸</div>
+            <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>{t('store.title')}</div>
           </button>
         )
       })()}
@@ -425,7 +426,7 @@ export default function Finances() {
         <SectionTitle sub={t('finances.commercialSub', { amount: fmtMoney(commercialWeekly(game)), n: SLOTS.filter(x => { const d = game.deals?.[x.id]; return !!d && d.until >= game.season }).length })}>
           {t('finances.commercialDept')}
         </SectionTitle>
-        {dealMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}><div className="meta">{dealMsg}</div></div>}
+        {dealMsg && <div className="card" style={{ ...acc('var(--gold)') }}><div className="meta">{dealMsg}</div></div>}
         {/* v1.1.5, "the commercial page is very messy, too much text": the
             slot blurbs and the advice card are gone - the label, the deal and
             the offers say it all. The early exit stays: end a live deal and
@@ -671,9 +672,9 @@ export default function Finances() {
           lived on the money tab, which was the deepest page in the game
           (scrollaudit, 3.3 screenfuls); the ask and the town collection sit
           with the objectives and the confidence now (1.6.5) */}
-      {askMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{askMsg}</div>}
+      {askMsg && <div className="card" style={{ ...acc('var(--gold)') }}>{askMsg}</div>}
       {rewardedAvailable('collection') && canTownCollection(game) && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <h3 style={{ fontSize: '0.875rem' }}>{t('till.townTitle')}</h3>
           <div className="meta">{t('till.townBody')}</div>
           <RewardedButton place="collection" label={t('till.watchTown')} style={{ marginTop: 6 }}
@@ -774,7 +775,7 @@ function BoardFunds() {
       <SectionTitle>{t('till.boardTitle')}</SectionTitle>
 
       {game.uncapped ? (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <h3 style={{ fontSize: '1rem' }}>{t('till.charterTitle')}</h3>
           <div className="meta">{t('till.charterSigned')}</div>
           {/* the signing tap's own answer renders HERE, because the card it
@@ -782,7 +783,7 @@ function BoardFunds() {
               vanishing-reply bug replyreach.mjs polices, met again one screen
               over (storeprobe caught this one) */}
           {msg?.key === 'charter' && (
-            <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg.text}</div>
+            <div className="meta sheet-log" style={{ marginTop: 8, ...accLine('var(--gold)'), paddingLeft: 8 }}>{msg.text}</div>
           )}
         </div>
       ) : (
@@ -808,7 +809,7 @@ function BoardFunds() {
             </button>
           )}
           {msg?.key === 'charter' && (
-            <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg.text}</div>
+            <div className="meta sheet-log" style={{ marginTop: 8, ...accLine('var(--gold)'), paddingLeft: 8 }}>{msg.text}</div>
           )}
         </div>
       )}

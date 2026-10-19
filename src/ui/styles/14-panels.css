@@ -17,7 +17,7 @@
 
 /* ================= The draw room (F19) ================= */
 .draw-room { padding: 4px 14px 12px; }
-.day-draw { display: block; width: calc(100% - 28px); margin: 8px 14px; text-align: left; border-left: 4px solid var(--gold); }
+.day-draw { display: block; width: calc(100% - 28px); margin: 8px 14px; text-align: left; background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border)); }
 .day-draw-top { font-family: var(--sans); font-weight: 700; font-size: 0.875rem; margin-bottom: 2px; }
 .draw-balls { margin: 6px 0 10px; }
 .draw-tie {
@@ -42,7 +42,7 @@
 .draw-away { text-align: right; }
 .draw-v { color: var(--text-secondary); font-size: 0.75rem; }
 .draw-waiting { text-align: center; padding: 8px 0; }
-.draw-verdict { border-left: 4px solid var(--gold); }
+.draw-verdict { background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border)); }
 .draw-next { margin-top: 10px; font-size: 1rem; }
 @keyframes draw-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 
@@ -108,7 +108,7 @@
 .fix-grade {
   margin: 7px 0 0;
   padding: 6px 9px;
-  border-left: 3px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px;
   border-radius: 6px;
   background: var(--gold-tint);
   font-size: 0.75rem; line-height: 1.4; color: var(--text-secondary);

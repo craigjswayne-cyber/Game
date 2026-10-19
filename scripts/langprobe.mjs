@@ -204,8 +204,8 @@ try {
   // too - every other harness picks the same tile by its English name
   await page.click('.speech-tile >> text=Domination des avants')
   await page.click('.action-bar >> text=Confirmer')
-  ok(await page.locator('text=▸ Démarrer la carrière').count() === 1, 'the last button of the wizard is French')
-  await page.click('text=▸ Démarrer la carrière')
+  ok(await page.locator('text="Démarrer la carrière"').count() === 1, 'the last button of the wizard is French')
+  await page.click('text="Démarrer la carrière"')
   await page.waitForSelector('.tut-box')
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')
@@ -482,8 +482,9 @@ try {
     ok(/semaine/i.test(head), 'and so is the week line')  // the head is uppercased by CSS
     const dayText = await page.locator('.content, .day-head').first().innerText().catch(() => '')
     const dayEng = ['The Review', 'The Morning Papers', 'On The Wire', 'Treatment Room', 'The market',
-      'The boardroom', 'The training ground', 'Tomorrow', 'Continue ▸']
-      .filter(w => dayText.includes(w))
+      'The boardroom', 'The training ground', 'Tomorrow', 'Continue']
+      // whole words: the French Continue is "Continuer", which contains it
+      .filter(w => new RegExp(`\\b${w}\\b`).test(dayText))
     ok(dayEng.length === 0, `no English left in the day room${dayEng.length ? ': ' + dayEng.join(', ') : ''}`)
     const next = await page.locator('.day-next').innerText().catch(() => '')
     ok(/Continuer/.test(next), `and its own Continue is French ("${next.trim()}")`)

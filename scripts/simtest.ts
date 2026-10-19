@@ -13,7 +13,7 @@
 // So: a single seed drifting a point out of band after a content round is expected.
 // Two or three seeds drifting the same way is a regression.
 // Headless engine smoke test: build a game world and simulate seasons.
-import { newGame, LEAGUE_DEFS } from '../src/game/newgame'
+import { newGame, LEAGUE_DEFS, resolveSquads } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
@@ -28,11 +28,20 @@ let dup = 0
 // failed anything. Every invariant now counts, and the exit code is the count.
 let fails = 0
 const fail = (msg: string) => { fails++; console.error(`FAIL ${msg}`) }
+// The file's list OR the squad resolved from it (18 Oct 2026). Vannes' 2026-27
+// file holds fifteen men because thirteen more of its real squad are authored
+// in other clubs' files and arrive by relocation (verified.ts), so its file is
+// short and its squad is not. The reverse also happens - Clermont's and Moana
+// Pasifika's files still list 28, but the window took enough of them that
+// fewer than 23 known men remain, and the world builder's top-up fills the
+// rest. A club fails only when neither count reaches a team sheet.
+const resolved = resolveSquads(defs)
 for (const d of defs) {
   for (const c of d.clubs) {
     if (ids.has(c.id)) { fail(`DUPLICATE CLUB ID: ${c.id}`); dup++ }
     ids.add(c.id)
-    if (c.players.length < 23) fail(`thin squad: ${c.id} has ${c.players.length} (a club needs a 23)`)
+    const n = Math.max(c.players.length, resolved.get(c.id)?.length ?? 0)
+    if (n < 23) fail(`thin squad: ${c.id} has ${n} (a club needs a 23)`)
   }
 }
 console.log(`clubs: ${ids.size}, players: ${defs.reduce((s, d) => s + d.clubs.reduce((x, c) => x + c.players.length, 0), 0)}, dup ids: ${dup}`)

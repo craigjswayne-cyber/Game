@@ -64,7 +64,7 @@ export default function Handbook() {
                 {t(HANDBOOK_CATS.find(c => c.id === e.cat)?.label ?? '')}
               </div>
             )}
-            <div className="subj">{isOpen ? '▾ ' : '▸ '}{t(e.q)}</div>
+            <div className="subj"><span className="chev" aria-hidden="true" />{t(e.q)}</div>
             <div className="body">{t(e.a)}</div>
           </button>
         )

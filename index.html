@@ -53,7 +53,11 @@
     <!-- A FRAME BEFORE THE SCRIPT (1.9.1). Nothing painted until about 2 MB of
          JavaScript had run; this mark paints with the stylesheet and React
          replaces it on its first render. -->
-    <div id="root"><div class="boot-splash" aria-hidden="true">PHASE<span>RUGBY MANAGER</span></div></div>
+    <!-- DRESSED AS THE TITLE SCREEN (owner, 18 Oct 2026: the load-in was a
+         plain dark screen with the name on it). The same office art, badge and
+         three-line wordmark the title screen draws, so the game arrives as the
+         buttons appearing rather than as one screen replaced by another. -->
+    <div id="root"><div class="boot-splash" aria-hidden="true"><img class="bs-mark" src="./icon.svg" width="60" height="60" alt="" /><hr class="bs-rule" /><div class="bs-word"><b>PHASE</b><br />RUGBY<br />MANAGER</div><hr class="bs-rule" /><div class="bs-load"></div></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

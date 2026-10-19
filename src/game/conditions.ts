@@ -20,9 +20,8 @@
 //   the kick       wind cuts what a kicking game's territory is worth (WIND_TERR)
 //
 // THE GROUND. A club's pitch is grass, hybrid (grass stitched with fibre) or
-// artificial. The artificial grounds are the ones on the public record; every
-// other ground's surface is a hash of the club, more hybrids at the top of the
-// game. An artificial pitch is harder underfoot, so contact costs a little
+// artificial, as the club's real ground is (researched 19 Oct 2026, below).
+// An artificial pitch is harder underfoot, so contact costs a little
 // more there (injuryF); it also drains, so a wet day handles a little less
 // badly on it (wetness).
 //
@@ -32,26 +31,45 @@
 import type { Club, Fixture, GameState, Weather } from './model'
 import { SEASON_WEEKS } from './model'
 import { venueOf, climateOf, warmth } from './geo'
-import { hashString, mulberry32 } from './rng'
+import { mulberry32 } from './rng'
 import { ATK_CONTACT, DEF_HITS, DEF_OWN, type SideStyle, type StyleWx } from './styles'
 
 export type Surface = 'grass' | 'hybrid' | 'artificial'
 export const SURFACES: Surface[] = ['grass', 'hybrid', 'artificial']
 
-/** Grounds with an artificial pitch, on the public record (the women's side
- *  of a club plays at the same ground). Gloucester's Kingsholm joined the
- *  list at the owner's word (1.8.2). */
-const ARTIFICIAL = new Set(['saracens', 'newcastle', 'cardiff', 'glasgow', 'edinburgh', 'racing92', 'gloucester'])
-/** the top of the game, where most grounds are hybrid */
-const TOP_TIER = new Set(['prem', 'top14', 'urc', 'srp', 'jl1', 'w:pwr', 'w:e1', 'w:pac', 'w:celt'])
+/** THE REAL PITCHES (1.9.2, owner: "the pitches should be the real ones").
+ *  Researched 19 Oct 2026 for 2026-27, every club on its own ground; the
+ *  women's side of a club plays at the same ground. Before this a ground's
+ *  surface was a hash of the club, so Northampton could play on a hybrid
+ *  and Ulster on grass. A ground no source could settle is grass, and so is
+ *  a club the game made up. Where a club's own word and the fibre count
+ *  disagree the club's word wins (owner): Bath's Rec has 4-5% fibre and its
+ *  groundsman says it is not hybrid, so it is grass; Leicester and Doncaster
+ *  call their mesh-rooted pitches hybrid, so they are. Bristol's Ashton Gate
+ *  is the Desso GrassMaster laid in the 2014-16 rebuild. */
+/** Every pitch that is not grass: artificial, then hybrid. Keyed by club id
+ *  so each id stays a key in the build (scripts/ipprobe.mjs). */
+const PITCH: Record<string, Surface> = {
+  // Premiership and below
+  saracens: 'artificial', newcastle: 'artificial', gloucester: 'artificial', blackheath: 'artificial', coventry: 'artificial', ealing: 'artificial', worcester: 'artificial', dings: 'artificial', rosslyn: 'artificial',
+  // URC
+  cardiff: 'artificial', connacht: 'artificial', edinburgh: 'artificial', glasgow: 'artificial', ospreys: 'artificial', ulster: 'artificial',
+  // Top 14 and Pro D2
+  racing92: 'artificial', lyon: 'artificial', agen: 'artificial', aurillac: 'artificial', biarritz: 'artificial', colomiers: 'artificial', montauban: 'artificial', oyonnax: 'artificial', provence: 'artificial',
+  // MLR
+  newengland: 'artificial', seattle: 'artificial',
+  bristol: 'hybrid', exeter: 'hybrid', leicester: 'hybrid', doncaster: 'hybrid',
+  bulls: 'hybrid', dragons: 'hybrid', munster: 'hybrid', scarlets: 'hybrid', stormers: 'hybrid',
+  bayonne: 'hybrid', bordeaux: 'hybrid', castres: 'hybrid', clermont: 'hybrid', la_rochelle: 'hybrid', pau: 'hybrid', perpignan: 'hybrid', stade_francais: 'hybrid', toulon: 'hybrid', toulouse: 'hybrid', vannes: 'hybrid',
+  beziers: 'hybrid', brive: 'hybrid', grenoble: 'hybrid', nevers: 'hybrid',
+  blues: 'hybrid', chiefs: 'hybrid', crusaders: 'hybrid', force: 'hybrid', highlanders: 'hybrid', hurricanes: 'hybrid', reds: 'hybrid', waratahs: 'hybrid',
+  bravelupus: 'hybrid', canon: 'hybrid', steelers: 'hybrid', sungoliath: 'hybrid',
+}
 
 /** A club's pitch. */
 export function clubSurface(club: Pick<Club, 'id' | 'leagueId'>): Surface {
   const id = club.id.replace(/^w:/, '')
-  if (ARTIFICIAL.has(id)) return 'artificial'
-  const u = (hashString(`${id}|surface`) >>> 0) / 4294967296
-  if (TOP_TIER.has(club.leagueId)) return u < 0.62 ? 'hybrid' : 'grass'
-  return u < 0.14 ? 'artificial' : u < 0.32 ? 'hybrid' : 'grass'
+  return PITCH[id] ?? 'grass'
 }
 
 /** The pitch a fixture is played on: the home club's, and a showpiece
@@ -136,8 +154,9 @@ const SURF_INJ: Record<Surface, number> = { grass: 0.97, hybrid: 1.0, artificial
 /** The world's mean of the raw factor below over every AI fixture of a season
  *  in three worlds (scripts/depthprobe.ts measures it), so the world's count
  *  of injuries stays where it was: the styles and the ground shift who is
- *  hurt, not how many. */
-export const INJ_NORM = 1.015
+ *  hurt, not how many. Remeasured for the real pitches (1.9.2): 44% grass,
+ *  32% hybrid, 24% artificial. */
+export const INJ_NORM = 1.028
 
 /**
  * A side's share of the match's injury roll: its own carrying, the other

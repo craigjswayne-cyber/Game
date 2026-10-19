@@ -175,9 +175,9 @@
    complaint on the second, one line and plain; the buttons on a third, side
    by side at one width, only when there are any. No right-hand column, so no
    divider stopping half way and nothing floating out of line. */
-.card.bar-sq { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+
 .med-staff {
-  border-left: 4px solid var(--gold); border-top-left-radius: 0; border-bottom-left-radius: 0;
+  background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border: 1px solid color-mix(in srgb, var(--gold) 38%, var(--border));
   padding: 8px 12px; font-size: 0.75rem; font-weight: 500; color: var(--text-secondary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }

@@ -259,7 +259,9 @@ function statureRun(clubId: string, seed: number, mode: Mode) {
 
 const giantSleep = STATURE_SEEDS.map(s => statureRun('bath', s, 'sleepwalk'))
 const giantOpt = STATURE_SEEDS.map(s => statureRun('bath', s, 'optimise'))
-const minnowSleep = STATURE_SEEDS.map(s => statureRun('esher', s, 'sleepwalk'))
+// (Esher until 18 Oct 2026, when it left National One for the real
+// 2026-27 league; Bishop's Stortford is the nearest club in standing)
+const minnowSleep = STATURE_SEEDS.map(s => statureRun('stortford', s, 'sleepwalk'))
 const meanMin = (rows: { minConf: number }[]) => mean(rows.map(r => r.minConf))
 console.log('  per seed (giant sleepwalk / giant optimise / minnow sleepwalk): ' + STATURE_SEEDS.map((s, i) => `${s}:${giantSleep[i].minConf}${giantSleep[i].sacked ? '!' : ''}/${giantOpt[i].minConf}${giantOpt[i].sacked ? '!' : ''}/${minnowSleep[i].minConf}`).join(' '))
 const worstMin = (rows: { minConf: number }[]) => Math.min(...rows.map(r => r.minConf))

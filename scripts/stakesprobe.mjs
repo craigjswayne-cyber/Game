@@ -32,17 +32,17 @@ try {
   await page.click('.action-bar >> text=Confirm')
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Stakes')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
 
   // week 1 is a friendly: a friendly has no stakes and the card must know it
   for (let tap = 0; tap < 10; tap++) {
-    if (await page.locator('text=Kick Off ▸').count()) break
+    if (await page.locator('text="Kick Off"').count()) break
     await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(400)
   }
-  await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
+  await page.waitForSelector('text="Kick Off"', { timeout: 20000 })
   await page.click('.tab-bar >> text=Briefing')
   await page.waitForTimeout(250)
   ok((await page.locator('text=The Stakes').count()) === 0, 'a friendly preview stays quiet about stakes')
@@ -73,7 +73,7 @@ try {
   // the preview reads the week's fixture from state, so the staged league
   // Saturday re-renders in place - MatchDay is full-screen, there is no rail
   await page.waitForTimeout(600)
-  await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
+  await page.waitForSelector('text="Kick Off"', { timeout: 20000 })
   await page.click('.tab-bar >> text=Briefing')
   await page.waitForTimeout(250)
   const stakes = page.locator('text=The Stakes')
@@ -84,7 +84,7 @@ try {
   ok(/above by \d+|clear of/.test(card), 'and the gap to the side above (or the cushion below)')
 
   // kick off and run to the interval: the stoppage tells the story
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.locator('text="Kick Off"').first().click()
   const talk = page.locator('.talk-modal .speech-tile')
   await talk.first().waitFor({ timeout: 5000 })
   await talk.first().click()

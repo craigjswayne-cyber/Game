@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../../store'
 import { MAX_SUBS, isFrontRower, needsFrontRower, type SideCtx, shirtNumber } from '../../../game/matchEngine'
+import { fieldLineup } from '../../../game/match/side'
 import { XV_SLOTS, type Player, type Pos } from '../../../game/model'
 import { BRIEF_BY_ID, briefForSeat } from '../../../game/bench'
 import { BriefIcon } from '../../tacticsArt'
@@ -64,7 +65,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // on with what it has, and the sheet can always be closed (owner, round 6:
   // "I can't continue in the game").
   const live0 = live.ctx.home.teamId === live.ctx.userSideId ? live.ctx.home : live.ctx.away
-  const coverOn = freeCoverId != null && live0.onPitch.has(freeCoverId) && live0.lineup.slice(0, 15).includes(freeCoverId)
+  const coverOn = freeCoverId != null && live0.onPitch.has(freeCoverId) && fieldLineup(live0).slice(0, 15).includes(freeCoverId)
   const [offId, setOffId] = useState<number | null>(waitId != null && waiting() ? waitId : coverOn ? freeCoverId! : null)
   const [freeLeft, setFreeLeft] = useState(coverOn)
   /** a decision has been made: a change, a swap, or keeping the assistant's man.
@@ -89,7 +90,10 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // The XV in shirt order, because that is how a team sheet reads and how the
   // man you are looking for is found.
   // the number he walked out in: a replacement in 23 stays 23 (1.8.16)
-  const xv = mine.lineup.slice(0, 15).map((id, i) => ({
+  // the shirts as they are worn: a head assessment's stand-in in the
+  // assessed man's shirt (fieldLineup), so he is the one the manager taps
+  const worn = fieldLineup(mine)
+  const xv = worn.slice(0, 15).map((id, i) => ({
     shirt: (id != null ? shirtNumber(mine, id) : undefined) ?? i + 1,
     p: id != null ? game.players[id] : null,
   })).filter((r): r is { shirt: number; p: Player } => !!r.p)
@@ -124,7 +128,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // shirt being filled is the injured man's: a back sent on for a flanker is
   // wearing 6, and the bench should be read for 6, not for wherever the back
   // usually plays.
-  const offSlot = offId != null ? mine.lineup.indexOf(offId) : -1
+  const offSlot = offId != null ? worn.indexOf(offId) : -1
   const shirtPos: Pos | null = off ? (offSlot >= 0 && offSlot < 15 ? XV_SLOTS[offSlot].pos : off.pos) : null
   // Natural cover first, same as the engine's own bench discipline, so the
   // like-for-like choice is the one at the top of the list. Everybody else is
@@ -278,7 +282,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
                     it is the one place that wants a hard number rather than a
                     feel. The words keep their home in the assistant's read
                     below, where they are commentary rather than an input. */}
-                <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{e}%</span>
+                <span className={`sh-nrg ${energyTone(e)}`}>{e}%</span>
               </button>
             )
           })}
@@ -353,6 +357,17 @@ export function condWord(e: number): string {
     : e >= 40 ? 'matchday.cwTiring' : e >= 25 ? 'matchday.cwEmpty' : 'matchday.cwSpent')
 }
 
+/** Every man coloured by how much he has left, from the first minute (owner,
+ *  18 Oct 2026). It was always the percentage, never the clock: amber under 50
+ *  and red under 25, which nobody reached before the hour, so the colours
+ *  seemed to switch on at 60 minutes. Three bands now, on the same breaks as
+ *  the assistant's words: fresh or going well is green, blowing or tiring is
+ *  amber, empty or spent is red. */
+export function energyTone(e: number): 'green' | 'amber' | 'red' {
+  return e >= 70 ? 'green' : e >= 40 ? 'amber' : 'red'
+}
+const TONE_VAR = { green: 'var(--text-positive)', amber: 'var(--gold)', red: 'var(--text-negative)' } as const
+
 /** The assistant's condition report on the XV, most worrying first. */
 export function EnergyBars({ mine }: { mine: SideCtx }) {
   const game = useStore(s => s.game)!
@@ -371,7 +386,7 @@ export function EnergyBars({ mine }: { mine: SideCtx }) {
           <div style={{ flex: 1, height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden' }}>
             {/* the true width, not a banded one: a gauge that rounds to fifths
                 is a gauge that quietly lies, and the number sits beside it */}
-            <div style={{ width: `${e}%`, height: '100%', background: e < 25 ? 'var(--text-negative)' : e < 50 ? 'var(--gold)' : 'var(--text-positive)' }} />
+            <div style={{ width: `${e}%`, height: '100%', background: TONE_VAR[energyTone(e)] }} />
           </div>
           <span style={{ width: 118, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
             <b>{Math.round(e)}%</b> <span style={{ opacity: .7, fontStyle: 'italic' }}>{condWord(e)}</span>

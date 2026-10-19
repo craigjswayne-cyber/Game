@@ -10,10 +10,11 @@
  * Rochelais came up, and the workbook records both. This file is the 26/27
  * league, to match the season the rest of the game now runs.
  *
- * 300 of the 357 players here are real, with the position and nationality the
+ * 297 of the 354 players here are real (300 of 357 until 18 Oct 2026, when
+ * three women listed twice lost the duplicate row), with the position and nationality the
  * workbook gives them, and the other 57 carry RawPlayer.gen so that the ratio is
  * a property of the data rather than of this sentence. scripts/genprobe.ts holds
- * it: 300 and 57, club by club, and the suite fails if either moves without
+ * it: 297 and 57, club by club, and the suite fails if either moves without
  * somebody deciding it should.
  *
  * The workbook is explicit that it is "a working database and not yet a claim of
@@ -64,7 +65,7 @@ export const W_E1: RawClub[] = [
     stadium: 'Stade Ernest-Vallon', capacity: 3000,
     colors: ['#c8102e', '#0e0e0e'],
     rep: 84, budget: 260000,
-    // 34 players, 32 of them from the workbook
+    // 35 players, 33 of them from the workbook or a cited source
     players: [
       { name: 'Amalia Bazola', pos: 'LP', age: 31, nat: 'FRA', q: 80 },
       { name: 'Lauraly Dedy', pos: 'TP', age: 19, nat: 'FRA', q: 70 },
@@ -98,6 +99,9 @@ export const W_E1: RawClub[] = [
       { name: 'Alessia Philippe', pos: 'WG', age: 25, nat: 'FRA', q: 80 },
       { name: 'Amalia Argudo Llobregat', pos: 'FB', age: 32, nat: 'ESP', q: 75 },
       { name: 'Pauline Barrat', pos: 'FB', age: 24, nat: 'FRA', q: 78 },
+      // at Stade Toulousain since 2023; the game had her at Montpellier
+      // (en.wikipedia Charlotte_Escudero; research of 18 Oct 2026)
+      { name: 'Charlotte Escudero', pos: 'N8', age: 28, nat: 'FRA', q: 81 },
       { name: 'Amandine Bergougnan', pos: 'LK', age: 30, nat: 'FRA', q: 74, gen: true },
       { name: 'Célestine Ferrand', pos: 'CE', age: 34, nat: 'FRA', q: 74, gen: true },
     ],
@@ -108,7 +112,7 @@ export const W_E1: RawClub[] = [
     stadium: 'Stade Sainte-Germaine', capacity: 2500,
     colors: ['#6b2231', '#ffffff'],
     rep: 82, budget: 250000,
-    // 41 players, 38 of them from the workbook
+    // 40 players, 37 of them from the workbook
     players: [
       { name: 'Montserrat Amédée', pos: 'CE', age: 30, nat: 'FRA', q: 80 },
       { name: 'Carla Arbez', pos: 'FH', age: 35, nat: 'FRA', q: 65 },
@@ -124,8 +128,9 @@ export const W_E1: RawClub[] = [
       { name: 'Emma Coudert', pos: 'FH', age: 19, nat: 'FRA', q: 69 },
       { name: 'Annaelle Deshaye', pos: 'TP', age: 32, nat: 'FRA', q: 75 },
       { name: 'Taylor Donato', pos: 'SH', age: 24, nat: 'FRA', q: 80 },
-      { name: 'Madoussou Fall-Raclot', pos: 'LK', age: 30, nat: 'FRA', q: 73 },
-      { name: 'Makaritta Baleinadogo', pos: 'LP', age: 25, nat: 'FRA', q: 77 },
+      // one woman, listed twice until 18 Oct 2026: additions.ts also had her as
+      // 'Madoussou Fall' with the owner's database figures, which she keeps here
+      { name: 'Madoussou Fall-Raclot', pos: 'LK', alt: ['FL'], age: 28, nat: 'FRA', q: 86, intl: true },
       { name: 'Maïlys Mailagi', pos: 'HK', age: 34, nat: 'FRA', q: 69 },
       { name: 'Orane Jambes', pos: 'LP', age: 31, nat: 'FRA', q: 68 },
       { name: 'Laura Morelle', pos: 'HK', age: 20, nat: 'FRA', q: 64 },
@@ -258,14 +263,13 @@ export const W_E1: RawClub[] = [
     stadium: 'Stade Sabathier', capacity: 2500,
     colors: ['#0a2240', '#ffffff'],
     rep: 75, budget: 215000,
-    // 32 players, 27 of them from the workbook
+    // 30 players, 25 of them from the workbook
     players: [
       { name: 'Maëlle Huiban', pos: 'LP', age: 18, nat: 'FRA', q: 60 },
       { name: 'Eva Mazzochi', pos: 'HK', age: 31, nat: 'FRA', q: 70 },
       { name: 'Lila Tajouri', pos: 'TP', age: 28, nat: 'FRA', q: 69 },
       { name: 'Rkhya Aït-Lhabib', pos: 'LK', age: 27, nat: 'FRA', q: 77 },
       { name: 'Rose Bernadou', pos: 'FL', age: 20, nat: 'FRA', q: 82 },
-      { name: 'Yllana Brosseau', pos: 'N8', age: 23, nat: 'FRA', q: 73 },
       { name: 'Marie-Charlotte Burel', pos: 'LK', age: 21, nat: 'FRA', q: 66 },
       { name: 'Assia Khalfaoui', pos: 'FL', age: 26, nat: 'FRA', q: 73 },
       { name: 'Axelle Moles', pos: 'LP', age: 24, nat: 'FRA', q: 67 },
@@ -273,7 +277,6 @@ export const W_E1: RawClub[] = [
       { name: 'Safi N’Diaye', pos: 'TP', age: 32, nat: 'FRA', q: 61 },
       { name: 'Léa Bazerque', pos: 'FL', age: 29, nat: 'FRA', q: 75 },
       { name: 'Marion Zdziech', pos: 'LK', age: 23, nat: 'FRA', q: 72 },
-      { name: 'Charlotte Escudero', pos: 'N8', age: 28, nat: 'FRA', q: 81 },
       { name: 'Romane Menager', pos: 'LP', age: 25, nat: 'FRA', q: 78 },
       { name: 'Marine Menager', pos: 'HK', age: 28, nat: 'FRA', q: 72 },
       { name: 'Emeline Gros', pos: 'TP', age: 33, nat: 'FRA', q: 61 },
@@ -438,7 +441,7 @@ export const W_E1: RawClub[] = [
     stadium: 'Stade Henri-Vallon', capacity: 2000,
     colors: ['#c8102e', '#0e0e0e'],
     rep: 67, budget: 175000,
-    // 34 players, 28 of them from the workbook
+    // 33 players, 27 of them from the workbook
     players: [
       { name: 'Grace Bokomo', pos: 'LP', age: 26, nat: 'FRA', q: 72 },
       { name: 'Khadidja Camara', pos: 'HK', age: 27, nat: 'FRA', q: 75 },
@@ -452,7 +455,6 @@ export const W_E1: RawClub[] = [
       { name: 'Assa Kante', pos: 'HK', age: 29, nat: 'FRA', q: 69 },
       { name: 'Chloe Couffin', pos: 'TP', age: 27, nat: 'FRA', q: 74 },
       { name: 'Mabinty Keita', pos: 'FL', age: 24, nat: 'FRA', q: 58 },
-      { name: 'Émilie Boulard', pos: 'SH', age: 37, nat: 'FRA', q: 53 },
       { name: 'Tara Bougenot', pos: 'FH', age: 25, nat: 'FRA', q: 65 },
       { name: 'Nassira Konde', pos: 'CE', age: 27, nat: 'FRA', q: 68 },
       { name: 'Marie-Aurele Kouamé', pos: 'WG', age: 22, nat: 'FRA', q: 55 },

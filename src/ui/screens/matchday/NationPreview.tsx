@@ -14,6 +14,7 @@ import { Glyph } from '../../glyphs'
 import { rowNavTr } from '../../rowNav'
 import { SPEECHES, type SpeechId, ViewPicker } from './prematch'
 import { Veil } from '../../Veil'
+import { acc } from '../../accent'
 
 /** Test-match preview: you're coaching your COUNTRY this week. */
 export function NationPreview({ fxId }: { fxId: number }) {
@@ -123,7 +124,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
           const cfx = assistantFixtureThisWeek(game)
           if (!cfx) return null
           return (
-            <div className="card" style={{ borderLeft: '4px solid var(--border-strong)' }}>
+            <div className="card" style={{ ...acc('var(--border-strong)') }}>
               <div className="fact-label">{t('matchday.clubSameDay')}</div>
               <div className="meta" style={{ marginTop: 3 }}>
                 {t('matchday.assistantTakes', { g: game.staffPeople?.assistant?.g ?? 'm', home: teamShort(game, cfx.homeId), away: teamShort(game, cfx.awayId) })}
@@ -140,7 +141,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
 
         <SectionTitle sub={sel != null
           ? t('matchday.moving', { player: game.players[myLineup[sel] ?? -1]?.name ?? t('matchday.emptySlot') })
-          : t('matchday.tapSwapHintTest')}>{t('matchday.yourTestXV')}</SectionTitle>
+          : undefined} help={t('matchday.tapSwapHintTest')}>{t('matchday.yourTestXV')}</SectionTitle>
         <div className="tblwrap"><table className="dtable"><tbody>
           {XV_SLOTS.map((s, i) => {
             const pid = myLineup[i]

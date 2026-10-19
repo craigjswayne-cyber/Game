@@ -121,7 +121,7 @@ const NOUNS = new Set<string>()
 // three seasons to six of five found three more leaks on its own, so the
 // number is not decoration.
 const CLUBS = [
-  'northampton', 'ealing', 'bath', 'toulouse', 'cinderford', 'newcastle',
+  'northampton', 'ealing', 'bath', 'toulouse', 'stortford', 'newcastle',
   'leinster', 'perpignan', 'coventry', 'glasgow',
 ]
 // PROBE_QUICK (v1.2.2): on a push the Gate plays four careers for four

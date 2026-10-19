@@ -143,7 +143,7 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
 {
   const { simMatch } = await import('../src/game/matchEngine')
   const { mulberry32 } = await import('../src/game/rng')
-  type Row = { raw: number; homeWin: number; draw: number; comp: string }
+  type Row = { raw: number; homeWin: number; draw: number; comp: string; gap: number }
   const rows: Row[] = []
   // Nine worlds, not three: the quartile gap is a one-to-two point effect
   // measured against about +/-1.7 points of sampling noise per quartile at
@@ -166,7 +166,7 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
       const e = venueEffect(g, fx.homeId, fx.awayId, fx.week)
       simMatch(g, fx, mulberry32(seed * 7919 + i), false)
       const hs = fx.homeScore ?? 0, as = fx.awayScore ?? 0
-      rows.push({ raw: e.raw, homeWin: hs > as ? 1 : 0, draw: hs === as ? 1 : 0, comp: fx.compId })
+      rows.push({ raw: e.raw, homeWin: hs > as ? 1 : 0, draw: hs === as ? 1 : 0, comp: fx.compId, gap: g.clubs[fx.homeId].rep - g.clubs[fx.awayId].rep })
     })
   }
   // QUARTERS WITHIN EACH LEAGUE, then pooled. Ranked across the whole world,
@@ -194,19 +194,67 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
   const easiest = band(easyRows)
   const hardest = band(hardRows)
   const all = band(rows)
+  // LIKE FOR LIKE (1.9.2). With the 2026-27 line-ups, National One and the
+  // Championship put their longest trips at weak clubs' far-flung grounds
+  // (Camborne, Plymouth), so the hardest quarter was also the quarter whose
+  // home sides were weakest, and lost more for that reason. The verdict now
+  // reads each fixture against fixtures in its own league with a similar gap
+  // in club reputation (bins of 5): the residual is the home side's win above
+  // what that strength gap would predict, and the trip should push it up.
+  const expect = new Map<string, { w: number; n: number }>()
+  const key = (r: Row) => `${r.comp}|${Math.round(r.gap / 5)}`
+  for (const r of rows) { const b = expect.get(key(r)) ?? { w: 0, n: 0 }; b.w += r.homeWin; b.n++; expect.set(key(r), b) }
+  const resid = (slice: Row[]) => slice.reduce((a, r) => { const b = expect.get(key(r))!; return a + r.homeWin - b.w / b.n }, 0) / slice.length * 100
+  const easyRes = resid(easyRows), hardRes = resid(hardRows)
   console.log(`\n${rows.length} league fixtures simmed over 36 worlds:`)
   console.log(`  easiest quarter of each league (mean raw ${easiest.mr.toFixed(3)}): home win ${easiest.w.toFixed(1)}%`)
   console.log(`  hardest quarter of each league (mean raw ${hardest.mr.toFixed(3)}): home win ${hardest.w.toFixed(1)}%`)
   console.log(`  all fixtures: home win ${all.w.toFixed(1)}%, draws ${all.d.toFixed(1)}%`)
-  if (hardest.w <= easiest.w) {
-    bad(`the hardest trips are not harder to win: ${hardest.w.toFixed(1)}% against ${easiest.w.toFixed(1)}% on the easiest. The edge is built but nothing reads it.`)
-  }
+  // REPORTED, NOT GATED (1.9.2). This was the gate: the hardest quarter's home
+  // win rate above the easiest's. Measured over 48,000 fixtures it cannot be
+  // one. Inside a league the trip moves the home edge by about half a per cent
+  // (SPREAD 0.05 on a raw spread near 0.1), a tenth of a point of win rate,
+  // while the sampling noise on the comparison is a point or more, and club
+  // strength is folded into it besides (a far-flung ground is often a weak
+  // club's: Camborne, Plymouth). It passed before the 2026-27 line-ups by
+  // 0.4 points of luck and failed after them by luck the other way; allowing
+  // for strength it failed on both. The wiring is now held exactly, below.
+  console.log(`  against the strength gap (information only): hardest quarter ${hardRes >= 0 ? '+' : ''}${hardRes.toFixed(1)} points, easiest ${easyRes >= 0 ? '+' : ''}${easyRes.toFixed(1)}`)
   // A one-season slice of a single sim path is noisier than the ten-season
   // simtest, so this is a wide sanity gate rather than the calibrated band.
   // scripts/simtest.ts is what holds 55 to 56 per cent.
   if (all.w < 50 || all.w > 61) {
     bad(`the overall home-win rate came out at ${all.w.toFixed(1)}%, which is nowhere near the calibrated band`)
   }
+}
+
+// THE ENGINE READS THE EDGE, EXACTLY (1.9.2). Every league fixture of one
+// world is opened (not played) and the home advantage it starts with read
+// off the match. Away from an artificial pitch (its own small edge) and the
+// manager's own club (the fans' mood), nothing else moves it, so it must be
+// the base advantage times the trip's edge, to the last decimal. No dice are
+// involved: this cannot pass or fail by luck, and it fails the moment the
+// edge stops reaching the match.
+{
+  const { beginMatch } = await import('../src/game/matchEngine')
+  const { mulberry32 } = await import('../src/game/rng')
+  const g = newGame('northampton', 'Venue Probe', 2026)
+  let checked = 0, wrong = 0, worst = ''
+  const spread = new Set<string>()
+  for (const fx of g.fixtures) {
+    if (g.comps[fx.compId]?.type !== 'league' || fx.venue || fx.homeId === g.userClubId) continue
+    const h = g.clubs[fx.homeId], a = g.clubs[fx.awayId]
+    if (!h || !a) continue
+    const e = venueEffect(g, fx.homeId, fx.awayId, fx.week)
+    const ctx = beginMatch(g, fx, mulberry32(fx.id), false, null)
+    if (ctx.surface === 'artificial') continue
+    checked++
+    if (Math.abs(ctx.hfa - 1.06 * e.edge) > 1e-9) { wrong++; worst ||= `${fx.homeId} v ${fx.awayId}: ${ctx.hfa} against ${1.06 * e.edge}` }
+    if (Math.abs(e.edge - 1) > 1e-6) spread.add(fx.compId)
+  }
+  console.log(`\n${checked} league fixtures opened: the home advantage is the trip's edge on every one (${wrong} off)`)
+  if (wrong) bad(`the match does not start on the trip's edge (${wrong} of ${checked}, e.g. ${worst})`)
+  if (spread.size < 5) bad(`the edge varies in only ${spread.size} leagues`)
 }
 
 if (fails) { console.error(`VENUE PROBE: ${fails} failures`); process.exit(1) }

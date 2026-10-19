@@ -57,7 +57,7 @@ try {
   ok(await page.locator('text=The Press Call You').count() === 0,
     'the new-career wizard no longer asks how the press should refer to you')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 20000 })
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')

@@ -234,32 +234,33 @@ export const TOP14_B: RawClub[] = [
     colors: ['#12295c', '#f0eadc'],
     rep: 63, budget: 850000,
     players: [
-      { name: 'Francisco Gómez Kodela', pos: 'LP', age: 39, nat: 'ARG', q: 60, intl: true },
-      { name: 'Hugo Bouyssou', pos: 'LP', age: 28, nat: 'FRA', q: 57 },
-      { name: 'Léo Gallais', pos: 'LP', age: 25, nat: 'FRA', q: 55 },
-      { name: 'Matthieu Lemoine', pos: 'HK', age: 30, nat: 'FRA', q: 59 },
-      { name: 'Baptiste Guého', pos: 'HK', age: 26, nat: 'FRA', q: 56 },
-      { name: 'Tomas Ravily', pos: 'TP', age: 31, nat: 'FRA', q: 58 },
-      { name: 'Marceau Guilloux', pos: 'TP', age: 27, nat: 'FRA', q: 56 },
+      // VANNES, 2026-27 (research of 18 Oct 2026). The list this replaced was
+      // 22 names no source could find - invented-looking, without the gen flag
+      // the women's files would have given them - plus Gómez Kodela, who is
+      // not in the 2026-27 props. The real squad was assembled from the
+      // RugbyPass FR Vannes 2026-27 list, the LNR club page and the J6 team
+      // sheet at Perpignan (10 Oct 2026). Only names graded high or medium
+      // with an age are here; the many men moving in from other files
+      // (Popelin, Hulleu, Beria, Kuruvoli, Bouthier, Le Bail, Blanc-Mappaz,
+      // Medrano, Cherry, Sanerivi, Iachizzi, Tabuavou, Alemanno) are moved by
+      // verified.ts, and the builder tops the senior squad up as for any club.
+      { name: 'Ugo Boniface', pos: 'LP', age: 25, nat: 'FRA', q: 63 },
+      { name: 'Simon Bourgeois', pos: 'LP', age: 26, nat: 'FRA', q: 62 },
+      { name: 'Wayan de Benedittis', pos: 'LP', age: 25, nat: 'FRA', q: 62 },
+      { name: 'Théo Béziat', pos: 'HK', age: 27, nat: 'FRA', q: 62 },
+      // listed at Perpignan and here; verified.ts sends him to Clermont
       { name: 'Tevita Ratuva', pos: 'LK', age: 30, nat: 'FIJ', q: 66, intl: true },
-      { name: 'Corentin Le Meur', pos: 'LK', age: 29, nat: 'FRA', q: 58 },
-      { name: 'Yann Danion', pos: 'LK', age: 33, nat: 'FRA', q: 56 },
-      { name: 'Antoine Riberot', pos: 'FL', age: 28, nat: 'FRA', q: 60 },
-      { name: 'Mathis Le Corre', pos: 'FL', alt: ['N8'], age: 25, nat: 'FRA', q: 58 },
-      { name: 'Julien Le Bail', pos: 'FL', age: 30, nat: 'FRA', q: 57 },
-      { name: 'Grégoire Arfeuil', pos: 'N8', age: 27, nat: 'FRA', q: 60 },
-      { name: 'Thibault Morvan', pos: 'SH', age: 26, nat: 'FRA', q: 60 },
-      { name: 'Lucas Guillemin', pos: 'SH', age: 24, nat: 'FRA', q: 56 },
+      { name: 'Mattéo Desjeux', pos: 'LK', age: 24, nat: 'FRA', q: 62 },
+      // captain at Perpignan on 10 Oct 2026 (LNR team sheet)
+      { name: 'Francisco Gorrissen', pos: 'FL', age: 32, nat: 'ARG', q: 70, intl: true },
+      { name: 'Ioane Iashagashvili', pos: 'FL', age: 26, nat: 'GEO', q: 62 },
+      { name: 'Sione Kalamafoni', pos: 'N8', age: 37, nat: 'TGA', q: 65, intl: true },
+      { name: 'Michael Ruru', pos: 'SH', age: 31, nat: 'NZL', q: 66 },
       { name: 'Maxime Lafage', pos: 'FH', age: 30, nat: 'FRA', q: 68, gk: true },
-      { name: 'Pierre Popelin', pos: 'FB', alt: ['FH'], age: 31, nat: 'FRA', q: 64, gk: true },
-      { name: 'Romain Le Goff', pos: 'CE', age: 28, nat: 'FRA', q: 59 },
-      { name: 'Baptiste Hamon', pos: 'CE', age: 26, nat: 'FRA', q: 58 },
-      { name: 'Théo Séveno', pos: 'CE', alt: ['WG'], age: 24, nat: 'FRA', q: 56 },
-      { name: 'Erwan Dridi', pos: 'WG', age: 29, nat: 'FRA', q: 62 },
-      { name: 'Jules Le Breton', pos: 'WG', age: 25, nat: 'FRA', q: 57 },
-      { name: 'Noa Zinzen', pos: 'WG', alt: ['FB'], age: 23, nat: 'FRA', q: 55 },
-      { name: 'Clément Bothua', pos: 'FB', alt: ['WG'], age: 27, nat: 'FRA', q: 58 },
-      { name: 'Gaspard Riou', pos: 'FL', age: 23, nat: 'FRA', q: 55 },
+      { name: "Raymond Nu'u", pos: 'CE', age: 27, nat: 'SAM', q: 65 },
+      { name: 'Robin Taccola', pos: 'CE', age: 25, nat: 'FRA', q: 63 },
+      { name: 'Murray Taulagi', pos: 'WG', age: 27, nat: 'AUS', q: 70 },
+      { name: 'Paul Surano', pos: 'WG', age: 24, nat: 'FRA', q: 62 },
     ],
   },
 ]

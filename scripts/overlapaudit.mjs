@@ -108,7 +108,7 @@ const run = async (size) => {
     await page.click('.speech-tile >> text=Forward Dominance')
     await page.click('.action-bar >> text=Confirm')
     await check('wizard: summary')
-    await page.click('text=▸ Start Career')
+    await page.click('text="Start Career"')
     await page.waitForSelector('.tut-box', { timeout: 15000 })
     await page.click('.tut-close .btn')
     await page.waitForTimeout(400)
@@ -134,7 +134,7 @@ const run = async (size) => {
     // seconds for a button several days out, which is why all three sizes
     // stopped short of the two match-day views.
     for (let tap = 0; tap < 10; tap++) {
-      if (await page.locator('text=Kick Off ▸').count()) break
+      if (await page.locator('text="Kick Off"').count()) break
       if (!(await page.locator('.continue-btn').count())) break
       await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
       await page.waitForTimeout(450)

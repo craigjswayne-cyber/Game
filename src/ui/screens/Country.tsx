@@ -12,6 +12,7 @@ import FullFitness from '../FullFitness'
 import { posName, t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { rowNavTr } from '../rowNav'
+import { acc } from '../accent'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -123,7 +124,7 @@ export default function Country() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
+      <div className="card" style={{ ...acc('var(--text-positive)') }}>
         <h3 style={{ fontSize: '1.125rem' }}><Flag code={natId} /> {nationName(natId)}</h3>
         <div className="meta" style={{ marginTop: 2 }}>
           {t('legacy.coRankLine', {
@@ -201,7 +202,7 @@ export default function Country() {
               is free to tear it up: naming it in one tap is a choice he makes,
               which is not the same as it being made for him. */}
           {squad.length < NAT_SQUAD_FLOOR ? (
-            <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+            <div className="card" style={{ ...acc('var(--gold)') }}>
               <b>{t('legacy.coNameIt', { n: NAT_SQUAD_FLOOR - squad.length })}</b>
               <div className="meta" style={{ marginTop: 2 }}>{t('legacy.coNameItSub', { floor: NAT_SQUAD_FLOOR, max: w.size })}</div>
               <button className="btn gold block" style={{ marginTop: 8 }}

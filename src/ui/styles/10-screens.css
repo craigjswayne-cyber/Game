@@ -105,7 +105,7 @@
   color: var(--text-muted);
 }
 .wire-card { cursor: pointer; }
-.wire-card.unread { border-left: 4px solid var(--gold); }
+.wire-card.unread { background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border)); }
 /* The body of a story, set as paragraphs. It used to be one pre-line block, which
    is why the news read as a wall: the engine writes stories in two and three parts
    and none of them had any air around them. */
@@ -591,7 +591,7 @@
    Resume, under the scoreboard, until it is pressed. */
 .resume-note {
   margin: 8px 12px 4px;
-  border-left: 4px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
 }
 
 .tense-band {

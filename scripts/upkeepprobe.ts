@@ -23,7 +23,9 @@ import { ok, done } from './lib/probe'
 const k = (n: number) => `${(n / 1000).toFixed(0)}k`
 
 /** A season of non-rugby luck at one club, as a list of season nets. */
-function seasons(club: 'northampton' | 'esher', n: number): number[] {
+// (Esher until 18 Oct 2026, when it left National One for the real
+// 2026-27 league; Bishop's Stortford is the nearest club in standing)
+function seasons(club: 'northampton' | 'stortford', n: number): number[] {
   const out: number[] = []
   for (let t = 0; t < n; t++) {
     const g = newGame(club, 'Upkeep', 500 + t)
@@ -86,8 +88,8 @@ console.log('\n--- 3. a club cannot be ruined by weather it could never have pai
   // administration by weather - and it is not what a real club does either.
   // The roof gets patched and the survey gets filed, which is why every
   // lower-league ground in the country has a stand held together by paint.
-  const small = seasons('esher', 60)
-  const g0 = newGame('esher', 'Upkeep', 1)
+  const small = seasons('stortford', 60)
+  const g0 = newGame('stortford', 'Upkeep', 1)
   const bank = g0.clubs[g0.userClubId].balance
   ok(small[0] > -3 * bank,
     `a minnow's worst year is survivable against its own bank (${k(small[0])} against ${k(bank)})`)

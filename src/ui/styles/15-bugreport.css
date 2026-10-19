@@ -203,11 +203,11 @@
   .read-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; margin: 6px 12px; }
   .read-pair > .card { margin: 0; }
 }
-.respect-line { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
-.temper-card .bench-note { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
+.respect-line { margin-top: 6px; padding-left: 8px; background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px; }
+.temper-card .bench-note { margin-top: 6px; padding-left: 8px; background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px; }
 
 /* development as a project (1.8.2): the staff's read, and the timeline */
-.dev-card { border-left: 4px solid var(--info); }
+.dev-card { background: color-mix(in srgb, var(--info) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--info) 38%, var(--border)); }
 .dev-card .meta { font-size: 0.8125rem; line-height: 1.45; margin-top: 2px; }
 .dev-timeline { padding: 4px 12px; }
 .dev-timeline .tl-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); min-width: 0; }
@@ -377,8 +377,18 @@
 .mood-chip.low { border-color: var(--danger); background: var(--danger-tint); }
 .mood-fold { margin: 6px 0 2px; }
 .mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 0.8125rem; padding: 6px 0; color: var(--info); min-height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; }
-.mood-fold > summary::before { content: '▸'; font-size: 0.6875rem; }
-.mood-fold[open] > summary::before { content: '▾'; }
+.mood-fold > summary::before, .ft-units > summary::before {
+  /* a drawn chevron, turned down when open (1.9.2: no text triangles) */
+  content: ''; flex-shrink: 0; width: 6px; height: 6px; margin: 0 3px 2px 1px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s ease;
+}
+.mood-fold[open] > summary::before, .ft-units[open] > summary::before { transform: rotate(45deg); }
+.ft-units > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.ft-units > summary::-webkit-details-marker { display: none; }
+.ft-units > summary { list-style: none; }
+.mood-fold > summary { list-style: none; }
+@media (prefers-reduced-motion: reduce) { .mood-fold > summary::before, .ft-units > summary::before { transition: none; } }
 .mood-fold > summary::-webkit-details-marker { display: none; }
 /* the full-time memory lines, under the two fixes (1.8.6) */
 .ft-context:not(:empty) { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--border); }

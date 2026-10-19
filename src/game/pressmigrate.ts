@@ -24,6 +24,23 @@ type Pattern = { k: string; names: string[]; rx: RegExp; literal: number }
 let INDEX: Pattern[] | null = null
 /** [key, the English it was saved under before its wording changed] */
 const LEGACY_EN: ReadonlyArray<readonly [string, string]> = [
+  // 1.9.2: spaced hyphens used as dashes rewritten with proper punctuation
+  ["press.campHeatR", "Flights booked. A week of double sessions in the sun - the squad comes home lean, sharp, and united in their hatred of the hill runs."],
+  ["press.stanceHigh", "Judge us in May - aim high (+{fund} war chest)"],
+  ["press.stanceSafe", "Quiet season - heads down"],
+  ["press.coldQ2", "Be honest about {player} - the supporters on the message boards already are. What is going wrong for him?"],
+  ["press.coldQ2_f", "Be honest about {player} - the supporters on the message boards already are. What is going wrong for her?"],
+  ["press.cardsQ2", "{Man_k} in the book again - {n} cards in one afternoon. When does passion become a problem?"],
+  ["press.cardsQ3", "The disciplinary summary makes grim reading: {n} cards. Whose fault is that - the players' or the coaching?"],
+  ["press.vultureQ2", "Names are circulating for your job - real names, with real agents. Do you still have the board's backing?"],
+  ["press.plansInR1", "{player} leaves with his head up. He will hold you to it - pick him soon or this conversation happens again, louder."],
+  ["press.plansInR1_f", "{player} leaves with her head up. She will hold you to it - pick her soon or this conversation happens again, louder."],
+  ["press.routQ3", "{opp} had no answers out there. {us}-{them} - is this side at its ceiling, or still climbing?"],
+  ["press.routCredit", "Credit {opp} - they made it hard"],
+  ["press.derbyLostQ2", "Their supporters will be singing about this one all week. A derby lost - how long does this one hurt?"],
+  ["press.leakQ1", "We're hearing {player} has been dropped for Saturday - before you've told him. Who's talking in your dressing room?"],
+  ["press.leakQ1_f", "We're hearing {player} has been dropped for Saturday - before you've told her. Who's talking in your dressing room?"],
+  ["press.homeQ2", "There is a story going round that {player} is struggling to settle - new country, new league, and {home_k} a long way off. Anything in it?"],
   ['press.campHeat', 'Warm-weather camp ({cost})'],
   // these stopped calling every club's home "the town" (owner: language
   // relevant to location)

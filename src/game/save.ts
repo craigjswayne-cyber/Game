@@ -1082,7 +1082,18 @@ function migrateWorldGrowth(s: GameState): void {
   // any other, in leagues the women's world does not have, and the save could
   // not be repaired afterwards.
   const rng = mulberry32(0xadd1e ^ (s.season * 977 + s.week))
+  // A LEAGUE THE SAVE ALREADY HAS IS LEFT AS THE SAVE HAS IT (18 Oct 2026).
+  // The 2026-27 data changed three leagues' MEMBERSHIP rather than adding
+  // leagues: Pro D2 swapped two clubs for four, the Championship and National
+  // One traded clubs and gained new ones. A save keeps its own clubs - the old
+  // ones are in state.clubs with their leagueIds - so injecting the new ones on
+  // top would grow Pro D2 to eighteen and National One to seventeen, and the
+  // next summer's rebuild would throw, because those round robins no longer
+  // fit the calendar. A career plays on in the world it began in; only a
+  // league it has never had is brought in whole.
+  const leaguesHeld = new Set(Object.values(s.clubs).map(c => c.leagueId))
   for (const def of LEAGUE_DEFS(genderOf(s))) {
+    if (leaguesHeld.has(def.id)) continue
     for (const rc of def.clubs) {
       if (s.clubs[rc.id]) continue
       const club: Club = {

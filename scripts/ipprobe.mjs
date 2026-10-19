@@ -42,6 +42,10 @@ const MARKS = {
     'California Legion', 'San Diego Legion', 'Old Glory DC', 'Anthem RC', 'Anthem Rugby Carolina',
     'Houston SaberCats', 'SaberCats', 'Utah Warriors', 'Miami Sharks', 'Rugby New York',
     'NOLA Gold', 'Dallas Jackals', 'Rugby FC Los Angeles', 'Austin Gilgronis',
+    // the clubs the real 2026-27 leagues brought in (18 Oct 2026)
+    'Worcester Warriors', 'Rotherham Titans', 'Dings Crusaders', 'Tonbridge Juddians',
+    'Stade Niçois', 'Nissa Rugby', 'Stade Aurillacois', 'Soyaux Angoulême', 'Soyaux-Angoulême',
+    'RC Narbonne', 'Racing Club Narbonne',
   ],
   'competition marks': [
     'Gallagher Premiership', 'Premiership Rugby', 'Top 14', 'Pro D2',
@@ -71,6 +75,9 @@ const MARKS = {
     // the American grounds (1.7.3): the sponsor goes, and each real name with it
     'SeatGeek', 'Starfire Stadium', 'Torero Stadium', 'SoccerPlex',
     'Veterans Memorial Stadium', 'American Legion Memorial',
+    // and their grounds (18 Oct 2026)
+    'Sixways', 'Dillingham Park', 'Clifton Lane', 'Shaftesbury Park', 'Marcel-Volot',
+    'Jean-Alric', 'Stade Chanzy',
     // the women's competitions, added v1.5. Élite 1 and Élite 2 are exactly
     // what the French women's divisions are called, and Celtic Challenge and
     // Pacific Four Series are exactly what those two are called - all four
@@ -103,6 +110,10 @@ const FOOTBALL_ALLOWED = [
   // the one joke: a phone-in caller says "that's football... no, that's rugby"
   "that's football... no", "c'est le football... non", 'eso es fútbol... no',
   'questo è calcio... no', 'それはサッカー…いや',
+  // a typeface, not the Franklin's Gardens mark: the UI's body font since the
+  // 1.9.2 font pass ships as "font-family: Libre Franklin" in the CSS, and
+  // its font files as libre-franklin-*.woff2
+  'libre franklin', 'libre-franklin',
 ]
 const maskAllowed = (text) => {
   let out = text
@@ -223,7 +234,13 @@ for (const [group, marks] of Object.entries(MARKS)) {
       // position is the id, not the mark. Anything with real capitals, or not
       // used as a key, still fails.
       const matched = text.slice(at, at + mark.length)
-      const isKey = matched === matched.toLowerCase() && text[at + mark.length] === ':'
+      // ...and the relocation table (verified.ts) names them inside its pins,
+      // as the club after the @ of a 'name@club' key or as a whole quoted
+      // value ("cheslin kolbe@sungoliath", `dynaboars`) - lowercase ids again
+      const before = text[at - 1], after = text[at + mark.length]
+      const quoted = (q) => before === q && after === q
+      const isKey = matched === matched.toLowerCase() &&
+        (after === ':' || before === '@' || quoted('"') || quoted('`') || quoted("'"))
       if (isKey) { idSkips++; continue }
       hits.push(`${mark}  in ${f}: "${text.slice(Math.max(0, at - 40), at + mark.length + 40).replace(/\s+/g, ' ')}"`)
       break

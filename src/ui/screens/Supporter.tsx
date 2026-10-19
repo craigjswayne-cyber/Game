@@ -13,6 +13,7 @@ import { NAT_TIERS, pickableNations, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
 import { endingText, spendCredit } from '../purchase'
 import { Glyph } from '../glyphs'
+import { accLine } from '../accent'
 
 /**
  * THE STORE. One row per product, one line per row (owner, v1.1.4: "strip
@@ -68,7 +69,7 @@ function Row({ icon, title, line, right, msg, children, hero }: {
         {right}
       </div>
       {children}
-      {msg && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg}</div>}
+      {msg && <div className="meta sheet-log" style={{ ...accLine('var(--gold)'), paddingLeft: 8 }}>{msg}</div>}
     </div>
   )
 }
@@ -151,7 +152,7 @@ function TillHealth() {
   // report now (bugreport.ts), which is where a diagnostic belongs, and the
   // shelf keeps the one sentence that tells a customer what he can do.
   return (
-    <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
+    <div className="card" style={{ ...accLine('var(--gold)') }}>
       <div className="meta">{t(key, { live: state.live, asked: state.asked })}</div>
     </div>
   )
@@ -578,7 +579,7 @@ export default function Supporter() {
                   {t('till.applyHere')}
                 </button>
               )}
-              {msgs[sku] && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msgs[sku]}</div>}
+              {msgs[sku] && <div className="meta sheet-log" style={{ ...accLine('var(--gold)'), paddingLeft: 8 }}>{msgs[sku]}</div>}
             </div>
           )
         })}

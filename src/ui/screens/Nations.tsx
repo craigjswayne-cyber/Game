@@ -11,6 +11,7 @@ import { answerIsles, islesCoach, islesEligible } from '../../game/isles'
 import { weekDate } from '../../game/model'
 import { t, compLabel } from '../../game/i18n'
 import { rowNavTr } from '../rowNav'
+import { acc } from '../accent'
 
 /** THE TEST RANKINGS, WITH THE REST OF INTERNATIONAL RUGBY (owner, 1.8.2).
  *  They sat as a third tab on the Scouting Agency, between two lists of club
@@ -80,7 +81,7 @@ export default function Nations() {
         const open = game.isles?.answer === 'open'
         const took = game.isles?.answer === 'yes'
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
+          <div className="card" style={{ ...acc('var(--primary)') }}>
             <SectionTitle sub={compLabel(game.comps['lions']?.name)}>{t('isles.title')}</SectionTitle>
             <div className="meta" style={{ padding: '0 10px 8px' }}>
               {open ? t('isles.whyYes') : took ? t('isles.took') : t('isles.passed')}
@@ -104,7 +105,7 @@ export default function Nations() {
         </div>
       )}
       {myNat && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <h3 style={{ fontSize: '0.875rem' }}>{t('world.natYouCoach', { nat: nationName(myNat) })}</h3>
           <div className="meta">
             {mySquad.length

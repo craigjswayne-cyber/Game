@@ -105,7 +105,7 @@ async function newCareer(name) {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', name)
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
 }
 
 try {

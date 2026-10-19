@@ -5,7 +5,7 @@
 import { LEAGUE_DEFS } from '../src/game/newgame'
 import { newGame } from '../src/game/newgame'
 import { CLUB_CAPTAINS, sameName } from '../src/data/captains'
-import { GONE, VERIFIED_CLUB, verifiedClub } from '../src/data/verified'
+import { DECEASED, GONE, VERIFIED_CLUB, verifiedClub } from '../src/data/verified'
 import { EXTRA_PLAYERS } from '../src/data/additions'
 import { POS_ORDER, type Pos } from '../src/game/model'
 
@@ -68,7 +68,13 @@ const cover = (players: { pos: string; alt?: readonly string[] | string[] }[]) =
 // other nine have no named replacement anywhere in the source, and inventing
 // one is the thing this file exists to prevent. Lower it by adding those
 // clubs' own signings when a source turns up - never by cancelling transfers.
-const GAP_BUDGET = 39
+// 43 after round 3 (19 Oct 2026), the same price again: Lyon a tighthead
+// without Coria Marchetti (Brive), the Drua a hooker without Ikanivere (Honda
+// Heat), the Highlanders a scrum-half without Hastie (Force), the Waratahs a
+// fly-half without Creighton, Debreczeni and Edmed, the Force a wing and a
+// centre without Potter, Bridge, Proctor and Tomkinson. No source named their
+// replacements.
+const GAP_BUDGET = 43
 let gapCount = 0
 const gapsByLeague = new Map<string, number>()
 for (const club of allClubs) {
@@ -103,6 +109,18 @@ for (const club of allClubs) {
   for (const [pos, n] of NEED) {
     if ((byPos.get(pos) ?? 0) < n) bad(`${club.id} is built with ${byPos.get(pos) ?? 0} at ${pos}, needs ${n}`)
   }
+}
+
+// 1c. NO PLAYER WHO HAS DIED (owner, 18 Oct 2026). Not in any league file of
+//     either game, and not in additions.ts - the builder also skips them, but
+//     the data itself must not carry the name.
+for (const gender of ['m', 'w'] as const) {
+  for (const d of LEAGUE_DEFS(gender)) for (const c of d.clubs) for (const p of c.players) {
+    if (DECEASED.has(p.name.toLowerCase())) bad(`${p.name} has died and is still listed at ${c.id}`)
+  }
+}
+for (const [cid, rows] of Object.entries(EXTRA_PLAYERS)) for (const p of rows) {
+  if (DECEASED.has(p.name.toLowerCase())) bad(`${p.name} has died and is still added at ${cid}`)
 }
 
 // 2. the same man listed at two clubs. The world builder keeps the first and
@@ -360,10 +378,15 @@ for (const club of allClubs) {
 
 // 6. the captains list resolves, and every club in the world ends up with one
 const g = newGame('leicester', 'Data Audit', 20260805)
+// The list carries women's captains too since 18 Oct 2026, under their w: ids,
+// and a women's club only exists in a women's world: each name is checked in
+// the world its club belongs to.
+let gw6: ReturnType<typeof newGame> | null = null
 for (const [cid, name] of Object.entries(CLUB_CAPTAINS)) {
-  const club = g.clubs[cid]
+  const cw = cid.startsWith('w:') ? (gw6 ??= newGame('w:trailfinders', 'Data Audit', 20260805, undefined, 'coach', 'w')) : g
+  const club = cw.clubs[cid]
   if (!club) { bad(`captain list names missing club ${cid}`); continue }
-  const man = club.players.map(id => g.players[id]).find(p => p && sameName(p.name, name))
+  const man = club.players.map(id => cw.players[id]).find(p => p && sameName(p.name, name))
   if (!man) { bad(`${cid}: ${name} is not in the squad, so the armband fell elsewhere`); continue }
   if (club.captain !== man.id) bad(`${cid}: ${name} is in the squad but not captain`)
   if (man.a.lea < 15) bad(`${cid}: captain ${name} has leadership ${man.a.lea}`)
@@ -388,7 +411,8 @@ const realPct = (realXV / totalXV) * 100
 console.log(`\n${allClubs.length} clubs · ${allClubs.reduce((s, c) => s + c.players.length, 0)} real players`)
 console.log(`starting XVs are ${realPct.toFixed(1)}% real men (${realXV}/${totalXV})`)
 if (realPct < 90) bad(`only ${realPct.toFixed(1)}% of starting XVs are real players - filler is taking shirts`)
-console.log(`captains: ${Object.keys(CLUB_CAPTAINS).length} named by hand, ${Object.keys(g.clubs).length - Object.keys(CLUB_CAPTAINS).length} chosen on leadership`)
+const menNamed = Object.keys(CLUB_CAPTAINS).filter(k => !k.startsWith('w:')).length
+console.log(`captains: ${menNamed} men's named by hand, ${Object.keys(g.clubs).length - menNamed} chosen on leadership; ${Object.keys(CLUB_CAPTAINS).length - menNamed} women's named by hand`)
 
 if (fails) { console.error(`\nDATA AUDIT: ${fails} failures, ${warns} warnings`); process.exit(1) }
 console.log(`\nDATA AUDIT PASSED (${warns} warnings)`)

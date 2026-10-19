@@ -43,7 +43,7 @@ try {
   await page.waitForSelector('.club-tile'); await page.click('.tile >> text=Northampton')
   await page.waitForSelector('text=Star Player'); await page.click('.action-bar >> text=Confirm')
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'S'); await page.click('.speech-tile >> text=Forward Dominance')
-  await page.click('.action-bar >> text=Confirm'); await page.click('text=▸ Start Career')
+  await page.click('.action-bar >> text=Confirm'); await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 }); await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })
 
@@ -78,10 +78,10 @@ try {
 
   // ---- match ----
   await page.click('.bottom-nav button[title="Home"]').catch(() => {})
-  for (let k = 0; k < 8; k++) { if (await page.locator('text=Kick Off ▸').count()) break; await page.click('.continue-btn'); await page.waitForTimeout(450) }
-  await page.locator('text=Kick Off ▸').first().click()
+  for (let k = 0; k < 8; k++) { if (await page.locator('text="Kick Off"').count()) break; await page.click('.continue-btn'); await page.waitForTimeout(450) }
+  await page.locator('text="Kick Off"').first().click()
   await page.locator('.talk-modal').waitFor({ timeout: 5000 }); await page.click('.talk-modal .speech-tile >> nth=0')
-  try { await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 }); await page.click('text=▸ Take the Field') } catch {}
+  try { await page.locator('text="Take the Field"').waitFor({ timeout: 2500 }); await page.click('text="Take the Field"') } catch {}
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
   const kits = await page.evaluate(() => {
     const s = window.rugbyStore.getState()
@@ -89,7 +89,12 @@ try {
     // a near-black first colour gives way to the second (MatchDay lineStyle)
     const luma = h => { const n = parseInt(h.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 }
     const fill = c => luma(c[0]) < 40 && c[1] && luma(c[1]) > luma(c[0]) ? c[1] : c[0]
-    return { [fx.homeId]: fill(s.game.clubs[fx.homeId].colors), [fx.awayId]: fill(s.game.clubs[fx.awayId].colors) }
+    // an away side whose colour clashes with the home side's wears its second
+    // colour or a spare (kit.ts kitColours): any of its own colours, or a spare
+    const root = getComputedStyle(document.documentElement)
+    const spares = ['--kit-spare-white', '--kit-spare-slate', '--kit-spare-gold'].map(v => root.getPropertyValue(v).trim()).filter(c => c.startsWith('#'))
+    const own = id => [fill(s.game.clubs[id].colors), ...s.game.clubs[id].colors]
+    return { [fx.homeId]: [fill(s.game.clubs[fx.homeId].colors)], [fx.awayId]: [...own(fx.awayId), ...spares] }
   })
   const hex = h => { const n = parseInt(h.slice(1), 16); return `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})` }
   let team = 0, plain = 0, wrong = 0
@@ -104,7 +109,7 @@ try {
       return el && e ? { teamId: e.teamId, bg: getComputedStyle(el).backgroundColor } : null
     })
     if (r) {
-      if (r.teamId) { team++; if (r.bg !== hex(kits[r.teamId])) wrong++ } else plain++
+      if (r.teamId) { team++; if (!kits[r.teamId].some(c => r.bg === hex(c))) wrong++ } else plain++
     }
     await clear()
     await page.waitForTimeout(350)

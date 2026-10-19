@@ -48,13 +48,14 @@ lines.forEach((line, i) => {
   }
 })
 
-/** Every .tsx under src/ui, so a token set inline can be found. */
+/** Every .tsx and .ts under src/ui, so a token set inline (or by a style
+ *  helper such as accent.ts) can be found. */
 function tsxFiles(dir) {
   const out = []
   for (const name of readdirSync(dir)) {
     const p = join(dir, name)
     if (statSync(p).isDirectory()) out.push(...tsxFiles(p))
-    else if (name.endsWith('.tsx')) out.push(p)
+    else if (name.endsWith('.tsx') || name.endsWith('.ts')) out.push(p)
   }
   return out
 }

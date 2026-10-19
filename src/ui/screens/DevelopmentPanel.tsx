@@ -9,6 +9,7 @@ import { scoutPa } from '../../game/scout'
 import { SectionTitle } from '../components'
 import { IcoSearch } from '../icons'
 import { t } from '../../game/i18n'
+import { acc } from '../accent'
 
 /* the six programmes a man can be put on; balanced is the squad session */
 const KINDS: { id: TrainingFocus; name: string }[] = [
@@ -86,7 +87,7 @@ export default function DevelopmentPanel() {
       <SectionTitle sub={free > 0 ? t('training.placesFree', { n: free, cap }) : t('training.placesNone', { cap })}>
         {t(view === 'focus' ? 'training.devFocus' : 'training.personalPlans')}
       </SectionTitle>
-      <div className="card" style={{ padding: '8px 10px', borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ padding: '8px 10px', ...acc('var(--gold)') }}>
         <div className="fact-label">{t('training.whoQualifies')}</div>
         <div className="meta" style={{ fontSize: '0.75rem' }}>
           {view === 'focus'

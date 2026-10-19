@@ -10,6 +10,7 @@ import MentoringPanel from './MentoringPanel'
 import DepthPane from './DepthChart'
 import { Glyph } from '../glyphs'
 import { rowNav, rowNavTr } from '../rowNav'
+import { acc } from '../accent'
 
 /** The assistant's full report on the squad, FM Team Report style. */
 export default function TeamReport({ initial }: { initial?: string }) {
@@ -57,7 +58,7 @@ export default function TeamReport({ initial }: { initial?: string }) {
         <button className={rtab === 'depth' ? 'active' : ''} onClick={() => setRtab('depth')}>{t('squad.tabDepth')}</button>
         <button className={rtab === 'mentoring' ? 'active' : ''} onClick={() => setRtab('mentoring')}>{t('training.mentoring')}</button>
       </div>
-      {(rtab === 'standing' || rtab === 'xv') && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      {(rtab === 'standing' || rtab === 'xv') && <div className="card" style={{ ...acc('var(--gold)') }}>
         <h3 style={{ fontSize: '0.875rem' }}>{t('report.trVerdict')}</h3>
         <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
       </div>}

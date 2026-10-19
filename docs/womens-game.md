@@ -149,7 +149,7 @@ incomplete old one, and the two worlds never meet, so nothing compares them.
 
 ## 7. What is built, and what is not
 
-**Where the players come from.** Six leagues, 64 clubs, 2,096 players in the
+**Where the players come from.** Six leagues, 64 clubs, 2,093 players in the
 squads, and 4,211 in the built world once the academy and the squad fill are in.
 
 | League | Players | Real | Generated | Source |
@@ -157,10 +157,10 @@ squads, and 4,211 in the built world once the academy and the squad fill are in.
 | PWR | 375 | 375 | 0 | owner's spreadsheet |
 | Pacific (Aupiki + Super W) | 279 | 279 | 0 | owner's screenshots |
 | Celtic Challenge | 185 | 185 | 0 | competition team pages |
-| Élite 1 | 357 | 300 | 57 | FFR workbook + three club pages |
+| Élite 1 | 354 | 297 | 57 | FFR workbook + three club pages (3 duplicate rows removed 18 Oct 2026) |
 | Élite 2 | 300 | 116 | 184 | FFR workbook (one club of ten) |
 | English Championship | 600 | 0 | 600 | no reachable source carries this division |
-| **total** | **2,096** | **1,255** | **841** | |
+| **total** | **2,093** | **1,252** | **841** | |
 
 The two second tiers are where the invented players live: 784 of the 841. That
 is the honest state of the sources rather than a shortcut. They are built the way

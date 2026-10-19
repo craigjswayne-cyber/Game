@@ -15,12 +15,11 @@
   border-color: var(--border-strong);
   box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
 }
-.desk-card.home-hero.attn { border-left: 4px solid var(--gold); }
+.desk-card.home-hero.attn { background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border)); }
 .home-hero .desk-sub { font-size: 0.9375rem; }
 .home-hero .desk-link { font-size: 0.875rem; }
 .home-hero .fx-line { font-size: 1.25rem; }
 .home-hero .desk-match { margin-left: -14px; margin-right: -14px; }
-.desk-card.home-hero.attn .desk-match { margin-left: -11px; }
 /* no rows beside it: the decisions and the match take the card's width */
 .desk-body.solo { display: block; }
 /* a week with no match: the run and the friendlies in the match's place, on
@@ -41,7 +40,11 @@
 @media (orientation: landscape) and (min-width: 640px) {
   .card-grid.home-tiles { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); align-items: stretch; padding: 0 14px 8px; }
 }
-.app.tablet .card-grid.home-tiles { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); align-items: stretch; padding: 0 14px 8px; }
+/* 12px ON TOP on a tablet (owner, 18 Oct 2026: "space between Store box and
+   next match box too close"). The tablet round gives the hero no bottom margin
+   and every grid a 12px top pad, and this rule's padding put the top back to
+   0, so the Store sat 2px under the match. */
+.app.tablet .card-grid.home-tiles { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); align-items: stretch; padding: 12px 14px 8px; }
 /* a card that is not a tile (the store shelf, the old app's warning) keeps
    its own look and takes the whole row */
 .card-grid.home-tiles > .card { grid-column: 1 / -1; margin: 0; width: auto; }

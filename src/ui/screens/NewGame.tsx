@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor, wizardAim } from '../../game/newgame'
+import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor, resolveSquads, wizardAim } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
 import { setAmbitions } from '../../game/ambitions'
 import { COACHING_STYLES } from '../../game/tactics'
@@ -11,8 +11,10 @@ import { fmtMoney, seasonLabel } from '../../game/model'
 import { t, localeTag, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { listSaves, type SaveMeta } from '../../game/save'
+import { saveSlotLimit } from '../../game/monetise'
 import { SLOTS as SAVE_SLOTS, slotName } from './Saves'
 import { rowNav } from '../rowNav'
+import { acc } from '../accent'
 
 // Guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
@@ -37,6 +39,10 @@ export default function NewGame() {
   const newGender = useStore(s => s.newGender)
   const setNewGender = useStore(s => s.setNewGender)
   const defs = useMemo(() => LEAGUE_DEFS(newGender), [newGender])
+  // the squads the career will really have, transfers applied: the league
+  // files alone are a window behind (owner, 18 Oct 2026: Tomos Williams shown
+  // as Gloucester's star after he had signed for Saracens)
+  const squads = useMemo(() => resolveSquads(defs), [defs])
   // the career's seed, drawn once here so the aim shown is the aim set (wizardAim)
   const [seed] = useState(() => (Math.random() * 2 ** 31) | 0)
   const challenges = useMemo(() => challengesFor(newGender), [newGender])
@@ -57,7 +63,14 @@ export default function NewGame() {
   const [pickSlot, setPickSlot] = useState<string | null>(null)
   useEffect(() => { void listSaves().then(setSaves).catch(() => setSaves([])) }, [])
   const usedSlots = new Set((saves ?? []).map(sv => sv.slot))
-  const freeSlot = !usedSlots.has(activeSlot) ? activeSlot : SAVE_SLOTS.find(sl => !usedSlots.has(sl)) ?? null
+  // the free game keeps one career (monetise.saveSlotLimit): at the limit a
+  // new career replaces one, it never takes an empty slot
+  const limited = saveSlotLimit() < SAVE_SLOTS.length
+  const atLimit = (saves ?? []).length >= saveSlotLimit()
+  const freeSlot = atLimit ? null : !usedSlots.has(activeSlot) ? activeSlot : SAVE_SLOTS.find(sl => !usedSlots.has(sl)) ?? null
+  // the tiles to replace from: the four slots, and an imported career too,
+  // so a free player whose one career is an import can still replace it
+  const pickSlots = [...SAVE_SLOTS, ...(saves ?? []).map(sv => sv.slot).filter(sl => !SAVE_SLOTS.includes(sl))]
   const targetSlot = saves == null ? null : freeSlot ?? pickSlot
   // the Manager's License (v1.1.0): offered here and only here, and only to
   // an owner - the receipt is bought on the Supporter page, the choice is made
@@ -147,7 +160,8 @@ export default function NewGame() {
     setStep(step - 1)
   }
 
-  const starPlayer = club ? [...club.players].sort((a, b) => b.q - a.q)[0] : null
+  const squad = club ? squads.get(club.id) ?? club.players : []
+  const starPlayer = [...squad].sort((a, b) => b.q - a.q)[0] ?? null
 
   return (
     <>
@@ -307,8 +321,8 @@ export default function NewGame() {
                   <div><label>{t('wizard.stadium')}</label><span>{club.stadium} · {club.capacity.toLocaleString(localeTag())}</span></div>
                   <div><label>{t('wizard.mediaVerdict')}</label><span>{mediaVerdict(club, league ?? defs.find(d => d.clubs.some(c => c.id === club.id))!)}</span></div>
                   <div><label>{t('wizard.transferBudget')}</label><span>{fmtMoney(club.budget)}</span></div>
-                  <div><label>{t('wizard.squadValue')}</label><span>{fmtMoney(club.players.reduce((s, p) => s + playerValue(p.q, p.age, p.q), 0))}</span></div>
-                  <div><label>{t('wizard.squadSize')}</label><span>{club.players.length}</span></div>
+                  <div><label>{t('wizard.squadValue')}</label><span>{fmtMoney(squad.reduce((s, p) => s + playerValue(p.q, p.age, p.q), 0))}</span></div>
+                  <div><label>{t('wizard.squadSize')}</label><span>{squad.length}</span></div>
                 </div>
               </div>
             )}
@@ -320,7 +334,7 @@ export default function NewGame() {
           <>
             <div className="wizard-hint">{t('wizard.profileAt', { club: club.name })}</div>
             {challenge && (
-              <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+              <div className="card" style={{ ...acc('var(--gold)') }}>
                 <h3 style={{ fontSize: '1rem' }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
                 <div className="meta">{t(challenge.desc)}</div>
               </div>
@@ -331,7 +345,11 @@ export default function NewGame() {
             <div className="card">
               <label className="fact-label" htmlFor="mgr-name">{t('wizard.yourName')}</label>
               <input id="mgr-name" className="inline-input" placeholder={t('wizard.namePlaceholder')}
-                value={name} onChange={e => setName(e.target.value)}
+                autoCapitalize="words"
+                // a name starts with a capital, whatever the keyboard did (owner,
+                // 18 Oct 2026): the first letter of each word, the rest as typed,
+                // so an inner capital such as McAllister's survives
+                value={name} onChange={e => setName(capitaliseName(e.target.value))}
                 onFocus={e => {
                   // keep the field visible above the software keyboard
                   const el = e.target
@@ -363,13 +381,13 @@ export default function NewGame() {
               <div className="meta muted" style={{ margin: '0 0 8px' }}>{t('wizard.savesTo', { slot: slotName(freeSlot) })}</div>
             ) : (
               <div className="card">
-                <label className="fact-label">{t('wizard.slotsFull')}</label>
-                <div className="meta" style={{ marginBottom: 6 }}>{t('wizard.slotsFullBlurb')}</div>
+                <label className="fact-label">{t(limited ? 'wizard.slotsFreeFull' : 'wizard.slotsFull')}</label>
+                <div className="meta" style={{ marginBottom: 6 }}>{t(limited ? 'wizard.slotsFreeBlurb' : 'wizard.slotsFullBlurb')}</div>
                 <div className="speech-grid" style={{ padding: 0 }}>
-                  {SAVE_SLOTS.map(sl => {
+                  {pickSlots.map(sl => {
                     const sv = saves.find(x => x.slot === sl)
                     return (
-                      <button key={sl} className={`speech-tile${pickSlot === sl ? ' sel' : ''}`} onClick={() => setPickSlot(sl)}>
+                      <button key={sl} className={`speech-tile${pickSlot === sl ? ' sel' : ''}`} disabled={!sv} onClick={() => setPickSlot(sl)}>
                         <b>{slotName(sl)}</b>
                         {sv && <span className="d">{sv.managerName} · {sv.club} · {seasonLabel(sv.season)}</span>}
                       </button>
@@ -419,4 +437,9 @@ export default function NewGame() {
       </div>
     </>
   )
+}
+
+/** Upper-case the first letter of every word, leaving the rest as typed. */
+export function capitaliseName(s: string): string {
+  return s.replace(/(^|[\s-])(\p{Ll})/gu, (_, sep: string, ch: string) => sep + ch.toLocaleUpperCase(localeTag()))
 }

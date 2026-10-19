@@ -16,6 +16,7 @@ import { CrestT, SectionTitle } from '../components'
 import { ord, posName, t, compLabel } from '../../game/i18n'
 import { Glyph, newsGlyph } from '../glyphs'
 import { AdSlot } from '../AdSlot'
+import { acc } from '../accent'
 
 
 /**
@@ -148,7 +149,7 @@ function MondayBlocks() {
         const verdict = t(us > them ? 'dayroom.won' : us < them ? 'dayroom.lost' : 'dayroom.drew')
         const col = us > them ? 'var(--text-positive)' : us < them ? 'var(--danger)' : undefined
         return (
-          <div className="card" style={{ borderLeft: `4px solid ${us > them ? 'var(--text-positive)' : us < them ? 'var(--danger)' : 'var(--gold)'}` }}>
+          <div className="card" style={{ ...acc(us > them ? 'var(--text-positive)' : us < them ? 'var(--danger)' : 'var(--gold)') }}>
             <div className="fact-label">{t('dayroom.satReviewed')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={22} />
@@ -236,7 +237,7 @@ function TuesdayBlocks() {
   return (
     <>
       {waiting > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <div className="fact-label">{t('dayroom.pressWaiting')}</div>
           <div className="meta">{t('dayroom.pressWaitingBody', { n: waiting })}</div>
           <button className="btn gold block" style={{ marginTop: 8 }} onClick={() => go('press')}>
@@ -295,7 +296,7 @@ function WednesdayBlocks() {
       </div>
       {/* deadline week gets said out loud, not implied by a date */}
       {(isDeadlineWeek(game.week) || isDeadlineWeek(nextWeek(game.week))) && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ ...acc('var(--gold)') }}>
           <div className="fact-label">{t('dayroom.deadline')}</div>
           <div className="meta">{t(isDeadlineWeek(game.week) ? 'dayroom.deadlineBody' : 'dayroom.deadlineSoonBody')}</div>
         </div>
@@ -383,7 +384,7 @@ function ThursdayBlocks() {
           .filter(p => p && p.cond < 72).length
         if (!out.length && tiredXv < 4) return null
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+          <div className="card" style={{ ...acc('var(--danger)') }}>
             <div className="fact-label">{t('dayroom.selection')}</div>
             {out.slice(0, 3).map(p => (
               <div key={p.id} className="meta" style={{ padding: '2px 0' }}>
@@ -429,7 +430,7 @@ function FridayBlocks() {
         const opp = game.clubs[oppId]
         const read = analystRead(game, oppId)
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <div className="card" style={{ ...acc('var(--gold)') }}>
             {/* "Tomorrow" only when it is: a Sunday kick-off is named by its date (1.8.15) */}
             <div className="fact-label">{fixtureDayOff(fx.id) === 1 && !fx.midweek ? fxDate(game.season, fx) : t('dayroom.tomorrow')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>

@@ -60,7 +60,7 @@ try {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Still Motion')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box')
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')
@@ -69,18 +69,18 @@ try {
   for (let i = 0; i < 40; i++) {
     if (await page.locator('text=Kick Off').count()) break
     if (await page.locator('text=On to the Week').count()) { await page.click('text=On to the Week'); continue }
-    if (await page.locator('text=Next Story ▸').count()) { await page.click('text=Next Story ▸'); continue }
+    if (await page.locator('text="Next Story"').count()) { await page.click('text="Next Story"'); continue }
     await page.click('.continue-btn')
     await page.waitForTimeout(160)
   }
-  await page.locator('text=Kick Off ▸').first().click()
+  await page.locator('text="Kick Off"').first().click()
   try {
     await page.locator('.talk-modal').waitFor({ timeout: 3000 })
     await page.click('.talk-modal .speech-tile >> text=Calm the nerves')
   } catch { /* a talk was already given */ }
   try {
-    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-    await page.click('text=▸ Take the Field')
+    await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+    await page.click('text="Take the Field"')
   } catch { /* clean sheet, no ready check */ }
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
 
@@ -149,10 +149,10 @@ try {
 
   // play it out
   await skipTo(page, 'Start Second Half')
-  await tapPast(page, 'text=▸ Start Second Half')
+  await tapPast(page, 'text="Start Second Half"')
   await page.waitForTimeout(300)
   await skipTo(page, 'Play the Final Quarter')
-  await tapPast(page, 'text=▸ Play the Final Quarter')
+  await tapPast(page, 'text="Play the Final Quarter"')
   await page.waitForTimeout(300)
   await skipTo(page, 'Continue to Results')
 

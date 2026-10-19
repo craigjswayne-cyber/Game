@@ -7,6 +7,7 @@ import { acadLeagueName, acadStandings, academySquad, academyStrength, academyXV
 import { ord, t } from '../../game/i18n'
 import { scoutPa } from '../../game/scout'
 import { rowNavTr } from '../rowNav'
+import { acc } from '../accent'
 
 /** The academy section: the squad, the A League table, and the fixtures.
  *
@@ -43,7 +44,7 @@ export default function Academy() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ ...acc('var(--gold)') }}>
         <h3 style={{ margin: 0 }}>{t('report.acTitle', { club: club.short })}</h3>
         <div className="meta">
           {t('report.acRegistered', { n: squad.length, max: ACADEMY_SIZE })}

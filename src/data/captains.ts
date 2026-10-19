@@ -47,17 +47,27 @@ export const CLUB_CAPTAINS: Record<string, string> = {
   munster: 'Tadhg Beirne',
   ulster: 'Iain Henderson',
   connacht: 'Cian Prendergast',
-  glasgow: 'Kyle Steyn',
+  // Tuipulotu captained Glasgow in round 3 of 2026-27 (URC line-ups); he
+  // co-captained with Steyn in 2025-26. Medium confidence, research of 18 Oct.
+  glasgow: 'Sione Tuipulotu',
   edinburgh: 'Grant Gilchrist',
-  cardiff: 'Josh Adams',
+  // a third season as captain (cardiffrugby.wales, 2026-27)
+  cardiff: 'Liam Belcher',
   // Jac Morgan captained the Ospreys until the same window took him to Gloucester.
   // No source names his replacement, so the armband is left to the game's
   // own leadership pick rather than to a guess - the same way 65 other clubs
   // choose theirs.
   scarlets: 'Josh Macleod',
   benetton: 'Michele Lamaro',
-  stormers: 'Salmaan Moerat',
-  bulls: 'Ruan Nortje',
+  // Moerat left for La Rochelle; Nel named captain in the 56-man 2026-27
+  // squad announcement (stormers.co.za, 17 Sep 2026)
+  stormers: 'Ruhan Nel',
+  // Nortje left for Kubota Spears; Coetzee captained through 2025-26 and
+  // leads the 2026-27 squad (SA Rugby Mag; medium confidence)
+  bulls: 'Marcell Coetzee',
+  // co-captains, Carter first (dragonsrfc.wales, Sep 2026); O'Brien is in
+  // CLUB_VICES
+  dragons: 'Ben Carter',
   sharks: 'Eben Etzebeth',
 
   // Top 14
@@ -65,18 +75,60 @@ export const CLUB_CAPTAINS: Record<string, string> = {
   la_rochelle: 'Gregory Alldritt',
   toulon: 'Charles Ollivon',
   bordeaux: 'Maxime Lucu',
-  racing92: 'Gael Fickou',
+  // Fickou left for Toulon; Spring captained again in October 2026 (team
+  // sheet v Perpignan; medium confidence)
+  racing92: 'Max Spring',
+  // captain on the J1 and J6 team sheets (usap-forum.com, x-tremlimit)
+  perpignan: 'Mattéo Le Corvec',
+  // captain at Perpignan on 10 Oct 2026 (LNR team sheet; medium)
+  vannes: 'Francisco Gorrissen',
   lyon: 'Baptiste Couilloud',
   castres: 'Mathieu Babillot',
 
   // Super Rugby Pacific
-  crusaders: 'David Havili',
+  // Havili left for Toshiba Brave Lupus and no successor has been named
+  // (crusaders.co.nz), so the armband is the game's own pick for now
   chiefs: 'Luke Jacobson',
   blues: 'Patrick Tuipulotu',
   hurricanes: "Du'Plessis Kirifi",
   brumbies: 'Allan Alaalatoa',
-  waratahs: 'Jake Gordon',
-  reds: 'Tate McDermott',
+  waratahs: 'Matt Philip',
+  reds: 'Fraser McReight',
+
+  // Major Rugby Competition (real squads from 18 Oct 2026, mrc.ts)
+  chicago: 'Lucas Rumball',
+  // stood in for while injured in 2026 (americasrugbynews; medium)
+  newengland: 'Joe Johnston',
+  seattle: 'Riekert Hattingh',
+  washington: 'Robert Harley',
+
+  // ---- the women's game (research of 18 Oct 2026; high-confidence only) ----
+  // Applied in the women's world the same way: the ids carry the w: prefix,
+  // so a men's world simply never finds these clubs.
+  // succeeds the retired Jade Konkel (rugbypass, 'captaincy nod')
+  'w:quins': 'Aoife Wafer',
+  // retained for 2026-27 (rugbypass)
+  'w:sale': 'Georgie Perris-Redding',
+  // Super Rugby Aupiki and Super W, 2026 (club and rnz/rugby.com.au releases)
+  'w:chiefs': 'Kennedy Tukuafu',
+  'w:matatu': 'Grace Brooker',
+  'w:hurricanes': 'Te Rauoriwa Gapper',
+  'w:drua': 'Bitila Tawake',
+  'w:force': 'Trilleen Pomare',
+  'w:waratahs': 'Emily Chancellor',
+  'w:reds': 'Jemma Bemrose',
+  'w:brumbies': 'Siokapesi Palu-Sekona',
+  // round 3, research of 19 Oct 2026 (club and league sources, high or medium)
+  force: 'Jeremy Williams',
+  doncaster: 'Ben Murphy',
+  provence: 'Joris Cazenave',
+  valence: 'Marco Tauleigne',
+  wildknights: 'Atsushi Sakate',
+  bravelupus: 'Michael Leitch',
+  spears: 'Faulua Makisi',
+  canon: 'Jesse Kriel',
+  steelers: 'Brodie Retallick',
+  bluerevs: 'Kwagga Smith',
 }
 
 // Announced vice-captains, applied the same way as the captains above. The
@@ -84,6 +136,12 @@ export const CLUB_CAPTAINS: Record<string, string> = {
 // listed is given a leader's standing in the dressing room.
 export const CLUB_VICES: Record<string, string[]> = {
   gloucester: ['Seb Atkinson', 'Jac Morgan'],
+  // Dragons' co-captain (dragonsrfc.wales, Sep 2026)
+  dragons: ["Angus O'Brien"],
+  // the co-captains of the two co-captained women's sides (hurricanes.co.nz,
+  // westernforce.rugby, 2026)
+  'w:hurricanes': ['Samantha Taylor'],
+  'w:force': ['Sammy Wood'],
 }
 
 /** Loose match: accents and punctuation differ between data files. */

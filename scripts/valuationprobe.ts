@@ -29,6 +29,7 @@ import { isLateBloomer, playerValue } from '../src/game/attributes'
 import { devFactor } from '../src/game/rollover'
 import { counterIncomingOffer } from '../src/game/ai'
 import { SEASON_WEEKS } from '../src/game/model'
+import { MINUTES_CENTRE } from '../src/game/rollover/ageing'
 import type { Player, TransferOffer } from '../src/game/model'
 import { ok, done } from './lib/probe'
 
@@ -135,9 +136,9 @@ for (const seed of [9, 777]) {
   ok(g.season === season0 + 1, `the season rolled over (week ${g.week}, season ${g.season})`)
 
   // the mean stays put: the minutes term averaged over the exact gate
-  // population must sit on zero (the -0.012 middle band is that correction)
+  // population must sit on zero (MINUTES_CENTRE is that correction)
   const pop = Object.values(g.players).filter(p => !p.acad && p.age <= 23 && p.lastStarts != null)
-  const term = (ls: number) => ls >= 10 ? 0.10 : ls <= 2 ? -0.10 : -0.012
+  const term = (ls: number) => (ls >= 10 ? 0.10 : ls <= 2 ? -0.10 : -0.012) - MINUTES_CENTRE
   const m = mean(pop.map(p => term(p.lastStarts!)))
   ok(pop.length > 300, `the gate population is real: ${pop.length} young pros carried starts through the summer`)
   ok(Math.abs(m) < 0.01, `the minutes term is mean-neutral over them (${m.toFixed(4)})`)
@@ -172,16 +173,20 @@ for (const seed of [9, 777]) {
   ok(msg.includes('best and final'), 'and the message says so plainly')
   ok(counterIncomingOffer(g, big.id).includes('already'), 'but there is no second bite at the same offer')
   // a lowball has road: sometimes they pay up, sometimes they walk - a real roll
-  let raised = 0, walked = 0
+  let raised = 0, walked = 0, minUp = Infinity, maxUp = 0
   for (let i = 0; i < 200; i++) {
     const o = tender(star.value * 0.9)
     const before = o.fee
     counterIncomingOffer(g, o.id)
-    if (o.status === 'pending' && o.fee > before) raised++
-    else if (o.status === 'rejected') walked++
+    if (o.status === 'pending' && o.fee > before) {
+      raised++
+      minUp = Math.min(minUp, o.fee / before); maxUp = Math.max(maxUp, o.fee / before)
+    } else if (o.status === 'rejected') walked++
   }
   ok(raised + walked === 200, `every lowball counter resolves one way or the other (${raised} raised, ${walked} walked)`)
-  ok(raised >= 80 && raised <= 140, `the 55% roll is real: ${raised}/200 paid up (expected about 110)`)
+  // owner, 18 Oct 2026: "about 60% of the time this offer increases by 10-20%"
+  ok(raised >= 95 && raised <= 145, `the 60% roll is real: ${raised}/200 paid up (expected about 120)`)
+  ok(minUp >= 1.095 && maxUp <= 1.205, `and each raise is 10% to 20% (${((minUp - 1) * 100).toFixed(1)}% to ${((maxUp - 1) * 100).toFixed(1)}%)`)
   ok(walked > 0, `and walking away still happens (${walked}/200) - the gamble has teeth`)
 }
 

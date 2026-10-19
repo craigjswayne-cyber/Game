@@ -2,7 +2,7 @@ import { softCeilings } from './ageing'
 import type { RawClub, RawPlayer } from '../data/types'
 import { migrateStyles } from './styles'
 import { refreshCaps } from './cap'
-import { GONE, verifiedClub } from '../data/verified'
+import { DECEASED, GONE, verifiedClub } from '../data/verified'
 import { extraPlayers } from '../data/additions'
 import { prospectsFor } from '../data/prospects'
 import { PREM_A } from '../data/leagues/prem_a'
@@ -246,13 +246,19 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
  * side should match up to the mens side even if in real life that isnt the
  * case but it preserves the challenge of the game."
  *
- * Nine puts the women's opening median at £1.26m against the men's £1.30m, and
+ * Nine put the women's opening median at £1.26m against the men's £1.30m, and
  * keeps the shape of the data - the spread between a rich club and a poor one
  * is preserved exactly, every figure simply carries the same multiplier. The
  * ceiling stays a little below the men's (£3.4m against £6.5m), which is the
  * one distinction worth keeping: no women's club is Toulouse.
+ *
+ * 8.5 SINCE 1.9.2. The 2026-27 line-ups added six men's lower-tier clubs
+ * (Championship and National One to 14, Pro D2 to 16), which pulled the men's
+ * opening median from £1.30m to £1.00m with no women's club changing; at nine
+ * the women's world opened on 126% of the men's (econparity: within a
+ * fifth). 8.5 is the smallest step back inside the owner's parity rule.
  */
-export const W_OPENING_MONEY = 9
+export const W_OPENING_MONEY = 8.5
 export function openingBudget(raw: number, leagueId: string): number {
   return leagueId.startsWith(W) ? Math.round(raw * W_OPENING_MONEY) : raw
 }
@@ -282,6 +288,92 @@ export function wizardAim(defs: LeagueDef[], clubId: string, seed: number): stri
   // by type, and never saved or simulated
   const state = { seed, season: 0, week: 1, userClubId: clubId, clubs, history: [], comps: {}, mgr: { trophies: [], finishes: [] } } as unknown as GameState
   return demandedFinish(state, clubId, def?.clubs.length ?? 14).text
+}
+
+/**
+ * Every club's raw senior squad as the world builder will actually build it:
+ * relocations from verified.ts applied, checked departures dropped, hand-added
+ * players appended, and a man listed twice built once.
+ *
+ * Its own function so the new-game wizard reads the same squads the career
+ * gets. The wizard used to read the league files directly, which are a window
+ * behind on transfers, and named Tomos Williams as Gloucester's star player
+ * after he had signed for Saracens (owner, 18 Oct 2026). Iterates the defs in
+ * their own order, because which listing of a double-listed man survives is
+ * decided by that order and the world fingerprint depends on it.
+ */
+export function resolveSquads(defs: LeagueDef[]): Map<string, RawPlayer[]> {
+  // A player the squad files place at the wrong club is moved to the right one,
+  // carrying the entry that was authored for him. Collected in a pre-pass so
+  // the result does not depend on league order, which is the whole bug.
+  const relocate = new Map<string, RawPlayer[]>()
+  const clubIds = new Set(defs.flatMap(d => d.clubs.map(c => c.id)))
+  for (const def of defs) {
+    for (const rc of def.clubs) {
+      for (const rp of rc.players) {
+        const to = verifiedClub(rp.name, rc.id)
+        if (!to || to === rc.id || !clubIds.has(to) || DECEASED.has(rp.name.toLowerCase())) continue
+        const list = relocate.get(to) ?? []
+        // his old club may list him twice over; he only signs for one of them
+        if (!list.some(x => x.name === rp.name)) list.push(rp)
+        relocate.set(to, list)
+      }
+    }
+  }
+  /** Real men already placed, by lowercased name. A list per name, because a
+   *  name can belong to two different players - see the dedup below. */
+  const seenMen = new Map<string, { pos: string; age: number }[]>()
+  const out = new Map<string, RawPlayer[]>()
+  for (const def of defs) {
+    for (const rc of def.clubs) {
+      const squad = [...rc.players]
+      // men who really play here but are listed elsewhere in the files
+      for (const rp of relocate.get(rc.id) ?? []) {
+        if (!squad.some(x => x.name === rp.name)) squad.push(rp)
+      }
+      // men who really play here and are in no file at all
+      const handAdded = new Set<string>()
+      for (const rp of extraPlayers(rc.id)) {
+        if (!squad.some(x => x.name === rp.name)) { squad.push(rp); handAdded.add(rp.name) }
+      }
+      const kept: RawPlayer[] = []
+      for (const rp of squad) {
+        // he is checked, and this is not where he plays. A HAND-ADDED man is
+        // exempt: additions.ts already places him at the club that needs him,
+        // by hand, and the relocation table speaks for the league FILES. When
+        // the 2026-27 window moved four Northampton men to new clubs, the
+        // 2025-26 guide still said Northampton and quietly deleted all four.
+        const to = handAdded.has(rp.name) ? null : verifiedClub(rp.name, rc.id)
+        // a checked departure out of the world (released, retired, or signed
+        // by a club the game does not model): the listing is not built at all
+        if (to === GONE) continue
+        // a man who has died is never built, whatever a file says (DECEASED)
+        if (DECEASED.has(rp.name.toLowerCase())) continue
+        if (to && clubIds.has(to) && to !== rc.id) continue
+        // A SHARED NAME IS NOT THE SAME MAN, and keyed on the bare name this
+        // deleted 24 real players from every world - a 26-year-old winger and a
+        // 30-year-old lock both called Alex Hughes are two men, and only one of
+        // them was reaching the pitch. scripts/dataaudit.ts had already worked
+        // out the discrimination and says so in its own comments ("writing
+        // either of them into verified.ts would DELETE A REAL PLAYER"), and the
+        // scoped name@club pins in verified.ts exist for the same reason - then
+        // this line dropped the second man anyway, twelve lines further down.
+        //
+        // Same rule as the audit: one man, if the shirt matches and the ages are
+        // within a year of each other. A genuine double listing (a sabbatical,
+        // a mid-window move recorded twice) still dedups; two different players
+        // both get built.
+        const key = rp.name.toLowerCase()
+        const built = seenMen.get(key)
+        if (built?.some(m => m.pos === rp.pos && Math.abs(m.age - rp.age) <= 1)) continue
+        if (built) built.push({ pos: rp.pos, age: rp.age })
+        else seenMen.set(key, [{ pos: rp.pos, age: rp.age }])
+        kept.push(rp)
+      }
+      out.set(rc.id, kept)
+    }
+  }
+  return out
 }
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
@@ -338,10 +430,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   }
 
   const seenNames = new Set<string>()
-  /** Real men already built, by lowercased name. A list per name, because a
-   *  name can belong to two different players - see the dedup below. */
-  const seenMen = new Map<string, { pos: string; age: number }[]>()
-
   // the Sapiac challenge's premise is that Montauban ARE in the Elite 14 -
   // make it true at boot: they come up, the weakest Elite 14 side goes down
   const defs = LEAGUE_DEFS(gender)
@@ -357,23 +445,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     }
   }
 
-  // A player the squad files place at the wrong club is moved to the right one,
-  // carrying the entry that was authored for him. Collected in a pre-pass so
-  // the result does not depend on league order, which is the whole bug.
-  const relocate = new Map<string, RawPlayer[]>()
-  const clubIds = new Set(defs.flatMap(d => d.clubs.map(c => c.id)))
-  for (const def of defs) {
-    for (const rc of def.clubs) {
-      for (const rp of rc.players) {
-        const to = verifiedClub(rp.name, rc.id)
-        if (!to || to === rc.id || !clubIds.has(to)) continue
-        const list = relocate.get(to) ?? []
-        // his old club may list him twice over; he only signs for one of them
-        if (!list.some(x => x.name === rp.name)) list.push(rp)
-        relocate.set(to, list)
-      }
-    }
-  }
+  const squads = resolveSquads(defs)
 
   for (const def of defs) {
     for (const rc of def.clubs) {
@@ -395,48 +467,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       // +1.1 points a game and home wins down 1.3 points on bandcheck, and
       // nobody reads an AI bench's jobs on a screen
       if (club.id === userClubId) club.tactic.briefs = defaultBriefs(splitFor(club))
-      const squad = [...rc.players]
-      // men who really play here but are listed elsewhere in the files
-      for (const rp of relocate.get(rc.id) ?? []) {
-        if (!squad.some(x => x.name === rp.name)) squad.push(rp)
-      }
-      // men who really play here and are in no file at all
-      const handAdded = new Set<string>()
-      for (const rp of extraPlayers(rc.id)) {
-        if (!squad.some(x => x.name === rp.name)) { squad.push(rp); handAdded.add(rp.name) }
-      }
-      for (const rp of squad) {
-        // he is checked, and this is not where he plays. A HAND-ADDED man is
-        // exempt: additions.ts already places him at the club that needs him,
-        // by hand, and the relocation table speaks for the league FILES. When
-        // the 2026-27 window moved four Northampton men to new clubs, the
-        // 2025-26 guide still said Northampton and quietly deleted all four.
-        const to = handAdded.has(rp.name) ? null : verifiedClub(rp.name, rc.id)
-        // a checked departure out of the world (released, retired, or signed
-        // by a club the game does not model): the listing is not built at all
-        if (to === GONE) continue
-        if (to && clubIds.has(to) && to !== rc.id) continue
-        // A SHARED NAME IS NOT THE SAME MAN, and keyed on the bare name this
-        // deleted 24 real players from every world - a 26-year-old winger and a
-        // 30-year-old lock both called Alex Hughes are two men, and only one of
-        // them was reaching the pitch. scripts/dataaudit.ts had already worked
-        // out the discrimination and says so in its own comments ("writing
-        // either of them into verified.ts would DELETE A REAL PLAYER"), and the
-        // scoped name@club pins in verified.ts exist for the same reason - then
-        // this line dropped the second man anyway, twelve lines further down.
-        //
-        // Same rule as the audit: one man, if the shirt matches and the ages are
-        // within a year of each other. A genuine double listing (a sabbatical,
-        // a mid-window move recorded twice) still dedups; two different players
-        // both get built.
-        const key = rp.name.toLowerCase()
-        const built = seenMen.get(key)
-        if (built?.some(m => m.pos === rp.pos && Math.abs(m.age - rp.age) <= 1)) continue
-        if (built) built.push({ pos: rp.pos, age: rp.age })
-        else seenMen.set(key, [{ pos: rp.pos, age: rp.age }])
+      for (const rp of squads.get(rc.id) ?? []) {
         // and the bare name still goes into the registry the NAME GENERATOR
         // reads, so no invented player can be handed either namesake's name
-        seenNames.add(key)
+        seenNames.add(rp.name.toLowerCase())
         const p = buildPlayer(rp, club.id, seed + club.players.length, 0)
         // Written by hand in the data, not by the name generator - EXCEPT where
         // the row says otherwise. The women's second tiers are 841 invented
@@ -456,6 +490,14 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   }
 
   // every club fields a full senior squad plus a real academy of 27
+  /** The depth a matchday squad needs in each shirt, a secondary position
+   *  counting half - the same table scripts/dataaudit.ts holds the world to. */
+  const SHIRT_MIN: [Pos, number][] = [['LP', 2], ['HK', 2], ['TP', 2], ['LK', 3], ['FL', 3], ['N8', 1], ['SH', 2], ['FH', 2], ['CE', 3], ['WG', 3], ['FB', 1]]
+  const seniorCover = (club: Club, pos: Pos): number => club.players.reduce((n, id) => {
+    const p = state.players[id]
+    if (!p || p.acad) return n
+    return n + (p.pos === pos ? 1 : 0) + ((p.alt ?? []).includes(pos) ? 0.5 : 0)
+  }, 0)
   const FILL_POS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB']
   for (const club of Object.values(state.clubs)) {
     const mkExtra = (age: number, q: number, youth: boolean, i: number, want?: Pos) => {
@@ -538,6 +580,22 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     let guard = 0
     while (club.players.length < 38 + ACADEMY_SIZE && guard++ < 40) {
       mkExtra(21 + Math.floor(rng() * 9), Math.max(42, club.rep - 16 + Math.floor(rng() * 10)), false, guard + 50)
+    }
+    // ...and no shirt below a matchday's minimum (the 2026-27 squads, 18 Oct
+    // 2026). The thinnest-first fill above covers a squad that is SHORT, but a
+    // real squad already at 36 or 37 gets one or two fillers and they go to its
+    // thinnest shirts - so when the window took three of Glasgow's centres, or
+    // Benetton's, the club was built with two and a half (scripts/dataaudit.ts
+    // check 1b). Only a squad below the minimum draws anything here, so every
+    // club the old data built in full is built exactly as before. Men's world
+    // only, for now: two women's clubs sit below this line today (Gloucester-
+    // Hartpury on the wing, Bristol at fly-half), and drawing for them would
+    // rebuild every women's world - an owner's call, not a data import's.
+    for (const [want, n] of gender === 'w' ? [] : SHIRT_MIN) {
+      let more = 0
+      while (seniorCover(club, want) < n && more++ < 3) {
+        mkExtra(21 + Math.floor(rng() * 9), Math.max(42, club.rep - 16 + Math.floor(rng() * 10)), false, 90 + more, want)
+      }
     }
   }
 

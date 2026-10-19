@@ -15,7 +15,8 @@
  *      no number and no trait name in them
  *   3. the room is read: in each classic situation the right tone helps and
  *      the wrong tone backfires, the way the owner described
- *   4. bounded: no man's multiplier leaves 1 +/- TALK_CAP
+ *   4. bounded: no man's multiplier leaves 1 +/- TALK_CAP in an even game,
+ *      or 1 +/- TALK_CAP_MAX against the strongest opposition
  *   5. it matters: paired simulations of identical matches with the best and
  *      the worst talk, evenly matched and mismatched, report the win-rate
  *      swing; even games swing in the target range, mismatches less
@@ -26,7 +27,7 @@
 import { readFileSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { applyPreTalk, applyTeamTalk, beginMatch, lineupFor, openDressingRoom, playHalf, paperOverall, recomputeSideUnits, talkListen, type LiveCtx } from '../src/game/matchEngine'
-import { HT_TONES, PRE_TONES, TALK_CAP, baseState, bestTone, logPreTalk, roomMood, silenceReads, silenceWeight, talkFactor, talkReads, talkSetting, type HtTone, type PreTone, type TalkSetting } from '../src/game/teamtalk'
+import { HT_TONES, PRE_TONES, TALK_CAP, TALK_CAP_MAX, baseState, bestTone, logPreTalk, roomMood, silenceReads, silenceWeight, talkFactor, talkReads, talkSetting, type HtTone, type PreTone, type TalkSetting } from '../src/game/teamtalk'
 import { mulberry32 } from '../src/game/rng'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import type { Fixture, GameState } from '../src/game/model'
@@ -150,6 +151,8 @@ console.log('--- 4. bounded')
   }
   console.log(`     per-man multiplier range ${lo.toFixed(3)} .. ${hi.toFixed(3)} (cap ${TALK_CAP})`)
   ok(lo >= 1 - TALK_CAP - 1e-9 && hi <= 1 + TALK_CAP + 1e-9, 'no man leaves 1 +/- TALK_CAP, whatever is said')
+  // and a heavy underdog's stakes, the steepest there are, still have a floor
+  ok(talkFactor(-5, -1) >= 1 - TALK_CAP_MAX - 1e-9 && talkFactor(5, -1) <= 1 + TALK_CAP_MAX, `the underdog's stakes stay inside 1 +/- ${TALK_CAP_MAX.toFixed(2)} (${talkFactor(-5, -1).toFixed(3)} .. ${talkFactor(5, -1).toFixed(3)})`)
 }
 
 // ---------------------------------------------------------------------------
@@ -241,9 +244,17 @@ const ev = rows.find(r => r.band === 'evenly matched')
 if (ev) {
   ok(ev.best > ev.none && ev.none > ev.worst, 'in even games the best talk wins more than silence, and the worst wins less')
   const sw = (ev.best - ev.worst) * 100
-  ok(sw >= (QUICK ? 5 : 7) && sw <= 17, `the even-game swing is in the target band (${sw.toFixed(1)}pp, target ~8-15)`)
-  for (const r of rows.filter(r => r !== ev)) {
-    ok((r.best - r.worst) <= (ev.best - ev.worst) + (QUICK ? 0.06 : 0.03), `a mismatch (${r.band}) swings no more than an even game (${((r.best - r.worst) * 100).toFixed(1)}pp)`)
+  ok(sw >= (QUICK ? 8 : 10) && sw <= 20, `the even-game swing is in the target band (${sw.toFixed(1)}pp, target ~10-18 since 1.9.2)`)
+  const fav = rows.find(r => r.band === 'clear favourites')
+  if (fav) ok((fav.best - fav.worst) <= (ev.best - ev.worst) + (QUICK ? 0.06 : 0.03), `favourites swing no more than an even game (${((fav.best - fav.worst) * 100).toFixed(1)}pp)`)
+  // THE UNDERDOG'S ROOM MATTERS MOST (1.9.2, owner: "A bad team talk against
+  // a good side and it heavily impacts the team"): against a stronger side the
+  // wrong word costs more than it does in an even game, and the right one is
+  // still worth having
+  const dog = rows.find(r => r.band === 'clear underdogs')
+  if (dog) {
+    ok(dog.none - dog.worst >= (ev.none - ev.worst) - (QUICK ? 0.02 : 0.01), `a wrong talk costs an underdog at least what it costs an even side (${((dog.none - dog.worst) * 100).toFixed(1)}pp against ${((ev.none - ev.worst) * 100).toFixed(1)}pp)`)
+    ok(dog.best > dog.none, `and the right one lifts an underdog (${((dog.best - dog.none) * 100).toFixed(1)}pp)`)
   }
 }
 

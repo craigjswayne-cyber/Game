@@ -57,7 +57,7 @@ try {
   await page.waitForSelector('.club-tile'); await page.click('.tile >> text=Northampton')
   await page.waitForSelector('text=Star Player'); await page.click('.action-bar >> text=Confirm')
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Probe'); await page.click('.speech-tile >> text=Forward Dominance')
-  await page.click('.action-bar >> text=Confirm'); await page.click('text=▸ Start Career')
+  await page.click('.action-bar >> text=Confirm'); await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 }); await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')
   // a few weeks, so the tables have a tenth place and the squads have form

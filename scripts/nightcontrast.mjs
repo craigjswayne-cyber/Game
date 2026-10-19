@@ -243,7 +243,7 @@ async function sweep(night, skin) {
       await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Night Reader')
       await page.click('.speech-tile >> text=Forward Dominance')
       await page.click('.action-bar >> text=Confirm')
-      await page.click('text=▸ Start Career')
+      await page.click('text="Start Career"')
       await page.waitForSelector('.tut-box', { timeout: 15000 })
       await look('tutorial')
       await page.click('.tut-close .btn')
@@ -322,7 +322,7 @@ async function sweep(night, skin) {
       // false claim of coverage is worse than an admitted gap.
       let reachedMatch = false
       for (let i = 0; i < 60; i++) {
-        if (await page.locator('text=Kick Off ▸').count()) { reachedMatch = true; break }
+        if (await page.locator('text="Kick Off"').count()) { reachedMatch = true; break }
         await page.evaluate(() => {
           const s = window.rugbyStore.getState()
           for (const n of s.game.news) n.read = true
@@ -336,7 +336,7 @@ async function sweep(night, skin) {
       }
       if (reachedMatch) {
         await look('match day: the tunnel')
-        await page.locator('text=Kick Off ▸').first().click()
+        await page.locator('text="Kick Off"').first().click()
         // two gates between the tunnel and the pitch, and missing either leaves
         // the scoreboard unrendered while the harness thinks it kicked off
         try {
@@ -345,8 +345,8 @@ async function sweep(night, skin) {
           await page.click('.talk-modal .speech-tile >> text=Calm the nerves')
         } catch { /* a talk was already given this week */ }
         try {
-          await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
-          await page.click('text=▸ Take the Field')
+          await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
+          await page.click('text="Take the Field"')
         } catch { /* no ready check on a clean sheet */ }
         await page.waitForSelector('.scoreboard', { timeout: 15000 }).catch(() => {})
         await page.waitForTimeout(900)

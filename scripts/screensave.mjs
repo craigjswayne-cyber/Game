@@ -54,7 +54,7 @@ async function career(page, club = 'Leicester') {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Save Tester')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })
@@ -230,11 +230,11 @@ try {
 
   say('\n--- the game plan, applied once')
   for (let tap = 0; tap < 10; tap++) {
-    if (await page.locator('text=Kick Off ▸').count()) break
+    if (await page.locator('text="Kick Off"').count()) break
     await page.click('.continue-btn', { timeout: 5000 }).catch(() => {})
     await page.waitForTimeout(450)
   }
-  const onMd = await page.locator('text=Kick Off ▸').count() > 0
+  const onMd = await page.locator('text="Kick Off"').count() > 0
   ok(onMd, 'Continue walks to the match day')
   const brief = page.locator('.tab-bar button', { hasText: 'Brief' })
   if (await brief.count()) await brief.first().click()
@@ -259,7 +259,7 @@ try {
   }
 
   say('\n--- nothing written mid-match')
-  await page.click('text=Kick Off ▸')
+  await page.click('text="Kick Off"')
   await page.locator('.talk-modal').waitFor({ timeout: 5000 })
   {
     const modal = await page.locator('.talk-modal').innerText()
@@ -267,7 +267,7 @@ try {
       'the pre-match choice says "Full commentary" and promises no minute-by-minute watching')
   }
   await page.click('.talk-modal .speech-tile >> nth=0')
-  try { await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 }); await page.click('text=▸ Take the Field') } catch { /* clean sheet */ }
+  try { await page.locator('text="Take the Field"').waitFor({ timeout: 2500 }); await page.click('text="Take the Field"') } catch { /* clean sheet */ }
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
   await page.waitForTimeout(3000)
   const inMatch = await stats(page)
@@ -317,7 +317,7 @@ try {
   await page.waitForTimeout(800)
   const end = await page.evaluate(() => { const st = window.rugbyStore.getState(); return { live: !!st.liveMatch, rec: !!st.matchRec, top: st.nav.at(-1)?.screen } })
   ok(!end.live && !end.rec, `the match was played out on load, nothing left half-played (${JSON.stringify(end)})`)
-  ok(await page.locator('text=Kick Off ▸').count() === 0, 'no Kick Off: the match is not offered a second time')
+  ok(await page.locator('text="Kick Off"').count() === 0, 'no Kick Off: the match is not offered a second time')
 
   ok(errors.length === 0, `no page errors (${errors.join(' | ')})`)
   await page.close()
@@ -364,7 +364,7 @@ try {
       const cont = (await p2.locator('.continue-btn').textContent()).trim()
       const owed = /Name (\d+) more/.exec(cont)?.[1]
       ok(owed != null && badge === owed, `the badge says ${badge}, the button asks for ${owed} more ("${cont}")`)
-      ok((cont.match(/▸/g) ?? []).length === 1, `the squad label carries one arrow, not two ("${cont}")`)
+      ok(!/▸/.test(cont), `the squad label carries no arrow since 1.9.2 ("${cont}")`)
     }
     await p2.close()
   }

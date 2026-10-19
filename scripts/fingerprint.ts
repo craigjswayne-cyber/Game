@@ -24,6 +24,46 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED for round 3 of the 2026-27 squads (research of 19 Oct 2026).
+  // Data, not mechanics: the Australian and Japanese moves, Pro D2's real men
+  // and Doncaster's change the world build's draws, so the Premiership's
+  // pairings fall differently and ALL SIX re-deal. (The real pitches, the
+  // re-centred INJ_NORM and the two referees' dials, committed just before,
+  // left these six as they were.) bandcheck, four worlds, 9,336 league games,
+  // before (that tree) and after the squads:
+  //   pts 49.5 -> 49.3   tries 6.50 -> 6.45   home 53.2% -> 54.7%
+  //   draws 1.7% -> 1.6%   blowouts 8.3% -> 7.9%   (every band holds)
+  // REBASELINED for the 2026-27 squads (research of 18 Oct 2026). A DATA
+  // change, not a mechanical one: about two hundred relocations and GONE pins
+  // and two hundred additions across the real leagues, the Championship,
+  // National One and Pro D2 rebuilt to their real 2026-27 membership, the MRC
+  // on real rosters, and the builder's new shirt minimum (newgame.ts
+  // SHIRT_MIN) drawing fillers for the three clubs the window left short of
+  // centres; and Josaia Raisuqe, who died in 2025, taken out of Montauban's
+  // list (DECEASED, verified.ts). The world build consumes different rng draws, so the
+  // Premiership's pairings fall differently and ALL SIX re-deal. No dial, no
+  // rule, no rating changed. bandcheck, eight worlds, before (the 1.9.2 tree)
+  // and after - 8,184 league games then 9,336 now, the extra clubs playing
+  // more rounds:
+  //   pts 49.9 -> 49.0   tries 6.52 -> 6.42   home 53.8% -> 53.3%
+  //   draws 2.0% -> 1.6%   blowouts 8.2% -> 8.1%   (every band holds)
+  // (measured after venue.ts RAW_MEAN was re-centred to 0.0778 for the new
+  // world's shorter average trip; that re-centring left these six unchanged)
+  // REBASELINED for 1.9.2 (owner feedback, 18 Oct 2026). FOUR of six moved,
+  // none from a new draw on the shared stream:
+  //   - fifteen referees where there were thirteen (Sara Cox and Aimee
+  //     Barrett-Theron, on the column means), so refFor deals most fixtures
+  //     a different man or woman with the whistle
+  //   - ten energy back for everyone on the pitch at half-time, paid for by a
+  //     1.09x drain so the eighty-minute average holds (energy.ts DRAIN_HT_K:
+  //     27.42 before, 27.44 after, 1,401 fixtures of seed 4242)
+  //   - the manager's team talks carry bigger stakes, most against a stronger
+  //     side (teamtalk.ts); AI sides still hear no talk, so only his fixture
+  //     can move for that reason
+  // sale-bristol and newcastle-northampton held. bandcheck, four worlds,
+  // 8,184 league games, before and after:
+  //   pts 49.8 -> 49.9   tries 6.52 -> 6.52   home 53.8% -> 53.8%
+  //   draws 2.0% -> 2.0%   blowouts 8.1% -> 8.2%   (every band holds)
   // REBASELINED for 1.9.0: the set piece is played and a man tires by his own
   // work (matchEngine.ts setPieceContest, roleDrain). Scrums and lineouts are
   // contested each tick on their own stream (incRng salt 0x5E7), so the main
@@ -629,12 +669,12 @@ export const EXPECTED: string[] = [
   // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
-  'saracens 13-24 bath',
-  'exeter 38-35 gloucester',
-  'sale 39-25 bristol',
-  'harlequins 48-24 leicester',
-  'newcastle 37-10 northampton',
-  'exeter 40-20 saracens',
+  'sale 28-36 northampton',
+  'bath 29-14 saracens',
+  'leicester 56-25 exeter',
+  'newcastle 34-14 harlequins',
+  'gloucester 14-32 bristol',
+  'bath 22-30 sale',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw

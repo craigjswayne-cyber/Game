@@ -132,7 +132,7 @@ try {
     await fillIf(NAME_SEL, 'The Breaker')
     await tap('.speech-tile >> text=Forward Dominance', 2)
     await tap('.action-bar >> text=Confirm', 2)
-    await tap('text=▸ Start Career', 3)
+    await tap('text="Start Career"', 3)
     await page.waitForSelector('.tut-box', { timeout: 25000 })
     // the injected markup must be text, not markup: one script tag is Vite's
     const injected = await page.evaluate(() =>
@@ -168,17 +168,17 @@ try {
   await tap('.bottom-nav button[title="Home"]')
   for (let i = 0; i < 30; i++) await tap('.continue-btn')
   ok(await alive(), 'the app survived thirty taps on Continue')
-  atKick = await page.locator('text=Kick Off ▸').count() > 0
+  atKick = await page.locator('text="Kick Off"').count() > 0
   note(`reached kick-off: ${atKick}`)
   })
 
   // ---- 4. into a match, then reload it out from under itself --------------
   await step('mid-match reload', async () => {
   if (atKick) {
-    await tap('text=Kick Off ▸')
+    await tap('text="Kick Off"')
     await page.locator('.talk-modal').waitFor({ timeout: 6000 }).catch(() => {})
     await tap('.talk-modal .speech-tile >> nth=0')
-    await tap('text=▸ Take the Field')
+    await tap('text="Take the Field"')
     await page.waitForSelector('.scoreboard', { timeout: 20000 }).catch(() => {})
     // let a few minutes run, then reload
     await tap('.speed-controls .btn >> nth=0')

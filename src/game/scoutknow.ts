@@ -130,7 +130,10 @@ export function paRange(state: GameState, p: Player): [number, number] | null {
   // (a band that runs past 99 slides down rather than being cut short: cut,
   // it narrowed as the ceiling rose, and a tight band at the top told the
   // reader of an unscouted man that he was the real thing)
-  const lo = clamp(Math.max(floor, c - m - Math.max(0, c + m - 99)), 1, 99)
+  // and the floor (his rating as read) never closes it: a man read at 99
+  // showed a ceiling of "99-99", an exact number for a ceiling nobody had
+  // read, and a wrong one (1.9.2: Dupont, 96, read at 99)
+  const lo = clamp(Math.max(Math.min(floor, 99 - m), c - m - Math.max(0, c + m - 99)), 1, 99)
   return [lo, clamp(Math.max(lo, c + m), 1, 99)]
 }
 

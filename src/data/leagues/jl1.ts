@@ -29,7 +29,10 @@ const STARS: Record<string, RawPlayer[]> = {
 
 // one name per man across the whole competition: a duplicate would cost the
 // second club a real shirt, since the world builder keeps only the first
-const usedNames = new Set<string>()
+// Real men added by hand elsewhere (additions.ts) are reserved too: the pools
+// mix real surnames with common first names, and drew the real Wild Knights
+// hooker's name for a 21-year-old Sungoliath prop (round 3, 19 Oct 2026).
+const usedNames = new Set<string>(['Atsushi Sakate'])
 
 function genSquad(clubId: string, rep: number): RawPlayer[] {
   const rng = mulberry32(0xa11e ^ clubId.split('').reduce((h, c) => (h * 33 + c.charCodeAt(0)) | 0, 5381))
@@ -78,5 +81,7 @@ export const JL1: RawClub[] = [
   club('blackrams', 'Setagaya RFC', 'Setagaya', 'Setagaya', 'Komazawa Stadium', 20010, ['#0e0e0e', '#ffffff'], 71, 1_500_000),
   club('dynaboars', 'Sagamihara RFC', 'Sagamihara', 'Sagamihara', 'Sagamihara Stadium', 15300, ['#7a1027', '#9aa5ad'], 70, 1_400_000),
   club('drocks', 'Urayasu RFC', 'Urayasu', 'Urayasu', 'Urayasu Stadium', 5000, ['#12295c', '#8fc1e3'], 69, 1_300_000),
-  club('hondaheat', 'Suzuka RFC', 'Suzuka', 'Suzuka', 'Suzuka Sports Garden', 5600, ['#c0392f', '#f0eadc'], 68, 1_200_000),
+  // Tochigi Honda Heat from 2026-27: the club moved from Suzuka to Utsunomiya in
+  // September 2026 (Honda, 18 Jun 2026) and plays at Tochigi Green Stadium
+  club('hondaheat', 'Tochigi RFC', 'Tochigi', 'Utsunomiya', 'Tochigi Greenfield Stadium', 15500, ['#c0392f', '#f0eadc'], 68, 1_200_000),
 ]

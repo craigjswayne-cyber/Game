@@ -104,7 +104,9 @@ ok(vetMid > rookieMid, `a body of work counts: ${middling.short} moves ${(rookie
 
   // and the SEAT is what does it: the same record and the same reputation at a
   // small club prices below the same man at a big one
-  const small: GameState = newGame('esher', 'Second Chance', 77)
+  // (Esher until 18 Oct 2026, when it left National One for the real
+  // 2026-27 league; Bishop's Stortford is the nearest club in standing)
+  const small: GameState = newGame('stortford', 'Second Chance', 77)
   const large: GameState = newGame('northampton', 'Second Chance', 77)
   for (const st of [small, large]) { st.mgr.m = 130; st.mgr.w = 55; st.mgr.d = 5; st.mgr.l = 70 }
   const target = Object.values(large.clubs).find(c => c.rep >= 55 && c.rep <= 65)!

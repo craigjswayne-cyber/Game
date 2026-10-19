@@ -197,13 +197,13 @@ function talkLine(state: GameState, ctx: LiveCtx, tone: string, half: 'pre' | 'h
 /** Fold a talk into the side: per-man multipliers, the cards a room pushed
  *  over the edge gives away, and the reaction kept for full time. `prior`
  *  is how much of an earlier talk's reaction is still in each man. */
-function landTalk(state: GameState, ctx: LiveCtx, side: SideCtx, reads: TalkRead[], prior: number, fire: boolean) {
+function landTalk(state: GameState, ctx: LiveCtx, side: SideCtx, reads: TalkRead[], prior: number, fire: boolean, exp: number) {
   const f = new Map<number, number>()
   const rr = new Map<number, number>()
   for (const x of reads) {
     const r = (side.talkR?.get(x.pid) ?? 0) * prior + x.r
     rr.set(x.pid, r)
-    f.set(x.pid, talkFactor(r))
+    f.set(x.pid, talkFactor(r, exp))
   }
   side.talkF = f
   side.talkR = rr
@@ -227,7 +227,7 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: PreTone): str
   const reads = talkReads(state, mine.lineup.slice(0, 23), s, kind, ctx.fx.id, talkListen(state))
   ctx.preReads = reads
   mine.talkShift = new Map(reads.map(x => [x.pid, x.after - x.before]))
-  landTalk(state, ctx, mine, reads, 0, kind === 'fire')
+  landTalk(state, ctx, mine, reads, 0, kind === 'fire', s.exp)
   return talkLine(state, ctx, kind, 'pre', roomVerdict(reads))
 }
 
@@ -253,10 +253,11 @@ export function openDressingRoom(state: GameState, ctx: LiveCtx, kind: PreTone |
   if (k > 0) {
     const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
     const opp = mine === ctx.home ? ctx.away : ctx.home
-    const reads = silenceReads(state, mine.lineup.slice(0, 23), talkSettingFor(state, ctx, mine, opp), ctx.fx.id, talkListen(state), k)
+    const s = talkSettingFor(state, ctx, mine, opp)
+    const reads = silenceReads(state, mine.lineup.slice(0, 23), s, ctx.fx.id, talkListen(state), k)
     ctx.preReads = reads
     mine.talkShift = new Map(reads.map(x => [x.pid, x.after - x.before]))
-    landTalk(state, ctx, mine, reads, 0, false)
+    landTalk(state, ctx, mine, reads, 0, false, s.exp)
     // the assistant says it once, plainly; the reactions say the rest
     const n = (hashString(`${state.seed}:${ctx.fx.id}:pre:silent`) % TALK_LINES) + 1
     msg = t(`tt.pre_silent${n}`)
@@ -280,7 +281,7 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: HtTone): str
   const ids = mine.lineup.slice(0, 23).filter((id): id is number => id != null && (mine.onPitch.has(id) || !mine.ratings.has(id)))
   const reads = talkReads(state, ids, s, kind, ctx.fx.id, talkListen(state), mine.talkShift)
   ctx.htReads = reads
-  landTalk(state, ctx, mine, reads, PRE_CARRY, kind === 'fire')
+  landTalk(state, ctx, mine, reads, PRE_CARRY, kind === 'fire', s.exp)
   return talkLine(state, ctx, kind, 'ht', roomVerdict(reads))
 }
 
@@ -366,6 +367,7 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
 export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, inId: number): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   if (ctx.seg === 3) return t('touch.matchOver')
+  if (mine.hia && mine.hia.subId === onId) return swapHiaCover(state, ctx, mine, onId, inId)
   const slotOn = mine.lineup.indexOf(onId)
   const slotIn = mine.lineup.indexOf(inId)
   const pon = state.players[onId]
@@ -472,6 +474,47 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
     pushLine(state, ctx, min, 'SUB', mine, 'comm.subChangeOfPlan',
       { on: pin.name, off: pon.name, brief_k: brief ?? 'common.nothing' }, pin.id)
   }
+  return t('touch.takesShirtInstead', { on: pin.name, off: pon.name })
+}
+
+/** A HEAD ASSESSMENT'S STAND-IN, CHANGED (1.9.2, owner: "Make sure its clear
+ *  that the manager always has to decide who to pick from the bench"). The
+ *  assessed man keeps his name on the shirt while the doctors work, so his
+ *  stand-in has no shirt of his own (fieldLineup puts him in it for the
+ *  engine): the change is who is on the pitch, not who is in the lineup. The
+ *  man picked here is the one who gives the shirt back if the assessment is
+ *  passed, or keeps it if it is failed. Free, and only at the stoppage. */
+function swapHiaCover(state: GameState, ctx: LiveCtx, mine: SideCtx, onId: number, inId: number): string {
+  const h = mine.hia!
+  const pon = state.players[onId]
+  const pin = state.players[inId]
+  const hurt = state.players[h.pid]
+  if (!pon || !mine.onPitch.has(onId)) return t('touch.notOnPitch')
+  if (!pin || pin.injury || mine.onPitch.has(inId) || mine.ratings.has(inId) || mine.lineup.indexOf(inId) < 15) return t('touch.notAvailable')
+  if (h.upTo == null || h.atTick == null || ctx.tick !== h.atTick) return t('touch.tooLateToUndo')
+  for (let i = h.upTo; i < ctx.events.length; i++) {
+    if (ctx.events[i].playerId === onId) return t('touch.tooLateToUndo')
+  }
+  // a front-rower stands in for a front-rower while one is on the bench
+  if (hurt && isFrontRower(hurt) && isFrontRower(pon) && !isFrontRower(pin)) return t('touch.frontRowOnly')
+  mine.onPitch.delete(onId)
+  mine.onPitch.add(inId)
+  cameOn(mine, inId, mine.onAt?.get(onId) ?? Math.min(79, Math.max(1, ctx.lastMin)))
+  mine.ratings.delete(onId)
+  mine.energy.delete(onId)
+  mine.ratings.set(inId, 6)
+  mine.energy.set(inId, benchTank(pin))
+  const from = mine.since?.get(onId)
+  if (from != null) { mine.since!.delete(onId); mine.since!.set(inId, from) }
+  h.subId = inId
+  // the assessment line named the assistant's pick: it is the record, so it
+  // names the man who actually went on
+  const hl = [...ctx.events].reverse().find(e => (e.k === 'comm.hiaLedAway' || e.k === 'comm.hiaMouthguard') && e.v?.sub === pon.name)
+  if (hl?.k) {
+    hl.v = { ...hl.v, sub: pin.name }
+    hl.text = tIn('en', hl.k, hl.v as Record<string, string | number>)
+  }
+  fieldChanged(state, ctx, mine, ctx.lastMin)
   return t('touch.takesShirtInstead', { on: pin.name, off: pon.name })
 }
 

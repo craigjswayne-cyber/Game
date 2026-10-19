@@ -47,8 +47,14 @@ import { climateOf, distanceKm, tzShift, venueOf, warmth, type Venue } from './g
  *  0.0793 to 0.0828 in 1.8.0: the world had moved on since it was
  *  measured, and three reshuffled worlds averaged 0.0823, 0.0823 and 0.0839,
  *  putting the mean edge at 1.0002 against venueprobe's tolerance of 0.0002.
- *  The effect on any one match is under two hundredths of a per cent. */
-export const RAW_MEAN = 0.0828
+ *  The effect on any one match is under two hundredths of a per cent.
+ *
+ *  0.0828 to 0.0778 on 18 Oct 2026: the real 2026-27 leagues put more clubs
+ *  into the compact domestic tiers (Pro D2 sixteen, National One and the
+ *  Championship fourteen each), so the average trip got shorter and the old
+ *  centre left the mean edge at 0.99975, outside venueprobe's tolerance.
+ *  Re-measured by venueprobe on the new world, as the 1.8.0 change was. */
+export const RAW_MEAN = 0.0778
 
 /** How far the home edge is allowed to swing either side of its old flat value.
  *  0.05 puts the highveld near 8.9 per cent and a local derby near 5.6, against

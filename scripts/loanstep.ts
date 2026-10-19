@@ -27,7 +27,9 @@ const leagueTier = (M as { leagueTier?: (id?: string | null) => number }).league
   ((id?: string | null) => ({ prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1, mrc: 1, champ: 2, prod2: 2, natl1: 3 } as Record<string, number>)[id ?? ''] ?? 2)
 
 // ---- Esher: the screenshot club ----
-const g = newGame('esher', 'LoanStep', 61)
+// (Esher until 18 Oct 2026, when it left National One for the real
+// 2026-27 league; Bishop's Stortford is the nearest club in standing)
+const g = newGame('stortford', 'LoanStep', 61)
 const user = g.clubs[g.userClubId]
 ok(leagueTier(user.leagueId) === 3, `Esher sit in tier 3 (${user.leagueId})`)
 const targets = loanTargets(g)

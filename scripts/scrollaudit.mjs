@@ -55,7 +55,7 @@ try {
   await page.click('.speech-tile >> text=Forward Dominance')
   await measure('wizard: manager')
   await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
+  await page.click('text="Start Career"')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   // The club is "Leicester RFC" since the IP rename; matching on the

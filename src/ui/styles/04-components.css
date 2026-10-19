@@ -210,3 +210,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .chip b { font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 
+
+/* A PLAYER'S RATING, OUT OF 99 (1.9.2, replaced the half-star row). One fixed
+   width so a column of them lines up, the figure in tabular numerals, and the
+   band in the ink: gold for the best in the game, green for international
+   class, plain, then muted. Text colours only, so every palette and skin
+   carries it with its own tokens. */
+.ovr {
+  display: inline-block; min-width: 2.1em; padding: 1px 0; border-radius: 5px;
+  text-align: center; font-weight: 700; font-size: 0.8125rem; font-variant-numeric: tabular-nums;
+  background: transparent; color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+.ovr-elite { color: var(--gold); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent); }
+.ovr-good { color: var(--text-positive); }
+.ovr-low { color: var(--text-muted); }

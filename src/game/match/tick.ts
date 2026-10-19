@@ -821,6 +821,12 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         // (item 56): which of the two lines is said is words only
         pushLine(state, ctx, min, 'INJ', side, ctx.detail && ctx.crng() < 0.4 ? 'comm.hiaMouthguard' : 'comm.hiaLedAway', { player: p.name, sub: sub.name }, p.id)
         fieldChanged(state, ctx, side, min)
+        // the stoppage, written down for the sheet (the free swap reads it):
+        // everything up to here is the stoppage, not the stand-in playing.
+        // It lives on the assessment, not in lastInj: an injury in the same
+        // tick keeps its own record and its own sheet
+        side.hia.upTo = ctx.events.length
+        side.hia.atTick = ctx.tick + 1
       }
     }
 

@@ -216,7 +216,7 @@ console.log('\n--- 3. the briefing\n')
     ...['htPensBin', 'htRefTight', 'htRefLoose', 'htWetHands', 'htWetTight', 'htWind', 'htUncontested', 'htWorking', 'htHurting'].map(k => `matchday.${k}`)]
   ok(LANGS.every(l => keys.every(k => has(l, k))), `the conditions card and the half-time read speak six languages (${keys.length} keys)`)
   const src = engineSource()
-  ok(['L. Pearce', 'K. Dickson', 'N. Amashukeli', 'P. Brousset'].every(n => src.includes(`name: '${n}'`)), 'the referee panel keeps its real names')
+  ok(['Luke Pearce', 'Karl Dickson', 'Nika Amashukeli', 'Pierre Brousset', 'Hollie Davidson', 'Sara Cox'].every(n => src.includes(`name: '${n}'`)), 'the referee panel keeps its real names')
   const md = readFileSync('src/ui/screens/matchday/Preview.tsx', 'utf8')
   ok(md.includes('data-conditions') && md.includes('refNotes(ref)') && md.includes('surfaceOf(game, fx)'), 'the pre-match card reads the referee, the weather and the ground')
   const ref = { name: 'A. Referee', scrum: 1, breakdown: 0.9, patience: 5, flow: 1 }

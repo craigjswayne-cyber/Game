@@ -70,6 +70,10 @@ export function askingPrice(state: GameState, p: Player): number {
   // big squad carries and would rather have off the wage bill.
   else if (!p.transferListed && p.ca < (squadCa[29] ?? -1)) f = 0.65
   else if (!p.transferListed && p.ca < (squadCa[22] ?? -1)) f = 0.8
+  // LISTING NEVER RAISES THE PRICE (1.9.2). A listed man was 0.8 of his value
+  // flat, so a surplus man (0.65 outside the best 30) cost more the day his
+  // club put him up for sale. The deeper 2026-27 squads made that common.
+  if (p.transferListed && p.ca < (squadCa[29] ?? -1)) f = 0.65
   // an unsettled man is cheaper (recruit.ts unsettledFee): up to 15% off for
   // one who has asked to leave or whose mood has gone, graded rather than the
   // old single step at morale 3.5

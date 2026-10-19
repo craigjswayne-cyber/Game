@@ -228,7 +228,7 @@ export interface SideCtx {
   /** how many times a REACTIVE dugout has changed its picture (max 2) */
   reacted?: number
   /** an active Head Injury Assessment: who went off, who covers, verdict due */
-  hia?: { pid: number; subId: number; failed: boolean; returnTick: number }
+  hia?: { pid: number; subId: number; failed: boolean; returnTick: number; upTo?: number; atTick?: number }
   /** THE LAST INJURY STOPPAGE, as the engine resolved it (owner, round 6):
    *  who went down, who the assistant sent on (null when nobody could go on)
    *  and where the stoppage's own lines end in ctx.events. The injury sheet
@@ -237,6 +237,8 @@ export interface SideCtx {
    *  written at the same stoppage (playing out of position, uncontested
    *  scrums) is not mistaken for the cover having played. Never read by the
    *  simulation, never a draw. */
+  /** `atTick` (head assessments, 1.9.2): the ctx.tick the stoppage is
+   *  answered at; once play has moved past it the cover is settled */
   lastInj?: { hurtId: number; coverId: number | null; upTo: number }
   /** goal-kicking bonus from the kicking coach */
   goalBonus: number

@@ -11,6 +11,7 @@ import { answerRequest, canAnswerRequest } from '../../game/chats'
 import { openBidFor } from '../../game/ai'
 import { ContextCard, ResponseNeeded } from '../ContextCard'
 import { newsGlyph } from '../glyphs'
+import { acc, accLine } from '../accent'
 
 /** The inbox: one message at a time, with a recall window.
  *
@@ -67,10 +68,10 @@ export function RequestAnswer({ n }: { n: NewsItem }) {
   if (!p) return null
   // the reply stays on screen after the buttons have gone, so the answer is
   // visibly the answer to THIS letter rather than a toast somewhere else
-  if (msg) return <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg}</div>
+  if (msg) return <div className="meta sheet-log" style={{ marginTop: 8, ...accLine('var(--gold)'), paddingLeft: 8 }}>{msg}</div>
   if (!canAnswerRequest(game, p)) return null
   return (
-    <div className="card" style={{ borderLeft: '4px solid var(--text-negative)', marginTop: 8 }}>
+    <div className="card" style={{ ...acc('var(--text-negative)'), marginTop: 8 }}>
       <div className="fact-label">{t('player.requestAnswerTitle')}</div>
       <div className="meta">{t('player.requestAnswerSub')}</div>
       <div className="btn-row" style={{ margin: '10px 0 0' }}>
@@ -125,7 +126,7 @@ export function PeopleChips({ n }: { n: NewsItem }) {
         return (
           <button key={id} className="who-chip" onClick={e => { e.stopPropagation(); go('player', id) }}>
             <b>{p.name}</b>
-            <span>{p.pos}{club ? ` · ${club.short}` : t('inbox.freeAgent')} ▸</span>
+            <span>{p.pos}{club ? ` · ${club.short}` : t('inbox.freeAgent')}</span>
           </button>
         )
       })}
