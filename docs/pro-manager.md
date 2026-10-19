@@ -179,14 +179,14 @@ variants. English copy:
 | --- | --- |
 | title | PRO MANAGER |
 | firstLine | The whole game is free, and it stays free. Pro Manager is an optional extra. |
-| benefitAds / benefitSkins / benefitBack | No adverts / Three skins only Pro managers get / Backs an independent game |
+| benefitAds / benefitSkins / benefitSlots / benefitBack | No adverts / Three skins only Pro managers get / Four career save slots / Backs an independent game |
 | buy / free | Become Pro / Continue Free |
 | laterFine | Nothing about the rugby changes. You can become Pro later from the Store. |
 | offerTag | ONE-TIME OFFER |
 | offerLine | Pro Manager at a lower price, offered this once. Bought once, yours for good. |
 | offerFine | This price is shown once. Continue Free keeps your game exactly as it is, and Pro stays in the Store at its usual price. |
 | off / usually | {n}% OFF / Usually {price} |
-| reminderLine | Enjoying the season? Pro Manager takes the adverts away and adds three skins, whenever you want it. |
+| reminderLine | Pro Manager takes the adverts away, adds three skins and gives you four save slots. It's in the Store whenever you want it. |
 | done | You are a Pro Manager. Thank you for backing the game. The three skins are waiting in Settings. |
 
 Layout: a centred card, max 380px wide, 16px gutters, scrolls inside itself
@@ -218,8 +218,9 @@ already seen them can buy from the Store at any time.
 **Review notes (paste into App Store Connect / Play Console):**
 
 > PHASE: Rugby Manager is free to play in full. "Pro Manager" is a single
-> optional non-consumable that removes adverts and unlocks three cosmetic
-> skins; it changes nothing about gameplay. It is sold in two ways: the
+> optional non-consumable that removes adverts, unlocks three cosmetic
+> skins and raises the save slots from one career to four; it changes
+> nothing about how a match or a season plays. It is sold in two ways: the
 > regular product (phase.supporter) on the in-game Store (Hub > Store), and
 > a one-time lower-priced product (phase.supporter.intro) offered once, after
 > the player's first competitive match. Owning either is the same Pro
@@ -238,7 +239,7 @@ Do not change `phase.supporter` or its price.
    **One-time products** > **Create one-time product**.
 2. Product ID: `phase.supporter.intro` (permanent; cannot be changed).
 3. Name: `Pro Manager (one-time offer)`.
-   Description: `Pro Manager at a one-time lower price: no adverts and three skins only Pro managers get. Nothing about the rugby changes.`
+   Description: `Pro Manager at a one-time lower price: no adverts, three skins only Pro managers get and four career save slots. Nothing about the rugby changes.`
 4. Purchase option: one **Buy** option, **not** a rental, and do not mark it
    consumable (the app never consumes it: it is acknowledged on purchase and
    stays owned, exactly like `phase.supporter`).
@@ -257,8 +258,9 @@ Do not change `phase.supporter` or its price.
 3. Price schedule: the tier about 40% below Pro Manager (for example
    $1.19 against $1.99); check the per-storefront prices the same way.
 4. Localisation (English (U.K.) and others as wished): display name
-   `Pro Manager (one-time offer)`, description `No adverts and three skins
-   only Pro managers get, at a one-time lower price.`
+   `Pro Manager (one-time offer)`, description `No adverts, three skins
+   only Pro managers get and four career save slots, at a one-time lower
+   price.`
 5. Review information: a screenshot of the offer card
    (`pro-offer-en-412x915.png`) and the review notes from section 7.
 6. Add it to the next app version submission (a first IAP must be submitted
