@@ -138,7 +138,7 @@ for (const seed of [9, 777]) {
   // the mean stays put: the minutes term averaged over the exact gate
   // population must sit on zero (MINUTES_CENTRE is that correction)
   const pop = Object.values(g.players).filter(p => !p.acad && p.age <= 23 && p.lastStarts != null)
-  const term = (ls: number) => (ls >= 10 ? 0.10 : ls <= 2 ? -0.10 : 0) - MINUTES_CENTRE
+  const term = (ls: number) => (ls >= 10 ? 0.10 : ls <= 2 ? -0.10 : -0.012) - MINUTES_CENTRE
   const m = mean(pop.map(p => term(p.lastStarts!)))
   ok(pop.length > 300, `the gate population is real: ${pop.length} young pros carried starts through the summer`)
   ok(Math.abs(m) < 0.01, `the minutes term is mean-neutral over them (${m.toFixed(4)})`)

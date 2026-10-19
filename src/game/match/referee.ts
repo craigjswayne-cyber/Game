@@ -64,6 +64,14 @@ export interface Referee {
  *  scrum 1.011. The bands were tuned with the panel as it is, so the drift is
  *  written down here rather than corrected on its own, which would move the
  *  world's scoring without a rebalance behind it. */
+/** THE CARD COLUMN STAYS WHERE THE WORLD WAS TUNED (1.9.2). Two strict
+ *  referees joining a panel of thirteen lifted the mean card dial from 0.995
+ *  to 1.031, the size of rise that once cost three and a half points a game.
+ *  So every card dial is scaled to keep the mean at 0.995: who is strict and
+ *  who is lenient is unchanged, and cards are not in the briefing notes, so
+ *  no referee reads differently. */
+const CARD_MEAN = 0.995
+
 const REF_PANEL: Referee[] = [
   { name: 'Luke Pearce', style: 'strict', scrum: 1.10, breakdown: 0.92, patience: 4, flow: 0.99, cards: 1.28 },
   { name: 'Karl Dickson', style: 'fair', scrum: 1.00, breakdown: 1.06, patience: 5, flow: 1.03, cards: 1.00 },
@@ -82,10 +90,12 @@ const REF_PANEL: Referee[] = [
   // game too"). Hollie Davidson was already here, hidden behind an initial, so
   // the panel now names everyone in full. Sara Cox (England, the first woman
   // to referee a men's Premiership match) and Aimee Barrett-Theron (South
-  // Africa) join her, both on the column means so the panel stays balanced.
-  { name: 'Sara Cox', style: 'fair', scrum: 1.01, breakdown: 1.00, patience: 5, flow: 1.01, cards: 1.00 },
-  { name: 'Aimee Barrett-Theron', style: 'fair', scrum: 1.01, breakdown: 1.00, patience: 6, flow: 1.01, cards: 0.99 },
-]
+  // Africa) join her. Their dials are the owner's read (19 Oct 2026): Cox
+  // "strict and clear, similar to a Luke Pearce"; Barrett-Theron "more like a
+  // head teacher, not afraid to use a card".
+  { name: 'Sara Cox', style: 'strict', scrum: 1.08, breakdown: 0.93, patience: 4, flow: 0.99, cards: 1.24 },
+  { name: 'Aimee Barrett-Theron', style: 'strict', scrum: 1.04, breakdown: 0.94, patience: 4, flow: 0.98, cards: 1.30 },
+].map((r, _i, all) => ({ ...r, cards: +(r.cards * CARD_MEAN / (all.reduce((t, x) => t + x.cards, 0) / all.length)).toFixed(3) }))
 
 /** The man (or woman) in the middle - fixed per fixture, big influence. */
 export function refFor(fxId: number): Referee {

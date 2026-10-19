@@ -14,7 +14,7 @@ import { activePlan } from '../season/training'
 
 /** The minutes term's centring, so the young pros' growth mean is unmoved
  *  (valuationprobe holds it). */
-export const MINUTES_CENTRE = 0.018
+export const MINUTES_CENTRE = 0.015
 import { RIFT_DEV, riftDrag } from '../staffrift'
 import { forget } from './registry'
 
@@ -89,10 +89,10 @@ export function devFactor(state: GameState, p: Player): number {
   // RECENTRED 19 Oct 2026 (1.9.2): on the 2026-27 squads 43% of young pros
   // clear ten starts and 25% sit under three (valuationprobe, seed's season
   // one), so -0.012 left the mean at +0.015. The whole term now moves down by
-  // MINUTES_CENTRE: ten starts against two is the same 0.20 it always was,
+  // MINUTES_CENTRE: every gap between the three bands is what it always was,
   // and the u24 growth mean is back where it was.
   if (!p.acad && p.age <= 23 && p.lastStarts != null) {
-    f += (p.lastStarts >= 10 ? 0.10 : p.lastStarts <= 2 ? -0.10 * benchDrag(p) : 0) - MINUTES_CENTRE
+    f += (p.lastStarts >= 10 ? 0.10 : p.lastStarts <= 2 ? -0.10 * benchDrag(p) : -0.012) - MINUTES_CENTRE
   }
   if (p.clubId === state.userClubId) {
     const pair = (state.mentors ?? []).find(mp => mp.kid === p.id)
