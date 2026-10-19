@@ -16,6 +16,15 @@ WINDOW_2627, `captains.ts`)
 - The Championship and Pro D2 have their real 2026-27 line-ups, and the
   Major League Rugby clubs carry their real 2026 rosters (Charlotte stays
   made up). Pro D2 plays 30 rounds by borrowing two cup weeks.
+- A second round (19 Oct 2026) covered what the first could not reach: the
+  four Australian Super Rugby clubs (the Waratahs' official 2026 list of 38),
+  Japan League One's foreign Test players for 2026-27 (Lowe, Radradra, Am,
+  Paisami, Bridge in; de Klerk out), Doncaster's 2026-27 men and captain,
+  and 117 real players for the ten Pro D2 clubs that had invented squads
+  (88 of them with no published age take an estimated one, owner's call).
+  The women's Championship and Élite 2 take last season's names from match
+  sheets and club pages (owner's call): Richmond 28 real, Élite 2 160 real.
+  Chinnor and Caldy stay generated: nothing for 2026-27 was found.
 - Clubs that moved: Tochigi RFC (Honda Heat, now in Utsunomiya) and
   Washington RFC (Old Glory DC, now in Fairfax).
 - Players who have died are kept out of every squad (`DECEASED`).
@@ -54,6 +63,8 @@ WINDOW_2627, `captains.ts`)
 **Save slots**
 - One career for free players, four with Pro Manager. A free player who
   already has more keeps every career playable. The web build keeps four.
+- The Pro Manager card, the reminder and the Store row say "Four career
+  save slots" in all six languages.
 
 **A new look**
 - New fonts: Saira Condensed for headings and scores, Libre Franklin for
@@ -61,7 +72,8 @@ WINDOW_2627, `captains.ts`)
 - Cards open on a coloured header band instead of a stripe down the side;
   lists of figures are flat rows.
 - Headings in normal case, player ratings as a number out of 99, menus
-  grouped under short headings, no arrows in button text, plainer wording,
+  grouped under short headings (Scouting stays under Training & Staff and
+  Settings above Report a Bug), no arrows in button text, plainer wording,
   and instructions behind a small "?" button.
 - About 1,300 lines in six languages rewritten where a spaced hyphen stood
   in for a dash.
@@ -93,5 +105,9 @@ draws, 7.8% blowouts, all inside their bands.
 
 ## Testing
 
-PENDING: engine probes, unit tests, linters and the browser suite on the
-final commit.
+On the final commit: all 276 engine probes, the unit tests (vitest), tsc -b,
+textlint, tokenlint, cssaudit, eslint and the orphan check pass, and all 104
+browser harnesses pass on the production build. Probe changes this release
+are each recorded in the probe with the numbers that moved them (data
+audit gap budget 43, fingerprint rebaselined twice, colour floor 0.083,
+style, evidence and memory samples widened).
