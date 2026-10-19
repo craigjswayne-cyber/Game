@@ -99,9 +99,10 @@ WINDOW_2627, `captains.ts`)
 ## Balance
 
 Fingerprint rebaselined for the referees, half time and team talks, and
-again for the squads, each with a before and after band check. The final
-band check: 49.6 points and 6.50 tries a game, 53.6% home wins, 1.7%
-draws, 7.8% blowouts, all inside their bands.
+again for each round of squads, each with a before and after band check.
+The final band check (four worlds, 9,336 league games): 49.3 points and
+6.45 tries a game, 54.7% home wins, 1.6% draws, 7.9% blowouts, all inside
+their bands.
 
 ## Testing
 
