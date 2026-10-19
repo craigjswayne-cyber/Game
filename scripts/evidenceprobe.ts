@@ -263,11 +263,13 @@ console.log('\n--- 6. the tape\n')
   const fxs = g.fixtures.filter(f => (f.homeId === me.id || f.awayId === me.id) && g.clubs[f.homeId] && g.clubs[f.awayId])
   let read = 0, blunted = 0, lines = 0
   let shown = ''
-  // Three matches against each of 20 sides: whether a read costs enough to
+  // Five matches against each of 20 sides: whether a read costs enough to
   // earn a line of its own is a close call in any one match, so one sample
-  // per side left this check at the mercy of how the world was dealt.
+  // per side left this check at the mercy of how the world was dealt. Three
+  // were enough until the 2026-27 squads of round 3 (19 Oct 2026), whose
+  // largest read in sixty matches was 1.44 points against WHY_MIN's 1.5.
   let played = 0
-  for (const fx of fxs.slice(0, 20)) for (const k of [5, 6, 7]) {
+  for (const fx of fxs.slice(0, 20)) for (const k of [5, 6, 7, 8, 9]) {
     const oppId = fx.homeId === me.id ? fx.awayId : fx.homeId
     const set = (adaptMap(g, oppId).mv_loop ?? 0) > 0
     playbookOf(me).faced = { mv_loop: 40 }
