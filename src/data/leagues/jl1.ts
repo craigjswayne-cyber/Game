@@ -78,5 +78,7 @@ export const JL1: RawClub[] = [
   club('blackrams', 'Setagaya RFC', 'Setagaya', 'Setagaya', 'Komazawa Stadium', 20010, ['#0e0e0e', '#ffffff'], 71, 1_500_000),
   club('dynaboars', 'Sagamihara RFC', 'Sagamihara', 'Sagamihara', 'Sagamihara Stadium', 15300, ['#7a1027', '#9aa5ad'], 70, 1_400_000),
   club('drocks', 'Urayasu RFC', 'Urayasu', 'Urayasu', 'Urayasu Stadium', 5000, ['#12295c', '#8fc1e3'], 69, 1_300_000),
-  club('hondaheat', 'Suzuka RFC', 'Suzuka', 'Suzuka', 'Suzuka Sports Garden', 5600, ['#c0392f', '#f0eadc'], 68, 1_200_000),
+  // Tochigi Honda Heat from 2026-27: the club moved from Suzuka to Utsunomiya in
+  // September 2026 (Honda, 18 Jun 2026) and plays at Tochigi Green Stadium
+  club('hondaheat', 'Tochigi RFC', 'Tochigi', 'Utsunomiya', 'Tochigi Greenfield Stadium', 15500, ['#c0392f', '#f0eadc'], 68, 1_200_000),
 ]

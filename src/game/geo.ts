@@ -31,6 +31,8 @@ const VENUES: Record<string, Venue> = {
   // ---- United States (the MRC, 1.7.3)
   Bridgeview: { lat: 41.7, lon: -87.8, alt: 185 },
   Charlotte: { lat: 35.2, lon: -80.8, alt: 229 },
+  Fairfax: { lat: 38.8, lon: -77.3, alt: 110 },
+  // a save from before 1.9.2 still carries the old home
   Germantown: { lat: 39.2, lon: -77.3, alt: 140 },
   Quincy: { lat: 42.3, lon: -71.0, alt: 10 },
   'San Diego': { lat: 32.8, lon: -117.2, alt: 20 },
@@ -128,6 +130,8 @@ const VENUES: Record<string, Venue> = {
   Kumagaya: { lat: 36.1, lon: 139.4, alt: 30 },
   Sagamihara: { lat: 35.6, lon: 139.4, alt: 90 },
   Setagaya: { lat: 35.6, lon: 139.7, alt: 40 },
+  Utsunomiya: { lat: 36.6, lon: 139.9, alt: 120 },
+  // a save from before 1.9.2 still carries the old home
   Suzuka: { lat: 34.9, lon: 136.6, alt: 30 },
   Toyota: { lat: 35.1, lon: 137.2, alt: 50 },
   Urayasu: { lat: 35.7, lon: 140.0, alt: 3 },

@@ -222,7 +222,7 @@ world — but flagged for the owner's awareness.
 | Black Rams Tokyo | Setagaya RFC | Komazawa Stadium | keep |
 | Mitsubishi Dynaboars | Sagamihara RFC | Sagamihara Gion Stadium | Sagamihara Stadium |
 | Urayasu D-Rocks | Urayasu RFC | Urayasu Stadium | keep |
-| Mie Honda Heat | Suzuka RFC | Suzuka Sports Garden | keep |
+| Tochigi Honda Heat (Mie Honda Heat until 2026) | Tochigi RFC | Tochigi Green Stadium, Utsunomiya | Tochigi Greenfield Stadium |
 
 Japan notes: Brave Lupus and Sungoliath are both Tokyo clubs, so one takes
 Fuchu (its actual home) and the other keeps Tokyo; Black Rams take their
@@ -244,7 +244,7 @@ alone stays generated. Club and ground names are unchanged.
 | Chicago Hounds | Chicago RFC | SeatGeek Stadium, Bridgeview | Bridgeview Stadium (sponsor stripped, district kept) |
 | Seattle Seawolves | Seattle RFC | Starfire Stadium, Tukwila | Starlight Stadium |
 | California Legion | California RFC | Torero Stadium, San Diego (2026 home games were spread over San Diego, Los Angeles and Orange County) | Toreador Stadium |
-| Old Glory DC | Washington RFC | Maryland SoccerPlex, Germantown | Germantown Park |
+| Old Glory DC | Washington RFC | George Mason Stadium, Fairfax (2026) | Mason Field |
 | Anthem RC | Charlotte RFC | American Legion Memorial Stadium | Legion Memorial Field |
 
 New England and California take their region, as Auckland RFC does, because

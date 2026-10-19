@@ -203,6 +203,8 @@ export const MRC: RawClub[] = [
   club('chicago', 'Chicago RFC', 'Chicago', 'Bridgeview', 'Bridgeview Stadium', 20000, ['#1f6b3a', '#8fc1e3'], 59, 1_050_000),
   club('seattle', 'Seattle RFC', 'Seattle', 'Tukwila', 'Starlight Stadium', 4500, ['#0e0e0e', '#9aa5ad'], 58, 950_000),
   club('california', 'California RFC', 'California', 'San Diego', 'Toreador Stadium', 6000, ['#b3202a', '#f2c200'], 58, 950_000),
-  club('washington', 'Washington RFC', 'Washington', 'Germantown', 'Germantown Park', 5000, ['#12295c', '#c02f3a'], 55, 800_000),
+  // Old Glory DC left the Maryland SoccerPlex for George Mason Stadium,
+  // Fairfax, from 2026
+  club('washington', 'Washington RFC', 'Washington', 'Fairfax', 'Mason Field', 5000, ['#12295c', '#c02f3a'], 55, 800_000),
   club('charlotte', 'Charlotte RFC', 'Charlotte', 'Charlotte', 'Legion Memorial Field', 10500, ['#1e5aa8', '#f2c200'], 52, 600_000),
 ]
