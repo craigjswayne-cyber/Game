@@ -2028,7 +2028,7 @@
   "statusBanned": "Squalifica {n}",
   "statusAvailable": "Disponibile",
   "backroomStaff": "Staff tecnico",
-  "backroomStaffSub": "un brevetto è un giorno d'esame, con il {pct}% di promossi",
+  "backroomStaffSub": "brevetto: un giorno d'esame, {pct}% promossi",
   "vacant": "Vacante",
   "staffLine": "{age} · {wage}",
   "badgesHere": " · {n} brevetti qui",

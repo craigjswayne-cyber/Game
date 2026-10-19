@@ -89,7 +89,12 @@ try {
     // a near-black first colour gives way to the second (MatchDay lineStyle)
     const luma = h => { const n = parseInt(h.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 }
     const fill = c => luma(c[0]) < 40 && c[1] && luma(c[1]) > luma(c[0]) ? c[1] : c[0]
-    return { [fx.homeId]: fill(s.game.clubs[fx.homeId].colors), [fx.awayId]: fill(s.game.clubs[fx.awayId].colors) }
+    // an away side whose colour clashes with the home side's wears its second
+    // colour or a spare (kit.ts kitColours): any of its own colours, or a spare
+    const root = getComputedStyle(document.documentElement)
+    const spares = ['--kit-spare-white', '--kit-spare-slate', '--kit-spare-gold'].map(v => root.getPropertyValue(v).trim()).filter(c => c.startsWith('#'))
+    const own = id => [fill(s.game.clubs[id].colors), ...s.game.clubs[id].colors]
+    return { [fx.homeId]: [fill(s.game.clubs[fx.homeId].colors)], [fx.awayId]: [...own(fx.awayId), ...spares] }
   })
   const hex = h => { const n = parseInt(h.slice(1), 16); return `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})` }
   let team = 0, plain = 0, wrong = 0
@@ -104,7 +109,7 @@ try {
       return el && e ? { teamId: e.teamId, bg: getComputedStyle(el).backgroundColor } : null
     })
     if (r) {
-      if (r.teamId) { team++; if (r.bg !== hex(kits[r.teamId])) wrong++ } else plain++
+      if (r.teamId) { team++; if (!kits[r.teamId].some(c => r.bg === hex(c))) wrong++ } else plain++
     }
     await clear()
     await page.waitForTimeout(350)

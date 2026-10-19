@@ -1,6 +1,6 @@
 # Pitch surfaces, researched 19 Oct 2026 for 2026-27
 
-Source table behind src/game/conditions.ts (ARTIFICIAL, HYBRID). Owner calls: Bristol hybrid (sources), Bath grass (club's own word), unconfirmed grounds and generated clubs grass.
+Source table behind src/game/conditions.ts (PITCH). Owner calls: Bristol hybrid (sources), Bath grass (club's own word), unconfirmed grounds and generated clubs grass.
 
 ## eng
 

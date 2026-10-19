@@ -715,11 +715,12 @@ export default function App() {
         { ico: <Glyph name="tactics" />, label: t('groups.tactics'), screen: 'tactics', sec: t('groups.secSquad') },
         { ico: <Glyph name="academy" />, label: t('groups.academy'), screen: 'academy', sec: t('groups.secSquad') },
         { ico: <Glyph name="training" />, label: t('groups.trainingStaff'), screen: 'training', sec: t('groups.secSquad') },
+        // SCOUTING HAS ITS OWN DOOR (owner: "Scouting needs to be more
+        // visible as an option"), directly under Training & Staff (owner,
+        // 1.8.17), so it sits in the squad group
+        { ico: <Glyph name="scout" />, label: t('groups.scouting'), screen: 'scouting', sec: t('groups.secSquad') },
         { ico: <Glyph name="medical" />, label: t('groups.medical'), screen: 'medical', badge: injuredCount, sec: t('groups.secSquad') },
         { ico: <Glyph name="fixtures" />, label: t('groups.fixturesResults'), screen: 'fixtures', sec: t('groups.secMatches') },
-        // SCOUTING HAS ITS OWN DOOR (owner: "Scouting needs to be more
-        // visible as an option"); it reads with the matches since 1.9.2
-        { ico: <Glyph name="scout" />, label: t('groups.scouting'), screen: 'scouting', sec: t('groups.secMatches') },
         { ico: <Glyph name="finances" />, label: t('groups.finances'), screen: 'finances', badge: boardOpen, sec: t('groups.secClub') },
         { ico: <Glyph name="transfers" />, label: t('groups.transfers'), screen: 'transfers', badge: offersOpen, sec: t('groups.secClub') },
         { ico: <Glyph name="infra" />, label: t('groups.infra'), screen: 'infra', sec: t('groups.secClub') },
@@ -747,14 +748,7 @@ export default function App() {
         // belongs to him rather than to the team sheet
         { ico: <Glyph name="press" />, label: t('groups.press'), screen: 'press', badge: pressOpen, sec: t('groups.secCareer') },
         { ico: <Glyph name="legacy" />, label: t('groups.legacy'), screen: 'legacy', sec: t('groups.secCareer') },
-        { ico: <Glyph name="handbook" />, label: t('groups.handbook'), screen: 'handbook', sec: t('groups.secHelp') },
-        // dismissing the welcome dialog used to be final and irreversible
-        { ico: <Glyph name="help" />, label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut(), sec: t('groups.secHelp') },
-        { ico: <Glyph name="bug" />, label: t('groups.bug'), screen: 'bug', sec: t('groups.secHelp') },
-        // what this is, who made it, and what it does with your data - the page
-        // a store reviewer looks for and the page a player ends up on when they
-        // want the privacy policy without leaving the game
-        { ico: <Glyph name="about" />, label: t('groups.about'), screen: 'about', sec: t('groups.secHelp') },
+        // the game group above help: Settings sits above Report a Bug (skinui)
         { ico: <Glyph name="settings" />, label: t('groups.settings'), screen: 'settings', sec: t('groups.secGame') },
         { ico: <Glyph name="save" />, label: t('groups.saveLoad'), screen: 'saves', sec: t('groups.secGame') },
         // A reload now resumes the career where it was left, so a refresh is no
@@ -765,6 +759,14 @@ export default function App() {
         // screen, onto the manager's own list and the foot of Home). `screen`
         // is only its key here; the href is what it does.
         { ico: <Glyph name="gossip" />, label: t('menu.community'), screen: 'about', href: COMMUNITY_URL, sec: t('groups.secGame') },
+        { ico: <Glyph name="handbook" />, label: t('groups.handbook'), screen: 'handbook', sec: t('groups.secHelp') },
+        // dismissing the welcome dialog used to be final and irreversible
+        { ico: <Glyph name="help" />, label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut(), sec: t('groups.secHelp') },
+        { ico: <Glyph name="bug" />, label: t('groups.bug'), screen: 'bug', sec: t('groups.secHelp') },
+        // what this is, who made it, and what it does with your data - the page
+        // a store reviewer looks for and the page a player ends up on when they
+        // want the privacy policy without leaving the game
+        { ico: <Glyph name="about" />, label: t('groups.about'), screen: 'about', sec: t('groups.secHelp') },
       ],
     },
     world: {

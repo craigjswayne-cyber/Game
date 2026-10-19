@@ -2001,7 +2001,7 @@
   "statusBanned": "Geskors {n}",
   "statusAvailable": "Beskikbaar",
   "backroomStaff": "Agtergrondpersoneel",
-  "backroomStaffSub": "'n kenteken is 'n dag se eksamen, met 'n slaagsyfer van {pct}%",
+  "backroomStaffSub": "kenteken: 'n dag se eksamen, {pct}% slaag",
   "vacant": "Vakant",
   "staffLine": "{age} · {wage}",
   "badgesHere": " · {n} kentekens hier",

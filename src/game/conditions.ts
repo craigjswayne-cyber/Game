@@ -47,29 +47,29 @@ export const SURFACES: Surface[] = ['grass', 'hybrid', 'artificial']
  *  groundsman says it is not hybrid, so it is grass; Leicester and Doncaster
  *  call their mesh-rooted pitches hybrid, so they are. Bristol's Ashton Gate
  *  is the Desso GrassMaster laid in the 2014-16 rebuild. */
-const ARTIFICIAL = new Set([
+/** Every pitch that is not grass: artificial, then hybrid. Keyed by club id
+ *  so each id stays a key in the build (scripts/ipprobe.mjs). */
+const PITCH: Record<string, Surface> = {
   // Premiership and below
-  'saracens', 'newcastle', 'gloucester', 'blackheath', 'coventry', 'ealing', 'worcester', 'dings', 'rosslyn',
+  saracens: 'artificial', newcastle: 'artificial', gloucester: 'artificial', blackheath: 'artificial', coventry: 'artificial', ealing: 'artificial', worcester: 'artificial', dings: 'artificial', rosslyn: 'artificial',
   // URC
-  'cardiff', 'connacht', 'edinburgh', 'glasgow', 'ospreys', 'ulster',
+  cardiff: 'artificial', connacht: 'artificial', edinburgh: 'artificial', glasgow: 'artificial', ospreys: 'artificial', ulster: 'artificial',
   // Top 14 and Pro D2
-  'racing92', 'lyon', 'agen', 'aurillac', 'biarritz', 'colomiers', 'montauban', 'oyonnax', 'provence',
+  racing92: 'artificial', lyon: 'artificial', agen: 'artificial', aurillac: 'artificial', biarritz: 'artificial', colomiers: 'artificial', montauban: 'artificial', oyonnax: 'artificial', provence: 'artificial',
   // MLR
-  'newengland', 'seattle',
-])
-const HYBRID = new Set([
-  'bristol', 'exeter', 'leicester', 'doncaster',
-  'bulls', 'dragons', 'munster', 'scarlets', 'stormers',
-  'bayonne', 'bordeaux', 'castres', 'clermont', 'la_rochelle', 'pau', 'perpignan', 'stade_francais', 'toulon', 'toulouse', 'vannes',
-  'beziers', 'brive', 'grenoble', 'nevers',
-  'blues', 'chiefs', 'crusaders', 'force', 'highlanders', 'hurricanes', 'reds', 'waratahs',
-  'bravelupus', 'canon', 'steelers', 'sungoliath',
-])
+  newengland: 'artificial', seattle: 'artificial',
+  bristol: 'hybrid', exeter: 'hybrid', leicester: 'hybrid', doncaster: 'hybrid',
+  bulls: 'hybrid', dragons: 'hybrid', munster: 'hybrid', scarlets: 'hybrid', stormers: 'hybrid',
+  bayonne: 'hybrid', bordeaux: 'hybrid', castres: 'hybrid', clermont: 'hybrid', la_rochelle: 'hybrid', pau: 'hybrid', perpignan: 'hybrid', stade_francais: 'hybrid', toulon: 'hybrid', toulouse: 'hybrid', vannes: 'hybrid',
+  beziers: 'hybrid', brive: 'hybrid', grenoble: 'hybrid', nevers: 'hybrid',
+  blues: 'hybrid', chiefs: 'hybrid', crusaders: 'hybrid', force: 'hybrid', highlanders: 'hybrid', hurricanes: 'hybrid', reds: 'hybrid', waratahs: 'hybrid',
+  bravelupus: 'hybrid', canon: 'hybrid', steelers: 'hybrid', sungoliath: 'hybrid',
+}
 
 /** A club's pitch. */
 export function clubSurface(club: Pick<Club, 'id' | 'leagueId'>): Surface {
   const id = club.id.replace(/^w:/, '')
-  return ARTIFICIAL.has(id) ? 'artificial' : HYBRID.has(id) ? 'hybrid' : 'grass'
+  return PITCH[id] ?? 'grass'
 }
 
 /** The pitch a fixture is played on: the home club's, and a showpiece

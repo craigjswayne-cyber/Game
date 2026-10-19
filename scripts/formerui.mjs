@@ -94,11 +94,14 @@ try {
   ok(!!line && /^You sold .+ for .+ in \d{4}-\d{2}\. /.test(line) && !raw(line), 'as a sentence: how he left, the fee, the season, then since')
 
   // ---- play it ------------------------------------------------------------------
-  await page.locator('text="Kick Off"').first().click().catch(() => {})
+  await page.locator('button:has-text("Kick Off")').first().click().catch(() => {})
   await page.locator('.talk-modal').waitFor({ timeout: 3000 })
     .then(() => page.click('.talk-modal .speech-tile >> text=Calm the nerves')).catch(() => {})
   await page.locator('text="Take the Field"').waitFor({ timeout: 2500 })
     .then(() => page.click('text="Take the Field"')).catch(() => {})
+  // selling Pollock left a hole in the XV: the gate offers to repair the sheet
+  await page.locator('text="Fix It & Take the Field"').waitFor({ timeout: 2500 })
+    .then(() => page.click('text="Fix It & Take the Field"')).catch(() => {})
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
   for (let i = 0; i < 200; i++) {
     const s = await page.evaluate(() => {

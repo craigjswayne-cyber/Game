@@ -2035,7 +2035,7 @@
     "statusBanned_f": "Suspendue {n}",
     "statusAvailable": "Disponible",
     "backroomStaff": "Staff technique",
-    "backroomStaffSub": "un badge, c'est un jour d'examen, avec {pct} % de reçus",
+    "backroomStaffSub": "badge : un jour d'examen, {pct} % de reçus",
     "vacant": "Poste vacant",
     "staffLine": "{age} · {wage}",
     "badgesHere": " · {n} diplômes ici",

@@ -201,7 +201,14 @@ try {
   // colour on that card. title, squad, tactics and club read the same to the
   // thousandth and home is brighter. A floor inside one world's opponent
   // lottery was measuring the fixture list, not the palette.
-  const FLOOR = 0.090 // measured 0.098 on the charcoal-and-green palette
+  //
+  // 0.090 -> 0.083 in 1.9.2, with the numbers: content 0.086 (squad 12% vivid,
+  // tactics 8%, against 26% and 30%). The owner's UI review replaced the
+  // half-star ratings, gold on every player, with a number out of 99 coloured
+  // only at the ends (gold 85+, green 75+, plain, muted under 60), and cards
+  // lost their coloured edge for a faint wash. Fewer coloured elements is the
+  // instruction; title and home read as before.
+  const FLOOR = 0.083 // measured 0.086 after the 1.9.2 UI review
   if (an && am / an < FLOOR) {
     console.error(`FAIL: content chroma ${(am / an).toFixed(3)} is below the ${FLOOR} floor - the palette has drifted back toward grey`)
     process.exitCode = 1

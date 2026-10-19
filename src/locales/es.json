@@ -2020,7 +2020,7 @@
   "statusBanned_f": "Sancionada {n}",
   "statusAvailable": "Disponible",
   "backroomStaff": "Cuerpo técnico",
-  "backroomStaffSub": "cada insignia es un día de examen, con un {pct}% de aprobados",
+  "backroomStaffSub": "insignia: un día de examen, {pct}% aprueban",
   "vacant": "Vacante",
   "staffLine": "{age} · {wage}",
   "badgesHere": " · {n} insignias aquí",

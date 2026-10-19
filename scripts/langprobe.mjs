@@ -483,7 +483,8 @@ try {
     const dayText = await page.locator('.content, .day-head').first().innerText().catch(() => '')
     const dayEng = ['The Review', 'The Morning Papers', 'On The Wire', 'Treatment Room', 'The market',
       'The boardroom', 'The training ground', 'Tomorrow', 'Continue']
-      .filter(w => dayText.includes(w))
+      // whole words: the French Continue is "Continuer", which contains it
+      .filter(w => new RegExp(`\\b${w}\\b`).test(dayText))
     ok(dayEng.length === 0, `no English left in the day room${dayEng.length ? ': ' + dayEng.join(', ') : ''}`)
     const next = await page.locator('.day-next').innerText().catch(() => '')
     ok(/Continuer/.test(next), `and its own Continue is French ("${next.trim()}")`)
