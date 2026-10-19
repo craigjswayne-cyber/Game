@@ -120,6 +120,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.2, Play version code 61 (confirm 60 is accepted on the Console first)
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+Squads updated for 2026-27, and every club now plays on its real pitch: grass, hybrid or artificial. A head injury check now stops the match and you pick the replacement. Team talks matter more, above all against stronger sides. Players get some energy back at half time. Sara Cox and Aimee Barrett-Theron join the referees. A fresh look with new fonts and cleaner cards and menus. Free players have one career slot, Pro Manager four.
+
+**fr-FR**
+Effectifs mis à jour pour 2026-27, et chaque club joue sur sa vraie pelouse : naturelle, hybride ou synthétique. Un protocole commotion arrête le match et c'est vous qui choisissez le remplaçant. Les causeries comptent davantage, surtout face à plus fort. Les joueurs récupèrent un peu d'énergie à la mi-temps. Sara Cox et Aimee Barrett-Theron rejoignent les arbitres. Nouveau look, nouvelles polices, cartes et menus plus clairs. Une carrière en gratuit, quatre avec Pro Manager.
+
+**es-ES**
+Plantillas actualizadas para 2026-27, y cada club juega en su césped real: natural, híbrido o artificial. Un protocolo de conmoción detiene el partido y eliges tú al sustituto. Las charlas pesan más, sobre todo ante rivales más fuertes. Los jugadores recuperan algo de energía en el descanso. Sara Cox y Aimee Barrett-Theron se unen a los árbitros. Nuevo aspecto con nuevas fuentes y tarjetas y menús más limpios. Una carrera gratis, cuatro con Pro Manager.
+
+**it-IT**
+Rose aggiornate al 2026-27, e ogni club gioca sul suo vero campo: erba naturale, ibrida o sintetica. Un controllo per trauma cranico ferma la partita e scegli tu il sostituto. I discorsi alla squadra contano di più, soprattutto contro avversari più forti. I giocatori recuperano un po' di energia all'intervallo. Sara Cox e Aimee Barrett-Theron si uniscono agli arbitri. Nuovo aspetto con nuovi caratteri e schede e menu più puliti. Una carriera gratis, quattro con Pro Manager.
+
+**ja-JP**
+2026-27シーズンのスカッドに更新し、全クラブが実際のピッチ（天然芝、ハイブリッド、人工芝）でプレーするように。頭部負傷の確認（HIA）で試合が止まり、交代選手はあなたが選ぶように。チームトークの影響が大きくなり、格上相手ほど重要に。ハーフタイムに選手のエネルギーが少し回復。サラ・コックスとエイミー・バレット＝セロンがレフェリーに加入。新しいフォントと、すっきりしたカードとメニューで見た目を一新。無料版はキャリア1枠、Pro Managerは4枠。
+
+**af**
+Spanne bygewerk vir 2026-27, en elke klub speel nou op sy regte veld: gras, hibried of kunsgras. 'n Kopbesering-toets stop nou die wedstryd en jy kies die plaasvervanger. Spanpraatjies tel meer, veral teen sterker spanne. Spelers kry rustyd 'n bietjie energie terug. Sara Cox en Aimee Barrett-Theron sluit by die skeidsregters aan. 'n Nuwe voorkoms met nuwe lettertipes en skoner kaarte en kieslyste. Gratis spelers kry een loopbaan, Pro Manager vier.
+
 ### What's new (500 max) - v1.9.1, Play version code 59 (confirm 58 is accepted on the Console first)
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

@@ -16,6 +16,9 @@ card), `src/game/monetise.ts` (products, entitlement, prices),
 
 * No adverts.
 * Three skins only Pro managers get (Midnight, Heritage, Stealth).
+* Four career save slots (1.9.2). A free player has one; one who already
+  had more before 1.9.2 keeps every career playable (`monetise.saveSlotLimit`,
+  `PRO_SAVE_SLOTS`). The web build and the paid edition keep four.
 * Backing an independent game.
 
 Nothing else is promised, and nothing about the rugby changes: no match,
