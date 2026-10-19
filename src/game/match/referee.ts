@@ -72,7 +72,7 @@ export interface Referee {
  *  no referee reads differently. */
 const CARD_MEAN = 0.995
 
-const REF_PANEL: Referee[] = [
+const REF_PANEL: Referee[] = ([
   { name: 'Luke Pearce', style: 'strict', scrum: 1.10, breakdown: 0.92, patience: 4, flow: 0.99, cards: 1.28 },
   { name: 'Karl Dickson', style: 'fair', scrum: 1.00, breakdown: 1.06, patience: 5, flow: 1.03, cards: 1.00 },
   { name: 'Matthew Carley', style: 'fair', scrum: 1.08, breakdown: 0.98, patience: 5, flow: 1.00, cards: 1.05 },
@@ -95,7 +95,7 @@ const REF_PANEL: Referee[] = [
   // head teacher, not afraid to use a card".
   { name: 'Sara Cox', style: 'strict', scrum: 1.08, breakdown: 0.93, patience: 4, flow: 0.99, cards: 1.24 },
   { name: 'Aimee Barrett-Theron', style: 'strict', scrum: 1.04, breakdown: 0.94, patience: 4, flow: 0.98, cards: 1.30 },
-].map((r, _i, all) => ({ ...r, cards: +(r.cards * CARD_MEAN / (all.reduce((t, x) => t + x.cards, 0) / all.length)).toFixed(3) }))
+] as Referee[]).map((r, _i, all) => ({ ...r, cards: +(r.cards * CARD_MEAN / (all.reduce((t, x) => t + x.cards, 0) / all.length)).toFixed(3) }))
 
 /** The man (or woman) in the middle - fixed per fixture, big influence. */
 export function refFor(fxId: number): Referee {
