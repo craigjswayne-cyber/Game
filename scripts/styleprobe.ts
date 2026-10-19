@@ -170,7 +170,11 @@ console.log('\n--- 6. on the pitch\n')
 const userFixture = (g: GameState) =>
   g.fixtures.find(f => f.week === g.week && (f.homeId === g.userClubId || f.awayId === g.userClubId))!
 const pool: { g: GameState; fx: Fixture }[] = []
-for (const seed of [3, 11, 29, 47, 83, 101, 131, 157, 181, 211, 239, 263]) {
+// twenty-four seeds, not twelve, from round 3 of the 2026-27 squads (19 Oct
+// 2026): on twelve the kicking game's lead in field position (0.6 of a metre
+// on the tree before) fell to a tie with direct carrying, which is the size of
+// one world's deal; on twenty-four it leads again (49.9 against 49.5)
+for (const seed of [3, 11, 29, 47, 83, 101, 131, 157, 181, 211, 239, 263, 293, 317, 347, 373, 401, 431, 457, 487, 509, 541, 569, 593]) {
   for (const club of ['northampton', 'bath', 'exeter', 'sale', 'leicester']) {
     const g = newGame(club, 'Style Probe', seed)
     pool.push({ g, fx: userFixture(g) })
