@@ -17,7 +17,7 @@
 import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
-import { tapPast } from './lib/sheet.mjs'
+import { answerSheet, tapPast } from './lib/sheet.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
 let fails = 0
@@ -45,6 +45,9 @@ await page.addInitScript(() => {
 })
 
 const answer = async () => {
+  // an injury, or since 1.9.2 a head assessment, stops the match until the
+  // manager names who goes on (the seeded match has an HIA in the first half)
+  if (await page.locator('.squad-sheet').count()) { await answerSheet(page); return true }
   for (const label of ['Take the Points', 'Kick for the Corner', 'Scrum']) {
     const b = page.locator(`button:has-text("${label}")`)
     if (await b.count()) { await b.first().click().catch(() => {}); await page.waitForTimeout(200); return true }
