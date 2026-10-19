@@ -48,6 +48,10 @@ const usedNames = new Set<string>()
 
 /** Real men at a club, by id (2026-27 research, see the header and
  *  withReal). */
+/** An age the research could not find: withReal gives him the age of the
+ *  generated man whose shirt he takes (owner, 19 Oct 2026). */
+const EST = -1
+
 const REAL: Record<string, RawPlayer[]> = {
   // Forwards from the allrugby / LNR effectif and the 2026-27 squad section of
   // fr.wikipedia (search summaries, Oct 2026); allrugby's ages, which can be a
@@ -112,6 +116,149 @@ const REAL: Record<string, RawPlayer[]> = {
     { name: 'François Carlo Mey', pos: 'CE', alt: ['FB'], age: 23, nat: 'ITA', q: 58 },
     { name: 'Matthys Gratien', pos: 'WG', age: 27, nat: 'FRA', q: 55 },
   ],
+  // ---- ROUND 3 (research of 19 Oct 2026): 2026-27 team sheets (LNR /
+  // allrugby, J1-J7) and transfer reports for the ten clubs not covered
+  // above. Owner, 19 Oct 2026: a real man with no published age still goes
+  // in, at the age of the generated man whose shirt he takes (age: EST,
+  // see withReal), and a man with no stated nationality is French (nat
+  // marked). Surname-only team-sheet names are left out.
+  brive: [
+    { name: 'Vakhtang Abdaladze', pos: 'LP', age: 30, nat: 'GEO', q: 66, intl: true },
+    { name: 'Simon-Pierre Chauvac', pos: 'LP', age: 29, nat: 'FRA', q: 62 },
+    { name: 'Quentin Algay', pos: 'HK', age: EST, nat: 'FRA', q: 58 },
+    { name: 'Christian Judge', pos: 'TP', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Alexandre Ricard', pos: 'LK', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Irné Herbst', pos: 'LK', age: 33, nat: 'RSA', q: 66 },
+    { name: 'Retief Marais', pos: 'LK', age: EST, nat: 'RSA', q: 60 },
+    { name: 'Sasha Gué', pos: 'FL', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Geoffrey Malaterre', pos: 'FL', age: EST, nat: 'FRA', q: 58 },
+    { name: 'John Cooney', pos: 'SH', age: 36, nat: 'IRE', q: 68, intl: true },
+    { name: 'Mathis Galthié', pos: 'SH', age: 24, nat: 'FRA', q: 60 },
+    { name: 'Leny Broncan', pos: 'FH', age: 20, nat: 'FRA', q: 56 },
+    { name: 'Victor Rayeur', pos: 'CE', age: EST, nat: 'FRA', q: 58 },
+    { name: 'Nic Krone', pos: 'CE', age: EST, nat: 'RSA', q: 63 },
+    { name: 'Gatien Massé', pos: 'CE', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Geoffrey Cros', pos: 'WG', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Louis Mary', pos: 'LK', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Stuart Olding', pos: 'CE', age: 33, nat: 'IRE', q: 68, intl: true },
+  ],
+  beziers: [
+    { name: 'Job Poulet', pos: 'CE', age: 21, nat: 'FRA', q: 60 },
+    { name: 'Gabin Kretchmann', pos: 'FH', age: 20, nat: 'FRA', q: 57 },
+    { name: 'Luka Goginava', pos: 'LP', age: EST, nat: 'GEO', q: 62 },
+    { name: 'Yvann Lalevée', pos: 'HK', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Luka Azariashvili', pos: 'TP', age: EST, nat: 'GEO', q: 62 },
+    { name: 'Jérôme Dufour', pos: 'LK', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Cam Dodson', pos: 'LK', age: EST, nat: 'AUS', q: 62 },
+    { name: 'Thomas Canaleta', pos: 'FL', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Sias Koen', pos: 'N8', age: EST, nat: 'RSA', q: 63 },
+    { name: 'Damien Anon', pos: 'SH', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Joseph Laharrague', pos: 'FH', age: EST, nat: 'FRA', q: 61 },
+    { name: 'Barnabé Mechentel', pos: 'WG', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Malakai Fekitoa', pos: 'CE', age: 34, nat: 'TGA', q: 74, intl: true },
+    { name: 'Nicolas Plazy', pos: 'CE', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Paul Gadea', pos: 'WG', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Jordon Van Rensburg', pos: 'FB', age: EST, nat: 'RSA', q: 62 },
+  ],
+  provence: [
+    { name: 'Aurélien Azar', pos: 'LP', age: EST, nat: 'FRA', q: 64 },
+    { name: 'Arthur Coville', pos: 'SH', age: 28, nat: 'FRA', q: 66 },
+    { name: 'Romain Trouilloud', pos: 'CE', age: EST, nat: 'FRA', q: 64 },
+    { name: 'Bobby Bissu', pos: 'WG', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Andréa Pontanier', pos: 'LP', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Romain Latterrade', pos: 'HK', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Hugo Ndiaye', pos: 'TP', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Thibaut Martel', pos: 'FL', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Tyler Ardron', pos: 'N8', age: 35, nat: 'CAN', q: 70, intl: true },
+    { name: 'Joris Cazenave', pos: 'SH', age: EST, nat: 'FRA', q: 68 },
+    { name: 'Cellio Zwiler', pos: 'WG', age: EST, nat: 'FRA', q: 60 },
+  ],
+  oyonnax: [
+    { name: 'Vano Karkadze', pos: 'HK', age: 29, nat: 'GEO', q: 70, intl: true },
+    { name: 'Koen Bloemen', pos: 'LK', age: EST, nat: 'NED', q: 63 },
+    { name: 'Phoenix Battye', pos: 'LK', age: EST, nat: 'AUS', q: 65 },
+    { name: 'Kevin Lebreton', pos: 'FL', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Pierre-Samuel Pacheco', pos: 'FL', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Cyriac Guilly', pos: 'N8', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Vasil Lobzhanidze', pos: 'SH', age: 30, nat: 'GEO', q: 70, intl: true },
+    { name: 'Luka Matkava', pos: 'FH', age: 26, nat: 'GEO', q: 68, intl: true },
+    { name: 'Iñaki Ayarza', pos: 'CE', age: 24, nat: 'CHI', q: 64, intl: true },
+    { name: 'Enzo Reybier', pos: 'WG', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Alex Newsome', pos: 'FB', age: 31, nat: 'AUS', q: 62 },
+    { name: 'Antoine Abraham', pos: 'LP', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Mohamed Megherbi', pos: 'TP', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Thomas Vincent', pos: 'FH', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Karim Qadiri', pos: 'WG', age: EST, nat: 'FRA', q: 61 },
+    { name: 'Lucas Mensa', pos: 'CE', age: 28, nat: 'ARG', q: 66, intl: true },
+    { name: 'Louis Morland', pos: 'CE', age: EST, nat: 'FRA', q: 61 },
+  ],
+  colomiers: [
+    { name: 'Myles Edwards', pos: 'LK', age: EST, nat: 'ENG', q: 62 },
+    { name: 'Paolo Parpagiola', pos: 'FL', age: EST, nat: 'ITA', q: 60 },
+    { name: 'Seamus Bardoul', pos: 'CE', age: 29, nat: 'NZL', q: 62 },
+    { name: 'Simão Bento', pos: 'FB', age: EST, nat: 'POR', q: 63, intl: true },
+    { name: 'Richard Hardwick', pos: 'FL', age: EST, nat: 'AUS', q: 63 },
+    { name: 'Viliami Fine', pos: 'LK', age: EST, nat: 'TGA', q: 60 },
+  ],
+  nevers: [
+    { name: 'Thomas Breton', pos: 'LP', age: EST, nat: 'FRA', q: 56 },
+    { name: 'Henzo Kiteau', pos: 'TP', age: 24, nat: 'FRA', q: 62 },
+    { name: 'Guillem Calmon', pos: 'N8', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Yan Arnold', pos: 'LK', age: EST, nat: 'FRA', q: 58 },
+    { name: 'Anselme Cellier', pos: 'CE', age: EST, nat: 'FRA', q: 57 },
+    { name: 'Raphaël Sanchez', pos: 'WG', age: EST, nat: 'FRA', q: 57 },
+  ],
+  biarritz: [
+    { name: 'Giorgi Nutsubidze', pos: 'LP', age: EST, nat: 'GEO', q: 64 },
+    { name: 'Heath Backhouse', pos: 'LK', age: EST, nat: 'AUS', q: 63 },
+    { name: 'Johnny Dyer', pos: 'LK', age: EST, nat: 'AUS', q: 63 },
+    { name: 'Sione Vailanu', pos: 'N8', age: 30, nat: 'TGA', q: 70, intl: true },
+    { name: 'Mosese Dawai', pos: 'CE', age: EST, nat: 'FIJ', q: 64 },
+    { name: 'Kakhaber Darbaidze', pos: 'TP', age: EST, nat: 'GEO', q: 62 },
+    { name: 'Adrien Sonzogni', pos: 'HK', age: EST, nat: 'FRA', q: 58 },
+  ],
+  agen: [
+    { name: 'Enrique Pieretto', pos: 'TP', age: 30, nat: 'ARG', q: 68, intl: true },
+    { name: 'Akato Fakatika', pos: 'LP', age: EST, nat: 'TGA', q: 60 },
+    { name: 'Nail Audoire', pos: 'CE', age: EST, nat: 'FRA', q: 58 },
+    { name: 'Adam Bouaré', pos: 'FL', age: EST, nat: 'FRA', q: 58 },
+    { name: 'Hugo Bouyssou', pos: 'SH', age: EST, nat: 'FRA', q: 58 },
+    { name: 'Charles Laloi', pos: 'WG', age: EST, nat: 'FRA', q: 58 },
+  ],
+  valence: [
+    { name: 'Issam Hamel', pos: 'HK', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Ilia Spanderashvili', pos: 'N8', age: 28, nat: 'GEO', q: 64 },
+    { name: 'Thomas Lhuséro', pos: 'SH', age: 29, nat: 'FRA', q: 63 },
+    { name: 'Thomas Zénon', pos: 'FB', age: 27, nat: 'FRA', q: 63 },
+    { name: 'Louis Marrou', pos: 'CE', age: 32, nat: 'FRA', q: 63 },
+    { name: 'Mathieu Guillomot', pos: 'CE', age: 32, nat: 'FRA', q: 62 },
+    { name: 'Marco Tauleigne', pos: 'N8', age: 29, nat: 'FRA', q: 66 },
+  ],
+  dax: [
+    { name: 'Thibaud Dréan', pos: 'LP', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Louis Barrère', pos: 'HK', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Mathys Vigeon', pos: 'TP', age: EST, nat: 'FRA', q: 59 },
+    { name: 'Brice Ferrer', pos: 'LK', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Jean-Baptiste Singer', pos: 'LK', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Arnaud Aletti', pos: 'FL', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Paul Arnaud Ausset', pos: 'FL', age: EST, nat: 'FRA', q: 59 },
+    { name: 'Sam Wasley', pos: 'N8', age: EST, nat: 'ENG', q: 62 },
+    { name: 'Paul Ravier', pos: 'SH', age: EST, nat: 'FRA', q: 61 },
+    { name: 'Romuald Séguy', pos: 'FH', age: EST, nat: 'FRA', q: 62 },
+    { name: 'Maxime Oltmann', pos: 'WG', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Jope Naseara', pos: 'CE', age: EST, nat: 'FIJ', q: 61 },
+    { name: 'Bastien Daguerre', pos: 'CE', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Naim Ben Alla', pos: 'WG', age: EST, nat: 'FRA', q: 60 },
+    { name: 'Théo Duprat', pos: 'FB', age: EST, nat: 'FRA', q: 61 },
+    { name: 'Paul Laperne', pos: 'HK', age: EST, nat: 'FRA', q: 57 },
+    { name: 'Raphaël Laboille', pos: 'LP', age: EST, nat: 'FRA', q: 58 },
+    { name: 'David Lolohea', pos: 'TP', age: EST, nat: 'TGA', q: 58 },
+    { name: 'Étienne Loiret', pos: 'LK', age: EST, nat: 'FRA', q: 57 },
+    { name: 'Matéo Lacroix', pos: 'FL', age: EST, nat: 'FRA', q: 57 },
+    { name: 'Benjamin Puntous', pos: 'SH', age: EST, nat: 'FRA', q: 57 },
+    { name: 'Mathys Pardies', pos: 'CE', age: EST, nat: 'FRA', q: 57 },
+    { name: 'Xan Mariluz', pos: 'WG', age: 19, nat: 'FRA', q: 55 },
+  ],
 }
 
 /** A club's real men take the shirts of the generated men drawn for them: the
@@ -126,8 +273,8 @@ function withReal(generated: RawPlayer[], real: RawPlayer[]): RawPlayer[] {
   const extra: RawPlayer[] = []
   for (const rp of real) {
     const i = out.findIndex((p, k) => !taken.has(k) && p.pos === rp.pos)
-    if (i < 0) { extra.push(rp); continue }
-    out[i] = rp
+    if (i < 0) { extra.push(rp.age === EST ? { ...rp, age: 26 } : rp); continue }
+    out[i] = rp.age === EST ? { ...rp, age: out[i].age } : rp
     taken.add(i)
   }
   // real men first, the convention every squad file keeps

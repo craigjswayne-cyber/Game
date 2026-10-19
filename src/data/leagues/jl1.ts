@@ -29,7 +29,10 @@ const STARS: Record<string, RawPlayer[]> = {
 
 // one name per man across the whole competition: a duplicate would cost the
 // second club a real shirt, since the world builder keeps only the first
-const usedNames = new Set<string>()
+// Real men added by hand elsewhere (additions.ts) are reserved too: the pools
+// mix real surnames with common first names, and drew the real Wild Knights
+// hooker's name for a 21-year-old Sungoliath prop (round 3, 19 Oct 2026).
+const usedNames = new Set<string>(['Atsushi Sakate'])
 
 function genSquad(clubId: string, rep: number): RawPlayer[] {
   const rng = mulberry32(0xa11e ^ clubId.split('').reduce((h, c) => (h * 33 + c.charCodeAt(0)) | 0, 5381))

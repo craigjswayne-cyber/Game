@@ -511,7 +511,6 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'sebastian cancelliere@glasgow': GONE,
   // leinster: Rugby World URC 2026-27 preview: Leinster
   'peter dooley@connacht': 'leinster',
-  'james lowe@leinster': GONE,
   // lions: rugby365 60-man squad article and Rugby World Lions preview. Note: ga; Joined Lions June 2025 (Wikipedia Angelo Davids
   'angelo davids@stormers': 'lions',
   'boan venter@edinburgh': 'lions',
@@ -634,7 +633,6 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'paul costes@toulouse': 'racing92',
   // stade_francais: info.fr 'Ihaia West au Stade Français : officialisation pour une...; info.fr 'Stade Français : six joueurs quittent le club' (joined...
   'ihaia west@toulon': 'stade_francais',
-  'brad weber@stade_francais': GONE,
   // toulon: RugbyPass FR Toulon preview; fr.wikipedia La Rochelle 2026-27
   'gaël fickou@racing92': 'toulon',
   'huw jones@glasgow': 'toulon',
@@ -711,7 +709,8 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'enzo hervé@toulon': 'montauban',
   'jack walsh@ospreys': 'montauban',
   'johnny matthews@glasgow': 'montauban',
-  'théo idjellidaine@montauban': 'agen',
+  // Agen lists him among its 2026 departures (Rugbyscope; round 3)
+  'théo idjellidaine@montauban': GONE,
   'vaiolini ekuasi@force': 'montauban',
   'jérôme bosviel@montauban': GONE,
   // narbonne: echo-des-tribunes Narbonne 2026/27 squad presentation
@@ -721,6 +720,45 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'joel kpoku@lyon': 'nice',
   // plymouth: all.rugby/transfers/ealing-trailfinders
   'james kenny@newcastle': 'plymouth',
+  // ---- ROUND 3, research of 19 Oct 2026: the Australian Super Rugby clubs
+  // (2026 squads plus the confirmed 2027 moves, as above), Japan League One
+  // and the Pro D2 clubs not covered before. High and medium entries only.
+  // brumbies: brumbies.rugby departures; Debreczeni played 2026 for the Waratahs and left after it (now a Waratahs assistant coach); Sosefo is the Sefo Kautai already built at the Waratahs
+  "ben o'donnell@brumbies": GONE,
+  'harrison goddard@brumbies': GONE,
+  'sosefo kautai@brumbies': GONE,
+  'jack debreczeni@brumbies': GONE,
+  // force and waratahs: westernforce.rugby farewells and 'Who's new at the Force in 2026?' (rugby.com.au, 12 Nov 2025); waratahs.rugby 2026 squad (5 Nov 2025)
+  'matt proctor@force': GONE,
+  'tom horton@force': GONE,
+  'nathan hastie@highlanders': 'force',
+  'harry potter@force': 'waratahs',
+  // reds: reds.rugby 2026 squad and McReight captaincy story (9 Jan 2026); Ravai on the Drua team list, round six; Paisami to Shizuoka (en.wikipedia)
+  'peni ravai@reds': 'drua',
+  'angus blyth@reds': 'waratahs',
+  'hunter paisami@reds': 'bluerevs',
+  // waratahs: not in the official 2026 list of 38 (waratahs.rugby, 5 Nov 2025), destinations not found
+  'jed holloway@waratahs': GONE,
+  'taleni seu@waratahs': GONE,
+  'mahe vailanu@waratahs': GONE,
+  'hugh sinclair@waratahs': GONE,
+  'will harris@waratahs': GONE,
+  'jack grant@waratahs': GONE,
+  'tom ross@waratahs': GONE,
+  'theo fourie@waratahs': GONE,
+  // japan league one 2026-27: RugbyJP's list of every Division One club's three foreign Test players (Jul/Aug 2026) and club announcements; de Klerk to the Cheetahs (RugbyJP)
+  'semi radradra@lyon': 'bluerevs',
+  'lukhanyo am@sharks': 'dynaboars',
+  'brad weber@stade_francais': 'dynaboars',
+  'tevita ikanivere@drua': 'hondaheat',
+  'james lowe@leinster': 'sungoliath',
+  'faf de klerk@canon': GONE,
+  // pro d2 2026-27 team sheets (LNR / allrugby, J1-J7): men the game had at another club
+  'mayco vivas@gloucester': 'oyonnax',
+  "duncan paia'aua@toulon": 'biarritz',
+  'vincent giudicelli@montpellier': 'provence',
+  'francisco coria marchetti@lyon': 'brive',
+  'aymeric luc@bayonne': 'brive',
 }
 
 /** Every man the 2025/26 Premiership guide names, at the club it names him at.

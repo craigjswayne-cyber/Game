@@ -68,7 +68,13 @@ const cover = (players: { pos: string; alt?: readonly string[] | string[] }[]) =
 // other nine have no named replacement anywhere in the source, and inventing
 // one is the thing this file exists to prevent. Lower it by adding those
 // clubs' own signings when a source turns up - never by cancelling transfers.
-const GAP_BUDGET = 39
+// 43 after round 3 (19 Oct 2026), the same price again: Lyon a tighthead
+// without Coria Marchetti (Brive), the Drua a hooker without Ikanivere (Honda
+// Heat), the Highlanders a scrum-half without Hastie (Force), the Waratahs a
+// fly-half without Creighton, Debreczeni and Edmed, the Force a wing and a
+// centre without Potter, Bridge, Proctor and Tomkinson. No source named their
+// replacements.
+const GAP_BUDGET = 43
 let gapCount = 0
 const gapsByLeague = new Map<string, number>()
 for (const club of allClubs) {

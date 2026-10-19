@@ -132,7 +132,6 @@ const EARLIER: Record<string, RawPlayer[]> = {
     { name: 'Chris Harris', pos: 'CE', age: 36, nat: 'SCO', q: 68, intl: true },
     // his hand-authored Force entry moves with him (hand-added men are exempt
     // from the relocation table, so the entry itself changes blocks)
-    { name: 'Franco Molina', pos: 'LK', age: 29, nat: 'ARG', q: 81, intl: true },
     { name: 'James Harper', pos: 'SH', age: 23, nat: 'ENG', q: 64 },
     { name: 'Max Hicks', pos: 'FL', alt: ['LK'], age: 24, nat: 'ENG', q: 62 },
   ],
@@ -175,9 +174,7 @@ const EARLIER: Record<string, RawPlayer[]> = {
   // Beale and Grealy are already ours, which makes the list good; Bridge is the
   // former All Blacks winger, and the Force had two specialists without him.
   force: [
-    { name: 'Sio Tomkinson', pos: 'CE', age: 29, nat: 'NZL', q: 71 },
     { name: 'James Ramm', pos: 'FB', alt: ['WG'], age: 28, nat: 'AUS', q: 67 },
-    { name: 'George Bridge', pos: 'WG', age: 30, nat: 'NZL', q: 71 },
   ],
 
   // ---- THE AUGUST 2026 WINDOW, VERIFIED ONLINE ---------------------------
@@ -301,7 +298,6 @@ const EARLIER: Record<string, RawPlayer[]> = {
     { name: 'TJ Perenara', pos: 'SH', age: 34, nat: 'NZL', q: 76, intl: true },
   ],
   drocks: [
-    { name: 'Steve Cummins', pos: 'LK', age: 31, nat: 'AUS', q: 60 },
     { name: 'Jasper Wiese', pos: 'N8', age: 30, nat: 'RSA', q: 86, intl: true },
   ],
   hondaheat: [
@@ -345,7 +341,6 @@ const EARLIER: Record<string, RawPlayer[]> = {
     { name: 'Max Clark', pos: 'CE', age: 31, nat: 'ENG', q: 66 },
   ],
   waratahs: [
-    { name: 'Bernard Foley', pos: 'FH', age: 37, nat: 'AUS', q: 71, gk: true, intl: true },
   ],
   montpellier: [
     // 124th. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
@@ -803,12 +798,153 @@ const WINDOW_2627: Record<string, RawPlayer[]> = {
   ],
 }
 
+/** ROUND 3 (research of 19 Oct 2026): the Australian Super Rugby clubs, Japan
+ * League One, Doncaster. Same rules as WINDOW_2627: high and medium entries,
+ * each tied to the club by its source. Moved here from the tables above:
+ * George Bridge (Force to Kobe), Franco Molina (Newcastle to the Force) and
+ * Steve Cummins (Urayasu to Colomiers); Bernard Foley and Sio Tomkinson are
+ * gone (not in the Waratahs' 2026 list; the Force said goodbye after 2025). */
+const ROUND3: Record<string, RawPlayer[]> = {
+  blackrams: [
+    // www.rugbyjp.com/post/every-division-one-club-s-three-2026-27-foreign-test-stars-revealed (RugbyJP, ~Jul/Aug 20
+    { name: 'Liam Gill', pos: 'FL', age: 34, nat: 'AUS', q: 78, intl: true },
+    // www.rugbyjp.com/post/every-division-one-club-s-three-2026-27-foreign-test-stars-revealed (RugbyJP, ~Jul/Aug 20
+    { name: 'Paddy Ryan', pos: 'TP', age: 37, nat: 'AUS', q: 66, intl: true },
+  ],
+  bravelupus: [
+    // en.wikipedia.org/wiki/Toshiba_Brave_Lupus_Tokyo
+    { name: 'Michael Leitch', pos: 'FL', age: 37, nat: 'JPN', q: 80, intl: true },
+    // www.rugbyjp.com/post/super-rugby-s-warner-dearns-and-mamoru-harada-to-return-to-toshiba ; en.wikipedia.org/wik
+    { name: 'Warner Dearns', pos: 'LK', age: 24, nat: 'JPN', q: 87, intl: true },
+  ],
+  brumbies: [
+    // ESPN Deportes 'Super Rugby Pacific: todos los planteles para la temporada 2026' (Brumbies list); ex-Waratahs
+    { name: 'Tane Edmed', pos: 'FH', age: 25, nat: 'AUS', q: 72, intl: true },
+    // ESPN Deportes 2026 squads; rugby.com.au 'Townsend headlines Brumbies debutants' (captained Brumbies in Super R
+    { name: 'Toby MacPherson', pos: 'LK', age: 24, nat: 'AUS', q: 68 },
+    // ESPN Deportes 2026 squads (Brumbies forwards)
+    { name: 'Tevita Alatini', pos: 'TP', age: 25, nat: 'AUS', q: 62 },
+    // brumbies.rugby 'ACT Brumbies announce exciting squad for 2026' (5 Nov 2025, named for first time); ESPN Deport
+    { name: 'Harvey Cordukes', pos: 'LK', age: 21, nat: 'AUS', q: 58 },
+    // brumbies.rugby 5 Nov 2025 (named for first time); ESPN Deportes. Position/age estimated
+    { name: 'Chris Mickelson', pos: 'FL', age: 22, nat: 'AUS', q: 58 },
+    // brumbies.rugby 5 Nov 2025 (named for first time); ESPN Deportes. Position/age estimated
+    { name: 'Joe Dillon', pos: 'CE', age: 21, nat: 'AUS', q: 57 },
+    // brumbies.rugby 5 Nov 2025 (named for first time); ESPN Deportes. Position/age estimated
+    { name: 'Kye Oates', pos: 'WG', age: 21, nat: 'AUS', q: 57 },
+    // ESPN Deportes 2026 squads (Brumbies backs). Position/age estimated
+    { name: 'Jarrah McLeod', pos: 'CE', age: 22, nat: 'AUS', q: 60 },
+    // ESPN Deportes 2026 squads (Brumbies backs). Position/age estimated
+    { name: 'Kadin Pritchard', pos: 'WG', age: 22, nat: 'AUS', q: 60 },
+    // ESPN Deportes 2026 squads (Brumbies backs). Position/age estimated
+    { name: 'Shane Wilcox', pos: 'FB', age: 23, nat: 'AUS', q: 60 },
+  ],
+  colomiers: [
+    // Colomiers 2026-27 team sheets (LNR / allrugby)
+    { name: 'Steve Cummins', pos: 'LK', age: 31, nat: 'AUS', q: 60 },
+  ],
+  doncaster: [
+    // Yorkshire Post (spring 2026): scrum-half, 100 appearances, re-signed for 2026/27. Age guessed
+    { name: 'Alex Dolly', pos: 'SH', age: 28, nat: 'ENG', q: 63 },
+    // Yorkshire Post (spring 2026): homegrown second row/back rower, re-signed for 2026/27. Age guessed
+    { name: 'Adam Hopkinson', pos: 'LK', alt: ['FL'], age: 24, nat: 'ENG', q: 58 },
+    // drfc.co.uk news (2026): hooker joins from Sale FC; all.rugby Doncaster transfers 2026/27. Age guessed
+    { name: 'Nathan Langdon', pos: 'HK', age: 24, nat: 'ENG', q: 58 },
+    // Yorkshire Post 'Doncaster Knights turn tables to thrash unbeaten Champ Rugby upstarts' (Oct 2026, 56-26 at Amp
+    { name: 'Wilf McCarthy', pos: 'FL', age: 21, nat: 'ENG', q: 60 },
+    // Yorkshire Post Oct 2026 Ampthill 26-56 report (try scorer). Ex-Bath, England cap; age from memory (born 1988)
+    { name: 'Semi Rokoduguni', pos: 'WG', age: 38, nat: 'ENG', q: 63, intl: true },
+    // Yorkshire Post (spring 2026) re-signed for 2026/27 as captain; drfc.co.uk Chinnor match log 20 Feb 2026. Not t
+    { name: 'Ben Murphy', pos: 'FL', age: 29, nat: 'ENG', q: 64 },
+  ],
+  drocks: [
+    // all.rugby/transfers/urayasu ; www.rugbyjp.com/post/11-japan-based-stars-who-could-switch-nations-in-2026-27 (l
+    { name: 'Jordan Petaia', pos: 'WG', age: 26, nat: 'AUS', q: 80, intl: true },
+  ],
+  force: [
+    // rugby.com.au 'Who's new at the Force in 2026?' (12 Nov 2025)
+    { name: 'Franco Molina', pos: 'LK', age: 29, nat: 'ARG', q: 81, intl: true },
+    // westernforce.rugby 'Force sign experienced international front-rower Fotuaika' (30 Oct 2025); leaves after 202
+    { name: 'Feao Fotuaika', pos: 'TP', age: 30, nat: 'TGA', q: 70, intl: true },
+    // westernforce.rugby 'Force bolster front-row stocks with experienced prop Fa'agase' (4 Nov 2025); re-committed 
+    { name: "Sef Fa'agase", pos: 'LP', alt: ['TP'], age: 34, nat: 'AUS', q: 67 },
+    // rugby.com.au 'Who's new at the Force in 2026?' (12 Nov 2025): Argentina international, joins Jan 2026
+    { name: 'Agustin Moyano', pos: 'SH', age: 26, nat: 'ARG', q: 70, intl: true },
+    // westernforce.rugby 2026 squad story (6 Nov 2025): prop on full contract after injury-cover deals. Age/side est
+    { name: 'Josh Smith', pos: 'TP', age: 25, nat: 'AUS', q: 60 },
+  ],
+  reds: [
+    // reds.rugby 'Queensland Reds announce squad for 2026 Super Rugby Pacific' (5 Nov 2025); rugby.com.au Round 3 te
+    { name: 'Carter Gordon', pos: 'FH', age: 25, nat: 'AUS', q: 76, intl: true },
+    // reds.rugby 5 Nov 2025 (new signing, prop). Age/side estimated
+    { name: 'Nick Bloomfield', pos: 'TP', age: 25, nat: 'AUS', q: 64 },
+    // reds.rugby 5 Nov 2025 (new signing, lock); RugbyPass player page
+    { name: 'Hamish Muller', pos: 'LK', age: 24, nat: 'AUS', q: 64 },
+    // reds.rugby 5 Nov 2025 (new signing, outside back); reds.rugby 'first team of 2026 for trial in Perth' (21 Jan 
+    { name: 'Nicholas Conway', pos: 'FB', age: 22, nat: 'AUS', q: 60 },
+    // reds.rugby 5 Nov 2025 ('schoolboy utility'). Position estimated
+    { name: 'Treyvon Pritchard', pos: 'CE', age: 19, nat: 'AUS', q: 56 },
+    // rugby.com.au Round Six team list (Mar 2026): Reds back three 'Isaac Henry, Filipo Daugunu, Jock Campbell'. Age
+    { name: 'Isaac Henry', pos: 'WG', age: 22, nat: 'AUS', q: 64 },
+  ],
+  spears: [
+    // RugbyJP 2026-27 foreign-player list; en.wikipedia (captain). AGE ESTIMATED
+    { name: 'Faulua Makisi', pos: 'N8', age: 29, nat: 'JPN', q: 80, intl: true },
+  ],
+  steelers: [
+    // RugbyPass; RugbyJP 2026-27 foreign-player list (Kobe)
+    { name: 'George Bridge', pos: 'WG', age: 30, nat: 'NZL', q: 71 },
+  ],
+  sungoliath: [
+    // www.rugbyjp.com/post/every-division-one-club-s-three-2026-27-foreign-test-stars-revealed (RugbyJP, ~Jul/Aug 20
+    { name: 'Sean McMahon', pos: 'FL', age: 32, nat: 'AUS', q: 84, intl: true },
+  ],
+  verblitz: [
+    // www.rugbyjp.com/post/every-division-one-club-s-three-2026-27-foreign-test-stars-revealed ; rugby.com.au/news/a
+    { name: "Mark Tele'a", pos: 'WG', age: 29, nat: 'NZL', q: 85, intl: true },
+  ],
+  waratahs: [
+    // waratahs.rugby 2026 squad (recruit, midfield)
+    { name: 'George Poolman', pos: 'CE', age: 25, nat: 'AUS', q: 64 },
+    // waratahs.rugby 2026 squad (props)
+    { name: 'Apolosi Ranawai', pos: 'LP', age: 23, nat: 'AUS', q: 60 },
+    // waratahs.rugby 2026 squad (props)
+    { name: 'Isaac Kailea', pos: 'LP', age: 26, nat: 'AUS', q: 63 },
+    // waratahs.rugby 2026 squad (props)
+    { name: 'Jack Barrett', pos: 'TP', age: 23, nat: 'AUS', q: 60 },
+    // waratahs.rugby 2026 squad (props)
+    { name: 'Will Goddard', pos: 'TP', age: 21, nat: 'AUS', q: 57 },
+    // waratahs.rugby 2026 squad (locks)
+    { name: 'Ben Grant', pos: 'LK', age: 21, nat: 'AUS', q: 58 },
+    // waratahs.rugby 2026 squad (locks)
+    { name: 'Eamon Doyle', pos: 'LK', age: 21, nat: 'AUS', q: 58 },
+    // waratahs.rugby 2026 squad (back row)
+    { name: 'Austin Durbidge', pos: 'FL', age: 20, nat: 'AUS', q: 57 },
+    // waratahs.rugby 2026 squad (back row); ex-Brumbies (rugby.com.au 'Goddard, Hooper and Vella to leave Brumbies',
+    { name: 'Lachlan Hooper', pos: 'FL', age: 24, nat: 'AUS', q: 63 },
+    // waratahs.rugby 2026 squad (outside backs)
+    { name: 'Archie Saunders', pos: 'WG', age: 22, nat: 'AUS', q: 60 },
+    // waratahs.rugby 2026 squad (outside backs)
+    { name: 'James Hendren', pos: 'WG', age: 21, nat: 'AUS', q: 58 },
+    // waratahs.rugby 2026 squad (outside backs)
+    { name: 'Leo Jaques', pos: 'FB', age: 21, nat: 'AUS', q: 58 },
+    // waratahs.rugby 2026 squad (outside backs)
+    { name: 'Sid Harvey', pos: 'WG', age: 22, nat: 'AUS', q: 60 },
+  ],
+  wildknights: [
+    // www.rugbyjp.com/post/dual-code-wing-mark-nawaqanitawase-to-join-saitama-wild-knights ; www.ultimaterugby.com/n
+    { name: 'Mark Nawaqanitawase', pos: 'WG', age: 25, nat: 'AUS', q: 84, intl: true },
+    // www.allthingsrugby.com/news/japan-rugby-league-one-2025-2026-r6-preview
+    { name: 'Atsushi Sakate', pos: 'HK', age: 33, nat: 'JPN', q: 84, intl: true },
+  ],
+}
+
 /** The two tables as one: a club's earlier additions first, then its 2026-27
  *  ones. Keyed tables cannot repeat a key, which is why the window is its own
  *  table rather than a second `leinster:` inside the first. */
 export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = (() => {
   const out: Record<string, RawPlayer[]> = {}
-  for (const table of [EARLIER, WINDOW_2627]) {
+  for (const table of [EARLIER, WINDOW_2627, ROUND3]) {
     for (const [club, rows] of Object.entries(table)) out[club] = [...(out[club] ?? []), ...rows]
   }
   return out

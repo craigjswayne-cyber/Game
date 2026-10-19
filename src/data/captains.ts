@@ -92,8 +92,8 @@ export const CLUB_CAPTAINS: Record<string, string> = {
   blues: 'Patrick Tuipulotu',
   hurricanes: "Du'Plessis Kirifi",
   brumbies: 'Allan Alaalatoa',
-  waratahs: 'Jake Gordon',
-  reds: 'Tate McDermott',
+  waratahs: 'Matt Philip',
+  reds: 'Fraser McReight',
 
   // Major Rugby Competition (real squads from 18 Oct 2026, mrc.ts)
   chicago: 'Lucas Rumball',
@@ -118,6 +118,17 @@ export const CLUB_CAPTAINS: Record<string, string> = {
   'w:waratahs': 'Emily Chancellor',
   'w:reds': 'Jemma Bemrose',
   'w:brumbies': 'Siokapesi Palu-Sekona',
+  // round 3, research of 19 Oct 2026 (club and league sources, high or medium)
+  force: 'Jeremy Williams',
+  doncaster: 'Ben Murphy',
+  provence: 'Joris Cazenave',
+  valence: 'Marco Tauleigne',
+  wildknights: 'Atsushi Sakate',
+  bravelupus: 'Michael Leitch',
+  spears: 'Faulua Makisi',
+  canon: 'Jesse Kriel',
+  steelers: 'Brodie Retallick',
+  bluerevs: 'Kwagga Smith',
 }
 
 // Announced vice-captains, applied the same way as the captains above. The

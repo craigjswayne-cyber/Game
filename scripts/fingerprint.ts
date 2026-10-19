@@ -24,6 +24,15 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED for round 3 of the 2026-27 squads (research of 19 Oct 2026).
+  // Data, not mechanics: the Australian and Japanese moves, Pro D2's real men
+  // and Doncaster's change the world build's draws, so the Premiership's
+  // pairings fall differently and ALL SIX re-deal. (The real pitches, the
+  // re-centred INJ_NORM and the two referees' dials, committed just before,
+  // left these six as they were.) bandcheck, four worlds, 9,336 league games,
+  // before (that tree) and after the squads:
+  //   pts 49.5 -> 49.3   tries 6.50 -> 6.45   home 53.2% -> 54.7%
+  //   draws 1.7% -> 1.6%   blowouts 8.3% -> 7.9%   (every band holds)
   // REBASELINED for the 2026-27 squads (research of 18 Oct 2026). A DATA
   // change, not a mechanical one: about two hundred relocations and GONE pins
   // and two hundred additions across the real leagues, the Championship,
@@ -660,12 +669,12 @@ export const EXPECTED: string[] = [
   // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
-  'saracens 55-17 exeter',
-  'leicester 33-0 harlequins',
-  'newcastle 14-46 northampton',
-  'sale 36-12 bristol',
-  'gloucester 42-24 bath',
-  'leicester 44-34 saracens',
+  'sale 28-36 northampton',
+  'bath 29-14 saracens',
+  'leicester 56-25 exeter',
+  'newcastle 34-14 harlequins',
+  'gloucester 14-32 bristol',
+  'bath 22-30 sale',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw
