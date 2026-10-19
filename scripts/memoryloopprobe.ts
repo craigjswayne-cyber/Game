@@ -319,8 +319,14 @@ console.log('\n--- 5. a signature call against an analyst who remembers, a seaso
   // and filed, the memory built from each one as it happens, against the
   // same twelve with nothing remembered
   // (against the league's weakest analyst, so the manager wins often enough
-  // to be remembered)
-  const A2 = league.filter(c => archetypeOf(c.id, c.rep) === 'analyst').sort((x, y) => x.rep - y.rep)[0].id
+  // to be remembered: weakest by the squad's best 23, not by reputation,
+  // since the 2026-27 squads of round 3 (19 Oct 2026) made the lowest-rep
+  // analyst, Gloucester, beat Leicester in all twelve)
+  const best23 = (id: string) => {
+    const ca = base.clubs[id].players.map(pid => base.players[pid]?.ca ?? 0).sort((x, y) => y - x).slice(0, 23)
+    return ca.reduce((t, x) => t + x, 0) / Math.max(1, ca.length)
+  }
+  const A2 = league.filter(c => archetypeOf(c.id, c.rep) === 'analyst').sort((x, y) => best23(x.id) - best23(y.id))[0].id
   const chain = (remember: boolean) => {
     const c = withEv([])
     const out = { pts: 0, wins: 0, loopTries: 0, loopRuns: 0, loopM: 0, applied: 0, log: [] as string[] }
