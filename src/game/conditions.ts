@@ -154,8 +154,9 @@ const SURF_INJ: Record<Surface, number> = { grass: 0.97, hybrid: 1.0, artificial
 /** The world's mean of the raw factor below over every AI fixture of a season
  *  in three worlds (scripts/depthprobe.ts measures it), so the world's count
  *  of injuries stays where it was: the styles and the ground shift who is
- *  hurt, not how many. */
-export const INJ_NORM = 1.015
+ *  hurt, not how many. Remeasured for the real pitches (1.9.2): 44% grass,
+ *  32% hybrid, 24% artificial. */
+export const INJ_NORM = 1.028
 
 /**
  * A side's share of the match's injury roll: its own carrying, the other
