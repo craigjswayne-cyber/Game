@@ -71,12 +71,6 @@
   "wire": "Nuus"
  },
  "groups": {
-  "secSquad": "Span",
-  "secMatches": "Wedstryde",
-  "secClub": "Klub",
-  "secCareer": "Loopbaan",
-  "secHelp": "Hulp",
-  "secGame": "Spel",
   "scouting": "Talentsoek",
   "about": "Oor & regsinligting",
   "academy": "Akademie",
@@ -9601,7 +9595,7 @@
   "reactions": "Hoe hulle dit opgeneem het",
   "reactionsSub": "Elkeen hoor dit op sy eie manier",
   "reactionsSub_f": "elkeen hoor dit op haar eie manier",
-  "summary": "{up} opgeruk · {flat} onaangeraak · {down} geskud",
+  "summary": "{up} opgeruk · {flat} bestendig · {down} geskud",
   "gotIt": "Reg so",
   "rMotivated": "Lyk gemotiveerd",
   "rFocused": "Lyk gefokus",

@@ -185,7 +185,7 @@ try {
     })
     console.log(`selection heading: ${head.parts} parts, ${head.h.toFixed(0)}px tall, ${head.spread.toFixed(1)}px spread`)
     if (head.spread > 8) throw new Error(`selection heading wrapped (${head.spread.toFixed(0)}px spread)`)
-    // 36, not 34, since 1.9.2's heading face (Saira Condensed) sets a taller
+    // 36, not 34, since 1.9.2's heading face sets a taller
     // line box: 35px on one line. The spread check above is what holds one line.
     if (head.h > 36) throw new Error(`selection heading is ${head.h.toFixed(0)}px tall, so it is more than one line`)
   } catch (e) {

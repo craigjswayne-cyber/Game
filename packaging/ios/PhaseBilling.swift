@@ -33,6 +33,7 @@
 import Foundation
 import Capacitor
 import StoreKit
+import UIKit
 
 @objc(PhaseBilling)
 public class PhaseBilling: CAPPlugin {
@@ -290,6 +291,28 @@ public class PhaseBilling: CAPPlugin {
                 }
             }
             call.resolve(["ok": finished > 0, "count": finished])
+        }
+    }
+
+    /// ASK FOR A RATING, ONCE (1.9.3, owner: "Add a game review after 8
+    /// games"). Apple's own review card over the game. Apple decides whether
+    /// it shows (at most three times a year per person) and never says, so
+    /// the answer is only "asked" or "unavailable". It sits on this plugin
+    /// because it is the one native bridge already in the Xcode target.
+    @objc func review(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            let scene = UIApplication.shared.connectedScenes
+                .first { $0.activationState == .foregroundActive } as? UIWindowScene
+            guard let scene = scene else {
+                call.resolve(["result": "unavailable"])
+                return
+            }
+            if #available(iOS 16.0, *) {
+                AppStore.requestReview(in: scene)
+            } else {
+                SKStoreReviewController.requestReview(in: scene)
+            }
+            call.resolve(["result": "asked"])
         }
     }
 }

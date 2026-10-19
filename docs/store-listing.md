@@ -120,6 +120,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.3, Play version code 62 (confirm 61 is accepted on the Console first)
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+A new look: headings in Source Serif, everything else in Hanken Grotesk. The menus are one clean list again. Head injury checks now only involve players the game made up. The full-time stamp no longer covers the score or the Continue button. Safer saves: a spare copy is kept each session, so a damaged save can be recovered. Follow us on TikTok and Instagram: @phaserugbymanager.
+
+**fr-FR**
+Nouveau look : titres en Source Serif, tout le reste en Hanken Grotesk. Les menus redeviennent une seule liste claire. Les protocoles commotion ne concernent plus que les joueurs inventés par le jeu. Le tampon de fin de match ne cache plus le score ni le bouton Continuer. Sauvegardes plus sûres : une copie de secours est gardée à chaque session. Suivez-nous sur TikTok et Instagram : @phaserugbymanager.
+
+**es-ES**
+Nuevo aspecto: títulos en Source Serif y todo lo demás en Hanken Grotesk. Los menús vuelven a ser una sola lista limpia. Los protocolos de conmoción solo afectan ya a jugadores inventados por el juego. El sello del final ya no tapa el marcador ni el botón Continuar. Partidas más seguras: se guarda una copia de respaldo en cada sesión. Síguenos en TikTok e Instagram: @phaserugbymanager.
+
+**it-IT**
+Nuovo aspetto: titoli in Source Serif, tutto il resto in Hanken Grotesk. I menu tornano a essere un'unica lista pulita. I controlli per trauma cranico riguardano ora solo i giocatori inventati dal gioco. Il timbro di fine partita non copre più il punteggio né il pulsante Continua. Salvataggi più sicuri: a ogni sessione si conserva una copia di riserva. Seguici su TikTok e Instagram: @phaserugbymanager.
+
+**ja-JP**
+新しいデザイン：見出しはSource Serif、それ以外はHanken Groteskに。メニューは再びすっきりした1つのリストに。頭部負傷の確認（HIA）は、ゲームが作った架空の選手だけに起こるように。試合終了のスタンプがスコアや「続ける」ボタンを隠さないように。セーブがより安全に：セッションごとに予備のコピーを保存。TikTokとInstagramでフォローしてください：@phaserugbymanager
+
+**af**
+'n Nuwe voorkoms: opskrifte in Source Serif, alles anders in Hanken Grotesk. Die kieslyste is weer een skoon lys. Kopbesering-toetse geld nou net vir spelers wat die speletjie self opgemaak het. Die eindfluitjie-stempel bedek nie meer die telling of die Gaan voort-knoppie nie. Veiliger stoorlêers: elke sessie word 'n rugsteunkopie gehou. Volg ons op TikTok en Instagram: @phaserugbymanager.
+
 ### What's new (500 max) - v1.9.2, Play version code 61 (confirm 60 is accepted on the Console first)
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

@@ -49,6 +49,10 @@ interface PhaseBillingPlugin {
   /** Resolves { ok, count } since v1.5.9; older shells resolve {}. Both are
    *  handled below, because a phone runs whichever build it downloaded. */
   consume(o: { sku: string }): Promise<{ ok?: boolean; count?: number }>
+  /** The store's own review card (1.9.3). Shells before 1.9.3 have no such
+   *  method: Capacitor's proxy answers the call with a rejection, which
+   *  askStoreReview reads as "unavailable". */
+  review?(): Promise<{ result?: string }>
 }
 
 type WithCapacitor = {
@@ -114,6 +118,28 @@ function phaseBilling(cap: NonNullable<WithCapacitor['Capacitor']>): PhaseBillin
     return cap.registerPlugin?.<PhaseBillingPlugin>(PLUGIN) ?? null
   } catch {
     return null
+  }
+}
+
+/**
+ * Ask the phone's store for its review card (Play In-App Review, StoreKit).
+ * True when the native side says it asked; false in a browser, on a shell
+ * from before 1.9.3, or when the store would not. The store decides whether
+ * the card really shows and never says whether a review was written.
+ */
+export async function askStoreReview(): Promise<boolean> {
+  const cap = (globalThis as WithCapacitor).Capacitor
+  if (!cap || cap.isNativePlatform?.() !== true) return false
+  const p = phaseBilling(cap)
+  if (!p || typeof p.review !== 'function') return false
+  try {
+    const got = await Promise.race([
+      p.review(),
+      new Promise<null>(r => setTimeout(() => r(null), 15_000)),
+    ])
+    return got?.result === 'asked'
+  } catch {
+    return false
   }
 }
 

@@ -42,3 +42,13 @@ export const BUG_CHANNEL_URL = 'https://discord.gg/TWmWQxu38z'
  * nothing sent by the game (scripts/netprobe.ts allows it in this file).
  */
 export const IDEAS_URL = 'https://discord.gg/472rzEQbZ'
+
+/**
+ * ---- THE GAME'S SOCIAL ACCOUNTS (1.9.3, owner) ----
+ *
+ * @phaserugbymanager on TikTok and Instagram, linked from About and from the
+ * landing page's footer. Same rules as the Discord links: a link the player
+ * taps, nothing sent by the game (scripts/netprobe.ts allows both here).
+ */
+export const TIKTOK_URL = 'https://www.tiktok.com/@phaserugbymanager'
+export const INSTAGRAM_URL = 'https://www.instagram.com/phaserugbymanager/'

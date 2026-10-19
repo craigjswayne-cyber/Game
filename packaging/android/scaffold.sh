@@ -74,6 +74,19 @@ else
   echo "    Play Billing ${BILLING_VERSION} in app/build.gradle"
 fi
 
+# the Play in-app review card (1.9.3): PhaseBilling.review() asks for a rating
+# once, after the manager's eighth match. Pinned in version.json like billing.
+REVIEW_VERSION=$(node -p "require('./version.json').reviewLibrary")
+if ! grep -q "com.google.android.play:review" "$GRADLE"; then
+  sed -i.bak "s|    implementation project(':capacitor-android')|    implementation project(':capacitor-android')\n    // Play In-App Review, for PhaseBilling.review()\n    implementation \"com.google.android.play:review:${REVIEW_VERSION}\"|" "$GRADLE"
+  rm -f "$GRADLE.bak"
+  echo "    added Play In-App Review ${REVIEW_VERSION} to app/build.gradle"
+else
+  sed -i.bak -E "s|com.google.android.play:review:[0-9.]+|com.google.android.play:review:${REVIEW_VERSION}|" "$GRADLE"
+  rm -f "$GRADLE.bak"
+  echo "    Play In-App Review ${REVIEW_VERSION} in app/build.gradle"
+fi
+
 # versionCode is the number Play counts uploads by; it must beat the highest
 # Play has ever accepted for this package (15, the last TWA build) and it is
 # recorded in version.json rather than typed into Gradle so nobody has to

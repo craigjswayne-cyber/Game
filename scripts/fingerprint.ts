@@ -24,6 +24,14 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED for 1.9.3 (owner, 19 Oct 2026: no head-injury story for a
+  // real player). Only made-up players are led off for an HIA now, so in a
+  // side of real men the check that used to happen does not, and two of the
+  // six re-deal (the 3rd and 4th); a real player's concussion is a hamstring
+  // of the same length, which moves no draw. bandcheck, four worlds, 9,336
+  // league games, before (the 1.9.2 tree) and after:
+  //   pts 49.3 -> 49.5   tries 6.45 -> 6.48   home 54.7% -> 54.4%
+  //   draws 1.6% -> 2.0%   blowouts 7.9% -> 8.4%   (every band holds)
   // REBASELINED for round 3 of the 2026-27 squads (research of 19 Oct 2026).
   // Data, not mechanics: the Australian and Japanese moves, Pro D2's real men
   // and Doncaster's change the world build's draws, so the Premiership's
@@ -671,8 +679,8 @@ export const EXPECTED: string[] = [
   // Four of six moved; sale-bristol and harlequins-leicester held.
   'sale 28-36 northampton',
   'bath 29-14 saracens',
-  'leicester 56-25 exeter',
-  'newcastle 34-14 harlequins',
+  'leicester 24-26 exeter',
+  'newcastle 34-21 harlequins',
   'gloucester 14-32 bristol',
   'bath 22-30 sale',
 ]

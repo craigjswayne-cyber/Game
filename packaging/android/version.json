@@ -97,8 +97,10 @@
     "61 IS 1.9.2, the owner's feedback round of 18 Oct 2026: 2026-27 squads, the real pitch for every club, head injury checks that ask the manager, team talks with bigger stakes, half-time recovery, female referees, one save slot free and four with Pro Manager, and the new fonts and cards. Check the Console's highest accepted code before building: 61 assumes 60 was the last.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
-    "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
+    "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026).",
+    "reviewLibrary is the Play In-App Review library behind PhaseBilling.review() (1.9.3)."
   ],
   "versionCode": 61,
-  "billingLibrary": "8.0.0"
+  "billingLibrary": "8.0.0",
+  "reviewLibrary": "2.0.2"
 }

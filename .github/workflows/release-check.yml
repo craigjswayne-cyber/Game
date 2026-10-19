@@ -46,7 +46,7 @@ jobs:
           ref: ${{ inputs.ref }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       # pinned to playwright-core's own version for the reason given in ci.yml
@@ -84,7 +84,7 @@ jobs:
           ref: ${{ inputs.ref }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - name: Install Chromium

@@ -27,9 +27,12 @@ name: Gate
 # The soaks (suite.sh soak) run weekly in soak.yml; release-check.yml runs the
 # soaks and the whole browser list on one ref before a release is cut. The
 # Pages deploy (pages.yml) waits for this workflow to pass on main.
+# PUSHES TO MAIN ONLY, PRs THROUGH pull_request (1.9.3). It used to run on a
+# push to any branch AND on the PR, so every PR branch ran the whole gate
+# twice (code audit, 19 Oct 2026). A branch with no PR open has no gate.
 on:
   push:
-    branches: ['**']
+    branches: [main]
   pull_request:
   schedule:
     # 03:00 UTC, so a flake that only shows under load has somewhere to show
@@ -80,7 +83,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       # the three linters first: they take seconds and they fail for reasons
@@ -128,7 +131,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       # pinned to playwright-core's own version: see the browser job
@@ -169,7 +172,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       # pinned to playwright-core's own version: see the browser job
@@ -214,7 +217,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       # the probes launch playwright-core against a browser they are TOLD about

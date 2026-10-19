@@ -721,7 +721,7 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           return rustF * tiredF * loadF * brittleF(state.seed, p, tiredF > 1)
         })
         const p = wpick(rng, ps, w)
-        const [dk, lo, hi] = pickInjury(rng, genderOf(state))
+        const [dk, lo, hi] = pickInjury(rng, genderOf(state), p.real)
         let weeks = lo + Math.floor(rng() * (hi - lo + 1))
         if (weeks <= 1 && (p.rust ?? 0) === 0 && rng() < 0.55) {
           // a knock, not a casualty: he plays on with heavy legs
@@ -807,7 +807,9 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       fieldChanged(state, ctx, side, min)
     }
     if (!side.hia && rng() < 0.0085) {
-      const ids = [...side.onPitch].filter(id => state.players[id] && !state.players[id].injury)
+      // only a made-up player is ever led off for a head check (1.9.3,
+      // owner): real people never carry a head-injury story in the game
+      const ids = [...side.onPitch].filter(id => state.players[id] && !state.players[id].injury && !state.players[id].real)
       const p = ids.length ? state.players[ids[Math.floor(rng() * ids.length)]] : null
       const sub = p ? pickBenchSub(state, side, p.id) : null
       if (p && sub) {

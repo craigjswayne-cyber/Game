@@ -333,12 +333,12 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* ---- Type, applied by job (1.9.2: Saira Condensed + Libre Franklin) ----
-   Two families now (01-base.css): the condensed face for anything that is a
-   label, a heading, a button or a score, the text face for anything read.
-   The tracking below was tuned for Space Grotesk, a wide face; on a
-   condensed one negative tracking closes letters up, so the display rules
-   sit at zero or just above.
+/* ---- Type, applied by job (1.9.3: Source Serif 4 + Hanken Grotesk) ----
+   Two families (01-base.css): the bold serif for anything that is a
+   heading, a label or a score, the grotesk for anything read or tapped.
+   Buttons, tabs and the nav are grotesk: a serif at 13px on a button reads
+   worse than a grotesk, and the owner's brief keeps the serif for the bold
+   display lines.
 
    Tables and rosters   medium weight, tight tracking, to buy back landscape
    Scores and ratings   bold and tabular, so columns of numbers line up
@@ -363,12 +363,16 @@
 .scoreboard { letter-spacing: -0.5px; font-weight: 700; }
 .form-pill { font-weight: 700; letter-spacing: -0.3px; }
 
-/* the condensed face, by job: headings, buttons, tabs, nav, stat labels and
-   scores (owner's choice, 18 Oct 2026, from the three pairings shown) */
-h1, h2, h3, .masthead h1, .section-title, .btn, .continue-btn, .tab-bar button,
-.bottom-nav button, .fact-label, .fact-grid label, .ht-l, .scoreboard, .fx-line,
-.submenu-head, .dash-head, .sc-head, .score-card, .desk-sub {
+/* the bold serif, by job: headings, stat labels and scores (owner,
+   19 Oct 2026) */
+h1, h2, h3, .masthead h1, .section-title, .fact-label, .fact-grid label, .ht-l,
+.scoreboard, .fx-line, .submenu-head, .dash-head, .sc-head, .score-card, .desk-sub {
   font-family: var(--cond);
+  font-weight: 700;
+}
+/* and the grotesk for everything tapped */
+.btn, .continue-btn, .tab-bar button, .bottom-nav button {
+  font-family: var(--sans);
 }
 /* nav and buttons: semi-bold */
 .bottom-nav button, .tab-bar button, .btn, .preset-chip, .submenu-item {

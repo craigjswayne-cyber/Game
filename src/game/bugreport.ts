@@ -54,8 +54,34 @@ interface Crash {
   at: string
 }
 
-const crashes: Crash[] = []
+/**
+ * THE CRASHES SURVIVE A RELOAD (1.9.3). This ring lived only in memory, and
+ * the crash screen's own Reload button - the thing a player presses next -
+ * wiped it, as does Android killing the WebView. So the bug report sent
+ * after a crash never carried the crash. It is kept in localStorage now
+ * (small: six entries, each capped), and read back at start-up. Nothing is
+ * ever sent: it only reaches us inside a report the player chooses to send.
+ */
+const CRASH_KEY = 'rm-crash'
+const crashes: Crash[] = loadCrashes()
 const trail: string[] = []
+
+function loadCrashes(): Crash[] {
+  try {
+    const raw = globalThis.localStorage?.getItem(CRASH_KEY)
+    const v: unknown = raw ? JSON.parse(raw) : []
+    if (!Array.isArray(v)) return []
+    // a fortnight is plenty: an old crash on every later report is noise
+    const since = new Date(Date.now() - 14 * 86_400_000).toISOString().slice(0, 19).replace('T', ' ')
+    return v.filter((c): c is Crash => !!c && typeof c === 'object' && typeof (c as Crash).message === 'string')
+      .filter(c => typeof c.at === 'string' && c.at >= since)
+      .slice(-CRASH_LIMIT)
+  } catch { return [] }
+}
+
+function keepCrashes(): void {
+  try { globalThis.localStorage?.setItem(CRASH_KEY, JSON.stringify(crashes)) } catch { /* full or private: memory still has them */ }
+}
 
 /** Note a screen the player reached. Called from the store's navigation, so the
  *  report can say "he was on Squad, then Player, then it went" - the single
@@ -83,6 +109,7 @@ export function recordCrash(kind: Crash['kind'], message: string, stack?: string
     at: new Date().toISOString().slice(0, 19).replace('T', ' '),
   })
   if (crashes.length > CRASH_LIMIT) crashes.shift()
+  keepCrashes()
 }
 
 export const crashCount = (): number => crashes.length

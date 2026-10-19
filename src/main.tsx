@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client'
 import App from './ui/App'
 import ErrorBoundary from './ui/ErrorBoundary'
 import { installCrashCapture } from './game/bugreport'
+import { askPersistentStorage } from './game/save'
 import { installDialogA11y } from './ui/a11y'
 import { installKeyboardScrollFix } from './ui/keyboardScroll'
 import { noteShell } from './game/shell'
@@ -23,6 +24,8 @@ import './ui/theme.css'
 // Those are the ones players report as "it just stopped responding" - the
 // report screen attaches them, so they no longer depend on being noticed.
 installCrashCapture()
+// ask the browser not to evict the saves under disk pressure (1.9.3)
+askPersistentStorage()
 installDialogA11y()
 // iOS can leave the page scrolled after the keyboard, and every tap then
 // lands a row low (1.8.8, ui/keyboardScroll.ts)

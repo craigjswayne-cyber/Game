@@ -74,12 +74,6 @@
     "player_f": "Fiche de la joueuse"
   },
   "groups": {
-    "secSquad": "Effectif",
-    "secMatches": "Matchs",
-    "secClub": "Club",
-    "secCareer": "Carrière",
-    "secHelp": "Aide",
-    "secGame": "Jeu",
     "scouting": "Recrutement",
     "about": "À propos",
     "academy": "Académie",
@@ -9708,7 +9702,7 @@
     "reactions_f": "Comment elles l'ont pris",
     "reactionsSub": "Chacun l'entend à sa manière",
     "reactionsSub_f": "chacune l'entend à sa manière",
-    "summary": "{up} galvanisés · {flat} indifférents · {down} ébranlés",
+    "summary": "{up} galvanisés · {flat} stables · {down} ébranlés",
     "summary_f": "{up} galvanisées · {flat} indifférentes · {down} ébranlées",
     "gotIt": "Compris",
     "rMotivated": "Semble motivé",
