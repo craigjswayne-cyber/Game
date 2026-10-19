@@ -41,7 +41,7 @@ for (let i = 0; i < 600 && tested < 12; i++) {
   while (ctx.tick < 20) {
     stepTick(g, ctx)
     maxOn = Math.max(maxOn, mine.onPitch.size)
-    if (!swapped && mine.hia && mine.lastInj?.hurtId === mine.hia.pid && mine.onPitch.has(mine.hia.subId)) {
+    if (!swapped && mine.hia && mine.hia.atTick === ctx.tick && mine.onPitch.has(mine.hia.subId)) {
       const standIn = mine.hia.subId
       const pick = mine.lineup.slice(15).find(id => id != null && id !== standIn && !mine.onPitch.has(id) && !mine.ratings.has(id) && !g.players[id]?.injury)
       if (pick == null) continue
@@ -52,10 +52,12 @@ for (let i = 0; i < 600 && tested < 12; i++) {
       ok(mine.onPitch.has(pick) && !mine.onPitch.has(standIn), `swap ${tested + 1}: the manager's pick is on and the stand-in is off`)
       const line = [...ctx.events].reverse().find(e => (e.k === 'comm.hiaLedAway' || e.k === 'comm.hiaMouthguard') && e.teamId === me)
       ok(line?.v?.sub === g.players[pick].name && (line?.text ?? '').includes(g.players[pick].name), '  and the record names him')
-      // play one tick, then a second swap is too late
+      // play one tick, then a second swap is too late (an assessment at the
+      // last tick has no tick left to play: full time, nothing has run)
+      const before = ctx.tick
       stepTick(g, ctx)
       const other = mine.lineup.slice(15).find(id => id != null && id !== pick && !mine.onPitch.has(id) && !mine.ratings.has(id) && !g.players[id]?.injury)
-      if (other != null && mine.hia?.subId === pick && mine.onPitch.has(pick)) {
+      if (ctx.tick > before && other != null && mine.hia?.subId === pick && mine.onPitch.has(pick)) {
         swapInjuryCover(g, ctx, pick, other)
         ok(mine.onPitch.has(pick) && !mine.onPitch.has(other), '  and once play has run he cannot be swapped again')
       }

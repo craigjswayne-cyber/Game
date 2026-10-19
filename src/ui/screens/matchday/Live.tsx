@@ -203,12 +203,12 @@ export function Live() {
     // sheet says so and lets the manager keep him or send another man on.
     if (hurt && (e.k === 'comm.hiaLedAway' || e.k === 'comm.hiaMouthguard')) {
       const side = ctx.home.teamId === e.teamId ? ctx.home : ctx.away
-      const li = side.lastInj && side.lastInj.hurtId === hurt.id ? side.lastInj : null
+      const h = side.hia && side.hia.pid === hurt.id ? side.hia : null
       injSeen.current = cursor
       matchCursor(cursor, false)
       setDrawer(false)
       setSettings(false)
-      setInjury({ hurt: hurt.name, hurtId: hurt.id, desc: '', weeks: 0, coverId: li?.coverId ?? null, hia: true })
+      setInjury({ hurt: hurt.name, hurtId: hurt.id, desc: '', weeks: 0, coverId: h?.subId ?? null, hia: true })
       return
     }
     const weeks = hurt?.injury?.weeks ?? 0

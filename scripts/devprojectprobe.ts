@@ -240,6 +240,11 @@ console.log('--- 3. ceilings drift within bounds')
     while (w.season < t && guard++ < SEASON_WEEKS + 5) {
       const fx = userFixtureThisWeek(w); if (fx) simMatch(w, fx, weekRng(w), true)
       for (const pi of w.press.filter(x => !x.answered)) answerPress(w, pi.id, 0)
+      // the board kept on side (as historyprobe): a sacked manager gets no
+      // intake letter, and the 2026-27 squads (1.9.2) had seed 777's
+      // Leicester sacked in the first season
+      const c = w.clubs[w.userClubId]
+      if (!w.unemployed && c) c.boardConfidence = Math.max(c.boardConfidence, 55)
       processWeekAndAdvance(w)
       for (const n of w.news) if (!filed.has(n.id)) filed.set(n.id, n)
     }

@@ -343,6 +343,12 @@ function pushEvent(
   })
 }
 
+/** A minute that passed with nothing said: a words-only line that the
+ *  watched match may or may not write still moves the clock, in both, so
+ *  the two read the same minute (evidenceprobe, 1.9.2: a missed penalty
+ *  said in the 79th minute left the silent replay at 78). */
+export function clockOnly(ctx: LiveCtx, min: number): void { clockTo(ctx, min, 'SUB') }
+
 /** THE CLOCK RUNS WATCHED OR NOT (1.8.0): a line's minute moves the match
  *  clock in a silent match too, so a sin bin and the match sheet read the
  *  same minute either way. Returns the minute the line is stamped with. */

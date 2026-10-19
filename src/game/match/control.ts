@@ -491,9 +491,8 @@ function swapHiaCover(state: GameState, ctx: LiveCtx, mine: SideCtx, onId: numbe
   const hurt = state.players[h.pid]
   if (!pon || !mine.onPitch.has(onId)) return t('touch.notOnPitch')
   if (!pin || pin.injury || mine.onPitch.has(inId) || mine.ratings.has(inId) || mine.lineup.indexOf(inId) < 15) return t('touch.notAvailable')
-  const inj = mine.lastInj && mine.lastInj.coverId === onId ? mine.lastInj : null
-  if (!inj || (inj.atTick != null && ctx.tick !== inj.atTick)) return t('touch.tooLateToUndo')
-  for (let i = inj.upTo; i < ctx.events.length; i++) {
+  if (h.upTo == null || h.atTick == null || ctx.tick !== h.atTick) return t('touch.tooLateToUndo')
+  for (let i = h.upTo; i < ctx.events.length; i++) {
     if (ctx.events[i].playerId === onId) return t('touch.tooLateToUndo')
   }
   // a front-rower stands in for a front-rower while one is on the bench
@@ -508,7 +507,6 @@ function swapHiaCover(state: GameState, ctx: LiveCtx, mine: SideCtx, onId: numbe
   const from = mine.since?.get(onId)
   if (from != null) { mine.since!.delete(onId); mine.since!.set(inId, from) }
   h.subId = inId
-  inj.coverId = inId
   // the assessment line named the assistant's pick: it is the record, so it
   // names the man who actually went on
   const hl = [...ctx.events].reverse().find(e => (e.k === 'comm.hiaLedAway' || e.k === 'comm.hiaMouthguard') && e.v?.sub === pon.name)

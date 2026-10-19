@@ -10,7 +10,7 @@ import { incRng } from './day'
 import { goalKicker } from './field'
 import { type SideCtx, evPts } from './side'
 import { PEN_LINES, PEN_LONG, PEN_WET } from './lines'
-import { type LiveCtx, pushLine } from './live'
+import { type LiveCtx, clockOnly, pushLine } from './live'
 
 /**
  * No kick at goal is a certainty: base skill, then form (a kicker in a purple
@@ -102,5 +102,8 @@ export function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, m
     const post = !!kicker && ctx.crng() < 0.14
     pushLine(state, ctx, min, 'SUB', side, post ? `comm.penPost${1 + Math.floor(ctx.crng() * 2)}` : kicker ? 'comm.penWideNamed' : 'comm.penWide',
       { player: kicker?.name ?? '' }, kicker?.id)
+  } else {
+    // unsaid, the kick still took its minute
+    clockOnly(ctx, min)
   }
 }
