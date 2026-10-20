@@ -42,7 +42,8 @@ export function recoveryShift(state: GameState, p: Player, isUser: boolean): num
   const age = p.age <= 22 ? 2 : p.age >= 33 ? -4 : p.age >= 30 ? -2 : 0
   const engine = (p.a.sta - STA_MID) * 0.4
   const body = (devHash(state.seed, p.id, SALT_REC, absWeek(state.season, state.week)) - 0.5) * 8
-  // a fitness week builds the base he recovers on; a heavy personal plan eats into it
-  const work = !isUser ? 0 : (state.matchPrep === 'fitness' ? 1.5 : 0) - (heavyLoad(p) ? 2.5 : 0)
+  // a fitness week builds the base he recovers on (the manager's choice, so
+  // his club only); a heavy load eats into it at every club alike
+  const work = (isUser && state.matchPrep === 'fitness' ? 1.5 : 0) - (heavyLoad(p) ? 2.5 : 0)
   return age + engine + body + work
 }
