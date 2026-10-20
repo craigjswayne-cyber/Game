@@ -3490,7 +3490,7 @@
   "jbResignFrom": "Dimettiti da {club}",
   "jbSacked": "Il {club} ti ha esonerato. Quel consiglio non ti riceve prima di {n} {weeks_k}.",
   "jbShowTurned": "{n} rifiutate",
-  "jbShutDoor": "Ti hanno esonerato: mancano {n} {weeks_k}",
+  "jbShutDoor": "Ti hanno esonerato: improbabile",
   "jbStay": "Resta",
   "jbTurnedDown": "Rifiutata: hai fatto sapere in giro che non sei un candidato per {club}.",
   "jbTurnedDown_w": "Rifiutata: hai fatto sapere in giro che non sei una candidata per {club}.",

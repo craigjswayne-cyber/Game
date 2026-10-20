@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.4, Play version code 63 (confirm 62 is accepted on the Console first)
+
+**en-GB**
+Minor changes and bug fixes.
+
+**fr-FR**
+Modifications mineures et corrections de bugs.
+
+**es-ES**
+Cambios menores y corrección de errores.
+
+**it-IT**
+Modifiche minori e correzione di bug.
+
+**ja-JP**
+軽微な変更とバグ修正。
+
+**af**
+Klein veranderinge en foutregstellings.
+
 ### What's new (500 max) - v1.9.3, Play version code 62 (confirm 61 is accepted on the Console first)
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

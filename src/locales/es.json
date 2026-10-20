@@ -3477,7 +3477,7 @@
   "jbResignFrom": "Dimitir de {club}",
   "jbSacked": "{club} te destituyó. Esa junta no te va a recibir hasta dentro de {n} {weeks_k}.",
   "jbShowTurned": "{n} rechazadas",
-  "jbShutDoor": "Te destituyeron: quedan {n} {weeks_k}",
+  "jbShutDoor": "Te destituyeron: improbable",
   "jbStay": "Quedarme",
   "jbTurnedDown": "Rechazado: has dejado claro que no optas al banquillo de {club}.",
   "jbUnions": "Las ofertas de selecciones empiezan con una reputación de {at}; las grandes potencias esperan a mediados de los 80.{rest}",

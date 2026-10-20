@@ -4,7 +4,7 @@ import { canBuy, msSincePurchase, purchaseActive } from '../game/monetise'
 import { proDue, readFunnel } from '../game/profunnel'
 import { userMatchThisWeek } from '../game/season'
 import { askStoreReview } from '../game/storekit'
-import { markReviewAsked, reviewAsked, reviewDue } from '../game/reviewask'
+import { markReviewAsked, readReview, reviewDue } from '../game/reviewask'
 import { readUsage } from '../game/usage'
 import { nativePlatform } from '../game/shell'
 
@@ -34,7 +34,7 @@ export function ReviewAsk() {
   useEffect(() => {
     if (asking || !nativePlatform()) return
     if (typeof navigator !== 'undefined' && navigator.webdriver) return
-    if (!reviewDue(readUsage().matches, reviewAsked())) return
+    if (!reviewDue(readUsage().matches, readReview())) return
     const blocked = (): boolean => {
       const s = useStore.getState()
       const g = s.game
@@ -53,10 +53,11 @@ export function ReviewAsk() {
     // a beat after landing, so a Pro or feedback card due on this landing
     // opens first and this waits for the next quiet one
     const timer = setTimeout(() => {
-      if (asking || reviewAsked()) return
+      const matches = readUsage().matches
+      if (asking || !reviewDue(matches, readReview())) return
       if (blocked()) { setAgain(n => n + 1); return }
       asking = true
-      markReviewAsked()
+      markReviewAsked(matches)
       void askStoreReview().finally(() => { asking = false })
     }, 2500)
     return () => clearTimeout(timer)

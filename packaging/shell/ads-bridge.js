@@ -237,7 +237,8 @@
     readyP = (async function () {
       try {
         var ad = plugin()
-        if (!ad) return false
+        // no plugin yet is not a try: the bundle simply has not loaded
+        if (!ad) { attempts--; return false }
 
         var opts = cfg.consentDebug ? { debugGeography: 1, testDeviceIdentifiers: cfg.testDevices || [] } : undefined
         var info = await ad.requestConsentInfo(opts)
@@ -517,9 +518,26 @@
     // for the probe and for a debugging session on a device: never read by the game
     __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday(), why: why } }
   }
-  // one spot fetched at launch, so the first thing the player asks for arrives
-  // when he asks for it
-  if (ids.rewarded) setTimeout(prime, 3000)
+  // CONSENT AT FIRST LAUNCH (1.9.4, owner: "make sure the ad agreement is at
+  // the start of the first time loading the app"). It used to ride on the
+  // rewarded prime three seconds in, and if the app bundle had not yet added
+  // registerPlugin by then (a slow phone) that attempt found no plugin, spent
+  // one of the three tries, and the form waited for the first advert slot -
+  // weeks into a career. Now the bridge waits for the plugin, up to thirty
+  // seconds, and asks for consent as soon as it can; Google's form only
+  // appears when consent is actually needed, so a returning player sees
+  // nothing. The rewarded spot is fetched once that has answered.
+  var waited = 0
+  function atLaunch() {
+    if (typeof C.registerPlugin !== 'function' && !(C.Plugins && C.Plugins.AdMob)) {
+      waited += 500
+      if (waited <= 30000) setTimeout(atLaunch, 500)
+      else log('the plugin never became reachable at launch - consent waits for the first advert')
+      return
+    }
+    ready().then(function (okd) { if (okd && ids.rewarded) prime() })
+  }
+  setTimeout(atLaunch, 1500)
   log('bridge ready - window.rmAds is live')
   }
 })()

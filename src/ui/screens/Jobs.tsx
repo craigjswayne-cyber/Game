@@ -96,7 +96,9 @@ export default function Jobs() {
           <div className="meta" style={{ flex: 1 }}>
             {cold > 0 ? (
               <b style={{ color: 'var(--danger)' }}>
-                {t('world.jbShutDoor', { n: cold, weeks_k: cold === 1 ? 'count.weekOne' : 'count.weekMany' })}
+                {/* "unlikely", never the count (1.9.4, owner): the wait still
+                    holds in jobs.ts, so the old job cannot simply be taken back */}
+                {t('world.jbShutDoor')}
               </b>
             ) : (
               <>

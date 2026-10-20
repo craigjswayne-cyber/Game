@@ -171,9 +171,11 @@
 .title-screen .rules { width: 64px; border: none; border-top: 2px solid var(--text-primary); margin: 16px auto; }
 /* PHASE carries the action green, RUGBY MANAGER the chalk: a two-tone wordmark
    rather than one flat block of text. */
-.title-screen h1 b { color: var(--primary); font-weight: 900; }
+.title-screen h1 b { color: var(--primary); font-weight: 700; }
 .title-screen h1 {
-  font-family: var(--serif); font-size: 2.875rem; font-weight: 900;
+  /* the wordmark in bold Space Grotesk (1.9.4, owner: "the main title text -
+     switch this to bold space grotesk"); 700 is the face's heaviest weight */
+  font-family: var(--title); font-size: 2.875rem; font-weight: 700;
   line-height: 1.02; letter-spacing: 1px;
   text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
   letter-spacing: 4px;

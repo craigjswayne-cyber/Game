@@ -66,8 +66,10 @@
   letter-spacing: .9px; text-transform: uppercase; color: var(--text-muted);
 }
 .home-tile .ht-v {
-  display: block; font-family: var(--cond); font-size: 0.875rem; font-weight: 700;
-  letter-spacing: .2px; color: var(--text-primary); overflow-wrap: break-word;
+  /* the text face, not the serif (1.9.4, owner: the "Aidan Pugh: a flying
+     month" line belongs in the other font); the label above keeps the serif */
+  display: block; font-family: var(--sans); font-size: 0.875rem; font-weight: 600;
+  letter-spacing: 0; color: var(--text-primary); overflow-wrap: break-word;
 }
 .home-tile .ht-s { display: block; font-size: 0.7188rem; color: var(--text-muted); overflow-wrap: break-word; }
 .home-tile .ht-strong { color: var(--text-primary); font-size: 0.7812rem; }

@@ -202,7 +202,9 @@
 /* a choice's words, and its figure on a quieter line under them */
 .opt-label { display: inline-flex; flex-direction: column; min-width: 0; }
 .opt-detail { display: block; margin-top: 2px; font-size: 0.75rem; font-weight: 500; line-height: 1.3; color: var(--text-muted); }
-.desk-opts { display: flex; flex-wrap: wrap; gap: 7px; padding: 8px 0 6px; }
+/* one answer under another, full width (1.9.4, owner: "a list below so all
+   options are below each other"), the same chip style */
+.desk-opts { display: flex; flex-direction: column; align-items: stretch; gap: 7px; padding: 8px 0 6px; }
 .desk-opts .chip { min-height: 36px; text-align: left; white-space: normal; line-height: 1.25; padding: 6px 10px; }
 .desk-match {
   margin: 4px -13px 0; padding: 9px 13px 9px 9px; cursor: pointer;
@@ -245,7 +247,7 @@
   letter-spacing: 1.2px; text-transform: uppercase;
   color: var(--text-muted);
 }
-.hub-widget b { font-size: 1rem; font-family: var(--cond); letter-spacing: .5px; color: var(--text-primary); }
+.hub-widget b { font-size: 1rem; font-family: var(--sans); font-weight: 600; letter-spacing: 0; color: var(--text-primary); }
 .hub-widget span { font-size: 0.6875rem; color: var(--text-muted); }
 .form-pip {
   width: 15px; height: 15px; border-radius: 3px;

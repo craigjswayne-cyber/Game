@@ -3463,7 +3463,7 @@
   "jbResignFrom": "Resign from {club}",
   "jbSacked": "{club} sacked you. That board will not interview you for another {n} {weeks_k}.",
   "jbShowTurned": "{n} turned down",
-  "jbShutDoor": "They sacked you: {n} {weeks_k} to wait",
+  "jbShutDoor": "They sacked you: unlikely",
   "jbStay": "Stay",
   "jbTurnedDown": "Turned down: you have let it be known you are not a candidate for {club}.",
   "jbUnions": "National-team offers start at a reputation of {at}; the biggest nations wait for the mid-80s.{rest}",

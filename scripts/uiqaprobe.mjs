@@ -87,13 +87,13 @@ try {
   const hit = rank.filter(x => x.textRight > x.crestLeft - 2)
   ok(rank.length >= 10 && hit.length === 0, `league table: every rank clears its crest (${rank.length} rows${hit.length ? `; ${hit.map(h => h.n).join(',')} touch` : ''})`)
 
-  // ---- the team sheet: one star column for all four tables
+  // ---- the team sheet: one fitness column for all four tables (no ratings before kick-off since 1.9.4)
   await go('matchday')
   const mdTabs = await page.locator('.content .tab-bar button').allTextContents()
   const teamIdx = mdTabs.findIndex(x => /team/i.test(x))
   if (teamIdx >= 0) await tab(teamIdx)
   const starX = await page.evaluate(() => [...new Set([...document.querySelectorAll('.xvsheet tr')].map(tr => Math.round(tr.children[3]?.getBoundingClientRect().left ?? -1)))])
-  ok(starX.length === 1 && starX[0] > 0, `team sheet: the star column starts at one x in every table (${starX.join(', ')})`)
+  ok(starX.length === 1 && starX[0] > 0, `team sheet: the fitness column starts at one x in every table (${starX.join(', ')})`)
   // ---- the room before the talk: every mood inside the card
   const talkIdx = mdTabs.findIndex(x => /talk/i.test(x))
   if (talkIdx >= 0) {
