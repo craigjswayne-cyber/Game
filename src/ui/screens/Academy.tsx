@@ -45,13 +45,15 @@ export default function Academy() {
   return (
     <>
       <div className="card" style={{ ...acc('var(--gold)') }}>
-        <h3 style={{ margin: 0 }}>{t('report.acTitle', { club: club.short })}</h3>
+        {/* no inline margin: it beat the band rule's edge-to-edge margins and
+            left the title an inset block (owner, 1.9.5: "this is messy") */}
+        <h3>{t('report.acTitle', { club: club.short })}</h3>
         <div className="meta">
           {t('report.acRegistered', { n: squad.length, max: ACADEMY_SIZE })}
           {coach ? t('report.acCoachRuns', { name: coach }) : t(level > 0 ? 'report.acCoachGeneric' : 'report.acNoCoach')}
           {l ? (pos > 0 ? t('report.acLeaguePos', { league: acadLeagueName(game, l), pos: ord(pos) }) : t('report.acLeagueNoPos', { league: acadLeagueName(game, l) })) : ''}
         </div>
-        <div className="meta">
+        <div className="meta" style={{ marginTop: 6 }}>
           {t('report.acStrength', { n: Math.round(academyStrength(game, club)) })}
         </div>
       </div>

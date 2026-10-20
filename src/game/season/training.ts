@@ -13,6 +13,7 @@ import { clamp, type Rng } from '../rng'
 import { attrOdds, attrRoll, gapGrowth, PRODIGY_PA, trainPoint, youthPace } from '../ageing'
 import { confidence, devHash, heavyLoad, learning, planAffinity, weekGrowth } from '../devproject'
 import { canBeMentored, mentorWeek } from '../mentoring'
+import { recoveryShift } from '../condition'
 import { tIn, type Vars } from '../i18n'
 
 // ------------------------------------------------------------------
@@ -220,7 +221,8 @@ export function weeklyTraining(state: GameState, rng: Rng) {
       // club's recovery, not only the manager's - the AI used to get a full
       // week back whatever the gap between its fixtures
       const tf = isUser ? turnF : (aiTurn.get(club.id) ?? 1)
-      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym + (iron ? IRON_REC : 0)) * (iron ? Math.max(1, tf) : tf)), 20, 100)
+      // and his own week on top (condition.ts): age, engine, training, body
+      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym + (iron ? IRON_REC : 0) + recoveryShift(state, p, isUser)) * (iron ? Math.max(1, tf) : tf)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
       // ---- MATERNITY LEAVE: the grant, and the road back ----

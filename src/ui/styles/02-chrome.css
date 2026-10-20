@@ -8,11 +8,7 @@
   padding: calc(var(--safe-area-inset-top) + 10px) 16px 10px;
   flex-shrink: 0;
 }
-.masthead::after {
-  content: '';
-  position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
-  background: linear-gradient(90deg, var(--club1) 0 28%, var(--gold) 28% 72%, var(--club2) 72% 100%);
-}
+/* The club-colour strip under the masthead went in 1.9.4 (owner: "Remove this line"). */
 .masthead-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 /* The moon and Continue are grouped so portrait can drop them onto their own
    row. They were direct flex children of .masthead-row before, taking its gap,

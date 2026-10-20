@@ -103,6 +103,11 @@
      night skin needs more of a veil over it than the day one. */
   --pitch-scrim: rgba(4, 12, 8, 0.52);
   --on-danger: #2b0e0b;
+  /* the solid red of a danger card's title band (1.9.4, owner: the Danger
+     Man band "more of a red"), with white ink at 5.2:1; one value in every
+     theme, like the fills */
+  --danger-band: #c0362c;
+  --on-danger-band: #ffffff;
   --on-info: #0d1b26;
   /* THE PRESS BAROMETER (1.8.0, Press.tsx): the five moods of the press
      pack and the colour of a pack trying to unsettle a winning squad. Role
