@@ -221,17 +221,17 @@ export default function Squad() {
       {view !== 'selection' && players.length === 0 && (
         <div className="muted" style={{ padding: '12px 16px' }}>{t('squad.emptyFiltered')}</div>
       )}
-      {view !== 'selection' && players.length > 0 && <div className="tblwrap fitwrap"><table className={`dtable zebra fit${view === 'general' ? ' sq-general' : ''}`}>
+      {view !== 'selection' && players.length > 0 && <div className="tblwrap fitwrap"><table className={`dtable zebra fit sq-${view}`}>
         {/* Mor 34 and Value 64 (UI QA, 1.8.0): at 26 the MOR heading was cut
             to "MO", and a value carrying its trend arrow ran off the glass */}
         {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="34" /><col width="42" /><col width="64" /></colgroup>}
-        {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="44" /></colgroup>}
+        {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="54" /></colgroup>}
         {/* Share, not pixels, for the two wide columns (owner, round 2: "NAM HE
             WAS TOLD"). 248px of fixed columns left the name 52px once the page
             was zoomed or the phone was narrow, and the headings ran into each
             other. Now the name keeps about a third of whatever width there is. */}
         {view === 'gametime' && <colgroup><col /><col style={{ width: '29%' }} /><col width="30" /><col width="34" /><col style={{ width: '21%' }} /></colgroup>}
-        {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="56" /><col width="44" /><col width="46" /></colgroup>}
+        {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="62" /><col width="44" /><col width="58" /></colgroup>}
         <thead>
           {view === 'general' && (
             <tr>
