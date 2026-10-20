@@ -1,0 +1,398 @@
+/*  tactics.css: tactics: the pitch, set piece, moves, plans and speeches.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  */
+.slider-row .lbls { display: flex; justify-content: space-between; font-size: 0.6875rem; font-weight: 500; color: var(--text-muted); margin-bottom: 3px; }
+.slider-row .lbls b { color: var(--primary); font-family: var(--cond); font-size: 0.875rem; text-transform: uppercase; letter-spacing: .8px; }
+.club-pick .cname { font-weight: 650; flex: 1; font-size: 0.875rem; }/* ================= Pre-match: speeches & ready check ================= */
+.speech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px; padding: 6px 14px;
+}
+.speech-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  background: var(--surface-1);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 11px;
+  text-align: left;
+
+  transition: border-color .15s, transform .1s;
+}
+.speech-tile:active { transform: scale(.98); }
+.speech-tile.sel { border-color: var(--row-selected-border); background: var(--row-selected-bg); }
+.speech-tile b { font-size: 0.8125rem; color: var(--text-primary); font-family: var(--sans); }
+.speech-tile .d { font-size: 0.6875rem; color: var(--text-muted); line-height: 1.35; }
+.spec-tile .d { font-size: 0.6875rem; color: var(--text-muted); line-height: 1.35; }
+/* THE SHIRTS STAND OFF THE GRASS (owner, 27 Sep 2026, Tactics > Roles: "make
+   it so the shirts have a way to stand out on the dark pitch behind"). A navy,
+   black or bottle-green kit sank into the scrimmed pitch with only a dark
+   shadow under it. Each shirt now has a thin light rim traced round its own
+   outline (two tight drop-shadows follow the shape, not a box) over the shadow
+   that lifts it, the name sits on a dark label and the role on a gold tag, as
+   a broadcast graphic does, so they read whatever the grass or the kit is
+   doing. */
+.form-chip .fc-kit {
+  position: relative; display: block; line-height: 0;
+  filter:
+    drop-shadow(0 0 .6px rgba(255, 255, 255, .95))
+    drop-shadow(0 0 .6px rgba(255, 255, 255, .95))
+    drop-shadow(0 0 5px rgba(255, 255, 255, .28))
+    drop-shadow(0 2px 3px rgba(0, 0, 20, .6));
+}
+/* ON A PRINTED PANEL, because the number has to read on a white kit and on a
+   black one. A bare white numeral was measured on Leicester's shirt and
+   disappeared into it; a shadow alone is not contrast, it is a smudge. */
+.form-chip .fc-num {
+  position: absolute; left: 50%; top: 46%;
+  transform: translate(-50%, -50%);
+  min-width: 15px; padding: 0 3px;
+  border-radius: 4px;
+  background: rgba(8, 12, 18, .58);
+  font-family: var(--cond); font-size: 0.75rem; font-weight: 800; line-height: 15px;
+  text-align: center; color: var(--on-hero);
+  pointer-events: none;
+}
+.form-chip .fc-name {
+  font-size: 0.6875rem; font-weight: 700; max-width: 76px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  margin-top: 2px; padding: 1px 5px; border-radius: 4px;
+  background: rgba(8, 12, 18, .78);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .14);
+  line-height: 14px;
+}
+.form-chip .fc-role {
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800;
+  letter-spacing: 1px; color: var(--on-gold);
+  padding: 0 4px; border-radius: 3px; line-height: 12px;
+  background: var(--gold-fill);
+}
+
+/* ---- set-piece animations (scrum / lineout / maul) ---- */
+.setp {
+  position: absolute; width: 58px; height: 34px; z-index: 5;
+  transform: translate(-50%, -50%); pointer-events: none;
+}
+.sel-split { display: block; }
+@media (orientation: landscape) and (min-width: 640px) {
+  /* .sel-split is DELIBERATELY not a grid any more. Putting the bench beside
+     the Leadership card saved 154px of height and broke the bench: .xv-split
+     already splits it two-up, so nesting one inside the other gave four columns
+     of team-sheet data across a 756px content area - 191px each, which is less
+     than the six columns need, so the tables painted over each other. A bench
+     you cannot read is worse than one more swipe. The class stays so the markup
+     and the reasoning stay together. */
+  .sel-split { display: block; } }
+.lead-sheet tr.sel td { background: color-mix(in srgb, var(--gold) 14%, transparent); }
+@media (orientation: landscape) and (min-width: 640px) {
+  .talk-modal .speech-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 6px; padding: 4px 0 0;
+  }
+  .talk-modal .speech-tile { padding: 7px 9px; gap: 1px; }
+  .talk-modal .speech-tile .d { font-size: 0.6875rem; line-height: 1.3; } }
+.game-pick button.sel {
+  background: var(--row-selected-bg);
+  color: var(--primary);
+  box-shadow: inset 0 0 0 1.5px var(--row-selected-border);
+}
+.speech-tile.sel {
+  border-color: var(--pick);
+  box-shadow: inset 0 0 0 2px var(--pick);
+}
+.speech-tile.sel {
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
+}
+.speech-tile.sel b { color: var(--text-primary); }
+.speech-tile.sel b { color: var(--text-primary); }
+.speech-tile.sel { position: relative; }
+.speech-tile.sel::after {
+  content: '✓';
+  position: absolute; top: 3px; right: 5px;
+  font-size: 0.6875rem; font-weight: 800; line-height: 1;
+  color: var(--pick-ink);
+  background: var(--pick);
+  border-radius: 50%;
+  width: 15px; height: 15px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ---- the set-piece playbook (F2) ---------------------------------------
+   Six lineout calls and four scrum calls, each needing a name, a line of why,
+   a drilled bar and a worth-it readout. Two-up on a phone, more when there is
+   room, because ten tiles in one column is a scroll nobody will do twice. */
+.routine-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 7px; padding: 6px 14px;
+}
+
+/* ---- the bench economy (F4) ---------------------------------------------
+   Eight seats, each with four possible briefs, on a 390px screen. A row per
+   seat with the chips wrapping underneath keeps every man's instruction
+   readable without a modal per player. */
+.brief-list { padding: 3px 14px; display: grid; gap: 4px; }
+.brief-row {
+  background: var(--surface-2); border-radius: 8px; padding: 5px 8px;
+
+}
+@media (orientation: landscape) and (min-width: 700px) {
+/* Landscape has 844px to play with, so the man and his four options share one
+   line: stacked, eight seats came to 1080px of scrolling on a 390px-tall
+   screen. Portrait falls back to the stack, where there is no room to share. */
+  .brief-row { display: flex; align-items: center; gap: 10px; padding: 3px 8px; }
+  .brief-who { flex: 0 0 190px; min-width: 0; } }
+
+.brief-who { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; }
+.brief-who .num {
+  font-family: monospace; font-weight: 700; min-width: 18px;
+  color: var(--text-secondary); font-size: 0.75rem;
+}
+
+/* ---- the set piece and the bench, drawn (1.8.0) -------------------------
+   Owner: "I want to work on Set Piece / Bench & Prep... I want them to be
+   more visual." Every call carries its whiteboard picture (src/ui/tacticsArt
+   .tsx), drawn on the highlight pitch's grass so the two read as one game.
+   The picture goes on top, two tiles to a row on a phone: beside the words
+   it was 112px wide and a lineout's jumper was a four-pixel dot. The
+   four-way calls (exit, kick, penalty) are two by two, like the grid they
+   replaced. */
+.dg { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; border-radius: 6px; }
+.routine-grid.sp-routines { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sp-call { align-items: stretch; gap: 6px; padding: 7px; }
+.sp-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 0 2px 2px; }
+.sp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 6px; }
+.sp-card { align-items: stretch; gap: 6px; padding: 7px; }
+.sp-card b { text-align: center; line-height: 1.25; }
+@media (min-width: 700px) {
+  .sp-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* six lineout calls as three and three, four scrum calls in a row: an
+     auto-fill grid left the last two lineouts alone on their own line */
+  .routine-grid.sp-lineout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .routine-grid.sp-scrum { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (orientation: landscape) and (min-width: 640px) { .content > .sp-sub { max-width: 820px; } }
+.app.tablet .content > .sp-sub { max-width: none; }
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 560px) {
+/* A landscape phone is 390px tall, and at 844 wide a three-across lineout
+   tile's picture was 172px of it on its own: split in three, the calls view
+   still came to 2.9 screenfuls there and the kicking view to 3.2. Holding the
+   picture's height down only left it floating in a wide empty tile, so on a
+   short landscape screen the picture moves BESIDE the words instead, the way
+   the attacking moves card already lays out its own: a tile loses the height
+   of its picture and the words use the width the picture left over. A tablet
+   and every portrait phone draw them exactly as before. */
+  .sp-call, .sp-card { flex-direction: row; align-items: center; gap: 8px; }
+  .sp-call .dg { flex: 0 0 44%; width: 44%; }
+  .sp-call .sp-txt { flex: 1 1 0; }
+  /* four scrum tiles in a row left each picture 80px wide beside a column of
+     words two short words across: two by two, they are the lineout's width */
+  .routine-grid.sp-scrum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sp-card .dg { flex: 0 0 56%; width: 56%; }
+  .sp-card b { flex: 1 1 0; min-width: 0; text-align: left; } }
+
+/* ---- the attack and defence styles (1.8.2, ui/StylesSection.tsx) --------
+   Five drawn tiles a side, three to a row on a phone held upright and five
+   across once there is room, each a picture and a name; then one card for
+   the style that is picked, its picture large beside the words. On a short
+   landscape screen the tiles are already big enough to read, so the card
+   drops its copy of the picture and gives the words the whole width: the
+   Game Plan tab has to stay inside three screenfuls there (scrollaudit). */
+.routine-grid.st-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.st-tile { align-items: stretch; gap: 4px; padding: 5px; }
+.st-tile b { font-size: 0.75rem; line-height: 1.2; text-align: center; hyphens: auto; overflow-wrap: anywhere; }
+/* "Blitsverdediging" is one 95px word in an 81px tile at 320 (1.8.6 sweep) */
+.st-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
+.st-body .sp-txt { gap: 4px; }
+.st-body b { font-size: 0.8438rem; color: var(--text-primary); }
+.st-body .st-tag { font-size: 0.7188rem; font-weight: 700; color: var(--text-secondary); }
+.st-body .d { font-size: 0.7188rem; color: var(--text-muted); line-height: 1.4; }
+.st-body .mv-warn { color: var(--text-negative); font-weight: 600; }
+@media (min-width: 700px) {
+  .routine-grid.st-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .st-body { grid-template-columns: minmax(0, 240px) minmax(0, 1fr); } }
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 560px) {
+  .st-body { grid-template-columns: minmax(0, 1fr); }
+  .st-body > .dg { display: none; } }
+
+/* ---- the playbook (1.8.1 moves, 1.8.2 playbook, ui/MovesSection.tsx) -----
+   One card, one flow (owner, 1.8.2: "preview and then the slots are filled"):
+   the five slots compact at the top, the picked move playing on a loop under
+   them with one line and one button, and the moves as chips below. */
+.mv-card { display: flex; flex-direction: column; gap: 8px; }
+.mv-calls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+/* five slots since round 6 (the penalty play): on a phone the odd one out
+   takes the whole row rather than leaving a hole */
+.mv-calls > .mv-callchip:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 480px) {
+  .mv-calls { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .mv-calls > .mv-callchip:last-child:nth-child(odd) { grid-column: auto; } }
+.mv-mixlabel { font-size: 0.6875rem; }
+/* an empty slot tapped: the moves that fit it, and the way back to them all */
+.mv-want { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mv-callchip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  border-radius: 10px; min-height: 44px; text-align: left; min-width: 0;
+}
+.mv-callchip b { font-size: 0.6875rem; line-height: 1.2; }
+.mv-callchip span { font-size: 0.6875rem; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.mv-chips { margin-top: 0; }
+.mv-preview { display: flex; flex-direction: column; gap: 7px; }
+.mv-preview .dg { max-height: 210px; }
+.mv-anim { aspect-ratio: 16 / 9; }
+.mv-preview .sp-txt { display: flex; flex-direction: column; gap: 3px; }
+.mv-preview .d { font-size: 0.7188rem; color: var(--text-muted); line-height: 1.35; }
+.mv-preview b { font-size: 0.8125rem; color: var(--text-primary); }
+.mv-hint { font-size: 0.7188rem; }
+/* the slot picker: one row a slot in the main menu's save-row look, the
+   slot's name and what it holds now; one the move cannot go in is greyed */
+.mv-slots { display: flex; flex-direction: column; gap: 6px; }
+.mv-slots .mv-slot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 44px; padding: 6px 12px; background: var(--surface-3); text-align: left;
+}
+.mv-slots .mv-slot b { font-size: 0.7812rem; flex: none; }
+.mv-slots .mv-slot span { font-size: 0.6875rem; opacity: .8; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mv-slots .mv-slot:disabled { opacity: .4; }
+
+/* the replacements: the eight on a bench, each with his brief */
+.b23 { margin: 6px 14px; }
+/* each shirt on a dark disc with a light rim: a bottle-green or black kit
+   (Northampton's is both) otherwise vanishes into the grass at this size */
+.b23-kit {
+  position: relative; display: block; line-height: 0;
+  padding: 3px; border-radius: 50%;
+  background: rgba(8, 12, 18, .55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .35);
+}
+.b23-seat .b23-kit { background: var(--surface-3); box-shadow: 0 0 0 1px var(--border-strong); }
+.b23-num {
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
+  padding: 0 2px; border-radius: 3px; background: rgba(8, 12, 18, .58);
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800; line-height: 12px; color: var(--on-hero);
+}
+.b23-bench { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+.b23-seats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 6px;
+  padding-bottom: 8px; border-bottom: 4px solid var(--border-strong);
+}
+.b23-seat {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0;
+  padding: 6px 2px; border-radius: 8px; background: var(--surface-2); text-align: center;
+}
+.b23-sname { font-size: 0.6875rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.b23-brief { display: inline-flex; align-items: center; gap: 3px; font-size: 0.6875rem; line-height: 1.2; color: var(--text-muted); }
+.b23-brief.on { color: var(--gold); font-weight: 700; }
+
+/* a split, as the eight seats: filled for a forward, open for a back */
+.split-pips { display: flex; gap: 4px; margin: 3px 0 1px; }
+.split-pips i {
+  width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box;
+  border: 1.5px solid var(--text-secondary);
+}
+.split-pips i.fw { background: var(--text-primary); border-color: var(--text-primary); }
+
+/* the bench's clock: the two rules the engine keeps, on the eighty minutes */
+.bclock { margin-top: 8px; }
+.bclock-bar { position: relative; height: 10px; margin: 6px 10px 0; border-radius: 5px; background: var(--surface-2); }
+.bclock-late { position: absolute; left: 80%; right: 0; top: 0; bottom: 0; border-radius: 0 5px 5px 0; background: var(--gold-fill); }
+.bclock-ht { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--border-strong); }
+.bclock-mark { position: absolute; left: 80%; top: -4px; bottom: -4px; width: 2px; background: var(--gold); }
+.bclock-axis { position: relative; height: 14px; margin: 3px 10px 0; font-size: 0.6875rem; color: var(--text-muted); }
+.bclock-axis span { position: absolute; transform: translateX(-50%); }
+
+/* a brief's icon, sized to the words beside it (bench page and live sheet) */
+.brief-ico { display: inline-flex; line-height: 0; vertical-align: -0.25em; }
+.brief-ico svg { width: 1.3em; height: 1.3em; }
+.brief-key { margin: 8px 14px 0; display: grid; gap: 6px; font-size: 0.75rem; color: var(--text-secondary); }
+.brief-key-row { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
+.brief-key-row .brief-ico svg { width: 18px; height: 18px; }
+.brief-key b { color: var(--text-primary); }
+@media (min-width: 700px) {
+  .brief-key { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+
+/* the week's preparation: five cards, the odd one out spanning on a phone */
+.prep-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 0 14px; }
+.prep-grid .prep-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 700px) {
+  .prep-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .prep-grid .prep-card:last-child:nth-child(odd) { grid-column: auto; } }
+.prep-ico {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--surface-2); color: var(--text-secondary);
+}
+.prep-ico svg { width: 20px; height: 20px; }
+.prep-card.sel .prep-ico { background: var(--pick); color: var(--pick-ink); }
+/* 1.8.3, owner: "just a few options to select". The cards lost their sums
+   and became chips: icon and name on one row, the sums in one line under
+   the grid (.prep-line) for the chosen focus only. */
+.prep-grid .prep-card { flex-direction: row; align-items: center; gap: 8px; padding: 7px 10px; position: relative; min-width: 0; }
+.prep-grid .prep-card b { min-width: 0; overflow-wrap: anywhere; hyphens: auto; line-height: 1.2; }
+.prep-grid .prep-card .prep-ico { flex: 0 0 auto; width: 28px; height: 28px; }
+.prep-grid .prep-card .prep-ico svg { width: 17px; height: 17px; }
+.prep-tag {
+  position: absolute; top: -7px; right: 8px;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 8px;
+  background: var(--gold-fill, var(--gold)); color: var(--on-gold);
+}
+@media (min-width: 700px) {
+  .prep-grid .prep-card { flex-direction: column; align-items: flex-start; } }
+.prep-line { margin: 8px 16px 0; font-size: 0.75rem; }
+.prep-plans { padding: 0 14px; }
+/* the plans stacked (round 6, owner: "make these options stacked"): one
+   full-width option a plan, its name and a short grey line under it, picked
+   the way a tile is (the pick ring and wash) */
+.plan-stack { display: flex; flex-direction: column; gap: 6px; }
+.plan-opt {
+  display: flex; align-items: center; width: 100%; min-height: 48px; padding: 8px 12px;
+  text-align: left; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-primary); cursor: pointer;
+}
+.plan-opt:active { background: var(--row-hover-bg); }
+.plan-opt.on {
+  border-color: var(--pick); box-shadow: inset 0 0 0 2px var(--pick);
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
+}
+.prep-plans .prep-line { margin: 6px 2px 0; }
+.prep-info {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border-strong); background: var(--surface-1); color: var(--text-secondary);
+  font-family: var(--sans); font-weight: 700; font-style: italic; font-size: 0.875rem; line-height: 1;
+}
+.prep-info.on { background: var(--pick); color: var(--pick-ink); border-color: var(--pick); }
+/* a 26px circle is the look; the finger gets 44px (1.8.4 m12) */
+.prep-info { position: relative; }
+.prep-info::after { content: ''; position: absolute; inset: -9px; }
+.prep-detail { margin-top: 10px; }
+/* the Game Plan's pointer to the Playbook (1.8.3): one line and a chip */
+.plan-xref { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 14px 4px; }
+.plan-xref svg { width: 12px; height: 12px; }
+@media (orientation: portrait) {
+  /* AND THE NAME COMES DOWN A STEP (owner, v1.1.16: "The names on the roles
+     in tactics are super big - can we reduce them in size?"). This block is
+     the one that governs a phone - the base rule above never applies there -
+     so it is the one to change. The chip width stays 74px, because that fixed
+     width is what makes the spacing in SPOTS the spacing you see; the name
+     just stops filling it to the ellipsis. */
+  /* the dark label (27 Sep 2026) keeps the name its 64px: thin side padding,
+     counted inside the cap, and the chip's own side padding given up for it */
+  /* 2px side padding (1.8.6): "Hibbert-Jones" was 2px over at 3px */
+  /* 11px since the WCAG pass (it was 9.5px): tighter tracking and the
+     chip's last side padding keep a twelve-letter surname whole (portraitqa) */
+  .form-chip .fc-name { font-size: 0.6875rem; max-width: 72px; box-sizing: border-box; padding: 1px 2px; letter-spacing: -.35px; }
+  .form-chip .fc-role { font-size: 0.6875rem; letter-spacing: .5px; } }
+
+.plan-slots { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 16px 0; }
+.plan-slot { display: inline-flex; gap: 2px; align-items: stretch; }
+.plan-slot .plan-over { padding-left: 8px; padding-right: 8px; min-width: 32px; }
+
+/* ---- THE GAME PLAN PAIRS UP ON A WIDE SCREEN (v1.7.1) ----
+   Six dials, three zone pickers and a named defence stack to 1112px, which is
+   3.41 screenfuls of a landscape phone and one more than scripts/scrollaudit.mjs
+   allows any fixed page. auto-fit with a 320px floor means a portrait phone
+   (370px of content) still gets exactly one column and reads as it always did,
+   while a landscape phone or a tablet puts two side by side. Nothing is hidden
+   and nothing is shrunk: the same controls, on fewer swipes. */
+.dial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+.dial-row { min-height: 44px; }

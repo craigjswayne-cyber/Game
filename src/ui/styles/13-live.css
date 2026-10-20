@@ -1,0 +1,867 @@
+/*  live.css: the live match: scoreboard, commentary, panels, highlights.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  */
+.attr .bar {
+  width: 52px; height: 4px; border-radius: 2px;
+  background: var(--surface-2);
+  overflow: hidden; flex-shrink: 0;
+}
+.attr .bar i {
+  display: block; height: 100%;
+  border-radius: 2px;
+}/* ================= Match day ================= */
+.scoreboard {
+  position: relative;
+  background:
+    radial-gradient(140% 200% at 50% -60%, color-mix(in srgb, var(--club1) 30%, transparent), transparent 60%),
+    var(--hero-gradient);
+  color: var(--on-hero);
+  padding: calc(var(--safe-area-inset-top) + 14px) 16px 14px;
+  text-align: center;
+}
+.scoreboard::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: linear-gradient(90deg, var(--home-c, var(--gold)) 0 50%, var(--away-c, var(--gold)) 50% 100%);
+}
+.scoreboard .teams { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.scoreboard .tname {
+  font-family: var(--sans);
+  font-size: 1rem; font-weight: 700; flex: 1; line-height: 1.25;
+  /* crest above the name on both sides, always (owner, 1.8.3). An inline
+     crest sat beside a short name and wrapped above a long one, so the two
+     sides of the same scoreboard disagreed: "Wellington" beside, "Northampton"
+     stacked. A column makes it one layout whatever the name's length. */
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-width: 0;
+}
+.scoreboard .tname > :first-child { margin: 0 !important; }
+@media (min-width: 700px) {
+/* a tablet has the width for crest and name on one line, every name, and
+   the stacked crest costs the commentary below it height it needs there:
+   so beside, on both sides alike, with the club bar under the pair */
+  .scoreboard .tname { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 8px; }
+  /* a whole line of its own, so it wraps under the pair, drawn as the same
+     30px centred bar by clipping the rest */
+  .scoreboard .tname .clubbar { flex: 0 0 100%; width: 100%; margin: 2px 0 0; clip-path: inset(0 calc(50% - 15px)); }
+}
+.scoreboard .tname .clubbar { display: block; width: 30px; height: 3px; border-radius: 2px; margin: 5px auto 0; }
+.scoreboard .score {
+  font-family: var(--cond);
+  font-size: 1.6875rem; font-weight: 700; letter-spacing: 1px; line-height: 1;
+  white-space: nowrap;
+  /* GOLD ON THE HERO GRADIENT IS ALWAYS --gold-fill, NEVER --gold. --gold is
+     the text gold and day mode tunes it dark (#8a6516) to sit on white and on
+     canvas; on the dark hero it is 1.26:1 - the live score, invisible, to
+     anybody who taps the sun icon. --gold-fill is #e9be68 in BOTH modes and
+     measures 3.83:1 there, which is what .sc-cup beside it already used.
+     nightcontrast does sweep daylight, so the reason this survived is not the
+     theme: text over a GRADIENT was skipped outright, and match day was not on
+     the tour at all. Both closed - that sweep now drives a real kick-off and
+     measures this element, and fails at 1:1 if it is ever set back. */
+  color: var(--gold-fill);
+  min-width: 84px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 12px rgba(227, 185, 46, .25);
+}
+.scoreboard .minute {
+  font-family: var(--cond); font-style: normal; font-weight: 700;
+  letter-spacing: .8px; text-transform: uppercase;
+  font-size: 0.75rem; color: var(--on-hero-soft); margin-top: 6px; letter-spacing: .5px;
+}
+
+.ticker { padding: 4px 16px; }
+.tick-event {
+  display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border);
+  animation: flash-in .5s ease;
+  font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary);
+  line-height: 1.45;
+  /* the full-time log can run to several hundred lines: lines off screen are
+     not laid out or painted until they are scrolled to (1.9.1) */
+  content-visibility: auto; contain-intrinsic-size: auto 40px;
+}
+.tick-event .min {
+  font-family: var(--cond); font-weight: 700; font-size: 0.875rem;
+  color: var(--text-muted); min-width: 30px; text-align: right; flex-shrink: 0;
+}
+.tick-event.big {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 16%, transparent), transparent 70%);
+  margin: 0 -16px; padding: 11px 16px;
+  border-left: 4px solid var(--gold);
+}
+.tick-event.big .txt { font-weight: 700; font-family: var(--sans); font-size: 0.875rem; color: var(--text-primary); }
+.tick-event.card-y { border-left: 4px solid var(--prop-yellow-deep); margin: 0 -16px; padding: 9px 16px; }
+.tick-event.card-r, .tick-event.inj { border-left: 4px solid var(--danger); margin: 0 -16px; padding: 9px 16px; }
+
+@keyframes flash-in {
+  0% { background-color: color-mix(in srgb, var(--gold) 55%, transparent); opacity: 0; }
+  100% { background-color: transparent; opacity: 1; }
+}
+
+/* The live-match controls are the last child of .live-wrap and there is no
+   bottom nav under them, on a viewport-fit=cover page - so this row owns the
+   home-indicator clearance every other bottom-anchored surface here already
+   honours (.bottom-nav, .action-bar, .modal, .submenu). Without it the lower
+   band of Play/Pause sits in the system swipe zone: reaching for Pause during
+   a match dismissed the app. The buttons were 38px against a 44/48 floor, and
+   they are the four pressed most in eighty minutes. */
+/* The safe-area clearance below has gone with the row's move up the page
+   (v1.1.16): it is no longer the last child of .live-wrap, so it no longer
+   sits over the home indicator and no longer needs to reserve for it. The
+   left/right insets stay - a landscape notch still eats into the row. */
+.speed-controls {
+  display: flex; gap: 8px;
+  padding: 10px max(14px, var(--safe-area-inset-right)) 8px max(14px, var(--safe-area-inset-left));
+}
+.baro-dial .seg { fill: none; stroke-width: 10; stroke-linecap: butt; opacity: .28; }
+.baro-dial .seg.on { opacity: 1; }
+.baro-dial .seg.hostile { stroke: var(--baro-hostile); }
+.baro-dial .seg.sceptical { stroke: var(--baro-sceptical); }
+.baro-dial .seg.neutral { stroke: var(--baro-neutral); }
+.baro-dial .seg.warm { stroke: var(--baro-warm); }
+.baro-dial .seg.adoring { stroke: var(--baro-adoring); }
+.form-trend .ft-arrow { flex: none; width: 8px; height: 10px; line-height: 0; }
+.form-trend .ft-arrow.up { color: var(--text-positive); }
+.form-trend .ft-arrow.down { color: var(--text-negative); }
+
+/* live match wrapper - portrait/base: stacked column */
+.live-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  grid-area: 1 / 1 / -1 / -1;
+  /* no bottom nav on match day, so the column itself stops above the system
+     bar; without this the last button sat under it on the Android shell.
+     And above the advert (1.8.9, owner: "Ads should not impact or cover key
+     buttons"): the native banner overlays the web view, so the column keeps
+     its height clear of it and everything in it can scroll out from under. */
+  padding-bottom: calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px));
+}
+/* During live play only four fixed-height pieces stack here (scoreboard,
+   pitch, controls, the one-line ticker) - nothing flex-grows by default, so
+   on a viewport taller than the composition needs (found on a Galaxy S25
+   Ultra, whose CSS viewport runs taller than every phone in devicematrix/
+   geosweep), the leftover space sits as bare background somewhere.
+   Centering it top-and-bottom (an earlier attempt) just relocated the gap
+   above the scoreboard instead, which reads worse - it disconnects the
+   score from the status bar. Growing .now-strip instead gives the slack to
+   a panel that is already meant to hold text, top-anchored so a short line
+   doesn't float centred in a tall box. .ticker.panel-area (below) already
+   flex-grows the same way for the interval/decision state, which is enough
+   to keep it clear of the header too - a decision card or half-time panel
+   sitting a long way above the bottom of a very tall screen is a smaller
+   problem than the header one this rule exists to fix. */
+/* natural height since the always-on pitch went (1.8.0): the live stats or
+   the highlight sit under it, not a stretched empty box */
+.live-wrap .now-strip { flex: none; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+.live-wrap .ticker { flex: 1; overflow-y: auto; }
+@media (orientation: landscape) and (min-width: 640px) {
+  /* the menu column's width now lives with the Continue tile at the end of this
+     file, where it can be reasoned about next to the line it has to fit */
+
+  /* live match: classic CM - score strip across the top, pitch in the
+     middle, commentary in a long rectangle, controls at the foot */
+  .app .live-wrap {
+    grid-area: 1 / 1 / -1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: 'score' 'main' 'now' 'ctrl';
+    height: 100%;
+    min-height: 0;
+  }
+  .live-wrap .scoreboard { grid-area: score; padding-top: 6px; padding-bottom: 4px; }
+
+  .live-wrap .now-strip { grid-area: now; }
+  .live-wrap .hl-clip, .live-wrap .live-stats { grid-area: main; align-self: start; }
+  /* the main row is what is left of a 390px screen: the stage must fit IN it,
+     or it spills over the controls below (e2e, 844x390: Skip could not be
+     tapped). The clip takes the height and keeps its shape; the stats go two
+     columns and scroll if they must. */
+  .live-wrap .hl-clip {
+    align-self: stretch; justify-self: center;
+    height: calc(100% - 6px); width: auto; max-width: calc(100% - 20px);
+    margin: 6px auto 0; min-height: 0;
+  }
+  .live-wrap .live-stats {
+    align-self: stretch; min-height: 0; overflow-y: auto;
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; align-content: start;
+    margin-top: 6px;
+  }
+  .live-wrap .live-stats .ls-head { grid-column: 1 / -1; }
+  .live-wrap .live-stats .ls-row + .ls-row { border-top: none; }
+  .live-wrap .speed-controls { grid-area: ctrl; }
+  .app .live-wrap .ticker.panel-area {
+    grid-area: main / main / now / now;
+    flex: none;
+    overflow-y: auto;
+    padding-top: 6px;
+    padding-bottom: calc(var(--safe-area-inset-bottom) + 22px);
+    height: 100%;
+  }
+}
+
+/* ================= Manager profile: specialities ================= */
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px; padding: 6px 14px;
+}
+.spec-tile {
+  display: flex; flex-direction: column; gap: 3px;
+  background: var(--surface-1);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 11px;
+  opacity: .55;
+  filter: grayscale(.8);
+
+}
+.spec-tile.on { opacity: 1; filter: none; border-color: var(--row-selected-border); }
+.spec-tile b { font-size: 0.8125rem; color: var(--text-primary); font-family: var(--sans); }
+
+/* ================= Momentum bar & captain armband ================= */
+.momo-bar {
+  position: relative;
+  height: 5px;
+  margin: 7px 14px 2px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .12);
+  overflow: visible;
+}
+.momo-fill { position: absolute; inset: 0; border-radius: 4px; opacity: .5; }
+/* full-time stamp: one big honest moment at the whistle, then it clears */
+.ft-stamp {
+  /* THE TOP OF THE SCREEN, AND SHORTER (1.9.3). It sat in the middle for
+     2.8s with a second copy of the score under it, over the scoreboard and
+     "Continue to Results" (UI audit, 19 Oct 2026). Now it lands in the top
+     third, clears in 2s, and leaves the button and the score alone. */
+  position: fixed; left: 0; right: 0; top: 0; height: 46vh; height: 46dvh; z-index: 60;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  pointer-events: none;
+  animation: ftstamp 2s ease-out forwards;
+  /* a dark veil so the stamp never fights the pitch behind it */
+  background: radial-gradient(ellipse at center, rgba(6, 12, 24, .5) 0%, rgba(6, 12, 24, .26) 48%, rgba(6, 12, 24, 0) 74%);
+}
+.ft-stamp b {
+  /* sized to the phone, on one line: "MATCH NUL" at a flat 64px broke onto
+     two lines and ran off both edges of a 320 screen, and off a 412 one in
+     French (1.8.4 m12) */
+  font-family: var(--cond); font-size: min(64px, 13vw); font-weight: 900;
+  letter-spacing: min(6px, 1.4vw); transform: rotate(-6deg); white-space: nowrap;
+  padding: 4px min(26px, 5vw); border: 5px solid currentColor; border-radius: 10px;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .35);
+}
+.ft-stamp span {
+  margin-top: 10px; font-family: var(--cond); font-size: 1.625rem; font-weight: 800;
+  color: var(--prop-ink); text-shadow: 0 2px 8px rgba(0, 0, 0, .6);
+}
+.ft-stamp.w b { color: var(--text-positive); }
+.ft-stamp.l b { color: var(--text-negative); }
+.ft-stamp.d b { color: var(--text-muted); }
+@keyframes ftstamp {
+  0% { opacity: 0; transform: scale(1.9); }
+  14% { opacity: 1; transform: scale(1); }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: scale(.98); }
+}
+
+/* last-10-minutes possession strip with the momentum needle riding it */
+.last10 {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 12px 2px; font-size: 0.6875rem;
+}
+.last10 .l10-label {
+  font-family: var(--cond); letter-spacing: 1.2px; font-weight: 700;
+  color: rgba(255, 255, 255, .55); white-space: nowrap;
+  /* a long label gives way before the away count does: the French one pushed
+     that count off a 320px screen and the match page scrolled sideways */
+  min-width: 0; overflow: hidden; text-overflow: ellipsis;
+}
+.last10 .l10-bar {
+  position: relative; flex: 1; height: 8px; border-radius: 4px;
+  /* CLIPPED ACROSS, OPEN UP AND DOWN (release audit 1.7.1). The needle's
+     .momo-track is the whole bar wide and slides up to 94% of it sideways, so
+     unclipped its box ran off the phone and the match page scrolled sideways
+     whenever momentum leant home (pressureprobe: 463px on a 412px screen).
+     clip, not hidden, on x alone: the needle still stands proud of the bar
+     above and below, and nothing becomes a scroll container. */
+  overflow-x: clip; overflow-y: visible;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(0, 0, 0, .25);
+}
+/* THE BAR AND THE NEEDLE MOVE ON THE COMPOSITOR, NOT THE MAIN THREAD.
+   Reported by a closed-testing tester on 13 Sep 2026: "the graphs/charts that
+   update over time do not animate smoothly ... the graph appears to lag,
+   stutter, or update in small jumps rather than transitioning fluidly."
+
+   These were `transition: width` on the fill and `transition: left` on the
+   needle. Both are LAYOUT properties: every frame of them is computed on the
+   main thread, so they stutter whenever the main thread is busy - and during a
+   live match it was very busy indeed, because until the save queue landed every
+   state change also cost a 74-126 ms structured clone of the whole career. A
+   one-second transition sharing a thread with that does not have many frames
+   left to play with.
+
+   transform is the one thing the compositor can animate on its own. scaleX on
+   the fill and translateX on the needle's track are the same movement with no
+   layout in them, so they keep running smoothly even while the engine ticks.
+
+   The fills are absolutely positioned rather than flexed because a scaled box
+   does not push its sibling: away is the whole bar and home is drawn over it.
+   The rounding lives on .l10-fills so scaleX cannot stretch a corner, and the
+   needle stays outside that clip because it rides above the bar. */
+.last10 .l10-fills {
+  position: absolute; inset: 0; overflow: hidden; border-radius: 4px;
+}
+.last10 .l10-home {
+  position: absolute; inset: 0; opacity: .85;
+  transform-origin: left center;
+  transition: transform 1s cubic-bezier(.45, .05, .35, 1);
+}
+.last10 .l10-away { position: absolute; inset: 0; opacity: .85; }
+/* a full-bar-width track, so a percentage translate is a percentage OF THE BAR
+   rather than of the four-pixel needle */
+.last10 .momo-track {
+  position: absolute; inset: 0; pointer-events: none;
+  transition: transform .9s cubic-bezier(.45, .05, .35, 1);
+}
+.last10 .l10-pens { color: rgba(255, 255, 255, .7); font-weight: 600; white-space: nowrap; }
+.last10 .l10-pens b { font-family: var(--cond); font-size: 0.75rem; }
+.momo-needle {
+  position: absolute; top: -2.5px; left: 0;
+  width: 4px; height: 12px;
+  margin-left: -2px;
+  background: var(--gold-fill);
+  border: 1px solid rgba(0, 0, 0, .35);
+  border-radius: 2px;
+  /* the movement is on .momo-track above; this only draws the needle */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+}
+
+/* The tension band (v1.1.1): late AND close, and the scoreboard says so.
+   STATIC on purpose - no pulse, no flash. prefers-reduced-motion collapses
+   every duration in this file, so a state drawn only in movement is a state
+   some players never see. A band, a rule and a word does the job for
+   everybody. */
+/* What Skip decided for you: the one line that turns a silent auto-answer
+   back into a touchline call you know about. Sits on the scoreboard, so it
+   is there whether the skip ended at half-time, the 60' break or full time. */
+.skip-took {
+  margin: 4px 12px 2px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--gold-fill) 35%, transparent);
+  background: color-mix(in srgb, var(--gold-fill) 10%, transparent);
+  color: var(--gold-fill);
+  font-size: 0.6875rem; line-height: 1.35;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
+.tense-band {
+  margin: 4px 12px 2px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  /* The scoreboard is the hero gradient, and gold on the hero gradient is
+     always --gold-fill, never --gold: --gold goes deep brown in light mode
+     and would vanish into it (see the .hero rule above). */
+  border: 1px solid color-mix(in srgb, var(--gold-fill) 55%, transparent);
+  background: color-mix(in srgb, var(--gold-fill) 14%, transparent);
+  color: var(--gold-fill);
+  font-family: var(--cond); font-weight: 700;
+  font-size: 0.6875rem; letter-spacing: 1.2px;
+  text-align: center;
+  overflow-wrap: break-word;
+}/* ================= Broadcast-style match animations ================= */
+/* score pop when it changes */
+.scoreboard .score { animation: score-pop .55s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes score-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22); text-shadow: 0 0 26px rgba(255, 255, 255, .55); }
+  100% { transform: scale(1); }
+}
+
+/* scorer's dash for the line */
+/* The scorer's dash (run-r / run-l) was a transform animation: 46px of run
+   into the in-goal. Since 1.8.1 the glide carries him there from wherever he
+   was, which is the real run, and a transform animation would have overridden
+   the glide and doubled his size step, so the classes stay as hooks only. */
+
+/* the kick at goal: ball arcs for the posts, end over end */
+/* A KICK AT GOAL FLIES AT THE GOAL, AND STAYS GONE. The old arc rose towards
+   the posts for the first half-second and then spent the LONGER second half
+   returning the ball to the tee - so the dominant visible motion was away
+   from the posts, and the owner read it as the ball flying the wrong way
+   ("it goes in the opposite direction", 25 Aug, and he was right). The ball
+   now sails towards the posts, shrinks with distance and fades out there;
+   the next event re-keys the element and brings the ball back to earth. */
+/* THE PITCH IS SEEN FROM ABOVE, AND THE POSTS ARE AT THE ENDS.
+   Second correction, because the first one only half-understood the view.
+   The original arc spent its longer half returning the ball to the tee, so
+   the kick read as flying backwards; the fix sent it up and away, which on a
+   TOP-DOWN pitch is not "high", it is across the field towards a touchline -
+   so it then read as sliced to the corner (owner, 25 Aug: "kicks still
+   weirdly go off to the corner even though the kicker scored").
+   The posts sit at top:50%, left/right 7%. A kick that went over therefore
+   travels along the line to them: essentially horizontal, with only enough
+   vertical drift to settle onto the posts' line, swelling as it rises and
+   shrinking as it sails away over the bar. It fades before the far edge, so
+   the flight reads the same wherever on the field it was struck from. */
+
+.tick-event.tmo .txt { font-weight: 700; }
+.stat-bar { position: relative; display: block; height: 5px; border-radius: 3px; overflow: hidden; background: var(--border); }
+/* each half grows out from its own end, one row after another; transform, so
+   the fill runs on the compositor (motionprobe's rule for the strip) */
+.stat-bar i {
+  position: absolute; top: 0; bottom: 0; width: 100%;
+  animation: sc-grow .7s cubic-bezier(.2, .8, .3, 1) var(--d, 0ms) both;
+}
+.stat-bar i.h { left: 0; transform-origin: left center; }
+@keyframes sc-grow { from { transform: scaleX(0); } }
+
+/* ---- sin-bin countdown chips ---- */
+.bin-chip {
+  position: absolute; bottom: 3px; z-index: 4;
+  font-family: var(--cond); font-weight: 700; font-size: 0.6875rem; letter-spacing: .4px;
+  background: rgba(20, 20, 10, .68); color: var(--prop-yellow);
+  border: 1px solid rgba(255, 225, 77, .5); border-radius: 9px; padding: 1px 6px;
+  pointer-events: none;
+}
+
+/* ---- THE COMMENTARY FEED (round 5, owner: "smoother as it flicks between
+   stories. Like FM manager style") ----
+
+   It used to be ONE line in a box keyed on the cursor, so every beat the box
+   was torn down and rebuilt: the old line vanished in a frame, the new one
+   faded up from nothing, the whole box swapped to the other club's colours in
+   a frame, and the box took the height of the sentence, so the live stats
+   under it lurched up and down by a line every 640ms (feedprobe measured
+   29px). Now it is a short running feed in a box of FIXED height:
+
+     the lines stack newest at the foot, anchored to the bottom edge, and the
+       older ones leave over the top under a soft fade (the mask)
+     a new line slides the stack up by its own height (MatchDay.tsx
+       useFeedGlide, transform only, 220ms) and fades in as it comes
+     the current line wears the kit; when the next arrives it lets go of the
+       fill over 200ms and dims, and dims again a step each line it ages
+     a row is the same size current or old: only colour and opacity change,
+       never the font, so a demoted line never re-wraps and nothing above it
+       moves
+   The box's height is fixed, so the stats, a highlight or the talk's
+   reactions below it never move when a line arrives. */
+.now-strip { padding: 0 10px 2px; }
+.comm-feed {
+  position: relative; overflow: hidden;
+  height: clamp(96px, 17vh, 150px); height: clamp(96px, calc(17dvh / var(--zoom, 1)), 150px);
+  /* the older lines fade out over the top edge rather than being cut */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
+}
+.comm-list {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; gap: 4px;
+  will-change: transform;
+}
+.comm-line {
+  display: flex; gap: 10px; align-items: center;
+  padding: 8px 14px; border-radius: 10px;
+  border-left: 4px solid transparent;
+  font-size: 0.875rem; line-height: 1.4;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, opacity .2s ease, border-color .2s ease;
+}
+.comm-line .min {
+  font-family: var(--cond); font-weight: 800; font-size: 0.9375rem;
+  color: var(--info); flex-shrink: 0; min-width: 30px;
+  font-variant-numeric: tabular-nums;
+}
+.comm-line.cur { min-height: 54px; background: var(--surface-1); border-left-color: var(--border-strong); color: var(--text-primary); }
+.comm-line.cur.fresh { animation: comm-in .22s cubic-bezier(.25, .1, .25, 1) backwards; }
+.comm-line.old { opacity: .62; }
+.comm-line.old.a2 { opacity: .42; }
+.comm-line.old.a3 { opacity: .28; }
+/* a score is bold whether it is the current line or an old one: the weight
+   (and the size) belong to the line, not to being current, or a line would
+   re-wrap the moment it was demoted */
+.comm-line.big .txt { font-weight: 700; font-size: 1rem; }
+.comm-line.tmo .txt { font-weight: 700; }
+.comm-line.big { border-left-color: var(--gold); }
+.comm-line.big .min { color: var(--gold); }
+.comm-line.card-y { border-left-color: var(--prop-yellow-deep); }
+.comm-line.card-r { border-left-color: var(--prop-red); }
+.comm-line.inj { border-left-color: var(--danger); }
+.comm-line.tmo { border-left-color: var(--gold); }
+.comm-line.pen { border-left-color: var(--info); }
+/* a line about a side wears its kit while it is current (MatchDay.tsx
+   lineStyle): the text takes the colour worked out for the fill */
+.comm-line.kit.cur .min { color: inherit; opacity: .8; }
+.live-wrap.big-text .comm-line .txt { font-size: 1rem; line-height: 1.35; }
+.live-wrap.big-text .comm-line.big .txt { font-size: 1.125rem; }
+.live-wrap.big-text .comm-line .min { font-size: 1rem; }
+@keyframes comm-in { from { opacity: 0; } }
+/* A TRY FLASHES: for about a second the line wears its colours the other way
+   round (MatchDay.tsx flashStyle sets the pair), then eases back to its own
+   look. The arrival fade is listed again so the two do not fight over
+   `animation` while the line goes from current to old. */
+.comm-line.try-flash, .comm-line.cur.fresh.try-flash {
+  animation: comm-in .22s cubic-bezier(.25, .1, .25, 1) backwards, try-flash 1s linear;
+}
+@keyframes try-flash {
+  0%, 80% { background-color: var(--flash-bg); color: var(--flash-fg); box-shadow: inset 0 0 0 1px var(--flash-fg); }
+}
+/* the minute flashes with its line. A try line's minute is gold, and an old
+   line's gold minute stayed gold while the line behind it went white for
+   the flash: 1.7:1 (nightcontrast, caught mid-flash). The class is on for
+   1.1s only (MatchDay setFlash), so this never outlives the flash. */
+.comm-line.try-flash .min, .feed-line.try-flash .min { color: inherit; }
+@media (prefers-reduced-motion: reduce) {
+  .comm-line { transition: none; }
+  .comm-line.cur.fresh { animation: none; }
+  /* a still highlight for the second the class is on, no fade in or out
+     (important: the line's kit is an inline style) */
+  .comm-line.try-flash, .comm-line.cur.fresh.try-flash { animation: none; background-color: var(--flash-bg) !important; color: var(--flash-fg) !important; }
+  .comm-list { will-change: auto; }
+}
+
+/* full-time review: two columns in landscape, one page, minimal scroll */
+.review-grid { display: grid; grid-template-columns: 1fr; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .review-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+}
+
+/* The ball is never dead between minutes: a small working loop - shifted at
+ * the base, tipped end over end a few degrees - on the same beat as the men.
+ * `translate`/`rotate` are the individual properties, so they compose with
+ * the centring transform above and with the left/top glide instead of
+ * replacing them; the kick classes below set `animation`, so a kicked ball
+ * flies its arc uninterrupted and the loop resumes on the next mount. */
+/* 1.7.4: the ball no longer bobs on a loop of its own between lines. It sits
+ * where the play is and moves when the play does (the passage for a kick,
+ * a pass or a run is still drawn by phasePlay.ts). The keyframes stay for
+ * anything that asks for them by name. */
+
+/* ---- the trophy moment: full-screen celebration ---- */
+.celebrate-veil {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(227, 185, 46, .18), transparent 55%),
+    rgba(6, 12, 26, .93);
+  cursor: pointer;
+  animation: cel-in .5s ease both;
+}
+@keyframes cel-in { from { opacity: 0; } to { opacity: 1; } }
+.celebrate-box { text-align: center; color: var(--text-primary); padding: 24px; max-width: 560px; }
+.celebrate-box h1 {
+  font-family: var(--serif); font-weight: 900; font-size: 1.875rem; letter-spacing: 2px;
+  margin-top: 12px; line-height: 1.15;
+  text-shadow: 0 2px 24px rgba(227, 185, 46, .45);
+  animation: cel-pop .7s cubic-bezier(.2, 1.5, .4, 1) both .15s;
+}
+@keyframes cel-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
+.confetti {
+  position: absolute; top: -14px; width: 9px; height: 14px; border-radius: 2px;
+  animation-name: conf-fall; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+@keyframes conf-fall {
+  0% { transform: translateY(-4vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(106vh) rotate(720deg); opacity: .75; }
+}
+.scoreboard,
+.stat-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+.scoreboard { letter-spacing: -0.5px; font-weight: 700; }
+.scoreboard,
+.sc-head {
+  font-family: var(--cond);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ft-stamp { animation: rm-hold 2.8s linear forwards !important; }
+
+  @keyframes rm-hold { 0%, 86% { opacity: 1; } 100% { opacity: 0; } }
+}
+.mstart {
+  font-family: var(--cond);
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--on-gold);
+  background: var(--gold-fill);
+  border-radius: 3px; padding: 2px 5px;
+  /* may break onto two lines (1.9.3): with the menu icons back, French
+     "Entraînement et staff" beside "commencez ici" no longer fit on one */
+  flex-shrink: 1; white-space: normal; text-align: center; line-height: 1.15;
+}
+.sc-top { display: flex; align-items: center; gap: 2px; }
+.sc-top b { font-size: 1rem; letter-spacing: -.2px; }
+.sc-sub {
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--gold);
+}
+.sc-pos {
+  font-family: var(--cond); font-size: 1.625rem; font-weight: 700; line-height: .95;
+  text-align: right; color: var(--on-hero); flex-shrink: 0;
+}
+.sc-pos span {
+  display: block; font-size: 0.6875rem; letter-spacing: 1.2px; font-weight: 700;
+  color: var(--gold);
+}
+.sc-row {
+  display: flex; gap: 14px; margin-top: 10px;
+  font-family: var(--cond); font-size: 0.75rem; letter-spacing: .6px;
+  color: var(--on-hero-soft); text-transform: uppercase;
+}
+.sc-row b { font-family: var(--sans); font-size: 1rem; color: var(--on-hero); margin-right: 3px; }
+.sc-pct { margin-left: auto; }
+.sc-star, .sc-cup {
+  margin-top: 8px; font-size: 0.75rem; line-height: 1.35; color: var(--on-hero-soft);
+  border-top: 1px solid rgba(255, 255, 255, .1); padding-top: 7px;
+}
+.sc-cup { color: var(--gold-fill); font-weight: 700; }
+
+.record-card .rating-run { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.record-card .rating-dot {
+  min-width: 30px; padding: 2px 4px; border-radius: 6px; text-align: center;
+  font-size: 0.6875rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  background: var(--surface-3); color: var(--text-primary);
+}
+.record-card .rating-dot.hi { background: color-mix(in srgb, var(--positive) 28%, var(--surface-3)); color: var(--text-positive); }
+.record-card .rating-dot.lo { background: color-mix(in srgb, var(--danger) 26%, var(--surface-3)); color: var(--text-negative); }
+
+/* ---- THE GAME PLAN KEEPS ITS COLOUR (v1.6.9) ----
+   The zone pickers and the named defences roughly DOUBLED the number of
+   elements on the Tactics screen, from 105 to 210, and every one of the new
+   ones was neutral: colouraudit measured the screen's content chroma falling
+   from 0.169 to 0.061 and took the whole game under its floor with it. A
+   screen that is 92% grey is not a style, it is an absence.
+   The heading over each zone takes the primary, and an unselected chip in
+   these rows carries a wash of it - enough to read as part of a set the
+   chosen one belongs to, not enough to compete with the chosen one, which
+   still fills with the flat colour. Tokens only, so tokenlint stays quiet. */
+.zone-label { color: var(--primary); }
+.ft-units > summary::before {
+  /* a drawn chevron, turned down when open (1.9.2: no text triangles) */
+  content: ''; flex-shrink: 0; width: 6px; height: 6px; margin: 0 3px 2px 1px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s ease;
+}
+.ft-units[open] > summary::before { transform: rotate(45deg); }
+.ft-units > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.ft-units > summary::-webkit-details-marker { display: none; }
+.ft-units > summary { list-style: none; }
+@media (prefers-reduced-motion: reduce) { .ft-units > summary::before { transition: none; }
+}
+/* the full-time memory lines, under the two fixes (1.8.6) */
+.ft-context:not(:empty) { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--border); }
+.ft-units { margin-top: 8px; }
+.ft-units > summary { text-transform: uppercase; letter-spacing: .5px; font-size: 0.75rem; }
+
+/* ---- the touchline at a glance, above the commentary (1.8.0) ---- */
+.match-status {
+  display: flex; justify-content: space-between; gap: 10px; padding: 0 4px 5px;
+  font-family: var(--cond); font-size: 0.75rem; letter-spacing: .5px; color: var(--text-muted);
+}
+
+/* ---- the match menu (1.8.0, MatchPanels.tsx) ---- */
+.mpanels { max-width: 920px; width: calc(100% - 24px); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; max-height: 88vh; max-height: calc(88dvh / var(--zoom, 1)); }
+/* ABOVE THE SYSTEM BAR (owner, 1.8.12, Samsung: "Back to the match is hidden
+   by the phone buttons"). The panel's own padding replaced the sheet's safe-area
+   foot, so it sat on the bottom edge of an edge-to-edge web view. It now stands
+   clear of the bar and of any banner, and its height gives way by the same. */
+.modal-veil > .mpanels {
+  margin-bottom: calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 8px);
+  max-height: calc(calc(88dvh / var(--zoom, 1)) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+}
+.mp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mp-head b { font-family: var(--cond); font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; }
+.mp-dots { display: flex; justify-content: center; gap: 6px; }
+.mp-dots button { width: 9px; height: 9px; min-width: 0; padding: 0; border-radius: 2px; border: none; background: var(--border-strong); }
+.mp-dots button.on { background: var(--text-primary); }
+.mp-body { overflow: auto; min-height: 0; flex: 1; }
+.mp-two { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 640px) { .mp-two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+.mp-table td.num, .mp-table th { text-align: center; font-variant-numeric: tabular-nums; }
+.mp-table tr.off td { opacity: .5; }
+.mp-table .mp-mid { text-align: center; color: var(--text-muted); }
+/* THE NAMES LINE UP (owner, 27 Sep 2026: "Check the alignment of names in the
+   in-game stats piece"). The club's name was centred over the shirt and name
+   columns while the names ran from the left, and each table sized its own
+   columns from its own longest name, so home and away sat differently. Fixed
+   columns now: the shirt, the name taking what is left, and the figures in
+   equal narrow columns; the club name starts where the shirt number does. */
+.mp-grid { table-layout: fixed; }
+.mp-grid th.mp-team { text-align: left; padding-left: 6px; }
+.mp-grid th:last-child, .mp-grid td:last-child { padding-right: 6px; }
+.mp-grid th:first-child, .mp-grid td:first-child { padding-left: 6px; }
+.mp-grid th, .mp-grid td { padding-left: 4px; padding-right: 4px; }
+.mp-note { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
+/* WHERE IT WAS PLAYED as three rows (owner, 1.8.12: "very messy"): the
+   upright bars floated at different heights once a long club name wrapped
+   under one of them. A row each - name, bar, figure - reads at any width. */
+.mp-zones { display: flex; flex-direction: column; gap: 12px; padding: 6px 4px; }
+.mp-zone { display: grid; grid-template-columns: minmax(0, 9em) minmax(0, 1fr) 3.2em; align-items: center; gap: 10px; }
+.mp-zone .bar { height: 14px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.mp-zone .bar i { display: block; height: 100%; border-radius: 3px; background: var(--primary); }
+.mp-zone b { font-family: var(--cond); font-size: 1.125rem; text-align: right; font-variant-numeric: tabular-nums; }
+.mp-zone span { font-size: 0.8125rem; color: var(--text-muted); overflow-wrap: anywhere; }
+@media (orientation: portrait) {
+
+/* THE MATCH ON A TABLET (1.8.0). The pitch was capped at 210px for a phone
+   and came out a 788x242 strip across an iPad with half the glass empty under
+   it. On a tablet it takes a pitch's own shape (a field with its in-goals is
+   about 1.6 times as long as it is wide), capped so the deck below still has
+   room, and the deck fills the rest. */
+
+  .app.tablet .live-wrap .now-strip { flex: none; }
+}
+.feed-line .min { flex: none; width: 30px; color: var(--info); font-variant-numeric: tabular-nums; }
+.feed-line.big .min { color: var(--gold); }
+.feed-line.kit .min, .feed-line.kit.big .min { color: inherit; opacity: .8; }
+@media (orientation: portrait) {
+/* the feed's newest line IS the now-line on a tablet: one of them, not both */ .app.tablet .now-strip .comm-feed { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-motion="on"] .mp-zone .bar i { transform-origin: left center; animation: m-grow-x .5s cubic-bezier(.2, 0, 0, 1) backwards; }
+}
+@keyframes m-grow-x { from { transform: scaleX(0); } }
+
+/* THE SETTINGS SHEET IN THE FM26 LAYOUT: the choices, then the switches */
+.settings-sheet .ms-rows { padding: 0 16px; }
+.settings-sheet .ms-seg { margin: 0 0 4px; }
+.settings-sheet .ms-toggles {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 16px;
+  margin: 10px 16px 0; padding-top: 8px; border-top: 1px solid var(--border);
+}
+@media (min-width: 560px) { .settings-sheet .ms-toggles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+@media (orientation: landscape) {
+
+/* THE MATCH ON A TABLET IN LANDSCAPE (1.8.0, iPad). The glass is wide, so the
+   deck goes BESIDE the pitch rather than under it: pitch and now-strip on the
+   left, the feed over the 22 and territory panels on the right, controls
+   across the foot. The phone landscape layout (ticker over the pitch area) is
+   untouched: this is only .app.tablet. */
+  .app.tablet .live-wrap {
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: 'score score' 'main deck' 'now deck' 'ctrl ctrl';
+  }
+  .app.tablet .live-wrap .now-strip .comm-feed { display: none; }
+}
+
+/* ---- HIGHLIGHTS AND LIVE STATS (1.8.0, HighlightClip.tsx, MatchDay LiveStats) ----
+   The match is the commentary line over the live stats; the pitch comes on
+   for a highlight in the same place, the size of the stats panel it covers,
+   and goes when the moment is done. */
+.hl-clip {
+  position: relative; margin: 8px 10px 0; border-radius: 12px; overflow: hidden;
+  /* the whole pitch, dead-ball line to dead-ball line (114 m by 70 m), locked */
+  aspect-ratio: 114 / 70; background: var(--hl-surround);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .08);
+  animation: hl-in .35s cubic-bezier(.2, 0, 0, 1) both;
+}
+@keyframes hl-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
+.hl-canvas { display: block; width: 100%; height: 100%; }
+.hl-banner {
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 6px 18px 7px; border-radius: 10px; white-space: nowrap;
+  background: rgba(10, 14, 12, .86); color: var(--prop-ink);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .45);
+  animation: hl-banner .45s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+.hl-banner b { font-family: var(--cond); font-weight: 800; font-size: 1.625rem; letter-spacing: 2px; line-height: 1; }
+.hl-banner span { font-size: 0.8125rem; font-weight: 600; opacity: .92; }
+.hl-banner.review, .hl-banner.notry, .hl-banner.heldup { background: rgba(10, 14, 12, .9); color: var(--gold-fill); }
+.hl-banner.miss { color: var(--hl-miss); }
+@keyframes hl-banner { from { opacity: 0; transform: translate(-50%, 10px) scale(.9); } }
+
+.live-stats {
+  margin: 8px 10px 0; padding: 6px 12px 8px; border-radius: 12px;
+  background: var(--surface-1); border: 1px solid var(--border);
+  animation: hl-in .3s ease-out both;
+}
+.ls-head {
+  /* the title on its own row above the two names: in one row, long names
+     ran into it with no gap ("NorthamptonLIVE STATS", owner's tablet) */
+  display: grid; grid-template-columns: 1fr 1fr; align-items: center; column-gap: 8px; row-gap: 2px;
+  padding: 4px 0 6px; border-bottom: 1px solid var(--border);
+  font-size: 0.8125rem; font-weight: 700; color: var(--text-primary);
+}
+.ls-head span { grid-row: 2; min-width: 0; overflow-wrap: anywhere; }
+.ls-head span:last-child { text-align: right; }
+.ls-head b { grid-column: 1 / -1; grid-row: 1; text-align: center; font-family: var(--cond); font-size: 0.75rem; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+.ls-row { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 10px; padding: 5px 0; }
+.ls-row + .ls-row { border-top: 1px solid var(--border); }
+.ls-row > b { font-family: var(--cond); font-size: 1rem; font-variant-numeric: tabular-nums; }
+.ls-row > b:last-child { text-align: right; }
+.ls-mid { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ls-label { text-align: center; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
+.ls-bar { position: relative; display: flex; height: 5px; border-radius: 3px; overflow: hidden; background: var(--surface-2); }
+.ls-bar { gap: 2px; }
+.ls-bar i { display: block; height: 100%; transition: width .6s cubic-bezier(.2, 0, 0, 1); }
+.ms-note { grid-column: 1 / -1; font-size: 0.75rem; color: var(--text-muted); margin: -4px 0 4px; }
+.app.tablet .hl-clip { max-width: 760px; margin-left: auto; margin-right: auto; }
+.app.tablet .tab-stats .live-stats { margin: 0; }
+
+/* the match controls are icons (owner, 27 Sep 2026), and small with room
+   between them ("make the buttons smaller so there is more space between
+   them"): five 48px squares spread across the row, clear of the 44 floor */
+.speed-controls { justify-content: space-between; width: 100%; max-width: 440px; margin-inline: auto; box-sizing: border-box; }
+.speed-controls .ctl-ico { display: inline-flex; align-items: center; justify-content: center; }
+.speed-controls .ctl-ico svg { width: 22px; height: 22px; }
+.celebrate-ico { font-size: 4rem; line-height: 1; color: var(--gold); }
+.app:not(.night) .record-card .rating-dot { box-shadow: inset 0 0 0 1px var(--border-strong); }
+.tick-event,
+.comm-line {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+@media (orientation: portrait) {
+
+/* THE HIGHLIGHT, A DELIBERATE SIZE ("the animation on tablet seems a bit too
+   big", "the pitch's corners are cut off"). Upright, the clip took whatever
+   height the flex column left it, so it was a strip on one iPad and most of
+   the glass on the 13-inch one. On its side it was given the whole row's
+   height and a 760px cap wider than its column, so it ran under the
+   commentary and lost the far in-goal. Now: a fixed share of the width,
+   capped, centred, and never wider than the column it sits in. The canvas
+   fits the whole pitch inside whatever box it gets (HighlightClip size()). */
+  .app.tablet .live-wrap .hl-clip {
+    flex: none; width: min(calc(100% - 28px), 440px); max-width: none;
+    margin: 8px auto 0;
+  }
+}
+@media (orientation: landscape) {
+  .app.tablet .live-wrap .hl-clip {
+    align-self: center; justify-self: center;
+    width: min(calc(100% - 20px), 520px); height: auto; max-width: none;
+    max-height: calc(100% - 6px); margin: 6px 10px 0;
+  }
+}
+
+/* LIVE STATS: CRESTS, NOT NAMES ("some of the text overlaps like live stats
+   and team names - can you use team logos"). The crest carries the club's
+   three letters. On its side the phone's two-column stats grid also reached
+   the tablet's narrow stats panel and laid POSSESSION over 58%: the panel is
+   one column of rows, as it is upright. */
+.ls-head i { font-style: normal; }
+.ls-crest { display: none; }
+.app.tablet .ls-head { grid-template-columns: auto minmax(0, 1fr) auto; row-gap: 0; }
+.app.tablet .ls-head span { grid-row: 1; display: inline-flex; align-items: center; }
+.app.tablet .ls-head b { grid-column: 2; grid-row: 1; }
+.app.tablet .ls-crest { display: inline-flex; }
+.app.tablet .ls-name {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+.app.tablet .tab-stats .live-stats { display: block; overflow: visible; margin: 0; }
+.app.tablet .tab-stats .live-stats .ls-row + .ls-row { border-top: 1px solid var(--border); }
+.mpanels.tele-mode { gap: 6px; padding: 8px 10px 10px; box-shadow: 0 -10px 30px rgba(0, 0, 0, .45); }
+.tele tr.binned td { background: color-mix(in srgb, var(--prop-yellow) 12%, transparent); }

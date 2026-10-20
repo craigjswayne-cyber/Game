@@ -1,0 +1,220 @@
+/*  squad.css: squad, player, development, medical, academy and leadership.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  */
+/* ONE TYPE SCALE (owner, 27 Sep 2026, beside FM26 screenshots: "make sure
+   there is a consistent text sizing and the way its shown"). Thirty sizes,
+   half of them half-pixels (10.5, 11.5, 12.5...), became eight steps: 11
+   captions, 12 labels, 13 small body and buttons, 14 body, 16 subheads and
+   big buttons, 18 and 20 headings, 22 titles. Display type (the title,
+   scores, the pitch's own labels) keeps its own sizes. */
+
+/* ================= Attributes ================= */
+.attr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; padding: 10px 16px; background: var(--surface-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.attr {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary);
+  padding: 4.5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.attr span:first-child { flex: 1; }
+.attr .v {
+  font-family: var(--cond);
+  font-weight: 700; font-size: 1rem;
+  width: 22px; text-align: right; color: var(--text-primary);
+}
+.attr .v.elite { color: var(--gold); }
+.attr .v.good { color: var(--primary); }
+.attr .v.poor { color: var(--text-muted); }
+/* the Pinnacle federation picker beside its Make the Call button (1.8.9:
+   it was the one bare <select> in the game, a pill with no padding) */
+.nat-pick { flex: 1; min-width: 0; margin: 0; }
+@media (orientation: landscape) and (min-width: 640px) {
+
+  /* denser grids with the extra width */
+  .attr-grid { grid-template-columns: 1fr 1fr 1fr; max-width: 900px; } }
+
+/* FM-style player profile: dense attribute chip grid. FOUR GROUPS SINCE 1.9.0
+   (Set piece & contact, Skills, Physical, Mental), so two columns read as a
+   clean two-by-two and only a wide screen has room for all four abreast; three
+   columns left the fourth group alone on a second row. */
+.fm-attrs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 16px;
+  padding: 0 14px 6px;
+}
+.fm-col-head {
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-muted); padding: 4px 0 2px;
+  border-bottom: 2px solid var(--border-strong);
+}
+.fm-attr {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 0; border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+}
+.fm-attr .fm-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fm-attr .fm-rival { font-family: var(--cond); font-size: 0.75rem; width: 26px; text-align: right; }
+/* THE ATTRIBUTE'S WORD (v1.7.0). It sits between the name and the figure and
+   it is the first thing to go when the row runs out of room: the name and the
+   number both carry meaning on their own, and the word is the one that is
+   there to save a newcomer looking up a scale. Nine bands, cool to warm. */
+.fm-attr .fm-word {
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 700;
+  letter-spacing: 0.3px; white-space: nowrap; flex-shrink: 0;
+  color: var(--text-muted);
+}
+@media (max-width: 420px) { .fm-attr .fm-word { display: none; } }
+.fm-attr .fm-chip {
+  min-width: 34px; text-align: center; padding: 1px 5px;
+  border-radius: 5px; font-family: var(--cond); font-size: 0.8125rem; font-weight: 800;
+  color: var(--text-primary);
+}
+.fm-attr .fm-chip.hi { background: var(--primary); color: var(--on-primary); }
+.fm-attr .fm-chip.mid { background: var(--info); color: var(--on-info); }
+.fm-attr .fm-chip.lo { background: var(--border-strong); }
+.fm-attr .fm-chip.rng { background: transparent; color: var(--text-muted); border: 1px dashed var(--border); font-weight: 700; font-size: 0.6875rem; }
+@media (min-width: 1000px) { .fm-attrs { grid-template-columns: repeat(4, 1fr); } }
+.loan-key { display: flex; align-items: center; gap: 6px; margin: 6px 16px 0; font-size: 0.75rem; color: var(--text-secondary); }
+.loan-swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--loan); flex: none; }
+/* captain and vice on one line each, inside one card */
+.lead-row {
+  display: flex; align-items: center; gap: 8px; padding: 3px 0;
+}
+.lead-row .lead-tag {
+  font-family: var(--cond); font-weight: 800; font-size: 0.8125rem;
+  min-width: 22px; text-align: center; color: var(--info);
+}
+/* a leadership job is a button that opens a sheet (owner: the native select
+   drew the whole squad as a full-screen list) */
+.lead-btn {
+  width: 100%; background: none; border: 0; border-bottom: 1px solid var(--border);
+  color: inherit; font: inherit; text-align: left; cursor: pointer; min-height: 44px;
+}
+.lead-btn:last-child { border-bottom: 0; }
+.lead-btn .lead-tag svg { width: 18px; height: 18px; vertical-align: middle; }
+.lead-btn .lead-who { flex: 1; min-width: 0; text-align: right; font-weight: 600; font-size: 0.8125rem; overflow-wrap: anywhere; line-height: 1.3; }
+.lead-btn .lead-chev svg { width: 16px; height: 16px; color: var(--text-muted); vertical-align: middle; }
+.lead-sheet .lead-list { max-height: min(56vh, 460px); max-height: min(calc(56dvh / var(--zoom, 1)), 460px); overflow-y: auto; margin: 0 -2px 10px; }
+.lead-sheet tr { cursor: pointer; }
+.lead-sheet .lead-bar { width: 34%; }
+.lead-sheet .lead-bar span { display: block; height: 6px; border-radius: 3px; background: var(--info); }
+.attr-val {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+.lead-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .lead-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2px 10px; } }
+
+/* ---- the bid stepper fits the phone --------------------------------------
+   User, from a 412px screen: "the reduce or plus 500 go off the screen and
+   dont fit in the box". It was five items on one nowrap flex line, which needs
+   about 398px of content in a 336px card, so the outer two buttons rendered
+   past both edges (measured by scripts/bidprobe.mjs at -19px and 379px on a
+   360px phone).
+
+   Four equal columns, and the fee on its own full-width row above them. 1fr
+   columns cannot outgrow the card whatever the label says, which is the point:
+   a flex row sized by its content is what broke, so the fix is a grid sized by
+   the container. The buttons keep the 44px thumb floor. */
+.bid-step {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px 0 10px;
+}
+.bid-step .bid-amt {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 1.375rem;
+  letter-spacing: .5px;
+  padding-bottom: 4px;
+}
+
+/* development as a project (1.8.2): the staff's read, and the timeline */
+.dev-card { background: color-mix(in srgb, var(--info) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--info) 38%, var(--border)); }
+.dev-timeline { padding: 4px 12px; }
+.dev-timeline .tl-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); min-width: 0; }
+.dev-timeline .tl-row:first-child { border-top: 0; }
+.dev-timeline .tl-season { flex: 0 0 60px; font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.dev-timeline .tl-rating { flex: 0 0 26px; text-align: right; font-variant-numeric: tabular-nums; }
+.dev-timeline .tl-moments { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
+.dev-timeline .tl-chip { padding: 2px 7px; }
+.dev-timeline .tl-now .tl-season { color: var(--text-primary); font-weight: 700; }
+
+.depth-chart { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+.depth-row { background: var(--surface-1); border-radius: 10px; padding: 8px 10px; }
+.depth-pos { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.depth-count { font-size: 0.6875rem; font-weight: 700; letter-spacing: .4px; color: var(--text-muted); text-transform: uppercase; }
+.depth-men { display: flex; flex-wrap: wrap; gap: 6px; }
+.depth-man {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; min-height: 30px;
+  border-radius: 8px; background: var(--surface-3); color: var(--text-primary); font-size: 0.75rem;
+}
+.depth-man .depth-ca { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gold); }
+.depth-man.out { opacity: .55; }
+.depth-man .depth-why { font-size: 0.6875rem; color: var(--text-negative); font-weight: 700; }
+
+/* v1.2.8: the loan table's terms, stacked in the action cell */
+/* the sheet's own gutter: the owner saw labels and selects flush to the
+   screen edge ("watch the clipping of text on the sides") */
+.loan-sheet .loan-deal { display: flex; flex-direction: column; gap: 10px; padding: 4px 14px 0; }
+.loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: .4px; }
+.mentor-intro { margin: 0 14px 8px; }
+.mp-grid td.shirt { text-align: right; padding-right: 8px; color: var(--text-muted); }
+.dtable td.attr-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* THE TREATMENT ROOM, ROUND TWO (owner: "treatment room looks super messy").
+   One card a man: position, name and a return pill on the first line; the
+   complaint on the second, one line and plain; the buttons on a third, side
+   by side at one width, only when there are any. No right-hand column, so no
+   divider stopping half way and nothing floating out of line. */
+
+.med-staff {
+  background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border: 1px solid color-mix(in srgb, var(--gold) 38%, var(--border));
+  padding: 8px 12px; font-size: 0.75rem; font-weight: 500; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.med-staff b { color: var(--text-primary); font-weight: 700; }
+.med-staff.wrap { white-space: normal; }
+.med-search { padding: 4px 12px 0; }
+.med-card { margin: 6px 12px; padding: 10px 12px; cursor: pointer; }
+.med-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.med-name { flex: 1 1 auto; min-width: 0; font-weight: 700; font-size: 0.875rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.med-pill {
+  flex-shrink: 0; padding: 2px 8px; border-radius: 999px;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: .3px; line-height: 16px;
+  border: 1px solid currentColor;
+}
+.med-pill.short { color: var(--text-positive); background: color-mix(in srgb, var(--text-positive) 12%, transparent); }
+.med-pill.mid { color: var(--gold); background: color-mix(in srgb, var(--gold-fill) 14%, transparent); }
+.med-pill.long { color: var(--text-negative); background: color-mix(in srgb, var(--text-negative) 12%, transparent); }
+.med-info {
+  display: block; margin-top: 5px; font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.med-info::first-letter { text-transform: uppercase; }
+.med-info .gold, .med-extra .gold { color: var(--gold); font-weight: 600; }
+.med-extra { margin-top: 3px; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.med-note { margin-top: 6px; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
+.med-msg { margin-top: 6px; font-size: 0.6875rem; font-weight: 600; color: var(--text-secondary); white-space: normal; }
+/* 32px of box and 7px of reach above and below is still 44 to tap, and a
+   14px gap between wrapped lines keeps the reaches of neighbours apart */
+.med-acts { display: flex; flex-wrap: wrap; gap: 14px 8px; margin-top: 10px; }
+.med-acts .rowact {
+  flex: 1 1 0; min-width: 130px; margin: 0; min-height: 32px; padding: 4px 8px;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  white-space: normal; line-height: 1.2; font-size: 0.6875rem;
+}
+.med-acts .rowact::after { inset: -7px 0; }
+
+/* the contract traffic light on the squad table */
+.status-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: middle; box-shadow: 0 0 0 2px color-mix(in srgb, var(--surface-1) 70%, transparent); }
+.gt-mood .status-dot { width: 9px; height: 9px; vertical-align: 0; }
+.app:not(.night) .depth-man { box-shadow: inset 0 0 0 1px var(--border-strong); }
+.dev-card {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}

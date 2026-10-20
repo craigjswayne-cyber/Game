@@ -1,0 +1,588 @@
+/*  shell.css: the app shell: masthead, navigation, tabs, section titles.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  */
+
+.app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  /* re-anchor inherited text colour INSIDE the themed subtree: body resolves
+     var(--text-primary) with light-theme values, so night-mode descendants relying on
+     inheritance would otherwise get the light theme's near-black ink */
+  color: var(--text-primary);
+  background:
+    var(--canvas);
+  box-shadow: 0 0 60px rgba(0, 0, 0, .35);
+}/* ================= Masthead ================= */
+.masthead {
+  position: relative;
+  background:
+    radial-gradient(120% 180% at 15% -40%, color-mix(in srgb, var(--club1) 32%, transparent), transparent 55%),
+    var(--hero-gradient);
+  color: var(--on-hero);
+  padding: calc(var(--safe-area-inset-top) + 10px) 16px 10px;
+  flex-shrink: 0;
+}
+/* The club-colour strip under the masthead went in 1.9.4 (owner: "Remove this line"). */
+.masthead-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+/* The moon and Continue are grouped so portrait can drop them onto their own
+   row. They were direct flex children of .masthead-row before, taking its gap,
+   so the group needs its own or landscape loses the space between them. */
+.mast-ctl { display: flex; align-items: center; gap: 10px; }
+.masthead h1 {
+  font-family: var(--sans);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: .2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .35);
+}
+.masthead .date {
+  font-family: var(--cond);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--on-hero-soft);
+  letter-spacing: .4px;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.back-btn {
+  /* --on-hero, not --text-primary: the masthead gradient does not flip with
+     the theme, so day mode painted this chevron near-black on bottle green at
+     1.85:1 - the second most used control in the app. */
+  color: var(--on-hero);
+  font-size: 1.625rem;
+  line-height: 1;
+  padding: 2px 10px 6px 0;
+  /* the chevron's own width depends on the font; 22px keeps the 44px reach */
+  min-width: 22px; text-align: center;
+  opacity: .9;
+  position: relative;
+}
+/* 22x34 of chevron, and back is the second most used control in the app. The
+   expander reaches 44x44 without moving the title: there is masthead padding to
+   its left and a 10px flex gap to its right, and the thing on the other side of
+   that gap is a text block, not a control. Measured by scripts/tapsize.mjs. */
+.back-btn::after { content: ''; position: absolute; inset: -5px -11px; }
+
+/* ================= Continue ================= */
+.continue-btn {
+  background: var(--primary);
+  color: var(--on-primary);
+  font-family: var(--cond);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  padding: 8px 16px 9px;
+  /* the button the whole game runs through, and it was 40px */
+  min-height: 44px;
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 6px rgba(0, 0, 0, .35);
+  white-space: nowrap;
+}
+.continue-btn:active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 1px 2px rgba(0,0,0,.3); }
+
+/* ================= Content ================= */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  /* see the note by html: this is the element the drag actually starts on, so
+     this is the one that has to refuse to chain the gesture to the browser */
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 10px;
+}
+
+.section-title {
+  font-family: var(--cond);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-primary);
+  padding: 13px 14px 5px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+.section-title > span:first-child { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
+/* A SECTION HEADING PREFERS ONE LINE AND NEVER LIES TO GET IT.
+   Two goes at this. The old rule ellipsized a squeezed sub, which French made
+   dishonest: "Classement mondial des nations" left the sub reading "LES POINTS
+   ..." - two words and an ellipsis is not a subtitle. The first fix let a sub
+   under ~18 characters drop to its own line, and the owner's screenshot of the
+   English Test rankings showed why that was only half of it: on its own line,
+   at full width, "rating points move with every Test - upsets and knockouts
+   move them most" STILL ran out of room and still ended in "KNOCKOU...".
+   So the truncation is gone rather than relocated. The sub wraps - beside the
+   title while it fits, onto its own line when it does not, onto a second line
+   when even that is not enough. A heading one line taller is a heading; a
+   sentence cut mid-word is a defect.
+   The old rule: a long sub
+   could not move to a second line - it wrapped its own text instead and made the
+   row two or three lines tall, which is what pushed Best XV off the Starting XV
+   heading. The hint gives way before the heading or the buttons do. */
+.section-title .sub { min-width: min(18ch, 100%); overflow-wrap: break-word; }
+.section-title .sect-act { flex-shrink: 0; white-space: nowrap; }
+/* There WAS a 16px gold bar here, before every section heading. Under floodlights
+   it ran into --gold-dark, a deep brown, and the user could not see it at all
+   ("line next to your xv cant be seen so scrap that"). A decoration nobody can
+   see is not a decoration, it is 24px of wasted row. Gone. */
+.section-title .sub {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: .3px;
+  color: var(--text-muted);
+  text-align: right;
+}
+/* ---- THE BOTTOM NAV (1.8.0) ----
+   Owner: "I really like the Sainsbury's bottom menu selection - can we
+   incorporate that into the add for our buttons down the bottom". So it is
+   the same shape: a rounded bar floating clear of the screen edge, every
+   button an icon over its name, and the one you are on sitting in a soft pill
+   in the club colour. Badges stay on the icons. The FM-style icon-only rail
+   it replaces made a new manager guess what a clipboard meant.
+   The floor under it (home indicator, the ad banner) is a margin now, so the
+   bar floats above the banner rather than stretching down behind it. */
+.bottom-nav {
+  display: flex; gap: 2px;
+  margin: 0 10px calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 8px);
+  padding: 5px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .32);
+}
+.bottom-nav button {
+  flex: 1 1 0; min-width: 0;
+  position: relative;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: .2px;
+  padding: 6px 2px 5px;
+  border-radius: 19px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: color .15s ease, background-color .2s ease;
+}
+.bottom-nav button.active {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+.bottom-nav .nlbl {
+  display: block; max-width: 100%; line-height: 1.15;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bottom-nav .nbadge { position: relative; }
+
+.tab-bar {
+  display: flex; overflow-x: auto;
+  background: var(--surface-1);
+  border-bottom: 2px solid var(--border-strong);
+
+}
+.tab-bar button {
+  /* six tabs on Selection, four on Finances, and every one of them was 36px.
+     A button centres its own content, so the floor costs nothing but height. */
+  min-height: 44px;
+  padding: 11px 14px 9px;
+  font-family: var(--cond);
+  font-size: 0.875rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .8px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  letter-spacing: .2px;
+}
+.tab-bar button.active {
+  color: var(--text-primary);
+  box-shadow: inset 0 -3px 0 var(--primary);
+}
+@media (orientation: landscape) and (min-width: 640px) {/* ================================================================
+   LANDSCAPE - the handheld-manager format: left icon rail, wide content,
+   two-panel live match. Portrait keeps the bottom bar.
+================================================================ */
+  .app {
+    max-width: none;
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: 'nav head' 'nav main';
+  }
+  .app.no-rail {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'head' 'main';
+  }
+  .masthead { grid-area: head; padding-top: 8px; }
+  .content { grid-area: main; }
+
+  /* on its side the bar is the left rail, flush to the edge, icons only
+     (a landscape phone is 390px tall and seven names do not fit); the pill
+     still marks where you are */
+  .bottom-nav {
+    grid-area: nav;
+    flex-direction: column;
+    /* fill the whole column: big, evenly spread targets (8B feedback) */
+    justify-content: space-evenly;
+    gap: 2px;
+    margin: 0;
+    padding: calc(var(--safe-area-inset-top) + 6px) 5px 6px calc(var(--safe-area-inset-left) + 5px);
+    border: none;
+    border-right: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: 4px 0 18px rgba(0, 0, 0, .22);
+    overflow-y: auto;
+  }
+  .bottom-nav button { flex: 1 1 0; min-height: 44px; padding: 4px 0; font-size: 0.6875rem; justify-content: center; border-radius: 14px; }
+  .bottom-nav .nlbl { display: none; }
+}
+
+/* ================= FM-style slide-out sub-menus ================= */
+.submenu-veil {
+  position: fixed; inset: 0; z-index: 120;
+  background: rgba(6, 25, 18, .45);
+  animation: veil-in .15s ease;
+}
+@keyframes veil-in { from { opacity: 0; } to { opacity: 1; } }
+.submenu {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: min(260px, 70vw);
+  background: var(--surface-2);
+  border-right: 2px solid var(--border-strong);
+  box-shadow: 12px 0 40px rgba(0, 0, 0, .45);
+  overflow-y: auto;
+  padding-bottom: var(--safe-area-inset-bottom);
+  animation: submenu-in .18s ease;
+}
+@keyframes submenu-in { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.submenu-head {
+  font-family: var(--cond);
+  font-weight: 700; font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold);
+  padding: calc(var(--safe-area-inset-top) + 16px) 18px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+.submenu-item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  padding: 13px 18px;
+  color: var(--text-primary);
+  font-family: var(--sans);
+  font-size: 0.875rem; font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+.submenu-item:active { background: rgba(255, 255, 255, .08); }
+.submenu-item .mico { font-size: 1.25rem; width: 24px; text-align: center; display: inline-flex; align-items: center; justify-content: center; color: var(--text-secondary, currentColor); }
+.submenu-item .mbadge {
+  background: var(--danger); color: var(--on-danger);
+  font-size: 0.6875rem; font-weight: 700;
+  min-width: 17px; height: 17px; border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+.celebrate-box .sub {
+  margin-top: 8px; font-family: var(--cond); font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; font-size: 0.8125rem; color: var(--gold);
+}
+
+/* ---- controls that ride along with a long list ----
+   The squad is a 38-man table, four screenfuls deep. Its view tabs and filter
+   chips used to sail off the top, so switching to the Stats columns meant
+   scrolling up, tapping, and scrolling back down. The block publishes its own
+   height as --stickyh (the chips wrap, so it is not a constant) and the table's
+   sticky column header sits directly beneath it. */
+.sticky-controls {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--surface-1);
+  box-shadow: 0 4px 8px -7px rgba(0, 0, 0, .55);
+}
+
+/* a section's own action, on the section's own heading row */
+.section-title .sect-act { margin-left: auto; }
+.masthead h1,
+.section-title,
+.submenu-head {
+  font-family: var(--cond);
+  font-weight: 700;
+}
+.continue-btn,
+.tab-bar button,
+.bottom-nav button {
+  font-family: var(--sans);
+}
+/* nav and buttons: semi-bold */
+.bottom-nav button,
+.tab-bar button,
+.submenu-item {
+  font-weight: 600;
+}
+.tab-bar button { letter-spacing: 0.2px; }
+.section-title { font-weight: 700; }
+
+/* headlines: the display voice, heavy, tracked at zero for a condensed face */
+/* the screen title: bold Space Grotesk (1.9.4, owner) */
+.masthead h1 { font-family: var(--title); letter-spacing: 0; font-weight: 700; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .talk-modal .section-title { padding: 6px 2px 4px; }
+  .section-title { padding-top: 6px; padding-bottom: 4px; }
+  .wizard-head .masthead-row { flex: 0 1 auto; min-width: 0; }
+}
+.app { --pick: var(--primary-hover); --pick-ink: var(--on-primary); }
+@media (orientation: landscape) and (min-width: 640px) {
+/* seven rail buttons instead of six, on a screen that is 390px tall: they still
+   need a thumb-sized target, so the icon gives up two pixels rather than the row
+   giving up a button */
+  .bottom-nav button svg { width: 24px; height: 24px; }
+}
+
+/* ---- the save-failed banner (blocker A4) --------------------------------
+   Top of the screen, above everything except the crash screen and the portrait
+   veil: a silent save failure is the one bug that eats a whole evening. */
+.save-warn {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 400;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px calc(8px + var(--safe-area-inset-bottom) * 0);
+  padding-left: max(12px, var(--safe-area-inset-left));
+  padding-right: max(12px, var(--safe-area-inset-right));
+  background: var(--danger-tint);
+  color: var(--text-primary);
+  font-family: var(--sans, system-ui, sans-serif);
+  font-size: 0.75rem; line-height: 1.45;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+}
+.save-warn > div:first-child { flex: 1; min-width: 190px; }
+.save-warn b { color: var(--danger); }
+.save-warn-why { display: block; opacity: .75; font-size: 0.6875rem; margin-top: 2px; }
+.save-warn-btns { display: flex; gap: 6px; flex-shrink: 0; }
+@media (orientation: portrait) {/* ------------------------------------------------------------------
+   PORTRAIT
+   ------------------------------------------------------------------
+   Portrait used to be a blocked orientation with a "play anyway" escape, so the
+   only thing the portrait media query held was the rotate veil and nothing in
+   here had ever been laid out for a tall narrow screen. The user plays in
+   portrait, so it is a real layout now.
+
+   Everything below is driven by measurements from scripts/portraitqa.mjs at
+   412x915 (a 1080x2340 phone at DPR 2.625) rather than guesswork. */
+  /* THE MASTHEAD, two rows. One row gave the back button, the moon and the
+     Matchday button first call on 412px and left the title about 200px, so
+     "Northampton Saints" arrived as "Northampton Sai...", "Full-Time Roundup"
+     as "Full-Time Rou..." and "Selection & Tactics" as "Selection & T...".
+     Wrapping the row and letting the text take the full width fixes all three
+     at once, and it makes Matchday a much bigger target into the bargain. */
+  /* Two rows, and no wasted one. Giving the text 100% put the back arrow on a
+     line of its own with the whole width beside it empty (user: "where the arrow
+     is, there's a lot of space to the right of that - put club there as example
+     with date so everything moves up"). The arrow, the title and the date now
+     share row one, and the moon and Matchday take row two. */
+  .masthead-row { flex-wrap: wrap; row-gap: 6px; }
+  .mast-text {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .mast-text h1 { min-width: 0; }
+  /* the date keeps its own width and the title takes the ellipsis if either has
+     to give, because a truncated date tells you nothing */
+  .mast-text .date { flex: 0 0 auto; margin: 0; }
+  .mast-ctl { flex: 1 1 100%; display: flex; gap: 8px; align-items: center; }
+  .mast-ctl .continue-btn { flex: 1; }
+  /* AND THE SAME FOR A MASTHEAD THAT HAS NO CONTROL GROUP (owner, v1.1.13:
+     "kick off is still left?").
+     Match Day builds its own masthead - back arrow, title block, Kick Off -
+     with the button as a DIRECT child of the row rather than inside .mast-ctl.
+     The rules above only reach the grouped case, so in portrait the title took
+     row one, Kick Off wrapped onto row two at its natural width, and the
+     loudest button on the screen sat hard against the left edge while every
+     other screen's Continue ran full width. It gets the same row now, so the
+     control the thumb is reaching for is in the same place on every screen. */
+  .masthead-row > .continue-btn { flex: 1 1 100%; }
+  /* and a size down, because a 412px screen is not a 844px one */
+  .masthead h1 { font-size: 1.125rem; }
+  .masthead .date { font-size: 0.6875rem; }
+
+  /* THE TAB BAR. Selection/Tactics/Set Piece/Bench/Prep/Game Plan is six tabs;
+     at 412px they do not fit at any legible size, and "Game Plan" sat 126px off
+     the right edge with nothing to say the strip scrolled. So keep the scroll,
+     tighten the type, and put a fade on the edge that is actually scrollable so
+     the gesture is discoverable. */
+  .tab-bar { scrollbar-width: none; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-bar button { padding: 10px 11px 8px; font-size: 0.8125rem; letter-spacing: .4px; }
+  /* Faded on the right, permanently, because six tabs never fit 412px at any
+     legible size - so the strip is always scrollable and a fade that is always
+     there is telling the truth. A mask rather than an overlay element, so it
+     needs no markup and cannot be scrolled away with the content. */
+  .tab-bar {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+  }
+
+  /* THE TYPE LADDER, one step down across the board. The user asked for smaller
+     text so more of it fits, and every truncation above was a symptom of type
+     sized for a 844px-wide screen. */
+  .section-title { font-size: 0.875rem; }
+  .submenu-head { font-size: 0.8125rem; letter-spacing: 1px; }
+  .submenu-item { font-size: 0.875rem; padding-top: 11px; padding-bottom: 11px; }
+}
+
+/* First-three-weeks marks in the Hub. Quiet: they are pointing, not shouting,
+   and they sit in the same gold family as the Home hint so the two read as one
+   voice. Both are gone by week four and never come back. */
+.submenu-note {
+  padding: 7px 14px 8px;
+  font-size: 0.75rem; line-height: 1.4;
+  color: var(--gold);
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+/* Every direct child of a masthead row must be allowed to shrink. App's own
+   header gets this from .mast-text in portrait; MatchDay, SeasonReview and
+   NewGame hand-roll the row with a bare flex:1 div and do not. A flex item's
+   min-width is auto, which floors it at min-content, and .date is nowrap - so
+   a long competition name drags the whole header past the right edge into a
+   sideways page scroll. The v1.0.3 rename made this live rather than latent:
+   "UNITED PROVINCES CHAMPIONSHIP - QUARTER-FINAL - SAT 12 SEP" is longer than
+   anything the header carried before. */
+.masthead > * { min-width: 0; }
+.masthead .date { overflow: hidden; text-overflow: ellipsis; }
+.app.tablet { max-width: none; box-shadow: none; }
+@media (orientation: portrait) {
+/* NO BARS UPRIGHT (1.8.1). The 560px cap exists for a desktop browser on its
+   side, where a phone-shaped column is easier to read than a line of text a
+   metre long. Upright it only ever made bars: a small 600px tablet kept a
+   strip of dark canvas down each edge that the tablet rule (700px and up)
+   never reached. The widest phone is 430px, so this changes no phone. */ .app { max-width: none; }
+}
+.tab-deck {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 12px; padding: 4px 14px calc(var(--safe-area-inset-bottom) + 10px);
+  flex: 1 1 0; min-height: 0;
+}
+.tab-feed {
+  overflow-y: auto; min-height: 0;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 4px 0;
+}
+.tab-stats {
+  overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 10px;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px;
+}
+@media (prefers-reduced-motion: no-preference) {/* ================================================================
+   THE MOTION LAYER (1.8.0). Owner: "Could we add subtle motion throughout
+   the game at opportunities?" The rule is the one FM26 was punished for
+   breaking (its slow screen changes got community "speed patches"): motion
+   confirms, it never makes you wait. So nothing here is longer than 250ms
+   except a bar filling, nothing delays a tap, and all of it is transform and
+   opacity. Only under html[data-motion="on"] (main.tsx), and the OS
+   reduce-motion setting turns every line of it off.
+
+   FILL MODE BACKWARDS, NEVER BOTH. A transform animation that holds its end
+   state makes the element a containing block for position: fixed, and the
+   sheets (.modal-veil) render inside the screens: held, a Squad sheet would
+   pin itself to the screen's first card instead of the glass. Backwards
+   covers the delay and then lets go completely.
+================================================================ */
+  /* a new screen rises into place: 180ms, 6px. Every direct child of the
+     content pane is new DOM when the screen changes, so this plays on a
+     screen change and not on a re-render. */
+  [data-motion="on"] .content > * { animation: m-rise .18s cubic-bezier(.2, 0, 0, 1) backwards; }
+  [data-motion="on"] .submenu-item {
+    transition: transform .1s ease, background-color .15s ease;
+  }
+  [data-motion="on"] .submenu-item:active { transform: scale(.985); }
+  /* the tab underline slides rather than jumps */
+  [data-motion="on"] .tab-bar button::after { transition: transform .2s cubic-bezier(.2, 0, 0, 1), opacity .2s ease; }
+}
+@keyframes m-rise { from { opacity: 0; transform: translateY(6px); } }
+@media (orientation: landscape) {
+  .app.tablet .live-wrap .tab-deck {
+    grid-area: deck; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr);
+    padding: 4px 14px 4px 0; min-height: 0;
+  }
+}
+@media (orientation: portrait) {
+
+/* A title longer than the row beside the back arrow ("The Manager's
+   Handbook") used to drop the whole title block onto a line of its own,
+   leaving the arrow alone on the first. The block now takes the room beside
+   the arrow and only the date moves under the title when both will not fit. */
+  .mast-text { flex: 1 1 0; flex-wrap: wrap; row-gap: 0; }
+}
+@media (orientation: landscape) {
+/* In landscape and on a tablet the row's space-between floated the title into
+   the middle of the gap between the back arrow and the controls, a different
+   place on every screen depending on the title's length. It sits beside the
+   arrow, as it does in portrait. */
+  .masthead-row > .mast-text { flex: 1 1 auto; min-width: 0; }
+}
+
+/* The ideas box on Report a Bug put its heading 14px further in than the text
+   under it; inside a card the card's padding is the gutter. */
+.bug-ideas > .section-title { padding-left: 0; padding-right: 0; padding-top: 2px; }
+
+/* THE COMMUNITY LINK (1.8.1): a link in the manager's menu and at the foot of
+   Home. A menu row that is an <a> must not pick up a link's underline or its
+   visited colour, and the Home one sits its speech-bubble icon beside the
+   words, centred, the way a button's label does. */
+a.submenu-item { text-decoration: none; box-sizing: border-box; }
+
+/* THE NEWS FILLS THE GLASS ("team news doesn't fill the full space"). The
+   list stopped under its last story and the page stopped under the letter,
+   leaving the bottom half of the screen bare. The two panes now run down to
+   the navigation, the list's rule with them. */
+.app.tablet .content[data-screen="inbox"] { display: flex; flex-direction: column; }
+.app.tablet .content[data-screen="inbox"] > * { flex-shrink: 0; }
+@media (orientation: landscape) {
+
+/* THE ADVERT'S ROOM ON ITS SIDE. Upright the bottom bar makes room for the
+   banner (--ad-inset); on its side the bar is the left rail, so nothing did
+   and the banner sat over the foot of the page. The page leaves the room
+   itself there. The bridge reports the banner in screen points and the page
+   is zoomed, so the room is divided back down by the zoom. */
+  .app.tablet .content { padding-bottom: calc(10px + var(--ad-inset, 0px) / var(--zoom, 1)); }
+}/* ================= Headings in normal case (1.9.2) =================
+   Owner, 18 Oct 2026, on what made the game read as template-built: small
+   letter-spaced capitals on every section ("WHERE WE STAND", "STAR PLAYERS",
+   "THE DRESSING ROOM", "HOW WILL YOU WATCH THIS ONE?"). Headings, tabs, menu
+   heads and their subtitles now read in sentence case, a size up and tracked
+   normally. Capitals stay where a broadcast or a stats sheet would use them:
+   stat labels (.fact-label, .ht-l), table heads, dates, positions, the score
+   clock and the Continue button. */
+.section-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.section-title .sub {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+}
+.section-title .sub::first-letter { text-transform: uppercase; }
+.tab-bar button { text-transform: none; letter-spacing: 0; font-size: 0.875rem; min-width: 44px; }
+.submenu-head { text-transform: none; letter-spacing: 0; }
+@media (max-width: 480px) and (orientation: portrait) {
+  .section-title { font-size: 1rem; }
+}
+.section-title > span:first-child { align-items: center; }

@@ -1,0 +1,808 @@
+/*  title.css: title screen, intro, store, saves and the new-career wizard.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  */
+
+/* ---- THE ONE PRODUCT THAT IS NOT LIKE THE OTHERS ----
+   Pro Manager sat on the shelf as a row with a star on it, the same weight as a
+   £1.99 cash injection, and it is the only thing in the shop that changes how
+   the whole game looks rather than what one career owns. Owner: "Pro Manager
+   needs to stand out more. Make it really stand out - gold, white, black -
+   textured background."
+
+   Gold, white and black, and the texture is a fine diagonal weave laid over a
+   gold-into-black wash - two gradients, no image, so it costs nothing to load
+   and scales to any width. Every value is a mix of the theme's OWN --gold and
+   --canvas rather than a new hex, which is what keeps tokenlint green and what
+   makes the card follow a skin instead of fighting it: under Midnight the gold
+   stays gold and the ground goes with the skin.
+
+   The body copy goes white here. On every other row it is --text-secondary,
+   and that difference is most of why this one reads as the premium thing. */
+.store-hero {
+  position: relative;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 72%, transparent);
+  background:
+    repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--gold) 11%, transparent) 0 2px,
+      transparent 2px 6px),
+    linear-gradient(158deg,
+      color-mix(in srgb, var(--gold) 26%, var(--canvas)) 0%,
+      color-mix(in srgb, var(--gold) 8%, var(--canvas)) 46%,
+      var(--canvas) 88%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--gold) 55%, transparent),
+    0 3px 20px color-mix(in srgb, var(--gold) 16%, transparent);
+}
+/* a solid gold edge down the left, the way a premium tile is banded */
+.store-hero::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 10px 0 0 10px;
+  background: linear-gradient(to bottom, var(--gold-fill), color-mix(in srgb, var(--gold) 35%, transparent));
+}
+.store-hero > div > div > div:first-child {
+  color: var(--gold);
+  text-shadow: 0 1px 6px color-mix(in srgb, var(--gold) 30%, transparent);
+}/* ================= Title screen ================= */
+/* THE TITLE SCREEN CLEARS THE STATUS BAR, AND NEVER CLIPS ITS OWN TOP.
+   Two faults, one symptom - the wordmark cut off at the top of the phone
+   (owner, v1.2.3: "the logo up the top is cut off. can it be lowered a bit?").
+
+   1. index.html asks for viewport-fit=cover, so the page is drawn UNDER the
+      status bar. Every other top-anchored surface in this file already pays
+      var(--safe-area-inset-top) for that; this one asked for a flat 24px and so
+      put the brand mark behind the clock.
+   2. `justify-content: center` on an overflowing column clips BOTH ends, and
+      the top end cannot be scrolled back to - overflow only ever reveals the
+      bottom. With a continue tile, two buttons, a save list and the language
+      row, a short phone overflows. `safe center` stops centring rather than
+      clipping; browsers that do not know it keep the plain `center` above it,
+      and overflow-y gives them somewhere to go. */
+.title-screen {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center;
+  justify-content: safe center;
+  overflow-y: auto;
+  background:
+    radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
+    var(--canvas);
+  color: var(--text-primary); text-align: center;
+  padding: calc(var(--safe-area-inset-top) + 28px) 24px calc(var(--safe-area-inset-bottom) + 24px);
+}
+
+/* THE MANAGER'S OFFICE.
+ *
+ * src/ui/title-bg.webp is the key art with its own title lockup painted out
+ * and the wall behind it rebuilt - see scripts/titlebg.mjs, which also records
+ * the three things that look like the answer and are not (crop it out, blur
+ * it, or frame it above the viewport). Nothing else in the picture is touched,
+ * so it goes on screen sharp: the lamp, the framed photo, the tactics board,
+ * the shirt, the trophy, the chair, the desk, the team sheet.
+ *
+ * With the lockup gone the picture can sit at `cover` and the whole room is on
+ * screen, which is the point of it. The live wordmark lands in the middle,
+ * over the stretch of dark wall the poster's own title used to occupy - the
+ * emptiest part of the frame, and now the quietest.
+ *
+ * The darkening lives here rather than baked into the file, so the balance
+ * between "you can see it is an office" and "you can read the text" is a few
+ * numbers to change rather than a re-encode. It is lightest across the middle,
+ * where the room is worth seeing and there is nothing bright to fight, and
+ * heaviest at the bottom, where the buttons sit over a lit sheet of paper.
+ *
+ * NIGHT ONLY, and that is what the art is rather than a limitation. Under the
+ * daylight theme the wordmark went dark-on-dark and the unofficial line
+ * vanished into the team sheet; there is no scrim that fixes a night
+ * photograph under a pale-ground theme, only a washed-out version of a good
+ * picture. Daylight keeps the flat ground it was designed with.
+ *
+ * The canvas colour sits underneath the whole stack, so a browser that cannot
+ * decode webp gets exactly the old screen. */
+.app.night .title-screen {
+  background:
+    radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
+    linear-gradient(to bottom,
+      rgba(8, 12, 10, 0.62) 0%,
+      rgba(8, 12, 10, 0.44) 22%,
+      rgba(8, 12, 10, 0.40) 44%,
+      rgba(8, 12, 10, 0.58) 58%,
+      rgba(8, 12, 10, 0.88) 74%,
+      rgba(8, 12, 10, 0.92) 100%),
+    url('../title-bg.webp') 6% center / cover no-repeat,
+    var(--canvas);
+}
+@media (prefers-reduced-data: reduce) {
+
+/* Decoration, and a metered connection should not pay for it. */
+  .app.night .title-screen {
+    background:
+      radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
+      var(--canvas);
+  }
+}
+
+/* THE STORE CARD ON HOME.
+ *
+ * The owner's report on 27 Aug was not that the shop was broken - it works -
+ * but that nobody would ever find it, and that when they did it read as a list
+ * of paragraphs. So it borrows the office: the same title-bg.webp the title
+ * screen paints, under the one word a player is actually scanning for. No new
+ * asset, no second encode of the same photograph.
+ *
+ * IT CARRIES ITS OWN NIGHT, in both themes. The title screen above is
+ * `.app.night` only, because a night photograph under the daylight theme is a
+ * washed-out version of a good picture and no scrim fixes it. That reasoning
+ * is about a background that has to cover a whole viewport and lose to the
+ * theme's pale ground. A card is a tile with its own edges, so this one stays
+ * dark either way - a poster on a white wall - and every colour in it is
+ * written for the dark.
+ *
+ * Which is exactly why the word is --gold-fill and NOT --gold. --gold is the
+ * text gold and daylight tunes it to #8a6516 to sit on white; over this
+ * photograph that is the scoreboard bug again (see .sc-score, ~line 528),
+ * invisible to anybody who taps the sun icon. --gold-fill is #e9be68 in both
+ * modes and was measured at 3.83:1 on this kind of ground. */
+.store-card {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
+  /* The scrim runs ACROSS, not down. title-bg.webp is a portrait photograph
+     and this card is a wide strip, so `cover` crops it to one thin band: at
+     76% that band is the desk itself - the mug, the notebook, the team sheet,
+     the spines of the three books with their green lettering. It is the most
+     legible eighth of the picture and the only one that says "office" at this
+     size.
+     Down-scrims are for full screens, where text lands anywhere. Here every
+     word is left-aligned and the right half is empty, so the darkness is spent
+     where the text is and lifted where it is not: near-opaque under the word,
+     thinning to just over half by the right edge, where the photograph gets to
+     be a photograph. */
+  background:
+    linear-gradient(100deg,
+      rgba(8, 12, 10, 0.94) 0%,
+      rgba(8, 12, 10, 0.88) 44%,
+      rgba(8, 12, 10, 0.58) 100%),
+    url('../title-bg.webp') center 76% / cover no-repeat,
+    var(--canvas);
+}
+.store-card .store-word {
+  font-family: var(--serif);
+  font-size: 1.875rem; font-weight: 900; letter-spacing: 2px; line-height: 1;
+  text-transform: uppercase;
+  color: var(--gold-fill);
+  text-shadow: 0 2px 14px rgba(8, 12, 10, .7);
+}
+.store-card .store-sub {
+  margin-top: 7px;
+  font-weight: 700; font-size: 0.875rem; line-height: 1.3;
+  color: rgba(255, 255, 255, .95);
+}
+/* MORE OBVIOUS (v1.2.5, a friend of the owner's could not find the shop). The
+   card was a dark strip with one gold word on it, which reads as a heading
+   rather than a door. A gold edge all the way round, not just the left, and a
+   slow breathing glow say "this is a button" without shouting - the glow is a
+   box-shadow so the photograph underneath is untouched, and it stops for
+   anyone who has asked their phone to reduce motion. */
+.store-card {
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  animation: store-breathe 3.2s ease-in-out infinite;
+}
+@keyframes store-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 0%, transparent); }
+  50% { box-shadow: 0 0 18px 2px color-mix(in srgb, var(--gold) 28%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .store-card { animation: none; box-shadow: 0 0 14px 1px color-mix(in srgb, var(--gold) 22%, transparent); }
+}
+.store-card .store-body {
+  margin-top: 5px;
+  font-size: 0.75rem; line-height: 1.45;
+  color: rgba(255, 255, 255, .74);
+}
+@media (prefers-reduced-data: reduce) {
+/* Same bargain as the title screen: the photograph is decoration, and a metered
+   connection should not pay for it. Without it the tile is no longer dark, so
+   the text goes back to the tokens that are tuned for the theme's own ground. */
+  .store-card {
+    background:
+      linear-gradient(120deg, color-mix(in srgb, var(--gold) 20%, transparent), transparent 72%),
+      var(--canvas);
+  }
+  .store-card .store-word { color: var(--gold); text-shadow: none; }
+  .store-card .store-sub { color: var(--text-primary); }
+  .store-card .store-body { color: var(--text-muted); }
+}
+
+.title-screen .rules { width: 64px; border: none; border-top: 2px solid var(--text-primary); margin: 16px auto; }
+/* PHASE carries the action green, RUGBY MANAGER the chalk: a two-tone wordmark
+   rather than one flat block of text. */
+.title-screen h1 b { color: var(--primary); font-weight: 700; }
+.title-screen h1 {
+  /* the wordmark in bold Space Grotesk (1.9.4, owner: "the main title text -
+     switch this to bold space grotesk"); 700 is the face's heaviest weight */
+  font-family: var(--title); font-size: 2.875rem; font-weight: 700;
+  line-height: 1.02; letter-spacing: 1px;
+  text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
+  letter-spacing: 4px;
+}
+.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--text-secondary); margin-top: 8px; font-size: 1rem; }
+.title-screen .menu-btns { margin-top: 38px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
+
+/* ---- the two how-it-reads controls, under the buttons ----
+   Text size and language sit together because they answer the same question,
+   and both are small on purpose: a 44px pill three times over would compete
+   with New Career for the eye. The visual box stays small and an invisible
+   ::after carries the tap target out to 44px, which is the same trick .btn.tiny
+   uses for the inbox arrows.
+
+   The language row wraps rather than shrinks. "Français" is eight characters
+   where "EN" is two, and the languages still to come are longer again; a row
+   that squeezed them would end up with a two-line button in it. */
+.title-screen .lang-row { flex-wrap: wrap; row-gap: 8px; }
+.title-screen .lang-btn { position: relative; }
+.title-screen .lang-btn::after { content: ''; position: absolute; inset: -10px -2px; }
+.club-pick {
+  display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.club-color {
+  width: 15px; height: 15px; border-radius: 4px;
+  border: 1px solid rgba(0,0,0,.18); flex-shrink: 0;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.3);
+}
+@media (orientation: landscape) and (min-width: 640px) {
+  .app > .title-screen { grid-row: 1 / -1; grid-column: 1 / -1; }
+  .tile-grid { grid-template-columns: repeat(4, 1fr); max-width: 900px; }
+  .title-screen h1 { font-size: 2.375rem; }
+}/* ============ Guided new-career wizard (stepped, one decision a screen) ============ */
+.step-meter {
+  width: 64px; height: 6px; border-radius: 3px;
+  background: rgba(255, 255, 255, .15);
+  overflow: hidden; flex-shrink: 0;
+}
+.step-meter i { display: block; height: 100%; background: var(--primary); border-radius: 3px; transition: width .3s ease; }
+
+.crumbs { display: flex; gap: 4px; margin-top: 9px; }
+.crumb {
+  flex: 1;
+  font-family: var(--cond);
+  font-size: 0.75rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  text-align: center;
+  color: rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .06);
+  padding: 6px 2px;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 8px 50%);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.crumb:first-child { clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); }
+.crumb.on { color: var(--on-primary); background: var(--primary); }
+.crumb.done { color: var(--primary); background: var(--primary-tint); }
+
+.wizard-hint {
+  font-family: var(--sans); font-style: normal; font-weight: 700;
+  color: var(--text-secondary); font-size: 0.875rem;
+  padding: 14px 16px 4px;
+}
+
+.tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 10px 14px; }
+.tile {
+  background: var(--surface-1);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 13px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  text-align: center;
+
+  color: var(--text-primary);
+  transition: border-color .12s ease;
+}
+.tile b { font-size: 0.8125rem; line-height: 1.25; }
+.tile .tile-ico { font-size: 1.25rem; }
+.tile.sel {
+  border-color: var(--row-selected-border);
+  background: var(--row-selected-bg);
+}
+.club-banner {
+  font-family: var(--sans); font-weight: 700; font-size: 1rem;
+  padding: 11px 14px;
+  display: flex; align-items: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .45);
+}
+
+.challenge-card {
+  display: flex; align-items: center; width: calc(100% - 28px);
+  background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
+}
+
+.action-bar {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; gap: 10px;
+  padding: 10px 14px calc(var(--safe-area-inset-bottom) + 10px);
+  /* Opaque, with a hairline. The old gradient was transparent for its top
+     30%, so the second row of club tiles bled through it and the very first
+     screen of the game looked clipped rather than scrolled. Content passing
+     behind a solid toolbar reads as intentional; content dissolving into one
+     reads as a bug. */
+  background: var(--canvas);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -6px 14px rgba(0, 0, 0, .10);
+}
+
+/* ---- COMING FROM THE OLD VERSION (1.8.3, owner: "more premium looking") ---- */
+.import-hint {
+  margin: 4px 0 0;
+  padding: 16px 16px 8px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)), var(--surface-1);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .06);
+  text-align: left;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.import-hint-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.import-hint-body { font-size: 0.8438rem; line-height: 1.5; color: var(--text-secondary); }
+.import-hint-go { width: 100%; margin-top: 6px; }
+.import-hint-no {
+  align-self: center; min-height: 44px; padding: 0 16px;
+  background: none; border: 0; cursor: pointer;
+  font: inherit; font-size: 0.8438rem; font-weight: 600; color: var(--text-secondary);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+
+/* title screen must fit short landscape viewports */
+.title-screen { overflow-y: auto; }
+@media (max-height: 480px) {
+  .title-screen h1 { font-size: 1.875rem; letter-spacing: 2.5px; }
+  .title-screen .rules { margin: 8px auto; }
+  .title-screen .tagline { font-size: 0.8125rem; margin-top: 4px; }
+  .title-screen .menu-btns { margin-top: 14px; gap: 8px; }
+}
+@media (orientation: landscape) and (min-width: 640px) {
+
+/* landscape tile grids: these overrides must come AFTER the base rules -
+   the copies inside the earlier media block lost the cascade and left
+   phones with two giant columns (8-batch feedback screenshot) */
+  .tile-grid { grid-template-columns: repeat(4, 1fr); max-width: 920px; }
+  .tile { padding: 9px 6px; gap: 4px; }
+}
+
+/* ---- two columns where one column was two swipes ----
+   Both of these were measured, not guessed: the club picker ran 639px into a
+   288px content area with the badge grid and the club's card stacked, and the
+   Selection tab ran 827px with the bench sitting under a team sheet that had
+   already filled the screen. Portrait keeps the original single column. */
+.wiz-split { display: block; }
+@media (orientation: landscape) and (min-width: 640px) {
+  /* minmax(0, 1fr), never a bare 1fr: a bare 1fr is minmax(auto, 1fr), and
+     auto will not shrink a track below its content's min-content width, so
+     the right-hand column walks off the edge of the screen instead of fitting */
+  .wiz-split {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px; align-items: start;
+  }
+/* the manager step: a narrow identity card, and the philosophy tiles wide
+   enough to stay three-up. Split 50/50 the tiles dropped to two columns and
+   the card grew taller than the one card it replaced. */
+  .wiz-split.narrow-left { grid-template-columns: minmax(0, 1fr) minmax(0, 1.9fr); }
+}
+
+/* ---- a selected tile is the same size as an unselected one ----
+   .tile.sel had `box-shadow: 0 0 0 1.5px var(--gold)`, a ring painted OUTSIDE
+   the tile's border. It costs no layout, so the grid stays even, but it reads as
+   a bigger tile than its neighbours - on the night theme it renders as a pale
+   halo and the picked club looks like it belongs to a different row (user:
+   "selection squares arent consistent"). An inset ring says the same thing
+   inside the tile's own edges. */
+.tile.sel {
+  box-shadow: inset 0 0 0 2px var(--row-selected-border);
+}
+/* a long club name should truncate, not set the tile's width for everyone */
+.tile b {
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.title-screen h1 { letter-spacing: 1px; font-weight: 700; }
+
+/* ---- title screen: the Continue tile fits on one line -------------------
+   "'continue - [manager], northampton saints' should be on one line - so widen the
+   box." The column was capped at 300px. The longest club name in the game is
+   "Montpellier Hérault Rugby" at 25 characters and a manager can call himself
+   anything, so widening alone is not a guarantee: the line also refuses to wrap
+   and ellipsises if someone really does type a paragraph. */
+/* 460px fitted "Manager, Northampton Saints" exactly and nothing longer, and the
+   title screen has 844px to play with, so it gets real headroom instead. */
+.title-screen .menu-btns { max-width: 540px; }
+.continue-tile { font-size: 1rem; padding: 12px 14px; }
+
+/* WHICH GAME (v1.5). The two doors onto a new career, plus the line that says
+   why there are two. A column rather than a row: on the 360px floor device two
+   side-by-side buttons would each be about 165px wide, and "Nouvelle carrière"
+   and "Nuova carriera maschile" do not fit in that - the French and Italian
+   labels are half again as long as the English, which is the usual way a
+   two-across menu breaks in a game that ships in five languages. Stacked, every
+   label has the full width whatever it says. */
+.new-career-pick { display: flex; flex-direction: column; gap: 6px; }
+
+/* WHICH GAME: one segmented control, not two doors (v1.5.2).
+ *
+ * The two games are the same size as each other and sit on one track, so
+ * neither reads as the other's footnote, and the single New Career button
+ * below starts whichever is lit. The lit half uses the selection colours the
+ * rest of the game uses for a chosen row (--row-selected-bg / -border) rather
+ * than the green of the button under it: two greens stacked would read as two
+ * buttons again, which is the shape this replaced.
+ *
+ * 44px inside the track, not 40: tapsize.mjs measures the real reach of every
+ * button and the track's own padding is not part of it (an ancestor does not
+ * count as the target). Sentence case rather than the condensed caps this
+ * screen uses elsewhere, because "GIOCO FEMMINILE" in caps does not fit half
+ * of a 300px column and wrapping a segment label makes the track two lines
+ * deep on one side only. */
+.game-pick {
+  display: flex; gap: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+}
+.game-pick button {
+  flex: 1 1 0; min-width: 0;
+  min-height: 44px;
+  padding: 8px 6px;
+  border-radius: 7px;
+  font-family: var(--sans);
+  font-size: 0.8125rem; font-weight: 700;
+  letter-spacing: .2px; line-height: 1.2;
+  color: var(--text-secondary);
+  transition: background .15s, color .15s;
+}
+.game-pick button:active { transform: translateY(1px); }
+.ct-line {
+  font-size: 1rem; letter-spacing: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ct-sub { font-size: 0.6875rem; opacity: .85; }
+@media (orientation: landscape) and (min-width: 640px) {
+
+/* ---- new career wizard: the steps ride the title row -------------------
+   "competition, club, manager and summary should be where the green line is.
+   more space for leagues." They were on their own row under the title, and that
+   row was the difference between three leagues visible and four. Landscape puts
+   them beside the title, in the empty half of the header.
+   The step meter goes: four crumbs with the current one lit already IS a
+   progress meter, and its 64px is better spent on the crumbs. */
+  .wizard-head { display: flex; align-items: center; gap: 14px; }
+  .wizard-head .crumbs { flex: 1 1 auto; margin-top: 0; min-width: 0; }
+  .wizard-head .step-meter { display: none; }
+  /* the lit crumb names the step, so the title line does not need to as well */
+  .wizard-head .step-name { display: none; }
+}
+
+/* ---- the club picker (feedback: "all teams should be here on two lines,
+   logos and shirts arent as polished like there were") -------------------
+   Three separate faults in one screen.
+
+   Width: the badges sat in a .wiz-split whose right-hand column was reserved for
+   a detail panel that does not exist until you have picked somebody. So four
+   tiles across the left half, half the screen blank, a ten-club league needing a
+   scroll, and "Northampton" ellipsised to "Northamp...". The split is now only
+   applied once there is a panel to put in it.
+
+   Polish: the tile was flat var(--surface-1) with a crest sitting on it. Every club
+   in the game HAS two colours and they were going unused here of all places -
+   the screen whose entire job is choosing between clubs. The tile now wears them
+   as a deep wash behind its own crest, which is what made the earlier crest work
+   look finished.
+
+   Fit: auto-fit at a width that gives ten clubs two rows and fourteen clubs
+   three, rather than a fixed column count that only suits one league size. */
+.club-tiles.wide { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+/* Club identity on the tile, without the tile looking broken.
+ *
+ *  User: "some clubs have a weird red around them". It was literal - the border
+ *  was 55% of the club's primary colour, so Saracens, Exeter, Gloucester and
+ *  Newcastle each sat inside a red ring, and a red ring around a control reads
+ *  as an error everywhere else in software. The 34% fill made it worse on the
+ *  dark theme: red over a near-black paper comes out a muddy maroon.
+ *
+ *  So the colour moves off the frame and onto a strip along the top: unmistakably
+ *  the club's, at full strength rather than washed out, and impossible to read as
+ *  a warning. The fill keeps a hint of the primary and the border stays neutral. */
+/*  Second pass. Dropping the coloured border was not enough: the user says "weird
+ *  red thing is back", and it was still there in the FILL. Even a 14% wash of a
+ *  red primary over a near-black paper comes out a dirty maroon, and five of the
+ *  ten top-flight clubs have red in their first two colours. There is no
+ *  percentage of red-over-black that looks deliberate.
+ *
+ *  So the fill is now plain paper, exactly like every other tile in the game, and
+ *  the club's colours live only in the strip along the top where they are shown at
+ *  full strength. A tile that is identical to its neighbours until you look at its
+ *  strip and its crest cannot read as an error state. */
+.club-tile {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-1);
+  border-color: var(--border);
+}
+.club-tile::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3.5px;
+  background: linear-gradient(90deg, var(--c1, var(--surface-3)) 0%, var(--c1, var(--surface-3)) 50%, var(--c2, var(--border-strong)) 50%, var(--c2, var(--border-strong)) 100%);
+}
+.club-tile b {
+  font-size: 0.75rem;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.club-tile.sel {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 2px var(--row-selected-border);
+}
+@media (orientation: landscape) and (min-width: 640px) {
+  /* short screen: the crest and the name, nothing else, two rows for a league */
+  .club-tiles { padding: 8px 14px; gap: 7px; }
+  .club-tile { padding: 7px 6px; gap: 3px; }
+  /* and once a club IS picked the tiles share the width with its card, so they
+     go narrower rather than dropping to four fat columns */
+  .wiz-split .club-tiles { grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); }
+  .wiz-split .club-tile b { font-size: 0.6875rem; }
+}
+.tile.sel,
+.club-tile.sel {
+  border-color: var(--pick);
+  box-shadow: inset 0 0 0 2px var(--pick);
+}
+.tile.sel {
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
+}
+/* selected is the same blue wash every other tile gets: no club colour in it, so
+   picking a red club cannot look like picking a broken one */
+.club-tile.sel {
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
+}
+/* and the words brighten with the box, so the change is legible even to someone
+   who cannot pick the ring out from the border */
+/* The bold line on a selected tile takes the ordinary ink, NOT the pick colour.
+   As var(--pick) it was accent-on-accent-wash, which measured 1.4:1 the moment the
+   accent changed. The ring and the wash are what say "selected"; the name just has
+   to be readable. Kept from the crimson pass because it is true in any palette. */
+.tile.sel b,
+.club-tile.sel b { color: var(--text-primary); }
+.tile.sel b,
+.club-tile.sel b { color: var(--text-primary); }
+/* a tick, because a colour change alone is a poor signal if you cannot see the
+   unselected tiles next to it - on a narrow screen the picked one may be alone */
+.tile.sel,
+.club-tile.sel { position: relative; }
+.tile.sel::after,
+.club-tile.sel::after {
+  content: '✓';
+  position: absolute; top: 3px; right: 5px;
+  font-size: 0.6875rem; font-weight: 800; line-height: 1;
+  color: var(--pick-ink);
+  background: var(--pick);
+  border-radius: 50%;
+  width: 15px; height: 15px;
+  display: flex; align-items: center; justify-content: center;
+}
+@media (orientation: landscape) and (min-width: 640px) {
+
+/* the badges get the slightly larger half once a club is picked, so the longest
+   name in the league still fits beside its own detail card */
+  .wiz-split { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  /* "Northampton" is the longest short name that has to fit a tile sharing the
+     screen with a detail card. Measured: it needed 71px in a 68px box, so the
+     tile gives back its side padding and a touch of tracking rather than the
+     label giving up three characters to an ellipsis. */
+  .wiz-split .club-tile { padding: 7px 3px; }
+  .wiz-split .club-tile b { letter-spacing: -0.2px; }
+}
+/* a picked league row was styled exactly like an unpicked one - it advances to
+   the next step immediately, so it was never noticed, but it belongs in the same
+   family as every other selectable box */
+.club-pick.sel {
+  border-color: var(--pick);
+  box-shadow: inset 0 0 0 2px var(--pick);
+  background: color-mix(in srgb, var(--pick) 18%, var(--surface-1));
+}
+/* muted ink on the picked tint fell under 4.5:1 in every palette (AA pass) */
+.club-pick.sel .muted { color: var(--text-primary); }
+
+/* THE SET PIECE TAB, IN THREE (1.8.2, screens/Tactics.tsx). The lineout and
+   scrum calls, the attacking moves and the kicking each get a view, picked on
+   the new-career screen's segmented track (.game-pick above) rather than a
+   second .tab-bar: two rows of underlined caps read as two levels of the same
+   thing, and every probe that walks the screen's tabs by position would have
+   counted the three views as tabs. Same card margins, so the track lines up
+   with the cards under it; same 820px cap as a card on a wide screen. */
+.game-pick.sp-sub { margin: 9px 12px 2px; }
+.game-pick.sp-sub button { font-size: 0.7812rem; }
+@media (orientation: portrait) {
+
+  /* THE CLUB PICKER, two across rather than three. Not a truncation fix - the
+     harness proved the clipped "Northampton" was the wizard breadcrumb, not the
+     tile - but 190px tiles are a better thumb target than 125px ones. */
+  .tile-grid.club-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+  /* THE WIZARD BREADCRUMB. Four equal chips across 412px is 92px each, which is
+     76px of usable width once the arrow notches are cut off both ends, and
+     "Northampton" arrived as "IORTHAMP...". Two fixes, in order: the step-name
+     chips came off so a trail is never more than three chips (see NewGame), and
+     the type is smaller and tighter. The extra flex on the live chip stays,
+     because it is usually the one holding a club name. */
+  .crumb { font-size: 0.6875rem; letter-spacing: .2px; padding-left: 4px; padding-right: 4px; }
+  .crumb.on { flex: 1.6; }
+}
+
+/* Save / Load / Delete, stacked 6px apart beside a slot's summary. 32px. */
+.slot-act { min-height: 44px; }
+
+/* ---- the new-career wizard's gate says what it wants ---------------------
+   Found by scripts/strangerpath.mjs. All three gated steps disabled Confirm
+   with no explanation anywhere on the screen, so a new player who scrolled past
+   the name field met a dead button on step 3 of 4. The line wraps to its own
+   full-width row above the buttons; .content already clears 150px for this bar,
+   which was 64px and is now about 86px. */
+.wiz-bar { flex-wrap: wrap; }
+.wiz-need {
+  flex: 1 0 100%;
+  font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+  text-align: center; margin-bottom: 2px;
+}
+
+/* ---- THE OPENING TITLES (1.8.0, src/ui/Intro.tsx) ----
+   The office from the title card, coming alive. Every timing below is the
+   component's comment in numbers. Transform and opacity throughout (the steam
+   wisps are blurred once, then only moved), so a budget phone keeps up. */
+.intro {
+  position: fixed; inset: 0; z-index: 400; overflow: hidden; cursor: pointer;
+  background: var(--studio-ink); color: var(--studio-paper);
+  display: flex; align-items: flex-start; justify-content: center;
+}
+.intro.leaving { animation: intro-out .7s cubic-bezier(.4, 0, .2, 1) forwards; }
+@keyframes intro-out { to { opacity: 0; } }
+
+/* the room: the art at cover, pushing in slowly for the whole five seconds */
+.intro-room { position: absolute; inset: 0; transform-origin: 30% 45%; animation: intro-push 5s linear both; }
+@keyframes intro-push { from { transform: scale(1); } to { transform: scale(1.07); } }
+.intro-art { position: absolute; inset: 0; background: var(--art) 6% center / cover no-repeat; } /* 6%: Intro.tsx POS_X */
+
+/* the lamp catching: the room is black, then flickers up to a dim glow */
+.intro-dark {
+  position: absolute; inset: 0; pointer-events: none;
+  /* DARKER, SO THE TITLE READS (owner, 28 Sep 2026: "the intro motion
+     background needs to fade to black a bit more so all text is clear"). It
+     settled at about a quarter black once the lamp caught; it now settles
+     near two-thirds, and a band behind the lockup deepens as the title lands
+     (::after, 2.2 s), so the room is seen first and the words win after. */
+  background: radial-gradient(120% 90% at 50% 30%, rgba(0, 0, 0, .55), rgba(0, 0, 0, .85));
+  animation: intro-flicker 1.2s steps(1, end) both;
+}
+.intro-dark::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(0, 0, 0, .35) 0%, rgba(0, 0, 0, .78) 14%, rgba(0, 0, 0, .82) 58%, rgba(0, 0, 0, .3) 78%, rgba(0, 0, 0, .15) 88%, rgba(0, 0, 0, .6) 100%);
+  opacity: 0;
+  animation: intro-band .8s ease-out 2.2s forwards;
+}
+@keyframes intro-band { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .intro-dark::after { animation: none; opacity: 1; }
+}
+@keyframes intro-flicker {
+  0% { opacity: 1; }
+  18% { opacity: .5; }
+  25% { opacity: .95; }
+  32% { opacity: .45; }
+  38% { opacity: .9; }
+  43% { opacity: .4; }
+  58% { opacity: .82; }
+  65% { opacity: .38; }
+  85% { opacity: .82; }
+  92%, 100% { opacity: .78; }
+}
+.intro-lamp {
+  position: absolute; width: calc(var(--k) * 700px); height: calc(var(--k) * 700px);
+  margin: calc(var(--k) * -250px) 0 0 calc(var(--k) * -300px); pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 214, 150, .42), rgba(255, 190, 110, .12) 55%, transparent 72%);
+  mix-blend-mode: screen; opacity: 0;
+  animation: intro-lamp 1.2s steps(1, end) both, intro-lamp-breathe 3.6s ease-in-out 1.2s infinite alternate;
+}
+@keyframes intro-lamp {
+  0% { opacity: 0; } 18% { opacity: .8; } 25% { opacity: .1; } 32% { opacity: .9; } 38% { opacity: .15; }
+  43% { opacity: 1; } 58% { opacity: .3; } 65% { opacity: 1; } 85% { opacity: .75; } 92%, 100% { opacity: 1; }
+}
+@keyframes intro-lamp-breathe { from { opacity: 1; } to { opacity: .86; } }
+
+/* the telly: the framed match on the wall, glowing and flickering */
+.intro-tv {
+  position: absolute; pointer-events: none; border-radius: 3px;
+  background: linear-gradient(160deg, rgba(120, 190, 255, .35), rgba(60, 220, 140, .25));
+  mix-blend-mode: screen; opacity: .5;
+  box-shadow: 0 0 calc(var(--k) * 90px) rgba(110, 180, 255, .35);
+  animation: intro-tv .9s steps(3, jump-none) infinite;
+}
+@keyframes intro-tv { 0% { opacity: .35; } 33% { opacity: .6; } 66% { opacity: .45; } 100% { opacity: .7; } }
+
+/* the steam: three soft wisps curling up off the coffee, staggered */
+.intro-steam { position: absolute; width: 0; height: 0; pointer-events: none; }
+.intro-steam i {
+  position: absolute; left: calc(var(--k) * -22px); bottom: 0;
+  width: calc(var(--k) * 44px); height: calc(var(--k) * 110px);
+  border-radius: 50%; opacity: 0;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .32), transparent);
+  filter: blur(calc(var(--k) * 8px));
+  animation: intro-steam 2.4s ease-out .8s infinite;
+}
+.intro-steam i:nth-child(2) { animation-delay: 1.5s; left: calc(var(--k) * -6px); }
+.intro-steam i:nth-child(3) { animation-delay: 2.2s; left: calc(var(--k) * -38px); }
+@keyframes intro-steam {
+  0% { opacity: 0; transform: translate(0, 0) scale(.5, .5); }
+  30% { opacity: .8; }
+  65% { transform: translate(calc(var(--k) * 14px), calc(var(--k) * -80px)) scale(.9, 1.1) rotate(10deg); }
+  100% { opacity: 0; transform: translate(calc(var(--k) * -10px), calc(var(--k) * -160px)) scale(1.2, 1.4) rotate(-8deg); }
+}
+
+/* the title, set as the key art sets it */
+.intro-lockup {
+  position: relative; z-index: 2; margin-top: max(13vh, 60px); margin-top: max(calc(13dvh / var(--zoom, 1)), 60px); text-align: center; padding: 0 16px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.intro-badge {
+  opacity: 0; animation: intro-badge .7s cubic-bezier(.2, 0, 0, 1) 2.6s forwards;
+}
+.intro-badge svg { display: block; filter: drop-shadow(0 6px 22px rgba(0, 0, 0, .6)); }
+@keyframes intro-badge { from { opacity: 0; transform: translateY(-18px) scale(.8); } to { opacity: 1; transform: none; } }
+.intro-word, .intro-sub span {
+  font-family: var(--cond); font-weight: 800; line-height: .9; letter-spacing: -.01em;
+  text-shadow: 0 4px 28px rgba(0, 0, 0, .7);
+}
+.intro-word {
+  margin-top: 14px; font-size: 4.75rem; color: var(--primary);
+  opacity: 0; animation: intro-slam .55s cubic-bezier(.2, 0, 0, 1) 2.6s forwards;
+}
+@keyframes intro-slam { from { opacity: 0; transform: scale(1.35); } to { opacity: 1; transform: none; } }
+.intro-sub { display: flex; flex-direction: column; align-items: center; }
+.intro-sub span { font-size: 4.375rem; color: var(--studio-paper); opacity: 0; animation: intro-rise .6s cubic-bezier(.2, 0, 0, 1) forwards; }
+.intro-sub span:first-child { animation-delay: 2.75s; }
+.intro-sub span:last-child { animation-delay: 2.88s; }
+@keyframes intro-rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.intro-rule { display: flex; align-items: center; gap: 6px; width: min(78vw, 360px); margin: 18px 0 12px; opacity: 0; animation: intro-fade .5s ease-out 3.15s forwards; }
+.intro-rule span { flex: 1; height: 2px; background: var(--primary); transform-origin: center; animation: intro-wipe .6s cubic-bezier(.2, 0, 0, 1) 3.15s both; }
+.intro-rule i { width: 2px; height: 10px; background: var(--primary); }
+@keyframes intro-wipe { from { transform: scaleX(0); } }
+.intro-tag {
+  font-family: var(--serif); font-weight: 700; font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--studio-paper); opacity: 0; animation: intro-fade .7s ease-out 3.35s forwards;
+}
+.intro-tag b { color: var(--primary); font-weight: 700; }
+@keyframes intro-fade { to { opacity: 1; } }
+
+.intro-sound {
+  position: absolute; z-index: 3; left: 16px; bottom: calc(var(--safe-area-inset-bottom) + 14px);
+  width: 44px; height: 44px; border-radius: 50%; font-size: 1.25rem; cursor: pointer;
+  background: rgba(0, 0, 0, .5); border: 1px solid rgba(255, 255, 255, .35); color: var(--studio-paper);
+}
+.intro-skip {
+  position: absolute; z-index: 3; bottom: calc(var(--safe-area-inset-bottom) + 26px); left: 0; right: 0;
+  text-align: center; font-size: 0.6875rem; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255, 255, 255, .55); opacity: 0; animation: intro-fade .5s ease-out 1.2s forwards; pointer-events: none;
+}
+@media (min-width: 700px) {
+  .intro-word { font-size: 6.875rem; }
+  .intro-sub span { font-size: 6.25rem; }
+  .intro-tag { font-size: 1.375rem; }
+}
+@media (max-width: 360px) {
+  .intro-word { font-size: 3.875rem; }
+  .intro-sub span { font-size: 3.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro, .intro * { animation-duration: .01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+}
+.store-card,
+.challenge-card {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}

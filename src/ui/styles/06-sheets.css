@@ -1,0 +1,361 @@
+/*  sheets.css: modals, sheets, the tutorial and prompts.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  */
+
+.modal-veil {
+  position: fixed; inset: 0; background: var(--scrim);
+  /* and the veil itself, because a bottom sheet is anchored to ITS bottom. If the
+     veil is a large-viewport tall, flex-end puts the sheet's foot below the fold
+     and its head above it, whatever the sheet's own max-height says. */
+  max-height: 100vh;
+  max-height: calc(100dvh / var(--zoom, 1));
+  z-index: 50;
+  display: flex; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal {
+  background: var(--canvas); width: 100%; max-width: 560px; overflow-y: auto;
+  /* vh THEN dvh, and the second line is the one that matters on a phone.
+     On mobile Chrome `vh` measures the LARGE viewport - the height the page
+     would have if the browser chrome were hidden - so a sheet anchored to the
+     bottom at 80vh is taller than what you can actually see, and its top ends
+     up underneath the URL bar where no amount of scrolling reaches it. Reported
+     from a live game: "when clicking make replacements during a game at half
+     time or 60 minute break you cant scroll up on the team and its half way
+     down the page." dvh is the viewport as it really is right now.
+     The vh line stays first as the fallback for anything without dvh. */
+  max-height: 80vh;
+  max-height: calc(80dvh / var(--zoom, 1));
+  overscroll-behavior-y: contain;
+  border-radius: 16px 16px 0 0;
+  padding-bottom: calc(var(--safe-area-inset-bottom) + 10px);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, .35);
+}
+
+/* first-run welcome dialog */
+/* overflow-y on the veil and margin:auto on the box: when the box is taller
+   than the screen anyway (text scale at 1.3 multiplies the prose while the
+   dvh ceiling below does not grow with it), flex centering alone pushes BOTH
+   ends off-screen and the close button becomes untappable - caught by
+   scripts/textscale.mjs. Auto margins keep the top edge reachable and the
+   veil scrolls the rest. */
+.tut-veil {
+  position: fixed; inset: 0; background: rgba(6, 35, 26, .7); z-index: 90;
+  display: flex; align-items: center; justify-content: center; overflow-y: auto;
+  /* clear of the phone's own bars (owner, 1.8.3: the box sat up under the
+     status bar and ran down behind the gesture bar on Android, where env()
+     reads 0 and only the token has the real inset) */
+  padding: calc(var(--safe-area-inset-top) + 16px) 16px calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 16px);
+}
+.tut-box {
+  background: var(--surface-2); color: var(--text-primary);
+  border: 2px solid var(--gold);
+  border-radius: 10px;
+  padding: 20px 18px;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+  font-size: 0.875rem; line-height: 1.6;
+  /* four paragraphs of prose in a 360px-tall landscape viewport: without a
+     ceiling and a scroller the last two paragraphs and the close button were
+     off the bottom of the screen with no way to reach them (blocker A2). Same
+     pattern .modal has used all along. */
+  /* the dvh line is divided by --zoom for the same reason as the app shell: at
+     text scale 1.3 a bare dvh ceiling renders 30% taller than the screen it is
+     meant to fit. The comment sits ABOVE the pair because cssaudit requires the
+     dvh companion on the line right after its vh fallback. */
+  max-height: calc(100vh - 32px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+  max-height: calc(100dvh / var(--zoom, 1) - 32px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: auto;
+  padding-bottom: 0;
+}
+.tut-box p { margin: 0 0 12px; }
+.tut-close {
+  /* the button stays in reach while the steps scroll under it */
+  position: sticky; bottom: 0;
+  margin: 14px -18px 0; padding: 12px 18px 16px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+}
+.tut-box h3 { font-family: var(--sans); font-size: 1.125rem; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+.tut-box .muted { color: var(--text-secondary); margin-top: 0; }
+
+/* ---- PRO MANAGER CARD (1.8.6, ui/ProPrompt.tsx) ----
+   The Store's hero row, lifted into a card: the same gold rule, the same fine
+   weave over the theme's own --canvas, so it follows a skin and tokenlint
+   stays green. Centred rather than a bottom sheet, so it reads as a pause
+   rather than a menu, and sized for 320px: two full-width buttons of equal
+   height, primary and secondary, neither hidden. */
+.pro-veil, .fb-veil {
+  position: fixed; inset: 0; background: var(--scrim); z-index: 85;
+  display: flex; align-items: center; justify-content: center; overflow-y: auto;
+  padding: calc(var(--safe-area-inset-top) + 16px) 16px calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 16px);
+}
+.pro-card, .fb-card {
+  position: relative;
+  width: 100%; max-width: 380px; margin: auto;
+  padding: 18px 18px 14px;
+  border-radius: 12px;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 72%, transparent);
+  color: var(--text-primary);
+  background:
+    repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--gold) 9%, transparent) 0 2px,
+      transparent 2px 6px),
+    linear-gradient(158deg,
+      color-mix(in srgb, var(--gold) 24%, var(--canvas)) 0%,
+      color-mix(in srgb, var(--gold) 7%, var(--canvas)) 46%,
+      var(--canvas) 88%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .5), inset 0 1px 0 color-mix(in srgb, var(--gold) 55%, transparent);
+  display: flex; flex-direction: column; gap: 10px;
+  max-height: calc(100vh - 32px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+  max-height: calc(100dvh / var(--zoom, 1) - 32px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+  overflow-y: auto;
+}
+.pro-card::before, .fb-card::before {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  border-radius: 12px 0 0 12px;
+  background: linear-gradient(to bottom, var(--gold-fill), color-mix(in srgb, var(--gold) 35%, transparent));
+}
+.pro-tag {
+  align-self: flex-start;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 1.2px;
+  color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; padding: 2px 7px;
+}
+.pro-head { display: flex; align-items: center; gap: 10px; }
+.pro-head h2 {
+  margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: 1.4px; color: var(--gold);
+  text-shadow: 0 1px 6px color-mix(in srgb, var(--gold) 30%, transparent);
+}
+.pro-ico { font-size: 1.5rem; color: var(--gold); display: inline-flex; }
+.pro-line { margin: 0; font-size: 0.875rem; line-height: 1.5; }
+.pro-list { margin: 0; padding-left: 20px; font-size: 0.875rem; line-height: 1.6; }
+.pro-list li::marker { color: var(--gold); }
+.pro-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.pro-price b { font-size: 1.375rem; letter-spacing: .3px; }
+.pro-off {
+  font-size: 0.75rem; font-weight: 700; letter-spacing: .8px;
+  color: var(--on-primary); background: var(--primary); border-radius: 4px; padding: 2px 6px;
+}
+.pro-usual { font-size: 0.8125rem; color: var(--text-secondary); }
+.pro-btn { width: 100%; min-height: 44px; font-size: 0.875rem; }
+.pro-msg { background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px; padding-left: 8px; }
+.pro-fine { margin: 0; font-size: 0.75rem; line-height: 1.45; color: var(--text-secondary); }
+.pro-light { gap: 8px; }
+
+/* ---- FEEDBACK REPORT CARD (ui/FeedbackPrompt.tsx) ----
+   The Pro card's frame, so it reads as the same kind of pause. The report is
+   shown whole, in a box that scrolls on its own so the three buttons stay on
+   screen; the buttons stack full width at one size, Not now included. */
+.fb-report {
+  margin: 0; padding: 8px 10px;
+  max-height: 34vh; max-height: calc(34dvh / var(--zoom, 1));
+  overflow: auto;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.7188rem; line-height: 1.45;
+  color: var(--text-primary);
+  background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 8px;
+  user-select: text; -webkit-user-select: text;
+}
+.fb-btns { display: flex; flex-direction: column; gap: 8px; }
+.fb-btn { width: 100%; min-height: 44px; font-size: 0.875rem; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.fb-discord { color: var(--gold); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- Match-day squad sheet (feedback 9-2) ------------------------------
+   Two columns, the XV and the bench, so a change is two taps and several
+   changes are one visit. Tuned for a 300px-tall landscape phone: the columns
+   scroll, the header and the Done button do not. */
+.squad-sheet { max-height: 94vh; max-height: calc(94dvh / var(--zoom, 1)); display: flex; flex-direction: column; }
+/* STICKY, and it is the whole brief that sticks: the title, the casualty and the
+   line telling you what to tap next.
+   A phone screenshot showed the sheet scrolled down to reach the bench with the
+   title off the top of the screen: the manager was being asked to replace
+   somebody the screen was no longer naming. "It wasn't clear who it is." So the
+   title was pinned - and only the title, which left the instruction to scroll
+   away with the list. Reported from a live game: "she could see the team xv but
+   couldnt see the text above it". The hint is the line that changes when a man is
+   armed, so losing it means tapping a shirt and getting no answer at all.
+   The block is 3 short lines at most, and it earns every one of them. */
+.sheet-top {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--canvas);
+  padding-bottom: 2px;
+  box-shadow: 0 6px 8px -6px rgba(0, 0, 0, .35);
+}
+.sheet-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  padding: 4px 0 3px;
+}
+.sheet-head h3 { font-size: 1rem; margin: 2px 0; }
+.sheet-hint { margin: 2px 0 4px; }
+/* the casualty, on his own line and impossible to miss */
+.sheet-casualty {
+  font-size: 0.8125rem; font-weight: 600;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 6px; padding: 6px 8px;
+  border-radius: 6px;
+  padding: 5px 8px;
+  margin: 2px 0 5px;
+}
+.sheet-cols {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px; flex: 1; min-height: 0;
+}
+/* PORTRAIT. This whole sheet was built for a 300px-tall landscape phone and the
+   probe that drives it runs at 844x390, so nobody had ever seen it on the screen
+   the game is actually played on: two columns of "Danilo Fis... 6.0 100%" inside
+   412px, in a .modal that has no side padding at all. The rows ran off both edges
+   and the bench ratings were cut in half (user screenshot).
+
+   One column, and give the modal the padding every other card on the screen has. */
+.sheet-col { min-width: 0; overflow-y: auto; overscroll-behavior-y: contain; }
+@media (orientation: portrait), (max-width: 639px) {
+
+/* PORTRAIT OVERRIDES SIT HERE, AFTER THE BASE RULES.
+   They were above them, and lost: `.sheet-col { overflow-y: auto }` came later in
+   the file, so at equal specificity the base rule won and the two nested
+   scrollers survived the fix. The probe measured 2 inner scrollers and said so.
+   CSS order is not a detail when the override is the bug fix. */
+  .sheet-cols { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .squad-sheet { padding-left: 12px; padding-right: 12px; }
+
+  /* ---- AND IT HAS TO SCROLL AS ONE PAGE ----
+     Reported from a real phone: "when she tried to make subs in game she
+     couldn't scroll". In portrait the two columns stack, and each .sheet-col
+     kept its own overflow-y: auto - so the 23 rows were split across two
+     independent scrollers, each a couple of hundred pixels tall, nested inside
+     a .squad-sheet whose flex column stopped the modal itself from scrolling.
+     The bench was there, and unreachable.
+     Landscape genuinely wants two side-by-side scrollers. Portrait wants one
+     document. So portrait hands the scrolling back to the sheet. */
+  .sheet-cols { display: block; flex: none; min-height: 0; overflow: visible; }
+  .sheet-col { overflow: visible; max-height: none; }
+  .squad-sheet {
+    display: block;
+    /* the portrait sheet is the one the bug was reported against */
+    max-height: 88vh;
+    max-height: calc(88dvh / var(--zoom, 1));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.sheet-row {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+  /* 29px, stacked 3px apart, 23 of them in one portrait column - on the
+     control that spends a substitution, under a running clock. The scrolling
+     half of this screen was fixed when a player reported it; the target half
+     was never measured. */
+  min-height: 44px;
+  padding: 6px 8px; margin-bottom: 4px;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--surface-1); color: inherit;
+  font-size: 0.75rem; text-align: left; cursor: pointer;
+}
+.sheet-row:disabled { opacity: .4; cursor: default; }
+.sheet-row.armed { border-color: var(--row-selected-border); box-shadow: inset 0 0 0 2px var(--row-selected-border); }
+.sheet-row.cover { border-color: var(--primary); }
+.sheet-log { margin-top: 4px; }
+
+/* ---- the crash screen (blocker A1) --------------------------------------
+   Deliberately theme-independent: whatever went wrong, this has to render, so
+   it leans on literal colours rather than the custom properties a broken tree
+   might not have applied. */
+.crash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px;
+  background: var(--canvas);
+  color: var(--text-primary);
+  font-family: var(--sans, system-ui, sans-serif);
+  overflow-y: auto;
+}
+.crash-box {
+  max-width: 460px; width: 100%;
+  max-height: calc(100vh - 36px);
+  max-height: calc(calc(100dvh / var(--zoom, 1)) - 36px);
+  overflow-y: auto;
+  background: var(--surface-1);
+  border: 2px solid var(--gold);
+  border-radius: 11px;
+  padding: 18px 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
+}
+.crash-box h2 { font-size: 1.125rem; font-weight: 700; color: var(--gold); margin: 0 0 8px; }
+.crash-box p { font-size: 0.8125rem; line-height: 1.55; margin: 0 0 10px; color: var(--text-secondary); }
+.crash-err {
+  font-family: ui-monospace, monospace; font-size: 0.75rem; line-height: 1.4;
+  white-space: pre-wrap; word-break: break-word;
+  background: rgba(0, 0, 0, .35); border-radius: 7px;
+  padding: 9px 10px; margin: 0 0 12px; color: var(--danger);
+  max-height: 28vh; max-height: calc(28dvh / var(--zoom, 1)); overflow-y: auto;
+}
+.crash-btns { display: flex; gap: 9px; flex-wrap: wrap; }
+.crash-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 11px; line-height: 1.45; }
+
+/* ---- THE SACK (v1.2.1) ----
+   The one overlay in the game you cannot tap away. Celebration dismisses on
+   a click of the veil because a party you have seen is a party you have
+   seen; this holds you until you have faced the cameras, which is the whole
+   of what the owner asked for. Deliberately NOT cursor:pointer on the
+   backdrop - nothing should suggest the veil is a way out. */
+.sack-veil {
+  position: fixed; inset: 0; z-index: 210;
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(192, 54, 44, .22), transparent 55%),
+    var(--scrim), rgba(6, 8, 12, .96);
+  animation: cel-in .35s ease both;
+  overflow-y: auto;
+}
+.sack-box {
+  width: 100%; max-width: 460px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 20px 18px;
+  color: var(--text-primary);
+  text-align: center;
+  animation: cel-pop .5s cubic-bezier(.2, 1.4, .4, 1) both .08s;
+}
+/* the red strap a news channel puts a resignation under */
+.sack-flash {
+  display: inline-block;
+  background: var(--danger-fill);
+  color: var(--on-danger);
+  font-family: var(--cond); font-weight: 900;
+  letter-spacing: 1.6px; text-transform: uppercase; font-size: 0.75rem;
+  padding: 4px 10px; border-radius: 3px;
+}
+.sack-head {
+  font-family: var(--serif); font-weight: 900; font-size: 1.5rem;
+  line-height: 1.15; margin: 0 0 10px;
+}
+.sack-body { font-size: 0.875rem; line-height: 1.5; color: var(--text-secondary); text-align: left; }
+.sack-quote {
+  font-family: var(--serif); font-size: 1.125rem; line-height: 1.35;
+  margin-top: 14px; color: var(--gold);
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* bottom sheets slide up with their veil, the Material "emphasized" curve */
+  [data-motion="on"] .modal { animation: m-sheet .24s cubic-bezier(.2, 0, 0, 1) backwards; }
+}
+@keyframes m-sheet { from { opacity: .4; transform: translateY(28px); } }
+.sack-ico { font-size: 3.25rem; line-height: 1; margin: 6px 0 10px; }
+.sheet-casualty {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* ================= The team sheet as telemetry (1.9.0) =================
+   The match menu's first panel: all 23 of one side, a 24px row each, on one
+   412x915 screen with the scoreboard still in view (MatchPanels.tsx,
+   Telemetry). The veil is clear on this panel because the score is part of
+   the reading: a bar of 40 means one thing at 12-10 and another at 30-3. */
+.modal-veil.mp-clear { background: transparent; backdrop-filter: none; }

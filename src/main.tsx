@@ -123,7 +123,7 @@ if ('serviceWorker' in navigator && !location.hostname.includes('localhost')) {
     navigator.serviceWorker.register('./sw.js').then((reg) => {
       // long sessions still hear about new deploys without a navigation
       setInterval(() => { reg.update().catch(() => {}) }, 15 * 60 * 1000)
-      // styled by .upd-pill (styles/12-feedback.css). The wrapper is a polite
+      // styled by .upd-pill (styles/09-news.css). The wrapper is a polite
       // status region so a screen reader hears that an update is ready; the
       // button goes in a beat after the region exists, because words written
       // into a region as it is created are not reliably read out.
