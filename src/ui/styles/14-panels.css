@@ -99,7 +99,9 @@
   color: var(--on-gold);
   background: var(--gold-fill);
   border-radius: 3px; padding: 2px 5px;
-  flex-shrink: 0;
+  /* may break onto two lines (1.9.3): with the menu icons back, French
+     "Entraînement et staff" beside "commencez ici" no longer fit on one */
+  flex-shrink: 1; white-space: normal; text-align: center; line-height: 1.15;
 }
 
 /* Marking last week's homework on the full-time card (C2). Sits between the

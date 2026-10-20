@@ -207,7 +207,9 @@ function backUpOnce(db: IDBDatabase, slot: string, state: GameState): Promise<vo
   return new Promise<void>(resolve => {
     try {
       const tx = db.transaction(STORE, 'readwrite')
-      tx.objectStore(STORE).put({ meta: { slot, savedAt: Date.now() }, state }, bakKey(slot))
+      // no meta: a spare must never read as a save to anything that lists
+      // the store by its records' labels (slotprobe reads them that way)
+      tx.objectStore(STORE).put({ spareOf: slot, savedAt: Date.now(), state }, bakKey(slot))
       tx.oncomplete = () => resolve()
       tx.onerror = () => { backedUp.delete(slot); resolve() }
       tx.onabort = () => { backedUp.delete(slot); resolve() }
@@ -236,7 +238,8 @@ function setAside(db: IDBDatabase, slot: string, rec: unknown): Promise<void> {
   return new Promise<void>(resolve => {
     try {
       const tx = db.transaction(STORE, 'readwrite')
-      tx.objectStore(STORE).put(rec, corruptKey(slot))
+      // wrapped, so its own label never reads as a live save either
+      tx.objectStore(STORE).put({ corruptOf: slot, at: Date.now(), rec }, corruptKey(slot))
       tx.oncomplete = () => resolve()
       tx.onerror = () => resolve()
       tx.onabort = () => resolve()
