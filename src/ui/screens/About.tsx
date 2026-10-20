@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import { CONTACT_MAILTO, DEV_CONTACT, PUBLISHER, PUBLISHER_ADDRESS } from '../../game/bugreport'
-import { COMMUNITY_URL, IDEAS_URL } from '../../game/community'
+import { COMMUNITY_URL, IDEAS_URL, INSTAGRAM_URL, TIKTOK_URL } from '../../game/community'
 import { Glyph } from '../glyphs'
 import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillHealth, tillOpen, type TillState } from '../../game/monetise'
 import { nativePlatform } from '../../game/shell'
@@ -149,6 +149,11 @@ export default function About() {
         <a className="btn ghost block ideas-discord" style={{ marginTop: 8 }} href={IDEAS_URL} target="_blank" rel="noopener noreferrer">
           <Glyph name="gossip" /> {t('menu.ideasDiscord')}
         </a>
+        {/* the game's own accounts (1.9.3): brand names, so not translated */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <a className="btn ghost" style={{ flex: 1 }} href={TIKTOK_URL} target="_blank" rel="noopener noreferrer">TikTok</a>
+          <a className="btn ghost" style={{ flex: 1 }} href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a>
+        </div>
       </div>
 
       <div className="card">

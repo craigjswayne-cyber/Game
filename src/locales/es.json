@@ -74,12 +74,6 @@
   "player_f": "Perfil de la jugadora"
  },
  "groups": {
-  "secSquad": "Plantilla",
-  "secMatches": "Partidos",
-  "secClub": "Club",
-  "secCareer": "Carrera",
-  "secHelp": "Ayuda",
-  "secGame": "Juego",
   "scouting": "Ojeo",
   "about": "Información y legal",
   "academy": "Cantera",
@@ -9480,7 +9474,7 @@
   "reactions": "Cómo se lo tomaron",
   "reactionsSub": "Cada uno lo oye a su manera",
   "reactionsSub_f": "cada una lo oye a su manera",
-  "summary": "{up} motivados · {flat} indiferentes · {down} tocados",
+  "summary": "{up} motivados · {flat} estables · {down} tocados",
   "summary_f": "{up} motivadas · {flat} indiferentes · {down} tocadas",
   "gotIt": "Entendido",
   "rMotivated": "Se le ve motivado",

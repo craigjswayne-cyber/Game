@@ -43,7 +43,11 @@ function swCacheName() {
   return {
     name: 'sw-cache-name',
     apply: 'build' as const,
-    configResolved(c: { root: string; build: { outDir: string } }) { outDir = `${c.root}/${c.build.outDir}` },
+    // an absolute --outDir is used as given: joining it to the root sent the
+    // stamp looking in a folder that did not exist (code audit, 19 Oct 2026)
+    configResolved(c: { root: string; build: { outDir: string } }) {
+      outDir = /^([a-zA-Z]:)?[\\/]/.test(c.build.outDir) ? c.build.outDir : `${c.root}/${c.build.outDir}`
+    },
     async closeBundle() {
       // no @types/node in this project (see the note above), so the module is
       // named through a variable and typed by hand
@@ -55,7 +59,10 @@ function swCacheName() {
       }
       const file = `${outDir}/sw.js`
       const src = await readFile(file, 'utf8').catch(() => null)
-      if (src == null) return
+      // FAIL THE BUILD, never skip quietly: a build without a stamped sw.js
+      // ships an old cache name and an empty precache, and players stay on
+      // the previous version offline
+      if (src == null) throw new Error(`sw-cache-name: no sw.js in ${outDir}`)
       const name = `rugby-manager-${buildTag().replace(/[^\w.]+/g, '-')}`
       // every script and stylesheet the game is built from, so a screen never
       // opened online still opens offline; not the other languages' dictionaries

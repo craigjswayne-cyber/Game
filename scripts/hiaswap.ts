@@ -14,6 +14,11 @@
  *     pass, keeps it on a fail
  *   - never more than fifteen on the pitch, at any tick
  *   - a second swap after play has run is refused
+ *
+ * 1.9.3 (owner): only a made-up player is ever led off for an HIA. The
+ * manager's side here is Leicester, all real men, so its players are marked
+ * made-up for the test; the opponents keep their real flag, and no real man
+ * on either side may ever be the one assessed.
  */
 import { newGame } from '../src/game/newgame'
 import { beginMatch, playSegment, swapInjuryCover, autoSelect, availablePlayers, rosterOf } from '../src/game/matchEngine'
@@ -27,7 +32,8 @@ const ok = (c: boolean, what: string) => { console.log(`  ${c ? 'ok  ' : 'FAIL'}
 const g = newGame('leicester', 'HIA', 4242)
 const me = g.userClubId
 const oppId = Object.keys(g.clubs).find(id => id !== me && g.clubs[id].leagueId === g.clubs[me].leagueId)!
-let tested = 0, passes = 0, fails2 = 0
+for (const id of g.clubs[me].players) { const p = g.players[id]; if (p) p.real = false }
+let tested = 0, passes = 0, fails2 = 0, realAssessed = 0
 for (let i = 0; i < 600 && tested < 12; i++) {
   for (const cid of [me, oppId]) {
     const c = g.clubs[cid]
@@ -41,6 +47,7 @@ for (let i = 0; i < 600 && tested < 12; i++) {
   while (ctx.tick < 20) {
     stepTick(g, ctx)
     maxOn = Math.max(maxOn, mine.onPitch.size)
+    for (const sd of [ctx.home, ctx.away]) if (sd.hia && g.players[sd.hia.pid]?.real) realAssessed++
     if (!swapped && mine.hia && mine.hia.atTick === ctx.tick && mine.onPitch.has(mine.hia.subId)) {
       const standIn = mine.hia.subId
       const pick = mine.lineup.slice(15).find(id => id != null && id !== standIn && !mine.onPitch.has(id) && !mine.ratings.has(id) && !g.players[id]?.injury)
@@ -75,6 +82,7 @@ for (let i = 0; i < 600 && tested < 12; i++) {
   ok(maxOn <= 15, `  never more than fifteen on (${maxOn})`)
   void playSegment
 }
+ok(realAssessed === 0, `no real player is ever led off for an HIA (${realAssessed} ticks with one)`)
 ok(tested >= 5, `HIA swaps tested: ${tested} (${passes} passed, ${fails2} failed assessments)`)
 console.log(fails ? `\nHIA SWAP FAIL (${fails})` : '\nHIA SWAP PASSED: the manager picks the stand-in, and the assessment resolves on his pick')
 process.exit(fails ? 1 : 0)

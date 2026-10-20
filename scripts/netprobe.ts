@@ -81,6 +81,9 @@ const ALLOWED: [string, RegExp][] = [
   ['src/game/community.ts', /https:\/\/discord\.gg\/TWmWQxu38z/g],
   // and the ideas invite (owner, round 6): ideas and suggestions open it
   ['src/game/community.ts', /https:\/\/discord\.gg\/472rzEQbZ/g],
+  // the game's TikTok and Instagram (1.9.3): links the player taps on About
+  ['src/game/community.ts', /https:\/\/www\.tiktok\.com\/@phaserugbymanager/g],
+  ['src/game/community.ts', /https:\/\/www\.instagram\.com\/phaserugbymanager\//g],
 ]
 
 const strip = (src: string, file: string) => {

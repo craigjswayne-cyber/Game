@@ -94,9 +94,22 @@ export function buildFindings(state: GameState, ctx: LiveCtx): FindingsRecord | 
   const units = unitBattles(ctx, mine, opp)
   const best = [...units].sort((a, b) => b.pct - a.pct)[0]
   const worst = [...units].sort((a, b) => a.pct - b.pct)[0]
-  const loud = (best.pct - 50) >= (50 - worst.pct) ? best : worst
-  if (loud.pct >= 56) items.push({ cat: 'setpiece', k: 'find.spWon', v: { unit_k: `oppreport.u_${loud.key}`, pct: loud.pct }, tone: 1 })
-  else if (loud.pct <= 44) items.push({ cat: 'setpiece', k: 'find.spLost', v: { unit_k: `oppreport.u_${loud.key}`, pct: loud.pct }, tone: -1 })
+  let loud = (best.pct - 50) >= (50 - worst.pct) ? best : worst
+  // ONE STORY (1.9.3). A scrum on top beside a lineout that threw our own
+  // ball away read "Our scrum was on top" over a "why" saying we lost three
+  // of our own and they lost none (onestoryprobe, s18502). A share can be
+  // high on our own feeds alone (nine scrums put in, none stolen, is 69%),
+  // so when the loud unit points one way and the own ball lost points the
+  // other, the finding names the set piece where the ball was lost instead,
+  // and reads even if that one did not go the same way.
+  const ourLost = st.scrumsLost[homeIdx] + st.lineoutsLost[homeIdx]
+  const theirLost = st.scrumsLost[1 - homeIdx] + st.lineoutsLost[1 - homeIdx]
+  const whereLost = (i: number) => units.find(u => u.key === (st.lineoutsLost[i] >= st.scrumsLost[i] ? 'lineout' : 'scrum')) ?? loud
+  let call: 'won' | 'lost' | 'even' = loud.pct >= 56 ? 'won' : loud.pct <= 44 ? 'lost' : 'even'
+  if (call === 'won' && ourLost > theirLost) { loud = whereLost(homeIdx); call = loud.pct < 50 ? 'lost' : 'even' }
+  else if (call === 'lost' && theirLost > ourLost) { loud = whereLost(1 - homeIdx); call = loud.pct > 50 ? 'won' : 'even' }
+  if (call === 'won') items.push({ cat: 'setpiece', k: 'find.spWon', v: { unit_k: `oppreport.u_${loud.key}`, pct: loud.pct }, tone: 1 })
+  else if (call === 'lost') items.push({ cat: 'setpiece', k: 'find.spLost', v: { unit_k: `oppreport.u_${loud.key}`, pct: loud.pct }, tone: -1 })
   else items.push({ cat: 'setpiece', k: 'find.spEven', tone: 0 })
   // what to remember for next time: the set piece (not the breakdown, which is
   // not a plan's target) with the widest margin, if it was wide at all

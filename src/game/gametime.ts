@@ -46,7 +46,7 @@ export const STATUSES: StatusDef[] = [
   { id: 'rotation', name: 'Rotation', desc: 'In and out of the side, and he knows it. Roughly every other week.', share: 0.45 },
   { id: 'squad', name: 'Squad Player', desc: 'Cover and a bench shirt. A quarter of the matches keeps him happy.', share: 0.25 },
   { id: 'prospect', name: 'Prospect', desc: 'Learning his trade. A handful of appearances a season is progress.', share: 0.12 },
-  { id: 'fringe', name: 'Not In Plans', desc: 'He has been told where he stands. He expects nothing and may want out.', share: 0.0 },
+  { id: 'fringe', name: 'Not in plans', desc: 'He has been told where he stands. He expects nothing and may want out.', share: 0.0 },
 ]
 
 export const STATUS_BY_ID: Record<string, StatusDef> =

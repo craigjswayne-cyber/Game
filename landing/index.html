@@ -11,7 +11,8 @@
 <!-- the hero picture is a CSS background and the font is named in CSS, so
      the browser found both late: asked for here, they arrive with the page -->
 <link rel="preload" as="image" href="./img/hero.webp" type="image/webp" fetchpriority="high">
-<link rel="preload" as="font" href="./space-grotesk-latin.woff2" type="font/woff2" crossorigin>
+<link rel="preload" as="font" href="./source-serif-4-latin-700-normal.woff2" type="font/woff2" crossorigin>
+<link rel="preload" as="font" href="./hanken-grotesk-latin-wght-normal.woff2" type="font/woff2" crossorigin>
 <link rel="icon" href="./img/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" sizes="180x180" href="./img/icon-180.png">
 
@@ -20,8 +21,20 @@
 <meta property="og:title" content="PHASE: Rugby Manager">
 <meta property="og:description" content="Take a club from the bottom to the top. A deep, offline rugby union manager.">
 <meta property="og:url" content="https://phaserugbymanager.com/">
-<meta property="og:image" content="https://phaserugbymanager.com/img/hero.webp">
+<meta property="og:image" content="https://phaserugbymanager.com/img/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="PHASE: Rugby Manager. A manager's desk with a Starting XV team sheet.">
+<meta property="og:locale" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PHASE: Rugby Manager">
+<meta name="twitter:description" content="Take a club from the bottom to the top. A deep, offline rugby union manager.">
+<meta name="twitter:image" content="https://phaserugbymanager.com/img/og.jpg">
+<meta name="twitter:image:alt" content="PHASE: Rugby Manager. A manager's desk with a Starting XV team sheet.">
+<!-- the share card is a 1200x630 JPEG (1.9.3) because WebP is not shown by
+     every app a link is pasted into; the TikTok and Instagram accounts are
+     the rel="me" links in the footer -->
 
 <!--
   The landing page, and NOT the game.
@@ -68,12 +81,21 @@
   two stay in step.
 -->
 <style>
+/* the game's two faces (1.9.3): Source Serif 4 Bold for the name, Hanken
+   Grotesk for everything else, latin only and beside the page */
 @font-face {
-  font-family: 'Space Grotesk';
+  font-family: 'Source Serif 4';
   font-style: normal;
-  font-weight: 300 700;
+  font-weight: 700;
   font-display: swap;
-  src: url('./space-grotesk-latin.woff2') format('woff2');
+  src: url('./source-serif-4-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./hanken-grotesk-latin-wght-normal.woff2') format('woff2');
 }
 
 :root {
@@ -89,7 +111,8 @@
   --primary-hover: #4ed88c;
   --on-primary: #070d0a;
   --gold: #e9be68;
-  --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -132,6 +155,7 @@ a { color: var(--primary); }
 
 .mark { width: 84px; height: 84px; margin: 0 auto 18px; }
 h1 {
+  font-family: var(--serif);
   font-size: clamp(34px, 8vw, 62px);
   font-weight: 700;
   line-height: 1.02;
@@ -225,12 +249,14 @@ footer a:hover { color: var(--primary); }
 
 <footer>
   <div class="wrap">
-    <span>PHASE: Rugby Manager &middot; version 1.9.2<br>
+    <span>PHASE: Rugby Manager &middot; version 1.9.3<br>
       A game by <a href="https://www.fwdsandbcks.com/">FWDS &amp; BCKS LTD</a>, 71-75 Shelton Street, London, WC2H 9JQ<br>
       An unofficial, independent game, not affiliated with, endorsed by or licensed by any player, club, league or governing body.</span>
     <nav>
       <a href="./privacy.html">Privacy</a>
       <a href="https://discord.gg/3KKfDVsMb">Discord</a>
+      <a href="https://www.tiktok.com/@phaserugbymanager" rel="me">TikTok</a>
+      <a href="https://www.instagram.com/phaserugbymanager/" rel="me">Instagram</a>
       <a href="https://www.fwdsandbcks.com/">FWDS &amp; BCKS</a>
       <a href="mailto:info@fwdsandbcks.com?subject=PHASE%3A%20Rugby%20Manager">Contact</a>
     </nav>

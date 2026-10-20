@@ -481,7 +481,7 @@ try {
     ok(/Lundi|Mardi|Mercredi|Jeudi|Vendredi|Samedi/i.test(head), 'the day is named in French')
     ok(/semaine/i.test(head), 'and so is the week line')  // the head is uppercased by CSS
     const dayText = await page.locator('.content, .day-head').first().innerText().catch(() => '')
-    const dayEng = ['The Review', 'The Morning Papers', 'On The Wire', 'Treatment Room', 'The market',
+    const dayEng = ['The Review', 'The Morning Papers', 'On the wire', 'Treatment Room', 'The market',
       'The boardroom', 'The training ground', 'Tomorrow', 'Continue']
       // whole words: the French Continue is "Continuer", which contains it
       .filter(w => new RegExp(`\\b${w}\\b`).test(dayText))
@@ -510,7 +510,7 @@ try {
     await page.waitForTimeout(400)
     const brief = await page.locator('main.content').innerText()
     const briefEng = ['The Stakes', 'The Whistle', 'The Finishers', 'Head to Head', "Assistant's Game Plan",
-      'The Opposite Number', 'Danger Man', 'The Book On Them', 'Partnerships', 'has the appointment']
+      'The Opposite Number', 'Danger Man', 'The book on them', 'Partnerships', 'has the appointment']
       .filter(w => brief.includes(w))
     ok(briefEng.length === 0, `no English left in the briefing${briefEng.length ? ': ' + briefEng.join(', ') : ''}`)
     ok(/Face à face|Mêlée|Touche/i.test(brief), 'and the head-to-head bars are French')

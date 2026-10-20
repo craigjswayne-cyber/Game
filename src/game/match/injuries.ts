@@ -100,7 +100,7 @@ const TRAINING_INJURIES: readonly (readonly [string, number, number, number])[] 
  * the longer women's return-to-play after a head knock both carry over from
  * the match table, which is where that research is written down.
  */
-export function pickTrainingInjury(rng: Rng, g: Gender): readonly [string, number] {
+export function pickTrainingInjury(rng: Rng, g: Gender, real?: boolean): readonly [string, number] {
   const byKey = new Map<string, number>(INJURIES.map((r, i) => [r[0] as string, INJURY_WEIGHT[g][i]]))
   let total = 0
   for (const [dk, , , w] of TRAINING_INJURIES) total += w * (byKey.get(dk) ?? 1)
@@ -112,11 +112,21 @@ export function pickTrainingInjury(rng: Rng, g: Gender): readonly [string, numbe
   }
   let [dk, lo, hi] = hit
   if (g === 'w' && dk === 'injury.concussion') { lo = CONCUSSION_W[0]; hi = CONCUSSION_W[1] }
-  return [dk, lo + Math.floor(rng() * (hi - lo + 1))] as const
+  return [headSafe(dk, real), lo + Math.floor(rng() * (hi - lo + 1))] as const
+}
+
+/**
+ * NO HEAD INJURIES FOR REAL PEOPLE (1.9.3, owner). A concussion is a story the
+ * game only tells about players it made up. A real player who draws one gets a
+ * hamstring for the same number of weeks instead, so the rng stream, the
+ * casualty count and the weeks lost are exactly what they were.
+ */
+export function headSafe(dk: string, real: boolean | undefined): string {
+  return real && dk === 'injury.concussion' ? 'injury.hamstring' : dk
 }
 
 /** One rng draw, exactly as the flat pick took, so a uniform row is unchanged. */
-export function pickInjury(rng: Rng, g: Gender): readonly [string, number, number] {
+export function pickInjury(rng: Rng, g: Gender, real?: boolean): readonly [string, number, number] {
   const w = INJURY_WEIGHT[g]
   let total = 0
   for (const x of w) total += x
@@ -125,8 +135,8 @@ export function pickInjury(rng: Rng, g: Gender): readonly [string, number, numbe
     r -= w[i]
     if (r < 0) {
       const [dk, lo, hi] = INJURIES[i]
-      if (g === 'w' && dk === 'injury.concussion') return [dk, CONCUSSION_W[0], CONCUSSION_W[1]]
-      return [dk, lo, hi]
+      if (g === 'w' && dk === 'injury.concussion') return [headSafe(dk, real), CONCUSSION_W[0], CONCUSSION_W[1]]
+      return [headSafe(dk, real), lo, hi]
     }
   }
   return INJURIES[INJURIES.length - 1]

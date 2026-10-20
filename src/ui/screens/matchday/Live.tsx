@@ -604,7 +604,9 @@ export function Live() {
         return (
           <div className={`ft-stamp ${kind}`} key={`stamp-${fixture.id}`}>
             <b>{t(won ? 'matchday.victory' : lost ? 'matchday.defeat' : 'matchday.drawn')}</b>
-            <span>{hs} - {as}{dec ? ` ${t(dec.by === 'tries' ? 'matchday.onTries' : 'matchday.onKicks')}` : ''}</span>
+            {/* the score is on the scoreboard already: only a tie-break says
+                anything the board does not (1.9.3) */}
+            {dec && <span>{hs} - {as} {t(dec.by === 'tries' ? 'matchday.onTries' : 'matchday.onKicks')}</span>}
           </div>
         )
       })()}

@@ -15,4 +15,5 @@ CAP_PLUGIN(PhaseBilling, "PhaseBilling",
            CAP_PLUGIN_METHOD(buy, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(owned, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(consume, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(review, CAPPluginReturnPromise);
 )

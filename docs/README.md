@@ -27,4 +27,4 @@ current build.
 - `release-readiness.md` and `launch/` - what has to be true before a build goes to the stores.
 
 ## Releases
-- `release-notes-1.9.0.md`, `release-notes-1.9.1.md`, `release-notes-1.9.2.md` - what changed, in players' words.
+- `release-notes-1.9.0.md`, `release-notes-1.9.1.md`, `release-notes-1.9.2.md`, `release-notes-1.9.3.md` - what changed, in players' words.

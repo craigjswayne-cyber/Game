@@ -292,7 +292,7 @@ export function weeklyTraining(state: GameState, rng: Rng) {
         // an ankle on a Tuesday. Every club's own, not just the manager's.
         const surf = 1 - (club.facilities?.pitch ?? 0) * 0.05
         if (rng() < 0.0026 * rustF * tiredF * ageF * surf * loadF) {
-          let [dk, weeks] = pickTrainingInjury(rng, genderOf(state))
+          let [dk, weeks] = pickTrainingInjury(rng, genderOf(state), p.real)
           if (isUser) {
             // the same care that shortens a match lay-off shortens this one
             const care = state.staff.physio * 0.12 + facLevel(state, 'recovery') * 0.03

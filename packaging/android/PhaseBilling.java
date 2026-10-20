@@ -60,6 +60,9 @@ import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryProductDetailsResult;
 import com.android.billingclient.api.QueryPurchasesParams;
+import com.google.android.play.core.review.ReviewInfo;
+import com.google.android.play.core.review.ReviewManager;
+import com.google.android.play.core.review.ReviewManagerFactory;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -603,6 +606,36 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
         JSObject out = new JSObject();
         out.put("ok", ok);
         out.put("code", code);
+        call.resolve(out);
+    }
+
+    // ---- the store review card (1.9.3) ----
+
+    /**
+     * ASK FOR A RATING, ONCE (owner: "Add a game review after 8 games"). Play's
+     * own in-app review card, over the game: the player rates without leaving.
+     * Play decides whether the card actually shows (it has a quota and never
+     * says), so the answer is only "asked" or "unavailable", never whether a
+     * review was written - Google does not tell an app that, by design. It
+     * lives on this plugin because it is the one native bridge the game
+     * already has; it has nothing to do with billing.
+     */
+    @PluginMethod
+    public void review(final PluginCall call) {
+        final Activity activity = getActivity();
+        if (activity == null) { reviewDone(call, "unavailable"); return; }
+        final ReviewManager manager = ReviewManagerFactory.create(getContext());
+        manager.requestReviewFlow().addOnCompleteListener(request -> {
+            if (!request.isSuccessful()) { reviewDone(call, "unavailable"); return; }
+            ReviewInfo info = request.getResult();
+            activity.runOnUiThread(() ->
+                manager.launchReviewFlow(activity, info).addOnCompleteListener(flow -> reviewDone(call, "asked")));
+        });
+    }
+
+    private void reviewDone(PluginCall call, String result) {
+        JSObject out = new JSObject();
+        out.put("result", result);
         call.resolve(out);
     }
 }

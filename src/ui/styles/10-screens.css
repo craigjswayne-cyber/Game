@@ -268,12 +268,16 @@
 .momo-fill { position: absolute; inset: 0; border-radius: 4px; opacity: .5; }
 /* full-time stamp: one big honest moment at the whistle, then it clears */
 .ft-stamp {
-  position: fixed; inset: 0; z-index: 60;
+  /* THE TOP OF THE SCREEN, AND SHORTER (1.9.3). It sat in the middle for
+     2.8s with a second copy of the score under it, over the scoreboard and
+     "Continue to Results" (UI audit, 19 Oct 2026). Now it lands in the top
+     third, clears in 2s, and leaves the button and the score alone. */
+  position: fixed; left: 0; right: 0; top: 0; height: 46vh; height: 46dvh; z-index: 60;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   pointer-events: none;
-  animation: ftstamp 2.8s ease-out forwards;
+  animation: ftstamp 2s ease-out forwards;
   /* a dark veil so the stamp never fights the pitch behind it */
-  background: radial-gradient(ellipse at center, rgba(6, 12, 24, .58) 0%, rgba(6, 12, 24, .34) 48%, rgba(6, 12, 24, 0) 78%);
+  background: radial-gradient(ellipse at center, rgba(6, 12, 24, .5) 0%, rgba(6, 12, 24, .26) 48%, rgba(6, 12, 24, 0) 74%);
 }
 .ft-stamp b {
   /* sized to the phone, on one line: "MATCH NUL" at a flat 64px broke onto

@@ -133,7 +133,7 @@ export interface SaveMeta {
 
 export async function saveGame(slot: string, state: GameState): Promise<void> {
   const db = await openDb()
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite')
     const meta: SaveMeta = {
       slot,
@@ -175,7 +175,92 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
     // autosave stopped for the session with no banner. Settling twice is a
     // no-op, so an error followed by its abort is still one answer.
     tx.onabort = () => { reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
+  }).then(() => backUpOnce(db, slot, state))
+}
+
+/**
+ * ---- A SECOND COPY, ONCE A SESSION (1.9.3) ----
+ *
+ * A career was one record: one bad write or one migration that throws, and a
+ * whole long career read as an empty slot (code audit, 19 Oct 2026). So the
+ * first save of each session also writes the career under slot::bak, and
+ * loadGame falls back to it when the main record cannot be read.
+ *
+ * Once a session, not every week: put() clones the whole career on the main
+ * thread (see saveGame), and doing it twice a week would double the frame the
+ * player feels. The first save of a session is of a career that has just
+ * loaded and healed cleanly, which is the copy worth keeping.
+ *
+ * Its own transaction, after the real save has landed, and every failure is
+ * swallowed: a phone near its storage limit must never lose the week's save
+ * because a spare copy did not fit. A failed copy is removed rather than left
+ * half-written, and the next session tries again.
+ */
+const bakKey = (slot: string) => `${slot}::bak`
+/** where a record that could not be read is set aside instead of forgotten */
+const corruptKey = (slot: string) => `${slot}::corrupt`
+const backedUp = new Set<string>()
+
+function backUpOnce(db: IDBDatabase, slot: string, state: GameState): Promise<void> {
+  if (backedUp.has(slot)) return Promise.resolve()
+  backedUp.add(slot)
+  return new Promise<void>(resolve => {
+    try {
+      const tx = db.transaction(STORE, 'readwrite')
+      // no meta: a spare must never read as a save to anything that lists
+      // the store by its records' labels (slotprobe reads them that way)
+      tx.objectStore(STORE).put({ spareOf: slot, savedAt: Date.now(), state }, bakKey(slot))
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => { backedUp.delete(slot); resolve() }
+      tx.onabort = () => { backedUp.delete(slot); resolve() }
+    } catch {
+      backedUp.delete(slot)
+      resolve()
+    }
   })
+}
+
+/** Read one record and turn it into a playable career, or null. */
+function heal(rec: unknown): GameState | null {
+  const st = (rec as { state?: GameState } | null | undefined)?.state
+  if (!st) return null
+  try {
+    const healed = migrate(st)
+    return isPlayable(healed) ? healed : null
+  } catch (e) {
+    console.error('save could not be read', e)
+    return null
+  }
+}
+
+/** Best effort: keep the unreadable record under slot::corrupt, never fail. */
+function setAside(db: IDBDatabase, slot: string, rec: unknown): Promise<void> {
+  return new Promise<void>(resolve => {
+    try {
+      const tx = db.transaction(STORE, 'readwrite')
+      // wrapped, so its own label never reads as a live save either
+      tx.objectStore(STORE).put({ corruptOf: slot, at: Date.now(), rec }, corruptKey(slot))
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => resolve()
+      tx.onabort = () => resolve()
+    } catch { resolve() }
+  })
+}
+
+const readKey = (db: IDBDatabase, key: string): Promise<unknown> => new Promise((resolve, reject) => {
+  const req = db.transaction(STORE, 'readonly').objectStore(STORE).get(key)
+  req.onsuccess = () => resolve(req.result)
+  req.onerror = () => reject(req.error)
+})
+
+/**
+ * ASK THE BROWSER NOT TO CLEAR THE SAVES (1.9.3). Without this, IndexedDB is
+ * "best effort" storage that a browser may evict under disk pressure. Asked
+ * once at boot; the answer changes nothing in the game, and a browser or
+ * WebView without the API simply keeps the old behaviour.
+ */
+export function askPersistentStorage(): void {
+  try { void navigator.storage?.persist?.().catch(() => undefined) } catch { /* not offered here */ }
 }
 
 // ---- the live match in progress ------------------------------------------
@@ -1375,25 +1460,15 @@ export function isPlayable(s: GameState | null | undefined): boolean {
 
 export async function loadGame(slot: string): Promise<GameState | null> {
   const db = await openDb()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readonly')
-    const req = tx.objectStore(STORE).get(slot)
-    req.onsuccess = () => {
-      if (!req.result) { resolve(null); return }
-      let healed: GameState | null = null
-      try {
-        healed = migrate(req.result.state as GameState)
-      } catch (e) {
-        // a file too damaged even to heal reads as an empty slot rather than
-        // taking the app down on the way to the title screen
-        console.error('save could not be read', e)
-        resolve(null)
-        return
-      }
-      resolve(isPlayable(healed) ? healed : null)
-    }
-    req.onerror = () => { reject(req.error) }
-  })
+  const rec = await readKey(db, slot)
+  if (!rec) return null
+  const healed = heal(rec)
+  if (healed) return healed
+  // a file too damaged even to heal no longer just reads as an empty slot
+  // (1.9.3): it is set aside, and the session's spare copy is tried instead
+  await setAside(db, slot, rec)
+  const bak = await readKey(db, bakKey(slot)).catch(() => null)
+  return bak ? heal(bak) : null
 }
 
 /** Where a slot's label lives beside it (1.9.1, listSaves). */
@@ -1460,6 +1535,9 @@ export async function deleteSave(slot: string): Promise<void> {
     const tx = db.transaction(STORE, 'readwrite')
     tx.objectStore(STORE).delete(slot)
     tx.objectStore(STORE).delete(metaKey(slot))
+    tx.objectStore(STORE).delete(bakKey(slot))
+    tx.objectStore(STORE).delete(corruptKey(slot))
+    backedUp.delete(slot)
     tx.oncomplete = () => { resolve() }
     tx.onerror = () => { reject(tx.error) }
     // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota

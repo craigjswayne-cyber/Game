@@ -71,12 +71,6 @@
   "wire": "ニュース"
  },
  "groups": {
-  "secSquad": "チーム",
-  "secMatches": "試合",
-  "secClub": "クラブ",
-  "secCareer": "キャリア",
-  "secHelp": "ヘルプ",
-  "secGame": "ゲーム",
   "scouting": "スカウト",
   "about": "アプリ情報・法的事項",
   "academy": "アカデミー",
@@ -9090,7 +9084,7 @@
  "tt": {
   "reactions": "選手たちの反応",
   "reactionsSub": "受け止め方は一人ひとり違う",
-  "summary": "{up}人が奮起 · {flat}人は変わらず · {down}人が動揺",
+  "summary": "{up}人が奮起 · {flat}人は平常心 · {down}人が動揺",
   "gotIt": "了解",
   "rMotivated": "やる気に満ちている",
   "rFocused": "集中している",

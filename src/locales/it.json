@@ -74,12 +74,6 @@
   "player_f": "Profilo giocatrice"
  },
  "groups": {
-  "secSquad": "Rosa",
-  "secMatches": "Partite",
-  "secClub": "Club",
-  "secCareer": "Carriera",
-  "secHelp": "Aiuto",
-  "secGame": "Gioco",
   "scouting": "Osservatori",
   "about": "Info e note legali",
   "academy": "Academy",
@@ -9535,7 +9529,7 @@
   "reactions": "Come l'hanno presa",
   "reactionsSub": "Ognuno lo sente a modo suo",
   "reactionsSub_f": "ognuna lo sente a modo suo",
-  "summary": "{up} carichi · {flat} indifferenti · {down} scossi",
+  "summary": "{up} carichi · {flat} stabili · {down} scossi",
   "summary_f": "{up} cariche · {flat} indifferenti · {down} scosse",
   "gotIt": "Ricevuto",
   "rMotivated": "Sembra motivato",
