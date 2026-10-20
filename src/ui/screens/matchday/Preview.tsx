@@ -436,7 +436,8 @@ export function Preview({ fxId }: { fxId: number }) {
           {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: '0.6875rem', fontWeight: 700 }}> {prob === 'GONE' ? t('common.goneTag') : availabilityTag(p, game.week)?.txt ?? prob}</span>}
           {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: '0.6875rem', fontWeight: 700 }}> {t('matchday.rusty')}</span>}
         </td>
-        <td style={{ width: 92 }}>{p && <Stars ca={effAt(p, pos)} />}</td>
+        {/* no rating here before kick-off (1.9.4, owner): the Team tab's
+            Starting XV is where ratings live; this sheet is names and fitness */}
         <td className="num" style={{ width: 44 }}>{p ? `${Math.round(p.cond)}%` : ''}</td>
       </tr>
     )

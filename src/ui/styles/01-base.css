@@ -58,6 +58,13 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
+/* Space Grotesk, back for one job (1.9.4, owner): the screen title in the
+   masthead, bold. The file that served the whole game until 1.9.2. */
+@font-face {
+  font-family: 'Space Grotesk'; font-style: normal; font-weight: 300 700; font-display: swap;
+  src: url('../fonts/space-grotesk-latin.woff2') format('woff2');
+}
+
 :root {
   /* Colour lives in src/ui/tokens.css - ONE file, both modes, and the
      tokenlint script fails the build on any hex outside it. This block
@@ -69,6 +76,8 @@
   /* the display face: the name is from 1.9.2's condensed face and kept so
      the ninety-odd rules that use it did not all have to change */
   --cond: var(--serif);
+  /* the masthead's screen title (1.9.4) */
+  --title: 'Space Grotesk', var(--sans);
   --club1: var(--primary);
   --club2: var(--surface-1);
   /* ink over an ARBITRARY club colour: white, as it always was. JS sets

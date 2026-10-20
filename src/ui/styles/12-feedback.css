@@ -384,9 +384,10 @@ h1, h2, h3, .masthead h1, .section-title, .fact-label, .fact-grid label, .ht-l,
 .fact-label, .dash-head { letter-spacing: 0.9px; }
 
 /* headlines: the display voice, heavy, tracked at zero for a condensed face */
-.masthead h1 { letter-spacing: 0.2px; font-weight: 700; }
+/* the screen title: bold Space Grotesk (1.9.4, owner) */
+.masthead h1 { font-family: var(--title); letter-spacing: 0; font-weight: 700; }
 .card h3, .news-item .subj { letter-spacing: 0; }
-.title-screen h1 { letter-spacing: 1px; font-weight: 800; }
+.title-screen h1 { letter-spacing: 1px; font-weight: 700; }
 
 /* the dressing room opens itself on match day, so it has to fit a short
    landscape screen without scrolling: four speeches two-up, not four-up */

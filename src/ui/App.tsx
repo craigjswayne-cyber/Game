@@ -253,7 +253,9 @@ function Sacked() {
         <div className="meta" style={{ marginTop: 14, marginBottom: 6 }}>{t('sack.ask')}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {SACK_LINES.map(k => (
-            <button key={k} className="btn ghost block" style={{ textAlign: 'left' }}
+            // full width with no margin of its own (1.9.4, owner): .btn.block's
+            // 12px margin on top of the 8px gap spread the three answers apart
+            <button key={k} className="btn ghost block" style={{ textAlign: 'left', margin: 0, width: '100%' }}
               onClick={() => { game.sacked = { ...sk, said: k }; useStore.getState().touch() }}>
               {t(`sack.${k}Btn`)}
             </button>
