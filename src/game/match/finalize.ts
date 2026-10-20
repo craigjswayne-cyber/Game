@@ -257,11 +257,13 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         // change the stream (fingerprint).
         p.lastWk = state.week
         const left = side.energy.get(pid)
-        // and his own toll on top (condition.ts), or the whole XV reads 48
+        // his own toll (condition.ts) moves him, but never under the 48
+        // floor: the owner's rule above stands. The full-eighty men all sit on
+        // it here; the week's recovery shift is what spreads them by Monday.
         const toll = matchToll(state, p, r)
         p.cond = left != null
-          ? clamp(Math.max(Math.min(p.cond, left + 8) - 6, 48) + toll, 36, 100)
-          : clamp(Math.max(p.cond - (14 + Math.floor(rng() * 10)), 48) + toll, 36, 100)
+          ? clamp(Math.max(Math.min(p.cond, left + 8) - 6 + toll, 48), 12, 100)
+          : clamp(Math.max(p.cond - (14 + Math.floor(rng() * 10)) + toll, 48), 20, 100)
         p.sharp = clamp(p.sharp + 12, 0, 100)
       } else if (!isNation) {
         if (p.debutPending) { debutants.push({ p, r, kind: p.debutPending }); p.debutPending = null }
