@@ -535,7 +535,8 @@
       else log('the plugin never became reachable at launch - consent waits for the first advert')
       return
     }
-    ready().then(function (okd) { if (okd && ids.rewarded) prime() })
+    // no spot fetched on a day the cap is already reached (adsprobe)
+    ready().then(function (okd) { if (okd && ids.rewarded && spotsToday() < REWARDED_CAP) prime() })
   }
   setTimeout(atLaunch, 1500)
   log('bridge ready - window.rmAds is live')
