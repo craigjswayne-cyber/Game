@@ -24,6 +24,15 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED for 1.9.5 (owner, 20 Oct 2026: "The % is too consistent for
+  // players"). Condition after a match and the week's recovery now carry a
+  // per-player shift (condition.ts) - a hash, not an rng draw - so the stream
+  // is untouched and only the 6th, the first to run on a squad that has
+  // played, re-deals through its starting tanks. The bench is checked for
+  // fitness at kick-off now too, which moves none of the six. bandcheck, four
+  // worlds, 9,336 league games, before (1.9.4) and after:
+  //   pts 49.5 -> 49.7   tries 6.48 -> 6.52   home 54.4% -> 53.1%
+  //   draws 2.0% -> 1.8%   blowouts 8.4% -> 8.7%   (every band holds)
   // REBASELINED for 1.9.3 (owner, 19 Oct 2026: no head-injury story for a
   // real player). Only made-up players are led off for an HIA now, so in a
   // side of real men the check that used to happen does not, and two of the
@@ -682,7 +691,7 @@ export const EXPECTED: string[] = [
   'leicester 24-26 exeter',
   'newcastle 34-21 harlequins',
   'gloucester 14-32 bristol',
-  'bath 22-30 sale',
+  'bath 22-20 sale',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw
