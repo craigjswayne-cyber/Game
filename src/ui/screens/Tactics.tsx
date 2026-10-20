@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { noteStep } from '../../game/firststeps'
 import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
 import { DEF_SLIDER_INFO, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, sliderReadout, zonePlan, type ZoneId, BRK_SLIDER_INFO, brkSliderReadout } from '../../game/tactics'
@@ -80,6 +81,8 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
   // every change on this board goes through here, so the feedback report's
   // count is one line: once per visit, so a dragged slider is one change
   const touch = () => { noteUse('tactics', true); storeTouch() }
+  // a visit here is the first season checklist's "set a game plan" (firststeps.ts)
+  useEffect(() => { if (noteStep(game, 'plan')) storeTouch() }, [game, storeTouch])
   const [ttab, setTtab] = useState<TTab>(TTABS.includes(initial as TTab) ? initial as TTab : 'tactics')
   const [spSub, setSpSubState] = useState<SpSub>(readSpSub)
   const [planSub, setPlanSubState] = useState<PlanSub>(readPlanSub)

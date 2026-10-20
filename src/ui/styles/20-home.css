@@ -171,3 +171,25 @@
 @media (prefers-reduced-motion: no-preference) {
   [data-motion="on"] .tele-bar i { transition: transform .45s cubic-bezier(.2, 0, 0, 1); animation: m-grow .6s cubic-bezier(.2, 0, 0, 1) backwards; }
 }
+
+/* ---- The first season's checklist (1.9.4, FirstSteps.tsx) ----
+   Five rows, each a full-width button: a tick box, the step, a chevron. A done
+   step stays in the list, ticked and quieter, so the count reads honestly. */
+.first-steps .fs-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.first-steps .fs-row {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: 44px; padding: 6px 2px;
+  background: none; border: 0; border-top: 1px solid var(--border);
+  color: var(--text-primary); font: inherit; text-align: left; cursor: pointer;
+}
+.first-steps li:first-child .fs-row { border-top: 0; }
+.first-steps .fs-tick {
+  flex: none; width: 20px; height: 20px; border-radius: 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 2px solid var(--border-strong); font-weight: 700; font-size: 0.8125rem;
+}
+.first-steps .fs-row.done .fs-tick { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.first-steps .fs-row.done .fs-label { color: var(--text-secondary); text-decoration: line-through; }
+.first-steps .fs-label { flex: 1; }
+.first-steps .fs-go { flex: none; color: var(--text-muted); font-size: 1.125rem; }
+.first-steps .fs-foot { display: flex; justify-content: flex-end; margin-top: 6px; }

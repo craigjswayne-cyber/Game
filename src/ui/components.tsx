@@ -223,6 +223,19 @@ export function PosBadge({ pos }: { pos: string }) {
  *  left, green for rising and red for falling. Steady or no trend (under four
  *  marks) draws nothing, but the slot is still reserved whenever a trend is
  *  asked for, so every pill in a column starts at the same x. */
+/** Condition as a colour: fit, carrying it, or tired (85 and 68, the Squad
+ *  fitness ring's own bands, so a man reads the same colour on every list).
+ *  The figure beside it always carries the number; the colour only agrees. */
+export function condColour(v: number): string {
+  return v >= 85 ? 'var(--text-positive)' : v >= 68 ? 'var(--gold)' : 'var(--danger)'
+}
+
+/** A condition figure in its colour (owner, 1.9.4: the Selection list's %
+ *  was plain text, so a tired starter did not stand out among fifteen). */
+export function CondPct({ v }: { v: number }) {
+  return <span className="cond-pct" style={{ color: condColour(v) }}>{Math.round(v)}%</span>
+}
+
 export function FormPill({ v, trend }: { v: number; trend?: 'up' | 'flat' | 'down' | null }) {
   const bg = v >= 7.5 ? 'var(--text-positive)' : v >= 6 ? 'var(--primary-pressed)' : v >= 4.5 ? 'var(--border-strong)' : 'var(--text-negative)'
   // each band's own ink, so the figure clears 4.5:1 on its fill in every

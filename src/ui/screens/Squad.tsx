@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
-import { AvailTag, LoanKey, LoanName, Mark, Nat, PosBadge, StickyControls } from '../components'
+import { AvailTag, condColour, LoanKey, LoanName, Mark, Nat, PosBadge, StickyControls } from '../components'
 import { STATUSES, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
@@ -34,7 +34,7 @@ type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps
  */
 function FitRing({ v }: { v: number }) {
   const pct = Math.max(0, Math.min(100, v))
-  const c = v >= 85 ? 'var(--text-positive)' : v >= 68 ? 'var(--gold)' : 'var(--danger)'
+  const c = condColour(v)
   const state = t(v >= 85 ? 'squad.fitFully' : v >= 68 ? 'squad.fitKnock' : 'squad.fitUnfit')
   return (
     <span role="img" aria-label={t('squad.fitLabel', { state, pct: Math.round(v) })}

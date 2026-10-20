@@ -1500,6 +1500,9 @@ export interface GameState {
    *  club's competitions and his rotation intent. Read by the assistant's
    *  team sheet and the board. Unset is exactly the old game. */
   seasonPlan?: import('../seasonplan').SeasonPlan
+  /** the first season's checklist (firststeps.ts); absent on a career begun
+   *  before it existed, which then never shows it */
+  firstSteps?: import('../firststeps').FirstSteps
   /** ---- v1.1.0: what the owner paid for (grants.ts, monetise.ts) ----
    *  Nothing below is ever set by the game itself - scripts/grantprobe.ts
    *  holds that a fresh career carries none of it. */

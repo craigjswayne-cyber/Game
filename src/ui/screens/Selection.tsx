@@ -7,7 +7,7 @@ import { userFixtureThisWeek } from '../../game/season'
 import { formTrend } from '../../game/formtraits'
 import SeasonPlanCard from '../SeasonPlanCard'
 import { effAt } from '../../game/attributes'
-import { AvailTag, FormPill, LoanKey, LoanName, PosBadge, SectionTitle, Stars } from '../components'
+import { AvailTag, CondPct, FormPill, LoanKey, LoanName, PosBadge, SectionTitle, Stars } from '../components'
 import { benchSeats } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { IcoAttack, IcoChevron, IcoHandshake, IcoPack, IcoShield } from '../icons'
@@ -133,7 +133,7 @@ export default function SelectionPane() {
           {p && <> <AvailTag p={p} g={game} /></>}</td>
         <td className="xv-ab">{p && <Stars ca={effAt(p, pos)} />}</td>
         <td>{p && <FormPill v={p.form} trend={formTrend(p)} />}</td>
-        <td className="num">{p ? `${Math.round(p.cond)}%` : ''}</td>
+        <td className="num">{p ? <CondPct v={p.cond} /> : ''}</td>
       </tr>
     )
   }
@@ -225,7 +225,7 @@ export default function SelectionPane() {
                   <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('selection.selected') : ''}</td>
                   <td><Stars ca={effAt(p, pos)} /></td>
                   <td><FormPill v={p.form} trend={formTrend(p)} /></td>
-                  <td className="num">{Math.round(p.cond)}%</td>
+                  <td className="num"><CondPct v={p.cond} /></td>
                 </tr>
               ))}
             </tbody>

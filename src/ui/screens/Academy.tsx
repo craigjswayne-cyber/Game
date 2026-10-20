@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { noteStep } from '../../game/firststeps'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { fixtureDate } from '../../game/model'
@@ -21,6 +22,9 @@ import { acc } from '../accent'
 export default function Academy() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
+  const touch = useStore(s => s.touch)
+  // a visit here is the first season checklist's "check the academy" (firststeps.ts)
+  useEffect(() => { if (noteStep(game, 'academy')) touch() }, [game, touch])
   const [tab, setTab] = useState<'squad' | 'table' | 'fixtures'>('squad')
 
   const club = game.clubs[game.userClubId]
