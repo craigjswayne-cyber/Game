@@ -303,7 +303,7 @@ export default function Squad() {
                         arrow up/down on the right of the money") - the money is
                         what the column is for, the trend is its footnote */}
                     {/* the arrow has a slot on every row, empty or not, so the
-                        figures line up down the column (owner, 1.9.5: "align
+                        figures line up down the column (owner, 1.9.4: "align
                         the columns correctly" - one arrow pushed one value out) */}
                     {(p.ca0 != null && p.ca !== p.ca0) ? (
                       <span className="val-trend" style={{ color: p.ca > p.ca0 ? 'var(--text-positive)' : 'var(--danger)' }}

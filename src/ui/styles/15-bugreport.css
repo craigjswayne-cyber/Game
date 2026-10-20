@@ -244,7 +244,7 @@
 .xv-fixed .dtable col.c-num { width: 30px; }
 .xv-fixed .dtable col.c-pos { width: 38px; }
 .xv-fixed .dtable col.c-stars { width: 48px; }
-/* the ability sits up against the form pill (owner, 1.9.5: "move the player
+/* the ability sits up against the form pill (owner, 1.9.4: "move the player
    rating over so its close to the player game rating"): right-aligned in a
    column no wider than the chip, the pixels it gave up go to the name */
 .xv-fixed .dtable td.xv-ab { text-align: right; padding-right: 2px; }
@@ -703,10 +703,10 @@
 
 
 /* General Info: the value's trend arrow keeps a slot on every row, and the
-   header steps in by the same so VALUE sits over the figures (1.9.5) */
+   header steps in by the same so VALUE sits over the figures (1.9.4) */
 .sq-general .val-trend { display: inline-block; width: 12px; margin-left: 2px; text-align: left; font-weight: 400; }
 .sq-general th:last-child .th-btn { padding-right: 14px; }
-/* Stats and Contracts headings fit their columns (owner, 1.9.5: "check
+/* Stats and Contracts headings fit their columns (owner, 1.9.4: "check
    columns"): MOTM ran past the edge and WAGE /WK was clipped to WAGE /WI.
    The wage heading may take two lines where a language's is longer. */
 .sq-contracts th:nth-child(4) { white-space: normal; line-height: 1.15; vertical-align: bottom; }

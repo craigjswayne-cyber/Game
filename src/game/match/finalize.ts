@@ -294,7 +294,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         if (tr) p.morale = clamp(p.morale + talkMorale(tr, won), 1, 10)
         // post-match condition reflects how much petrol was actually burned
         const left = side.energy.get(pid)
-        // EVERY MAN HIS OWN NUMBER (1.9.5): the full eighty empties every
+        // EVERY MAN HIS OWN NUMBER (1.9.4): the full eighty empties every
         // tank, so the floor used to catch the whole XV on one figure. The
         // floor stays where it was as the middle of the spread; his engine,
         // his day and his knocks (condition.ts) decide where he sits in it.
@@ -543,7 +543,7 @@ function koRecords(state: GameState, ctx: LiveCtx) {
   const stage_k = `news.koStage_${fx.stage}`
   const comp = state.comps[fx.compId]?.name ?? ''
   // A MANAGER OUT OF WORK DOES NOT READ ABOUT THE CLUB THAT SACKED HIM
-  // (exileprobe, 1.9.5): userClubId still names that club until he takes
+  // (exileprobe, 1.9.4): userClubId still names that club until he takes
   // another job. The record itself is kept; only his inbox is spared the story.
   const exiled = (teamId: string) => state.unemployed && teamId === state.userClubId
   for (const side of [ctx.home, ctx.away]) {

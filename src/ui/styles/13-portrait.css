@@ -139,7 +139,7 @@
      chip's last side padding keep a twelve-letter surname whole (portraitqa) */
   .form-chip .fc-name { font-size: 0.6875rem; max-width: 72px; box-sizing: border-box; padding: 1px 2px; letter-spacing: -.35px; }
   .form-chip .fc-role { font-size: 0.6875rem; letter-spacing: .5px; }
-  /* the whole pitch, try line to try line (owner, 1.9.5: "bottom of the
+  /* the whole pitch, try line to try line (owner, 1.9.4: "bottom of the
      pitch is missing"): cover scaled the 420x663 image to the box's width and
      cropped the far end off a box this shape, so it is fitted to the box */
   .form-pitch { height: 460px; background-size: 100% 100%; }

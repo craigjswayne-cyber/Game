@@ -1,6 +1,6 @@
 // Condition: what a match takes out of a man and what a week puts back.
 //
-// THE SQUAD WAS ONE NUMBER (owner, 1.9.5: "The % is too consistent for
+// THE SQUAD WAS ONE NUMBER (owner, 1.9.4: "The % is too consistent for
 // players, it should be more random and affected by game performance,
 // training, coaches"). Anybody who played the full eighty finished on an empty
 // tank, the tank set the post-match condition, and the floor caught all of

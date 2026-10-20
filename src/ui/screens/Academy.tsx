@@ -46,7 +46,7 @@ export default function Academy() {
     <>
       <div className="card" style={{ ...acc('var(--gold)') }}>
         {/* no inline margin: it beat the band rule's edge-to-edge margins and
-            left the title an inset block (owner, 1.9.5: "this is messy") */}
+            left the title an inset block (owner, 1.9.4: "this is messy") */}
         <h3>{t('report.acTitle', { club: club.short })}</h3>
         <div className="meta">
           {t('report.acRegistered', { n: squad.length, max: ACADEMY_SIZE })}

@@ -522,7 +522,7 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   }
   if (club && teamId === state.userClubId) {
     const lu = club.tactic.lineup
-    // THE BENCH TOO (1.9.5). Only the fifteen were checked, so a replacement
+    // THE BENCH TOO (1.9.4). Only the fifteen were checked, so a replacement
     // who had since been called up, injured or banned stayed on the sheet and
     // could be sent on (engine10k caught a man on Test duty coming on for the
     // last five minutes). A bench shirt may be empty; a named one must be fit.
