@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { noteStep } from '../../game/firststeps'
+import { DataTable } from '../DataTable'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
-import { fixtureDate } from '../../game/model'
+import { fixtureDate, type Player } from '../../game/model'
 import { CrestT, Mark, PosBadge, SectionTitle, Stars } from '../components'
 import { acadLeagueName, acadStandings, academySquad, academyStrength, academyXV, ensureAcademyLeague, ACADEMY_SIZE } from '../../game/academy'
 import { ord, t } from '../../game/i18n'
@@ -73,24 +74,21 @@ export default function Academy() {
       {tab === 'squad' && (
         <>
           <SectionTitle sub={t('report.acInXV', { n: squad.filter(p => xv.has(p.id)).length })}>{t('report.acScholars')}</SectionTitle>
-          <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>{t('squad.colPos')}</th><th>{t('squad.colName')}</th><th className="num">{t('report.acColAge')}</th><th>{t('transfers.colAbility')}</th>
-              <th className="num">{t('report.acColApps')}</th><th className="num">{t('report.acColForm')}</th><th /></tr></thead>
-            <tbody>
-              {[...squad].sort((a, b) => b.ca + scoutPa(game, b) / 2 - (a.ca + scoutPa(game, a) / 2)).map(p => (
-                <tr key={p.id} {...rowNavTr(() => go('player', p.id))} style={{ cursor: 'pointer' }}>
-                  <td><PosBadge pos={p.pos} /></td>
-                  <td className="name">{p.name}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
-                  <td className="num muted">{p.age}</td>
-                  <td><Stars ca={p.ca} /></td>
-                  <td className="num">{(p.stats.acadApps ?? 0) + p.stats.apps}</td>
-                  <td className="num">{p.form.toFixed(1)}</td>
-                  <td className="num muted">{xv.has(p.id) ? t('report.acXV') : ''}</td>
-                </tr>
-              ))}
-              {!squad.length && <tr><td colSpan={7} className="muted">{t('report.acEmpty')}</td></tr>}
-            </tbody>
-          </table></div>
+          {squad.length ? (
+            <div className="tblwrap">
+              <DataTable<Player> rows={[...squad].sort((a, b) => b.ca + scoutPa(game, b) / 2 - (a.ca + scoutPa(game, a) / 2))}
+                rowKey={p => p.id} rowProps={p => ({ ...rowNavTr(() => go('player', p.id)), style: { cursor: 'pointer' } })}
+                cols={[
+                  { id: 'pos', head: t('squad.colPos'), cell: p => <PosBadge pos={p.pos} /> },
+                  { id: 'name', head: t('squad.colName'), className: 'name', cell: p => <>{p.name}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</> },
+                  { id: 'age', head: t('report.acColAge'), align: 'right', td: () => ({ className: 'muted' }), cell: p => p.age },
+                  { id: 'ability', head: t('transfers.colAbility'), cell: p => <Stars ca={p.ca} /> },
+                  { id: 'apps', head: t('report.acColApps'), align: 'right', cell: p => (p.stats.acadApps ?? 0) + p.stats.apps },
+                  { id: 'form', head: t('report.acColForm'), align: 'right', cell: p => p.form.toFixed(1) },
+                  { id: 'xv', align: 'right', td: () => ({ className: 'muted' }), cell: p => (xv.has(p.id) ? t('report.acXV') : '') },
+                ]} />
+            </div>
+          ) : <div className="muted" style={{ padding: '8px 16px' }}>{t('report.acEmpty')}</div>}
         </>
       )}
 

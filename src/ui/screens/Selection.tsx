@@ -7,6 +7,7 @@ import { userFixtureThisWeek } from '../../game/season'
 import { formTrend } from '../../game/formtraits'
 import SeasonPlanCard from '../SeasonPlanCard'
 import { effAt } from '../../game/attributes'
+import { DataTable, type Col } from '../DataTable'
 import { AvailTag, CondPct, FormPill, LoanKey, LoanName, PosBadge, SectionTitle, Stars } from '../components'
 import { benchSeats } from '../../game/bench'
 import { t } from '../../game/i18n'
@@ -117,26 +118,33 @@ export default function SelectionPane() {
     return seat.pos[0]
   }
 
-  const renderSlot = (slot: number) => {
-    const shirt = slot < 15 ? XV_SLOTS[slot].shirt : seats[slot - 15].shirt
-    const pos = slotPos(slot)
-    const pid = tac.lineup[slot]
-    const p = pid != null ? game.players[pid] : null
+  // the team sheet's six columns, one definition for the XV and the bench
+  // (SIX PINNED COLUMNS, v1.2.8: the c-* widths in the stylesheet line the
+  // forwards' and backs' tables up as one grid)
+  const slotPlayer = (slot: number) => { const pid = tac.lineup[slot]; return pid != null ? game.players[pid] : null }
+  const SLOT_COLS: Col<number>[] = [
+    { id: 'num', align: 'right', td: () => ({ style: { fontFamily: 'monospace', fontWeight: 700 } }), cell: slot => (slot < 15 ? XV_SLOTS[slot].shirt : seats[slot - 15].shirt) },
+    { id: 'pos', cell: slot => <PosBadge pos={slotPos(slot)} /> },
+    {
+      id: 'name', className: 'name',
+      cell: slot => { const p = slotPlayer(slot); return (<>
+        {p ? <LoanName p={p} /> : <span className="muted">{t('selection.tapToSelect')}</span>}
+        {p && club.captain === p.id && <b style={{ color: 'var(--gold)' }}> (C)</b>}
+        {p && <> <AvailTag p={p} g={game} /></>}
+      </>) },
+    },
+    { id: 'stars', className: 'xv-ab', cell: slot => { const p = slotPlayer(slot); return p && <Stars ca={effAt(p, slotPos(slot))} /> } },
+    { id: 'form', cell: slot => { const p = slotPlayer(slot); return p && <FormPill v={p.form} trend={formTrend(p)} /> } },
+    { id: 'cond', align: 'right', cell: slot => { const p = slotPlayer(slot); return p ? <CondPct v={p.cond} /> : '' } },
+  ]
+  const slotRow = (slot: number) => {
+    const p = slotPlayer(slot)
     const problem = p && (p.injury || p.bans > 0 || p.natSquad || p.clubId !== club.id)
-    return (
-      <tr key={slot} {...rowNavTr(() => tapSlot(slot))}
-        className={`${problem ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
-        <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
-        <td><PosBadge pos={pos} /></td>
-        <td className="name">{p ? <LoanName p={p} /> : <span className="muted">{t('selection.tapToSelect')}</span>}
-          {p && club.captain === p.id && <b style={{ color: 'var(--gold)' }}> (C)</b>}
-          {p && <> <AvailTag p={p} g={game} /></>}</td>
-        <td className="xv-ab">{p && <Stars ca={effAt(p, pos)} />}</td>
-        <td>{p && <FormPill v={p.form} trend={formTrend(p)} />}</td>
-        <td className="num">{p ? <CondPct v={p.cond} /> : ''}</td>
-      </tr>
-    )
+    return { ...rowNavTr(() => tapSlot(slot)), className: `${problem ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}` || undefined }
   }
+  const slotTable = (slots: number[]) => (
+    <DataTable<number> noHead cols={SLOT_COLS} rows={slots} rowKey={s => s} rowProps={slotRow} />
+  )
 
   const holderOf = (role: NonNullable<typeof roleSheet>): number | null =>
     role === 'captain' ? club.captain ?? null : role === 'vice' ? club.vice ?? null : club.leaders?.[role] ?? null
@@ -278,8 +286,8 @@ export default function SelectionPane() {
           table-layout: fixed with the same colgroup in both makes them one
           grid; the name column takes what is left. */}
       <div className="xv-split xv-fixed">
-        <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
-        <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
+        {slotTable(XV_SLOTS.slice(0, 8).map((_, i) => i))}
+        {slotTable(XV_SLOTS.slice(8).map((_, i) => 8 + i))}
       </div>
       {/* an unclaimed sheet is the assistant's, and the manager deserves to be
           told so BEFORE match day - the moment he touches a shirt this line
@@ -298,8 +306,8 @@ export default function SelectionPane() {
       <div>
       <SectionTitle>{t('selection.replacements')}</SectionTitle>
       <div className="xv-split xv-fixed">
-        <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
-        <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
+        {slotTable(seats.slice(0, 4).map((_, i) => 15 + i))}
+        {slotTable(seats.slice(4).map((_, i) => 19 + i))}
       </div>
       <LoanKey show={tac.lineup.some(id => id != null && !!game.players[id]?.loanFrom)} />
       </div>

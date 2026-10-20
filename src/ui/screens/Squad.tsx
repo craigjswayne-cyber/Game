@@ -7,7 +7,8 @@ import { STATUSES, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } fr
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
-import { ariaSort, refocus, rowNavTr } from '../rowNav'
+import { rowNavTr } from '../rowNav'
+import { DataTable, type Col, type SortState } from '../DataTable'
 
 // Handheld squad layout: the team sheet first, then the tables - Pkd chip,
 // fitness ring, starred names, morale arrows, Av R and Value.
@@ -103,34 +104,146 @@ export default function Squad() {
     return ps
   }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group, avail, view, game, club, played])
 
-  const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
-    <th className={`th-sort${sort === k ? ' active' : ''}${right ? ' num' : ''}`}
-      aria-sort={ariaSort(sort === k, desc, ['pkd', 'pos', 'name', 'age', 'until'].includes(k))}>
-      <button type="button" className="th-btn" data-focus-key={`sq-${k}`}
-        onClick={e => { refocus(`sq-${k}`, document.activeElement === e.currentTarget); if (sort === k) setDesc(!desc); else { setSort(k); setDesc(false) } }}>
-        {children}{sort === k ? (desc ? ' ▴' : ' ▾') : ''}
-      </button>
-    </th>
-  )
+  const sortState: SortState = {
+    key: sort, desc,
+    onSort: k => { if (sort === k) setDesc(!desc); else { setSort(k as SortKey); setDesc(false) } },
+  }
 
   // ONE LINE A MAN (owner, 1.8.9: "Messy names over two lines"). The name is
   // the only part that gives way, to an ellipsis; the fitness ring, (C), the
   // star and an availability tag always show. A loan man's name is in the
   // loan colour instead of a LOAN word after it.
-  const NameCell = ({ p }: { p: Player }) => (
-    <td className="name">
+  const nameCol: Col<Player> = {
+    id: 'name', head: t('squad.colName'), className: 'name', sort: 'name', ascFirst: true,
+    cell: p => (
       <span className="nm-line">
         <FitRing v={p.cond} />
         {/* red while he is away with his country (user: "if a player is on
             International duty they should have a red colour for their name") -
             one glance down the list shows who the Test window has taken */}
         <LoanName p={p} className="nm" style={p.natSquad ? { color: 'var(--danger)', fontWeight: 700 } : undefined} />
-        {game.clubs[game.userClubId].captain === p.id && <b style={{ color: 'var(--gold)' }}>(C)</b>}
+        {club.captain === p.id && <b style={{ color: 'var(--gold)' }}>(C)</b>}
         {stars.has(p.id) && <Mark name="star" color="var(--gold)" />}
         <AvailTag p={p} g={game} />
       </span>
-    </td>
-  )
+    ),
+  }
+  const avrOf = (p: Player) => (p.stats.apps ? p.stats.ratingSum / p.stats.apps : 0)
+  // the ledger (F18), once a man per render however many columns read it
+  const ledger = new Map<number, ReturnType<typeof ledgerRow>>()
+  const ledgerOf = (p: Player) => {
+    let r = ledger.get(p.id)
+    if (!r) { r = ledgerRow(game, club, p, played); ledger.set(p.id, r) }
+    return r
+  }
+  // a coloured light and the word, not a face (owner, 27 Sep 2026: icons, not
+  // emoji); the gap is in the tooltip, and the two columns beside it already
+  // give both its halves
+  const MOOD: Record<string, [string, string]> = {
+    happy: ['squad.moodHappy', 'var(--positive)'], content: ['squad.moodContent', 'var(--positive)'],
+    restless: ['squad.moodRestless', 'var(--gold)'], unhappy: ['squad.moodUnhappy', 'var(--danger)'],
+  }
+  const statusKey = (st: string, suffix = '') => `squad.status${st[0].toUpperCase()}${st.slice(1)}${suffix}`
+
+  // ---- why this table is told its column widths ----
+  // .tblwrap sets overflow-x: auto, and CSS computes the other axis to auto
+  // with it, so the wrapper became the table's vertical scrollport and the
+  // sticky heading parked itself among the players (user: "the column headers
+  // are amongst the players names"). Fixed widths plus table-layout: fixed
+  // make the table exactly as wide as the screen, the name column takes what
+  // is left and ellipsises, and .fitwrap turns the wrapper's scrolling off.
+  const COLS: Record<Exclude<View, 'selection'>, Col<Player>[]> = {
+    // Mor 34 and Value 64 (UI QA, 1.8.0): at 26 the MOR heading was cut to
+    // "MO", and a value carrying its trend arrow ran off the glass
+    general: [
+      nameCol,
+      { id: 'pos', head: t('squad.colPos'), width: 36, sort: 'pos', ascFirst: true, cell: p => <PosBadge pos={p.pos} /> },
+      { id: 'age', head: t('squad.colAge'), width: 32, align: 'right', sort: 'age', ascFirst: true, cell: p => p.age },
+      { id: 'nat', head: t('squad.colNat'), width: 28, align: 'center', cell: p => <Nat code={p.nat} /> },
+      { id: 'mor', head: t('squad.colMor'), width: 34, align: 'center', cell: p => <MoraleArrow v={p.morale} /> },
+      // JUST THE RATING: the ability-trend arrow lives on the value, which is
+      // the number that actually moves with ability (user: "how have these
+      // players average rating gone up when they haven't played")
+      { id: 'avr', head: t('squad.colAvR'), width: 42, align: 'right', sort: 'avr', cell: p => { const a = avrOf(p); return a ? a.toFixed(2) : '-' } },
+      {
+        id: 'value', head: t('squad.colValue'), width: 64, align: 'right', sort: 'value',
+        td: () => ({ style: { fontWeight: 700 } }),
+        // the arrow FOLLOWS the figure (owner, v1.1.18) and has a slot on
+        // every row, empty or not, so the figures line up (owner, 1.9.4)
+        cell: p => (<>
+          {fmtMoney(p.value)}
+          {(p.ca0 != null && p.ca !== p.ca0) ? (
+            <span className="val-trend" style={{ color: p.ca > p.ca0 ? 'var(--text-positive)' : 'var(--danger)' }}
+              title={t(p.ca > p.ca0 ? 'squad.abilityUp' : 'squad.abilityDown')}>
+              {p.ca > p.ca0 ? '▲' : '▼'}
+            </span>
+          ) : <span className="val-trend" aria-hidden />}
+        </>),
+      },
+    ],
+    stats: [
+      nameCol,
+      { id: 'apps', head: t('squad.colAp'), width: 34, align: 'right', sort: 'apps', cell: p => p.stats.apps },
+      { id: 'tries', head: t('squad.colT'), width: 30, align: 'right', sort: 'tries', cell: p => p.stats.tries },
+      { id: 'points', head: t('squad.colPts'), width: 38, align: 'right', sort: 'points', td: () => ({ style: { fontWeight: 700 } }), cell: p => p.stats.points },
+      { id: 'yc', head: t('squad.colYC'), width: 32, align: 'right', cell: p => p.stats.yc },
+      { id: 'rc', head: t('squad.colRC'), width: 32, align: 'right', cell: p => p.stats.rc },
+      { id: 'motm', head: t('squad.colMotM'), width: 54, align: 'right', cell: p => p.stats.motm },
+    ],
+    // Share, not pixels, for the two wide columns (owner, round 2: "NAM HE WAS
+    // TOLD"): the name keeps about a third of whatever width there is
+    gametime: [
+      nameCol,
+      {
+        id: 'told', head: t('squad.colToldHim'), width: '29%',
+        // swallows the row's tap so choosing a status does not open the
+        // player; the select inside is the control
+        td: () => ({ onClick: e => e.stopPropagation() }),
+        // the box you see is the span's, drawn small; the select inside it
+        // keeps the 44px a thumb needs (owner, round 183)
+        cell: p => (
+          <span className="gt-pick">
+            <select className="inline-input gt-sel" value={statusOf(game, club, p)} aria-label={`${p.name}: ${t('squad.colStatus')}`}
+              onChange={e => { p.status = e.target.value as SquadStatus; touch() }}>
+              {/* the engine keeps the English name on the def; the option
+                  shows the translated one, keyed by id */}
+              {STATUSES.map(st => <option key={st.id} value={st.id}>{t(statusKey(st.id))}</option>)}
+            </select>
+          </span>
+        ),
+      },
+      { id: 'apps', head: t('squad.colAp'), width: 30, align: 'right', sort: 'apps', td: () => ({ style: { fontWeight: 700 } }), cell: p => ledgerOf(p).actual },
+      { id: 'due', head: t('squad.colDue'), width: 34, align: 'right', td: p => ({ style: { color: ledgerOf(p).gap < -2 ? 'var(--danger)' : undefined } }), cell: p => ledgerOf(p).expected },
+      {
+        id: 'mood', head: t('squad.colMood'), width: '21%', className: 'gt-mood',
+        td: p => { const r = ledgerOf(p); return { title: `${r.gap >= 0 ? `+${r.gap}` : r.gap} · ${t(statusKey(statusOf(game, club, p), 'Desc'))}` } },
+        cell: p => { const [k, col] = MOOD[ledgerOf(p).mood]; return <><span className="status-dot" style={{ background: col }} /> {t(k)}</> },
+      },
+    ],
+    contracts: [
+      nameCol,
+      { id: 'pos', head: t('squad.colPos'), width: 36, sort: 'pos', ascFirst: true, cell: p => <PosBadge pos={p.pos} /> },
+      { id: 'age', head: t('squad.colAge'), width: 30, align: 'right', sort: 'age', ascFirst: true, cell: p => p.age },
+      // may take two lines: WAGE /WK was clipped to WAGE /WI (owner, 1.9.4)
+      { id: 'wage', head: t('squad.colWage'), width: 62, align: 'right', sort: 'wage', wrapHead: true, cell: p => fmtWage(p.wage) },
+      {
+        id: 'until', head: t('squad.colUntil'), width: 44, align: 'right', sort: 'until', ascFirst: true,
+        td: p => ({ style: { fontWeight: 700, color: p.contractEnds <= game.season ? 'var(--danger)' : p.contractEnds === game.season + 1 ? 'var(--gold)' : undefined } }),
+        cell: p => 2026 + p.contractEnds,
+      },
+      // A TRAFFIC LIGHT (owner, 27 Sep 2026: "red out of contract, amber
+      // ending soon, green all good")
+      {
+        id: 'status', head: t('squad.colStatus'), width: 58, align: 'center',
+        cell: p => {
+          const [c, k] = p.contractEnds <= game.season ? ['var(--danger)', 'squad.dealExpires']
+            : p.contractEnds === game.season + 1 || (p.wantsDeal ?? 0) > 0 ? ['var(--gold)', (p.wantsDeal ?? 0) > 0 ? 'squad.wantsTerms' : 'squad.endsSoon']
+            : ['var(--text-positive)', 'squad.underContract']
+          return <span className="status-dot" style={{ background: c }} title={t(k)} aria-label={t(k)} />
+        },
+      },
+    ],
+  }
 
   return (
     <>
@@ -221,165 +334,14 @@ export default function Squad() {
       {view !== 'selection' && players.length === 0 && (
         <div className="muted" style={{ padding: '12px 16px' }}>{t('squad.emptyFiltered')}</div>
       )}
-      {view !== 'selection' && players.length > 0 && <div className="tblwrap fitwrap"><table className={`dtable zebra fit sq-${view}`}>
-        {/* Mor 34 and Value 64 (UI QA, 1.8.0): at 26 the MOR heading was cut
-            to "MO", and a value carrying its trend arrow ran off the glass */}
-        {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="34" /><col width="42" /><col width="64" /></colgroup>}
-        {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="54" /></colgroup>}
-        {/* Share, not pixels, for the two wide columns (owner, round 2: "NAM HE
-            WAS TOLD"). 248px of fixed columns left the name 52px once the page
-            was zoomed or the phone was narrow, and the headings ran into each
-            other. Now the name keeps about a third of whatever width there is. */}
-        {view === 'gametime' && <colgroup><col /><col style={{ width: '29%' }} /><col width="30" /><col width="34" /><col style={{ width: '21%' }} /></colgroup>}
-        {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="62" /><col width="44" /><col width="58" /></colgroup>}
-        <thead>
-          {view === 'general' && (
-            <tr>
-              <Th k="name">{t('squad.colName')}</Th>
-              <Th k="pos">{t('squad.colPos')}</Th>
-              <Th k="age" right>{t('squad.colAge')}</Th>
-              <th className="center">{t('squad.colNat')}</th>
-              <th className="center">{t('squad.colMor')}</th>
-              <Th k="avr" right>{t('squad.colAvR')}</Th>
-              <Th k="value" right>{t('squad.colValue')}</Th>
-            </tr>
-          )}
-          {view === 'gametime' && (
-            <tr className="gt-head">
-              <Th k="name">{t('squad.colName')}</Th>
-              <th>{t('squad.colToldHim')}</th>
-              <Th k="apps" right>{t('squad.colAp')}</Th>
-              <th className="num">{t('squad.colDue')}</th>
-              <th>{t('squad.colMood')}</th>
-            </tr>
-          )}
-          {view === 'stats' && (
-            <tr>
-              <Th k="name">{t('squad.colName')}</Th>
-              <Th k="apps" right>{t('squad.colAp')}</Th>
-              <Th k="tries" right>{t('squad.colT')}</Th>
-              <Th k="points" right>{t('squad.colPts')}</Th>
-              <th className="num">{t('squad.colYC')}</th>
-              <th className="num">{t('squad.colRC')}</th>
-              <th className="num">{t('squad.colMotM')}</th>
-            </tr>
-          )}
-          {view === 'contracts' && (
-            <tr>
-              <Th k="name">{t('squad.colName')}</Th>
-              <Th k="pos">{t('squad.colPos')}</Th>
-              <Th k="age" right>{t('squad.colAge')}</Th>
-              <Th k="wage" right>{t('squad.colWage')}</Th>
-              <Th k="until" right>{t('squad.colUntil')}</Th>
-              {/* A TRAFFIC LIGHT (owner, 27 Sep 2026: "red out of contract,
-                  amber ending soon, green all good"). It was a bare "?" over
-                  two emoji, which nobody could read. */}
-              <th className="center">{t('squad.colStatus')}</th>
-            </tr>
-          )}
-        </thead>
-        <tbody>
-          {players.map(p => {
-            const avr = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
-            return (
-              <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
-                <NameCell p={p} />
-                {view === 'general' && (<>
-                  <td><PosBadge pos={p.pos} /></td>
-                  <td className="num">{p.age}</td>
-                  <td className="center"><Nat code={p.nat} /></td>
-                  <td className="center"><MoraleArrow v={p.morale} /></td>
-                  {/* JUST THE RATING. The ability-trend arrow (ca vs season start)
-                      used to render inside this cell, so a man with no apps showed
-                      an up arrow next to a dash and it read as his average rating
-                      rising without playing (user: "how have these players average
-                      rating gone up when they haven't played"). The arrow is real
-                      information - he has developed - so it moves to the Value
-                      cell, which is the number that actually moves with ability. */}
-                  <td className="num">{avr ? avr.toFixed(2) : '-'}</td>
-                  <td className="num" style={{ fontWeight: 700 }}>
-                    {fmtMoney(p.value)}
-                    {/* the arrow FOLLOWS the figure (owner, v1.1.18: "put the
-                        arrow up/down on the right of the money") - the money is
-                        what the column is for, the trend is its footnote */}
-                    {/* the arrow has a slot on every row, empty or not, so the
-                        figures line up down the column (owner, 1.9.4: "align
-                        the columns correctly" - one arrow pushed one value out) */}
-                    {(p.ca0 != null && p.ca !== p.ca0) ? (
-                      <span className="val-trend" style={{ color: p.ca > p.ca0 ? 'var(--text-positive)' : 'var(--danger)' }}
-                        title={t(p.ca > p.ca0 ? 'squad.abilityUp' : 'squad.abilityDown')}>
-                        {p.ca > p.ca0 ? '▲' : '▼'}
-                      </span>
-                    ) : <span className="val-trend" aria-hidden />}
-                  </td>
-                </>)}
-                {view === 'gametime' && (() => {
-                  // The ledger (F18). The status select is the whole point of the
-                  // page, so it lives in the row rather than behind a tap: telling
-                  // a man where he stands has to be as cheap as reading that he
-                  // is unhappy about it.
-                  const row = ledgerRow(game, club, p, played)
-                  const cur = statusOf(game, club, p)
-                  // a coloured light and the word, not a face (owner, 27 Sep
-                  // 2026: icons, not emoji); the gap is in the tooltip, and
-                  // the two columns beside it already give both its halves
-                  const MOOD: Record<string, [string, string]> = {
-                    happy: ['squad.moodHappy', 'var(--positive)'], content: ['squad.moodContent', 'var(--positive)'],
-                    restless: ['squad.moodRestless', 'var(--gold)'], unhappy: ['squad.moodUnhappy', 'var(--danger)'],
-                  }
-                  const [moodK, col] = MOOD[row.mood]
-                  return (<>
-                    {/* eslint-disable-next-line no-restricted-syntax -- swallows the row's tap so choosing a status does not open the player; the select inside is the control */}
-                    <td onClick={e => e.stopPropagation()}>
-                      {/* the box you see is the span's, drawn small; the
-                          select inside it keeps the 44px a thumb needs
-                          (owner, round 183: "reduce the size of the box
-                          around the key player") */}
-                      <span className="gt-pick">
-                        <select className="inline-input gt-sel" value={cur} aria-label={`${p.name}: ${t('squad.colStatus')}`}
-                          onChange={e => { p.status = e.target.value as SquadStatus; touch() }}>
-                          {/* the engine keeps the English name on the def; the
-                              option shows the translated one, keyed by id */}
-                          {STATUSES.map(st => <option key={st.id} value={st.id}>{t(`squad.status${st.id[0].toUpperCase()}${st.id.slice(1)}`)}</option>)}
-                        </select>
-                      </span>
-                    </td>
-                    <td className="num" style={{ fontWeight: 700 }}>{row.actual}</td>
-                    <td className="num" style={{ color: row.gap < -2 ? 'var(--danger)' : undefined }}>{row.expected}</td>
-                    <td className="gt-mood" title={`${row.gap >= 0 ? `+${row.gap}` : row.gap} · ${t(`squad.status${cur[0].toUpperCase()}${cur.slice(1)}Desc`)}`}>
-                      <span className="status-dot" style={{ background: col }} /> {t(moodK)}
-                    </td>
-                  </>)
-                })()}
-                {view === 'contracts' && (<>
-                  <td><PosBadge pos={p.pos} /></td>
-                  <td className="num">{p.age}</td>
-                  <td className="num">{fmtWage(p.wage)}</td>
-                  <td className="num" style={{ fontWeight: 700, color: p.contractEnds <= game.season ? 'var(--danger)' : p.contractEnds === game.season + 1 ? 'var(--gold)' : undefined }}>
-                    {2026 + p.contractEnds}
-                  </td>
-                  <td className="center">
-                    {(() => {
-                      const [c, k] = p.contractEnds <= game.season ? ['var(--danger)', 'squad.dealExpires']
-                        : p.contractEnds === game.season + 1 || (p.wantsDeal ?? 0) > 0 ? ['var(--gold)', (p.wantsDeal ?? 0) > 0 ? 'squad.wantsTerms' : 'squad.endsSoon']
-                        : ['var(--text-positive)', 'squad.underContract']
-                      return <span className="status-dot" style={{ background: c }} title={t(k)} aria-label={t(k)} />
-                    })()}
-                  </td>
-                </>)}
-                {view === 'stats' && (<>
-                  <td className="num">{p.stats.apps}</td>
-                  <td className="num">{p.stats.tries}</td>
-                  <td className="num" style={{ fontWeight: 700 }}>{p.stats.points}</td>
-                  <td className="num">{p.stats.yc}</td>
-                  <td className="num">{p.stats.rc}</td>
-                  <td className="num">{p.stats.motm}</td>
-                </>)}
-              </tr>
-            )
-          })}
-        </tbody>
-      </table></div>}
+      {view !== 'selection' && players.length > 0 && (
+        <div className="tblwrap fitwrap">
+          <DataTable<Player> cols={COLS[view]} rows={players} rowKey={p => p.id}
+            rowProps={p => rowNavTr(() => go('player', p.id))}
+            className={`zebra fit sq-${view}`} headClass={view === 'gametime' ? 'gt-head' : undefined}
+            focusKey="sq" sort={sortState} />
+        </div>
+      )}
       {view !== 'selection' && <LoanKey show={players.some(p => !!p.loanFrom)} />}
       <div className="spacer" />
     </>
