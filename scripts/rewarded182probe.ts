@@ -243,7 +243,7 @@ console.log('\n--- 4. the sponsor\'s team night\n')
     let bench = lu.slice(15, 23).find(id => id != null && !g.players[id!]?.injury)
     if (bench == null) { bench = club.players.find(id => !lu.includes(id) && !g.players[id]?.acad && !g.players[id]?.injury) ?? null; lu[15] = bench! }
     const bAt = lu.indexOf(bench!)
-    // he sits the week out of the 23 altogether (1.9.5): on the bench he can
+    // he sits the week out of the 23 altogether (1.9.4): on the bench he can
     // come on and pick up a knock, and a hurt man is not asked about
     const spare = club.players.find(id => !lu.includes(id) && !g.players[id]?.acad && !g.players[id]?.injury)!
     lu[slot] = bench!; lu[bAt] = spare

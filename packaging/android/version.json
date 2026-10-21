@@ -94,8 +94,7 @@
     "46 IS 1.8.7: advert placement from the owner's simulator pass. The live match banner now shows only while a highlight animation plays, never over the live stats; new banners on the floor of the day room and of every Finances tab; the news reader's top bar laid out as two tidy rows on a phone. Ruck (ruck.co.uk) is the named source on news about other clubs, the rumour mill, league signings and law-change talk (news only). Check the Console's highest accepted code before building.",
     "45 IS 1.8.6: the Pro Manager prompts. One card before the first competitive match, a one-time offer on phase.supporter.intro (a new non-consumable about 25% under Pro Manager; create it in Play Console first, see docs/pro-manager.md) after it, and a light reminder every ten competitive matches while free; never for Pro owners. Nothing in the rugby changes. Check the Console's highest accepted code before building.",
     "60 IS 1.9.1 AS UPLOADED. 59 was refused as already used when the 1.9.1 bundle went up (18 Oct 2026, owner), so 59 is spent and 1.9.1 ships on 60.",
-    "64 IS 1.9.5: varied condition, every player his own number after a match and over the week (stamina, how he played, age, training, his own body), with a softer kick-off floor so a very tired man starts shorter. Check the Console's highest accepted code before building: 64 assumes 63 was the last.",
-    "63 IS 1.9.4, the owner's round of 20 Oct 2026: the screen titles and the title screen in bold Space Grotesk, Home tiles in the text face, the Today answers stacked, consent asked at first launch, the review card retried, 'unlikely' in place of a sacking's countdown, no ratings on the match-day team sheet. Check the Console's highest accepted code before building: 63 assumes 62 was the last.",
+    "63 IS 1.9.4, the owner's round of 20 Oct 2026: Barlow and Barlow Semi Condensed in place of the three old faces, every player his own condition after a match and over the week with a softer kick-off floor for very tired legs, Home tiles in the text face, the Today answers stacked, consent asked at first launch, the review card retried, 'unlikely' in place of a sacking's countdown, no ratings on the match-day team sheet. Check the Console's highest accepted code before building: 63 assumes 62 was the last.",
     "62 IS 1.9.3, the owner's round of 19 Oct 2026: plain menus, head injury checks only for made-up players, the store review card after eight matches, TikTok and Instagram, Source Serif 4 and Hanken Grotesk, a spare save copy each session. Check the Console's highest accepted code before building: 62 assumes 61 was the last.",
     "61 IS 1.9.2, the owner's feedback round of 18 Oct 2026: 2026-27 squads, the real pitch for every club, head injury checks that ask the manager, team talks with bigger stakes, half-time recovery, female referees, one save slot free and four with Pro Manager, and the new fonts and cards. Check the Console's highest accepted code before building: 61 assumes 60 was the last.",
     "versionName comes from the root package.json.",
@@ -103,7 +102,7 @@
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026).",
     "reviewLibrary is the Play In-App Review library behind PhaseBilling.review() (1.9.3)."
   ],
-  "versionCode": 64,
+  "versionCode": 63,
   "billingLibrary": "8.0.0",
   "reviewLibrary": "2.0.2"
 }

@@ -24,7 +24,7 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
-  // REBASELINED for 1.9.5 (owner: varied condition "with a real cost for
+  // REBASELINED for 1.9.4 (owner: varied condition "with a real cost for
   // tired legs"). Condition after a match and the week's recovery carry a
   // per-player shift (condition.ts, a hash, not an rng draw), and the kick-off
   // tank's 50 floor is soft (setup.ts kickoffTank). Only the 6th, the first

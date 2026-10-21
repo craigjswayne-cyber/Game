@@ -17,7 +17,7 @@ import { wetness } from '../conditions'
 import { HABITS, HABITS_OFF, habitFx } from '../habits'
 import { TANK_K, lineupFor, teamUnits } from './selection'
 
-/** TIRED LEGS COST SOMETHING (owner, 1.9.5: the varied condition, "with a
+/** TIRED LEGS COST SOMETHING (owner, 1.9.4: the varied condition, "with a
  *  real cost for tired legs"). The tank used to stop at 50 however tired a
  *  man was, so 20% condition kicked off exactly as fresh as 33%, and an XV
  *  nobody rotated paid nothing more for the next week's knackered men. Under

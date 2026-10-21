@@ -2,7 +2,7 @@
    Regrouped by component (1.9.4); within this file every rule keeps the
    order it had, and theme.css imports the files in cascade order.  *//* ------------------------------------------------------------------
    Rugby Manager - type
-   Barlow since 1.9.5 (owner, 21 Oct 2026: option C of the font trial,
+   Barlow since 1.9.4 (owner, 21 Oct 2026: option C of the font trial,
    picked to read clearly and feel less like an AI default than Space
    Grotesk did). One family in two widths:
      Barlow Semi Condensed   headings, scores, the wordmark, screen titles,
@@ -13,8 +13,8 @@
    Both are by Jeremy Tribby, under the OFL. Barlow is modelled on road
    signs and number plates, which is why it reads like a scoreboard.
 
-   1.9.3's Source Serif 4 and Hanken Grotesk, and 1.9.4's Space Grotesk
-   titles, are gone.
+   1.9.3's Source Serif 4 and Hanken Grotesk, and the Space Grotesk
+   titles 1.9.4 tried first, are gone.
 
    SELF-HOSTED, because this is an offline-first PWA and a font request
    would break the first launch on a plane: static weights, each split
@@ -149,7 +149,7 @@
   /* the display face: the name is from 1.9.2's condensed face and kept so
      the ninety-odd rules that use it did not all have to change */
   --cond: var(--display);
-  /* the masthead's screen title (1.9.4; the display face since 1.9.5) */
+  /* the masthead's screen title (1.9.4: Space Grotesk, then the display face) */
   --title: var(--display);
   --club1: var(--primary);
   --club2: var(--surface-1);
@@ -347,7 +347,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 }
 
 /* the bold display face, by job: headings, stat labels and scores (owner,
-   19 Oct 2026; Barlow Semi Condensed since 1.9.5) */
+   19 Oct 2026; Barlow Semi Condensed since 21 Oct) */
 h1,
 h2,
 h3 {
