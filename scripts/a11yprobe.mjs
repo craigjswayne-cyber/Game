@@ -14,6 +14,7 @@
 //   3. Every visible input, select and textarea on the screens walked has an
 //      accessible name.
 //   4. Escape closes the hub menu.
+//   5. Tab and Shift+Tab stay inside an open sheet.
 //
 // Run: node scripts/a11yprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
@@ -142,6 +143,18 @@ for (const night of [true, false]) {
     bare = await unnamed(page)
     const selects = await page.locator('.filter-sheet select').count()
     ok(selects >= 6 && bare.length === 0, `${theme}: the transfer filter sheet names all ${selects} selects${bare.length ? ': ' + bare[0] : ''}`)
+    // 5. Tab stays inside an open sheet, both ways (1.9.4 audit: it walked out
+    // into the screen behind within a dozen presses)
+    const stray = []
+    for (const key of ['Tab', 'Shift+Tab']) {
+      for (let i = 0; i < 40; i++) {
+        await page.keyboard.press(key)
+        const out = await page.evaluate(() => document.activeElement?.closest('.filter-sheet') ? null
+          : `${document.activeElement?.tagName}.${document.activeElement?.className}`.slice(0, 40))
+        if (out) { stray.push(`${key} ${i + 1}: ${out}`); break }
+      }
+    }
+    ok(stray.length === 0, `${theme}: Tab and Shift+Tab stay in the open sheet${stray.length ? ` (left it: ${stray.join('; ')})` : ''}`)
     await page.keyboard.press('Escape')
   } catch (e) {
     say(`PROBE THREW (${theme}): ${String(e).slice(0, 200)}`)
