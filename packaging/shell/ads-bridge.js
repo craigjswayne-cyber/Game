@@ -451,7 +451,22 @@
     return priming
   }
 
+  // ONE SPOT AT A TIME. The listeners below are the plugin's, not this
+  // call's: every rewarded event reaches every show still waiting. Two taps
+  // on two different buttons while the first spot was still loading (two
+  // injured men on Medical, each with his own button) both waited on the
+  // same prime, both asked the plugin to show, and the second show of an
+  // advert already on screen fails - which fired FailedToShow into BOTH
+  // waits. The player sat through the whole first advert and was given
+  // nothing for it. A second ask while one is in the air is a polite no.
+  var spotBusy = false
   async function showRewarded(place) {
+    if (spotBusy) return 'unavailable'
+    spotBusy = true
+    try { return await showOneSpot(place) } finally { spotBusy = false }
+  }
+
+  async function showOneSpot(place) {
     if (spotsToday() >= REWARDED_CAP) return 'unavailable'
     // whatever is loading now, wait for it: the button shows a busy state while
     // this runs, so waiting reads as loading rather than as nothing happening

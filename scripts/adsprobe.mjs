@@ -331,6 +331,19 @@ try {
     ok(await page.evaluate(() => !!document.querySelector('.bottom-nav')), 'and the game is untouched by the refusal')
     await page.close()
   }
+  {
+    // two buttons tapped while the first spot is still loading: the plugin's
+    // events reach every waiting show, so a second show in the air either
+    // pays twice for one advert or fails both (1.9.4 audit)
+    const { page } = await openPage({ spot: 'reward' })
+    await startCareer(page)
+    const outs = await page.evaluate(() => Promise.all([globalThis.rmAds.showRewarded('medical'), globalThis.rmAds.showRewarded('medical')]))
+    const l = await log(page)
+    ok(l.filter(x => x === 'showRewardVideoAd').length === 1, `two asks at once show one spot (${l.filter(x => x === 'showRewardVideoAd').length})`)
+    ok(outs.filter(o => o === 'completed').length === 1 && outs.includes('unavailable'), `and earn one favour: ${JSON.stringify(outs)}`)
+    ok(await page.evaluate(() => localStorage.getItem('rm-rw')?.endsWith(':1')), 'counting one against today')
+    await page.close()
+  }
 
   // ---- 3. consent refused --------------------------------------------------
   say('\n--- 3. consent refused: no adverts, and the game plays on')
