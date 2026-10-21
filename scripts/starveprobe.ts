@@ -94,12 +94,7 @@ console.log('--- 1. on offer, and real levers\n')
 
 // ------------------------------------------------------------------ 2, 3
 console.log('\n--- 2 and 3. paired matches, same fixture, same dice\n')
-// THIRTY WORLDS, 240 FIXTURES (1.9.4). The 80-fixture default sat close to
-// its bar: the condition spread re-dealt it from +1.71 (se 1.86) to -1.65
-// (se 1.56) and the first twenty worlds read -1.62, while the thirty read
-// -0.43 (se 0.94) here and +1.33 (se 1.02) on the tree before. 240 paired
-// fixtures is the sample the 1.8.15 note below already trusted.
-const WORLDS = Array.from({ length: Number(process.env.STARVE_WORLDS ?? 30) }, (_, i) => [(['leicester', 'northampton', 'bath'] as const)[i % 3], 71 + i] as const)
+const WORLDS = Array.from({ length: Number(process.env.STARVE_WORLDS ?? 10) }, (_, i) => [(['leicester', 'northampton', 'bath'] as const)[i % 3], 71 + i] as const)
 const gain = new Map<string, number[]>(), dPoss = new Map<string, number[]>(), dTheirs = new Map<string, number[]>(), dOurs = new Map<string, number[]>()
 const dKicks = new Map<string, number[]>(), dB3 = new Map<string, number[]>()
 const push = (m: Map<string, number[]>, k: string, v: number) => { const l = m.get(k) ?? []; l.push(v); m.set(k, l) }

@@ -53,15 +53,6 @@ round of 20 Oct 2026, from a device test of 1.9.3.
   NAT, MOR and STATUS are centred, VALUE lines up whether or not a player
   has a trend arrow, MOTM fits its column and WAGE /WK is no longer cut off.
 
-**Condition**
-- Every player now has his own condition. Before, everybody who played the
-  full eighty finished on the same floor, so a whole XV read 35% (71% after
-  a friendly). After a match, his stamina, how well he played and the knocks
-  he took move his number. Over the week, his age, his stamina, a fitness
-  week, a heavy personal plan and his own body do. The physio and the gym
-  still add on top. The average is where it was, so the game is no easier or
-  harder; only who is fresh changes. Every club plays by the same rules.
-
 **Fixes**
 - A replacement who had been injured, banned or called up since the team
   sheet was named could still be sent on. The bench is checked at kick-off
@@ -69,11 +60,6 @@ round of 20 Oct 2026, from a device test of 1.9.3.
   match only and the manager's sheet is kept.
 - A manager out of work no longer gets knockout record stories about the
   club that sacked him.
-
-**Balance** (bandcheck, four worlds, 9,336 league games, before and after):
-49.5 -> 49.7 points, 6.48 -> 6.52 tries, 54.4% -> 53.1% home wins,
-2.0% -> 1.8% draws, 8.4% -> 8.7% blowouts. Every band holds. Fingerprint
-rebaselined (one of six re-deals).
 
 ## Testing
 

@@ -86,13 +86,6 @@ for (const [club, seed, walk] of [['leicester', 7101, false], ['bath', 7102, tru
   for (let i = 0; i < SEASON_WEEKS * 2; i++) {
     const week = g.week
     if (g.unemployed && sackedAt === Infinity) sackedAt = g.season * 100 + g.week
-    // THE FIRST RUN KEEPS HIS JOB (1.9.4). This run is here for the order of
-    // the countdown across both windows, and a slump that got him sacked in
-    // week 21 left it four notices to read, under the five it needs; whether
-    // he survives is the world's dice, not anything a window does. The board
-    // is kept off the floor here only. The walked run below is left alone, and
-    // still covers a sacked manager getting no countdown.
-    if (!walk && !g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 40)
     // the manager takes the bids he is allowed to, two a season, so he keeps
     // a side (and a job) to be warned in
     for (const o of g.offers.filter(x => x.status === 'pending' && x.forUser)) {

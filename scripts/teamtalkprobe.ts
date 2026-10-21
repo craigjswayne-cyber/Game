@@ -432,12 +432,7 @@ if (!QUICK) {
       draw: played.filter(f => f.homeScore === f.awayScore).length / n,
     }
   }
-  // EIGHT WORLDS, NOT FOUR (1.9.4), for the reason bandcheck gave in 1.8.3:
-  // draws are the thinnest band, and the condition spread re-dealt these four
-  // from 1.7% to 1.2% while eight fresh worlds read 1.8% before and 1.7%
-  // after. Eight hold the floor honestly instead of moving it.
-  const rs = ([['toulouse', 777], ['northampton', 9], ['leinster', 4242], ['crusaders', 31337],
-    ['leicester', 5150], ['bath', 2718], ['saracens', 1618], ['munster', 1414]] as const).map(([c, sd]) => season(c, sd))
+  const rs = ([['toulouse', 777], ['northampton', 9], ['leinster', 4242], ['crusaders', 31337]] as const).map(([c, sd]) => season(c, sd))
   const tot = rs.reduce((a, r) => a + r.games, 0)
   const w = (f: (r: Row) => number) => rs.reduce((a, r) => a + f(r) * r.games, 0) / tot
   const pts = w(r => r.pts), tries = w(r => r.tries), home = w(r => r.home), draw = w(r => r.draw)
