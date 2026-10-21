@@ -26,8 +26,14 @@ const SALT_TOLL = 61, SALT_REC = 62
  *  two terms are centred on what the men they apply to actually have */
 const STA_MID = 10
 const RATING_MID = 6.1
-/** an offset on the match toll, while it is tuned (TUNE_TOLL_BIAS) */
-const TOLL_BIAS = Number((globalThis as { process?: { env?: Record<string, string> } }).process?.env?.TUNE_TOLL_BIAS ?? 0)
+/** WHAT THE FLOORS GIVE BACK, TAKEN OFF AGAIN. The post-match floor and
+ *  the kick-off tank's floor keep the top of the spread and trim its bottom,
+ *  so an unrotated side ran fresher with the spread than without it. Tuned
+ *  with the soft tank floor (setup.ts kickoffTank) on autopilotprobe's 54
+ *  seasons: managed over absent 5.9 points a season (5.1 before the spread),
+ *  4 autopilot titles in 54, an engaged giant's board in crisis 4 seasons in
+ *  36 against 16 for an absent one. */
+const TOLL_BIAS = 1.4
 
 /** What the match cost him beyond the tank, in condition points: his engine,
  *  how his day went, and the knocks no tank measures. Roughly -12 to +12,

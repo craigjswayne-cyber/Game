@@ -17,9 +17,14 @@ import { wetness } from '../conditions'
 import { HABITS, HABITS_OFF, habitFx } from '../habits'
 import { TANK_K, lineupFor, teamUnits } from './selection'
 
-/** while tuned: how much of the shortfall under the 50 floor a man keeps
- *  (TUNE_TANK_SOFT; 0 is the old hard floor) */
-const TANK_SOFT = Number((globalThis as { process?: { env?: Record<string, string> } }).process?.env?.TUNE_TANK_SOFT ?? 0)
+/** TIRED LEGS COST SOMETHING (owner, 1.9.5: the varied condition, "with a
+ *  real cost for tired legs"). The tank used to stop at 50 however tired a
+ *  man was, so 20% condition kicked off exactly as fresh as 33%, and an XV
+ *  nobody rotated paid nothing more for the next week's knackered men. Under
+ *  the floor he now keeps half the shortfall: 33% and up is as it was, 20%
+ *  starts at 45 rather than 50. The floor itself stays (setup's note below
+ *  on why it is load-bearing), only softened. */
+const TANK_SOFT = 0.5
 const TANK_FLOOR = 50
 /** the tank a man kicks off with from his condition */
 export function kickoffTank(c0: number): number {
