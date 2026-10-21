@@ -1408,6 +1408,8 @@
   "probINJURED": "is injured",
   "probINTL": "is away with his country",
   "probSUSPENDED": "is suspended",
+  "probLOAN": "is out on loan",
+  "probLEAVE": "is on maternity leave",
   "ptsShort": "{n} pts",
   "quickPlans": "Quick Game Plans",
   "quote1": "We know how they want to play. We're ready for it.",

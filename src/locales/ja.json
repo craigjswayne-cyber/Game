@@ -1396,6 +1396,8 @@
   "probINJURED": "は負傷中",
   "probINTL": "は代表招集で不在",
   "probSUSPENDED": "は出場停止中",
+  "probLOAN": "はレンタル移籍中",
+  "probLEAVE": "は産休中",
   "ptsShort": "{n}pt",
   "quickPlans": "クイックゲームプラン",
   "quote1": "相手のやりたいことは分かっている。準備はできている。",
