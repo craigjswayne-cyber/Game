@@ -24,7 +24,7 @@
 //
 // Run: node scripts/feedbackui.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { startPreview } from './lib/preview.mjs'
+import { startPreview, until } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
 const say = (s) => writeSync(1, s + '\n')
@@ -195,9 +195,30 @@ try {
     ok(u0.finished === 1 && u0.offered === false, `the review's Monday counted the season finished (${u0.finished}), not yet offered`)
     // the review is up and the card waits behind it
     const start2 = page.locator('button', { hasText: 'Ready for a new season?' })
-    await start2.waitFor({ timeout: 10000 }).catch(() => {})
+    await until(page, () => [...document.querySelectorAll('main button')].some(b => /Ready for a new season\?/.test(b.textContent)), null, 10000)
     ok(await page.evaluate(() => window.rugbyStore.getState().nav.at(-1).screen) === 'annual', 'the season review is on screen')
+    // A TROPHY'S CONFETTI OVER THE REVIEW (Gate run 39557684734, "the review
+    // had no button"). Every trophy sets a celebration (season.ts), and the
+    // drive above never taps one away, so a season in which the career's
+    // random seed won Leicester something reached the review under the
+    // full-screen veil: the button was there, the veil took the click, and
+    // the click timed out. The rerun, on a seed that won nothing, passed. A
+    // player taps the confetti away first, so this does too, and every run
+    // meets it: a season that won nothing is given a trophy's celebration.
+    const won = await page.evaluate(() => {
+      const s = window.rugbyStore.getState(), g = s.game
+      const natural = !!g.celebration
+      if (!natural) {
+        const sv = { comp: 'Premiership', season: '2026-27', manager: 'Gaffer Probe' }
+        g.celebration = { headline: 'CHAMPIONS', sub: '', icon: 'trophy', hk: 'cel.champions', hv: { short: 'LEI' }, sk: 'cel.championsSub', sv }
+        s.touch()
+      }
+      return natural
+    })
+    ok(await until(page, () => !!document.querySelector('.celebrate-veil'), null, 10000), `a trophy's celebration lies over the review (${won ? 'won this season' : 'set by the probe'})`)
     ok(!(await fbCard(page, 2500)), 'and the card does not open over it')
+    await page.locator('.celebrate-veil').click()
+    ok(await until(page, () => !document.querySelector('.celebrate-veil'), null, 5000), 'one tap puts the celebration away')
     // put it away the way a player does: its own button
     // the review's own button: if it is not there, say what the page holds
     // instead (the Gate once timed out here with the review on the nav)
@@ -205,10 +226,13 @@ try {
       const st = await page.evaluate(() => {
         const s = window.rugbyStore?.getState()
         return { nav: s?.nav.map(n => n.screen), turning: s?.turning, annual: !!s?.game?.annual, week: s?.game?.week,
-          chunkReload: sessionStorage.getItem('rm-chunk-reload'), text: document.body.innerText.slice(0, 300) }
+          chunkReload: sessionStorage.getItem('rm-chunk-reload'), celebration: !!s?.game?.celebration,
+          veils: [...document.querySelectorAll('.modal-veil, .tut-veil, .celebrate-veil, .sack-veil, .submenu-veil, .intro, .pro-veil, .fb-veil')].map(e => e.className),
+          buttons: [...document.querySelectorAll('main button')].map(b => b.textContent.trim()).slice(-3) }
       }).catch(x => String(x))
       await page.screenshot({ path: 'shots/feedbackui-annual.png' }).catch(() => {})
       say('FAIL  the review had no button: ' + JSON.stringify(st))
+      say('      ' + String(e?.message ?? e).split('\n').slice(0, 12).join(' | '))
       throw e
     })
     const shown = await fbCard(page, 6000)

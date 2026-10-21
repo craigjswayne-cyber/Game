@@ -86,6 +86,7 @@ over `tests/**/*.test.ts`: fast, deterministic, no browser, about a minute.
 | `tests/listsaves.test.ts` | the Load screen reads labels, labels old slots, reads no career, deletes labels with saves | `scripts/listsavesprobe.ts` |
 | `tests/savehostile.test.ts` | the import gate: ids named after Object.prototype refused, a damaged players map pruned, body fields, positions and records healed, a pre-MRC save migrates the same twice, five round trips equal one | new (1.9.4 audit) |
 | `tests/saveswitch.test.ts` | opening another career writes the outgoing one's last marks to its own slot, never mid-match | new (1.9.4 audit) |
+| `tests/condband.test.ts` | a condition's colour band is read off the figure printed beside it (84.6 shows 85% and is green) | new (1.9.4 audit) |
 
 New fast, deterministic checks belong here rather than in a new probe. Watch
 mode while working: `npx vitest`. vitest 4.1 runs on the repo's Vite 8, the

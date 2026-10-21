@@ -68,10 +68,17 @@ try {
     const bid = club.tactic.lineup[16]
     const b = bid != null ? g.players[bid] : null
     if (b) b.injury = { desc: 'calf (warm-up)', until: g.week + 2, weeks: 2 }
+    // AND A BENCH MAN SENT OUT ON LOAN (1.9.4). loanOut refuses only the XV,
+    // so a replacement can be loaned; kick-off (lineupFor) would not send him
+    // on, but this sheet showed him fit with no word, and the swap was made
+    // out of sight. Loaned the way loans.ts loanOut does it.
+    const lid = club.tactic.lineup[18]
+    const l = lid != null ? g.players[lid] : null
+    if (l) { l.onLoan = true; l.loanClub = Object.keys(g.clubs).find(k => k !== club.id) }
     st.touch()
-    return { id: pid, name: p.name, benchId: bid, benchName: b?.name ?? null, before: [...club.tactic.lineup] }
+    return { id: pid, name: p.name, benchId: bid, benchName: b?.name ?? null, loanId: lid, loanName: l?.name ?? null, before: [...club.tactic.lineup] }
   })
-  say(`  injured the starting loosehead: ${hurt.name}, and on the bench: ${hurt.benchName}`)
+  say(`  injured the starting loosehead: ${hurt.name}, and on the bench: ${hurt.benchName}; loaned out from the bench: ${hurt.loanName}`)
 
   await page.locator('text="Kick Off"').first().click()
   await page.locator('.talk-modal').waitFor({ timeout: 5000 })
@@ -82,6 +89,8 @@ try {
   ok(/cannot kick off as it is/i.test(modalText), 'the modal says the team cannot kick off as it is')
   ok(/all twenty-three must be fit/i.test(modalText),
     'the injured BENCH man is flagged too: all twenty-three must be fit')
+  ok(!!hurt.loanName && modalText.includes(`${hurt.loanName} (bench, no. 19) is out on loan`),
+    `and so is the bench man out on loan (${hurt.loanName})`)
   const goldLabel = await page.locator('.modal .btn.gold').innerText()
   say(`  the way forward reads: "${goldLabel.trim()}"`)
   ok(/Fix It &/i.test(goldLabel), 'the only way forward carries the fix')
@@ -89,7 +98,7 @@ try {
   await page.locator('.modal .btn.gold').click()
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
 
-  const after = await page.evaluate(hurtId => {
+  const after = await page.evaluate(([hurtId, loanId]) => {
     const g = window.rugbyStore.getState().game
     const club = g.clubs[g.userClubId]
     return {
@@ -103,17 +112,19 @@ try {
           const last = p?.injLog?.[p.injLog.length - 1]
           return !!p?.injury && !(last && last.s === g.season && last.w === g.week)
         }),
+      loanIn23: club.tactic.lineup.includes(loanId),
       lineup: [...club.tactic.lineup],
     }
-  }, hurt.id)
+  }, [hurt.id, hurt.loanId])
   // A REPAIR COSTS THE BROKEN SHIRTS, NOT THE SIDE (1.8.15): it used to
   // re-pick all twenty-three, and a first-time player lost eight starters and
-  // his captain to one injured flanker. Two men were hurt, so at most two
-  // shirts may change.
+  // his captain to one injured flanker. Two men were hurt and one is away on
+  // loan, so at most three shirts may change.
   const moved = hurt.before.map((id, i) => id !== after.lineup[i] ? i : -1).filter(i => i >= 0)
-  ok(moved.length <= 2, `only the injured men's shirts change (${moved.length} changed: shirts ${moved.map(i => i + 1).join(', ')})`)
+  ok(moved.length <= 3, `only the unfit men's shirts change (${moved.length} changed: shirts ${moved.map(i => i + 1).join(', ')})`)
   ok(!after.inXV, `${hurt.name} is out of the team sheet, visibly, not patched in the engine`)
   ok(!after.anyInjuredIn23, 'and nobody injured is anywhere in the repaired 23, bench included')
+  ok(!after.loanIn23, `nor ${hurt.loanName}, away on loan`)
   say('  the match is under way with a fit twenty-three')
 } finally {
   await browser.close()

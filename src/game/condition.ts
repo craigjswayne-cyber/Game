@@ -58,3 +58,14 @@ export function recoveryShift(state: GameState, p: Player, isUser: boolean): num
   const work = (isUser && state.matchPrep === 'fitness' ? 1.5 : 0) - (heavyLoad(p) ? 2.5 : 0)
   return age + engine + body + work
 }
+
+/** The band a condition figure is read in: fit from 85%, carrying a knock
+ *  from 68%, tired below (the Squad fitness ring's bands, which the team
+ *  sheet's coloured % shares). Read off the ROUNDED figure, because that is
+ *  the one on screen: conditions carry halves and tenths (a recovery week's
+ *  +3.5, a gossip knock), and 84.6 printed as "85%" in gold, the colour of a
+ *  man under 85. */
+export function condBand(v: number): 'fit' | 'knock' | 'tired' {
+  const n = Math.round(v)
+  return n >= 85 ? 'fit' : n >= 68 ? 'knock' : 'tired'
+}
