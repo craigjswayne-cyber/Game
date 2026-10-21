@@ -16,6 +16,16 @@ import { styleDrain, styleFitsRel, stylesOf } from '../styles'
 import { wetness } from '../conditions'
 import { HABITS, HABITS_OFF, habitFx } from '../habits'
 import { TANK_K, lineupFor, teamUnits } from './selection'
+
+/** while tuned: how much of the shortfall under the 50 floor a man keeps
+ *  (TUNE_TANK_SOFT; 0 is the old hard floor) */
+const TANK_SOFT = Number((globalThis as { process?: { env?: Record<string, string> } }).process?.env?.TUNE_TANK_SOFT ?? 0)
+const TANK_FLOOR = 50
+/** the tank a man kicks off with from his condition */
+export function kickoffTank(c0: number): number {
+  const raw = 100 - (100 - c0) * TANK_K
+  return raw >= TANK_FLOOR ? raw : TANK_FLOOR - (TANK_FLOOR - raw) * TANK_SOFT
+}
 import { type SideCtx, aggPenRisk, fieldLineup, freshMods, personnelKey } from './side'
 
 /** WHAT THE SKY DOES TO THE UNITS (conditions.ts), one place for kick-off and
@@ -524,7 +534,7 @@ export function mkSide(state: GameState, teamId: string, userTeamId: string | nu
       // THREE QUARTERS, NOT HALF (1.8.17, TANK_K, with FIT_W above): half let
       // the same tired XV go out every week at almost no cost.
       const c0 = state.players[id]?.cond ?? 85
-      energy.set(id, Math.max(50, 100 - (100 - c0) * TANK_K) * knockF)
+      energy.set(id, kickoffTank(c0) * knockF)
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })
