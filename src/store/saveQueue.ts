@@ -1,6 +1,7 @@
 import type { GameState } from '../game/model'
 import { saveGame } from '../game/save'
 import { storeApi } from './api'
+import type { Store } from './types'
 
 /**
  * ---- THE SAVE QUEUE ----
@@ -63,11 +64,13 @@ export const saveQueue = (() => {
   // did the last write attempt reach the disk? flush() answers with it
   let lastOk = true
 
-  /** False when the write was held back and the save is still dirty. */
-  const write = async (): Promise<boolean> => {
-    const { game, saveSlot, liveMatch, matchRec } = storeApi().getState()
+  /** False when the write was held back and the save is still dirty.
+   *  `out`: the career leaving the store (leaving()), written as it was,
+   *  without touching the dirty mark that now belongs to the new one. */
+  const write = async (out?: Store): Promise<boolean> => {
+    const { game, saveSlot, liveMatch, matchRec } = out ?? storeApi().getState()
     if (!game) return true
-    if (heldFor && game === heldFor) { lastOk = false; return false }
+    if (heldFor && game === heldFor) { if (!out) lastOk = false; return false }
     // NEVER A HALF-PLAYED MATCH (1.8.1). From the first tick the engine writes
     // tries, cards and injuries onto the players (game/resume.ts), so the game
     // object mid-match is neither the pre-match save nor the finished one. The
@@ -79,8 +82,8 @@ export const saveQueue = (() => {
     // AND NOT WHEN THE MATCH HAS ONLY LEFT THE SCREEN (1.8.2). The crash
     // screen's way out clears liveMatch and leaves the half-played career in
     // memory; the record (matchRec) is what says a match is still owed.
-    if (liveMatch || matchRec) { lastOk = false; return false }
-    dirty = false
+    if (liveMatch || matchRec) { if (!out) lastOk = false; return false }
+    if (!out) dirty = false
     try {
       saveStats.writes++
       await saveGame(saveSlot, game)
@@ -105,8 +108,9 @@ export const saveQueue = (() => {
     if (inFlight) { dirty = true; await inFlight; if (dirty) await run(); return }
     let wrote = true
     const w = write()
-    inFlight = w.then(r => { wrote = r })
-    try { await inFlight } finally { inFlight = null }
+    const mine = w.then(r => { wrote = r })
+    inFlight = mine
+    try { await mine } finally { if (inFlight === mine) inFlight = null }
     // held back for a live match: stay dirty and let the next mark bring it
     // round, rather than spinning here until full time
     if (wrote && dirty) await run()
@@ -120,6 +124,34 @@ export const saveQueue = (() => {
      *  on any other career, or one a failure took, is not this settle's to
      *  lift (1.9.1 bug hunt). */
     resume(g: GameState) { if (heldFor === g) heldFor = null },
+    /**
+     * THE CAREER ON ITS WAY OUT (1.9.4 audit). The timer writes whatever
+     * career the store holds when it fires, so a mark made in the last second
+     * before setGame opened another career was written as the NEW one and the
+     * outgoing career lost its last change (a shortlist star, then Load on the
+     * Saves screen). setGame calls this first: the outgoing career goes to its
+     * own slot now, after any write in flight, under the same rules as every
+     * write (never held, never mid-match).
+     */
+    leaving() {
+      if (!dirty) return
+      if (timer) { clearTimeout(timer); timer = null }
+      const out = storeApi().getState()
+      dirty = false
+      const prior = inFlight
+      const mine = (async () => {
+        if (prior) await prior
+        await write(out)
+      })()
+      inFlight = mine
+      void mine.finally(() => { if (inFlight === mine) inFlight = null })
+    },
+    /** The career in memory is being thrown away for its save (revertToDisk):
+     *  nothing it marked is written, on its way out or after. */
+    discard() {
+      if (timer) { clearTimeout(timer); timer = null }
+      dirty = false
+    },
     /** soft: restart the idle timer rather than keep the first one, so a
      *  stream of marks (a slider dragged through twenty steps) is one write
      *  after the last of them, not one write in the middle of the drag */
