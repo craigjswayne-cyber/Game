@@ -374,6 +374,12 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   const pin = state.players[inId]
   if (slotOn < 0 || slotOn > 14 || !pon || !mine.onPitch.has(onId)) return t('touch.notOnPitch')
   if (!pin || pin.injury || mine.onPitch.has(inId) || mine.ratings.has(inId)) return t('touch.notAvailable')
+  // ONLY THE INJURY'S COVER. A starter has no "comes on" line for the check
+  // below to find, so he could be swapped off here for free, outside the
+  // count, with his mark wiped, and come back later as a fresh replacement.
+  // The match screen only offers the cover the assistant sent on (lastInj);
+  // the man brought on at this same stoppage (lastSub) has not played either.
+  if (mine.lastInj?.coverId !== onId && ctx.lastSub?.inId !== onId) return t('touch.tooLateToUndo')
   /**
    * HE CANNOT BE ERASED ONCE HE HAS PLAYED (coverswap, 1.8.0).
    *
