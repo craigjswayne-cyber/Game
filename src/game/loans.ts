@@ -215,6 +215,8 @@ export function loanTerms(state: GameState, playerId: number, length: LoanLength
 export function loanIn(state: GameState, playerId: number, length: LoanLength = 'season', share = 0.5): string {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
+  // out of work, userClubId is the club that let him go (1.9.4 audit)
+  if (state.unemployed) return t('reply.noDesk')
   if (!p || !loanFree(state, p)) return t('reply.unavailable')
   const parent = state.clubs[p.clubId!]
   if (!parent) return t('reply.unavailable')
@@ -318,6 +320,8 @@ const reply = (ok: boolean, k: string, v: Vars = {}): LoanReply => ({ ok, msg: t
 export function loanOut(state: GameState, playerId: number): LoanReply {
   const p = state.players[playerId]
   if (!p) return reply(false, 'reply.noSuchPlayer')
+  // out of work, userClubId is the club that let him go (1.9.4 audit)
+  if (state.unemployed) return reply(false, 'reply.noDesk')
   if (p.clubId !== state.userClubId) return reply(false, 'reply.loanNotYours')
   if (p.onLoan) return reply(false, 'reply.loanAlreadyOut', { player: p.name })
   if (p.loanFrom) return reply(false, 'reply.loanHereHimself', { player: p.name })
@@ -399,6 +403,7 @@ export function loanOutSummerGain(state: GameState, p: Player): number {
 export function loanRecall(state: GameState, playerId: number): LoanReply {
   const p = state.players[playerId]
   if (!p) return reply(false, 'reply.noSuchPlayer')
+  if (state.unemployed) return reply(false, 'reply.noDesk')
   if (p.clubId !== state.userClubId) return reply(false, 'reply.recallNotYours')
   if (!p.onLoan) return reply(false, 'reply.recallNotOut', { player: p.name })
   // A LOAN IS WEEKS OF RUGBY, NOT A BUTTON.
@@ -524,6 +529,7 @@ export function loanBuyOffer(state: GameState, playerId: number): LoanBuy | null
 export function loanBuy(state: GameState, playerId: number): { ok: boolean; k: string; fee: number } {
   const p = state.players[playerId]
   const offer = loanBuyOffer(state, playerId)
+  if (state.unemployed) return { ok: false, k: 'reply.noDesk', fee: 0 }
   if (!p || !offer) return { ok: false, k: 'reply.unavailable', fee: 0 }
   if (!offer.ok) return { ok: false, k: offer.k, fee: offer.fee }
   const parent = state.clubs[p.loanFrom!]

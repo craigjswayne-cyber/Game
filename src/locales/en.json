@@ -7562,6 +7562,7 @@
   "biggerStage": "{name} thanks you for the interest, but he is holding out for a bigger stage.",
   "joinsFreeSummer": "{name} joins on a free this summer ({wage}/wk agreed).",
   "notYourPlayer": "Not your player.",
+  "noDesk": "You have no club to do that for.",
   "renewedThisSeason": "He signed a new deal this season already. The next conversation about terms is next summer.",
   "squadFull": "The squad is full: 46 senior players is the registration limit. Move somebody on first.",
   "retiringMindMadeUp": "{name} appreciates the gesture, but his mind is made up: he retires in the summer.",
