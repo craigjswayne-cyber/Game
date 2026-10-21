@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { deleteSave, isPlayable, listSaves, loadGame, migrate, saveGame, type SaveMeta } from '../../game/save'
-import { seasonLabel, weekDate, type GameState } from '../../game/model'
+import { deleteSave, listSaves, loadGame, readImport, saveGame, type SaveMeta } from '../../game/save'
+import { seasonLabel, weekDate } from '../../game/model'
 import { SectionTitle } from '../components'
 import { t, localeTag } from '../../game/i18n'
 import { canShareNatively, shareSaveNatively } from '../../game/nativeshare'
@@ -151,19 +151,14 @@ export default function Saves() {
     if (atLimit) { setMsg(t('world.svFreeLimit')); return }
     if (file.size > IMPORT_MAX_BYTES) { setMsg(t('world.svNotASave')); return }
     file.text().then(txt => {
-      const raw = JSON.parse(txt) as GameState
-      if (!raw || !raw.clubs || !raw.players || !raw.userClubId || raw.week == null) {
-        setMsg(t('world.svNotASave'))
-        return
-      }
-      const g = migrate(raw)
-      // THE SAME BAR AS LOADING (1.8.1). The shape check above is only a sniff
-      // for "is this a save at all"; loadGame also refuses a healed state with
-      // no competitions or a manager's club that is not in it (isPlayable), and
-      // an import skipped that, so a damaged file was written to a slot and
-      // opened, then fell over some weeks later. Refused here, it is the same
-      // "not a save" message as any other file that is not one.
-      if (!isPlayable(g)) {
+      // THE SAME BAR AS LOADING (1.8.1). A shape sniff for "is this a save at
+      // all", then loadGame's own bar (isPlayable) after migrate: an import
+      // skipped that once, so a damaged file was written to a slot and opened,
+      // then fell over some weeks later. Refused, it is the same "not a save"
+      // message as any other file that is not one. The gate is readImport
+      // (game/save.ts) since the 1.9.4 audit, so tests hold the real one.
+      const g = readImport(txt)
+      if (!g) {
         setMsg(t('world.svNotASave'))
         return
       }
