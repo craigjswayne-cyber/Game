@@ -1,4 +1,6 @@
-/* ------------------------------------------------------------------
+/*  base.css: reset, fonts, type, shared keyframes and utilities.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  *//* ------------------------------------------------------------------
    Rugby Manager - type
    Two families since 1.9.3 (owner, 19 Oct 2026: "BOLD - source serif pro
    bold with HK grotesk regular - if you need a third option use regular
@@ -115,7 +117,7 @@ html, body, #root { height: 100%; }
 }
 /* the first frame, before the script (index.html) */
 /* The first paint, before the script: the title screen's own art, scrim and
-   wordmark (06-title.css), always in the night palette because no theme class
+   wordmark (07-title.css), always in the night palette because no theme class
    exists yet. The thin bar under it breathes while the game loads. */
 .boot-splash {
   height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -128,20 +130,6 @@ html, body, #root { height: 100%; }
     url('../title-bg.webp') 6% center / cover no-repeat,
     var(--canvas);
 }
-.boot-splash .bs-rule { width: 64px; border: none; border-top: 2px solid var(--text-primary); margin: 16px auto; }
-.boot-splash .bs-word {
-  font-family: var(--serif); font-size: 2.875rem; font-weight: 900; line-height: 1.02;
-  letter-spacing: 4px; text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
-}
-.boot-splash .bs-word b { color: var(--primary); font-weight: 900; }
-.boot-splash .bs-load {
-  width: 120px; height: 3px; margin-top: 22px; border-radius: 2px;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent) 0 0 / 50% 100% no-repeat,
-    color-mix(in srgb, var(--text-primary) 14%, transparent);
-  animation: bs-sweep 1.2s ease-in-out infinite;
-}
-@keyframes bs-sweep { from { background-position: -60px 0, 0 0; } to { background-position: 180px 0, 0 0; } }
-@media (prefers-reduced-motion: reduce) { .boot-splash .bs-load { animation: none; background-position: 30px 0, 0 0; } }
 @media (prefers-reduced-data: reduce) {
   .boot-splash { background: radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%), var(--canvas); }
 }
@@ -155,9 +143,9 @@ html, body, #root { height: 100%; }
    the scroller as well as on the document. Both, plus every inner scroller, or
    the chain finds its way back to the document and pulls. */
 html { overscroll-behavior: none; }
+@supports (height: 100dvh) {
 /* mobile browsers: 100% of html can undershoot when the URL bar collapses,
    leaving a dead band below the app - dvh tracks the real visible height */
-@supports (height: 100dvh) {
   /* divided by --zoom (the text-size setting, store.ts): zoom scales every
      rendered length INCLUDING dvh, so at 1.3 a bare 100dvh shell painted 30%
      taller than the screen and the whole app scrolled - measured by
@@ -219,19 +207,149 @@ input, select, textarea { font: inherit; font-size: max(16px, 1rem); color: var(
 option { font: inherit; color: var(--text-primary); background-color: var(--surface-1); }
 ::placeholder { color: var(--text-muted); opacity: 1; }
 
-.app {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-width: 560px;
-  margin: 0 auto;
-  /* re-anchor inherited text colour INSIDE the themed subtree: body resolves
-     var(--text-primary) with light-theme values, so night-mode descendants relying on
-     inheritance would otherwise get the light theme's near-black ink */
-  color: var(--text-primary);
-  background:
-    var(--canvas);
-  box-shadow: 0 0 60px rgba(0, 0, 0, .35);
+/* ================= Bottom nav ================= */
+/* --ad-inset is 0px everywhere the game runs on its own. A packaged shell with
+   an advert provider (packaging/shell/ads-bridge.js) sets it to the height of
+   the native banner it has drawn over the bottom of the web view, and to 0px
+   again when the banner goes, so the banner sits UNDER the nav in room the nav
+   has made for it - never over content, never over a button. Declared here
+   rather than in tokens.css because it is room, not colour. */
+:root {
+  --ad-inset: 0px;
+  /* THE SAFE AREA, AS A TOKEN. Browsers answer env(safe-area-inset-*) and that
+     is the default here. Android's WebView does not: on Android 15 the app is
+     drawn edge to edge under the status bar and the gesture or button bar, and
+     env() reads 0px, so the game's bottom edge sat under the system bar and
+     "Continue to Results" could not be reached (owner, 1.2.9 on a real phone).
+     Capacitor's built-in SystemBars plugin measures the bars and writes these
+     four variables INLINE on <html>, which beats this rule, so every read below
+     goes through the token and gets the right answer on both. */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+.bottom-nav .ico { width: 26px; height: 26px; display: block; }
+.bottom-nav .ico svg { width: 100%; height: 100%; display: block; }
+.bottom-nav .dot {
+  position: absolute; top: -3px; right: -9px;
+  background: var(--danger);
+  color: var(--on-danger); font-size: 0.6875rem; font-weight: 800;
+  min-width: 15px; height: 15px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; padding: 0 4px;
+  border: 1.5px solid var(--surface-1);
+}
+.pos-badge {
+  display: inline-block;
+  font-family: var(--cond); font-size: 0.75rem; font-weight: 700; letter-spacing: .5px;
+  background: var(--surface-3);
+  color: var(--text-primary); border-radius: 4px; padding: 1.5px 5.5px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
+}
+.pos-badge.back { background: var(--border-strong); color: var(--text-primary); }
+.muted { color: var(--text-muted); font-size: 0.75rem; font-weight: 500; }
+.center { text-align: center; }
+.spacer { height: 14px; }
+
+/* a win is POSITIVE, not "the accent colour" - see --positive in
+   tokens.css: on a cyan or monochrome skin the accent is not green, and a
+   result column that stops reading green-vs-red at a glance is the one
+   thing the skin brief said must survive every theme */
+.result-w { color: var(--text-positive); font-weight: 700; }
+.result-l { color: var(--danger); font-weight: 700; }
+.result-d { color: var(--text-muted); font-weight: 700; }
+
+/* stat hero numbers (finances, club) */
+.big-num { font-family: var(--cond); font-weight: 700; font-size: 1.375rem; letter-spacing: .5px; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .bottom-nav .ico { width: 34px; height: 34px; }
+}
+.speech-tile .ico { font-size: 1.125rem; }
+.spec-tile .ico { font-size: 1.125rem; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
+/* the bold serif, by job: headings, stat labels and scores (owner,
+   19 Oct 2026) */
+h1,
+h2,
+h3 {
+  font-family: var(--cond);
+  font-weight: 700;
+}
+
+/* ---- a selection you can actually see (feedback: "when you select one of the
+   boxes it needs to be highlighted as its unclear if you've selected it") ----
+   Every selectable box in the game marks itself with var(--gold), and --gold is
+   #5c6470: a slate grey, left over from when the palette went blue. So "selected"
+   was a grey 1.5px border plus a 10% grey wash over a navy tile - a luminance
+   change of about three percent, which is nothing on a phone in a lit room.
+   --pick is the accent selection actually uses: the theme's bright blue, at a
+   strength you cannot miss. It is a separate name from --gold-bright on purpose,
+   so that the next person to retint the palette can see that selection depends
+   on it. densityaudit's sibling, pickaudit, now measures the difference. */
+:root { --pick: var(--primary-hover); --pick-ink: var(--on-primary); }
+.b23-seat .pos-badge { font-size: 0.6875rem; padding: 1px 4px; }
+@media (prefers-reduced-motion: reduce) {
+
+/* ================= Reduced motion =================
+   Twenty-five animations, a live match that flashes try zones and sweeps
+   banners across the pitch, and no answer at all for a phone whose owner has
+   asked the OS to calm things down. Flagged in the studio audit.
+
+   The standard recipe - collapse every duration to nothing - is right for
+   twenty-three of them: a score pop, a dot pulse, a pack shove and a ball arc
+   all end where they started or end visible, so finishing instantly means the
+   information arrives without the movement.
+
+   It is WRONG for the two that carry the message themselves. The full-time
+   stamp and the live event banner both END at opacity 0 and hold it forwards,
+   because that is how they clear themselves. Collapse those and the moment is
+   not calmed, it is deleted: no full-time stamp, no try banner, no card
+   banner. So those two keep their full length and lose only the travel. */
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+.scout-row .pos-badge { flex: 0 0 auto; min-width: 30px; text-align: center; }
+.mp-table td.pos { color: var(--text-positive); }
+@media (prefers-reduced-motion: no-preference) {
+  /* bars fill from the left the first time they are drawn */
+  [data-motion="on"] .grow-x { transform-origin: left center; animation: m-grow .6s cubic-bezier(.2, 0, 0, 1) .1s backwards; }
+  /* a new count on the inbox badge pops once */
+  [data-motion="on"] .bottom-nav .dot { animation: m-pop .3s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+}
+@keyframes m-grow { from { transform: scaleX(0); } }
+@keyframes m-grow-y { from { transform: scaleY(0); } }
+@keyframes m-pop { from { transform: scale(.4); } }
+
+/* icons in place of emoji (glyphs.tsx): sit on the text's baseline */
+.glyph { display: inline-block; vertical-align: -0.14em; flex-shrink: 0; }
+/* the glyph where an emoji used to stand on its own: a card row's leading
+   icon, a moment's big mark, a marker beside a name */
+.row-ico { font-size: 1.375rem; line-height: 1; flex-shrink: 0; display: inline-flex; color: var(--gold); }
+.row-ico .glyph { vertical-align: 0; }
+.celebrate-ico .glyph, .sack-ico .glyph { vertical-align: 0; }
+.mark { display: inline-flex; font-size: 1em; }
+.fan-face .glyph { vertical-align: 0; }
+.preset-chip .glyph { font-size: 1.3em; vertical-align: -0.28em; }
+.ideas-discord .glyph { font-size: 1.2em; }
+
+/* Day theme: a forward's position badge was --surface-3, which in daylight is
+   the same white as the row under it, so LK and HK lost their box while FH
+   and WG kept theirs. And the grey form band carried white figures on a light
+   grey. Both keep their night look. */
+.app:not(.night) .pos-badge:not(.back) { background: var(--surface-2); }
+/* A slider's reach is its own box, so the box is 44px tall. Inside a
+   .slider-row the extra sits over the label and the readout, neither of
+   which is a control, so the row keeps its height. */
+input[type=range] { height: 44px; }

@@ -1393,6 +1393,17 @@ function migrateStylesAndPlans(s: GameState): void {
     if (!okOrder || !okRot) delete s.seasonPlan
     else if (typeof sp.season !== 'number') s.seasonPlan = { order: sp.order!, rot: sp.rot!, season: s.season }
   }
+  // THE FIRST-SEASON CHECKLIST (1.9.4, firststeps.ts). Absent on older saves,
+  // which never show it. A damaged one keeps only the steps it knows.
+  if (s.firstSteps != null) {
+    const fs = s.firstSteps as Partial<NonNullable<GameState['firstSteps']>>
+    const known = new Set(['plan', 'academy'])
+    if (typeof fs !== 'object') delete s.firstSteps
+    else s.firstSteps = {
+      seen: Array.isArray(fs.seen) ? fs.seen.filter(x => known.has(x)) : [],
+      ...(fs.skipped === true ? { skipped: true } : {}),
+    }
+  }
 }
 
 function migrateLeaders(s: GameState, settled: Set<string>): void {

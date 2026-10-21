@@ -1,0 +1,512 @@
+/*  controls.css: buttons, chips, presets, toggles, sliders, inputs, filters.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  */
+
+/* ================= Buttons ================= */
+.btn {
+  display: inline-block;
+  background: var(--surface-3);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: .3px;
+  padding: 9px 13px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+.btn.gold {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  box-shadow: none;
+}
+.btn.danger { background: var(--danger); color: var(--on-danger); }
+/* A full-width button is always a primary action, so it gets the full target.
+   Deliberately not put on .btn itself: nineteen small buttons live inside live
+   table rows, and growing those to 44px would both undo the density pass and
+   push the row they sit in around. Those are covered by an explicit, narrower
+   floor in scripts/tapsize.mjs instead. */
+.btn.block { display: block; width: calc(100% - 28px); margin: 12px 14px; min-height: 44px; }
+.btn:disabled { opacity: .4; }
+.btn:active { transform: translateY(1px); }
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 14px; }
+.btn-row .btn { flex: 1; }
+/* THE NEWS READER'S BUTTONS (27 Sep 2026): one line each, never three */
+.wire-actions .btn { white-space: nowrap; min-height: 44px; }
+
+/* ================= Chips ================= */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 10px 16px; }
+.chip {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 4.5px 9px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+
+}
+.chip b { font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.speed-controls .btn {
+  flex: 1; min-height: 48px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 4px; font-family: var(--cond); font-size: 1rem; letter-spacing: 1px;
+}
+
+/* ================= Sliders ================= */
+.slider-row { padding: 11px 16px; }
+.slider-row input[type=range] { width: 100%; accent-color: var(--primary); }
+.inline-input {
+  width: 100%; padding: 11px 12px;
+  border: 1.5px solid var(--border-strong); border-radius: 8px;
+  /* both halves of the pair, on the same rule, so neither can go missing */
+  background: var(--surface-1); color: var(--text-primary);
+  margin: 6px 0;
+}
+/* A field keeps a visible focus indicator (WCAG 2.4.7): it used to drop the
+   outline and lean on a border colour change alone, which was the same
+   colour as a selected row and under 3:1 in some palettes. The ring is the
+   palette's --focus-ring; a label that wraps a bare input (the training
+   search) shows it for the input inside. */
+.inline-input:focus, .inline-input:focus-within {
+  outline: 2px solid var(--focus-ring); outline-offset: 1px;
+  border-color: var(--row-selected-border);
+}
+/* A long option never runs under the chevron, and a select never outgrows
+   its row. Every <select> in the game carries .inline-input (selectlint). */
+select.inline-input { max-width: 100%; text-overflow: ellipsis; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .content > .chips { max-width: 820px; }
+}
+.action-bar .btn { flex: 1; padding: 13px 0; font-size: 0.875rem; min-height: 44px; }
+.tut-close .btn { width: 100%; }
+.pro-card .btn.ghost.pro-btn { border: 1px solid var(--border-strong); }
+.fb-card .btn.ghost.fb-btn { border: 1px solid var(--border-strong); }
+
+/* one-tap game plans */
+.preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.preset-chip {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border-radius: 15px;
+  padding: 6px 11px;
+  /* 28px before. The full 44px is not available to a chip in either axis: six of
+     them go across a 412px filter row, and a wrapped row has a live row of chips
+     above and below it, so widening steals from the neighbour and an invisible
+     expander would overlap the row it wrapped from. 36px is what a segmented
+     control gets on iOS, and scripts/tapsize.mjs holds chips to exactly that
+     rather than pretending they meet the 44px rule. */
+  min-height: 36px;
+  font-size: 0.6875rem; font-weight: 700; font-family: var(--sans);
+
+}
+.preset-chip:active { background: var(--row-hover-bg); }
+/* a choice's words, and its figure on a quieter line under them */
+.opt-label { display: inline-flex; flex-direction: column; min-width: 0; }
+.opt-detail { display: block; margin-top: 2px; font-size: 0.75rem; font-weight: 500; line-height: 1.3; color: var(--text-muted); }
+.desk-opts .chip { min-height: 36px; text-align: left; white-space: normal; line-height: 1.25; padding: 6px 10px; }
+.desk-mhead .chip { flex-shrink: 0; }
+/* THE STATS SHEET (v1.1.9). Home | label | away, the way a broadcast
+   graphic reads, in fixed columns so the numbers do not jump about as they
+   tick up. Tabular figures for the same reason. Deliberately quiet: it sits
+   under live commentary and must never compete with it. */
+
+/* match prep chips on a single scrollable line */
+.preset-row.oneline { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+.preset-row.oneline .preset-chip { flex: 0 0 auto; }
+.filter-row {
+  display: flex; gap: 6px; padding: 7px 14px 6px;
+  flex-wrap: wrap; align-items: center;
+}
+.filter-note {
+  font-family: var(--sans); font-size: 0.6875rem; font-weight: 600;
+  letter-spacing: .2px; color: var(--text-muted);
+  margin-left: auto; text-align: right;
+}
+/* A tiny button looks tiny and TAPS BIG.
+ *
+ * Found in the studio audit: at 11px text with 3px padding these render about
+ * 19px tall, against a 44pt iOS / 48dp Android guideline, and they carry the
+ * inbox reader's older/newer arrows - the control used most often outside a
+ * match. Growing the box would wreck the density the whole UI is tuned for.
+ *
+ * So the visual box is untouched and an invisible ::after extends the hit area
+ * past it. The pseudo-element belongs to the button, so a tap anywhere in it
+ * counts as a tap on the button, and because it is absolutely positioned it
+ * changes no layout at all. Vertical expansion is generous because toolbar rows
+ * have space above and below; horizontal is deliberately small so two adjacent
+ * tiny buttons cannot steal each other's taps.
+ *
+ * scripts/tapsize.mjs measures the result in a real browser and fails the build
+ * on anything under 44px, which is the tripwire that did not exist before. */
+.btn.tiny {
+  padding: 3px 9px; font-size: 0.6875rem; letter-spacing: .6px;
+  border-radius: 6px; min-height: 0;
+  position: relative;
+}
+.btn.tiny::after {
+  content: ''; position: absolute; inset: -13px -3px;
+}
+/* A rewarded spot offered on a line of text (1.8.2: the inside word, the
+   second opinion, tape room night). It sits in the line it answers rather than
+   in a block of its own, so its box is no taller than the text around it and
+   the page is not one pixel deeper for it (scrollaudit); the ::after carries
+   the tap out to 46px as it does for every tiny button (tapsize). */
+/* a rewarded-advert button: the store's gold with near-black ink, in every
+   theme and skin (1.8.9, components.tsx RewardedButton) */
+.btn.spot-ad, .btn.ghost.spot-ad {
+  background: var(--gold-fill); color: var(--on-gold-fill);
+  border: 1.5px solid var(--gold-fill);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+.btn.spot-ad:disabled { opacity: .7; }
+.btn.tiny.spot { padding: 0 8px; line-height: 15px; }
+.btn.tiny.spot::after { inset: -15px -3px; }
+/* A control that sits in a table row (the Medical Centre's specialist, favour,
+   knock and joker buttons). Tapped on a phone like any other button, so it is
+   36px of box and 5px of reach either side: 46px, clear of the 44 floor.
+   Rows of them wrap 10px apart, so neighbouring reaches meet and never overlap
+   - a .btn.tiny's 13px reach would steal the tap from the button below it
+   (tapsize, release audit 1.7.1). */
+.btn.rowact {
+  padding: 6px 10px; font-size: 0.75rem; letter-spacing: .3px;
+  min-height: 36px; border-radius: 8px; position: relative;
+}
+.btn.rowact::after { content: ''; position: absolute; inset: -5px 0; }
+.lead-row .inline-input { margin: 0; flex: 1; min-width: 0; }
+/* and the grotesk for everything tapped */
+.btn {
+  font-family: var(--sans);
+}
+.btn,
+.preset-chip {
+  font-weight: 600;
+}
+.btn { letter-spacing: 0.5px; font-weight: 700; }
+
+/* the squad summary rides the tab bar, which scrolls horizontally - so it needs
+   its own right margin or the last word sits under the screen edge */
+.tab-bar .filter-note {
+  padding-right: 14px; padding-left: 10px;
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* the chosen exit strategy and penalty instruction have to look chosen */
+.preset-chip.on {
+  background: var(--pick); color: var(--pick-ink); font-weight: 800;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--pick) 60%, var(--text-primary));
+}
+@media (orientation: landscape) and (min-width: 700px) {
+  .brief-row .preset-row { margin-top: 0; flex: 1; justify-content: flex-end; }
+}
+.brief-row .preset-row { margin-top: 5px; gap: 5px; }
+.brief-row .preset-chip { padding: 5px 9px; font-size: 0.6875rem; }
+.mv-want .preset-chip { flex: none; min-height: 36px; margin: 0; }
+.mv-chips .preset-chip { min-height: 36px; }
+/* a move already in the playbook */
+.mv-chips .preset-chip.mv-in { box-shadow: inset 0 0 0 1.5px var(--gold); }
+.prep-plans .preset-row { margin-top: 0; }
+.plan-opt .opt-main { font-size: 0.875rem; font-weight: 700; line-height: 1.25; }
+/* the grey line on the picked one's wash takes the secondary ink, so it reads */
+.plan-opt.on .opt-detail { color: var(--text-secondary); }
+.plan-xref .preset-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; }
+
+/* ---- the leadership card, compacted -------------------------------------
+   Six select rows at .inline-input's 11px padding plus 6px margin is 276px in a
+   card that shares the page with a team sheet and a bench. It pushed Selection
+   to 3.05 screenfuls, which is the "too many squad pages" complaint wearing a
+   different hat. Row-height controls, and the four portfolios two-up where
+   there is width for it. */
+.lead-row .inline-input {
+  width: auto; flex: 1; min-width: 0;
+  padding: 3px 6px; margin: 0;
+  font-size: 0.75rem; border-width: 1px; border-radius: 6px;
+}
+.reader-acts .btn.tiny { white-space: nowrap; }
+@media (max-width: 599px) {
+  .reader-bar .reader-acts .btn.tiny { white-space: normal; line-height: 1.2; }
+}
+/* The older/newer arrows are the control a manager uses most often outside a
+   match, and they were 30x24. Here they get real size rather than an invisible
+   expander: the bar's siblings are 6px away, so an expander big enough to reach
+   44px would have been reaching into the button next to it. */
+.reader-bar .btn.tiny { padding: 3px 9px; min-width: 44px; min-height: 44px; }
+.reader-bar .btn.tiny::after { content: none; }
+.reader-bar .btn.tiny:disabled { opacity: .35; }
+.bug-send .btn { flex: 1 1 auto; white-space: nowrap; }
+/* the answer to a bid, under the story that brings it (Inbox OfferAnswer): the
+   reader carries its own gutter, so the button spans it rather than insetting */
+.btn.block.offer-answer { width: 100%; margin: 14px 0 0; }
+.crash-btns .btn { flex: 1; min-width: 150px; padding: 12px 10px; font-size: 0.8125rem; }
+.crash-btns .btn.ghost { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
+.save-warn-btns .btn.ghost { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+
+/* The transfer filters on one row of their own. Equal flex with min-width 0 so
+   four controls divide whatever width there is instead of wrapping into three
+   rows and eating a third of a portrait screen before the results start.
+
+   Its own class name, NOT .filter-row: the Squad screen already owns that one
+   for its six chips and a search box, and forcing equal flex on those crushed
+   every chip to 47px ("🚑 Unavailable" lost 35 characters' worth). Reusing a
+   layout class across two rows that want opposite behaviour is how that breaks. */
+.filter-line {
+  display: flex; gap: 6px; padding: 0 14px 2px; align-items: stretch;
+}
+
+/* THE FOUR WEDNESDAYS, WITH AIR AROUND THEM (owner, 1.5.8: "check the spacing
+   for arrange a friendly - the boxes feel a little to close together").
+   .filter-line is shared with the transfer filters, where a tight row of
+   dropdowns is right; here it is four dates to choose between, and portrait
+   squeezed them to a 4px gap with 2px between the row and the clubs under it,
+   so the whole block read as one grey mass. Its own class rather than loosening
+   every filter row in the game, and it wraps rather than shrinking, because a
+   date that has been squeezed narrower than its own text is not a date. */
+.filter-line.friendly-dates {
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+.filter-line.friendly-dates > .chip { padding: 9px 12px; min-height: 40px; }
+@media (orientation: portrait) {
+  .filter-line.friendly-dates { gap: 8px; padding-bottom: 12px; }
+}
+/* three dates, one line (owner, 27 Sep 2026) */
+.filter-line.friendly-dates { flex-wrap: nowrap; }
+.filter-line.friendly-dates > .chip { flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; white-space: nowrap; padding-left: 6px; padding-right: 6px; }
+.filter-line > .inline-input, .filter-line > .preset-chip {
+  flex: 1 1 0; min-width: 0; margin: 0;
+  font-size: 0.75rem; padding-left: 7px; padding-right: 7px;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+@media (orientation: portrait) {
+  .filter-line { gap: 4px; }
+  .filter-line > .inline-input, .filter-line > .preset-chip {
+    font-size: 0.6875rem; padding-left: 5px; padding-right: 5px;
+  }
+}
+.talk-acts .btn { margin: 0; width: 100%; min-height: 44px; white-space: normal; line-height: 1.2; }
+
+/* Four standing instructions, two by two (user: "tidy kickable penalty options
+   so its 2 by 2 distributed buttons and do the same for exit strategy"). As a
+   wrapping flex row the four chips broke 3 + 1 or 2 + 2 depending on how long
+   the labels were, so the same card looked different on every screen and the
+   odd chip on its own row read as more important than the rest. A grid says
+   four equal choices and means it. */
+.opt-2x2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px;
+}
+.opt-2x2 .preset-chip {
+  border-radius: 8px; padding: 8px 6px; text-align: center;
+  white-space: normal; line-height: 1.25;
+}
+
+/* ================= 44px, on the twenty-seven screens nobody measured =========
+ *
+ * scripts/geosweep.mjs walked all 32 routed screens at three geometries and
+ * found twelve classes of control under the 44px target the project already
+ * holds itself to. Not one was geometry-dependent: they were the same size on a
+ * 360px phone and a 430px one, which is the tell that this was never a
+ * dimensions bug at all. It was a COVERAGE bug.
+ *
+ * tapsize.mjs, which owns this rule, visits five screens - Home, the inbox
+ * reader, Team, Tactics, Finances - and queries `button` only. So every button
+ * on the other twenty-seven screens, and EVERY `<select>` in the entire game,
+ * had never once been measured. The controls below include Save, Load and
+ * Delete, which are the three buttons in this game that can lose a career.
+ *
+ * Two tools, and which one applies is decided by the element, not by taste:
+ *
+ *   ::after EXPANDER where the visual box has to stay small for density. Used
+ *     on the chips and the text links, as .btn.tiny and .back-btn already do.
+ *   min-height WHERE THE BOX CAN GROW - and it is the ONLY option for a
+ *     <select>, because pseudo-elements do not render on form controls. That is
+ *     why the two deliberately-compacted select rules below give up their
+ *     compaction: there was no third choice, and a 26px dropdown that assigns
+ *     the club captaincy is not a density trade-off worth keeping.
+ */
+
+/* A button in a .btn-row is a primary action in a row of its own, with a 12px
+   margin and nothing to crowd. 39px, and no reason for it. */
+.btn-row .btn { min-height: 44px; }
+
+/* Every dropdown in the game. The base control was 41px - three short. */
+.inline-input { min-height: 44px; }
+
+/* THE TWO COMPACTIONS THIS GIVES BACK, and what each cost to keep.
+ *
+ * .lead-row was squeezed to 3px padding (26px tall) because six select rows at
+ * the base padding made the leadership card 276px and pushed Selection to 3.05
+ * screenfuls. .gt-sel was squeezed for the same reason inside a table row.
+ * Both were reasonable calls made by someone reading heights off a layout; both
+ * were made without anyone having measured the tap target, because nothing in
+ * the suite measured selects.
+ *
+ * MEASURED cost of giving the compaction back, from scripts/scrollaudit.mjs
+ * against a worktree at the previous commit: Selection 2.51 -> 2.73 screenfuls.
+ * The handbook pays more for the .news-item rule above - 2.38 -> 2.79, which is
+ * 49 chapter rows gaining 8px each - and transfers 2.17 -> 2.20. All three stay
+ * inside scrollaudit's bar, and densityaudit and overlapaudit both still pass.
+ * Worth saying plainly: this round traded about a fifth of a screenful on two
+ * screens for controls a thumb can actually hit. */
+.lead-row .inline-input { min-height: 44px; }
+
+/* The pager under the transfer search: two buttons 14px apart in a centred row
+   of their own. 39px, and the row has 8px of padding to give. */
+.pager { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 0; }
+.pager .btn { min-height: 44px; }
+
+/* THE MENTORING CHIPS GET A DOCUMENTED 36px FLOOR, NOT 44, and this is the one
+ * exception in this block - so here is the measurement rather than an opinion.
+ *
+ * They are `button.chip` in a wrapping `.chips` row with a 7px gap. The first
+ * attempt was the usual ::after expander, and it bought 6px, not 16: with an
+ * expander on every chip, adjacent rows' expanders meet in the middle of the
+ * gap and each chip can only claim ~3.5px of it. Measured reach was 34px. Past
+ * that, an expander big enough to reach 44px overlaps the neighbour's and turns
+ * a tap into a coin flip between two kids - which is the same reason
+ * `form-chip` and `preset-chip` carry 36px floors instead of 44.
+ *
+ * So the box grows to 36px, which needs no expander at all and cannot steal a
+ * neighbour's tap. `.chip` is also the read-only info chip used all over the
+ * game, so only the interactive ones move. Registered as a floor in BOTH
+ * scripts/tapsize.mjs and scripts/geosweep.mjs, because a floor known to one
+ * probe and not the other is how the next person gets a mystery failure. */
+button.chip { min-height: 36px; display: inline-flex; align-items: center; }
+
+/* ---- AND NOW THEY REACH 44 (WCAG pass) ------------------------------------
+ * The floors above were measured with a 6-7px gap between wrapped rows, where
+ * two expanders meet in the middle and each gets ~3.5px. With the row gap at
+ * 8px each chip can own exactly 4px above and below without touching its
+ * neighbour's, so a 36px box carries a 44px target and the chip looks the
+ * same size it always did. Width: none of these is narrower than 44px, and
+ * min-width makes sure a one-word chip cannot become the exception.
+ * scripts/tapsize.mjs and geosweep.mjs hold all three families to 44 now. */
+button.chip, .preset-chip { position: relative; min-width: 44px; }
+button.chip::before, .preset-chip::before { content: ''; position: absolute; inset: -4px 0; }
+.chips, .preset-row { row-gap: 8px; }
+.bid-step .btn {
+  min-height: 44px;
+  padding: 4px 2px;
+  font-size: 0.8125rem;
+  /* the label is short but a narrow column must never be the thing that
+     decides the layout: let it shrink rather than push the grid wider */
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* ---- v1.2.7: the record, the manager's plans, the depth chart, and a
+   button that asks once ---- */
+.btn.armed { animation: armed-pulse .9s ease-in-out infinite alternate; }
+@keyframes armed-pulse { from { filter: brightness(1); } to { filter: brightness(1.18); } }
+@media (prefers-reduced-motion: reduce) { .btn.armed { animation: none; }
+}
+.preset-chip.plan-empty { border-style: dashed; opacity: .85; }
+.loan-sheet .loan-deal .inline-input { padding: 9px 10px; width: 100%; }
+.zone-row .preset-chip {
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+/* ---- the search screen's views (1.8.0, Transfers.tsx) ---- */
+/* ---- THE FILTER SHEET (1.8.0) ----
+   The market's one row: the name search, a Filters button that says how many
+   are on, and the View menu. Everything else sits in a bottom sheet with a
+   label beside each control, so nothing on the page is a dropdown whose only
+   label is its own placeholder. */
+.filter-line > .filter-btn { flex: 1 1 0; min-width: 0; text-align: center; cursor: pointer; font-weight: 600; }
+.filter-line > .filter-btn.on { background: var(--primary-tint); border-color: var(--primary); color: var(--primary); }
+.filter-sheet { padding: 0 16px calc(var(--safe-area-inset-bottom) + 12px); }
+.filter-sheet h3 { margin: 2px 0 10px; }
+.fs-grid .inline-input { margin: 0; width: 100%; min-width: 0; }
+.filter-sheet .btn-row {
+  margin: 12px 0 0; padding: 10px 0 2px;
+  /* Show stays in reach however tall the sheet gets */
+  position: sticky; bottom: 0; background: var(--canvas);
+}
+@media (orientation: landscape) and (max-height: 560px) {
+/* landscape: the phone is 412 tall, so the sheet goes wide instead of long,
+   two label-and-control pairs to a row and the switches in two columns */
+  .filter-sheet { max-width: 760px; max-height: 94vh; max-height: calc(94dvh / var(--zoom, 1)); }
+}
+
+/* ---- THE SWITCH (1.8.0, components.tsx Toggle) ----
+   The whole row is the target; the switch is the state. 150ms on the knob,
+   the duration a toggle should take and no longer. */
+.toggle-row {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 44px; padding: 4px 0; background: none; border: none;
+  color: var(--text-primary); text-align: left; cursor: pointer; font: inherit;
+}
+.toggle-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.toggle-label { font-weight: 700; font-size: 0.875rem; }
+.toggle-sub { font-size: 0.75rem; color: var(--text-muted); line-height: 1.35; }
+.toggle {
+  position: relative; flex: none; width: 46px; height: 26px; border-radius: 13px;
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.toggle i {
+  position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--text-secondary);
+  transition: transform .15s cubic-bezier(.2, 0, 0, 1), background-color .15s ease;
+}
+.toggle-row.on .toggle { background: var(--primary); border-color: var(--primary); }
+.toggle-row.on .toggle i { transform: translateX(20px); background: var(--on-primary); }
+.toggle-row:focus-visible .toggle { outline: 2px solid var(--gold); outline-offset: 2px; }
+@media (orientation: portrait) {
+  .app.tablet .content > .chips { max-width: none; }
+}
+.settings-sheet > .btn.gold.block { margin-left: 16px; margin-right: 16px; width: calc(100% - 32px); }
+.speed-controls .btn { flex: 0 0 48px; width: 48px; padding: 0; }
+.med-search .inline-input { margin: 0; padding: 8px 10px; font-size: 0.8125rem; }
+
+/* The handbook's search box sat flush against both edges of the glass while
+   everything under it kept the 14px gutter. */
+.preset-row.hb-search { padding: 0 14px; }
+
+/* A link dressed as a button reads as a button: E-mail sat underlined between
+   Copy and Save file, and About's two boxes were underlined text in a frame. */
+a.btn { text-decoration: none; }
+/* and its label sits where a <button>'s does: centred in the box, not riding
+   3px high at the top of it beside a stretched neighbour */
+.btn-row a.btn { display: inline-flex; align-items: center; justify-content: center; }
+
+/* Day theme, the same fault at larger scale: --surface-3 is white in daylight,
+   which is right for a control on the grey canvas and invisible on a white
+   card. The Save buttons on Game Status, Export Career, the depth chart's
+   names and the Copy button on Report a Bug all showed as bare text. A
+   hairline gives them back their edge; night is untouched. */
+.app:not(.night) .btn:not(.gold):not(.ghost):not(.danger) { box-shadow: inset 0 0 0 1px var(--border-strong); }
+
+/* The development list's Add / Remove: 29px of box on a 52px row, which
+   geosweep failed at every phone size. The box keeps its size; the reach
+   grows into the row's own padding, the way the Medical Centre's row
+   buttons do. */
+.btn.dev-act { position: relative; }
+.btn.dev-act::after { content: ''; position: absolute; inset: -8px -4px; }
+a.btn.home-community {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-sizing: border-box; color: var(--text-primary); border-color: var(--border-strong);
+}
+.board-done-row .opt-detail { display: inline; }
+
+/* ---- THE LAST SMALL CONTROLS (1.8.15) ----
+ * Found by the release hardening play-through, measured on a 412px phone:
+ * the contract steppers were 33x36, the two contract checkboxes sat in 30px
+ * rows, the filter toggles in 40px rows, and every slider in the game was a
+ * 16px strip. scripts/tapsize.mjs never saw form controls, so nothing held
+ * them; scripts/tapcontrols.mjs does now. */
+.btn.stepper { min-width: 44px; min-height: 44px; }
+.check-row { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 0.8125rem; cursor: pointer; }
+.check-row input { width: 22px; height: 22px; accent-color: var(--primary); flex: none; }
+.slider-row input[type=range] { display: block; margin: -14px 0; position: relative; }
+.app.tablet a.btn.home-community { margin: 16px 14px 0; width: calc(100% - 28px); }
+.app.tablet .tab-stats .talk-react .tr-head .btn { white-space: nowrap; flex: none; }
+.tele-foot .btn { margin: 0; min-height: 44px; }
+.tele-foot .btn.block { flex: 1; width: auto; }

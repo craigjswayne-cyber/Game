@@ -28,6 +28,7 @@ import { buildDesk, deskText } from '../../game/desk'
 import { DeskCard, DeskTile, deskRows } from '../Desk'
 import { rowNav } from '../rowNav'
 import { acc } from '../accent'
+import { FirstSteps } from '../FirstSteps'
 
 
 /**
@@ -209,6 +210,9 @@ export default function Home() {
           )}
         </div>
       ) : <BlankWeek hook={hook} />} />
+      {/* the first season's checklist, under the week's business and above
+          the readouts, until it is done or skipped (firststeps.ts) */}
+      <FirstSteps />
       <div className="card-grid home-tiles" ref={tilesRef}>
       {/* The Championship panel, in whichever game this career is in: the id and
           the window both differ between the two, and naming the men's flat meant

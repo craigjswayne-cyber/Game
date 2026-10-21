@@ -1,6 +1,6 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { useStore } from '../../store'
-import { clubCode, fmtMoney, fmtWage, POS_ORDER, seasonLabel, type Attrs, type Pos } from '../../game/model'
+import { clubCode, fmtMoney, fmtWage, POS_ORDER, seasonLabel, type Attrs, type Player, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
 import { isDeadlineWeek, openDate, shutDate } from '../../game/window'
 import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
@@ -11,7 +11,8 @@ import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 import { ScoutingBody } from './Scouting'
-import { ariaSort, refocus, rowNav, rowNavTr } from '../rowNav'
+import { rowNav, rowNavTr } from '../rowNav'
+import { DataTable, type Col, type SortState } from '../DataTable'
 import { Veil } from '../Veil'
 import { accLine } from '../accent'
 
@@ -102,15 +103,51 @@ export default function Transfers() {
     [game, game.week, tick, deal, search])
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser)
 
-  const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
-    <th className={`th-sort${msort === k ? ' active' : ''}${right ? ' num' : ''}`}
-      aria-sort={ariaSort(msort === k, mdesc, k === 'age' || k === 'name')}>
-      <button type="button" className="th-btn" data-focus-key={`tr-${k}`}
-        onClick={e => { refocus(`tr-${k}`, document.activeElement === e.currentTarget); if (msort === k) setMdesc(!mdesc); else { setMsort(k); setMdesc(false) } }}>
-        {children}{msort === k ? (mdesc ? ' ▴' : ' ▾') : ''}
-      </button>
-    </th>
-  )
+  const msortState: SortState = {
+    key: msort, desc: mdesc,
+    onSort: k => { if (msort === k) setMdesc(!mdesc); else { setMsort(k as typeof msort); setMdesc(false) } },
+  }
+  const posCol: Col<Player> = { id: 'pos', head: t('squad.colPos'), cell: p => <PosBadge pos={p.pos} /> }
+  const nameCol = (extra?: (p: Player) => ReactNode): Col<Player> => ({
+    id: 'name', head: t('squad.colName'), className: 'name', sort: 'name', ascFirst: true,
+    td: p => ({ title: p.name }),
+    cell: p => <>{initialName(p.name)}{extra?.(p)}</>,
+  })
+  const injuredMark = (p: Player) => p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>
+  const CONTRACT_COLS: Col<Player>[] = [
+    posCol, nameCol(injuredMark),
+    { id: 'until', head: t('search.colUntil'), align: 'right', cell: p => (p.clubId ? seasonLabel(p.contractEnds) : '-') },
+    { id: 'wage', head: t('search.colWage'), align: 'right', cell: p => fmtWage(p.wage) },
+    {
+      id: 'status', head: t('search.colStatus'), td: () => ({ className: 'muted' }),
+      cell: p => (p.transferListed ? t('search.listed') : p.clubId && p.contractEnds <= game.season ? t('search.expiringShort') : !p.clubId ? t('transfers.freeAgent') : ''),
+    },
+  ]
+  const attrCols = (v: keyof typeof VIEW_ATTRS): Col<Player>[] => [
+    posCol, nameCol(injuredMark),
+    ...VIEW_ATTRS[v].map((k): Col<Player> => ({
+      id: k, head: <span title={attrName(k)}>{t(`attrShort.${k}`)}</span>, align: 'right',
+      td: () => ({ className: 'attr-cell' }),
+      cell: p => { const [lo, hi] = attrRange(game, p, k); return lo === hi ? lo : `${lo}-${hi}` },
+    })),
+  ]
+  const GENERAL_COLS: Col<Player>[] = [
+    posCol,
+    nameCol(p => <>
+      {deal === 'transfer' && p.transferListed && <> <Mark name="tag" color="var(--gold)" title={t('player.transferListed')} /></>}
+      {deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}
+    </>),
+    { id: 'age', head: t('squad.colAge'), align: 'right', sort: 'age', ascFirst: true, cell: p => p.age },
+    { id: 'nat', head: t('squad.colNat'), cell: p => <Nat code={p.nat} /> },
+    // THREE LETTERS (owner, v1.1.17: "make the teams initials or first three
+    // letters of their name be used... so you dont have to scroll right at
+    // all"). clubCode is what the crest draws and the touchline paints; the
+    // search box above still matches the full name.
+    { id: 'club', head: t('transfers.colClub'), td: () => ({ className: 'muted' }), cell: p => (p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')) },
+    { id: 'ca', head: t('transfers.colAbility'), sort: 'ca', cell: p => <><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</> },
+    { id: 'form', head: t('transfers.colForm'), align: 'right', sort: 'form', cell: p => <FormPill v={p.form} /> },
+    { id: 'value', head: t('squad.colValue'), align: 'right', sort: 'value', cell: p => fmtMoney(seenValue(game, p)) },
+  ]
 
   const results = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -440,78 +477,16 @@ export default function Transfers() {
       )}
       {/* codefirst: the leading column is a position code, so it forgoes the
           16px first-column gutter - eight columns already fill a 412px phone */}
-      {view !== 'general' ? (
-      <div className="tblwrap"><table className="dtable codefirst">
-        <thead><tr>
-          <th>{t('squad.colPos')}</th>
-          <MTh k="name">{t('squad.colName')}</MTh>
-          {view === 'contract'
-            ? <><th className="num">{t('search.colUntil')}</th><th className="num">{t('search.colWage')}</th><th>{t('search.colStatus')}</th></>
-            : VIEW_ATTRS[view].map(k => <th key={k} className="num" title={attrName(k)}>{t(`attrShort.${k}`)}</th>)}
-        </tr></thead>
-        <tbody>
-          {pageRows.length === 0 && (
-            <tr><td colSpan={6} className="muted" style={{ padding: 12 }}>
-              {t('transfers.noMatches', { listedHint: listedOnly ? t('transfers.listedHint') : '' })}
-            </td></tr>
-          )}
-          {pageRows.map(p => (
-            <tr key={p.id} {...rowNavTr(() => openRow(p.id))}>
-              <td><PosBadge pos={p.pos} /></td>
-              <td className="name" title={p.name}>{initialName(p.name)}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
-              {view === 'contract'
-                ? <>
-                    <td className="num">{p.clubId ? seasonLabel(p.contractEnds) : '-'}</td>
-                    <td className="num">{fmtWage(p.wage)}</td>
-                    <td className="muted">{p.transferListed ? t('search.listed') : p.clubId && p.contractEnds <= game.season ? t('search.expiringShort') : !p.clubId ? t('transfers.freeAgent') : ''}</td>
-                  </>
-                : VIEW_ATTRS[view].map(k => {
-                    const [lo, hi] = attrRange(game, p, k)
-                    return <td key={k} className="num attr-cell">{lo === hi ? lo : `${lo}-${hi}`}</td>
-                  })}
-            </tr>
-          ))}
-        </tbody>
-      </table></div>
+      {pageRows.length === 0 ? (
+        <div className="muted" style={{ padding: 12 }}>
+          {t('transfers.noMatches', { listedHint: listedOnly ? t('transfers.listedHint') : '' })}
+        </div>
       ) : (
-      <div className="tblwrap"><table className="dtable codefirst">
-        <thead><tr>
-          <th>{t('squad.colPos')}</th>
-          <MTh k="name">{t('squad.colName')}</MTh>
-          <MTh k="age" right>{t('squad.colAge')}</MTh>
-          <th>{t('squad.colNat')}</th>
-          <th>{t('transfers.colClub')}</th>
-          <MTh k="ca">{t('transfers.colAbility')}</MTh>
-          <MTh k="form" right>{t('transfers.colForm')}</MTh>
-          <MTh k="value" right>{t('squad.colValue')}</MTh>
-        </tr></thead>
-        <tbody>
-          {pageRows.length === 0 && (
-            <tr><td colSpan={8} className="muted" style={{ padding: 12 }}>
-              {t('transfers.noMatches', { listedHint: listedOnly ? t('transfers.listedHint') : '' })}
-            </td></tr>
-          )}
-          {pageRows.map(p => (
-            <tr key={p.id} {...rowNavTr(() => openRow(p.id))}>
-              <td><PosBadge pos={p.pos} /></td>
-              <td className="name" title={p.name}>{initialName(p.name)}{deal === 'transfer' && p.transferListed && <> <Mark name="tag" color="var(--gold)" title={t('player.transferListed')} /></>}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
-              <td className="num">{p.age}</td>
-              <td><Nat code={p.nat} /></td>
-              {/* THREE LETTERS. This column was 76px of an eight-column table
-                  that ran 64px off the side of a 412px phone (owner, v1.1.17:
-                  "make the teams initials or first three letters of their name
-                  be used... so you dont have to scroll right at all").
-                  clubCode is what the crest draws and the touchline paints, so
-                  everything that names a club agrees. The search box above
-                  still matches the full name - only the cell shortens. */}
-              <td className="muted">{p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')}</td>
-              <td><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
-              <td className="num"><FormPill v={p.form} /></td>
-              <td className="num">{fmtMoney(seenValue(game, p))}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table></div>
+        <div className="tblwrap">
+          <DataTable<Player> className="codefirst" rows={pageRows} rowKey={p => p.id}
+            rowProps={p => rowNavTr(() => openRow(p.id))}
+            focusKey="tr" sort={msortState} cols={view === 'general' ? GENERAL_COLS : view === 'contract' ? CONTRACT_COLS : attrCols(view)} />
+        </div>
       )}
       {pages > 1 && (
         <div className="pager">

@@ -1,0 +1,522 @@
+/*  tables.css: data tables, league tables and the team sheet grid.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  *//* ================= Data tables ================= */
+.tblwrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--surface-1);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.dtable { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.dtable th {
+  font-family: var(--sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  /* .5px, not 1.1: at 11px the wider tracking pushed the eight-column market
+     table 10px off a 412px phone in Italian (sidescroll.mjs) */
+  letter-spacing: .5px;
+  color: var(--text-muted);
+  text-align: left;
+  padding: 9px 7px 7px;
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--surface-1);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+  z-index: 2;
+}
+.dtable td {
+  padding: 7px 6px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.dtable td.name { color: var(--text-primary); font-weight: 600; font-size: 0.8125rem; max-width: 168px; overflow: hidden; text-overflow: ellipsis; }
+.dtable tr:active td { background: var(--row-hover-bg); }
+.dtable.zebra tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--surface-2) 45%, var(--surface-1)); }
+.dtable.zebra tbody tr:nth-child(even).me td,
+.dtable.zebra tbody tr.me td { background: color-mix(in srgb, var(--club1) 9%, var(--surface-1)); }
+.dtable .num { text-align: right; }
+/* THE LAST COLUMN BREATHES. Points ended 3-6px from the screen edge - inside
+   the viewport, so no probe called it clipped, but on a phone bezel it reads
+   as cut off (owner screenshot, 25 Aug: "cant see points in table"). The
+   gutter lives on the class so every data table gets it, instead of the
+   hand-placed paddingRight the nations table already carried for the same
+   reason. */
+.dtable th:last-child, .dtable td:last-child { padding-right: 16px; }
+/* AND SO DOES THE FIRST. The gutter above was added to the last column alone,
+   which left every table's opening column - almost always the player's name -
+   sitting 6px off the bare edge of the phone, with no card margin under it to
+   stand the text on (owner, v1.2.3, Condition tab: "the players names are too
+   tight to the left of the screen"). .tblwrap is full-bleed by design, so the
+   gutter has to come from the cell. Same 16px as the far side, so a table is
+   inset evenly rather than drifting right.
+
+   A table whose first column is a CODE rather than a name carries .codefirst
+   and is EXEMPTED rather than overridden. The gutter exists to stop a NAME
+   touching the bezel; spending it on a three-letter position abbreviation or
+   a shirt number just costs the columns to its right, and the transfer
+   market has eight of them on a 412px phone.
+
+   Exempt, not override, because the portrait breakpoint below already
+   narrows these cells to 4px: an override would have to name a number, and
+   the first attempt named 6px, which is 2px WIDER than what portrait gives
+   them - enough on its own to push the Japanese market table off the side.
+   :not() leaves the cascade to say what it was always going to say. */
+.dtable:not(.codefirst) th:first-child,
+.dtable:not(.codefirst) td:first-child { padding-left: 16px; }
+/* The search tables (position code first, eight columns) give the name the
+   room that is left and no more: at 13px a long name pushed the market 10px
+   off a 412px phone in Italian (sidescroll.mjs). It shortens with an ellipsis. */
+.dtable.codefirst td.name { max-width: 108px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- A NAME SITS NEXT TO ITS RANK, NOT ADRIFT OF IT ----
+   Owner, on every table with a rank column: "the team names should be more
+   left". A league row is rank, then name, and the two cells each carried the
+   default 6px of side padding, so 12px of nothing opened between a
+   right-aligned number and the word it belongs to. The name read as a
+   separate column rather than as the label for that position.
+
+   The gutter is cut on both sides of that one join. It is scoped to a NAME
+   following a NUMBER so it cannot touch the 16px first-column gutter above -
+   that one exists to keep a name off the phone bezel and is a different
+   problem - and so a numeric column in the middle of a table, where the
+   number is data rather than a rank, is left alone. */
+.dtable td.num:first-child { padding-right: 2px; }
+.dtable td.num + td.name { padding-left: 2px; }
+
+/* ---- A RANKING TABLE'S NAME COLUMN SHRINKS TO ITS NAME ----
+   Owner, on the world rankings: "there's too much space between name and
+   position". The name cell is capped at 168px and the table is full width, so
+   the slack in a row of short nation and player names was handed to the name
+   column and the position badge was pushed most of a thumb's width clear of
+   the word it describes. Giving the cell a width smaller than its content
+   makes it size to the content instead, and the slack goes to the club column
+   on its right, which is the one that can use it. */
+.dtable.ranks td.name { width: 1%; padding-right: 4px; }
+
+/* ---- THE TEST NATIONS TABLE IS FOUR COLUMNS, NOT SEVEN ----
+   Owner: "test nation ranking looks weirdly laid out". It is rank, movement
+   arrow, nation, points - one text column and three narrow ones - so the row
+   has nothing to spend its slack on but the nation name, and the points ended
+   an inch adrift of it with a field of nothing between.
+
+   Shrinking the name the way the seniors table does would make that gulf
+   worse, not better, so this one goes the other way: the three narrow columns
+   are pinned to their content and the name keeps the rest, which puts the
+   points hard against the figures they belong to and the flag hard against
+   the rank. */
+.dtable.natranks td:first-child, .dtable.natranks th:first-child { width: 1%; padding-right: 4px; }
+.dtable.natranks td:nth-child(2), .dtable.natranks th:nth-child(2) { width: 1%; padding: 7px 2px; }
+.dtable.natranks td:last-child, .dtable.natranks th:last-child { width: 1%; }
+
+/* ---- THE RANK SITS UNDER THE HASH (v1.7.0) ----
+   The rank cells carry .num, which right-aligns, and the # heading above them
+   does not - so in a column sized to its widest content (14, or 20) the single
+   digits hung a whole digit-width to the right of the heading and the column
+   read as two ragged edges. Owner, from three screenshots: "the numbers for
+   the positions should be aligned to the # so they are all in line."
+   All three rankings tables share the fault and share the fix. A rank is a
+   label rather than a quantity - nobody adds up a column of positions - so
+   left is the right edge to line them on. */
+.dtable.ranks td:first-child, .dtable.ranks th:first-child,
+.dtable.natranks td:first-child, .dtable.natranks th:first-child { text-align: left; }
+
+/* ---- AND THE POINTS COME IN OFF THE EDGE ----
+   14px of right padding was enough to stop them sitting flush against the
+   glass and not enough to stop them looking adrift of it. Owner: "the ranking
+   points column needs to be moved to the left." The nation name keeps the
+   slack either way; this only moves where the points stop. */
+.dtable.natranks td:last-child, .dtable.natranks th:last-child { padding-right: 30px; }
+.ltable th:first-child, .ltable td:first-child { padding-right: 9px; }
+
+/* ---- YOUR ROW, FOUND AT A GLANCE ----
+   The tint was var(--club1) at 9% over the surface, which for a club whose
+   first colour is a dark navy is a few percent of nothing: on a real table
+   screenshot the manager's own side, seventeenth of twenty, was very nearly
+   indistinguishable from the rows around it. Owner: "the persons team should be
+   highlighted a little bit more."
+
+   Three changes, and the third is the one that does the work. The tint goes up,
+   the hairlines above and below go up, and the row gains a solid bar down its
+   left edge - drawn as an INSET BOX SHADOW on the first cell rather than a
+   border or a background, because LeagueTable.tsx writes playoff gold and
+   relegation red as INLINE backgrounds, and an inline style beats a stylesheet.
+   A shadow is a different property, so a side that is both yours and in the
+   playoffs keeps the gold and still gets the bar. */
+.dtable .me td {
+  background: color-mix(in srgb, var(--club1) 16%, var(--surface-1));
+  color: var(--text-primary);
+  font-weight: 700;
+  border-top: 1px solid color-mix(in srgb, var(--club1) 45%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--club1) 45%, transparent);
+}
+.dtable tr.me td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+
+.th-sort { cursor: pointer; user-select: none; }
+/* The sort control is a real button inside the header cell (WCAG 2.1.1), dressed
+   as the header text it replaced. Its ::after stretches over the whole cell, so
+   the tap target is the cell exactly as it was; the th is sticky, which makes
+   it the positioned box the overlay fills. */
+.th-sort .th-btn {
+  font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+  text-align: inherit; white-space: inherit; padding: 0; margin: 0;
+}
+.th-sort .th-btn::after { content: ''; position: absolute; inset: 0; }
+.th-sort.active { color: var(--primary); }
+
+/* lineup tap-to-swap: the player you're "holding" */
+.dtable tr.held-row td {
+  background: var(--row-selected-bg) !important;
+  box-shadow: inset 3px 0 0 var(--row-selected-border);
+}
+.stat-bar i.a { right: 0; transform-origin: right center; }
+
+/* the team sheet reads across, not down: forwards left, backs right.
+   Portrait keeps one column, where two tbody-only tables stack seamlessly. */
+.xv-split { display: block; }
+/* The two tables of a team sheet must AGREE on their first two columns.
+   They are separate tables, so auto layout sizes each one from its own contents:
+   the forwards' table sized the shirt column for "1" to "8" and the backs' table
+   sized it for "10" to "15", one character wider. Side by side in landscape nobody
+   noticed. Stacked in portrait it put a visible step in the list from number 9
+   down, which is exactly what the user reported ("numbers and names have shifted
+   to the right from number 9 on team pre match").
+
+   Only these two columns are pinned, deliberately. Fixing the whole table would
+   need a different set of widths per screen - MatchDay's rows have five cells and
+   Selection's have six - and the name column has to stay elastic either way. */
+.xv-split .dtable td:first-child { width: 26px; }
+.xv-split .dtable td:nth-child(2) { width: 40px; }
+@media (orientation: landscape) and (min-width: 640px) {
+  /* minmax(0, 1fr), NOT 1fr. A bare 1fr is minmax(auto, 1fr), and auto refuses
+     to shrink a track below its content's min-content width - so the two team
+     sheet tables kept their full natural width and the right-hand one hung off
+     the screen, clipping the form pill and losing the fitness column entirely
+     (user screenshot). minmax(0, ...) lets the track shrink and the name cell's
+     existing ellipsis takes up the slack. */
+  .xv-split {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 10px; align-items: start;
+    /* the right column's fitness figure sat flush against the screen edge */
+    padding-right: 5px;
+  }
+  /* and a little tighter, so the fitness column has somewhere to live */
+  .xv-split .dtable td { padding: 7px 4px; }
+  .xv-split .dtable td.name { max-width: 112px; }
+}
+.sticky-controls ~ .tblwrap .dtable th { top: var(--stickyh, 0px); }
+@media (max-width: 560px) {
+/* A table that has been told its column widths does not need a scrollport, and
+   must not have one: the wrapper's implied overflow-y made every sticky heading
+   in it park itself --stickyh pixels down the page, among the rows. See the
+   colgroup note in Squad.tsx. */
+/* ---- the league table fits the phone ------------------------------------
+   Nine columns - rank, team, P W D L +/- BP Pts - at the shared .dtable padding
+   comes to more than 412px, and the column that fell off the right-hand edge was
+   POINTS. The one number anybody opens a league table to read, reachable only by
+   dragging the table sideways, on a screen where nothing else scrolls sideways.
+   The numeric columns give up their padding, which is spare: they hold one or two
+   digits and are right-aligned, so they read fine tight. */
+  .ltable th, .ltable td { padding-left: 4px; padding-right: 4px; }
+  .ltable td.name { max-width: 120px; }
+  .ltable th:first-child, .ltable td:first-child { padding-left: 8px; }
+  .ltable th:last-child, .ltable td:last-child { padding-right: 9px; }
+  /* THE RANK AND THE BADGE WERE TOUCHING. The rank is right-aligned and the
+     badge is the first thing in the very next cell, so at the tightened phone
+     padding above they met in the middle: "9(badge)Kenilworth" with no gap to
+     tell a position from a crest. Reported off a real table screenshot. The
+     rank column keeps its own right padding rather than taking the shared 4px,
+     which is the one place on this row where the space is not spare. */
+  .ltable th:first-child, .ltable td:first-child { padding-right: 9px; }
+}
+.tblwrap.fitwrap { overflow: visible; }
+.dtable.fit { table-layout: fixed; }
+.dtable.fit td.name { max-width: none; }
+/* the squad tables' name cell, one line (1.8.9): only the name ellipsises */
+.dtable td.name .nm-line { display: flex; align-items: center; gap: 4px; min-width: 0; white-space: nowrap; }
+.nm-line > * { flex: none; }
+.nm-line > .nm { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-loan { color: var(--loan); }
+/* the last column breathes: flush against the bezel it read as cut off
+   (user: "squad cover needs to be better fitted") */
+.dtable.fit th:last-child, .dtable.fit td:last-child { padding-right: 16px; }
+@media (orientation: landscape) and (min-width: 640px) {
+
+/* ---- the sticky column header was never sticky ----
+   .tblwrap sets overflow-x: auto. CSS computes the other axis to auto with it,
+   so the wrapper became the table's scrollport - and it never scrolls
+   vertically, which means `position: sticky` on the th had nothing to stick
+   to. Measured: at scrollTop 700 the header's top was -469, i.e. gone. Every
+   table screen in the game had been scrolling its own headings away, and the
+   scroll audit waved the long lists through on the assumption that it did not.
+
+   The fix removes the wrapper's scrollport in landscape at phone width and up,
+   which is how this game is played. It is the DEFAULT, not an opt-in: a table
+   that keeps its heading is what a reader expects, and the first pass at this
+   only converted six of thirty wrappers, which left the same bug live
+   everywhere else. A table too wide to fit opts out with .wide and gets its
+   sideways scroll back - scripts/stickyaudit.mjs measures every wrapper on
+   every screen and names any that need it.
+
+   Portrait keeps the horizontal scroller throughout: six columns will not fit
+   390px, and a column cut off with no way to reach it is worse than a heading
+   that scrolls. */
+  .tblwrap { overflow: visible; }
+  .tblwrap.wide { overflow-x: auto; }
+
+/* ---- nothing sits on top of anything else ----
+   A device screenshot showed the Replacements bench painted over itself: shirt
+   16's form and fitness drawn across shirt 20's number and name, and 122x154px
+   of it. Measured afterwards, it was happening at every width including the one
+   everything was tuned at, and no test had ever looked - they all measure how
+   TALL a screen is, never whether two things share the same pixels.
+
+   This is the bare-1fr trap for the third time, in its nastiest form.
+   minmax(0, 1fr) lets the grid TRACK shrink, which is what stopped the page
+   scrolling sideways two rounds ago. But a table will not shrink below its
+   min-content width and it does not clip, so it simply paints over its
+   neighbour: the track got smaller and the table did not. Letting the track
+   shrink was half a fix.
+
+   The whole fix has to make the CONTENT shrink too, which for a table means
+   table-layout: fixed and columns that are told what they are worth. Then the
+   name cell's ellipsis takes the strain, which is what it is there for.
+   scripts/overlapaudit.mjs measures it at three widths now. */
+  .xv-split .dtable {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 0;
+  }
+  /* shirt, position, name, stars, form, fitness - the name gets the slack */
+  .xv-split .dtable td:nth-child(1) { width: 26px; }
+  .xv-split .dtable td:nth-child(2) { width: 34px; }
+  .xv-split .dtable td:nth-child(3) { width: auto; }
+  .xv-split .dtable td:nth-child(4) { width: 64px; }
+  .xv-split .dtable td:nth-child(5) { width: 38px; }
+  .xv-split .dtable td:nth-child(6) { width: 40px; }
+  .xv-split .dtable td.name {
+    max-width: none; /* fixed layout owns the width now */
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+}
+
+/* ---- Type, applied by job (1.9.3: Source Serif 4 + Hanken Grotesk) ----
+   Two families (01-base.css): the bold serif for anything that is a
+   heading, a label or a score, the grotesk for anything read or tapped.
+   Buttons, tabs and the nav are grotesk: a serif at 13px on a button reads
+   worse than a grotesk, and the owner's brief keeps the serif for the bold
+   display lines.
+
+   Tables and rosters   medium weight, tight tracking, to buy back landscape
+   Scores and ratings   bold and tabular, so columns of numbers line up
+   Nav and buttons      semi-bold caps, kept short (SQUAD, TACTICS, TRANSFERS) */
+
+/* tables: the tightest thing in the game, and where the space is won */
+.dtable {
+  letter-spacing: -0.2px;
+  font-variant-numeric: tabular-nums;
+}
+.dtable td.name, .dtable th { letter-spacing: -0.1px; }
+.dtable td { font-weight: 500; }
+/* a name is the one thing in the row you read rather than scan */
+.dtable td.name { font-weight: 600; letter-spacing: -0.15px; }
+.brief-who .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- the game-time ledger's status picker (F18) --------------------------
+   .inline-input is a form control built for a card: 11px padding and a 6px
+   margin. Dropped into a table row it made each row 140px tall, which put
+   fewer than three of a 38-man squad on a landscape screen. Inside a row it
+   has to be a row-height control. */
+.gt-sel {
+  width: auto; max-width: 148px;
+  padding: 3px 6px; margin: 0;
+  font-size: 0.75rem; font-weight: 700;
+  border-width: 1px; border-radius: 6px;
+}
+@media (orientation: portrait) {
+
+  /* TIGHTER CELLS SO THE COLUMNS FIT AT ALL (owner, v1.1.17: "so you dont
+     have to scroll right at all"). The market table is eight columns wide;
+     shortening the club to three letters took it from 476px to 439px against
+     a 412px screen, and two pixels off each side of every cell finds the last
+     27px without truncating a single name. Measured by scripts/sidescroll.mjs,
+     which is the probe that should have existed before any of this shipped -
+     scrollaudit counts screenfuls DOWN a landscape page and never once looked
+     sideways on a portrait one. */
+  .dtable td { padding: 7px 4px; }
+  .dtable th { padding: 9px 4px 7px; }
+
+  /* A table that scrolls sideways gets the same fade as the tab strip. On a
+     412px screen the squad and market tables are all wider than the screen, and
+     without an edge there is nothing to say the columns continue. */
+  .tblwrap {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 20px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 20px), transparent);
+  }
+  /* except the ones that now fit: a fade promising more columns to the right of
+     a table that ends at the screen edge is a lie, and it dimmed the last column
+     for nothing */
+  .tblwrap.fitwrap { -webkit-mask-image: none; mask-image: none; }
+  .dtable { font-size: 0.75rem; }
+  .dtable td.name { font-size: 0.75rem; }
+}
+.gt-sel { min-height: 44px; }
+
+/* v1.2.8: the Selection team sheet pins all six columns so its two tables
+   line up from the 1 shirt to the 15 (see Selection.tsx) */
+.xv-fixed .dtable { table-layout: fixed; width: 100%; }
+/* sized to the content, not generously: on a 360px phone every spare pixel
+   here comes out of the name column (devicematrix caught Sleightholme cut) */
+.xv-fixed .dtable col.c-num { width: 30px; }
+.xv-fixed .dtable col.c-pos { width: 38px; }
+.xv-fixed .dtable col.c-stars { width: 48px; }
+/* the ability sits up against the form pill (owner, 1.9.4: "move the player
+   rating over so its close to the player game rating"): right-aligned in a
+   column no wider than the chip, the pixels it gave up go to the name */
+.xv-fixed .dtable td.xv-ab { text-align: right; padding-right: 2px; }
+/* the form cell carries its trend arrow on the left of the pill now, so it is
+   ten pixels wider and the stars sit that much further over */
+.xv-fixed .dtable col.c-form { width: 50px; }
+.xv-fixed .dtable col.c-cond { width: 46px; }
+.xv-fixed .dtable td.name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- the room before the team talk (1.8.0, MoodTable.tsx) ---- */
+.mood-wrap { padding: 0 14px 8px; }
+.mood-sum { font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 6px; }
+.mood-table td.nm { font-weight: 600; white-space: nowrap; }
+.mood-table td.num { width: 26px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.mood-chip {
+  display: inline-block; padding: 2px 8px; border-radius: 9px; font-size: 0.75rem;
+  border: 1.5px solid var(--border-strong); white-space: nowrap;
+}
+.mood-chip.good { border-color: var(--primary); background: var(--primary-tint); }
+.mood-chip.low { border-color: var(--danger); background: var(--danger-tint); }
+.mood-fold { margin: 6px 0 2px; }
+.mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 0.8125rem; padding: 6px 0; color: var(--info); min-height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; }
+.mood-fold > summary::before {
+  /* a drawn chevron, turned down when open (1.9.2: no text triangles) */
+  content: ''; flex-shrink: 0; width: 6px; height: 6px; margin: 0 3px 2px 1px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s ease;
+}
+.mood-fold[open] > summary::before { transform: rotate(45deg); }
+.mood-fold > summary { list-style: none; }
+@media (prefers-reduced-motion: reduce) { .mood-fold > summary::before { transition: none; }
+}
+.mood-fold > summary::-webkit-details-marker { display: none; }
+.mood-fold .mood-wrap { padding: 0 0 6px; }
+.talk-react .tr-list .nm { font-weight: 600; font-size: 0.8125rem; overflow-wrap: anywhere; line-height: 1.25; }
+.talk-react .mood-chip { display: inline-flex; align-items: center; gap: 5px; }
+.mp-table td.nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.mp-grid col.c-shirt { width: 30px; }
+.mp-grid col.c-stat { width: 36px; }
+.mp-grid col.c-stat.w { width: 48px; }
+.mp-grid td.nm { max-width: none; color: var(--text-primary); }
+
+/* General Info: the value's trend arrow keeps a slot on every row, and the
+   header steps in by the same so VALUE sits over the figures (1.9.4) */
+.sq-general .val-trend { display: inline-block; width: 12px; margin-left: 2px; text-align: left; font-weight: 400; }
+.sq-general th:last-child .th-btn { padding-right: 14px; }
+/* A heading that may take two lines (DataTable's wrapHead): WAGE /WK was
+   clipped to WAGE /WI (owner, 1.9.4: "check columns") */
+.dtable th.th-wrap { white-space: normal; line-height: 1.15; vertical-align: bottom; }
+/* a centred heading really is centred: .dtable th's text-align: left outranked
+   the .center utility, so STATUS, NAT and MOR sat left of their columns */
+.dtable th.center { text-align: center; }
+.sq-contracts th:last-child, .sq-contracts td:last-child { padding-right: 10px; }
+@media (orientation: portrait) and (min-width: 800px) {
+/* THE TEAM SHEET READS ACROSS on a tablet as it does in landscape: forwards
+   left, backs right, instead of one list with a canyon between each name and
+   its stars. Same minmax(0, 1fr) reasoning as the landscape rule.
+   FROM 800PX, NOT FROM 700 (1.8.1). The smallest upright iPad is 768px under
+   a 1.15 zoom, which leaves each half about 320px: the shirt, position,
+   stars, form and fitness columns are already sized to their content
+   (.xv-fixed), so the name had 103px and "Ollie Sleightholme" lost his last
+   letters (devicematrix, once a fine-pointer tablet counted as one). There
+   the sheet stays one list, which at 668px has room for every name; from
+   800px (every other iPad and the Android tablets) it reads across. */
+  .app.tablet .xv-split {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 14px; align-items: start; padding-right: 8px;
+  }
+}
+
+/* the A League table: rank under "#", the crest and name a step in */
+.a-table td.name { padding-left: 10px; }
+.a-table td.name > :first-child { margin-right: 6px; }
+.gt-mood { white-space: nowrap; font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; }
+/* the game-time headings wrap inside their own column rather than painting
+   across the next one (owner, round 2: "NAM HE WAS TOLD"), and the status
+   select is as wide as its column, never wider */
+.dtable.fit .gt-head th { white-space: normal; overflow: hidden; overflow-wrap: normal; word-break: normal; line-height: 1.15; vertical-align: bottom; }
+.dtable.fit .gt-sel { width: 100%; max-width: 100%; text-overflow: ellipsis; }
+/* THE BOX, SMALLER THAN THE TARGET (owner, round 183: "reduce the size of the
+   box around the key player"). The select has to stay 44px tall to be tapped
+   (.gt-sel above), and its own border made every row a 44px bordered box with
+   "Key Player" sitting in it like a button. A select cannot carry a pseudo-
+   element, so the wrapper draws a 24px box behind it and the select itself
+   goes borderless and transparent: the eye sees a compact chip, the thumb
+   still gets the full 44px. */
+.gt-pick { position: relative; display: inline-block; max-width: 100%; vertical-align: middle; }
+.gt-pick::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 24px;
+  transform: translateY(-50%); pointer-events: none;
+  border: 1px solid var(--border-strong); border-radius: 6px;
+  background: var(--surface-1);
+}
+.gt-pick .gt-sel {
+  position: relative; display: block;
+  background: transparent; border-color: transparent;
+  padding: 0 2px 0 6px; font-size: 0.6875rem; line-height: 1;
+}
+.gt-pick .gt-sel:focus-visible { outline: 2px solid var(--row-selected-border); outline-offset: -10px; }
+.dtable.fit .gt-pick .gt-sel { width: auto; }/* ==================================================================
+   UI QA SWEEP (1.8.0)
+   ==================================================================
+   The owner: "Check alignment of all menus" and "Identify any areas which
+   feel unfinished". Every screen and tab photographed at four sizes in both
+   themes (scripts/uiqa.mjs); these are the layout faults the pictures showed,
+   kept together here rather than threaded through the file. */
+
+/* The room before the team talk: "Happy to be in the matchday squad" is
+   longer than the column, the chip would not wrap, and the table ran under
+   the card's right edge with every long mood cut off mid-word. The chip
+   wraps inside its own pill now and the table fits the phone. */
+.mood-table .mood-chip { white-space: nowrap; line-height: 1.3; }
+
+/* The team sheet is four tables (forwards, backs, two halves of the bench)
+   sharing one row renderer. Auto layout shared each table's slack out across
+   every column, so the stars sat 8px further right under the backs than under
+   the forwards. Fixed layout takes the pinned widths at their word and gives
+   the name column what is left, in all four. */
+.dtable.xvsheet { table-layout: fixed; }
+.dtable.xvsheet td.name { max-width: none; }
+@media (max-width: 480px) {
+
+/* A NAME IN A TABLE IS NEVER CUT ON THE SMALLEST PHONE (1.8.4 m12). At 320px
+   the team sheet's name column is 100px and "Emmanuel Iyo..." was every other
+   row; the name takes a second line instead. break-word, not anywhere, so a
+   table's columns still size to whole words. Every phone width since 1.8.6:
+   "P. Bourdon Sansus" lost 4px in the market at 360-412. A name that fits
+   keeps its one line. */
+  .dtable td.name, .xv-fixed .dtable td.name, .dtable.codefirst td.name { white-space: normal; overflow-wrap: break-word; }
+  /* in a table that scrolls sideways anyway, the name keeps room for an
+     initial and a surname on one line rather than the table squeezing it */
+  .tblwrap .dtable td.name { min-width: 7.5em; }
+}
+.tele col.c-no { width: 28px; }
+.tele col.c-pos { width: 28px; }
+.tele col.c-bar { width: 74px; }
+.tele col.c-e { width: 28px; }
+.tele col.c-r { width: 32px; }
+.tele col.c-f { width: 24px; }
+
+/* The text face sets a taller line than Space Grotesk did at the same size,
+   which pushed the squad list past its three-screen budget (scrollaudit:
+   3.01). Table cells take a fixed line height so a row is the height it was. */
+.dtable td { line-height: 1.3; }

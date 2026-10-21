@@ -1,27 +1,21 @@
-/* The theme, in partials under ./styles/ (split along its own section
-   headings when it passed six thousand lines). The order below IS the
-   cascade, the same order the sections had in this one file, so a partial
-   is never moved up or down this list without reading what it overrides.
-   Vite inlines the imports at build time; the build output is the file
-   that was here before, rule for rule. */
+/* The theme, in partials under ./styles/, one per component or screen
+   (regrouped in 1.9.4 from the twenty-one files the theme had been split
+   into by date). The order below IS the cascade: base and the shell first,
+   then the shared components, then the screens. Within a file every rule
+   keeps the order it had. Vite inlines the imports at build time. */
 @import './styles/01-base.css';
-@import './styles/02-chrome.css';
-@import './styles/03-tables.css';
-@import './styles/04-components.css';
-@import './styles/05-matchday.css';
-@import './styles/06-title.css';
-@import './styles/07-misc.css';
-@import './styles/08-landscape.css';
-@import './styles/09-wizard.css';
-@import './styles/10-screens.css';
-@import './styles/11-broadcast.css';
-@import './styles/12-feedback.css';
-@import './styles/13-portrait.css';
-@import './styles/14-panels.css';
-@import './styles/15-bugreport.css';
-@import './styles/16-tablet.css';
-@import './styles/17-motion.css';
-@import './styles/18-qa.css';
-@import './styles/19-tablet-round.css';
-@import './styles/20-home.css';
-@import './styles/21-voice.css';
+@import './styles/02-shell.css';
+@import './styles/03-controls.css';
+@import './styles/04-cards.css';
+@import './styles/05-tables.css';
+@import './styles/06-sheets.css';
+@import './styles/07-title.css';
+@import './styles/08-home.css';
+@import './styles/09-news.css';
+@import './styles/10-squad.css';
+@import './styles/11-tactics.css';
+@import './styles/12-matchday.css';
+@import './styles/13-live.css';
+@import './styles/14-club.css';
+@import './styles/15-world.css';
+@import './styles/16-settings.css';

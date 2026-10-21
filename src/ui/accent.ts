@@ -6,7 +6,7 @@ import type { CSSProperties } from 'react'
  * Ninety-odd cards wore a 4px left border in gold, green or red to say "read
  * this one". The owner chose header bands from three styles: a card that opens
  * on a title (an h3 or a .fact-label) wears that title as a band in a wash of
- * the colour, and a card with no title takes the wash itself (21-voice.css,
+ * the colour, and a card with no title takes the wash itself (04-cards.css,
  * the --band rules). The meaning survives (gold for advice, red for trouble,
  * green for good news) and the stripe goes. The stripes kept on purpose are
  * the opponent's colour on the next match and the commentary lines.

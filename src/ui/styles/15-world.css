@@ -1,0 +1,107 @@
+/*  world.css: tables, fixtures, results, draws and history.
+   Regrouped by component (1.9.4); within this file every rule keeps the
+   order it had, and theme.css imports the files in cascade order.  */
+
+/* ================= Dream Team of the round - magazine style ================= */
+.dt-board {
+  margin: 10px 14px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-3);
+
+}
+.dt-board { background: var(--surface-2); }
+.dt-head {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 14px 10px 10px;
+}
+.dt-head span {
+  background: var(--info); color: var(--on-info);
+  font-family: var(--cond); font-weight: 700; letter-spacing: 3px;
+  padding: 3px 14px;
+}
+.dt-head .dt-league { font-size: 0.6875rem; }
+.dt-head .dt-title { font-size: 1.375rem; letter-spacing: 4px; padding: 4px 20px; }
+.dt-head .dt-sub { font-size: 0.6875rem; }
+.dt-pitch {
+  margin: 8px 12px 14px;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.1)),
+    repeating-linear-gradient(180deg, var(--pitch-a) 0 42px, var(--pitch-b) 42px 84px);
+  border: 2px solid rgba(255, 255, 255, .5);
+  padding: 10px 4px 12px;
+}
+.dt-row { display: flex; justify-content: space-evenly; margin: 2px 0; }
+.dt-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  min-width: 64px;
+  cursor: pointer;
+}
+.dt-name {
+  font-family: var(--cond); font-weight: 700; font-size: 0.6875rem; letter-spacing: .5px;
+  color: var(--prop-ink); text-shadow: 0 1px 2px rgba(0,0,0,.6);
+  max-width: 86px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dt-score {
+  background: var(--info); color: var(--on-info);
+  font-family: var(--cond); font-weight: 700; font-size: 0.6875rem;
+  padding: 1px 10px; border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.35);
+}
+.wknd-row .vs {
+  background: var(--border-strong); color: var(--text-primary);
+  font-family: var(--cond); font-weight: 700; font-size: 0.6875rem; letter-spacing: 1px;
+  padding: 4px 12px; border-radius: 5px;
+}
+.rt-bar {
+  display: block; width: 100%; height: 4px; margin: 4px 0 2px;
+  background: var(--border-strong); border-radius: 2px; overflow: hidden;
+}
+.rt-bar i {
+  display: block; height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--pick), color-mix(in srgb, var(--pick) 55%, var(--primary)));
+}
+.rt-bar { background: var(--border-strong); }
+
+/* Results: a fixed score axis. See WeekResults for why three cells beat one. */
+.rs-h, .rs-a {
+  width: 30px; padding: 0; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.rs-h { text-align: right; }
+.rs-a { text-align: left; }
+.rs-d { width: 14px; padding: 0; text-align: center; color: var(--text-muted); }
+
+/* ================= The draw room (F19) ================= */
+.draw-room { padding: 4px 14px 12px; }
+.draw-balls { margin: 6px 0 10px; }
+.draw-tie {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; margin-bottom: 6px;
+  /* --paper, not a hard-coded white: the first cut of this reached for a --card
+     token that does not exist in this stylesheet, so the fallback white was
+     painted in both themes while the names followed --ink and went pale at
+     night. See scripts/cssaudit.mjs, which now refuses a token nobody defines. */
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  font-size: 0.875rem;
+  /* each ball arrives rather than appearing: the reveal is the point of the room */
+  animation: draw-in .28s ease;
+}
+.draw-tie.ours { border-color: var(--gold); border-width: 2px; font-weight: 700; }
+.draw-num {
+  flex: 0 0 22px; height: 22px; border-radius: 11px;
+  background: var(--primary); color: var(--on-primary);
+  font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.draw-home, .draw-away { flex: 1; }
+.draw-away { text-align: right; }
+.draw-v { color: var(--text-secondary); font-size: 0.75rem; }
+.draw-waiting { text-align: center; padding: 8px 0; }
+.draw-verdict { background: color-mix(in srgb, var(--gold) 10%, var(--surface-1)); border-color: color-mix(in srgb, var(--gold) 38%, var(--border)); }
+.draw-next { margin-top: 10px; font-size: 1rem; }
+@keyframes draw-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.draw-verdict {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
