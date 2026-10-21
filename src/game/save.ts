@@ -1,7 +1,7 @@
 import type { CareerRow, Club, FacilityId, GameState, Player } from './model'
 import { LEGEND_APPS, service } from './legends'
 import { migrateRivalBids } from './rivalbids'
-import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, foldCareer, initFacilities } from './model'
+import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, POS_ORDER, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, foldCareer, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { ACADEMY_MAX, ACADEMY_MIN, buildPlayer, deriveCaps, deriveHist, deriveTrait, peekPid, resetIds, playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
@@ -812,7 +812,14 @@ function migrateWorldRefs(s: GameState): void {
     if (p.freeUntil !== undefined && !(typeof p.freeUntil === 'number' && Number.isFinite(p.freeUntil))) delete p.freeUntil
     if (p.reqLock !== undefined && typeof p.reqLock !== 'string') delete p.reqLock
     if (typeof p.name !== 'string' || !p.name) p.name = 'Unnamed Player'
-    p.stats ??= emptyStats()
+    // A POSITION THE GAME HAS (1.9.4 audit). Selection reads his shirt's
+    // tactics row and calls p.alt.some(), so an unknown position or an alt
+    // that is not a list loaded cleanly and threw at the first team sheet.
+    // His listed alternative is the best guess at what he plays.
+    p.alt = (Array.isArray(p.alt) ? p.alt : []).filter(x => POS_ORDER.includes(x))
+    if (!POS_ORDER.includes(p.pos)) p.pos = p.alt[0] ?? 'FL'
+    // a record, not merely present: a string here threw on the first count (1.9.4 audit)
+    if (!p.stats || typeof p.stats !== 'object') p.stats = emptyStats()
     // an attribute grid that is missing or not an object: derive a flat set from
     // his ability rather than crashing the first time the pack engages
     if (!p.a || typeof p.a !== 'object') {
@@ -844,7 +851,8 @@ function migrateWorldRefs(s: GameState): void {
     // save: the rows the table cut before then are gone, and the totals read
     // short for a man past twenty seasons, which nothing in the file can
     // repair. A damaged row is dropped rather than summed.
-    if (!Array.isArray(p.career)) p.career = []
+    // and a row that cannot be read is dropped rather than summed (1.9.4 audit)
+    p.career = Array.isArray(p.career) ? p.career.filter(careerRow) : []
     if (p.careerOld != null) {
       p.careerOld = Array.isArray(p.careerOld) ? p.careerOld.filter(careerRow) : undefined
       if (!p.careerOld?.length) delete p.careerOld
@@ -925,6 +933,8 @@ function migrateStandings(s: GameState): void {
   // ---- and the standings have to match the results ----
   for (const comp of Object.values(s.comps)) {
     if (!comp || comp.type !== 'league' || !Array.isArray(comp.table)) continue
+    // a hole in the table is not a team: dropped, and the rebuild below fills it
+    comp.table = comp.table.filter(r => !!r && typeof r === 'object')
     const wrong = comp.table.some(r => {
       if (!r || typeof r !== 'object') return true
       if (!Number.isFinite(r.p) || r.w + r.d + r.l !== r.p) return true
@@ -1060,7 +1070,8 @@ function migrateDialsAndRecords(s: GameState): void {
   s.celebration ??= null
   s.records ??= {}
   s.mentors = list(s.mentors) as typeof s.mentors
-  s.chem ??= {}
+  // a map, not merely present (1.9.4 audit): a string threw on the first pair
+  if (!s.chem || typeof s.chem !== 'object' || Array.isArray(s.chem)) s.chem = {}
   s.bonds = migrateBonds(s.bonds)
   s.room = migrateRoom(s.room)
   s.grudges = list(s.grudges) as typeof s.grudges
@@ -1085,6 +1096,8 @@ function migrateDialsAndRecords(s: GameState): void {
   s.tenureStart ??= s.season
   s.legendOf = list(s.legendOf) as typeof s.legendOf
   s.vsBook ??= {}
+  // a memory that is not a record is no memory: started afresh, as a new career's is
+  if (s.hist != null && (typeof s.hist !== 'object' || Array.isArray(s.hist))) delete s.hist
   migrateHistory(s) // the club's memory (history.ts): made whole, never invented
   s.gateRecord ??= null
   s.potyRoll = list(s.potyRoll) as typeof s.potyRoll
@@ -1338,6 +1351,8 @@ function migrateWorldGrowth(s: GameState): void {
   // all. Without this it would lose every penny of sponsorship on load, because
   // weeklyCentral no longer pays it. Inherited fully sold at market rate, which
   // is exactly what the flat formula used to pay.
+  // deals that are not a record are seeded again, as a save from before them is
+  if (s.deals != null && (typeof s.deals !== 'object' || Array.isArray(s.deals))) delete s.deals
   seedDeals(s)
 
   // THE GATES MATCH THE DEAL (user: "the naming rights for the stadium have

@@ -133,6 +133,47 @@ describe('a damaged players map', () => {
   }, 60_000)
 })
 
+describe('records of the wrong kind', () => {
+  // each of these either threw in migrate (and a load fell back to the spare
+  // or read as an empty slot) or loaded and threw a week or two later
+  const cases: [string, (s: Raw) => void][] = [
+    ['season stats that are not a record', s => { for (const id of s.clubs[s.userClubId].players) s.players[id].stats = 'x' }],
+    ['career rows with holes in', s => { for (const id of s.clubs[s.userClubId].players) s.players[id].career = [null, 5, 'x'] }],
+    ['a chemistry book that is not a book', s => { s.chem = 'x' }],
+    ['a club history that is not a record', s => { s.hist = 'x' }],
+    ['commercial deals that are not a record', s => { s.deals = 'x' }],
+    ['league tables with holes in', s => { for (const c of Object.values(s.comps) as Raw[]) if (c.table) c.table = [null, 'x', ...c.table] }],
+  ]
+  for (const [what, wreck] of cases) {
+    it(`${what}: healed, and three weeks play on`, () => {
+      const s = raw()
+      wreck(s)
+      const g = imported(s)
+      expect(g).not.toBeNull()
+      expect(() => play(g!, 3)).not.toThrow()
+    }, 60_000)
+  }
+})
+
+describe('a position the game does not have', () => {
+  it('is healed to one it has, and the side still takes the field', () => {
+    const s = raw()
+    const ids: number[] = s.clubs[s.userClubId].players
+    ids.slice(0, 20).forEach((id, i) => {
+      s.players[id].pos = i % 2 ? 'ZZ' : null
+      s.players[id].alt = i % 3 ? 'nope' : ['ZZ', 'WG']
+    })
+    const g = imported(s)!
+    expect(g).not.toBeNull()
+    const POS = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8', 'SH', 'FH', 'CE', 'WG', 'FB']
+    for (const id of ids) {
+      expect(POS).toContain(g.players[id].pos)
+      expect(g.players[id].alt.every(x => POS.includes(x))).toBe(true)
+    }
+    expect(() => play(g, 3)).not.toThrow()
+  }, 60_000)
+})
+
 describe('condition, sharpness, rust, knocks and injuries that are not numbers (1.9.4)', () => {
   const BAD: unknown[] = [undefined, null, 'tired', '80', -40, 250, 1e999, -1e999, {}, []]
 
