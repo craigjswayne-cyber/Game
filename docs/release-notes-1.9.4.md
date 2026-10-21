@@ -61,6 +61,23 @@ round of 20 Oct 2026, from a device test of 1.9.3.
 - A manager out of work no longer gets knockout record stories about the
   club that sacked him.
 
+**New careers**
+- A first-season checklist on Home: pick your starting XV, set your game
+  plan, play your first match, sign a player, check your academy. Each step
+  is a button to the screen, ticks itself when done, and the card has a
+  Skip. Shown on careers started on this version only, in all six languages.
+
+**Team sheet**
+- Condition is coloured: green from 85%, gold from 68%, red below, the same
+  bands as the fitness ring on the Squad lists.
+
+**Under the hood**
+- The player tables (the four Team tabs, the team sheet, the Academy squad
+  and the Transfers market) share one table, so a heading and its column can
+  no longer drift apart.
+- The stylesheets are regrouped by component. Checked element by element on
+  252 screens in both themes and three sizes: nothing looks different.
+
 ## Testing
 
 tsc -b, eslint, cssaudit, unit tests (review ask schedule), the browser
