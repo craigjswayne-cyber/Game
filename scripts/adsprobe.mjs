@@ -15,7 +15,7 @@
 //   leaving the screen hides it, coming back resumes it (no second request);
 //   a rewarded spot earns the favour only when the plugin said it was
 //     rewarded: dismissed early is 'skipped', failed is 'unavailable', and
-//     six in a real day is the ceiling;
+//     ten in a real day is the ceiling, and one spot at a time;
 //   on iOS the consent form comes first and the tracking prompt second, and
 //     neither a plugin that arrives late, refuses to listen, will not open the
 //     form until the SDK is started, or never fills a banner leaves the game
