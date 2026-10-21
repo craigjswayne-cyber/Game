@@ -8,7 +8,7 @@ import { teamShort } from './selection'
 import { backTowards, colour, describeRestart, inShirt, onField, said, sayWho, upOf } from './commentary'
 import { scoreTry } from './scoring'
 import { goalKicker } from './field'
-import { type SideCtx, evPts } from './side'
+import { type SideCtx, evPts, onRecord } from './side'
 import { CHARGE_DOWN, CHARGE_LINEOUT, CHARGE_REGATHER, CHARGE_SAFE, CHARGE_SCRUM, CHARGE_TRY_LINES, DROP_MISS, KICK_BOX, KICK_EXIT, KICK_FIELD, KICK_LONG, KICK_PIN, KICK_TOUCH, KICK_UP } from './lines'
 import { type LiveCtx, pushLine } from './live'
 import { noteKick } from './kicking'
@@ -223,7 +223,7 @@ export function dropGoalAttempt(state: GameState, ctx: LiveCtx, side: SideCtx, m
   if (dgOver) {
     side.score += 3
     evPts(ctx, side, 3, 'kick')
-    fh.stats.drops += 1; fh.stats.points += 3
+    if (onRecord(state, ctx, side)) { fh.stats.drops += 1; fh.stats.points += 3 }
     // the line before the restart, so it is stamped where it was struck
     pushLine(state, ctx, min, 'DG', side, 'comm.dropGoal', { player: fh.name }, fh.id)
     ctx.field = ctx.field * 0.6 + 50 * 0.4
