@@ -217,6 +217,10 @@ export function loanIn(state: GameState, playerId: number, length: LoanLength = 
   const user = state.clubs[state.userClubId]
   // out of work, userClubId is the club that let him go (1.9.4 audit)
   if (state.unemployed) return t('reply.noDesk')
+  // A SHARE IS A SHARE (1.9.4 audit): the screen offers LOAN_SHARES, but the
+  // engine took any number, and the four per cent floor on the parent's yes
+  // let a negative one through - a negative wage, paid every week
+  if (!Number.isFinite(share) || share < 0 || share > 1) return t('reply.notAFigure')
   if (!p || !loanFree(state, p)) return t('reply.unavailable')
   const parent = state.clubs[p.clubId!]
   if (!parent) return t('reply.unavailable')
