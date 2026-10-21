@@ -339,7 +339,10 @@ function moneyMen(state: GameState, rng: Rng) {
     return
   }
   if (rng() > 0.035) return
-  const candidates = Object.values(state.clubs).filter(c => c.rep >= 55)
+  // not the club that sacked him, while he is out of work (exClub): one draw
+  // either way, and in work the pool is exactly what it always was
+  const ex = exClub(state)
+  const candidates = Object.values(state.clubs).filter(c => c.rep >= 55 && c.id !== ex)
   if (!candidates.length) return
   const club = pick(rng, candidates)
   state.takeover = { clubId: club.id, week: state.week, stage: 0 }
