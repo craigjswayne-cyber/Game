@@ -243,7 +243,11 @@
    here comes out of the name column (devicematrix caught Sleightholme cut) */
 .xv-fixed .dtable col.c-num { width: 30px; }
 .xv-fixed .dtable col.c-pos { width: 38px; }
-.xv-fixed .dtable col.c-stars { width: 66px; }
+.xv-fixed .dtable col.c-stars { width: 48px; }
+/* the ability sits up against the form pill (owner, 1.9.4: "move the player
+   rating over so its close to the player game rating"): right-aligned in a
+   column no wider than the chip, the pixels it gave up go to the name */
+.xv-fixed .dtable td.xv-ab { text-align: right; padding-right: 2px; }
 /* the form cell carries its trend arrow on the left of the pill now, so it is
    ten pixels wider and the stars sit that much further over */
 .xv-fixed .dtable col.c-form { width: 50px; }
@@ -697,3 +701,16 @@
 .toggle-row.on .toggle i { transform: translateX(20px); background: var(--on-primary); }
 .toggle-row:focus-visible .toggle { outline: 2px solid var(--gold); outline-offset: 2px; }
 
+
+/* General Info: the value's trend arrow keeps a slot on every row, and the
+   header steps in by the same so VALUE sits over the figures (1.9.4) */
+.sq-general .val-trend { display: inline-block; width: 12px; margin-left: 2px; text-align: left; font-weight: 400; }
+.sq-general th:last-child .th-btn { padding-right: 14px; }
+/* Stats and Contracts headings fit their columns (owner, 1.9.4: "check
+   columns"): MOTM ran past the edge and WAGE /WK was clipped to WAGE /WI.
+   The wage heading may take two lines where a language's is longer. */
+.sq-contracts th:nth-child(4) { white-space: normal; line-height: 1.15; vertical-align: bottom; }
+/* a centred heading really is centred: .dtable th's text-align: left outranked
+   the .center utility, so STATUS, NAT and MOR sat left of their columns */
+.dtable th.center { text-align: center; }
+.sq-contracts th:last-child, .sq-contracts td:last-child { padding-right: 10px; }

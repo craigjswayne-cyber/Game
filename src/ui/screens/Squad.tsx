@@ -221,25 +221,25 @@ export default function Squad() {
       {view !== 'selection' && players.length === 0 && (
         <div className="muted" style={{ padding: '12px 16px' }}>{t('squad.emptyFiltered')}</div>
       )}
-      {view !== 'selection' && players.length > 0 && <div className="tblwrap fitwrap"><table className="dtable zebra fit">
+      {view !== 'selection' && players.length > 0 && <div className="tblwrap fitwrap"><table className={`dtable zebra fit sq-${view}`}>
         {/* Mor 34 and Value 64 (UI QA, 1.8.0): at 26 the MOR heading was cut
             to "MO", and a value carrying its trend arrow ran off the glass */}
         {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="34" /><col width="42" /><col width="64" /></colgroup>}
-        {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="44" /></colgroup>}
+        {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="54" /></colgroup>}
         {/* Share, not pixels, for the two wide columns (owner, round 2: "NAM HE
             WAS TOLD"). 248px of fixed columns left the name 52px once the page
             was zoomed or the phone was narrow, and the headings ran into each
             other. Now the name keeps about a third of whatever width there is. */}
         {view === 'gametime' && <colgroup><col /><col style={{ width: '29%' }} /><col width="30" /><col width="34" /><col style={{ width: '21%' }} /></colgroup>}
-        {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="56" /><col width="44" /><col width="46" /></colgroup>}
+        {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="62" /><col width="44" /><col width="58" /></colgroup>}
         <thead>
           {view === 'general' && (
             <tr>
               <Th k="name">{t('squad.colName')}</Th>
               <Th k="pos">{t('squad.colPos')}</Th>
               <Th k="age" right>{t('squad.colAge')}</Th>
-              <th>{t('squad.colNat')}</th>
-              <th>{t('squad.colMor')}</th>
+              <th className="center">{t('squad.colNat')}</th>
+              <th className="center">{t('squad.colMor')}</th>
               <Th k="avr" right>{t('squad.colAvR')}</Th>
               <Th k="value" right>{t('squad.colValue')}</Th>
             </tr>
@@ -287,8 +287,8 @@ export default function Squad() {
                 {view === 'general' && (<>
                   <td><PosBadge pos={p.pos} /></td>
                   <td className="num">{p.age}</td>
-                  <td><Nat code={p.nat} /></td>
-                  <td><MoraleArrow v={p.morale} /></td>
+                  <td className="center"><Nat code={p.nat} /></td>
+                  <td className="center"><MoraleArrow v={p.morale} /></td>
                   {/* JUST THE RATING. The ability-trend arrow (ca vs season start)
                       used to render inside this cell, so a man with no apps showed
                       an up arrow next to a dash and it read as his average rating
@@ -302,12 +302,15 @@ export default function Squad() {
                     {/* the arrow FOLLOWS the figure (owner, v1.1.18: "put the
                         arrow up/down on the right of the money") - the money is
                         what the column is for, the trend is its footnote */}
-                    {(p.ca0 != null && p.ca !== p.ca0) && (
-                      <span style={{ color: p.ca > p.ca0 ? 'var(--text-positive)' : 'var(--danger)', marginLeft: 3, fontWeight: 400 }}
+                    {/* the arrow has a slot on every row, empty or not, so the
+                        figures line up down the column (owner, 1.9.4: "align
+                        the columns correctly" - one arrow pushed one value out) */}
+                    {(p.ca0 != null && p.ca !== p.ca0) ? (
+                      <span className="val-trend" style={{ color: p.ca > p.ca0 ? 'var(--text-positive)' : 'var(--danger)' }}
                         title={t(p.ca > p.ca0 ? 'squad.abilityUp' : 'squad.abilityDown')}>
                         {p.ca > p.ca0 ? '▲' : '▼'}
                       </span>
-                    )}
+                    ) : <span className="val-trend" aria-hidden />}
                   </td>
                 </>)}
                 {view === 'gametime' && (() => {

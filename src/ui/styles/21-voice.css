@@ -78,6 +78,34 @@
   color: var(--text-primary);
 }
 
+/* GOLD BANDS IN THE GOLD ITSELF (1.9.4, owner, on the day room's Tomorrow
+   card: "change these brown shapes to the colour of the defence"). A wash
+   of gold over the dark surface came out brown. A gold card's title band
+   is now the solid gold fill with near-black ink, and its edge the gold;
+   the card body stays plain. Red and green bands keep their wash. */
+[style*="--band: var(--gold)"]:has(> :is(h3, .fact-label):first-child) {
+  border-color: var(--gold-fill);
+}
+[style*="--band: var(--gold)"] > :is(h3, .fact-label):first-child {
+  background: var(--gold-fill);
+  border-bottom-color: var(--gold-fill);
+  color: var(--on-gold-fill);
+}
+[style*="--band: var(--gold)"]:not(:has(> :is(h3, .fact-label):first-child)) {
+  border-color: var(--gold-fill);
+}
+
+/* and the red one a true red (1.9.4, owner on the Danger Man card: "more of
+   a red"): a solid red title band with white ink, and a red edge */
+[style*="--band: var(--danger)"]:has(> :is(h3, .fact-label):first-child) {
+  border-color: var(--danger-band);
+}
+[style*="--band: var(--danger)"] > :is(h3, .fact-label):first-child {
+  background: var(--danger-band);
+  border-bottom-color: var(--danger-band);
+  color: var(--on-danger-band);
+}
+
 /* ---- Flat rows (1.9.2, owner's choice for lists) ----
    A list of figures is a list, not a box: the ledger cards lose their
    surface and border and sit on the page, with the row dividers doing the

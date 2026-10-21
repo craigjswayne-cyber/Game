@@ -522,10 +522,16 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   }
   if (club && teamId === state.userClubId) {
     const lu = club.tactic.lineup
-    const valid = lu.slice(0, 15).every(id =>
-      id != null && state.players[id] && !state.players[id].injury &&
-      state.players[id].bans === 0 && !state.players[id].natSquad &&
-      state.players[id].clubId === teamId)
+    // THE BENCH TOO (1.9.4). Only the fifteen were checked, so a replacement
+    // who had since been called up, injured or banned stayed on the sheet and
+    // could be sent on (engine10k caught a man on Test duty coming on for the
+    // last five minutes). A bench shirt may be empty; a named one must be fit.
+    const fit = (id: number) => {
+      const p = state.players[id]
+      return !!p && !p.injury && !p.maternity && !p.onLoan && p.bans === 0 && !p.natSquad && p.clubId === teamId
+    }
+    const valid = lu.slice(0, 15).every(id => id != null && fit(id)) &&
+      lu.slice(15).every(id => id == null || fit(id))
     // A saved team sheet also goes stale. It used to be kept as long as all
     // fifteen men were merely AVAILABLE, so a shirt filled by a pure shoehorn
     // during a crisis kept him in it for the rest of the career - the squad could

@@ -534,7 +534,12 @@ function koRecords(state: GameState, ctx: LiveCtx) {
   if (!fx.stage || !KO_STAGE.has(fx.stage)) return
   const stage_k = `news.koStage_${fx.stage}`
   const comp = state.comps[fx.compId]?.name ?? ''
+  // A MANAGER OUT OF WORK DOES NOT READ ABOUT THE CLUB THAT SACKED HIM
+  // (exileprobe, 1.9.4): userClubId still names that club until he takes
+  // another job. The record itself is kept; only his inbox is spared the story.
+  const exiled = (teamId: string) => state.unemployed && teamId === state.userClubId
   for (const side of [ctx.home, ctx.away]) {
+    if (exiled(side.teamId)) continue
     for (const [pid, n] of side.matchTries ?? []) {
       const p = state.players[pid]
       if (!p || n < 3) continue
@@ -555,7 +560,8 @@ function koRecords(state: GameState, ctx: LiveCtx) {
   if (!p) return
   state.koFastest = { min: first.firstTryMin, name: p.name, team: teamShort(state, first.teamId), season: state.season }
   // the first one set is not news: a record needs something to beat
-  if (!rec) return
+  // nor one that names the old record, when his old club held it
+  if (!rec || exiled(first.teamId) || (state.unemployed && rec.team === teamShort(state, state.userClubId))) return
   const v = { player: p.name, team: teamShort(state, first.teamId), min: first.firstTryMin, old: rec.name, oldMin: rec.min, comp, stage_k }
   // "after 1 minutes": a minute is the one count the old record can never be
   // (the record it beats is longer), so only {min} needs a singular line

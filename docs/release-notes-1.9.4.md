@@ -36,6 +36,31 @@ round of 20 Oct 2026, from a device test of 1.9.3.
   to a build installed from Google Play, so a test install from Android Studio
   never sees it.
 
+## Second round (owner, 20 Oct 2026, same build number)
+
+**Look**
+- The thin club-colour strip under the green action button is gone.
+- Gold-highlighted cards (the day room's Tomorrow, The Stakes, This Week's
+  Preparation, the Assistant's game plan, the Academy) have a gold title
+  band instead of a brown one. Danger Man's band is a solid red.
+- Academy: the header band runs edge to edge and the two lines under it are
+  spaced apart.
+- Tactics: the whole pitch shows on a phone, try line to try line.
+
+**Team tables**
+- Selection: each player's ability sits right next to his form rating.
+- General Info, Stats and Contracts: every heading sits over its column.
+  NAT, MOR and STATUS are centred, VALUE lines up whether or not a player
+  has a trend arrow, MOTM fits its column and WAGE /WK is no longer cut off.
+
+**Fixes**
+- A replacement who had been injured, banned or called up since the team
+  sheet was named could still be sent on. The bench is checked at kick-off
+  now, as the starting fifteen always was; an unfit name is covered for that
+  match only and the manager's sheet is kept.
+- A manager out of work no longer gets knockout record stories about the
+  club that sacked him.
+
 ## Testing
 
 tsc -b, eslint, cssaudit, unit tests (review ask schedule), the browser

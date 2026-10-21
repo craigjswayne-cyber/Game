@@ -131,7 +131,7 @@ export default function SelectionPane() {
         <td className="name">{p ? <LoanName p={p} /> : <span className="muted">{t('selection.tapToSelect')}</span>}
           {p && club.captain === p.id && <b style={{ color: 'var(--gold)' }}> (C)</b>}
           {p && <> <AvailTag p={p} g={game} /></>}</td>
-        <td>{p && <Stars ca={effAt(p, pos)} />}</td>
+        <td className="xv-ab">{p && <Stars ca={effAt(p, pos)} />}</td>
         <td>{p && <FormPill v={p.form} trend={formTrend(p)} />}</td>
         <td className="num">{p ? `${Math.round(p.cond)}%` : ''}</td>
       </tr>
