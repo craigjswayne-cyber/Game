@@ -369,7 +369,14 @@ function clockTo(ctx: LiveCtx, min: number, type: MatchEvent['type']): number {
     //
     // The half's own end is the ceiling. Clamping here rather than at each of
     // the forty call sites is the point - a new line cannot reintroduce it.
-    const whistle = ctx.seg === 0 ? 40 : 80
+    //
+    // AND A HELD HALF-TIME WHISTLE IS STILL THE FIRST HALF. stepTick moves seg
+    // to 1 at 40' even while a late penalty waits for the manager's answer
+    // (heldWhistle), so a corner or a tap answered there scored at 41' and
+    // converted at 42', ahead of a 40' half-time line: the ticker ran
+    // backwards again (audit, 29 halves in 16,332 matches with the manager
+    // choosing). The posts never showed it: that kick is stamped at 40'.
+    const whistle = ctx.seg === 0 || ctx.heldWhistle === 'HT' ? 40 : 80
     min = Math.min(Math.max(min, ctx.lastMin), whistle)
     ctx.lastMin = min
   }

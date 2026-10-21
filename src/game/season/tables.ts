@@ -116,6 +116,12 @@ export interface EtLine { min: number; type: 'SUB' | 'TRY' | 'PEN' | 'FT'; teamI
 export function resolveKnockoutDraw(state: GameState, fx: Fixture, rng: Rng): EtLine[] {
   if (!isKnockoutTie(fx)) return []
   if (fx.homeScore !== fx.awayScore) return []
+  // ONCE. A tie the live screen settled on tries or kicks (store/live.ts
+  // settleKnockout) is still level, and the week's settle reaches it again on
+  // its way to the table: without this it played a second extra time, put
+  // points on the record the ticker never showed and could send the other
+  // side through under a decider naming the first.
+  if (fx.decider) return []
   const lines: EtLine[] = []
   const short = (id: string) => teamShort(state, id)
   const hl = autoLineup(state, fx.homeId), al = autoLineup(state, fx.awayId)
