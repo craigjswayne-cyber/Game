@@ -2,7 +2,7 @@
 
 Version 1.9.5, Play versionCode 64. Baseline: 1.9.4, code 63. The owner's
 round of 21 Oct 2026: the varied condition held back from 1.9.4, built with
-a real cost for tired legs.
+a real cost for tired legs, and a new typeface.
 
 ## What changed for players
 
@@ -21,6 +21,14 @@ a real cost for tired legs.
   that point he now starts shorter: half the shortfall stays with him (33%
   and up is unchanged; 20% starts at 45 rather than 50).
 
+**A new typeface: Barlow**
+- The owner picked option C of a four-way font trial. Headings, scores,
+  screen titles and the wordmark are Barlow Semi Condensed; everything you
+  read or tap is Barlow. Space Grotesk, Source Serif 4 and Hanken Grotesk
+  are gone. The landing page uses the same two faces.
+- Self-hosted like before (latin and latin-ext, OFL), so the game still
+  starts offline.
+
 ## Balance
 
 - bandcheck, four worlds, 9,336 league games: 49.5 points a game, 6.48
@@ -31,6 +39,9 @@ a real cost for tired legs.
   against 16 when nobody manages it.
 - Fingerprint rebaselined (one of six re-deals). windowprobe's first run
   keeps its manager in work so the countdown has both windows to read.
+- rewarded182probe leaves the captain out of the 23 altogether: on the
+  bench the new condition let him come on and turn an ankle, and a hurt man
+  is rightly not asked about being dropped.
 
 ## Testing
 

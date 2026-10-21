@@ -3,7 +3,7 @@
    order it had, and theme.css imports the files in cascade order.  */
 .boot-splash .bs-rule { width: 64px; border: none; border-top: 2px solid var(--text-primary); margin: 16px auto; }
 .boot-splash .bs-word {
-  font-family: var(--serif); font-size: 2.875rem; font-weight: 900; line-height: 1.02;
+  font-family: var(--display); font-size: 2.875rem; font-weight: 900; line-height: 1.02;
   letter-spacing: 4px; text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
 }
 .boot-splash .bs-word b { color: var(--primary); font-weight: 900; }

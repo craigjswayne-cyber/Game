@@ -557,7 +557,7 @@
 @keyframes cel-in { from { opacity: 0; } to { opacity: 1; } }
 .celebrate-box { text-align: center; color: var(--text-primary); padding: 24px; max-width: 560px; }
 .celebrate-box h1 {
-  font-family: var(--serif); font-weight: 900; font-size: 1.875rem; letter-spacing: 2px;
+  font-family: var(--display); font-weight: 900; font-size: 1.875rem; letter-spacing: 2px;
   margin-top: 12px; line-height: 1.15;
   text-shadow: 0 2px 24px rgba(227, 185, 46, .45);
   animation: cel-pop .7s cubic-bezier(.2, 1.5, .4, 1) both .15s;

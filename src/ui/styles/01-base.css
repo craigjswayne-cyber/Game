@@ -2,26 +2,24 @@
    Regrouped by component (1.9.4); within this file every rule keeps the
    order it had, and theme.css imports the files in cascade order.  *//* ------------------------------------------------------------------
    Rugby Manager - type
-   Two families since 1.9.3 (owner, 19 Oct 2026: "BOLD - source serif pro
-   bold with HK grotesk regular - if you need a third option use regular
-   source serif"):
+   Barlow since 1.9.5 (owner, 21 Oct 2026: option C of the font trial,
+   picked to read clearly and feel less like an AI default than Space
+   Grotesk did). One family in two widths:
+     Barlow Semi Condensed   headings, scores, the wordmark, screen titles,
+                             labels: the --display face, mostly bold.
+     Barlow                  everything you read and everything you tap:
+                             body text, lists, numbers in tables, buttons,
+                             tabs and nav.
+   Both are by Jeremy Tribby, under the OFL. Barlow is modelled on road
+   signs and number plates, which is why it reads like a scoreboard.
 
-     Source Serif 4   headings, scores, the wordmark, labels: bold (700).
-                      The regular (400) is the third option, kept for a
-                      quote or a line that should read as written.
-                      Source Serif 4 is Adobe's current name for Source
-                      Serif Pro, same design, same licence (OFL).
-     Hanken Grotesk   everything you read and everything you tap: body
-                      text, lists, numbers in tables, buttons, tabs and
-                      nav. Hanken Grotesk is the current name of HK
-                      Grotesk, from the same foundry, under the OFL.
-
-   1.9.2's Saira Condensed and Libre Franklin are gone.
+   1.9.3's Source Serif 4 and Hanken Grotesk, and 1.9.4's Space Grotesk
+   titles, are gone.
 
    SELF-HOSTED, because this is an offline-first PWA and a font request
-   would break the first launch on a plane: the serif in two static
-   weights, the grotesk as one variable file, each split latin / latin-ext
-   by unicode-range so an English screen loads only the latin files.
+   would break the first launch on a plane: static weights, each split
+   latin / latin-ext by unicode-range so an English screen loads only the
+   latin files, and a browser only fetches the weights a screen uses.
    Japanese falls through to the phone's own fonts, as before.
 
    font-variant-numeric: tabular-nums is set on the body, not sprinkled
@@ -30,41 +28,114 @@
    proportional digits make those columns wobble.
 ------------------------------------------------------------------- */
 @font-face {
-  font-family: 'Source Serif 4'; font-style: normal; font-weight: 400; font-display: swap;
-  src: url('../fonts/source-serif-4-latin-400-normal.woff2') format('woff2');
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 500; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-500-normal.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Source Serif 4'; font-style: normal; font-weight: 400; font-display: swap;
-  src: url('../fonts/source-serif-4-latin-ext-400-normal.woff2') format('woff2');
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 500; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-ext-500-normal.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Source Serif 4'; font-style: normal; font-weight: 700; font-display: swap;
-  src: url('../fonts/source-serif-4-latin-700-normal.woff2') format('woff2');
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 600; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-600-normal.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Source Serif 4'; font-style: normal; font-weight: 700; font-display: swap;
-  src: url('../fonts/source-serif-4-latin-ext-700-normal.woff2') format('woff2');
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 600; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-ext-600-normal.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Hanken Grotesk'; font-style: normal; font-weight: 100 900; font-display: swap;
-  src: url('../fonts/hanken-grotesk-latin-wght-normal.woff2') format('woff2');
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 700; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-700-normal.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Hanken Grotesk'; font-style: normal; font-weight: 100 900; font-display: swap;
-  src: url('../fonts/hanken-grotesk-latin-ext-wght-normal.woff2') format('woff2');
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 700; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-ext-700-normal.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-
-/* Space Grotesk, back for one job (1.9.4, owner): the screen title in the
-   masthead, bold. The file that served the whole game until 1.9.2. */
 @font-face {
-  font-family: 'Space Grotesk'; font-style: normal; font-weight: 300 700; font-display: swap;
-  src: url('../fonts/space-grotesk-latin.woff2') format('woff2');
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 800; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-800-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 800; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-ext-800-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 900; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-900-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 900; font-display: swap;
+  src: url('../fonts/barlow-semi-condensed-latin-ext-900-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 400; font-display: swap;
+  src: url('../fonts/barlow-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 400; font-display: swap;
+  src: url('../fonts/barlow-latin-ext-400-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 500; font-display: swap;
+  src: url('../fonts/barlow-latin-500-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 500; font-display: swap;
+  src: url('../fonts/barlow-latin-ext-500-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 600; font-display: swap;
+  src: url('../fonts/barlow-latin-600-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 600; font-display: swap;
+  src: url('../fonts/barlow-latin-ext-600-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 700; font-display: swap;
+  src: url('../fonts/barlow-latin-700-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 700; font-display: swap;
+  src: url('../fonts/barlow-latin-ext-700-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 800; font-display: swap;
+  src: url('../fonts/barlow-latin-800-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 800; font-display: swap;
+  src: url('../fonts/barlow-latin-ext-800-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 900; font-display: swap;
+  src: url('../fonts/barlow-latin-900-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow'; font-style: normal; font-weight: 900; font-display: swap;
+  src: url('../fonts/barlow-latin-ext-900-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 :root {
@@ -73,13 +144,13 @@
      keeps only what is not palette: the type system, and the club
      identity channels that JS sets per save (a club's colours are DATA,
      not theme - see docs/palette-migration.md). */
-  --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --sans: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Barlow Semi Condensed', 'Arial Narrow', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   /* the display face: the name is from 1.9.2's condensed face and kept so
      the ninety-odd rules that use it did not all have to change */
-  --cond: var(--serif);
-  /* the masthead's screen title (1.9.4) */
-  --title: 'Space Grotesk', var(--sans);
+  --cond: var(--display);
+  /* the masthead's screen title (1.9.4; the display face since 1.9.5) */
+  --title: var(--display);
   --club1: var(--primary);
   --club2: var(--surface-1);
   /* ink over an ARBITRARY club colour: white, as it always was. JS sets
@@ -275,8 +346,8 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   font-feature-settings: 'tnum' 1;
 }
 
-/* the bold serif, by job: headings, stat labels and scores (owner,
-   19 Oct 2026) */
+/* the bold display face, by job: headings, stat labels and scores (owner,
+   19 Oct 2026; Barlow Semi Condensed since 1.9.5) */
 h1,
 h2,
 h3 {

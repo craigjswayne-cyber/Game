@@ -92,7 +92,7 @@
   margin: 0 14px;
 }
 .wire-brand {
-  font-family: var(--serif, Georgia);
+  font-family: var(--display);
   font-weight: 800; font-size: 1.375rem; letter-spacing: 3px;
   color: var(--text-primary);
 }
@@ -196,7 +196,7 @@
 .ruck-mark { display: inline-block; height: 20px; width: auto; max-width: 120px; }
 .app:not(.night) .ruck-mark { filter: brightness(0); }
 .reader h2 {
-  font-family: var(--serif); font-size: 1.125rem; line-height: 1.2;
+  font-family: var(--display); font-size: 1.125rem; line-height: 1.2;
   margin: 3px 0 7px; color: var(--text-primary);
 }
 /* Paragraph air, matched to the Wire so a story reads the same in both places. */
