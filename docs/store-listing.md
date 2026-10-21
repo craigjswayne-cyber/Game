@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.5, Play version code 64 (confirm 63 is accepted on the Console first)
+
+**en-GB**
+Every player now has their own condition, shaped by stamina, form, age and training. Tired legs cost more, so rotate your squad.
+
+**fr-FR**
+Chaque joueur a désormais sa propre condition physique, selon son endurance, sa forme, son âge et l'entraînement. La fatigue coûte plus cher : faites tourner votre effectif.
+
+**es-ES**
+Cada jugador tiene ahora su propia condición física, según su resistencia, su forma, su edad y el entrenamiento. El cansancio pesa más: rota tu plantilla.
+
+**it-IT**
+Ogni giocatore ora ha la sua condizione fisica, in base a resistenza, forma, età e allenamento. La stanchezza pesa di più: fai ruotare la rosa.
+
+**ja-JP**
+選手一人ひとりのコンディションが、スタミナ、調子、年齢、トレーニングによって変わるようになりました。疲れはより大きく響くので、ローテーションを活用しましょう。
+
+**af**
+Elke speler het nou 'n eie kondisie, gevorm deur uithouvermoë, vorm, ouderdom en oefening. Moeë bene kos meer, so roteer jou span.
+
 ### What's new (500 max) - v1.9.4, Play version code 63 (confirm 62 is accepted on the Console first)
 
 **en-GB**
