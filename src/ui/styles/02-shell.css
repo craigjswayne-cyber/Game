@@ -338,7 +338,7 @@
 .section-title { font-weight: 700; }
 
 /* headlines: the display voice, heavy, tracked at zero for a condensed face */
-/* the screen title: bold Space Grotesk (1.9.4, owner) */
+/* the screen title: the bold display face (1.9.4, owner; Barlow Semi Condensed since 21 Oct) */
 .masthead h1 { font-family: var(--title); letter-spacing: 0; font-weight: 700; }
 @media (orientation: landscape) and (min-width: 640px) {
   .talk-modal .section-title { padding: 6px 2px 4px; }

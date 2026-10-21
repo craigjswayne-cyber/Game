@@ -16,6 +16,21 @@ import { styleDrain, styleFitsRel, stylesOf } from '../styles'
 import { wetness } from '../conditions'
 import { HABITS, HABITS_OFF, habitFx } from '../habits'
 import { TANK_K, lineupFor, teamUnits } from './selection'
+
+/** TIRED LEGS COST SOMETHING (owner, 1.9.4: the varied condition, "with a
+ *  real cost for tired legs"). The tank used to stop at 50 however tired a
+ *  man was, so 20% condition kicked off exactly as fresh as 33%, and an XV
+ *  nobody rotated paid nothing more for the next week's knackered men. Under
+ *  the floor he now keeps half the shortfall: 33% and up is as it was, 20%
+ *  starts at 45 rather than 50. The floor itself stays (setup's note below
+ *  on why it is load-bearing), only softened. */
+const TANK_SOFT = 0.5
+const TANK_FLOOR = 50
+/** the tank a man kicks off with from his condition */
+export function kickoffTank(c0: number): number {
+  const raw = 100 - (100 - c0) * TANK_K
+  return raw >= TANK_FLOOR ? raw : TANK_FLOOR - (TANK_FLOOR - raw) * TANK_SOFT
+}
 import { type SideCtx, aggPenRisk, fieldLineup, freshMods, personnelKey } from './side'
 
 /** WHAT THE SKY DOES TO THE UNITS (conditions.ts), one place for kick-off and
@@ -524,7 +539,7 @@ export function mkSide(state: GameState, teamId: string, userTeamId: string | nu
       // THREE QUARTERS, NOT HALF (1.8.17, TANK_K, with FIT_W above): half let
       // the same tired XV go out every week at almost no cost.
       const c0 = state.players[id]?.cond ?? 85
-      energy.set(id, Math.max(50, 100 - (100 - c0) * TANK_K) * knockF)
+      energy.set(id, kickoffTank(c0) * knockF)
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })

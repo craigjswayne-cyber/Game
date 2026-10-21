@@ -168,7 +168,7 @@
     var(--canvas);
 }
 .store-card .store-word {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 1.875rem; font-weight: 900; letter-spacing: 2px; line-height: 1;
   text-transform: uppercase;
   color: var(--gold-fill);
@@ -220,14 +220,14 @@
    rather than one flat block of text. */
 .title-screen h1 b { color: var(--primary); font-weight: 700; }
 .title-screen h1 {
-  /* the wordmark in bold Space Grotesk (1.9.4, owner: "the main title text -
-     switch this to bold space grotesk"); 700 is the face's heaviest weight */
+  /* the wordmark in the bold display face (1.9.4, owner; Barlow Semi
+     Condensed since 21 Oct) */
   font-family: var(--title); font-size: 2.875rem; font-weight: 700;
   line-height: 1.02; letter-spacing: 1px;
   text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
   letter-spacing: 4px;
 }
-.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--text-secondary); margin-top: 8px; font-size: 1rem; }
+.title-screen .tagline { font-family: var(--display); font-weight: 700; color: var(--text-secondary); margin-top: 8px; font-size: 1rem; }
 .title-screen .menu-btns { margin-top: 38px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
 
 /* ---- the two how-it-reads controls, under the buttons ----
@@ -773,7 +773,7 @@
 .intro-rule i { width: 2px; height: 10px; background: var(--primary); }
 @keyframes intro-wipe { from { transform: scaleX(0); } }
 .intro-tag {
-  font-family: var(--serif); font-weight: 700; font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase;
+  font-family: var(--display); font-weight: 700; font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--studio-paper); opacity: 0; animation: intro-fade .7s ease-out 3.35s forwards;
 }
 .intro-tag b { color: var(--primary); font-weight: 700; }

@@ -6,12 +6,15 @@ round of 20 Oct 2026, from a device test of 1.9.3.
 ## What changed for players
 
 **Type**
-- The screen title in the bar at the top ("Northampton RFC", "Job Centre",
-  "Match Day") and the PHASE RUGBY MANAGER wordmark on the title screen are
-  in bold Space Grotesk.
+- Barlow throughout (owner, 21 Oct 2026: option C of a four-way font
+  trial). Headings, scores, the screen title in the bar at the top and the
+  PHASE RUGBY MANAGER wordmark are Barlow Semi Condensed; everything you
+  read or tap is Barlow. Space Grotesk, Source Serif 4 and Hanken Grotesk
+  are gone. The landing page uses the same two faces. Self-hosted as
+  before (latin and latin-ext, OFL), so the game still starts offline.
 - Home tiles: the line under each label ("Aidan Pugh: a flying month", "Not
   convinced", "70%") is in the text face; the small label above keeps the
-  serif.
+  display face.
 
 **Home**
 - Today, Needs your decision: the answers to a question sit one under
@@ -78,7 +81,39 @@ round of 20 Oct 2026, from a device test of 1.9.3.
 - The stylesheets are regrouped by component. Checked element by element on
   252 screens in both themes and three sizes: nothing looks different.
 
+## Third round (owner, 21 Oct 2026, same build number)
+
+**Every player has their own condition**
+- A whole XV no longer reads one number after the full eighty (35% from 1 to
+  15, or 71% after a friendly). After a match a player's condition moves
+  with his stamina, how well he played and the knocks he took. Over the week
+  it moves with his age, his stamina, a fitness week, a heavy personal load
+  and his own body; the physio and the gym still add on top. Every club
+  plays by the same rules.
+- Friendlies keep their floor: nobody leaves one under 48%.
+
+**Tired legs cost something**
+- A player used to kick off with the same energy at 20% condition as at
+  33%, so an unrotated side paid nothing more for its most tired men. Under
+  that point he now starts shorter: half the shortfall stays with him (33%
+  and up is unchanged; 20% starts at 45 rather than 50).
+
+**Balance**
+- bandcheck, four worlds, 9,336 league games: 49.5 points a game, 6.48
+  tries, 53.8% home wins, 1.6% draws, 9.1% blowouts. Every band holds.
+- autopilotprobe, 54 seasons: picking your side is worth 5.9 points a season
+  over leaving it on autopilot (5.1 before), autopilot wins 4 titles in 54,
+  and a well-run big club's board falls into crisis in 4 seasons of 36
+  against 16 when nobody manages it.
+- Fingerprint rebaselined (one of six re-deals). windowprobe's first run
+  keeps its manager in work so the countdown has both windows to read.
+- rewarded182probe leaves the captain out of the 23 altogether: on the
+  bench the new condition let him come on and turn an ankle, and a hurt man
+  is rightly not asked about being dropped.
+
 ## Testing
 
 tsc -b, eslint, cssaudit, unit tests (review ask schedule), the browser
-harnesses touching the changed screens, on the production build.
+harnesses touching the changed screens, on the production build. Third
+round: the fast engine suite, all 104 browser harnesses, autopilotprobe,
+bandcheck, stanceprobe and trustprobe.

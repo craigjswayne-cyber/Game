@@ -17,6 +17,7 @@ import type { SideCtx } from './side'
 import type { SimResult } from './lines'
 import { type LiveCtx, pushLine, userDials } from './live'
 import { FW_POS, teamRatingTerm } from './energy'
+import { matchToll } from '../condition'
 
 /**
  * Simulate the next 4-minute tick. Returns what the clock hit:
@@ -256,9 +257,13 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         // change the stream (fingerprint).
         p.lastWk = state.week
         const left = side.energy.get(pid)
+        // his own toll (condition.ts) moves him, but never under the 48
+        // floor: the owner's rule above stands. The full-eighty men all sit on
+        // it here; the week's recovery shift is what spreads them by Monday.
+        const toll = matchToll(state, p, r)
         p.cond = left != null
-          ? clamp(Math.max(Math.min(p.cond, left + 8) - 6, 48), 12, 100)
-          : clamp(Math.max(p.cond - (14 + Math.floor(rng() * 10)), 48), 20, 100)
+          ? clamp(Math.max(Math.min(p.cond, left + 8) - 6 + toll, 48), 12, 100)
+          : clamp(Math.max(p.cond - (14 + Math.floor(rng() * 10)) + toll, 48), 20, 100)
         p.sharp = clamp(p.sharp + 12, 0, 100)
       } else if (!isNation) {
         if (p.debutPending) { debutants.push({ p, r, kind: p.debutPending }); p.debutPending = null }
@@ -291,9 +296,14 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         if (tr) p.morale = clamp(p.morale + talkMorale(tr, won), 1, 10)
         // post-match condition reflects how much petrol was actually burned
         const left = side.energy.get(pid)
+        // EVERY MAN HIS OWN NUMBER (1.9.4): the full eighty empties every
+        // tank, so the floor used to catch the whole XV on one figure. The
+        // floor stays where it was as the middle of the spread; his engine,
+        // his day and his knocks (condition.ts) decide where he sits in it.
+        const toll = matchToll(state, p, r)
         p.cond = left != null
-          ? clamp(Math.min(p.cond, left + 8) - 6, 12, 100)
-          : clamp(p.cond - (14 + Math.floor(rng() * 10)), 20, 100)
+          ? clamp(Math.max(Math.min(p.cond, left + 8) - 6, 12) + toll, 4, 100)
+          : clamp(Math.max(p.cond - (14 + Math.floor(rng() * 10)), 20) + toll, 8, 100)
         p.sharp = clamp(p.sharp + 12, 0, 100)
         // suspensions news + totting-up for the user's squad
         if (p.clubId === state.userClubId) {

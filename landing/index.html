@@ -11,8 +11,8 @@
 <!-- the hero picture is a CSS background and the font is named in CSS, so
      the browser found both late: asked for here, they arrive with the page -->
 <link rel="preload" as="image" href="./img/hero.webp" type="image/webp" fetchpriority="high">
-<link rel="preload" as="font" href="./source-serif-4-latin-700-normal.woff2" type="font/woff2" crossorigin>
-<link rel="preload" as="font" href="./hanken-grotesk-latin-wght-normal.woff2" type="font/woff2" crossorigin>
+<link rel="preload" as="font" href="./barlow-semi-condensed-latin-700-normal.woff2" type="font/woff2" crossorigin>
+<link rel="preload" as="font" href="./barlow-latin-400-normal.woff2" type="font/woff2" crossorigin>
 <link rel="icon" href="./img/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" sizes="180x180" href="./img/icon-180.png">
 
@@ -81,21 +81,28 @@
   two stay in step.
 -->
 <style>
-/* the game's two faces (1.9.3): Source Serif 4 Bold for the name, Hanken
-   Grotesk for everything else, latin only and beside the page */
+/* the game's faces (1.9.4): Barlow Semi Condensed Bold for the name,
+   Barlow for everything else, latin only and beside the page */
 @font-face {
-  font-family: 'Source Serif 4';
+  font-family: 'Barlow Semi Condensed';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('./source-serif-4-latin-700-normal.woff2') format('woff2');
+  src: url('./barlow-semi-condensed-latin-700-normal.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Hanken Grotesk';
+  font-family: 'Barlow';
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 400;
   font-display: swap;
-  src: url('./hanken-grotesk-latin-wght-normal.woff2') format('woff2');
+  src: url('./barlow-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./barlow-latin-700-normal.woff2') format('woff2');
 }
 
 :root {
@@ -111,8 +118,8 @@
   --primary-hover: #4ed88c;
   --on-primary: #070d0a;
   --gold: #e9be68;
-  --sans: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --sans: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Barlow Semi Condensed', 'Arial Narrow', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -155,7 +162,7 @@ a { color: var(--primary); }
 
 .mark { width: 84px; height: 84px; margin: 0 auto 18px; }
 h1 {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: clamp(34px, 8vw, 62px);
   font-weight: 700;
   line-height: 1.02;

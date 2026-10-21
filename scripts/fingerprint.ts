@@ -24,6 +24,13 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED for 1.9.4 (owner: varied condition "with a real cost for
+  // tired legs"). Condition after a match and the week's recovery carry a
+  // per-player shift (condition.ts, a hash, not an rng draw), and the kick-off
+  // tank's 50 floor is soft (setup.ts kickoffTank). Only the 6th, the first
+  // of the six to run on a squad that has played, re-deals. bandcheck, four
+  // worlds, 9,336 league games: 49.5 pts, 6.48 tries, 53.8% home, 1.6% draws,
+  // 9.1% blowouts (every band holds); autopilotprobe passes (5.9 a season).
   // REBASELINED for 1.9.3 (owner, 19 Oct 2026: no head-injury story for a
   // real player). Only made-up players are led off for an HIA now, so in a
   // side of real men the check that used to happen does not, and two of the
@@ -682,7 +689,7 @@ export const EXPECTED: string[] = [
   'leicester 24-26 exeter',
   'newcastle 34-21 harlequins',
   'gloucester 14-32 bristol',
-  'bath 22-30 sale',
+  'bath 22-34 sale',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw

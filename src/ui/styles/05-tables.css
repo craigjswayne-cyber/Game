@@ -305,12 +305,12 @@
   }
 }
 
-/* ---- Type, applied by job (1.9.3: Source Serif 4 + Hanken Grotesk) ----
-   Two families (01-base.css): the bold serif for anything that is a
-   heading, a label or a score, the grotesk for anything read or tapped.
-   Buttons, tabs and the nav are grotesk: a serif at 13px on a button reads
-   worse than a grotesk, and the owner's brief keeps the serif for the bold
-   display lines.
+/* ---- Type, applied by job (1.9.4: Barlow Semi Condensed + Barlow) ----
+   Two widths (01-base.css): the condensed display face for anything that
+   is a heading, a label or a score, Barlow for anything read or tapped.
+   Buttons, tabs and the nav are in Barlow: the full width reads better at
+   13px on a button, and the condensed face is kept for the bold display
+   lines.
 
    Tables and rosters   medium weight, tight tracking, to buy back landscape
    Scores and ratings   bold and tabular, so columns of numbers line up
