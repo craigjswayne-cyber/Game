@@ -88,8 +88,38 @@ if (bal < -2_000_000) fails.push(`structurally insolvent: ${(bal / 1e6).toFixed(
 if (netWeekly < -40_000) fails.push(`weekly ledger runs at ${Math.round(netWeekly / 1000)}k/wk before a single transfer`)
 // And the other tail: once the manager's club is an order of magnitude richer
 // than the league, the transfer market stops meaning anything.
-const median = aiBals[Math.floor(aiBals.length / 2)]
-if (median > 0 && bal / median > 6) fails.push(`runaway wealth: ${(bal / median).toFixed(1)}x the AI median`)
+//
+// EIGHT CAREERS, NOT ONE (1.9.5, owner's call). This was one career on one
+// seed against a 6x line, and a correct fix elsewhere (friendly and Test
+// scores out of the season tally, which moves the news the week draws) sent
+// that one career down a different road: 7.7x, from season-end distributions,
+// a stand-naming deal, concerts and sales, nothing repeated or impossible.
+// Over eight seeds the same build averaged £7.5M against 1.9.4's £7.8M, and
+// 1.9.4 had a 4.3x career of its own. The property is the world's, so it is
+// asked of a panel: the median career stays under 6x, and no career reaches
+// 12x, the size of the runaway this probe was written against (£179M on £15M).
+// The ledger above stays on 4242, where it has always been read.
+const PANEL = [4242, 7, 19, 101, 555, 2024, 31337, 88]
+const ratioOf = (seed: number): number => {
+  const p = seed === 4242 ? g : newGame(CLUB, 'Econ Probe', seed)
+  while (p.season < SEASONS) {
+    const fx = userFixtureThisWeek(p)
+    if (fx) simMatch(p, fx, weekRng(p), true)
+    processWeekAndAdvance(p)
+  }
+  const ai = Object.values(p.clubs).filter(c => c.id !== p.userClubId).map(c => c.balance).sort((a, b) => a - b)
+  const mid = ai[Math.floor(ai.length / 2)]
+  const own = p.clubs[p.userClubId].balance
+  if (own < -2_000_000) fails.push(`seed ${seed}: structurally insolvent, ${(own / 1e6).toFixed(1)}M after ${SEASONS} seasons`)
+  return mid > 0 ? own / mid : 0
+}
+const ratios = PANEL.map(ratioOf)
+console.log(`panel of ${PANEL.length} careers, ratio to the AI median: ${ratios.map(r => `${r.toFixed(1)}x`).join(' ')}`)
+const sortedR = [...ratios].sort((a, b) => a - b)
+const medianR = (sortedR[3] + sortedR[4]) / 2
+if (medianR > 6) fails.push(`runaway wealth: the median career is ${medianR.toFixed(1)}x the AI median`)
+const worst = Math.max(...ratios)
+if (worst > 12) fails.push(`runaway wealth: one career reached ${worst.toFixed(1)}x the AI median`)
 // ---- THE TREASURY: the whole balance moves, and the ledger still balances ---
 //
 // (user: "should be able to transfer balance into transfer money", and v1.1.13:
