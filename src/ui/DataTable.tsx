@@ -25,7 +25,8 @@ export interface Col<R> {
   /** px, or a share such as '29%'; leave out for the column that takes the rest */
   width?: number | string
   align?: Align
-  /** extra classes for the heading and every cell (e.g. 'name') */
+  /** extra classes for every cell, not the heading (e.g. 'name': a heading
+   *  carrying it read as a row's name to anything that looks for one) */
   className?: string
   /** a sortable heading: the key handed to onSort */
   sort?: string
@@ -82,12 +83,12 @@ export function DataTable<R>({ cols, rows, rowKey, rowProps, className, sort, fo
             {cols.map(c => {
               const align = ALIGN[c.align ?? 'left']
               if (!c.sort || !sort) {
-                return <th key={c.id} className={classes(align, c.className, c.wrapHead && 'th-wrap')}>{c.head}</th>
+                return <th key={c.id} className={classes(align, c.wrapHead && 'th-wrap')}>{c.head}</th>
               }
               const active = sort.key === c.sort
               const fk = `${focusKey}-${c.sort}`
               return (
-                <th key={c.id} className={classes('th-sort', active && 'active', align, c.className, c.wrapHead && 'th-wrap')}
+                <th key={c.id} className={classes('th-sort', active && 'active', align, c.wrapHead && 'th-wrap')}
                   aria-sort={ariaSort(active, sort.desc, !!c.ascFirst)}>
                   <button type="button" className="th-btn" data-focus-key={fk}
                     onClick={e => { refocus(fk, document.activeElement === e.currentTarget); sort.onSort(c.sort!) }}>
