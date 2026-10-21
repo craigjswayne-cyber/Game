@@ -15,6 +15,8 @@ import { resignJob } from '../src/game/jobs'
 import { agreeFee, agreePreContract, askingPrice, offerRenewalAt, renewalDemand, signFreeAgent, signOnTerms, personalTermsDemand } from '../src/game/ai'
 import { releasePlayer } from '../src/game/release'
 import { loanIn, loanOut, loanTargets } from '../src/game/loans'
+import { requestExpansion, requestFacility } from '../src/game/season'
+import { t } from '../src/game/i18n'
 import type { GameState } from '../src/game/model'
 
 function outOfWork(): { g: GameState; old: string } {
@@ -90,5 +92,16 @@ describe('an unemployed manager', () => {
       expect(agreePreContract(g, pc.id).ok).toBe(false)
       expect((g.preContracts ?? []).some(x => x.playerId === pc.id)).toBe(false)
     }
+  })
+})
+
+describe('an unemployed manager and the old board', () => {
+  it('cannot ask it for a building or a bigger ground', () => {
+    const { g, old } = outOfWork()
+    const club = g.clubs[old]
+    const before = JSON.stringify({ f: club.facilities, cap: club.capacity, bal: club.balance, b: g.facilityBuild, s: g.stadiumBuild })
+    expect(requestFacility(g, 'gym')).toBe(t('reply.noDesk'))
+    expect(requestExpansion(g)).toBe(t('reply.noDesk'))
+    expect(JSON.stringify({ f: club.facilities, cap: club.capacity, bal: club.balance, b: g.facilityBuild, s: g.stadiumBuild })).toBe(before)
   })
 })

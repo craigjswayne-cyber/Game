@@ -53,6 +53,10 @@ function pressBoard(state: GameState, kind: 'capital' | 'funds' | 'time' | 'staf
  *  weighs the books and their faith in you. A yes releases the funds and
  *  puts builders on site for five weeks; a no closes the door for eight. */
 export function requestFacility(state: GameState, fid: FacilityId): string {
+  // out of work, userClubId is the club that let him go: its board is not his
+  // to ask (1.9.4 audit; the Infrastructure screen is a desk screen, this is
+  // the engine's own door)
+  if (state.unemployed) return t('reply.noDesk')
   const club = state.clubs[state.userClubId]
   const info = FACILITY_INFO[fid]
   // a corrupted save or a stale screen can name a facility that does not
@@ -201,6 +205,7 @@ export function expansionPlan(state: GameState) {
  * pours concrete - full houses and a healthy balance carry the vote.
  */
 export function requestExpansion(state: GameState): string {
+  if (state.unemployed) return t('reply.noDesk')
   const club = state.clubs[state.userClubId]
   const abs = state.season * 100 + state.week
   // THE TOP OF THE LADDER, and the hard cap above it for the handful of
