@@ -84,6 +84,7 @@ over `tests/**/*.test.ts`: fast, deterministic, no browser, about a minute.
 | `tests/spend.test.ts` | a credit is spent on its effect once, given back on every failure, and the career is on disk at the answer | core of `scripts/spendprobe.ts` |
 | `tests/pledge.test.ts` | `pledgeDue` never falls due before a promise is made; `carryPledges` carries only last season's late one | the arithmetic of `scripts/pledgeprobe.ts` |
 | `tests/listsaves.test.ts` | the Load screen reads labels, labels old slots, reads no career, deletes labels with saves | `scripts/listsavesprobe.ts` |
+| `tests/condband.test.ts` | a condition's colour band is read off the figure printed beside it (84.6 shows 85% and is green) | new in 1.9.4 |
 
 New fast, deterministic checks belong here rather than in a new probe. Watch
 mode while working: `npx vitest`. vitest 4.1 runs on the repo's Vite 8, the
