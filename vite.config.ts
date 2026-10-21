@@ -66,9 +66,14 @@ function swCacheName() {
       const name = `rugby-manager-${buildTag().replace(/[^\w.]+/g, '-')}`
       // every script and stylesheet the game is built from, so a screen never
       // opened online still opens offline; not the other languages' dictionaries
-      // (fr-, es-, ...), which a player fetches only on switching to one
+      // (fr-, es-, ...), which a player fetches only on switching to one.
+      // AND THE FONTS (1.9.4). A face is fetched the first time a screen uses
+      // it, and the title screen's faces are fetched before the worker has
+      // taken the page, so they were never in its cache, and an update's new
+      // cache dropped the rest: offline, once the browser's own cache let them
+      // go, the titles fell back to the phone's sans. 22 files, about 400 KB.
       const assets = (await readdir(`${outDir}/assets`).catch(() => [] as string[]))
-        .filter(f => /\.(js|css)$/.test(f) && !/^[a-z]{2}-/.test(f))
+        .filter(f => /\.(js|css|woff2)$/.test(f) && !/^[a-z]{2}-/.test(f))
         .map(f => `./assets/${f}`)
       await writeFile(file, src
         .replace(/const CACHE = '[^']*'/, `const CACHE = '${name}'`)
