@@ -103,6 +103,7 @@ or misleading information; P3 cosmetic or low impact.
 | fingerprint | branch | unchanged: the match stream is 1.9.4's |
 | aiecon | `a06cc76` | FAIL: median AI club +£0.17M a season, mean +£0.20M (was £0.32M) |
 | aiecon | `2984731` (before 1.9.2) | PASS: median +£0.27M, mean +£0.31M |
+| aiecon | `b0bb5b7` (the 1.9.2 merge) | FAIL: median +£0.17M, mean +£0.21M |
 | econprobe, 8 careers | branch | PASS: 7.7x 1.9x 3.1x 1.4x 1.6x 1.9x 1.8x 1.2x the AI median |
 
 **Condition (1.9.4).** The kick-off tank is untouched from 33.3%, 45 at
@@ -117,8 +118,9 @@ at 45. Below about 47% condition, starting a fresh man and sending a tired
 star on in the first minute gives the star more legs. Small, and the 60
 floor is a design decision.
 
-**aiecon.** The fall in AI club income came in between `2984731` and
-`a06cc76`, not with this audit's fixes. AI clubs stay solvent, the richest is
+**aiecon.** The fall in AI club income came in with the 1.9.2 merge
+(`b0bb5b7`, which brought the 2026-27 squads and their wages, half-time
+recovery, team talks and the HIA change), not with 1.9.4 or this audit's fixes. AI clubs stay solvent, the richest is
 not printing money, and the worst-run is not absurd; the probe guards the
 rate of gain. Section J has the options.
 
@@ -173,7 +175,7 @@ Nothing compiled or run on a device.
 | bandcheck | PASS on `a06cc76` | local; fingerprint unchanged on the branch, so the stream it measures is the same |
 | autopilotprobe | PASS on `fae4c44` | local |
 | optionsprobe | PASS on branch | local |
-| aiecon | FAIL on `a06cc76` and before this audit's changes | local and release check 39662427214 |
+| aiecon | FAIL since the 1.9.2 merge, before this audit | local on `b0bb5b7` and `a06cc76`, release check 39662427214 |
 | Native Android build | NOT TESTED | owner |
 | Device: consent, adverts, billing, review card | NOT TESTED | owner |
 
@@ -194,8 +196,8 @@ The final SHA, its Gate run and its release-check run are recorded in the PR.
 ## J. Remaining risks and recommendation
 
 - **aiecon (open, needs a decision).** AI clubs gain about a third less a
-  season than the probe's baseline since 1.9.2 or 1.9.3. Options: find the
-  cause between `2984731` and `9cf8460` and retune (a balance change), or
+  season than the probe's baseline since the 1.9.2 merge (`b0bb5b7`).
+  Options: find which part of 1.9.2 did it and retune (a balance change), or
   record the new rate as the baseline with the reason. Not a blocker for
   1.9.5: every solvency check in the probe holds.
 - **Tab bars.** A one-line CSS fix for a regression that now touches nine
