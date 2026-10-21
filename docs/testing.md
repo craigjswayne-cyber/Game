@@ -11,7 +11,7 @@ The counts:
 | browser harnesses | 102 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
 | soaks and audits | 13 | `SLOW` in `suite.sh` | 90 min timeout each, weekly |
 | reporters | 20 | `REPORTERS` in `suite.sh` | never: no verdict, run by hand |
-| unit tests | 9 files | `tests/*.test.ts` | `npm test` (vitest) |
+| unit tests | 28 files | `tests/*.test.ts` | `npm test` (vitest) |
 | tools and libraries | 18 | `TOOLS` and `LIBRARIES` in `orphancheck.mjs` | by hand, or imported |
 
 This page says how to run them, what CI runs where, and which probes cover
@@ -87,6 +87,18 @@ over `tests/**/*.test.ts`: fast, deterministic, no browser, about a minute.
 | `tests/savehostile.test.ts` | the import gate: ids named after Object.prototype refused, a damaged players map pruned, body fields, positions and records healed, a pre-MRC save migrates the same twice, five round trips equal one | new (1.9.4 audit) |
 | `tests/saveswitch.test.ts` | opening another career writes the outgoing one's last marks to its own slot, never mid-match | new (1.9.4 audit) |
 | `tests/condband.test.ts` | a condition's colour band is read off the figure printed beside it (84.6 shows 85% and is green) | new (1.9.4 audit) |
+| `tests/condition.test.ts` | the kick-off tank's soft floor at its edges (unchanged from 33.3%, 45 at 20%, continuous), the two condition shifts' bounds and purity, a spread per man, 18 weeks of every squad man between 20 and 100 and exact through a save | new (1.9.4 audit) |
+| `tests/knockout.test.ts` | a knockout tie settled live on tries or kicks is settled once: no second extra time when the week is processed | new (1.9.4 audit) |
+| `tests/heldwhistle.test.ts` | a penalty answered at a held half-time whistle is stamped in the first half: the clock never runs backwards | new (1.9.4 audit) |
+| `tests/injurycover.test.ts` | the free injury-cover swap only takes off the cover or the man brought on at the same stoppage | new (1.9.4 audit) |
+| `tests/matchbounds.test.ts` | a side with eleven or more men missing reads no strength, not NaN | new (1.9.4 audit) |
+| `tests/selection.test.ts` | the club and Test team sheets are held to the kick-off rule: every way of being unavailable, and twenty-three shirts | new (1.9.4 audit) |
+| `tests/jobmoney.test.ts` | the old board's grants, backroom pot and grace stay with the old club on a change of job, and its paid build opens there | new (1.9.4 audit) |
+| `tests/nodesk.test.ts` | an unemployed manager cannot sign, bid, renew, release, lend or ask the old board for a build | new (1.9.4 audit) |
+| `tests/econexploit.test.ts` | the economy's loops (free-agent flip, double release, repeat renewals and asks, repeat favours) earn nothing | new (1.9.4 audit) |
+| `tests/career.test.ts` | the sacking bar holds 13 weeks across a rollover, a sacked manager finds work, the Job Centre is never empty, the women's top flights are tier one | new (1.9.4 audit) |
+| `tests/records.test.ts` | tries and kicks in friendlies and Tests stay out of a man's season tally | new (1.9.4 audit) |
+| `tests/loanshare.test.ts` | a loan's wage share outside nought to one is refused | new (1.9.4 audit) |
 
 New fast, deterministic checks belong here rather than in a new probe. Watch
 mode while working: `npx vitest`. vitest 4.1 runs on the repo's Vite 8, the
