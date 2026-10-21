@@ -13,7 +13,7 @@
 //     reads in that zone, penalty goals taken, and who comes off the bench.
 //     This is the honest test: 120 matches cannot tell a tenth of a try from
 //     luck (about +-0.23 tries), but the engine's numbers are exact.
-//   IS IT A META? Over 120 full matches (common random numbers: the same
+//   IS IT A META? Over 240 full matches (common random numbers: the same
 //     fixture, state and dice, only the option differs, played the way the
 //     Instant Result plays them), no option moves the average margin by more
 //     than 4 points a match. If one did, every career would end up there.
@@ -47,7 +47,14 @@ const userFixture = (g: GameState) =>
 type Stats = { margin: number; triesFor: number; triesAgainst: number; pensFor: number; cardsFor: number; pointsFor: number }
 
 const pool: { g: GameState; fx: Fixture }[] = []
-for (const seed of [3, 11, 29, 47, 83, 101, 131, 157, 181, 211, 239, 263, 281, 307, 331, 353, 379, 401, 421, 443, 463, 487, 503, 521]) {
+// TWO HUNDRED AND FORTY, NOT ONE HUNDRED AND TWENTY (1.9.4 audit). The
+// release check on a06cc76 failed three options on this pool's 120 at -4.1
+// to -4.9; the same options over 240 on two reshuffled draws read -0.3 to
+// -2.5 (tight -0.70 and -1.31, the tight preset -0.93 and -2.54, blitz +1.40
+// and -0.27). The line was right and the draw was short: docs/testing.md,
+// lesson 6. The line stays at 4; the sample doubles.
+for (const seed of [3, 11, 29, 47, 83, 101, 131, 157, 181, 211, 239, 263, 281, 307, 331, 353, 379, 401, 421, 443, 463, 487, 503, 521,
+  5, 13, 31, 53, 89, 103, 137, 163, 191, 223, 241, 269, 293, 311, 337, 359, 383, 409, 431, 449, 467, 491, 509, 523]) {
   for (const club of ['northampton', 'bath', 'exeter', 'sale', 'leicester']) {
     const g = newGame(club, 'Options', seed)
     pool.push({ g, fx: userFixture(g) })
