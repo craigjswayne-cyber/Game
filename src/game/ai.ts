@@ -31,6 +31,11 @@ export { embargoed, pendingDeal, askingPrice, INK_WEEKS, SQUAD_LIMIT, squadFull,
 
 /** The refusal a nonsense figure gets, in words a player can read. */
 const notAFigure = () => ({ ok: false as const, msg: t('reply.notAFigure') })
+/** NO DESK, NO DEALS (1.9.4 audit). Out of work, userClubId still names the
+ *  club that let him go, and a player's page is a world screen the app leaves
+ *  open: every door below signed, bought, renewed and pre-agreed for the old
+ *  club on its money. The engine refuses, whichever screen asks. */
+const noDesk = () => ({ ok: false as const, msg: t('reply.noDesk') })
 
 /**
  * The division's weekly wage ceiling, or null where there is none.
@@ -394,6 +399,7 @@ export function personalTermsDemand(state: GameState, p: Player): number {
  *  until personal terms are done. */
 export function agreeFee(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string; counter?: number } {
   if (!realMoney(fee)) return notAFigure()
+  if (state.unemployed) return noDesk()
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
@@ -500,6 +506,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
  *  he will hold you to it. */
 export function signOnTerms(state: GameState, playerId: number, fee: number, wage: number, signOn: number, promiseMinutes: boolean, asMarquee = false, completing = false): { ok: boolean; msg: string } {
   if (!realMoney(fee, wage, signOn)) return notAFigure()
+  if (state.unemployed) return noDesk()
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
@@ -606,6 +613,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
 export function signFreeAgent(state: GameState, playerId: number): { ok: boolean; msg: string } {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
+  if (state.unemployed) return noDesk()
   if (!p || p.clubId != null || !user) return { ok: false, msg: t('reply.notFreeAgent') }
   if (squadFull(state, user)) return { ok: false, msg: t('reply.squadFull') }
   if (embargoed(state, user.id)) {
@@ -779,6 +787,7 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
 export function agreePreContract(state: GameState, playerId: number): { ok: boolean; msg: string } {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
+  if (state.unemployed) return noDesk()
   if (embargoed(state, state.userClubId)) {
     return { ok: false, msg: t('reply.embargoPre') }
   }
@@ -899,6 +908,7 @@ export function offerRenewal(state: GameState, playerId: number): { ok: boolean;
 /** Haggled renewal: offer any wage; the agent accepts, counters or walks. */
 export function offerRenewalAt(state: GameState, playerId: number, offer: number): { ok: boolean; msg: string; counter?: number } {
   if (!realMoney(offer)) return notAFigure()
+  if (state.unemployed) return noDesk()
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId !== user.id) return { ok: false, msg: t('reply.notYourPlayer') }

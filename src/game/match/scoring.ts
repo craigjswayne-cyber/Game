@@ -13,7 +13,7 @@ import { checkFrontRow } from './subs'
 import { describeOffence, describeWarning } from './discipline'
 import { blowFullTime, blowHalfTime } from './finalize'
 import { fieldChanged, goalKicker } from './field'
-import { type SideCtx, evPts } from './side'
+import { type SideCtx, evPts, onRecord } from './side'
 import { tryScorer } from './setup'
 import { CON_LINES, TOUCHLINE_CON, TRY_LINES, TRY_LINES_DERBY, TRY_LINES_WET, UNDER_POSTS, fitTryLine } from './lines'
 import { DEPICTS, type LiveCtx, binUntil, pushLine } from './live'
@@ -169,8 +169,10 @@ export function scoreTry(
       const f = state.players[id]
       if (f && FW_POS.has(f.pos)) side.ratings.set(id, (side.ratings.get(id) ?? 6) + 0.035)
     }
-    scorer.stats.tries += 1
-    scorer.stats.points += 5
+    if (onRecord(state, ctx, side)) {
+      scorer.stats.tries += 1
+      scorer.stats.points += 5
+    }
   }
   const wetTry = (ctx.weather === 'Rain' || ctx.weather === 'Snow') && rng() < 0.25
   const derbyTry = ctx.derby && rng() < 0.3
@@ -241,7 +243,7 @@ export function scoreTry(
   if (conOver) {
     side.score += 2
     evPts(ctx, side, 2)
-    if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
+    if (kicker && onRecord(state, ctx, side)) { kicker.stats.cons += 1; kicker.stats.points += 2 }
     // A TRY UNDER THE POSTS IS NOT CONVERTED FROM THE TOUCHLINE (1.6.3). The
     // conversion line was drawn without looking at the try line, and thirteen
     // times in 224 matches "dives under the posts" was followed by "converts

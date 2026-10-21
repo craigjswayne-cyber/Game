@@ -31,7 +31,9 @@ type ReleaseBlock = 'notYours' | 'onLoanIn' | 'awayOnLoan' | 'floor' | 'noMoney'
 export function releaseBlock(state: GameState, playerId: number): ReleaseBlock {
   const p = state.players[playerId]
   const club = state.clubs[state.userClubId]
-  if (!p || !club || p.clubId !== state.userClubId) return 'notYours'
+  // out of work, userClubId is the club that let him go: its men are not his
+  // to pay off (1.9.4 audit)
+  if (!p || !club || p.clubId !== state.userClubId || state.unemployed) return 'notYours'
   if (p.loanFrom) return 'onLoanIn'
   if (p.onLoan) return 'awayOnLoan'
   const seniors = club.players.filter(id => { const q = state.players[id]; return q && !q.acad })
