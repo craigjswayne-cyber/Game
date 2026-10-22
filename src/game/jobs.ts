@@ -496,8 +496,24 @@ function takeJob(state: GameState, clubId: string): string {
     state.vsBook = {} // and a blank book against everyone else too
     state.gateRecord = null // a new ground sets its own bar
     state.tryOfSeason = null // the old club keeps its own best try
-    state.facilityBuild = null // the old club's builders finish without you
-    state.stadiumBuild = null // and the old club's stand is the old board's problem
+    // THE OLD CLUB'S BUILDERS FINISH WITHOUT YOU (1.9.4 audit). They were
+    // simply sent home: the old club had paid its share and never got the
+    // building or the seats. The slot is the career's, so it is cleared for
+    // the new desk, and what the old club paid for opens there now.
+    const oldClub = state.clubs[oldClubId]
+    if (oldClub && oldClubId !== clubId) {
+      const fb = state.facilityBuild
+      if (fb) oldClub.facilities = { ...(oldClub.facilities ?? {}), [fb.id]: Math.max(fb.level, oldClub.facilities?.[fb.id] ?? 0) }
+      if (state.stadiumBuild) oldClub.capacity += state.stadiumBuild.seats
+    }
+    state.facilityBuild = null
+    state.stadiumBuild = null
+    // and what the old chairman promised is the old club's: a building he
+    // agreed to pay for, his ring-fenced backroom pot and his grace on the
+    // sack were the career's, so they paid for a new club's estate and staff
+    state.boardGrant = undefined
+    state.staffRoom = undefined
+    state.boardGrace = undefined
     state.facilityAskCooldown = 0 // a new board hears you out fresh
     state.boardAsks = undefined // and holds none of the old board's grudges
     state.fundsAskedSeason = undefined // the funds ask resets with the desk

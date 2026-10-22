@@ -15,7 +15,7 @@
 //   leaving the screen hides it, coming back resumes it (no second request);
 //   a rewarded spot earns the favour only when the plugin said it was
 //     rewarded: dismissed early is 'skipped', failed is 'unavailable', and
-//     six in a real day is the ceiling;
+//     ten in a real day is the ceiling, and one spot at a time;
 //   on iOS the consent form comes first and the tracking prompt second, and
 //     neither a plugin that arrives late, refuses to listen, will not open the
 //     form until the SDK is started, or never fills a banner leaves the game
@@ -329,6 +329,19 @@ try {
     const l = await log(page)
     ok(out === 'unavailable' && !l.some(x => x.startsWith('prepareRewardVideoAd')), `ten today is the ceiling: '${out}' without asking the plugin`)
     ok(await page.evaluate(() => !!document.querySelector('.bottom-nav')), 'and the game is untouched by the refusal')
+    await page.close()
+  }
+  {
+    // two buttons tapped while the first spot is still loading: the plugin's
+    // events reach every waiting show, so a second show in the air either
+    // pays twice for one advert or fails both (1.9.4 audit)
+    const { page } = await openPage({ spot: 'reward' })
+    await startCareer(page)
+    const outs = await page.evaluate(() => Promise.all([globalThis.rmAds.showRewarded('medical'), globalThis.rmAds.showRewarded('medical')]))
+    const l = await log(page)
+    ok(l.filter(x => x === 'showRewardVideoAd').length === 1, `two asks at once show one spot (${l.filter(x => x === 'showRewardVideoAd').length})`)
+    ok(outs.filter(o => o === 'completed').length === 1 && outs.includes('unavailable'), `and earn one favour: ${JSON.stringify(outs)}`)
+    ok(await page.evaluate(() => localStorage.getItem('rm-rw')?.endsWith(':1')), 'counting one against today')
     await page.close()
   }
 

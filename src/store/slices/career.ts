@@ -28,6 +28,8 @@ export const careerSlice = (set: SetState, get: GetState) => ({
     const slot = get().saveSlot
     const g = await loadGame(slot).catch(() => null)
     if (!g) return false
+    // what memory holds is what is being undone: none of it goes to disk
+    saveQueue.discard()
     get().setGame(g, slot)
     return true
   },
@@ -97,6 +99,9 @@ export const careerSlice = (set: SetState, get: GetState) => ({
     // longer does anything. One entry, so Back has nowhere stale to go.
     const nav: NavEntry[] = [{ screen: 'home' }]
     noteWhere(slot, nav)
+    // the career being replaced writes its last marks to its own slot first
+    // (saveQueue.leaving, 1.9.4 audit)
+    if (get().game && get().game !== g) saveQueue.leaving()
     // A MATCH KICKED OFF IS A MATCH TO FINISH (1.8.2, tester note 1.4). This
     // used to clear the live-match record, on the reasoning that loading from
     // the title never replays a match. That reasoning was the exploit: losing,

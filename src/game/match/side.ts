@@ -7,6 +7,7 @@ import type { Units } from './selection'
 import type { MoveInPlay } from './commentary'
 import type { DayUnit } from './day'
 import type { LiveCtx } from './live'
+import type { GameState } from '../model'
 
 /** In-match multipliers that must outlive a unit recompute. */
 export interface SideMods {
@@ -423,6 +424,19 @@ export function evOf(side: SideCtx): EvCount {
 export function evPts(ctx: LiveCtx, side: SideCtx, n: number, cause?: EvCause) {
   const c = cause ?? ctx.evWhy ?? 'phase'
   evOf(side).pts[EV_CAUSES.indexOf(c)] += n
+}
+
+/**
+ * WHETHER A SCORE GOES IN HIS SEASON'S TALLY (1.9.4 audit). The same rule the
+ * final whistle uses for an appearance (finalize.ts): a club's match that is
+ * not a friendly. Tries and kicks were written to p.stats from every match,
+ * so a pre-season run-out or a Test hat-trick counted towards the league's
+ * top scorer, the "most points in a season" record and the season row of his
+ * career, while the appearance it came from did not. Only a write is skipped:
+ * no draw is taken either way.
+ */
+export function onRecord(state: GameState, ctx: LiveCtx, side: SideCtx): boolean {
+  return ctx.fx.compId !== 'fr' && !!state.clubs[side.teamId]
 }
 
 /** One tick's worth of evidence for the side with the ball, read off what

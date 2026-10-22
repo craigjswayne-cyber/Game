@@ -41,8 +41,18 @@ const overflowOn = async (page, where) => {
     }
     // and the page itself must never run sideways
     const doc = document.documentElement
-    return { tables: out, page: doc.scrollWidth - doc.clientWidth }
+    // AND NO HEADING CUT SHORT (1.9.4): Game Time's Due column is 34px, and
+    // the Italian ATTESE and Afrikaans VERWAG were clipped to ATTES and VERWA
+    // against the next heading. A heading that does not fit is a column
+    // nobody can name.
+    const heads = []
+    for (const th of document.querySelectorAll('table.dtable thead th')) {
+      const el = th.querySelector('.th-btn') ?? th
+      if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).textOverflow !== 'ellipsis') heads.push(`"${th.textContent.trim()}" ${el.scrollWidth}>${el.clientWidth}`)
+    }
+    return { tables: out, page: doc.scrollWidth - doc.clientWidth, heads }
   })
+  ok(!rows.heads.length, `${where}: every heading fits its column${rows.heads.length ? ` (cut: ${rows.heads.join(', ')})` : ''}`)
   const worst = rows.tables.sort((a, b) => b.over - a.over)[0]
   ok(!worst, `${where}: no table runs off the side${worst ? ` (worst ${worst.over}px past a ${worst.w}px box)` : ''}`)
   ok(rows.page <= 1, `${where}: and the page itself does not scroll sideways (${rows.page}px)`)
@@ -77,6 +87,11 @@ try {
     await at('tables', 'Competitions')
     await at('transfers', 'Transfer Centre')
     await at('squad', 'Squad')
+    // the four player tables behind the team sheet (1.9.4, DataTable)
+    await at('squad', 'Squad General Info', 1)
+    await at('squad', 'Squad Stats', 2)
+    await at('squad', 'Squad Game Time', 3)
+    await at('squad', 'Squad Contracts', 4)
     await at('finances', 'Finances')
     await p.close()
   }

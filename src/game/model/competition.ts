@@ -95,6 +95,14 @@ export const LEAGUE_TIER: Record<string, number> = {
   prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1, mrc: 1,
   champ: 2, prod2: 2,
   natl1: 3,
+  // THE WOMEN'S TOP FLIGHTS ARE TOP FLIGHTS (1.9.4 audit). They were missing,
+  // so leagueTier read every women's league as a second division: a club with
+  // a big ground or two titles in the Premier was a 'fallen' giant to its own
+  // chairman (chairman.ts) and a women's career counted no seasons in a top
+  // flight on its CV (career.ts). The second tiers stay off the list: they
+  // already read as tier 2 through leagueTier, and listing them would cut a
+  // win there to 0.6 in mgrWinWeight, which is a balance call, not a fix.
+  'w:pwr': 1, 'w:pac': 1, 'w:e1': 1, 'w:celt': 1,
 }
 export const leagueTier = (leagueId?: string | null): number => LEAGUE_TIER[leagueId ?? ''] ?? 2
 

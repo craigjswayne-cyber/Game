@@ -4,6 +4,7 @@ import { Flag } from './flags'
 import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim, type KitPattern } from '../game/kits'
 import { hasHoopRow } from '../game/kits'
 import { t } from '../game/i18n'
+import { condBand } from '../game/condition'
 import { Glyph } from './glyphs'
 import { showRewarded, type RewardedPlace } from '../game/monetise'
 // the store, for ClubLink's one job: opening a club. store.ts imports nothing
@@ -227,7 +228,8 @@ export function PosBadge({ pos }: { pos: string }) {
  *  fitness ring's own bands, so a man reads the same colour on every list).
  *  The figure beside it always carries the number; the colour only agrees. */
 export function condColour(v: number): string {
-  return v >= 85 ? 'var(--text-positive)' : v >= 68 ? 'var(--gold)' : 'var(--danger)'
+  const band = condBand(v)
+  return band === 'fit' ? 'var(--text-positive)' : band === 'knock' ? 'var(--gold)' : 'var(--danger)'
 }
 
 /** A condition figure in its colour (owner, 1.9.4: the Selection list's %

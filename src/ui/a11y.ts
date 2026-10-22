@@ -39,6 +39,26 @@ export function installDialogA11y(): void {
     }
   })
   obs.observe(document.body, { childList: true, subtree: true })
+  // TAB STAYS IN THE DIALOG (1.9.4 audit). A sheet was marked aria-modal and
+  // took focus, but Tab walked straight out of it into the screen beneath,
+  // which a sighted keyboard user cannot see and a screen reader was told is
+  // not there. The top dialog keeps focus: Tab from its last control goes to
+  // its first, Shift+Tab from its first to its last.
+  const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return
+    const dialogs = [...document.querySelectorAll<HTMLElement>('[aria-modal="true"]')].filter(d => d.getClientRects().length > 0)
+    const here = document.activeElement
+    // the dialog focus is in, or else the last one drawn
+    const top = dialogs.find(d => here instanceof Node && d.contains(here)) ?? dialogs[dialogs.length - 1]
+    if (!top) return
+    const stops = [...top.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(el => el.getClientRects().length > 0)
+    if (!stops.length) { e.preventDefault(); return }
+    const first = stops[0], last = stops[stops.length - 1]
+    if (!(here instanceof Node) || !top.contains(here)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return }
+    if (e.shiftKey && here === first) { e.preventDefault(); last.focus() }
+    else if (!e.shiftKey && here === last) { e.preventDefault(); first.focus() }
+  })
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return
     // the sheets first; then the three other veils that close on a tap (the

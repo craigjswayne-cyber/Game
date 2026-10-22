@@ -1,9 +1,9 @@
-import type { CareerRow, Club, FacilityId, GameState } from './model'
+import type { CareerRow, Club, FacilityId, GameState, Player } from './model'
 import { LEGEND_APPS, service } from './legends'
 import { migrateRivalBids } from './rivalbids'
-import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, foldCareer, initFacilities } from './model'
+import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, POS_ORDER, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, foldCareer, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
-import { ACADEMY_MAX, ACADEMY_MIN, buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
+import { ACADEMY_MAX, ACADEMY_MIN, buildPlayer, deriveCaps, deriveHist, deriveTrait, peekPid, resetIds, playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
 import { genderOf, staffGender, type Gender } from './gender'
 import { autoSelect } from './matchEngine'
@@ -27,6 +27,7 @@ import { migrateEvidence } from './evidence'
 import { migrateHistory } from './history'
 import { migrateArc } from './arcbook'
 import { canReachCup } from './dream'
+import { KNOCK_MAX_WEEKS } from './knock'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -483,6 +484,34 @@ const num = (v: unknown, min: number, max: number, dflt: number) => {
 }
 const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
 
+/**
+ * ---- AN ID THAT IS ALREADY A NAME ON EVERY OBJECT (1.9.4 audit) ----
+ *
+ * The engine files records by id in plain objects, `book[oppId] ??= {...}`
+ * in a dozen places. A shared save whose club was called "__proto__" made
+ * that lookup answer Object.prototype itself, and the head-to-head record
+ * was written onto every object in the page (found by renaming one club in
+ * an exported file and playing eleven weeks). "constructor" or "toString"
+ * passed every `!s.clubs[id]` check below, because those names answer on
+ * any object, and the career fell over a few weeks later. The game never
+ * writes such an id, so a club or a competition filed under one is not a
+ * save, and a reference to one is a reference to nothing.
+ */
+const reserved = (k: unknown): boolean =>
+  typeof k === 'string' && Object.prototype.hasOwnProperty.call(Object.prototype, k)
+const own = (m: object, k: unknown): boolean =>
+  (typeof k === 'string' || typeof k === 'number') && Object.prototype.hasOwnProperty.call(m, k)
+function hasReservedIds(s: GameState): boolean {
+  if (reserved(s.userClubId)) return true
+  for (const m of [s.clubs, s.comps] as unknown[]) {
+    if (!m || typeof m !== 'object') continue
+    for (const [k, v] of Object.entries(m)) {
+      if (reserved(k) || reserved((v as { id?: unknown } | null)?.id)) return true
+    }
+  }
+  return false
+}
+
 function migrateWeekBasis(s: GameState): void {
   // ---- the week basis, before anything reads a stamp ----
   // Runs once in the life of a save and is marked done, so a career loaded
@@ -637,6 +666,16 @@ function migrateCollections(s: GameState): void {
   }
   s.natSquads = asMap(s.natSquads)
   s.players = asMap(s.players)
+  // A MAN IS FILED UNDER HIS OWN ID (1.9.4 audit). A null left by a bad
+  // write threw later in this function and cost the whole career; a key
+  // that is not a number made the id counter NaN (migratePidCounter), so
+  // every man minted after it shared the id NaN; a man under a second key
+  // was two men. Each is dropped here, and the rosters below let go of
+  // anybody dropped.
+  for (const [k, p] of Object.entries(s.players)) {
+    const id = (p as { id?: unknown } | null)?.id
+    if (!p || typeof p !== 'object' || (Number.isSafeInteger(id) && String(id) !== k)) delete (s.players as Record<string, unknown>)[k]
+  }
   s.clubs = asMap(s.clubs)
 }
 
@@ -742,13 +781,45 @@ function migrateWorldRefs(s: GameState): void {
     p.morale = num(p.morale, 0, 10, 6)
     p.cond = num(p.cond, 0, 100, 100)
     p.sharp = num(p.sharp, 0, 100, 60)
+    // THE REST OF HIS BODY (1.9.4 audit): the weekly recovery reads rust, and
+    // a lay-off or a knock whose weeks are not numbers never ends ("tired" in
+    // rust, an injury due back "never"). Absent stays absent; what cannot be
+    // read is healed the way reaching the physio's date would heal it.
+    if (p.rust != null) p.rust = num(p.rust, 0, 1_000, 0)
+    if (p.injury != null) {
+      const inj = p.injury as unknown as Record<string, unknown>
+      if (typeof inj !== 'object' || Array.isArray(inj) || !Number.isFinite(inj.until)) p.injury = null
+      else {
+        if (inj.weeks != null && !Number.isFinite(inj.weeks)) delete inj.weeks
+        if (typeof inj.desc !== 'string') inj.desc = ''
+      }
+    }
+    if (p.knock != null) {
+      const k = p.knock as unknown as Record<string, unknown>
+      if (typeof k !== 'object' || Array.isArray(k) || !Number.isFinite(k.until)) delete p.knock
+      else {
+        // a lost count reads as the riskiest case, as flareChance reads it
+        if (!Number.isFinite(k.weeks)) k.weeks = KNOCK_MAX_WEEKS
+        if (!Number.isFinite(k.early)) k.early = KNOCK_MAX_WEEKS
+        if (!Number.isFinite(k.mins)) k.mins = 0
+        if (typeof k.desc !== 'string') k.desc = ''
+        if (typeof k.dk !== 'string') k.dk = ''
+      }
+    }
     p.wage = num(p.wage, 0, 1_000_000_000, 5_000)
     p.value = num(p.value, 0, 1_000_000_000_000, 100_000)
     p.bans = int(p.bans, 0, 99, 0)
     if (p.freeUntil !== undefined && !(typeof p.freeUntil === 'number' && Number.isFinite(p.freeUntil))) delete p.freeUntil
     if (p.reqLock !== undefined && typeof p.reqLock !== 'string') delete p.reqLock
     if (typeof p.name !== 'string' || !p.name) p.name = 'Unnamed Player'
-    p.stats ??= emptyStats()
+    // A POSITION THE GAME HAS (1.9.4 audit). Selection reads his shirt's
+    // tactics row and calls p.alt.some(), so an unknown position or an alt
+    // that is not a list loaded cleanly and threw at the first team sheet.
+    // His listed alternative is the best guess at what he plays.
+    p.alt = (Array.isArray(p.alt) ? p.alt : []).filter(x => POS_ORDER.includes(x))
+    if (!POS_ORDER.includes(p.pos)) p.pos = p.alt[0] ?? 'FL'
+    // a record, not merely present: a string here threw on the first count (1.9.4 audit)
+    if (!p.stats || typeof p.stats !== 'object') p.stats = emptyStats()
     // an attribute grid that is missing or not an object: derive a flat set from
     // his ability rather than crashing the first time the pack engages
     if (!p.a || typeof p.a !== 'object') {
@@ -758,7 +829,8 @@ function migrateWorldRefs(s: GameState): void {
       for (const k of ATTR_KEYS) p.a[k] = int(p.a[k], 1, 20, 10)
     }
     // a club that is not in the file means free agency, not a ghost employer
-    if (p.clubId != null && !s.clubs[p.clubId]) p.clubId = null
+    // (asked of the map itself: "constructor" answers on any object)
+    if (p.clubId != null && !own(s.clubs, p.clubId)) p.clubId = null
     // THE DEVELOPMENT PROJECT'S TWO FIELDS (1.8.2, devproject.ts). Both absent
     // on every older save, which is the right answer: a ceiling that has not
     // moved and a timeline that starts this summer. Damaged, they are dropped
@@ -779,7 +851,8 @@ function migrateWorldRefs(s: GameState): void {
     // save: the rows the table cut before then are gone, and the totals read
     // short for a man past twenty seasons, which nothing in the file can
     // repair. A damaged row is dropped rather than summed.
-    if (!Array.isArray(p.career)) p.career = []
+    // and a row that cannot be read is dropped rather than summed (1.9.4 audit)
+    p.career = Array.isArray(p.career) ? p.career.filter(careerRow) : []
     if (p.careerOld != null) {
       p.careerOld = Array.isArray(p.careerOld) ? p.careerOld.filter(careerRow) : undefined
       if (!p.careerOld?.length) delete p.careerOld
@@ -851,7 +924,7 @@ function migrateClubColours(s: GameState): void {
   }
   // a fixture needs two sides that exist and a week inside the season
   const realTeam = (id: unknown) =>
-    typeof id === 'string' && (!!s.clubs[id] || NATIONS.some(n => n.code === id))
+    typeof id === 'string' && (own(s.clubs, id) || NATIONS.some(n => n.code === id))
   s.fixtures = s.fixtures.filter(f => realTeam(f.homeId) && realTeam(f.awayId))
   for (const f of s.fixtures) f.week = int(f.week, 1, SEASON_WEEKS, 1)
 }
@@ -860,6 +933,8 @@ function migrateStandings(s: GameState): void {
   // ---- and the standings have to match the results ----
   for (const comp of Object.values(s.comps)) {
     if (!comp || comp.type !== 'league' || !Array.isArray(comp.table)) continue
+    // a hole in the table is not a team: dropped, and the rebuild below fills it
+    comp.table = comp.table.filter(r => !!r && typeof r === 'object')
     const wrong = comp.table.some(r => {
       if (!r || typeof r !== 'object') return true
       if (!Number.isFinite(r.p) || r.w + r.d + r.l !== r.p) return true
@@ -995,7 +1070,8 @@ function migrateDialsAndRecords(s: GameState): void {
   s.celebration ??= null
   s.records ??= {}
   s.mentors = list(s.mentors) as typeof s.mentors
-  s.chem ??= {}
+  // a map, not merely present (1.9.4 audit): a string threw on the first pair
+  if (!s.chem || typeof s.chem !== 'object' || Array.isArray(s.chem)) s.chem = {}
   s.bonds = migrateBonds(s.bonds)
   s.room = migrateRoom(s.room)
   s.grudges = list(s.grudges) as typeof s.grudges
@@ -1020,6 +1096,8 @@ function migrateDialsAndRecords(s: GameState): void {
   s.tenureStart ??= s.season
   s.legendOf = list(s.legendOf) as typeof s.legendOf
   s.vsBook ??= {}
+  // a memory that is not a record is no memory: started afresh, as a new career's is
+  if (s.hist != null && (typeof s.hist !== 'object' || Array.isArray(s.hist))) delete s.hist
   migrateHistory(s) // the club's memory (history.ts): made whole, never invented
   s.gateRecord ??= null
   s.potyRoll = list(s.potyRoll) as typeof s.potyRoll
@@ -1048,6 +1126,54 @@ function migrateDialsAndRecords(s: GameState): void {
   }
   if (s.ambitions != null && !Array.isArray(s.ambitions)) delete s.ambitions
   if (s.ambitions) s.ambitions = s.ambitions.filter(a => !!a && typeof a.id === 'string' && typeof a.clubId === 'string').slice(0, 5)
+}
+
+const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
+
+/** The fields a man gained since a save was written. Its own function since
+ *  the 1.9.4 audit, so the men the migration itself mints (migrateWorldGrowth)
+ *  are filled on the load that makes them, as the next load would fill them. */
+function fillPerson(s: GameState, p: Player, reprice: boolean): void {
+  p.pers ??= PERS[p.id % PERS.length]
+  p.sc ??= p.clubId === s.userClubId ? 100 : 30
+  p.onLoan ??= false
+  p.retiring ??= false
+  p.debutPending ??= null
+  p.ca0 ??= p.ca
+  p.rust ??= 0
+  p.loanFrom ??= null
+  p.acad ??= false
+  p.stats.mins ??= 0
+  // the Player of the Month window (SeasonStats.mSum). Starting an old save at
+  // zero costs at most one award decided on a short window, which is a great
+  // deal better than the old one decided on rolling season form.
+  p.stats.mSum ??= 0
+  p.stats.mApps ??= 0
+  // academy men move onto development deals. A live save was carrying a whole
+  // academy on first-team money, which is what made the user's club insolvent
+  // by simply playing its fixtures (see playerWage).
+  //
+  // ONLY WHEN THE WAGE IS NOT AN ACADEMY WAGE. This repriced every scholar on
+  // every load from his CURRENT ability, so a lad whose ca had grown since
+  // his deal came back from a reload on £50 a week more than he left on:
+  // the one place a save/load changed the simulation (scripts/qa/
+  // determinism.ts, migrate mode, 1.6.5). A wage inside the development band
+  // is a deal the game made, and loading keeps it.
+  //
+  // AND ONLY ONCE IN THE LIFE OF A SAVE (1.8.5 save QA, s.acadPriced). The
+  // game itself now writes scholar wages outside the band between summers -
+  // an AI board renewing an expiring academy contract at week 28 or 36 does
+  // it at its own pay rate (ai.ts aiRenewals), and the rollover's
+  // repriceAcademies puts them back - so "outside the band" no longer means
+  // "a save from before development deals". Repricing on every load moved
+  // 150-odd AI wage bills mid-season, and a career saved and loaded after
+  // week 28 ran a different world from the same career played straight
+  // through (scripts/qa/savedet.ts). The legacy repair runs on the first
+  // load of an old save; after that the game's own summer sweep owns it.
+  if (reprice && p.acad && !(p.wage >= ACADEMY_MIN && p.wage <= ACADEMY_MAX)) p.wage = playerWage(p.ca, p.age, true)
+  if (p.trait === undefined) p.trait = deriveTrait(p)
+  p.hist ??= deriveHist(p)
+  p.caps ??= deriveCaps(p)
 }
 
 function migrateClubsAndPeople(s: GameState): Set<string> {
@@ -1085,51 +1211,9 @@ function migrateClubsAndPeople(s: GameState): Set<string> {
   }
   for (const p of Object.values(s.staffPeople ?? {})) if (p) p.g ??= coinFor(p.name)
   s.analystGender ??= coinFor('the analyst')
-  const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   const repricedOnce = s.acadPriced === 1
   s.acadPriced = 1
-  for (const p of Object.values(s.players)) {
-    p.pers ??= PERS[p.id % PERS.length]
-    p.sc ??= p.clubId === s.userClubId ? 100 : 30
-    p.onLoan ??= false
-    p.retiring ??= false
-    p.debutPending ??= null
-    p.ca0 ??= p.ca
-    p.rust ??= 0
-    p.loanFrom ??= null
-    p.acad ??= false
-    p.stats.mins ??= 0
-    // the Player of the Month window (SeasonStats.mSum). Starting an old save at
-    // zero costs at most one award decided on a short window, which is a great
-    // deal better than the old one decided on rolling season form.
-    p.stats.mSum ??= 0
-    p.stats.mApps ??= 0
-    // academy men move onto development deals. A live save was carrying a whole
-    // academy on first-team money, which is what made the user's club insolvent
-    // by simply playing its fixtures (see playerWage).
-    //
-    // ONLY WHEN THE WAGE IS NOT AN ACADEMY WAGE. This repriced every scholar on
-    // every load from his CURRENT ability, so a lad whose ca had grown since
-    // his deal came back from a reload on £50 a week more than he left on:
-    // the one place a save/load changed the simulation (scripts/qa/
-    // determinism.ts, migrate mode, 1.6.5). A wage inside the development band
-    // is a deal the game made, and loading keeps it.
-    //
-    // AND ONLY ONCE IN THE LIFE OF A SAVE (1.8.5 save QA, s.acadPriced). The
-    // game itself now writes scholar wages outside the band between summers -
-    // an AI board renewing an expiring academy contract at week 28 or 36 does
-    // it at its own pay rate (ai.ts aiRenewals), and the rollover's
-    // repriceAcademies puts them back - so "outside the band" no longer means
-    // "a save from before development deals". Repricing on every load moved
-    // 150-odd AI wage bills mid-season, and a career saved and loaded after
-    // week 28 ran a different world from the same career played straight
-    // through (scripts/qa/savedet.ts). The legacy repair runs on the first
-    // load of an old save; after that the game's own summer sweep owns it.
-    if (!repricedOnce && p.acad && !(p.wage >= ACADEMY_MIN && p.wage <= ACADEMY_MAX)) p.wage = playerWage(p.ca, p.age, true)
-    if (p.trait === undefined) p.trait = deriveTrait(p)
-    p.hist ??= deriveHist(p)
-    p.caps ??= deriveCaps(p)
-  }
+  for (const p of Object.values(s.players)) fillPerson(s, p, !repricedOnce)
   // A SIGNING CROWNED ON SOMEBODY ELSE'S APPEARANCES (1.8.12). Before the
   // fix in legends.ts service(), a man signed with no career rows carried his
   // whole pre-2025 career into his new club's count, so one match there could
@@ -1148,7 +1232,8 @@ function migratePidCounter(s: GameState): void {
   // CRITICAL: restore the player-id counter. Only newGame resets it, so a
   // cold-started session that loads a save would otherwise mint new player
   // ids from 1, silently overwriting existing players at the next intake.
-  const maxPid = Object.keys(s.players).reduce((m, k) => Math.max(m, Number(k)), 0)
+  // a key that is not a number counts for nothing, never as NaN (1.9.4 audit)
+  const maxPid = Object.keys(s.players).reduce((m, k) => (Number.isFinite(Number(k)) ? Math.max(m, Number(k)) : m), 0)
   // and never below the counter the save carries (1.6.4): an id freed by a
   // retirement above the highest live one is not handed out again
   resetIds(Math.max(maxPid + 1, s.pidNext ?? 0))
@@ -1177,6 +1262,9 @@ function migrateWorldGrowth(s: GameState): void {
   // fit the calendar. A career plays on in the world it began in; only a
   // league it has never had is brought in whole.
   const leaguesHeld = new Set(Object.values(s.clubs).map(c => c.leagueId))
+  // every man minted below has an id from here up (fillPerson, at the end)
+  const firstNew = peekPid()
+  const injected: Club[] = []
   for (const def of LEAGUE_DEFS(genderOf(s))) {
     if (leaguesHeld.has(def.id)) continue
     for (const rc of def.clubs) {
@@ -1187,10 +1275,14 @@ function migrateWorldGrowth(s: GameState): void {
         colors: rc.colors, rep: rc.rep, leagueId: def.id,
         budget: rc.budget, balance: Math.round(rc.budget * 0.6),
         players: [],
-        tactic: { style: 50, tempo: 50, kicking: 50, aggression: 50, lineup: new Array(23).fill(null) },
+        tactic: { style: 50, tempo: 50, kicking: 50, aggression: 50, lineup: new Array(23).fill(null), roles: [] },
+        // set from the squad's bill once it has one (below); this old
+        // transfer-scale figure is only what the next load would have healed
         wageBudget: Math.round(rc.budget * 0.9 + 2_500_000),
         boardConfidence: 70,
         captain: null,
+        legends: [],
+        marquee: [],
         coachGender: staffGender(rng, genderOf(s)),
         coach: '',
       }
@@ -1214,6 +1306,7 @@ function migrateWorldGrowth(s: GameState): void {
         club.players.push(p.id)
       }
       s.clubs[club.id] = club
+      injected.push(club)
       club.tactic.lineup = autoSelect(s, club.players.map(id => s.players[id]).filter(Boolean))
     }
   }
@@ -1258,6 +1351,8 @@ function migrateWorldGrowth(s: GameState): void {
   // all. Without this it would lose every penny of sponsorship on load, because
   // weeklyCentral no longer pays it. Inherited fully sold at market rate, which
   // is exactly what the flat formula used to pay.
+  // deals that are not a record are seeded again, as a save from before them is
+  if (s.deals != null && (typeof s.deals !== 'object' || Array.isArray(s.deals))) delete s.deals
   seedDeals(s)
 
   // THE GATES MATCH THE DEAL (user: "the naming rights for the stadium have
@@ -1303,6 +1398,22 @@ function migrateWorldGrowth(s: GameState): void {
     if (!club.players.some(id => s.players[id]?.acad)) topUpAcademy(s, club, rng, 0xACAD)
   }
   ensureAcademyLeague(s)
+
+  // THE SECOND LOAD AGREES WITH THE FIRST (1.9.4 audit). The steps that heal
+  // a club's wage budget and fill a man's newer fields ran before this one,
+  // so what it minted kept the old transfer-scale budget (about nineteen
+  // times the bill: every 1.6.x save gained the MRC this way) and missing
+  // fields until the NEXT load healed them. The career's first session after
+  // an update then ran a different world from every session after it. The
+  // weekly figure is newGame's (bill plus 18%), which the heal leaves alone.
+  for (const club of injected) {
+    const bill = club.players.reduce((t, id) => {
+      const p = s.players[id]
+      return p && !p.acad ? t + p.wage : t
+    }, 0)
+    club.wageBudget = Math.max(50_000, Math.round((bill * 1.18) / 1_000) * 1_000)
+  }
+  for (const p of Object.values(s.players)) if (p.id >= firstNew) fillPerson(s, p, false)
 }
 
 function migrateDreamAndGrounds(s: GameState): void {
@@ -1427,6 +1538,9 @@ function migrateLeaders(s: GameState, settled: Set<string>): void {
  * order is load-bearing.
  */
 export function migrate(s: GameState): GameState {
+  // not a save (hasReservedIds): handed back untouched, before any step can
+  // look an id up, for isPlayable to refuse
+  if (hasReservedIds(s)) return s
   migrateWeekBasis(s)
   migrateCollections(s)
   migrateCalendar(s)
@@ -1465,8 +1579,39 @@ export function isPlayable(s: GameState | null | undefined): boolean {
   if (!s || typeof s !== 'object') return false
   const has = (v: unknown) => !!v && typeof v === 'object' && Object.keys(v as object).length > 0
   if (!has(s.clubs) || !has(s.players) || !has(s.comps)) return false
-  if (typeof s.userClubId !== 'string' || !s.clubs[s.userClubId]) return false
+  if (typeof s.userClubId !== 'string' || !own(s.clubs, s.userClubId)) return false
+  if (hasReservedIds(s)) return false
   return true
+}
+
+/** Any string value of exactly "__proto__", walked without recursion so a
+ *  deeply nested file cannot take the stack down. */
+function holdsProtoKey(root: unknown): boolean {
+  const stack: unknown[] = [root]
+  while (stack.length) {
+    const v = stack.pop()
+    if (v === '__proto__') return true
+    if (v && typeof v === 'object') for (const x of Object.values(v)) stack.push(x)
+  }
+  return false
+}
+
+/**
+ * THE IMPORT GATE, from a file's text to a career or a refusal (Saves.tsx).
+ * Null is "not a save"; a file that is not JSON at all throws, and the
+ * screen calls that unreadable. A shared save is a stranger's file, so it is
+ * held to the same bar as loading (isPlayable), after the same migrate().
+ */
+export function readImport(txt: string): GameState | null {
+  const raw = JSON.parse(txt) as GameState
+  if (!raw || !raw.clubs || !raw.players || !raw.userClubId || raw.week == null) return null
+  // "__proto__" as a value is an id the engine would look up and then write
+  // through (hasReservedIds), wherever in the file it sits. The game never
+  // writes it, so a file that holds it is refused whole. Import only: the
+  // walk is a copy's worth of work, and a load reads what an import passed.
+  if (holdsProtoKey(raw)) return null
+  const g = migrate(raw)
+  return isPlayable(g) ? g : null
 }
 
 export async function loadGame(slot: string): Promise<GameState | null> {

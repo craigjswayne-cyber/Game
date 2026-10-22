@@ -6,6 +6,7 @@ import { AvailTag, condColour, LoanKey, LoanName, Mark, Nat, PosBadge, StickyCon
 import { STATUSES, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
+import { condBand } from '../../game/condition'
 import { Glyph } from '../glyphs'
 import { rowNavTr } from '../rowNav'
 import { DataTable, type Col, type SortState } from '../DataTable'
@@ -36,7 +37,8 @@ type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps
 function FitRing({ v }: { v: number }) {
   const pct = Math.max(0, Math.min(100, v))
   const c = condColour(v)
-  const state = t(v >= 85 ? 'squad.fitFully' : v >= 68 ? 'squad.fitKnock' : 'squad.fitUnfit')
+  const band = condBand(v)
+  const state = t(band === 'fit' ? 'squad.fitFully' : band === 'knock' ? 'squad.fitKnock' : 'squad.fitUnfit')
   return (
     <span role="img" aria-label={t('squad.fitLabel', { state, pct: Math.round(v) })}
       title={t('squad.fitTitle', { pct: Math.round(v) })} style={{

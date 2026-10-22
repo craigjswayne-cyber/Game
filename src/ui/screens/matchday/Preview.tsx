@@ -126,8 +126,13 @@ export function Preview({ fxId }: { fxId: number }) {
     touch()
   }
 
+  // THE SAME TEST KICK-OFF APPLIES (lineupFor, 1.9.4): a man out on loan or
+  // on maternity leave cannot play either. A bench man can be loaned out (only
+  // the XV is refused), and this sheet showed him fit at 100% with no warning
+  // while kick-off quietly put somebody else in his shirt.
   const problem = (p: Player | null) =>
-    p ? (p.injury ? 'INJURED' : p.bans > 0 ? 'SUSPENDED' : p.natSquad ? 'INTL DUTY' : p.clubId !== club.id ? 'GONE' : null) : 'EMPTY'
+    p ? (p.injury ? 'INJURED' : p.bans > 0 ? 'SUSPENDED' : p.natSquad ? 'INTL DUTY' : p.clubId !== club.id ? 'GONE'
+      : p.onLoan ? 'LOAN' : p.maternity ? 'LEAVE' : null) : 'EMPTY'
 
   // pre-flight warnings for the ready check
   // Plain words, one line each (user: "can we make this easier to
@@ -137,6 +142,7 @@ export function Preview({ fxId }: { fxId: number }) {
   const PROB_WORD: Record<string, string> = {
     INJURED: t('matchday.probINJURED'), SUSPENDED: t('matchday.probSUSPENDED'),
     'INTL DUTY': t('matchday.probINTL'), GONE: t('matchday.probGONE'),
+    LOAN: t('matchday.probLOAN'), LEAVE: t('matchday.probLEAVE'),
   }
   const warnings: { level: 'bad' | 'warn' | 'note'; text: string }[] = []
   for (let i = 0; i < 15; i++) {
@@ -433,7 +439,7 @@ export function Preview({ fxId }: { fxId: number }) {
           {p ? p.name : <span className="muted">{t('matchday.tapToPick')}</span>}
           {/* the squad list's own short tags, in the player's language: the
               sheet printed the internal code ("INTL DUTY") in all six */}
-          {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: '0.6875rem', fontWeight: 700 }}> {prob === 'GONE' ? t('common.goneTag') : availabilityTag(p, game.week)?.txt ?? prob}</span>}
+          {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: '0.6875rem', fontWeight: 700 }}> {prob === 'GONE' ? t('common.goneTag') : availabilityTag(p, game.week)?.txt ?? PROB_WORD[prob] ?? prob}</span>}
           {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: '0.6875rem', fontWeight: 700 }}> {t('matchday.rusty')}</span>}
         </td>
         {/* no rating here before kick-off (1.9.4, owner): the Team tab's

@@ -250,6 +250,20 @@ export function repairSheet(
     const p = state.players[id]
     return !!p && !p.injury && !p.maternity && !p.onLoan && p.bans === 0 && !p.natSquad && p.clubId === club.id
   }
+  return repairFrom(state, lu, canPlay, club.players, false, split)
+}
+
+/** repairSheet's work for any side: a club's, or the national coach's Test
+ *  twenty-three (1.9.4 audit), whose men are judged by `canPlay` and whose
+ *  empty shirts are filled from `roster`. */
+function repairFrom(
+  state: GameState,
+  lu: (number | null)[],
+  canPlay: (id: number) => boolean,
+  roster: number[],
+  forNation: boolean,
+  split?: BenchSplit,
+): (number | null)[] {
   const out: (number | null)[] = new Array(23).fill(null)
   const used = new Set<number>()
   for (let i = 0; i < 23; i++) {
@@ -261,7 +275,7 @@ export function repairSheet(
 
   // the auto-pick's own answer for the shirts still empty, chosen only from the
   // men the manager did not name, so filling a hole cannot displace anybody
-  const rest = availablePlayers(state, club.players.filter(id => !used.has(id)), false)
+  const rest = availablePlayers(state, roster.filter(id => !used.has(id)), forNation)
   const filler = autoSelect(state, rest, split)
   for (let i = 0; i < 23; i++) {
     if (out[i] != null) continue
@@ -513,12 +527,28 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
     }
   }
   const isNation = !club
-  if (isNation && state.natLineup && state.natLineup.team === teamId) {
+  if (isNation && state.natLineup && state.natLineup.team === teamId && Array.isArray(state.natLineup.lineup)) {
     const lu = state.natLineup.lineup
     const squad = state.natSquads[teamId] ?? []
-    const valid = lu.slice(0, 15).every(id =>
-      id != null && state.players[id] && !state.players[id].injury && squad.includes(id))
+    // THE TEST SHEET IS HELD TO THE CLUB'S RULE (1.9.4 audit). It was kept
+    // whenever the fifteen were uninjured and in the squad: the bench was
+    // never read, and neither was a ban. A ban runs down only in a week the
+    // man's CLUB plays, so one earned in a Test can still stand at the next,
+    // and the coach's sheet sent him out regardless; an injured replacement
+    // stayed named and could be sent on. Every named man must be
+    // able to play now, and a sheet where one cannot is repaired shirt by
+    // shirt, as the club's is, rather than swapped for the selectors' XV.
+    const fit = (id: number) => {
+      const p = state.players[id]
+      return !!p && !p.injury && !p.maternity && !p.onLoan && p.bans === 0 && squad.includes(id)
+    }
+    const named = lu.filter((id): id is number => id != null)
+    const valid = lu.length === 23 && new Set(named).size === named.length &&
+      lu.slice(0, 15).every(id => id != null && fit(id)) &&
+      lu.slice(15).every(id => id == null || fit(id))
     if (valid) return lu
+    // nobody on it can play: the selectors' XV, as before
+    if (named.some(fit)) return repairFrom(state, lu, fit, squad, true)
   }
   if (club && teamId === state.userClubId) {
     const lu = club.tactic.lineup
@@ -530,7 +560,12 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
       const p = state.players[id]
       return !!p && !p.injury && !p.maternity && !p.onLoan && p.bans === 0 && !p.natSquad && p.clubId === teamId
     }
-    const valid = lu.slice(0, 15).every(id => id != null && fit(id)) &&
+    // AND TWENTY-THREE SHIRTS, no more and no fewer (1.9.4 audit). Every sheet
+    // the game writes has twenty-three; a damaged or imported save's did not
+    // have to, and a short one sent six men out while a long one named
+    // thirteen replacements, every one of whom setup seated on the bench. Any
+    // other length is repaired to twenty-three, keeping the shirts it names.
+    const valid = lu.length === 23 && lu.slice(0, 15).every(id => id != null && fit(id)) &&
       lu.slice(15).every(id => id == null || fit(id))
     // A saved team sheet also goes stale. It used to be kept as long as all
     // fifteen men were merely AVAILABLE, so a shirt filled by a pure shoehorn

@@ -8,7 +8,7 @@ import { teamShort } from './selection'
 import { describeRestart } from './commentary'
 import { incRng } from './day'
 import { goalKicker } from './field'
-import { type SideCtx, evPts } from './side'
+import { type SideCtx, evPts, onRecord } from './side'
 import { PEN_LINES, PEN_LONG, PEN_WET } from './lines'
 import { type LiveCtx, clockOnly, pushLine } from './live'
 
@@ -77,7 +77,7 @@ export function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, m
     side.pens += 1
     evPts(ctx, side, 3, 'pen')
     if (kicker) {
-      kicker.stats.pens += 1; kicker.stats.points += 3
+      if (onRecord(state, ctx, side)) { kicker.stats.pens += 1; kicker.stats.points += 3 }
       side.ratings.set(kicker.id, (side.ratings.get(kicker.id) ?? 6) + 0.15)
     }
     // The banks hold keys now, and the draw is unchanged: one call to rng(),

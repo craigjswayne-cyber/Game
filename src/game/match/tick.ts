@@ -300,8 +300,12 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // its ten minutes (incidentprobe), well short of the professional game's
     // figure of about five. MAN_DOWN is the share of the side's strength each
     // missing man takes.
-    const numF = 1 - MAN_DOWN * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
-    const oppNumF = 1 - MAN_DOWN * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
+    // Never below nothing: a side with eleven men missing (a squad of ten
+    // that then loses men it cannot replace) read a negative strength, and
+    // a negative ratio raised to a fractional power is NaN, which then sat
+    // in possession and pressure for the rest of the match (audit, forced).
+    const numF = Math.max(0, 1 - MAN_DOWN * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short))
+    const oppNumF = Math.max(0, 1 - MAN_DOWN * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short))
     // the breakdown dials (1.7.3): your commitment protects your own ball, and
     // their contest attacks it - both exactly 1 when nobody has touched them
     const att = (side.units.attack * 0.55 + side.units.breakdown * 0.25 * (side.ruckSecure ?? 1) + side.units.scrum * 0.1 + side.units.lineout * 0.1) * eF(side)
