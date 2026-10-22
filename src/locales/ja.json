@@ -602,9 +602,6 @@
   "nextUnread": "次の未読",
   "respondToOffer": "オファーに回答する",
   "clearRead": "既読を整理",
-  "shelfLastDay": "・受信箱に残るのは今日まで",
-  "shelfOneDay": "・あと1日",
-  "shelfDaysLeft": "・あと{n}日",
   "listLabel": "メッセージ"
  },
  "tables": {

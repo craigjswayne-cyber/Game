@@ -631,9 +631,6 @@
   "nextUnread": "Siguiente sin leer",
   "respondToOffer": "Responder a la oferta",
   "clearRead": "Borrar leídos",
-  "shelfLastDay": " · último día en la bandeja",
-  "shelfOneDay": " · un día más",
-  "shelfDaysLeft": " · quedan {n} días",
   "listLabel": "Mensajes"
  },
  "tables": {
