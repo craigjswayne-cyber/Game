@@ -280,6 +280,13 @@ function sicknessSweep(state: GameState, rng: Rng) {
     { names: hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ') })
 }
 
+/** A takeover at the club that sacked him goes ahead while he is out of work,
+ *  but none of it reaches his inbox (exileprobe). The STORY is held back, not
+ *  the deal (1.9.5 audit): leaving the club out of the pool, as first tried,
+ *  sent the £4m to £14m of new money to another club and moved the whole
+ *  world's books, which distressprobe read as three times the administrations. */
+const hushed = (state: GameState, clubId: string): boolean => exClub(state) === clubId
+
 /** Money men circle the modern game - most of it is smoke, occasionally
  *  it's a takeover. */
 function moneyMen(state: GameState, rng: Rng) {
@@ -290,7 +297,7 @@ function moneyMen(state: GameState, rng: Rng) {
     if (state.week - t.week < 2 || rng() > 0.5) return
     if (t.stage === 0) {
       state.takeover = { ...t, week: state.week, stage: 1 }
-      wire(state, 'news.wTakeoverHardens', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
+      if (!hushed(state, club.id)) wire(state, 'news.wTakeoverHardens', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
       return
     }
     // resolution: most collapse, some complete - and not every buyer
@@ -300,7 +307,7 @@ function moneyMen(state: GameState, rng: Rng) {
       if (rng() < 0.25) {
         club.budget = Math.round(club.budget * 0.5)
         club.wageBudget = Math.round(club.wageBudget * 0.92)
-        state.news.push({
+        if (!hushed(state, club.id)) state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `TAKEOVER COMPLETE: belts tighten at ${club.name}`,
           body: isMyClub(state, club.id)
@@ -316,7 +323,7 @@ function moneyMen(state: GameState, rng: Rng) {
         club.balance += Math.round(boost * 0.6)
         club.wageBudget = Math.round(club.wageBudget * 1.12)
         club.rep = clamp(club.rep + 2, 30, 95)
-        state.news.push({
+        if (!hushed(state, club.id)) state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `TAKEOVER COMPLETE: new owners at ${club.name}`,
           body: isMyClub(state, club.id)
@@ -334,19 +341,16 @@ function moneyMen(state: GameState, rng: Rng) {
         state.newOwnerUntil = Math.min(state.week + 8, SEASON_WEEKS)
       }
     } else {
-      wire(state, 'news.wTakeoverOff', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
+      if (!hushed(state, club.id)) wire(state, 'news.wTakeoverOff', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
     }
     return
   }
   if (rng() > 0.035) return
-  // not the club that sacked him, while he is out of work (exClub): one draw
-  // either way, and in work the pool is exactly what it always was
-  const ex = exClub(state)
-  const candidates = Object.values(state.clubs).filter(c => c.rep >= 55 && c.id !== ex)
+  const candidates = Object.values(state.clubs).filter(c => c.rep >= 55)
   if (!candidates.length) return
   const club = pick(rng, candidates)
   state.takeover = { clubId: club.id, week: state.week, stage: 0 }
-  wire(state, 'news.wTakeoverCircle', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
+  if (!hushed(state, club.id)) wire(state, 'news.wTakeoverCircle', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
 }
 
 /** Rumours live where deals live: the two transfer windows (window.ts). The
