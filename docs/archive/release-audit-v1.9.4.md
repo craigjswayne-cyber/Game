@@ -15,9 +15,9 @@ building and staff fund with him. A third P1 (prototype pollution through a
 hostile save import) needs a deliberately crafted file. None loses a save.
 All three are fixed on the branch with regression tests.
 
-1.9.5 is ready to build once three things are true: the Gate is green on the
-PR's final commit, the release check is green on the same commit, and the
-owner has done the device checks in section I. The `aiecon` soak (section E)
+On `42adf14` the Gate is green and the release check is green apart from
+`aiecon`. 1.9.5 is ready to build; the device checks in section I come
+before it is promoted past internal testing. The `aiecon` soak (section E)
 fails on 1.9.4 and on 1.9.5 alike; it predates this audit and is reported
 for a decision, not fixed.
 
@@ -95,7 +95,8 @@ or misleading information; P3 cosmetic or low impact.
 |---|---|---|
 | bandcheck (9,336 matches, four worlds) | `a06cc76` | PASS: 49.5 pts, 6.48 tries, 53.8% home, 1.6% draws, 9.1% blowouts |
 | autopilotprobe (54 seasons) | `a06cc76` | PASS: picking your side worth 5.9 pts a season; autopilot 4/54 titles |
-| autopilotprobe | `fae4c44` (branch) | PASS: 6.1 pts a season; autopilot 4/54 titles; optimise 8/54 |
+| autopilotprobe | `fae4c44` and `42adf14` (branch) | PASS: 6.1 pts a season; autopilot 4/54 titles; optimise 8/54 |
+| distressprobe, 8 worlds | `a06cc76` / `42adf14` | PASS on both: 0.05 / 0.06 administrations a world-season, no club in twice |
 | optionsprobe, 120 matches | `a06cc76`, `9cf8460` | FAIL, identical figures: not caused by the 1.9.4 condition round |
 | optionsprobe, 120 matches | `2984731` (before 1.9.2) | PASS (tight -1.55) |
 | optionsprobe, 120 matches | `b0bb5b7` (1.9.2) | FAIL (tight -4.12): the draw moved with 1.9.2's squads |
@@ -164,22 +165,25 @@ Nothing compiled or run on a device.
 
 ## H. Release gate
 
+Final code: `42adf14` (`42adf143f9947757ba7ee5277a5d4a5f1f69e80a`). Later
+commits on the branch change this report only.
+
 | Gate | Status | Evidence |
 |---|---|---|
-| Typecheck, linters, orphan check | PASS on branch | local, and Gate |
-| Unit tests (28 files, 177 tests) | PASS on branch | local, and Gate shard 1 |
-| Engine probes (8 shards) | see PR #70 | Gate on the final SHA |
-| Browser PR set and smoke | PASS on `fae4c44` | Gate run 39682593565 |
-| Full browser list | PASS on the UI branch (111/111) | local; the release check reruns it on the final SHA |
-| Soaks | see release check | Release check on the final SHA |
-| bandcheck | PASS on `a06cc76` | local; fingerprint unchanged on the branch, so the stream it measures is the same |
-| autopilotprobe | PASS on `fae4c44` | local |
-| optionsprobe | PASS on branch | local |
-| aiecon | FAIL since the 1.9.2 merge, before this audit | local on `b0bb5b7` and `a06cc76`, release check 39662427214 |
+| Typecheck, linters, orphan check | PASS on `42adf14` | local; Gate run 39700917703 |
+| Unit tests (28 files, 177 tests) | PASS on `42adf14` | local; Gate run 39700917703 shard 1 |
+| Engine probes (8 shards) | PASS on `42adf14` | Gate run 39700917703 |
+| Browser smoke and PR set | PASS on `42adf14` | Gate run 39700917703 |
+| Full browser list (4 shards) | PASS on `42adf14` | Release check run 39705468800 |
+| Soaks (7 shards) | PASS on `42adf14` apart from `aiecon` | Release check run 39705468800 |
+| autopilotprobe | PASS on `42adf14`: 6.1 pts a season, autopilot 4/54 titles | local, and release check soak shard 2 |
+| distressprobe | PASS on `42adf14`: 0.03 administrations a world-season (4 worlds), 0.06 (8 worlds), no club in twice | local, and release check soak shard 5 |
+| econprobe (8-career panel) | PASS on `42adf14` | local, and Gate |
+| optionsprobe (240 matches) | PASS on branch | local, and release check |
+| bandcheck | PASS on `a06cc76`; fingerprint unchanged on `42adf14`, so the stream it measures is the same | local |
+| aiecon | FAIL since the 1.9.2 merge, before this audit: median +£0.17M, mean +£0.21M | local on `b0bb5b7` and `a06cc76`; release checks 39662427214 and 39705468800 |
 | Native Android build | NOT TESTED | owner |
 | Device: consent, adverts, billing, review card | NOT TESTED | owner |
-
-The final SHA, its Gate run and its release-check run are recorded in the PR.
 
 ## I. External checks (owner)
 
@@ -207,6 +211,6 @@ The final SHA, its Gate run and its release-check run are recorded in the PR.
 - **Long careers.** Fix 7 changes how long careers play out (not the match
   stream); autopilotprobe and the econprobe panel hold.
 
-Recommendation: merge PR #70 when the Gate is green on its final commit and
-the release check passes apart from `aiecon`, build 1.9.5 on versionCode 64,
-and run section I before promoting it past internal testing.
+Recommendation: merge PR #70 (done once the Gate passes on this report's
+commit), build 1.9.5 on versionCode 64, upload to internal testing, and run
+section I before promoting it.
