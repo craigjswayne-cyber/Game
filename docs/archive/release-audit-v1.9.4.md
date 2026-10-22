@@ -181,7 +181,7 @@ commits on the branch change this report only.
 | econprobe (8-career panel) | PASS on `42adf14` | local, and Gate |
 | optionsprobe (240 matches) | PASS on branch | local, and release check |
 | bandcheck | PASS on `a06cc76`; fingerprint unchanged on `42adf14`, so the stream it measures is the same | local |
-| aiecon | FAIL since the 1.9.2 merge, before this audit: median +£0.17M, mean +£0.21M | local on `b0bb5b7` and `a06cc76`; release checks 39662427214 and 39705468800 |
+| aiecon | FAIL since the 1.9.2 merge, before this audit: median +£0.17M, mean +£0.21M. Fixed afterwards in the owner's round (PR #71): cause 43b69dd5's six added second-tier clubs pulling down `moneyIndex`; passes at median +£0.26M, mean +£0.30M | local on `b0bb5b7` and `a06cc76`; release checks 39662427214 and 39705468800 |
 | Native Android build | NOT TESTED | owner |
 | Device: consent, adverts, billing, review card | NOT TESTED | owner |
 

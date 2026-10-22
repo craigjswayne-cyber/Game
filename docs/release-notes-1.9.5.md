@@ -65,6 +65,11 @@ Version 1.9.5, Play versionCode 64. Baseline: 1.9.4, code 63 (uploaded
 - The Saves screen offers no Delete on the career you are playing (it was
   written straight back by the next autosave). Load another first.
 - News: a read story no longer shows how many days it has left in the inbox.
+- AI clubs earn at the rate they did before 1.9.2. The six clubs the 2026-27
+  line-ups added to the second tiers pulled down the wage figure every AI
+  club's income is scaled by; the index now reads the hundred best-paid
+  squads (aiecon: median club +£0.26M a season, mean +£0.30M, against
+  +£0.17M and +£0.21M in 1.9.4).
 
 ## Tests and probes
 
