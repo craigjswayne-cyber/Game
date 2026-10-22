@@ -85,6 +85,9 @@ try {
   {
     const { ctx, page, errs } = await phone('ok')
     ok(await page.locator('button', { hasText: 'Send a copy' }).count() === 1, 'Send a copy is offered in the shell')
+    // the career on screen offers no Delete: the next autosave wrote it back (1.9.5)
+    const active = page.locator('.card', { hasText: 'ACTIVE' }).first()
+    ok(await active.count() === 1 && await active.locator('button', { hasText: 'Delete' }).count() === 0, 'the active save has no Delete button')
     await page.click('button:has-text("Export Career")')
     await page.waitForTimeout(800)
     const r = await page.evaluate(() => ({ files: globalThis.__files, shared: globalThis.__shared, uid: window.rugbyStore.getState().game.userClubId, week: window.rugbyStore.getState().game.week }))
