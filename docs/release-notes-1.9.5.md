@@ -85,5 +85,6 @@ Version 1.9.5, Play versionCode 64. Baseline: 1.9.4, code 63 (uploaded
 
 ## Not changed
 
-- No balance constants. `scripts/fingerprint.ts` is unchanged: the match
+- No balance constants, apart from how the AI money index is read (the
+  owner's round above). `scripts/fingerprint.ts` is unchanged: the match
   stream is the same as 1.9.4.
