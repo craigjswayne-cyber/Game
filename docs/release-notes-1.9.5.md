@@ -50,19 +50,31 @@ Version 1.9.5, Play versionCode 64. Baseline: 1.9.4, code 63 (uploaded
 - Condition colours agree with the figure: 84.6% printed as 85% is green.
 - The match-day sheet warns about a replacement who has gone out on loan or
   on leave, instead of swapping him at kick-off without a word.
-- The Game Time "Due" heading fits in Italian ("Att.") and Afrikaans ("Vw.").
+- The Game Time "Due" column is wide enough for the Italian "Attese" and the
+  Afrikaans "Verwag" in full.
 - Tab stays inside an open dialog for keyboard users.
 - On the website, the fonts are kept for offline play.
 
+## Owner's round (22 Oct 2026, same build number)
+
+- Tab bars scroll instead of squeezing: on Competitions, Nations, Dream Team
+  and Handbook in every language, and on Squad, Finances, Team Report,
+  Tactics and Training on small phones, the labels ran over one another.
+- The pre-season checklist ("Your pre-season") goes once the three
+  pre-season friendlies are played, done or not.
+- The Saves screen offers no Delete on the career you are playing (it was
+  written straight back by the next autosave). Load another first.
+- News: a read story no longer shows how many days it has left in the inbox.
+
 ## Tests and probes
 
-- 19 new unit test files (28 in all, 177 tests), listed in
+- 20 new unit test files (29 in all, 180 tests), listed in
   `docs/testing.md`.
 - `optionsprobe` measures each option over 240 matches instead of 120; the
   4-point line is unchanged.
 - `feedbackui` taps a trophy celebration away before the season review, as a
   player does; it failed whenever the test career won something.
-- `adsprobe`, `offlineprobe`, `injurygate`, `sidescroll` and `a11yprobe`
+- `adsprobe`, `offlineprobe`, `injurygate`, `sidescroll` (every tab label fits its tab), `exportui` and `a11yprobe`
   carry the new checks; `scripts/compaudit.ts` is a new engine probe that
   replays every season's competitions and books in both worlds.
 
