@@ -104,9 +104,40 @@ export function moneyIndex(state: GameState): number {
   }
   if (!bills.length) return 1
   bills.sort((a, b) => a - b)
-  const median = bills[Math.floor(bills.length / 2)]
+  // the median of the best-paid INDEX_CLUBS: the middle pair, averaged
+  const top = bills.slice(-INDEX_CLUBS)
+  const mid = top.length >> 1
+  const median = top.length % 2 ? top[mid] : (top[mid - 1] + top[mid]) / 2
   return Math.min(4, Math.max(1, median / BASE_WAGE_BILL))
 }
+
+/**
+ * THE INDEX READS THE BEST-PAID HUNDRED (22 Oct 2026, 1.9.5).
+ *
+ * It read the median of every established club, the fiftieth-best-paid squad
+ * of the hundred it was calibrated on. The 2026-27 line-ups (1.9.2) added six
+ * clubs to the second tiers (Championship and National One to fourteen, Pro
+ * D2 to sixteen), every one paid far below that, so the median slid three
+ * places down the table of bills. At kick-off that is nothing (1.020 to
+ * 1.015), but the index sits on a loop: it scales income, income sets what a
+ * board pays (aiPayRate), and the bills it pays are what the index reads. Over
+ * ten seasons it averaged 1.01 against 1.07 (four worlds), every indexed line
+ * of every club's income fell with it (gate, central and commercial down
+ * 1.1M a club a season, wages only 0.5M), and the mean AI club's gain went
+ * from 0.32M a season to 0.21M (scripts/aiecon.ts). As with the American
+ * clubs above, a bigger second tier is not the sport's money deflating.
+ *
+ * So the index takes the median of the hundred best-paid established squads,
+ * however many clubs the lower leagues hold. Read as the fiftieth bill alone
+ * it overshot (mean 0.375M on eight worlds) and as the fifty-first it fell
+ * short (0.266M): the loop makes one place in the table worth a tenth of a
+ * million a season, so the true median of the hundred, the middle pair
+ * averaged, is what restores the rate (0.301M, against 0.318M before 1.9.2
+ * and 0.212M without this, on the same eight worlds). On all twenty-four
+ * RATE_SEEDS worlds: median club 0.26M, mean club 0.30M (0.27M and 0.31M
+ * before 1.9.2, 0.17M and 0.21M after it).
+ */
+const INDEX_CLUBS = 100
 
 /**
  * A club this deep in the hole starts looking at who it can live without, in
