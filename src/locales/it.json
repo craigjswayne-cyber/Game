@@ -311,7 +311,7 @@
   "inboxSub": "il mondo del rugby non si ferma mai",
   "hintBold": "Continua è il gioco.",
   "hintRest": "Fa avanzare la settimana e ti porta la prossima cosa da fare. Tutto il resto su questa schermata può aspettare finché non ti serve.",
-  "fsTitle": "La tua prima stagione",
+  "fsTitle": "Il tuo precampionato",
   "fsSub": "{n} su {of} fatti. Tocca un passo per andarci.",
   "fs_pick": "Scegli il tuo XV titolare",
   "fs_plan": "Imposta il tuo piano di gioco",
@@ -419,7 +419,7 @@
   "colValue": "Valore",
   "colToldHim": "Promessa",
   "colAp": "Pres",
-  "colDue": "Att.",
+  "colDue": "Attese",
   "colMood": "Umore",
   "moodHappy": "Felice",
   "moodContent": "Contento",
@@ -630,9 +630,6 @@
   "nextUnread": "Prossimo da leggere",
   "respondToOffer": "Rispondi all'offerta",
   "clearRead": "Elimina i letti",
-  "shelfLastDay": " · ultimo giorno in posta",
-  "shelfOneDay": " · ancora un giorno",
-  "shelfDaysLeft": " · {n} giorni rimasti",
   "listLabel": "Messaggi"
  },
  "tables": {

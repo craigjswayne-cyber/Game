@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model'
 import { Byline, RuckMark } from '../Byline'
-import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
+import { RECALL_DAYS, inInbox, markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 import { answerRequest, canAnswerRequest } from '../../game/chats'
 import { openBidFor } from '../../game/ai'
@@ -210,13 +210,6 @@ export default function Inbox() {
     )
   }
 
-  // How long this one has left, so the window is visible rather than a surprise.
-  // Only ever shown on something already read: an unread story does not expire,
-  // and the countdown runs from when it was READ (see days.inInbox).
-  const left = daysLeft(game, n)
-  const shelf = !n.read ? '' : left <= 0 ? t('inbox.shelfLastDay')
-    : left === 1 ? t('inbox.shelfOneDay') : t('inbox.shelfDaysLeft', { n: left })
-
   return (
     <>
       <div className="reader-bar">
@@ -263,7 +256,7 @@ export default function Inbox() {
       <div className="news-split">
       <article className="reader">
         {/* the source first, then the date: "RUCK.CO.UK · 22 AUG 2026" (1.8.7) */}
-        <div className="when">{newsGlyph(n.type)} <Byline n={n} sep />{weekDate(n.season, n.week)}{shelf}</div>
+        <div className="when">{newsGlyph(n.type)} <Byline n={n} sep />{weekDate(n.season, n.week)}</div>
         <h2>{newsSubject(n)}</h2>
         {/* Real paragraphs, no spacer divs. A blank line in the source used to
             render an empty 6px div, so the spacing between paragraphs depended on

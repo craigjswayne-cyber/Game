@@ -309,7 +309,7 @@
   "inboxSub": "ラグビー界は今日も回り続ける",
   "hintBold": "「続ける」こそがこのゲームだ。",
   "hintRest": "押せば週が進み、次の出来事が向こうからやって来る。この画面のほかの項目は、必要になるまで放っておいていい。",
-  "fsTitle": "最初のシーズン",
+  "fsTitle": "プレシーズン",
   "fsSub": "{of}項目中{n}項目完了。タップするとその画面へ移動します。",
   "fs_pick": "先発XVを選ぶ",
   "fs_plan": "ゲームプランを決める",
@@ -602,9 +602,6 @@
   "nextUnread": "次の未読",
   "respondToOffer": "オファーに回答する",
   "clearRead": "既読を整理",
-  "shelfLastDay": "・受信箱に残るのは今日まで",
-  "shelfOneDay": "・あと1日",
-  "shelfDaysLeft": "・あと{n}日",
   "listLabel": "メッセージ"
  },
  "tables": {

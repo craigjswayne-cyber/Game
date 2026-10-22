@@ -1,4 +1,4 @@
-// The first season's checklist: the five things a new manager does to learn the
+// The pre-season checklist: the five things a new manager does to learn the
 // game, shown on Home until they are done or he skips it (owner, 1.9.4: "yes,
 // but there needs to be a skip option").
 //
@@ -9,6 +9,10 @@
 //
 // Only a career started on this version carries `firstSteps`; a save from
 // before has no list, which is right - that manager already knows the game.
+//
+// PRE-SEASON ONLY (owner, 1.9.5: "hide it after the 3 pre-season games"). The
+// list is for the run-in to the first league match; once the pre-season
+// friendlies are played it goes, done or not.
 
 import type { GameState } from './model'
 
@@ -28,11 +32,26 @@ export interface Step {
   screen: 'squad' | 'tactics' | 'fixtures' | 'transfers' | 'academy'
 }
 
+/** Is the first pre-season behind him? True once the friendlies before his
+ *  club's first competitive fixture are all played, once a competitive match
+ *  has been played (a club with no friendlies), or once a season is finished. */
+export function preseasonOver(state: GameState): boolean {
+  if ((state.mgr?.finishes?.length ?? 0) > 0) return true
+  const uid = state.userClubId
+  const mine = state.fixtures.filter(f => f.homeId === uid || f.awayId === uid)
+  const comp = mine.filter(f => f.compId !== 'fr')
+  if (comp.some(f => f.played)) return true
+  if (!comp.length) return false
+  const first = Math.min(...comp.map(f => f.week))
+  const pre = mine.filter(f => f.compId === 'fr' && f.week < first)
+  return pre.length > 0 && pre.every(f => f.played)
+}
+
 /** The checklist as it stands, or null when there is nothing to show: no list
- *  on this career, skipped, or every step done. */
+ *  on this career, skipped, every step done, or the pre-season over. */
 export function firstSteps(state: GameState): Step[] | null {
   const fs = state.firstSteps
-  if (!fs || fs.skipped || state.unemployed) return null
+  if (!fs || fs.skipped || state.unemployed || preseasonOver(state)) return null
   const club = state.clubs[state.userClubId]
   const seen = new Set(fs.seen)
   const steps: Step[] = [

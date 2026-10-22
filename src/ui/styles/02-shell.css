@@ -202,6 +202,11 @@
   /* six tabs on Selection, four on Finances, and every one of them was 36px.
      A button centres its own content, so the floor costs nothing but height. */
   min-height: 44px;
+  /* NEVER NARROWER THAN ITS LABEL (1.9.5). The strip scrolls; the tabs do not
+     squeeze. The 44px min-width below (18 Oct, the tap-target pass) replaced a
+     flex item's own minimum, its label, so thirteen Competitions tabs shrank
+     to 44px each and their labels ran over one another in every language. */
+  flex-shrink: 0;
   padding: 11px 14px 9px;
   font-family: var(--cond);
   font-size: 0.875rem; font-weight: 700;

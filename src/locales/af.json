@@ -308,7 +308,7 @@
   "inboxSub": "die rugbywêreld draai aan",
   "hintBold": "Gaan voort is die spel.",
   "hintRest": "Dit skuif die week aan en bring die volgende ding na jou toe. Alles anders op hierdie skerm kan wag tot jy dit nodig het.",
-  "fsTitle": "Jou eerste seisoen",
+  "fsTitle": "Jou voorseisoen",
   "fsSub": "{n} van {of} gedoen. Tik op 'n stap om daarheen te gaan.",
   "fs_pick": "Kies jou beginspan",
   "fs_plan": "Stel jou spelplan op",
@@ -416,7 +416,7 @@
   "colValue": "Waarde",
   "colToldHim": "Hom Belowe",
   "colAp": "Opt",
-  "colDue": "Vw.",
+  "colDue": "Verwag",
   "colMood": "Bui",
   "moodHappy": "Gelukkig",
   "moodContent": "Tevrede",
@@ -612,9 +612,6 @@
   "nextUnread": "Volgende ongelees",
   "respondToOffer": "Reageer op aanbod",
   "clearRead": "Vee geleeste uit",
-  "shelfLastDay": " · laaste dag in die inmandjie",
-  "shelfOneDay": " · nog een dag",
-  "shelfDaysLeft": " · {n} dae oor",
   "listLabel": "Boodskappe"
  },
  "tables": {

@@ -11,7 +11,7 @@ The counts:
 | browser harnesses | 102 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
 | soaks and audits | 13 | `SLOW` in `suite.sh` | 90 min timeout each, weekly |
 | reporters | 20 | `REPORTERS` in `suite.sh` | never: no verdict, run by hand |
-| unit tests | 28 files | `tests/*.test.ts` | `npm test` (vitest) |
+| unit tests | 29 files | `tests/*.test.ts` | `npm test` (vitest) |
 | tools and libraries | 18 | `TOOLS` and `LIBRARIES` in `orphancheck.mjs` | by hand, or imported |
 
 This page says how to run them, what CI runs where, and which probes cover
@@ -99,6 +99,7 @@ over `tests/**/*.test.ts`: fast, deterministic, no browser, about a minute.
 | `tests/career.test.ts` | the sacking bar holds 13 weeks across a rollover, a sacked manager finds work, the Job Centre is never empty, the women's top flights are tier one | new (1.9.4 audit) |
 | `tests/records.test.ts` | tries and kicks in friendlies and Tests stay out of a man's season tally | new (1.9.4 audit) |
 | `tests/loanshare.test.ts` | a loan's wage share outside nought to one is refused | new (1.9.4 audit) |
+| `tests/firststeps.test.ts` | the pre-season checklist shows through the three friendlies and goes when they are played, done or not; never on a skipped list, an older save or after a finished season | new (1.9.5) |
 
 New fast, deterministic checks belong here rather than in a new probe. Watch
 mode while working: `npx vitest`. vitest 4.1 runs on the repo's Vite 8, the

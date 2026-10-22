@@ -238,7 +238,10 @@ export default function Saves() {
                     {t('world.svLoad')}
                   </button>
                 )}
-                {meta && (
+                {/* NOT THE CAREER ON SCREEN (owner, 1.9.5): deleting it lasted
+                    only until the next autosave wrote it back, so the button
+                    promised something it could not do. Load another first. */}
+                {meta && !isCurrent && (
                   confirmDel === slot
                     ? <button className="btn danger slot-act" style={{ fontSize: '0.75rem', padding: '7px 8px' }} onClick={() => void doDelete(slot)}>{t('world.svSure')}</button>
                     : <button className="btn ghost slot-act" style={{ fontSize: '0.75rem', padding: '7px 14px', color: 'var(--text-negative)' }} onClick={() => setConfirmDel(slot)}>{t('world.svDelete')}</button>

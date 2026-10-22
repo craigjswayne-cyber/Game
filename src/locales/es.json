@@ -312,7 +312,7 @@
   "inboxSub": "el mundo del rugby sigue girando",
   "hintBold": "Continuar es el juego.",
   "hintRest": "Hace avanzar la semana y te trae lo siguiente. Todo lo demás de esta pantalla puede esperar a que tú quieras.",
-  "fsTitle": "Tu primera temporada",
+  "fsTitle": "Tu pretemporada",
   "fsSub": "{n} de {of} hechos. Toca un paso para ir allí.",
   "fs_pick": "Elige tu XV titular",
   "fs_plan": "Define tu plan de juego",
@@ -631,9 +631,6 @@
   "nextUnread": "Siguiente sin leer",
   "respondToOffer": "Responder a la oferta",
   "clearRead": "Borrar leídos",
-  "shelfLastDay": " · último día en la bandeja",
-  "shelfOneDay": " · un día más",
-  "shelfDaysLeft": " · quedan {n} días",
   "listLabel": "Mensajes"
  },
  "tables": {
