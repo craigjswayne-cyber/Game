@@ -31,7 +31,7 @@ const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** Every scrollable table on the screen, and how far past the edge it runs. */
-const overflowOn = async (page, where) => {
+const overflowOn = async (page, where, tabsOnly = false) => {
   await page.waitForTimeout(350)
   const rows = await page.evaluate(() => {
     const out = []
@@ -50,12 +50,20 @@ const overflowOn = async (page, where) => {
       const el = th.querySelector('.th-btn') ?? th
       if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).textOverflow !== 'ellipsis') heads.push(`"${th.textContent.trim()}" ${el.scrollWidth}>${el.clientWidth}`)
     }
-    return { tables: out, page: doc.scrollWidth - doc.clientWidth, heads }
+    // AND NO TAB LABEL WIDER THAN ITS TAB (1.9.5): a 44px min-width let
+    // thirteen Competitions tabs shrink to 44px and their labels run over one
+    // another; the strip is meant to scroll instead
+    const tabs = []
+    for (const b of document.querySelectorAll('.tab-bar button')) {
+      if (b.scrollWidth > b.clientWidth + 1) tabs.push(`"${b.textContent.trim()}" ${b.scrollWidth}>${b.clientWidth}`)
+    }
+    return { tables: out, page: doc.scrollWidth - doc.clientWidth, heads, tabs }
   })
-  ok(!rows.heads.length, `${where}: every heading fits its column${rows.heads.length ? ` (cut: ${rows.heads.join(', ')})` : ''}`)
+  if (!tabsOnly) ok(!rows.heads.length, `${where}: every heading fits its column${rows.heads.length ? ` (cut: ${rows.heads.join(', ')})` : ''}`)
+  ok(!rows.tabs.length, `${where}: every tab label fits its tab${rows.tabs.length ? ` (${rows.tabs.length} spill: ${rows.tabs.slice(0, 3).join(', ')})` : ''}`)
   const worst = rows.tables.sort((a, b) => b.over - a.over)[0]
-  ok(!worst, `${where}: no table runs off the side${worst ? ` (worst ${worst.over}px past a ${worst.w}px box)` : ''}`)
-  ok(rows.page <= 1, `${where}: and the page itself does not scroll sideways (${rows.page}px)`)
+  if (!tabsOnly) ok(!worst, `${where}: no table runs off the side${worst ? ` (worst ${worst.over}px past a ${worst.w}px box)` : ''}`)
+  if (!tabsOnly) ok(rows.page <= 1, `${where}: and the page itself does not scroll sideways (${rows.page}px)`)
 }
 
 try {
@@ -75,11 +83,11 @@ try {
     await p.evaluate(() => window.rugbyStore.getState().start('northampton', 'Side Scroll'))
     await p.waitForTimeout(700)
     await p.locator('.tut-close .btn').click({ timeout: 4000 }).catch(() => {})
-    const at = async (screen, where, tab) => {
+    const at = async (screen, where, tab, tabsOnly = false) => {
       await p.evaluate(sc => window.rugbyStore.getState().go(sc), screen)
       await p.waitForTimeout(500)
       if (tab != null) { await p.locator('.tab-bar button').nth(tab).click().catch(() => {}); await p.waitForTimeout(300) }
-      await overflowOn(p, `${lang} ${where}`)
+      await overflowOn(p, `${lang} ${where}`, tabsOnly)
     }
     await at('agency', 'Senior Rankings')
     await at('agency', 'Wonderkids', 1)
@@ -93,6 +101,17 @@ try {
     await at('squad', 'Squad Game Time', 3)
     await at('squad', 'Squad Contracts', 4)
     await at('finances', 'Finances')
+    // the other tab bars, and the narrowest phone (1.9.5): the overlap showed
+    // on every screen with a long strip, and on the short ones at 320 wide
+    await at('nations', 'Nations')
+    await at('handbook', 'Handbook')
+    await at('report', 'Team Report')
+    await at('tactics', 'Tactics')
+    await at('training', 'Training')
+    await p.setViewportSize({ width: 320, height: 640 })
+    for (const [sc, name] of [['tables', 'Competitions'], ['squad', 'Squad'], ['finances', 'Finances'], ['report', 'Team Report'], ['tactics', 'Tactics'], ['training', 'Training'], ['dreamteam', 'Dream Team']]) {
+      await at(sc, `${name} at 320`, null, true)
+    }
     await p.close()
   }
 } catch (e) {

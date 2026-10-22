@@ -215,7 +215,9 @@ export default function Squad() {
         ),
       },
       { id: 'apps', head: t('squad.colAp'), width: 30, align: 'right', sort: 'apps', td: () => ({ style: { fontWeight: 700 } }), cell: p => ledgerOf(p).actual },
-      { id: 'due', head: t('squad.colDue'), width: 34, align: 'right', td: p => ({ style: { color: ledgerOf(p).gap < -2 ? 'var(--danger)' : undefined } }), cell: p => ledgerOf(p).expected },
+      // 50, NOT 34 (owner, 1.9.5): the Afrikaans VERWAG and Italian ATTESE are
+      // the words, so the column fits them rather than the words being cut
+      { id: 'due', head: t('squad.colDue'), width: 50, align: 'right', td: p => ({ style: { color: ledgerOf(p).gap < -2 ? 'var(--danger)' : undefined } }), cell: p => ledgerOf(p).expected },
       {
         id: 'mood', head: t('squad.colMood'), width: '21%', className: 'gt-mood',
         td: p => { const r = ledgerOf(p); return { title: `${r.gap >= 0 ? `+${r.gap}` : r.gap} · ${t(statusKey(statusOf(game, club, p), 'Desc'))}` } },
