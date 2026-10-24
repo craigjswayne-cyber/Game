@@ -1491,11 +1491,11 @@ Consent is gathered through Google's UMP form before any advert is requested,
 App Tracking Transparency is requested before the advertising identifier is
 used, and Pro Manager removes the banners permanently.
 
-There are eleven optional in-app purchases, none of which is required to play
+There are twelve optional in-app purchases (counting Pro Manager's introductory-price version as its own product), none of which is required to play
 and none of which affects any other manager's game. Four are permanent unlocks
 (Pro Manager, which removes the adverts; Become an International Coach; Max
-Upgrade Facilities; Remove the salary cap) and seven are consumable (Full
-Fitness, four tiers of board funding, a repeat of the facilities upgrade for a
+Upgrade Facilities; Remove the salary cap) and seven are consumable (Magic
+Sponge: Full Fitness, four tiers of board funding, a repeat of the facilities upgrade for a
 manager who moves club, and Support the game, which is a tip to the developer
 and changes nothing in the game). The
 game is complete without every one of them: they unlock club-management
@@ -2120,7 +2120,7 @@ them. The source of truth is `docs/ADS-STEP-BY-STEP.md`, Step 7, and
 | Miscellaneous - gambling | None. No simulated gambling, no loot boxes, no randomised purchase |
 | Users can interact | **No.** No chat, no user-generated content, no social features |
 | Shares location | No |
-| Digital purchases | **Yes.** The free edition ships the catalogue of `docs/monetisation-spec.md` §1: eleven products, four permanent unlocks and seven consumables (plus `phase.supporter.intro`, Pro Manager at its introductory price), all one-way, no cash-out |
+| Digital purchases | **Yes.** The free edition ships the catalogue of `docs/monetisation-spec.md` §1: twelve products: four permanent unlocks and seven consumables, plus `phase.supporter.intro` (Pro Manager at its introductory price), all one-way, no cash-out |
 | Unrestricted internet access | No |
 
 Expected result: **PEGI 3 / ESRB Everyone / USK 0**.
@@ -2131,10 +2131,17 @@ Expected result: **PEGI 3 / ESRB Everyone / USK 0**.
 
 | Data type | Used for | Linked to the user | Used for tracking |
 |---|---|---|---|
-| Identifiers → Device ID | Third-Party Advertising | Yes | Yes |
-| Usage Data → Advertising Data | Third-Party Advertising | Yes | No |
+| Identifiers → Device ID | Third-Party Advertising, Developer's Advertising, Analytics | Yes | Yes |
+| Usage Data → Advertising Data | Third-Party Advertising, Developer's Advertising, Analytics | Yes | No |
+| Location → Coarse Location | Third-Party Advertising, Developer's Advertising, Analytics, App Functionality | Yes | No |
+| Usage Data → Product Interaction | Third-Party Advertising, Developer's Advertising, Analytics, App Functionality | Yes | No |
+| Diagnostics → Performance Data | Third-Party Advertising, Developer's Advertising, Analytics, App Functionality | No | No |
+| Diagnostics → Other Diagnostic Data | Third-Party Advertising, Developer's Advertising, Analytics | No | No |
+| Diagnostics → Crash Data | Analytics | No | No |
 
-Nothing else applies: no contact info, no diagnostics, no crash data.
+These seven come from the PrivacyInfo.xcprivacy files that the GoogleMobileAds
+and UserMessagingPlatform SDKs ship inside the archive, and match what was
+published in App Store Connect for 1.9.5. The game itself collects nothing.
 
 ## Apple export compliance
 
@@ -2148,8 +2155,9 @@ Answer **No** to "Does your app use encryption?", or set in Info.plist:
 
 ## Apple age rating
 
-All categories "None". Result: **4+**. If shipping the Supporter purchase, tick
-"In-App Purchases" in the listing metadata.
+All categories "None" except alcohol, tobacco or drug use or references,
+answered **Infrequent**. Result: **13+** (as submitted for 1.9.5). If shipping
+the Supporter purchase, tick "In-App Purchases" in the listing metadata.
 
 ---
 
@@ -2164,7 +2172,7 @@ languages, from the real build.
 | Play | feature graphic, exactly 1024×500 | `storeart/play/feature-graphic.png` |
 | Play | icon, 512×512 | `public/icon-512.png` |
 | Play | adaptive/maskable icon | `public/icon-maskable-512.png` - declared in the web manifest, so the launcher crops the padding rather than the logo |
-| App Store | 6.7" shots, 1290×2796 | `storeart/ios/en/*.png`, `storeart/ios/fr/*.png` |
+| App Store | 6.3" shots, 1206×2622 (required slot); also 6.9" 1290×2796 and 13" iPad 2048×2732 | `storeart/appstore/iphone63/`, `storeart/appstore/iphone69/`, `storeart/appstore/ipad13/` |
 | App Store | icon, 1024×1024, no alpha | `storeart/ios/icon-1024.png` |
 
 Pick the five that tell the story in order: the title screen, the squad table,
@@ -2402,9 +2410,9 @@ Fixes: the team sheet lines up from 1 to 15, deal years print plain, seasonal st
 | Primary category | Games |
 | Secondary category | Sports |
 | Game subcategories | Simulation, Sports |
-| Age rating | 4+ (no violence, no gambling, no user content, no web access) |
+| Age rating | 13+ (alcohol references Infrequent; no violence, no gambling, no user content, no web access) |
 | Content Rights | Does not contain third-party content (the unofficial statement covers the player-name database) |
-| Privacy nutrition label | Device ID and Advertising Data, for third-party advertising (see "Apple privacy nutrition labels") |
+| Privacy nutrition label | Seven data types from Google's SDKs: Device ID (tracking), Advertising Data, Coarse Location, Product Interaction, Performance Data, Other Diagnostic Data, Crash Data (see "Apple privacy nutrition labels") |
 | App uses encryption | No (the App Encryption Documentation answer is "none") |
 | Sign-in required | No |
 | Devices | iPhone and iPad (from 1.8.0: tablet mode; 13-inch iPad screenshots from `scripts/ipadshots.mjs`, 2048 x 2732) |

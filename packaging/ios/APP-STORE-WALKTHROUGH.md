@@ -232,7 +232,7 @@ What this tab is actually for:
 4. Find **StoreKit Configuration** and choose **Products.storekit**.
 5. **Close**.
 
-This is what lets you buy all eleven products with imaginary money, with no Apple
+This is what lets you buy all twelve products with imaginary money, with no Apple
 account and nothing to wait for.
 
 ### 11. Run it
@@ -375,6 +375,14 @@ node scripts/storeart.mjs
 Writes `storeart/ios/en/` and `storeart/ios/fr/` at 1290×2796 (Apple's 6.7"
 size) plus `storeart/ios/icon-1024.png`, opaque as required.
 
+Note: App Store Connect's required iPhone slot is now 6.3" (1206×2622) and it
+rejects 1290×2796 there. The set actually uploaded for 1.9.5 is in
+`storeart/appstore/iphone63/` (6.3"), `storeart/appstore/iphone69/` (6.9") and
+`storeart/appstore/ipad13/` (13" iPad, 2048×2732): title, leagues, Toulouse
+Team XV, Northampton match with both scores, Gloucester Women infrastructure,
+Toulouse playbook and game plan. The in-app purchase review images are in
+`storeart/appstore/iap/`.
+
 Upload five, in order: title screen, squad table, team sheet, match day,
 full-time verdict.
 
@@ -386,10 +394,13 @@ Every field is written out word for word, inside Apple's limits, in
 The answers people get wrong:
 
 * App Privacy — **not** "Data Not Collected": the app shows AdMob adverts.
-  Identifiers → Device ID (Third-Party Advertising, linked, used for tracking)
-  and Usage Data → Advertising Data (Third-Party Advertising, linked, not used
-  for tracking). The full table is in `docs/ADS-STEP-BY-STEP.md`, Step 7.
-* Age rating — every category **None**, giving **4+**.
+  Seven data types, taken from Google's SDK privacy manifests: Device ID
+  (linked, used for tracking), Advertising Data, Coarse Location and Product
+  Interaction (linked, not tracking), and Performance Data, Other Diagnostic
+  Data and Crash Data (not linked, not tracking). The full table, with
+  purposes, is in `docs/store-listing.md` under "Apple privacy nutrition labels".
+* Age rating — **13+**. Everything is None except alcohol, tobacco or drug use
+  or references, answered **Infrequent** (the game mentions drink in places).
 * Category — **Games → Sports**, secondary **Simulation**.
 * Price — **Free**, with in-app purchases.
 * Privacy policy URL — `https://phaserugbymanager.com/privacy.html`

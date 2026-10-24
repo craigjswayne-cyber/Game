@@ -140,7 +140,7 @@ And before the first archive:
   and locking it is what the release audit removed.
 * **Icon**: `storeart/ios/icon-1024.png`, produced by `scripts/storeart.mjs`,
   opaque as Apple requires.
-* **Screenshots**: `storeart/ios/en` and `storeart/ios/fr`, already at 1290x2796.
+* **Screenshots**: `storeart/appstore/iphone63` (1206x2622, the required 6.3" slot), `storeart/appstore/iphone69` (1290x2796) and `storeart/appstore/ipad13` (2048x2732). The older `storeart/ios` set at 1290x2796 is rejected for the 6.3" slot.
 * **Capabilities beyond IAP**: none. No push, no background modes, no iCloud,
   no sign-in.
 
@@ -159,7 +159,7 @@ it is running on.
 | `PhaseBilling.swift` | App target, by `install-billing.mjs` | StoreKit 2: products, purchase sheet, entitlements, finishing |
 | `PhaseBilling.m` | beside it, same target | the ObjC macro that makes those four methods visible to the web view |
 | `App-Bridging-Header.h` | beside it, referenced by the build setting | lets the ObjC file above see Capacitor's headers - the template does not ship one |
-| `Products.storekit` | Copy Bundle Resources | the eleven products, for testing purchases with no App Store Connect |
+| `Products.storekit` | Copy Bundle Resources | the twelve products, for testing purchases with no App Store Connect |
 | `src/game/storekit.ts` | already in the web build | dresses the plugin in the contract, and attaches at boot |
 
 Capacitor 8's template uses classic project references, not Xcode 16
@@ -281,7 +281,7 @@ is why that page stays reachable after every purchase.
 ### Testing before any of that exists
 
 `Products.storekit` in this folder is a StoreKit configuration file with all
-eleven products already defined. In Xcode: **Product → Scheme → Edit Scheme →
+twelve products already defined. In Xcode: **Product → Scheme → Edit Scheme →
 Run → Options → StoreKit Configuration → Products.storekit**. The simulator
 then sells them locally - no App Store Connect, no sandbox account, no
 waiting on review - and Debug → StoreKit lets you force interrupted purchases
@@ -293,7 +293,7 @@ actually works.
 The paid-up-front alternative that used to be described here was decided
 against on 27 Aug: `VITE_EDITION=paid` removes the whole catalogue rather than
 just one purchase, and it is the one configuration no probe has ever executed.
-The free edition with the eleven products is what ships on both stores.
+The free edition with the twelve products is what ships on both stores.
 
 ## Adverts
 
