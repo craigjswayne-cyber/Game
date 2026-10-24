@@ -161,7 +161,7 @@ Fix before use (C): §17d says iPhone-only (scaffold now builds iPhone + iPad); 
 | ID | Task | Pri | Owner | DoD |
 |---|---|---|---|---|
 | I1 | Enrolment approved; Paid Apps Agreement, banking, tax | P0 | O | Agreements active |
-| I2 | App record, bundle `com.phaserugbymanager.app` | P0 | O | Record exists |
+| I2 | App record, bundle `com.fwdsbcks.phaserugbymanager` | P0 | O | Record exists |
 | I3 | 12 IAPs created (types double-checked) | P0 | O | All "Ready to Submit" |
 | I4 | Archive, upload, TestFlight, iPhone purchase checks | P0 | O | Section 10 ticked on iPhone |
 | I5 | App Privacy label matches AdMob (not "Data Not Collected") | P0 | O+C | Submitted |

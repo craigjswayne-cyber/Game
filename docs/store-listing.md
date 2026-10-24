@@ -16,7 +16,7 @@ the first thing a reviewer sees.
 | Field | Value |
 |---|---|
 | App name | PHASE: Rugby Manager |
-| Package / bundle id | `com.phaserugbymanager.app` |
+| Package / bundle id | `com.phaserugbymanager.app` (Play); iOS `com.fwdsbcks.phaserugbymanager` |
 | Category | Games → Sports (Play), Games → Sports / Simulation (App Store) |
 | Price | free, with in-app purchases (decided 27 Aug: the free edition, not paid up front - see `docs/monetisation.md`) |
 | Contact e-mail | info@fwdsandbcks.com |
