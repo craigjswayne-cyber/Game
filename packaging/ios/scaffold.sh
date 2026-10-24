@@ -262,6 +262,12 @@ node -e '
   const pbx = "ios/App/App.xcodeproj/project.pbxproj"
   fs.writeFileSync(pbx, fs.readFileSync(pbx, "utf8").replace(/MARKETING_VERSION = [^;]+;/g, "MARKETING_VERSION = " + ver + ";"))
   console.log("    version " + ver + " (set the build number in Xcode: one higher than the last upload)")
+  // cap add ios writes appId into the project once and cap sync never
+  // revisits it, so a project made before the 1.9.5 bundle id still carries
+  // the old one. Keep the project on the config.
+  const id = JSON.parse(fs.readFileSync("capacitor.config.json", "utf8")).appId
+  fs.writeFileSync(pbx, fs.readFileSync(pbx, "utf8").replace(/PRODUCT_BUNDLE_IDENTIFIER = [^;\n]+;/g, "PRODUCT_BUNDLE_IDENTIFIER = " + id + ";"))
+  console.log("    bundle identity " + id)
 '
 
 BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' ios/App/App.xcodeproj/project.pbxproj | tr -d '\t ;' | cut -d= -f2)

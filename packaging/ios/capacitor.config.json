@@ -15,9 +15,16 @@
     "dark backgroundColor showed as a band under the title screen (owner, iOS 26",
     "Simulator). index.html asks for viewport-fit=cover and theme.css pads every",
     "edge with the --safe-area-inset-* tokens, the same as the Android shell, so",
-    "the page draws to the glass and keeps its own content clear of the bars."
+    "the page draws to the glass and keeps its own content clear of the bars.",
+    "",
+    "appId is com.fwdsbcks.phaserugbymanager since 1.9.5, not the Android",
+    "package com.phaserugbymanager.app. The old id belongs to the owner's",
+    "personal developer account, which uploaded a build under it, and Apple",
+    "never lets a bundle id with an upload behind it move to another team. The",
+    "FWDS & BCKS account cannot register it, so iOS has its own. The two stores",
+    "never compare ids; nothing in the game reads this one."
   ],
-  "appId": "com.phaserugbymanager.app",
+  "appId": "com.fwdsbcks.phaserugbymanager",
   "appName": "PHASE: Rugby Manager",
   "webDir": "../../dist",
   "backgroundColor": "#1a201e",

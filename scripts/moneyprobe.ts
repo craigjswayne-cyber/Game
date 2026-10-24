@@ -1169,9 +1169,14 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
     ok(/already in the App target/.test(inst),
       'and it is idempotent, because scaffold.sh is run again on every re-scaffold')
   }
-  ok(/appId["']?\s*:\s*["']com\.phaserugbymanager\.app/.test(
+  // 1.9.5: iOS has its own bundle id. The old one, the Android package, is held
+  // by the personal developer account that uploaded under it, and Apple never
+  // moves such an id to another team (packaging/ios/README.md).
+  ok(/appId["']?\s*:\s*["']com\.fwdsbcks\.phaserugbymanager["']/.test(
     readFileSync('packaging/ios/capacitor.config.json', 'utf8')),
-    'and the shell carries the same bundle identity as the Android build')
+    'and the shell carries the FWDS & BCKS bundle identity, not the personal account\'s')
+  ok(/PRODUCT_BUNDLE_IDENTIFIER = " \+ id/.test(readFileSync('packaging/ios/scaffold.sh', 'utf8')),
+    'and scaffold.sh holds an existing Xcode project to it, since cap sync never does')
 
   delete gg.Capacitor
 }

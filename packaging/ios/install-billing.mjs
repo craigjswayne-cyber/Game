@@ -76,11 +76,12 @@ if (s.includes('PhaseBilling.swift in Sources')) {
 }
 
 // the bridging header, in every build configuration that names the app bundle
+// (whatever the bundle id: it moved for the work account in 1.9.5)
 if (s.includes('SWIFT_OBJC_BRIDGING_HEADER')) {
   console.log('    bridging header already set')
 } else {
   const before = s
-  s = s.replace(/(\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com\.phaserugbymanager\.app;)/g,
+  s = s.replace(/(\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = [^;\n]+;)/g,
     '$1\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = "App/App-Bridging-Header.h";')
   if (s === before) { console.error('!! could not find a build configuration to set the bridging header on'); process.exit(1) }
   const n = (s.match(/SWIFT_OBJC_BRIDGING_HEADER/g) ?? []).length

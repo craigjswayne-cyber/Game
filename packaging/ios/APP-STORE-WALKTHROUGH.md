@@ -12,7 +12,7 @@ order, and which mistakes cannot be undone.
 | | |
 |---|---|
 | App name | PHASE: Rugby Manager |
-| Bundle ID — never changes | `com.phaserugbymanager.app` |
+| Bundle ID (fixed once a build is uploaded) | `com.fwdsbcks.phaserugbymanager` (not the Android id: see README.md) |
 | Apple Developer Program | $99 / year |
 
 ---
@@ -102,7 +102,7 @@ If `./scaffold.sh` says "permission denied", run `chmod +x ./scaffold.sh` once.
 
 Builds the game, generates the Xcode project, copies the four purchase files in,
 registers the purchase plugin, and prints the bundle identity — check it says
-`com.phaserugbymanager.app`. Safe to re-run whenever the game changes; it syncs
+`com.fwdsbcks.phaserugbymanager`. Safe to re-run whenever the game changes; it syncs
 rather than starting over.
 
 You should see `registered PhaseBilling in packageClassList` in the output the
@@ -204,7 +204,7 @@ App/App-Bridging-Header.h
 **This step used to say "click + Capability, type `in-app`, double-click In-App
 Purchase". Do not. It is not there, and it does not need to be.** Xcode's
 capability picker has no In-App Purchase entry, because In-App Purchase is
-enabled by default on an **explicit** App ID — `com.phaserugbymanager.app` is
+enabled by default on an **explicit** App ID — `com.fwdsbcks.phaserugbymanager` is
 one — and there is no `com.apple.developer.in-app-purchase` entitlement for a
 target to carry. Wildcard App IDs are what it is off for, and this app has never
 had one. If you hunt for it and cannot find it, nothing is wrong.
@@ -290,13 +290,13 @@ App Store Connect, <https://appstoreconnect.apple.com>. Needs the account.
 * Platform **iOS**
 * Name **PHASE: Rugby Manager**
 * Primary language **English (UK)**
-* Bundle ID **com.phaserugbymanager.app** — pick from the list. Xcode registers
+* Bundle ID **com.fwdsbcks.phaserugbymanager** — pick from the list. Xcode registers
   it the first time you choose your team under *Signing & Capabilities*; if it
   is not offered, register it under *Certificates, Identifiers & Profiles →
   Identifiers*.
 * SKU: anything private, e.g. `phase-rugby-manager`. Customers never see it.
 
-### 15. Create the eleven products — read the Type column twice
+### 15. Create the twelve products — read the Type column twice
 
 Your app → *Monetization* → *In-App Purchases* → **+**.
 
@@ -313,6 +313,7 @@ Your app → *Monetization* → *In-App Purchases* → **+**.
 | `phase.heal` | Consumable | Full Squad Recovery | £0.99 |
 | `phase.ground` | Consumable | The Estate, at the next ground | £2.99 |
 | `phase.supporter` | Non-consumable | Pro Manager | £2.99 |
+| `phase.supporter.intro` | Non-consumable | Pro Manager (one-time offer) | about 40% below Pro Manager (£1.79 in Products.storekit) |
 
 > **Where this bites.** A product's type can never be changed after it is
 > created. Get one wrong and the only remedy is a second product id and a
@@ -323,6 +324,10 @@ Your app → *Monetization* → *In-App Purchases* → **+**.
 `phase.supporter` is Pro Manager, and it belongs in the list now: adverts
 shipped in 1.3.0 on 5 September 2026, so the product it removes is real. Never
 create `phase.editor` — removed before any store sold one.
+
+`phase.supporter.intro` is the same Pro Manager at a lower price, offered once
+(docs/pro-manager.md section 8 has its description and review screenshot).
+The game treats either one as Pro Manager; never change `phase.supporter`.
 
 > **Why Xcode said 99 cents and Play says £1.19.** Two different things, and
 > neither of them is a bug in the game.

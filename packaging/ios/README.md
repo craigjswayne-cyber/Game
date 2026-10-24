@@ -77,10 +77,14 @@ files into the App target. Re-running it syncs instead of regenerating, so it
 is safe to run after every change to the game. The generated `ios/` tree is
 gitignored - it is build output, and it carries a copy of `dist/` inside it.
 
-**The bundle identity is `com.phaserugbymanager.app`**, the same identity as
-the Android build - verified in the generated project's
-`PRODUCT_BUNDLE_IDENTIFIER`. Two apps, one name, and neither can ever change
-it.
+**The bundle identity is `com.fwdsbcks.phaserugbymanager`** (since 1.9.5),
+set in the generated project's `PRODUCT_BUNDLE_IDENTIFIER` by `scaffold.sh`.
+It is not the Android package, `com.phaserugbymanager.app`: that id belongs
+to the owner's personal developer account, which uploaded a build under it,
+and Apple never moves a bundle id with an upload behind it to another team
+(App Store Connect Help, "Remove an app"). The FWDS & BCKS account ships under
+its own. Once the first build is uploaded under this one, it never changes
+either.
 
 > A note on `capacitor.config.json`: it lives HERE, not at the repository
 > root, and its `webDir` is `../../dist` - relative to this folder. An earlier
@@ -118,7 +122,7 @@ Two things are left in Xcode before the first run, and both need a Mac:
 THERE WAS.** It told you to add it and warned that StoreKit returns nothing
 without it. Modern Xcode does not offer it in the capability picker, because
 there is nothing to pick: In-App Purchase is enabled by default on an
-**explicit** App ID, which `com.phaserugbymanager.app` is, and there is no
+**explicit** App ID, which `com.fwdsbcks.phaserugbymanager` is, and there is no
 `com.apple.developer.in-app-purchase` entitlement (an entitlements file that
 carries one should have it removed). Wildcard App IDs are the ones it is off
 for, and this app has never used one. If you go looking for that capability and

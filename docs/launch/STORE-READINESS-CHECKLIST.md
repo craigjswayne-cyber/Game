@@ -64,7 +64,7 @@ Key: **DONE** in place and checked · **FIXED** fixed in this round ·
 ## 4. Already in place (checked)
 
 **Identity and build**
-- Package and bundle id `com.phaserugbymanager.app`; name "PHASE: Rugby Manager" (20 of 30 characters).
+- Package `com.phaserugbymanager.app` (Play), bundle id `com.fwdsbcks.phaserugbymanager` (iOS); name "PHASE: Rugby Manager" (20 of 30 characters).
 - Version 1.9.0, Play code 58. 57 (1.8.18) is confirmed accepted: available to testers, 13 Oct 2026 (owner). Before building, check nothing above 57 went to another track since.
 - Android: Capacitor 8.5.0, target and compile SDK 36, min SDK 24, Play Billing 8.0.0, AAB signed in Android Studio with the upload key (kept off the repo).
 - iOS: Capacitor 8.5.0, iPhone and iPad, iOS 15.0 minimum, StoreKit 2. Must be archived with Xcode 26 or later (Apple's rule since 28 Apr 2026); check the Xcode version on the Mac before archiving.
