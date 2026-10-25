@@ -10,7 +10,7 @@
 // Nothing here reads a label, so nothing here breaks when a label is
 // translated - which is exactly how a screenshot script rots.
 //
-//   node scripts/storeart.mjs          both stores, both languages
+//   node scripts/storeart.mjs          both stores, all six languages
 //   node scripts/storeart.mjs play     just Play
 //
 // Writes into storeart/, which is gitignored: these are build output, not
@@ -40,7 +40,11 @@ const TARGETS = [
   { store: 'ios', dir: 'ios-ipad13', w: 1024, h: 1366, dsf: 2, touch: true },
 ].filter(t => !only || t.store === only || t.dir === only)
 
-const LANGS = ['en', 'fr']
+// all six since 1.9.6 (owner: "add other 4"): a store shows a language with
+// no shots of its own the main language's set, which is allowed but reads as
+// English. LANGS=en,fr narrows a run.
+const LOCALE = { en: 'en-GB', fr: 'fr-FR', es: 'es-ES', it: 'it-IT', af: 'af-ZA', ja: 'ja-JP' }
+const LANGS = (process.env.LANGS ?? Object.keys(LOCALE).join(',')).split(',').filter(l => LOCALE[l])
 
 const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -158,7 +162,7 @@ try {
       const page = await browser.newPage({
         viewport: { width: target.w, height: target.h },
         deviceScaleFactor: target.dsf,
-        locale: lang === 'fr' ? 'fr-FR' : 'en-GB',
+        locale: LOCALE[lang],
         hasTouch: !!target.touch, isMobile: !!target.touch,
       })
       page.setDefaultTimeout(12000)
