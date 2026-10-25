@@ -9,7 +9,6 @@ import {
 import { SLIDER_INFO } from '../../../game/tactics'
 import { t } from '../../../game/i18n'
 import { coachFixes, gradeHomework, gradeLine, homeworkFor, unitBattles, type FixTag } from '../../../game/coachfix'
-import { formerDecided } from '../../../game/memory'
 import { ADAPT_WORTH } from '../../../game/armsrace'
 import { Glyph } from '../../glyphs'
 import { acc, accLine } from '../../accent'
@@ -148,15 +147,10 @@ export function MatchVerdict() {
       )}
 
       {/* INFORMATION HIERARCHY (1.8.6): the verdict, then what to change,
-          then the memory: who you let go, the call he was set for, whether the
+          then the memory: the call he was set for, whether the
           half-time change and last week's problem moved. Everything stays;
           the order is the point. */}
       <div className="ft-context">
-        {(() => {
-          // A MAN YOU LET GO DECIDED IT (1.8.5, memory.ts formerDecided)
-          const fs = formerDecided(game, opp.teamId, mine.score, opp.score, ctx.events, ctx.motmId ?? null)
-          return fs.map(f => <div key={f.p} className="meta" data-former-ft={f.p} style={{ marginTop: 6 }}>{t(f.k, f.v)}</div>)
-        })()}
         {told && (
           <div className="meta" data-why="read" data-why-told="1" style={{ ...accLine('var(--border)'), paddingLeft: 6, marginTop: 3 }}>
             {t(told.k, told.v)}

@@ -3,11 +3,11 @@ import { useStore } from '../../store'
 import { fmtMoney, fmtWage, inRedZone, injuryDesc, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
 import { jokerCandidates, jokerFor, jokerOpen, jokerWage, signMedicalJoker, weeksOut } from '../../game/joker'
-import { fuzzedCa } from '../../game/scout'
+import { shownCa } from '../../game/scout'
 import { HEAD_INJURIES, canPlayThrough, flareChance, playThrough, restKnock, weeksLeft } from '../../game/knock'
 import { canPhysioFavour } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
-import { PosBadge, SectionTitle, RewardedButton, Stars } from '../components'
+import { PosBadge, SectionTitle, RewardedButton, spotNote, Stars } from '../components'
 import FullFitness from '../FullFitness'
 import { t } from '../../game/i18n'
 import { rowNav } from '../rowNav'
@@ -176,7 +176,7 @@ export default function Medical() {
               className="btn ghost rowact"
               onDone={out => {
                 if (out === 'completed') setMsg({ id: p.id, text: rewardPhysio(p.id) ?? t('till.favourGone') })
-                else setMsg({ id: p.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
+                else setMsg({ id: p.id, text: spotNote(out) })
               }} />
           ),
           feeOn && (
@@ -278,7 +278,7 @@ export default function Medical() {
                     <tr key={c.id}>
                       <td><PosBadge pos={c.pos} /></td>
                       <td className="name">{c.name} <span className="muted">{c.age}</span></td>
-                      <td><Stars ca={fuzzedCa(game, c)} /></td>
+                      <td><Stars ca={shownCa(game, c)} /></td>
                       <td>
                         <button className="btn gold rowact"
                           onClick={() => {

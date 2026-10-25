@@ -16,7 +16,7 @@
 // sign six players over the cap. And a squad at its limit can still take one,
 // because the whole point is that a man who cannot play is filling a place.
 import { fmtWage, type GameState, type Player } from './model'
-import { capBill, embargoed, executeTransfer, renewalDemand, squadFull } from './ai'
+import { capBill, embargoed, executeTransfer, renewalDemand, squadFull, squadFullMsg } from './ai'
 import { userWageBudget } from './grants'
 import { fuzzedCa } from './scout'
 import { t } from './i18n'
@@ -74,7 +74,7 @@ export function signMedicalJoker(state: GameState, injuredId: number, jokerId: n
   if (embargoed(state, user.id)) return { ok: false, msg: t('reply.embargoSign') }
   // the squad limit bends by one for him, and no further
   if (squadFull(state, user) && user.players.some(id => state.players[id]?.joker != null)) {
-    return { ok: false, msg: t('reply.squadFull') }
+    return { ok: false, msg: squadFullMsg(state, user) }
   }
   const wage = jokerWage(p)
   // the cap is waived; the wage budget is not - the club still has to pay him

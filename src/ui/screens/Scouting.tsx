@@ -20,7 +20,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, weeksBetween100, type GameState, type Player, type Pos } from '../../game/model'
-import { fuzzedCa, knowledge, scoutPa, seenValue } from '../../game/scout'
+import { fuzzedCa, knowledge, scoutPa, seenValue, shownCa } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { hindsight, recFor, scoutList, type ScoutRec } from '../../game/scoutrecs'
 import { rivalTalk } from '../../game/recruit'
@@ -68,7 +68,7 @@ function ScoutRow({ game, p, rec, onOpen }: { game: GameState; p: Player; rec: S
         <span className="muted">{p.age} · {club ? clubCode(club.short) : t('transfers.freeAgent')}</span>
       </span>
       <span className="scout-row-rate">
-        <Stars ca={rec ? rec.cur : fuzzedCa(game, p)} />
+        <Stars ca={rec ? rec.cur : shownCa(game, p)} />
         {rec
           ? <span className="scout-row-verdict" style={{ color: gradeColour(rec.grade) }}>{gradeWord(rec.grade)}</span>
           : <span className="scout-row-verdict" style={{ color: knowledge(game, p) >= 95 ? 'var(--text-positive)' : undefined }}>
@@ -148,7 +148,7 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
         </div>
       )}
       <div className="card scout-facts">
-        <div className="scout-fact"><span className="muted">{t('scouting.current')}</span><Stars ca={cur} /></div>
+        <div className="scout-fact"><span className="muted">{t('scouting.current')}</span><Stars ca={rec || shownCa(game, p) != null ? cur : null} /></div>
         <div className="scout-fact"><span className="muted">{t('scouting.potential')}</span><Stars ca={pot} /></div>
         {!ours && <div className="scout-fact"><span className="muted">{t('scouting.value')}</span><b>{t('scouting.about', { fee: fmtMoney(seenValue(game, p)) })}</b></div>}
         <div className="scout-fact"><span className="muted">{t('scouting.wage')}</span><b>{fmtWage(p.wage)}{t('common.perWeek')}</b></div>

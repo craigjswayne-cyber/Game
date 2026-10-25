@@ -1,7 +1,7 @@
 import { AdSlot } from '../AdSlot'
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { RewardedButton, SectionTitle } from '../components'
+import { RewardedButton, spotNote as spotNoteFor, SectionTitle } from '../components'
 import { rewardedAvailable } from '../../game/monetise'
 import { canTeamNight } from '../../game/rewarded'
 import { teamNightOn } from '../../game/room'
@@ -87,7 +87,7 @@ export default function Press() {
               <RewardedButton place="teamnight" className="btn ghost" style={{ textAlign: 'left' }} label={t('till.watchTeamNight')}
                 onDone={out => {
                   if (out === 'completed') { if (!rewardTeamNight(item.id)) setSpotNote({ id: item.id, text: t('till.favourGone') }) }
-                  else setSpotNote({ id: item.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
+                  else setSpotNote({ id: item.id, text: spotNoteFor(out) })
                 }} />
             )}
             {spotNote?.id === item.id && <div className="meta muted" style={{ fontSize: '0.75rem' }}>{spotNote.text}</div>}

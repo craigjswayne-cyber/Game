@@ -21,7 +21,7 @@ import {
 import { buildFindings, lineText } from '../game/matchfindings'
 import { rewardedAvailable } from '../game/monetise'
 import { canTapeRoom } from '../game/rewarded'
-import { RewardedButton } from './components'
+import { RewardedButton, spotNote } from './components'
 import { acc } from './accent'
 
 function leverLine(L: PlanLevers): string {
@@ -124,7 +124,7 @@ export function OppReportCard() {
               <>{' '}<RewardedButton place="taperoom" className="btn ghost tiny spot" style={{ marginLeft: 2, verticalAlign: 'baseline' }} label={t('till.watchTapeRoom')}
                 onDone={out => {
                   if (out === 'completed') setNote(rewardTapeRoom(oppId) ? null : t('till.favourGone'))
-                  else setNote(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                  else setNote(spotNote(out))
                 }} /></>
             )}
             {l.cat === 'calls' && note && <div className="muted" style={{ fontSize: '0.6875rem' }}>{note}</div>}

@@ -52,7 +52,7 @@ import { TL } from './devproject'
 import { userWageBudget } from './grants'
 import { insolvencyRisk } from './insolvency'
 import { rankedComps, type RotIntent } from './seasonplan'
-import { formerFacing, recall } from './memory'
+import { recall } from './memory'
 import { windowOpen } from './ai'
 import { rivalCoach } from './rivalcoach'
 import { demandedFinish } from './chairman'
@@ -377,15 +377,6 @@ function threadRow(state: GameState): DeskRow | null {
   const fx = userFixtureThisWeek(state)
   const opp = fx && !assistantFixtureThisWeek(state) ? opponentIn(state, fx) : null
   if (opp && state.clubs[opp]) {
-    // the notable ones only (memory.ts formerFacing): a squad man of no
-    // note who left is not a thread the career is carrying
-    const gone = formerFacing(state, opp)[0]
-    if (gone) {
-      return {
-        id: 'thread', label: 'desk.thread', go: { screen: 'player', param: gone.p.id },
-        lines: [{ k: 'desk.tFormer', v: { player: gone.p.name, club: state.clubs[opp].short } }],
-      }
-    }
     // THE REMATCH (1.8.4, rematch.ts): they have changed their plan since
     // the last meeting; the report says what
     if (rematchOf(state, opp)) {

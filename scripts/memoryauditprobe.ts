@@ -16,10 +16,9 @@
  *
  * and counts, by kind, moments against moments surfaced. Then it holds:
  *
- *   1. A man you sold, released or let go is NAMED as yours before you meet
- *      him, every time, with what he has done since (the report and the
- *      Old Boys card); one who decides the match against you is said so at
- *      full time.
+ *   1. Since 1.9.6 (the old boys removed), a man you sold, released or let
+ *      go is met and NOT named as yours: no report or desk line, no meeting
+ *      story, no commentary line, no full-time line.
  *   2. ORDINARY MEN STAY QUIET: a squad man of no note who left is not on the
  *      report, and no man the manager never touched has a line.
  *   3. NOTHING NAGS: no desk line or news headline is shown in most weeks of
@@ -37,7 +36,7 @@ import { executeTransfer } from '../src/game/ai'
 import { playerWage } from '../src/game/attributes'
 import { answerJobOffer } from '../src/game/jobs'
 import { seasonLabel, oldBoyApps, type GameState, type Player, type Fixture } from '../src/game/model'
-import { formerDecided, formerFacing, recall } from '../src/game/memory'
+import { recall } from '../src/game/memory'
 import { buildReport } from '../src/game/oppreport'
 import { buildDesk, deskText } from '../src/game/desk'
 import { matchStakes } from '../src/game/stakes'
@@ -57,10 +56,15 @@ const CAREERS = Number(process.env.CAREERS ?? 3)
 const say = (k: string, v: Record<string, string | number> = {}) => tIn('en', k, v)
 const t0 = Date.now()
 
-// the surfaces (1.8.5); AUDIT=1 reads the game as it was before them
-const BEFORE = process.env.AUDIT === '1'
-const formerOf = BEFORE ? undefined : formerFacing
-const decidedBy = BEFORE ? undefined : formerDecided
+// THE OLD BOYS ARE GONE (owner, 1.9.6: "remove the old boys feature"). The
+// 1.8.5 surfaces that named a man you let go (the report and preview lines,
+// the desk thread, the full-time line, the meeting stories and the commentary)
+// were removed, so this audit now holds the opposite: you meet them, and
+// nothing says so. The two readers it used went with them.
+type Former = { p: Player; k: string; v: Record<string, string | number> }
+const formerOf: ((g: GameState, opp: string, ids?: number[], max?: number) => Former[]) | undefined = undefined
+const decidedBy: ((g: GameState, opp: string, us: number, them: number, ev: unknown[], motm: number | null) => { k: string; v: Record<string, string | number>; p: number }[]) | undefined = undefined
+const oldBoyLeaks: string[] = []
 
 type Kind = 'meetFormer' | 'meetMinor' | 'meetOrdinary' | 'formerScores' | 'formerDecides' | 'formerStar' | 'acadCapped'
   | 'promiseBroken' | 'promiseReturns' | 'rivalMeet' | 'oldClub' | 'legendBack' | 'badTermsMeet'
@@ -118,6 +122,8 @@ function career(clubId: string, seed: number, seasons: number, moveAt: number | 
       const thread = desk.thread?.lines.map(l => deskText(l)).join(' ') ?? ''
       const stake = matchStakes(g, live) ?? ''
       const theirXv = lineupFor(g, opp).slice(0, 23)
+      for (const l of report.lines) if (/^mem\./.test(l.k)) oldBoyLeaks.push(`report: ${l.k}`)
+      for (const l of desk.thread?.lines ?? []) if (l.k === 'desk.tFormer') oldBoyLeaks.push('desk: desk.tFormer')
       const facing = formerOf ? formerOf(g, opp, theirXv, Infinity) : []
       // your rival as he was before the whistle (this match may make him one)
       const rc = rivalCoach(g)
@@ -157,6 +163,8 @@ function career(clubId: string, seed: number, seasons: number, moveAt: number | 
       // the settle: news filed for this week
       processWeekAndAdvance(g)
       const after = g.news.filter(n => !newsBefore.has(n.id))
+      for (const n of after) if (/^(mem\.(met|try|motm)Vs|news\.oldBoyWe(Won|Lost))$/.test(n.k ?? '')) oldBoyLeaks.push(`news: ${n.k}`)
+      for (const e of events) if (/^comm\.oldBoy/.test(e.k ?? '')) oldBoyLeaks.push(`commentary: ${e.k}`)
       // ---- the moments ----
       const played = new Set(theirIds)
       for (const [pid, d] of L.sold) {
@@ -334,11 +342,10 @@ for (const s of samples) console.log(`  ${s}`)
 console.log('')
 
 // ------------------------------------------------------------------ hold
-if (formerOf) {
+{
   const m = tally.meetFormer
-  ok(!!m && m.n > 0 && m.pre === m.n, `every man you let go is named before you meet him (${m?.pre}/${m?.n})`)
-  const d = tally.formerDecides
-  if (d?.n) ok(d.ft === d.n, `a former man who decides it is said so at full time (${d.ft}/${d.n})`)
+  ok(!!m && m.n > 0, `the careers met men they had let go (${m?.n ?? 0} times)`)
+  ok(oldBoyLeaks.length === 0, `and no old boy line was shown anywhere${oldBoyLeaks.length ? `: ${oldBoyLeaks.slice(0, 3).join('; ')}` : ''}`)
   ok(ordinaryLeaks.length === 0, `ordinary men stay quiet${ordinaryLeaks.length ? `: ${ordinaryLeaks.slice(0, 3).join('; ')}` : ''}`)
   ok(rawLeaks.length === 0, `every former line reads as a sentence in six languages${rawLeaks.length ? `: ${rawLeaks[0]}` : ''}`)
   const rv = tally.rivalMeet

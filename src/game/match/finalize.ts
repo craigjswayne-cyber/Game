@@ -2,7 +2,7 @@
 // forfeits and knockout records. Split out of matchEngine.ts, which
 // re-exports the public parts.
 import type { Fixture, GameState, MatchEvent, Player } from '../model'
-import { addGrudge, fmtMoney, oldBoyApps } from '../model'
+import { addGrudge, fmtMoney } from '../model'
 import { updateNatRank } from '../natrank'
 import { talkMorale } from '../teamtalk'
 import { nationNameIn, nationVars } from '../nations'
@@ -125,29 +125,6 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
             ? 'news.testimonialScored' : 'common.nothing',
         },
         playerId: hero.id,
-        fixtureId: fx.id,
-      })
-    }
-  }
-
-  // an old boy coming back to haunt the user's club makes the back page
-  if ((fx.homeId === state.userClubId || fx.awayId === state.userClubId) && fx.compId !== 'fr') {
-    const oppSide = fx.homeId === state.userClubId ? away : home
-    const oppClub = state.clubs[oppSide.teamId]
-    const ev = ctx.events.find(e => e.type === 'TRY' && e.teamId === oppSide.teamId &&
-      e.playerId != null && oppSide.exIds.has(e.playerId))
-    const haunter = ev?.playerId != null ? state.players[ev.playerId] : null
-    if (haunter && oppClub) {
-      const weWon = (fx.homeId === state.userClubId ? home.score > away.score : away.score > home.score)
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
-        subject: `Old boy ${haunter.name} crosses against his former club`,
-        body: weWon
-          ? `${haunter.name}, once of this parish, went over for ${oppClub.short} - no celebration, just a nod to the away end. Your side had the last word on the scoreboard, which is all that matters.`
-          : `Of course it was him. ${haunter.name} - ${oldBoyApps(haunter, state.userClubId)} appearances in your colours before he left - crossed against his old club and the ground knew it was coming.`,
-        k: weWon ? 'news.oldBoyWeWon' : 'news.oldBoyWeLost',
-        v: { player: haunter.name, opp: oppClub.short, apps: oldBoyApps(haunter, state.userClubId) },
-        playerId: haunter.id,
         fixtureId: fx.id,
       })
     }

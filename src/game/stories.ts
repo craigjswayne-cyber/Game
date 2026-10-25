@@ -19,7 +19,7 @@
  * fields it was read from.
  */
 import type { GameState, Player } from './model'
-import { careerRows, fmtMoney, oldBoyApps, seasonLabel } from './model'
+import { careerRows, fmtMoney, seasonLabel } from './model'
 import { recall, type MemoryKind } from './memory'
 import { service } from './legends'
 import { madeBy } from './records'
@@ -120,11 +120,6 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
   // a transfer request, and the answer
   const rq = latest(state, p, ['request-refused', 'request-granted'])
   if (rq) add('request', rq.kind === 'request-granted' ? 'story.reqGranted' : 'story.reqRefused', { season: seasonLabel(rq.season) })
-  // an old boy, when nothing above has said so already
-  if (uid && !gone && !legend && p.clubId && p.clubId !== uid) {
-    const n = oldBoyApps(p, uid)
-    if (n >= OLD_BOY_APPS) add('oldboy', 'story.oldBoy', { club: short(uid), n })
-  }
   // and the long servant, when nothing above has given his number
   if (uid && p.clubId === uid && !capt && !legend && !out.some(l => l.why === 'grad' || l.why === 'record')) {
     const n = service(p, uid).apps

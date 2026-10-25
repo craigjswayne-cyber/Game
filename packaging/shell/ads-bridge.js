@@ -429,6 +429,17 @@
   // So a spot is fetched in the background and kept ready, and another is
   // fetched as soon as one is spent. The tap then shows what is already there.
   var priming = null
+  // when the waiting spot was fetched. AdMob lets a loaded rewarded ad go
+  // stale after an hour, and showing a stale one fails, so a spot fetched at
+  // launch and tapped in the second hour was a "no spot available" (owner,
+  // 1.9.6: "Ask the agency for their file" said exactly that). Older than
+  // this, it is fetched again before it is shown.
+  var primedAt = 0
+  var STALE_MS = 50 * 60 * 1000
+  // why the last ask came to nothing: 'cap' (today's ten are spent), 'load'
+  // (no advert to fetch), 'show' (the SDK refused one it had). Read by the
+  // game through __state, so the cap is not reported as a passing shortage.
+  var lastFail = null
 
   function prime() {
     if (priming) return priming
@@ -438,6 +449,7 @@
       if (!ad) return false
       try {
         await ad.prepareRewardVideoAd({ adId: ids.rewarded, isTesting: !!cfg.testing })
+        primedAt = Date.now()
         log('a rewarded spot is loaded and waiting')
         return true
       } catch (e) {
@@ -463,15 +475,27 @@
   async function showRewarded(place) {
     if (spotBusy) return 'unavailable'
     spotBusy = true
-    try { return await showOneSpot(place) } finally { spotBusy = false }
+    lastFail = null
+    try {
+      var out = await showOneSpot(place)
+      // a spot the SDK would not show (stale, or spent elsewhere) is not the
+      // player's problem: fetch a fresh one and try once more on the same tap,
+      // while the button still says it is finding one
+      if (out === 'unavailable' && lastFail === 'show') { lastFail = null; out = await showOneSpot(place) }
+      return out
+    } finally { spotBusy = false }
   }
 
   async function showOneSpot(place) {
-    if (spotsToday() >= REWARDED_CAP) return 'unavailable'
+    if (spotsToday() >= REWARDED_CAP) { lastFail = 'cap'; return 'unavailable' }
+    if (priming && primedAt && Date.now() - primedAt > STALE_MS) { log('the waiting spot is stale, fetching another'); priming = null }
     // whatever is loading now, wait for it: the button shows a busy state while
-    // this runs, so waiting reads as loading rather than as nothing happening
-    if (!(await prime())) return 'unavailable'
+    // this runs, so waiting reads as loading rather than as nothing happening.
+    // A failed fetch clears itself, so one more is asked for before giving up:
+    // the network that had no advert a minute ago often has one now.
+    if (!(await prime()) && !(await prime())) { lastFail = 'load'; return 'unavailable' }
     priming = null   // this one is about to be spent
+    primedAt = 0
     var ad = plugin()
     if (!ad) return 'unavailable'
     return new Promise(function (resolve) {
@@ -497,12 +521,12 @@
       on('onRewardedVideoAdImpression', function () { impressions++ })
       on('onRewardedVideoAdReward', function () { earned = true })
       on('onRewardedVideoAdDismissed', function () { finish(earned ? 'completed' : 'skipped') })
-      on('onRewardedVideoAdFailedToShow', function () { finish('unavailable') })
+      on('onRewardedVideoAdFailedToShow', function () { lastFail = 'show'; finish('unavailable') })
       var timer = setTimeout(function () { finish(earned ? 'completed' : 'unavailable') }, SHOW_TIMEOUT_MS)
       // the plugin resolves this on the reward and never on a dismissal, so
       // the events above are what decide; the call itself only reports a
       // refusal to show
-      Promise.resolve(ad.showRewardVideoAd({ adId: ids.rewarded })).catch(function () { finish('unavailable') })
+      Promise.resolve(ad.showRewardVideoAd({ adId: ids.rewarded })).catch(function () { lastFail = 'show'; finish('unavailable') })
     })
   }
 
@@ -531,7 +555,7 @@
       catch (e) { log('privacy options form failed:', e && e.message || e); return false }
     },
     // for the probe and for a debugging session on a device: never read by the game
-    __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday(), why: why } }
+    __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday(), cap: REWARDED_CAP, lastFail: lastFail, why: why } }
   }
   // CONSENT AT FIRST LAUNCH (1.9.4, owner: "make sure the ad agreement is at
   // the start of the first time loading the app"). It used to ride on the

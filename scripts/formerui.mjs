@@ -7,10 +7,10 @@
 // is sold (by hand: moved and written into the memory as executeTransfer
 // would) to the side it meets first, and then:
 //
-//   THE OLD BOYS CARD on the match preview carries his line (data-former):
-//     how he left, for how much, and what he has done since, as a sentence.
-//   THE MATCH PLAYS to full time with nothing thrown, and if the full-time
-//     card names him (data-former-ft) it reads as a sentence too.
+//   NO OLD BOYS CARD on the match preview (1.9.6, owner: "remove the old
+//     boys feature"): no data-former line and no "Old Boys" heading.
+//   THE MATCH PLAYS to full time with nothing thrown, and the full-time card
+//     does not name him either (no data-former-ft).
 //   NO CONSOLE ERRORS along the way.
 //
 // Run: npm run build && node scripts/formerui.mjs
@@ -21,7 +21,6 @@ import { ok, failures } from './lib/probe.mjs'
 import { tapPast } from './lib/sheet.mjs'
 
 const say = (s) => writeSync(1, s + '\n')
-const raw = s => /[{}]|\b(mem|oppreport|matchday)\.[a-zA-Z_]+/.test(s)
 
 const server = await startPreview(0, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -89,9 +88,8 @@ try {
   const card = await page.evaluate(() => [...document.querySelectorAll('[data-former]')].map(e => (e.textContent ?? '').trim()))
   for (const c of card) say(`  old boys card: ${c}`)
   if (process.env.DBG) say((await page.evaluate(() => document.body.innerText)).slice(0, 3000))
-  const line = card.find(c => c.includes(sold.name))
-  ok(!!line, `the Old Boys card names ${sold.name}`)
-  ok(!!line && /^You sold .+ for .+ in \d{4}-\d{2}\. /.test(line) && !raw(line), 'as a sentence: how he left, the fee, the season, then since')
+  ok(card.length === 0, `the preview carries no old boys line (${card.length})`)
+  ok(!(await page.evaluate(() => document.body.innerText)).includes('Old Boys'), 'and no Old Boys card')
 
   // ---- play it ------------------------------------------------------------------
   await page.locator('button:has-text("Kick Off")').first().click().catch(() => {})
@@ -124,7 +122,7 @@ try {
   ok(ft, 'the match reached full time')
   const ftLine = await page.evaluate(() => (document.querySelector('[data-former-ft]')?.textContent ?? '').trim())
   if (ftLine) say(`  full time: ${ftLine}`)
-  ok(!ftLine || (ftLine.includes(sold.name) && !raw(ftLine)), `the full-time line, when there is one, reads as a sentence${ftLine ? '' : ' (none this time)'}`)
+  ok(!ftLine, 'the full-time card names no old boy')
   ok(errors.length === 0, `no console errors${errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''}`)
 } catch (e) {
   ok(false, `walk threw: ${e}`)

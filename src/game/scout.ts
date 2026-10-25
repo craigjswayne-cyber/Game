@@ -11,11 +11,11 @@ import { tIn } from './i18n'
 import { fmtMoney } from './model'
 import { clamp, hashString, mulberry32 } from './rng'
 import { fileRec, makeRec } from './scoutrecs'
-import { WATCH_KNOW, bumpKnowledge, fuzzedCa, knowledge, scoutPa } from './scoutknow'
+import { WATCH_KNOW, bumpKnowledge, fuzzedCa, shownCa, knowledge, scoutPa } from './scoutknow'
 
 // The knowledge ladder and its readings live in scoutknow.ts (a leaf) so the
 // recommendation modules can read a man without an import cycle.
-export { knowledge, margin, attrRange, fuzzedCa, WATCH_KNOW, youthPaMargin, secondOpinion, paRange, scoutPa, bumpKnowledge } from './scoutknow'
+export { knowledge, margin, attrRange, fuzzedCa, caKnown, shownCa, CA_KNOW, WATCH_KNOW, youthPaMargin, secondOpinion, paRange, scoutPa, bumpKnowledge } from './scoutknow'
 
 /** His price as the club reads it: the market's own formula fed the scouts'
  *  reading instead of the truth, so a sort by value is not a hidden sort by
@@ -36,7 +36,7 @@ export function wonderkidKnown(state: GameState, p: Player): boolean {
 
 /** What a market list sorts on, for the columns that carry a hidden number. */
 export function searchKey(state: GameState, p: Player, key: 'ca' | 'value'): number {
-  return key === 'ca' ? fuzzedCa(state, p) : seenValue(state, p)
+  return key === 'ca' ? shownCa(state, p) ?? -1 : seenValue(state, p)
 }
 
 /**

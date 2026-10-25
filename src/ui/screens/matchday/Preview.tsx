@@ -8,7 +8,7 @@ import {
   teamShort, teamUnits, paperOverall, rosterOf, assistantJudgement, autoSelect, availablePlayers, refFor, refNotes, homeCrowdLean, frontRowCover,
   repairSheet,
 } from '../../../game/matchEngine'
-import { MIDWEEK_OFF, CHEM_SLOTS, XV_SLOTS, careerRows, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, type Player, type Pos } from '../../../game/model'
+import { MIDWEEK_OFF, CHEM_SLOTS, XV_SLOTS, careerRows, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, type Player, type Pos } from '../../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../../game/bench'
 import { matchConditions, surfKey, surfaceNote, surfaceOf, wxEffectKey } from '../../../game/conditions'
 import { effAt } from '../../../game/attributes'
@@ -16,8 +16,7 @@ import { fuzzedCa } from '../../../game/scout'
 import type { SliderKey } from '../../../game/tactics'
 import { ord, posName, t, compLabel } from '../../../game/i18n'
 import { subjectVar } from '../../../game/gender'
-import { formerFacing, formersAlso } from '../../../game/memory'
-import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, availabilityTag } from '../../components'
+import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, spotNote, availabilityTag } from '../../components'
 import { stageName } from '../Home'
 import { MoodTable } from '../../MoodTable'
 import { talkSetting } from '../../../game/teamtalk'
@@ -761,7 +760,7 @@ export function Preview({ fxId }: { fxId: number }) {
                       label={t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}
                       onDone={out => {
                         if (out === 'completed') rewardAnalyst()
-                        else setSpotMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                        else setSpotMsg(spotNote(out))
                       }} />
                   )}
                   {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}
@@ -832,43 +831,6 @@ export function Preview({ fxId }: { fxId: number }) {
                   })()}
                 </div>
               )}
-              {(() => {
-                // THE MEN YOU LET GO (1.8.5, memory.ts formerFacing): how he
-                // left and what he has done since, the boy sold before he
-                // played included; the rest by their games for you
-                const all = formerFacing(game, opp, oppLineup, Infinity)
-                const formers = all.slice(0, 2)
-                const also = formersAlso(all)
-                const theirs = oppLineup
-                  .map(id => id != null ? game.players[id] : null)
-                  .filter((p): p is Player => !!p && oldBoyApps(p, game.userClubId) > 0 && !all.some(f => f.p.id === p.id))
-                  .sort((a, b) => oldBoyApps(b, game.userClubId) - oldBoyApps(a, game.userClubId))
-                const ours = tac.lineup
-                  .map(id => id != null ? game.players[id] : null)
-                  .filter((p): p is Player => !!p && oldBoyApps(p, opp) > 0)
-                  .sort((a, b) => oldBoyApps(b, opp) - oldBoyApps(a, opp))
-                if (!formers.length && !theirs.length && !ours.length) return null
-                return (
-                  <div className="card" style={{ ...acc('var(--gold)') }}>
-                    <div className="fact-label">{t('matchday.oldBoys')}</div>
-                    {formers.map(f => (
-                      <div key={f.p.id} className="meta" data-former={f.p.id}>{t(f.k, f.v)}</div>
-                    ))}
-                    {also && <div className="meta" data-former-also>{t(also.k, also.v)}</div>}
-                    {theirs.slice(0, 3 - formers.length).map(p => (
-                      <div key={p.id} className="meta">
-                        <b>{p.name}</b>{t('matchday.oldBoyTheirs', { pos: p.pos, n: oldBoyApps(p, game.userClubId) })}
-                      </div>
-                    ))}
-                    {ours.slice(0, 3).map(p => (
-                      <div key={p.id} className="meta">
-                        {t('matchday.oldBoyOursPre')}<b>{p.name}</b>
-                        {t('matchday.oldBoyOurs', { pos: p.pos, n: oldBoyApps(p, opp), club: oppClub?.short ?? t('matchday.them') })}
-                      </div>
-                    ))}
-                  </div>
-                )
-              })()}
               {(() => {
                 const bowing = oppLineup
                   .map(id => id != null ? game.players[id] : null)
