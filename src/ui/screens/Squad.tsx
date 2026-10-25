@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
+import { SQUAD_LIMIT, seniorsOf } from '../../game/transferRules'
 import { AvailTag, condColour, LoanKey, LoanName, Mark, Nat, PosBadge, StickyControls } from '../components'
 import { STATUSES, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
@@ -280,6 +281,20 @@ export default function Squad() {
             length, and the wage bill and homegrown count are on Finances and
             General Info. */}
       </div>
+      {/* THE 46, ON SHOW (owner, 1.9.6: "First team: 46/46"). A French manager
+          counted 45 in his first team and was told the squad was full: a man
+          sent down still held a senior place, and no screen said how many were
+          taken. This is the same count every signing reads (seniorsOf). */}
+      {(() => {
+        const club = game.clubs[game.userClubId]
+        if (!club) return null
+        const n = seniorsOf(game, club)
+        return (
+          <div className="meta" data-senior-places={n} style={{ padding: '6px 12px 0', fontWeight: 600, color: n >= SQUAD_LIMIT ? 'var(--gold)' : undefined }}>
+            {t('squad.seniorPlaces', { n, max: SQUAD_LIMIT })}
+          </div>
+        )
+      })()}
       {/* the chips filter the tables; the team sheet pane has no use for them */}
       {view !== 'selection' && <div className="filter-row">
         {/* Forwards and Backs are gone (user: "you can remove forwards and backs

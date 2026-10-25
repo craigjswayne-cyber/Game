@@ -238,3 +238,52 @@ export function settleAcadCalls(state: GameState): number {
 export function armDebut(p: Player): void {
   if (p.stats.apps === 0 && p.career.length === 0) p.debutPending = 'academy'
 }
+
+/**
+ * ---- BACK TO THE ACADEMY, OR SENT DOWN (owner, 1.9.6) ----
+ *
+ * Sending a man down keeps him on his senior contract, counting against the
+ * cap and the 46 (cap.ts, transferRules seniorsOf), so demotion is never a way
+ * round either. That was right for a senior and wrong for a boy: a French
+ * manager promoted a scholar in August, sent him back, and found him still
+ * taking a senior place under the Academy tab ("Option B"). So a lad who came
+ * through THIS club's academy and is 19 or under goes back as a scholar: on his development deal, off the cap and off the 46. Anyone older,
+ * or bought in, is sent down as before. He was paid as a first-teamer while he
+ * was up, and is again if he comes back up (the promote button re-prices a man
+ * who is not demoted), so there is nothing to gain by moving him to and fro.
+ */
+// 19, not 21: the summer sweep (rollover/ageing.ts) lets a scholar of 21 go
+// for nothing, so a lad sent back at 20 or 21 would be lost at the next
+// rollover. At 19 or under he goes back with at least a full year left, and
+// the summer he turns 20 he is told it is his last, like every other scholar.
+export const BACK_TO_ACADEMY_AGE = 19
+
+export function backToAcademy(state: GameState, p: Player): boolean {
+  return p.clubId === state.userClubId && p.gradClub === state.userClubId && p.age <= BACK_TO_ACADEMY_AGE
+}
+
+/** Send a first-team man down. 'academy' when he went back as a scholar. */
+export function sendDown(state: GameState, p: Player): 'academy' | 'senior' {
+  p.acad = true
+  if (backToAcademy(state, p)) {
+    p.demoted = false
+    p.wage = playerWage(p.ca, p.age, true)
+    return 'academy'
+  }
+  p.demoted = true
+  return 'senior'
+}
+
+/** A save from before 1.9.6 holds such a lad as demoted: put him back where
+ *  the rule now says he belongs. Idempotent. */
+export function healBackToAcademy(state: GameState): void {
+  const club = state.clubs[state.userClubId]
+  if (!club) return
+  for (const id of club.players ?? []) {
+    const p = state.players?.[id]
+    if (p?.acad && p.demoted && backToAcademy(state, p)) {
+      p.demoted = false
+      p.wage = playerWage(p.ca, p.age, true)
+    }
+  }
+}

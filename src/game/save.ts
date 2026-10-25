@@ -1,3 +1,4 @@
+import { healBackToAcademy } from './acadcall'
 import type { CareerRow, Club, FacilityId, GameState, Player } from './model'
 import { LEGEND_APPS, service } from './legends'
 import { migrateRivalBids } from './rivalbids'
@@ -1543,6 +1544,8 @@ export function migrate(s: GameState): GameState {
   if (hasReservedIds(s)) return s
   migrateWeekBasis(s)
   migrateCollections(s)
+  // 1.9.6: a lad of the club's own academy sent down before the rule came in
+  healBackToAcademy(s)
   migrateCalendar(s)
   migratePruneLists(s)
   migrateIdCounter(s)

@@ -26,6 +26,13 @@ France.
 - "The squad is full" now says when seniors you moved down to the academy are
   taking senior places: they still count towards the 46, which is why a
   French manager with 45 in his first team could not sign anyone.
+- A youngster from your own academy, 19 or under, sent back down now returns
+  to his development deal and stops taking a senior place or counting against
+  the cap (owner's "Option B"). 19, not 21: the academy lets a scholar of 21
+  go at the summer, so an older lad sent back would be lost for nothing.
+  Anyone older, or bought in, still counts. A
+  save that already holds such a lad is put right when it loads.
+- The Squad screen shows the count every signing reads: "First team: 46/46".
 
 **Old boys**
 - The old boys are gone from every screen: the match preview card, the
@@ -50,7 +57,7 @@ depending on the advert, so a fixed 20 seconds cannot be set.
 ## Tests
 
 - New: `tests/proadfree.test.ts`, `tests/openlist.test.ts`,
-  `tests/squadfull.test.ts`.
+  `tests/squadfull.test.ts`, `tests/backtoacademy.test.ts`.
 - `memoryprobe` and `memoryauditprobe` now hold that a man you let go is met
   and not named; `formerui` holds that the preview and full-time card carry
   no old boys line.
