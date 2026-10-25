@@ -2715,6 +2715,7 @@
   "academyGrad": " · Cresciuto nel vivaio",
   "academyGrad_f": " · Cresciuta nel vivaio",
   "estimated": "Stime: fallo osservare per averne la certezza",
+  "unscoutedAbility": "Non ancora osservato: mettilo in lista per un rapporto",
   "overall": "Generale",
   "overallTitle": "Il suo livello complessivo su 100, il numero che decide quasi tutte le partite",
   "caps": "cap",
@@ -2891,6 +2892,7 @@
   "vSolid": "un solido uomo di rosa",
   "vFiller": "un tappabuchi che sa fare il suo",
   "vFuture": "uno per il futuro, o per la seconda squadra",
+  "vUnseen": "non ancora osservato, quindi senza valutazione",
   "vFuture_f": "una per il futuro, o per la seconda squadra",
   "vOpening": "{pos} di {age} anni, {standard}{caveat}.",
   "vCaveat": " per il poco che se n'è visto",
@@ -8407,6 +8409,7 @@
   "agencyDone": "Il dossier dell'agenzia su {name} è arrivato: ogni attributo, e il carattere che ci sta dietro.",
   "spotSkipped": "Lo spot è stato chiuso in anticipo, quindi non è cambiato nulla: il favore vale solo se lo guardi tutto.",
   "spotUnavailable": "Nessuno spot disponibile al momento. Non hai perso nulla: riprova più tardi.",
+  "spotCapped": "Hai usato i dieci spot di oggi. Non hai perso nulla: i favori tornano domani.",
   "spotLoading": "Cerco uno spot…",
   "favourGone": "Il momento è passato: la disponibilità della settimana era già stata usata.",
   "watchAnalyst": {

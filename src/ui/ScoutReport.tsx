@@ -8,7 +8,7 @@ import { t } from '../game/i18n'
 import { rewardedAvailable } from '../game/monetise'
 import { canInsideWord } from '../game/rewarded'
 import { useStore } from '../store'
-import { RewardedButton } from './components'
+import { RewardedButton, spotNote } from './components'
 
 const band = (r: [number, number]) => (r[0] === r[1] ? String(r[0]) : `${r[0]}-${r[1]}`)
 const noteWord = (n: Note, kind: 's' | 'c') => t(`recruit.${kind}_${n}`)
@@ -51,7 +51,7 @@ export default function ScoutReportCard({ game, p, onMsg }: { game: GameState; p
       <>{' '}<RewardedButton place="inside" className="btn ghost tiny spot" style={{ marginLeft: 2, verticalAlign: 'baseline' }} label={t('till.watchInside')}
         onDone={out => {
           const msg = out === 'completed' ? t(rewardInside(p.id) ? 'till.insideDone' : 'till.favourGone', { name: p.name })
-            : t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable')
+            : spotNote(out)
           onMsg?.(msg)
         }} /></>
     )}

@@ -1388,6 +1388,16 @@ export function adBridgeWhy(): string | null {
   } catch { return null }
 }
 
+/** Has the bridge said today's rewarded spots are all spent? (1.9.6) Read
+ *  from __state as defensively as adBridgeWhy, because the cap lives in the
+ *  bridge and an older shell does not report it: then the answer is no, and
+ *  the player hears the usual "try again later". */
+export function rewardedCapped(): boolean {
+  const a = adBridge() as (AdBridge & { __state?: () => { lastFail?: unknown } }) | null
+  if (!a || typeof a.__state !== 'function') return false
+  try { return a.__state().lastFail === 'cap' } catch { return false }
+}
+
 export function adsAllowed(place: string): boolean {
   return !hasSupporter() && !!adBridge() && (AD_PLACES as readonly string[]).includes(place)
 }
@@ -1411,8 +1421,17 @@ export function rewardedAvailable(place: RewardedPlace): boolean {
   return !!a && typeof a.showRewarded === 'function' && (REWARDED_PLACES as readonly string[]).includes(place)
 }
 
-/** Run the spot. Everything except a confirmed completion is a polite no. */
+/** Run the spot. Everything except a confirmed completion is a polite no.
+ *
+ *  PRO MANAGER WATCHES NOTHING (owner, 1.9.6). Pro promises "No adverts,
+ *  ever", and a French Pro manager wrote in after the agency's file played him
+ *  one. The gold buttons stay for Pro, because the favours are the game's, but
+ *  the spot is skipped and the favour granted as if it had been watched. The
+ *  per-save ledgers in rewarded.ts still decide whether the button shows at
+ *  all, so Pro gets the same favours as a free player, not more; only the
+ *  bridge's ten-a-day advert cap is not his to meet, since no advert plays. */
 export async function showRewarded(place: RewardedPlace): Promise<'completed' | 'skipped' | 'unavailable'> {
+  if (hasSupporter()) return 'completed'
   const a = adBridge()
   if (!a || typeof a.showRewarded !== 'function') return 'unavailable'
   try {

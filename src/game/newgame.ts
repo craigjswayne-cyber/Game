@@ -44,6 +44,7 @@ import { pickObjectives } from './objectives'
 import { hashString, mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
 import { t, tIn } from './i18n'
+import { askingPrice } from './transferRules'
 import { demandedFinish } from './chairman'
 
 export interface Challenge {
@@ -374,6 +375,53 @@ export function resolveSquads(defs: LeagueDef[]): Map<string, RawPlayer[]> {
     }
   }
   return out
+}
+
+/**
+ * ---- SOMETHING ON THE LIST FROM DAY ONE (owner, 1.9.6) ----
+ *
+ * "When loading in the transfer window at the start of the game make sure
+ * there are a few low level players on the transfer list." A new world had
+ * nobody listed at all, so Listed only was an empty page until the AI clubs
+ * began selling. Six fringe men go up for sale before the first week: one
+ * per club, from the manager's own league, each one outside his club's
+ * best 23, aged 20 to 33, rated between the manager's weakest man (less a
+ * little) and the middle of his squad, the cheapest of those first, so the
+ * list is a place to find cheap cover, not stars. Spread over six positions where the league allows.
+ * The pick is a hash of the seed, not the world rng, so nothing else in the
+ * new world moves.
+ */
+export const OPENERS = 6
+
+export function listOpeners(state: GameState): void {
+  const mine = state.clubs[state.userClubId]
+  if (!mine) return
+  const ours = mine.players.map(id => state.players[id]?.ca ?? 0).filter(c => c > 0).sort((a, b) => a - b)
+  if (!ours.length) return
+  const lo = ours[0] - 4, hi = ours[ours.length >> 1]
+  const draw = (id: number) => mulberry32(hashString(`openlist|${state.seed}|${id}`))()
+  const pool: Player[] = []
+  for (const club of Object.values(state.clubs)) {
+    if (club.id === state.userClubId || club.leagueId !== mine.leagueId) continue
+    const fringe = club.players.map(id => state.players[id]).filter((p): p is Player => !!p)
+      .sort((a, b) => b.ca - a.ca || a.id - b.id).slice(23)
+    pool.push(...fringe.filter(p => p.age >= 20 && p.age <= 33 && p.ca >= lo && p.ca <= hi &&
+      !p.injury && !p.onLoan && !p.loanFrom && !p.acad))
+  }
+  // the cheapest first, by the price he would be listed at (in steps of £50k,
+  // the seed's hash inside a step), so a poor club finds men it can pay for
+  const fee = new Map(pool.map(p => {
+    p.transferListed = true
+    const f = askingPrice(state, p)
+    p.transferListed = false
+    return [p.id, Math.floor(f / 50_000)] as const
+  }))
+  pool.sort((a, b) => fee.get(a.id)! - fee.get(b.id)! || draw(a.id) - draw(b.id) || a.id - b.id)
+  const clubs = new Set<string>(), poss = new Set<Pos>()
+  const take = (p: Player) => { p.transferListed = true; clubs.add(p.clubId!); poss.add(p.pos) }
+  for (const p of pool) if (clubs.size < OPENERS && !clubs.has(p.clubId!) && !poss.has(p.pos)) take(p)
+  // a small league may not have six positions to spread over
+  for (const p of pool) if (clubs.size < OPENERS && !clubs.has(p.clubId!) && !p.transferListed) take(p)
 }
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
@@ -930,6 +978,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
 
   // the world class stays rare: ceilings above 88 softened once (ageing.ts)
   softCeilings(state)
+  listOpeners(state)
   // the id counter travels with the save from here (GameState.pidNext, 1.6.4)
   state.pidNext = peekPid()
   return state

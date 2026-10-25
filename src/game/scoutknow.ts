@@ -38,6 +38,30 @@ export function attrRange(state: GameState, p: Player, key: keyof Attrs): [numbe
   return [clamp(c - m, 1, 20), clamp(c + m, 1, 20)]
 }
 
+/**
+ * ---- NO RATING WITHOUT A REPORT (owner, 1.9.6) ----
+ *
+ * "Hide ability rating until a scout report has been run or they are your
+ * own player." Under CA_KNOW a man at another club shows "?" where his rating
+ * was. CA_KNOW is WATCH_KNOW, the rung the staged report calls "a proper
+ * report", so it holds for the manager's own league too, which seedKnowledge
+ * starts at 45: knowing the league is not the same as having had a man
+ * watched. A week on the shortlist clears it for a man in your own league,
+ * two or three for a man abroad (weeklyScouting), and the agency's file does
+ * it at once. Ranking and sorting treat an unread man as below every read
+ * one, so the order of a list does not give the number away.
+ */
+export const CA_KNOW = 55
+
+export function caKnown(state: GameState, p: Player): boolean {
+  return knowledge(state, p) >= CA_KNOW
+}
+
+/** The rating a screen may show, or null for "not scouted yet". */
+export function shownCa(state: GameState, p: Player): number | null {
+  return caKnown(state, p) ? fuzzedCa(state, p) : null
+}
+
 /** Fuzzed overall ability for star displays. */
 export function fuzzedCa(state: GameState, p: Player): number {
   const k = knowledge(state, p)

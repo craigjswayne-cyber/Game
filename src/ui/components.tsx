@@ -6,7 +6,7 @@ import { hasHoopRow } from '../game/kits'
 import { t } from '../game/i18n'
 import { condBand } from '../game/condition'
 import { Glyph } from './glyphs'
-import { showRewarded, type RewardedPlace } from '../game/monetise'
+import { rewardedCapped, showRewarded, type RewardedPlace } from '../game/monetise'
 // the store, for ClubLink's one job: opening a club. store.ts imports nothing
 // from ui/, so this direction is the only one and there is no cycle.
 import { useStore } from '../store'
@@ -277,7 +277,9 @@ export function Nat({ code }: { code: string }) {
  *  colour so a list still scans at a glance: 85+ gold (the best in the game),
  *  75+ green (international class), 60+ plain, below that muted. The name is
  *  kept so every screen that showed stars shows this. */
-export function Stars({ ca }: { ca: number }) {
+export function Stars({ ca }: { ca: number | null }) {
+  // null: another club's man nobody has scouted yet (scoutknow.ts CA_KNOW)
+  if (ca == null) return <span className="ovr ovr-low" title={t('player.unscoutedAbility')}>?</span>
   const n = Math.max(1, Math.min(99, Math.round(ca)))
   const tone = n >= 85 ? 'elite' : n >= 75 ? 'good' : n >= 60 ? 'mid' : 'low'
   return <span className={`ovr ovr-${tone}`}>{n}</span>
@@ -779,6 +781,12 @@ export function TwoStep({ label, confirm, onConfirm, className = 'btn', style, d
  * One component rather than the same three lines copied into four screens,
  * because the four had already drifted: two stopped propagation and two did not.
  */
+/** What to tell the player when a spot paid nothing: closed early, today's
+ *  ten spent (1.9.6: that used to read as a passing shortage), or no advert. */
+export function spotNote(out: 'completed' | 'skipped' | 'unavailable'): string {
+  return t(out === 'skipped' ? 'till.spotSkipped' : rewardedCapped() ? 'till.spotCapped' : 'till.spotUnavailable')
+}
+
 export function RewardedButton({ place, label, onDone, className = 'btn ghost block', style }: {
   place: RewardedPlace
   label: ReactNode

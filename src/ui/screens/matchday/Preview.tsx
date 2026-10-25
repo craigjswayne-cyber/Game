@@ -17,7 +17,7 @@ import type { SliderKey } from '../../../game/tactics'
 import { ord, posName, t, compLabel } from '../../../game/i18n'
 import { subjectVar } from '../../../game/gender'
 import { formerFacing, formersAlso } from '../../../game/memory'
-import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, availabilityTag } from '../../components'
+import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, spotNote, availabilityTag } from '../../components'
 import { stageName } from '../Home'
 import { MoodTable } from '../../MoodTable'
 import { talkSetting } from '../../../game/teamtalk'
@@ -761,7 +761,7 @@ export function Preview({ fxId }: { fxId: number }) {
                       label={t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}
                       onDone={out => {
                         if (out === 'completed') rewardAnalyst()
-                        else setSpotMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                        else setSpotMsg(spotNote(out))
                       }} />
                   )}
                   {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}

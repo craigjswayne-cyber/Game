@@ -12,7 +12,7 @@ import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { demandedFinish } from '../../game/chairman'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
-import { SectionTitle, RewardedButton } from '../components'
+import { SectionTitle, RewardedButton, spotNote } from '../components'
 import { AdSlot } from '../AdSlot'
 import { IcoClock, IcoOpen, IcoTick } from '../icons'
 import { t } from '../../game/i18n'
@@ -682,7 +682,7 @@ export default function Finances() {
               if (out === 'completed') {
                 const amt = rewardTown()
                 setAskMsg(amt != null ? t('till.townDone', { amount: fmtMoney(amt) }) : t('till.favourGone'))
-              } else setAskMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+              } else setAskMsg(spotNote(out))
             }} />
         </div>
       )}

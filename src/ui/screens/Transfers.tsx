@@ -5,7 +5,7 @@ import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from 
 import { isDeadlineWeek, openDate, shutDate } from '../../game/window'
 import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
 import { noteUse } from '../../game/usage'
-import { attrRange, fuzzedCa, knowledge, searchKey, seenValue } from '../../game/scout'
+import { attrRange, knowledge, searchKey, seenValue, shownCa } from '../../game/scout'
 import { FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
 import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
@@ -144,7 +144,7 @@ export default function Transfers() {
     // all"). clubCode is what the crest draws and the touchline paints; the
     // search box above still matches the full name.
     { id: 'club', head: t('transfers.colClub'), td: () => ({ className: 'muted' }), cell: p => (p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')) },
-    { id: 'ca', head: t('transfers.colAbility'), sort: 'ca', cell: p => <><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</> },
+    { id: 'ca', head: t('transfers.colAbility'), sort: 'ca', cell: p => { const ca = shownCa(game, p); return <><Stars ca={ca} />{ca != null && knowledge(game, p) < 95 && <span className="muted">?</span>}</> } },
     { id: 'form', head: t('transfers.colForm'), align: 'right', sort: 'form', cell: p => <FormPill v={p.form} /> },
     { id: 'value', head: t('squad.colValue'), align: 'right', sort: 'value', cell: p => fmtMoney(seenValue(game, p)) },
   ]

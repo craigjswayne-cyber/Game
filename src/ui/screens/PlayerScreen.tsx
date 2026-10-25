@@ -4,11 +4,11 @@ import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, inj
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
-import { FormPill, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
+import { FormPill, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton, spotNote } from '../components'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { firstProWage, fineAttr } from '../../game/attributes'
-import { attrRange, fuzzedCa, knowledge, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge, shownCa, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
 import { habitHint } from '../../game/habits'
@@ -159,7 +159,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             )}
           </div>
           <div style={{ textAlign: 'right' }}>
-            <Stars ca={fuzzedCa(game, p)} />{know < 95 && <span className="muted" title={t('player.estimated')}> ?</span>}
+            <Stars ca={shownCa(game, p)} />{shownCa(game, p) != null && know < 95 && <span className="muted" title={t('player.estimated')}> ?</span>}
             <div style={{ marginTop: 4 }}><FormPill v={p.form} trend={formTrend(p)} /></div>
           </div>
         </div>
@@ -288,7 +288,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   <>{' '}<RewardedButton place="opinion" className="btn ghost tiny spot" style={{ marginLeft: 2, verticalAlign: 'baseline' }} label={t('till.watchOpinion')}
                     onDone={out => {
                       if (out === 'completed') setMsg(t(rewardOpinion(p.id) ? 'till.opinionDone' : 'till.favourGone', { name: p.name }))
-                      else setMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                      else setMsg(spotNote(out))
                     }} /></>
                 )}
               </div>
@@ -373,7 +373,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 
       <div className="chips">
         <span className="chip" title={t('player.overallTitle')}>
-          {t('player.overall')} <b style={{ fontSize: '0.8125rem' }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
+          {t('player.overall')} <b style={{ fontSize: '0.8125rem' }}>{shownCa(game, p) == null ? '?' : Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
         {(p.caps ?? 0) > 0 && <span className="chip"><Glyph name="nations" /> <b>{p.caps}</b> {t('player.caps')}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: 'var(--gold)' } : undefined}>
           {t('player.scouted')} <b>{Math.round(know)}%</b></span>}
@@ -944,7 +944,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <RewardedButton place="scouting" label={t('till.watchAgency')}
               onDone={out => {
                 if (out === 'completed') setMsg(rewardAgency(p.id) ? t('till.agencyDone', { name: p.name }) : t('till.favourGone'))
-                else setMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                else setMsg(spotNote(out))
               }} />
           )}
           {/* once a fee is agreed the table is about terms, not the fee */}
@@ -1084,7 +1084,8 @@ function moraleWord(m: number): string {
 function verdictLine(game: GameState, p: Player, mine: boolean): string {
   const ca = Math.round(fuzzedCa(game, p))
   const know = knowledge(game, p)
-  const standard = t(ca >= 85 ? 'player.vStar'
+  const unseen = shownCa(game, p) == null
+  const standard = unseen ? t('player.vUnseen') : t(ca >= 85 ? 'player.vStar'
     : ca >= 75 ? 'player.vFirstChoice'
     : ca >= 65 ? 'player.vSolid'
     : ca >= 55 ? 'player.vFiller'
@@ -1092,7 +1093,7 @@ function verdictLine(game: GameState, p: Player, mine: boolean): string {
   const bits: string[] = []
   bits.push(t('player.vOpening', {
     age: p.age, pos: posName(p.pos).toLowerCase(), standard,
-    caveat: !mine && know < 60 ? t('player.vCaveat') : '',
+    caveat: !mine && !unseen && know < 60 ? t('player.vCaveat') : '',
   }))
   if (p.injury) {
     const wks = Math.max(0, p.injury.until - game.week)
