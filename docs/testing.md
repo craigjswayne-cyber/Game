@@ -103,6 +103,7 @@ over `tests/**/*.test.ts`: fast, deterministic, no browser, about a minute.
 | `tests/proadfree.test.ts` | a Pro Manager (either product) is granted every rewarded favour with no advert; a free player still watches one | new (1.9.6) |
 | `tests/openlist.test.ts` | a new career starts with six cheap fringe men listed in its own league, one per club, the same for the same seed; another club's rating is hidden until he is properly scouted | new (1.9.6) |
 | `tests/squadfull.test.ts` | the squad-full message counts seniors moved down to the academy, and says so | new (1.9.6) |
+| `tests/backtoacademy.test.ts` | our own lad of 19 or under sent down goes back as a scholar, off the 46 and the cap; an older or bought-in man keeps his contract and his place; an old save is healed | new (1.9.6) |
 
 New fast, deterministic checks belong here rather than in a new probe. Watch
 mode while working: `npx vitest`. vitest 4.1 runs on the repo's Vite 8, the

@@ -27,7 +27,7 @@ import { Glyph } from '../glyphs'
 import { driverLines, learningLines, monthKey, outlookLine, TL } from '../../game/devproject'
 import { activeEntry } from '../../game/season'
 import { focusIds } from '../../game/development'
-import { armDebut } from '../../game/acadcall'
+import { armDebut, sendDown } from '../../game/acadcall'
 
 /** The timeline's moment chips, in the order they read (devproject TL). */
 const TL_KEYS: [number, string][] = [
@@ -782,11 +782,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           matters: acad moves him to the academy list, demoted keeps the salary
           cap counting him (cap.ts) and the season-end academy sweep off him
           (rollover.ts) - without it, demotion is a cap dodge and a free
-          release. He is not pleased about it, which is the point of morale. */}
+          release. He is not pleased about it, which is the point of morale.
+          Since 1.9.6 a lad of our own academy, 19 or under, goes back as a
+          scholar instead (acadcall.ts sendDown). */}
       {mine && !p.acad && !p.onLoan && (
         <button className="btn ghost block" onClick={() => {
-          p.acad = true
-          p.demoted = true
+          const back = sendDown(game, p) === 'academy'
           const club = game.clubs[game.userClubId]
           club.tactic.lineup = club.tactic.lineup.map(id => (id === p.id ? null : id))
           if (club.tactic.kickers) club.tactic.kickers = club.tactic.kickers.map(id => (id === p.id ? null : id))
@@ -795,12 +796,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           p.morale = Math.max(0, p.morale - 2)
           game.news.push({
             id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
-            subject: tIn('en', 'news.sentDownSubj', { name: p.name }),
-            body: tIn('en', 'news.sentDown', { name: p.name, age: p.age }),
-            k: 'news.sentDown', v: { name: p.name, age: p.age },
+            subject: tIn('en', back ? 'news.backToAcademySubj' : 'news.sentDownSubj', { name: p.name }),
+            body: tIn('en', back ? 'news.backToAcademy' : 'news.sentDown', { name: p.name, age: p.age }),
+            k: back ? 'news.backToAcademy' : 'news.sentDown', v: { name: p.name, age: p.age },
             playerId: p.id,
           })
-          setMsg(t('player.sentDownMsg', { name: p.name }))
+          setMsg(t(back ? 'player.backToAcademyMsg' : 'player.sentDownMsg', { name: p.name }))
           touch()
         }}>{t('player.sendDown')}</button>
       )}
