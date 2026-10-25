@@ -6,7 +6,7 @@ import { autoSelect } from './matchEngine'
 import { t, tIn, type Vars } from './i18n'
 import { clamp, mulberry32, cmpStr } from './rng'
 import { isDerby } from './rivalries'
-import { askingPrice, capBill, capBreak, capWage, embargoed, executeTransfer, squadFull, windowOpen } from './ai'
+import { askingPrice, capBill, capBreak, capWage, embargoed, executeTransfer, squadFull, squadFullMsg, windowOpen } from './ai'
 import { userWageBudget } from './grants'
 import { playerWage } from './attributes'
 import { scoutPa } from './scout'
@@ -225,7 +225,7 @@ export function loanIn(state: GameState, playerId: number, length: LoanLength = 
   const parent = state.clubs[p.clubId!]
   if (!parent) return t('reply.unavailable')
   // the same count every signing reads, demoted seniors included (ai.ts)
-  if (squadFull(state, user)) return t('reply.seniorSquadFull')
+  if (squadFull(state, user)) return squadFullMsg(state, user)
   // A LOAN IS A SIGNING AS FAR AS THE RULES ARE CONCERNED (1.8.1). It walked
   // past the embargo, the salary cap and the wage budget, all three, so a club
   // barred from the market or pressed against the cap could borrow its way

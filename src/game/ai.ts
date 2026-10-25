@@ -16,7 +16,7 @@ import { requestLocked } from './handshake'
 import { bidRefused, flattered } from './fallout'
 import { isDeadlineWeek, nextOpening, nextWeek, openDate, windowOpen } from './window'
 
-import { FREE_RESALE, INK_WEEKS, SQUAD_LIMIT, askingPrice, embargoed, freeDeal, pendingDeal, promisedElsewhere, squadFull } from './transferRules'
+import { FREE_RESALE, INK_WEEKS, SQUAD_LIMIT, askingPrice, embargoed, seniorsOf, freeDeal, pendingDeal, promisedElsewhere, squadFull } from './transferRules'
 
 import { executeTransfer, realMoney } from './transfer'
 import { aiShoppingTarget } from './aishop'
@@ -24,6 +24,16 @@ import { aiShoppingTarget } from './aishop'
 export { capWage, capBill } from './cap'
 export { executeTransfer } from './transfer'
 export { embargoed, pendingDeal, askingPrice, INK_WEEKS, SQUAD_LIMIT, squadFull, seniorsOf } from './transferRules'
+
+/** "The squad is full", said so the count adds up (1.9.6). A senior moved
+ *  down to the academy still takes a senior place (transferRules seniorsOf),
+ *  but the Squad screen lists him under the academy, so a French manager with
+ *  45 in his first team was told 46 was the limit and could not see why. When
+ *  any are counted that way, the message says how many. */
+export function squadFullMsg(state: GameState, club: { players: number[] }): string {
+  const d = club.players.filter(id => { const p = state.players[id]; return !!p?.acad && !!p.demoted }).length
+  return d ? t('reply.squadFullDemoted', { n: seniorsOf(state, club), d }) : t('reply.squadFull')
+}
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -535,7 +545,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
     }
   }
   if (fee + signOn > user.budget) return { ok: false, msg: t('reply.feeBonusOverBudget') }
-  if (squadFull(state, user)) return { ok: false, msg: t('reply.squadFull') }
+  if (squadFull(state, user)) return { ok: false, msg: squadFullMsg(state, user) }
   if (embargoed(state, user.id)) {
     noteBlocked(state, p.id, 'emb')
     return { ok: false, msg: t('reply.embargoSign') }
@@ -615,7 +625,7 @@ export function signFreeAgent(state: GameState, playerId: number): { ok: boolean
   const user = state.clubs[state.userClubId]
   if (state.unemployed) return noDesk()
   if (!p || p.clubId != null || !user) return { ok: false, msg: t('reply.notFreeAgent') }
-  if (squadFull(state, user)) return { ok: false, msg: t('reply.squadFull') }
+  if (squadFull(state, user)) return { ok: false, msg: squadFullMsg(state, user) }
   if (embargoed(state, user.id)) {
     noteBlocked(state, p.id, 'emb')
     return { ok: false, msg: t('reply.embargoSign') }

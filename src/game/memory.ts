@@ -28,8 +28,8 @@
 // OTHER MODULES PLUG IN through remember() and recall(): a kind is a string
 // literal in MemoryKind, and adding one is a one-word change.
 
-import type { Fixture, GameState, Player } from './model'
-import { absWeek, careerRows, fmtMoney, seasonLabel, SEASON_WEEKS } from './model'
+import type { GameState, Player } from './model'
+import { absWeek, fmtMoney, seasonLabel, SEASON_WEEKS } from './model'
 import { clamp } from './rng'
 import { tIn, type Vars } from './i18n'
 import { fileHeldNews } from './heldnews'
@@ -209,60 +209,6 @@ function departures(state: GameState): { e: MemoryEntry; p: Player }[] {
 }
 
 /**
- * After one of your matches: did somebody you let go come back and hurt you?
- * The match award, a try, or - for a man worth noticing - simply lining up
- * against you the first time. One story per match, the strongest.
- */
-export function memoryAfterMatch(state: GameState, fx: Fixture): void {
-  if (!state.memory?.entries.length || state.unemployed) return
-  const me = state.userClubId
-  if (fx.homeId !== me && fx.awayId !== me) return
-  const oppId = fx.homeId === me ? fx.awayId : fx.homeId
-  const opp = state.clubs[oppId]
-  if (!opp || !canTell(state)) return
-  const tries = new Set((fx.events ?? []).filter(ev => ev.type === 'TRY' && ev.teamId === oppId && ev.playerId != null).map(ev => ev.playerId!))
-  // ONE STORY A MATCH, THE STRONGEST. The award outranks a try, and a try
-  // outranks simply turning out against you; whichever is told, the weaker
-  // ones for that man are spent with it, so he is never "met" after he scored.
-  let best: { e: MemoryEntry; p: Player; rank: number } | null = null
-  for (const { e, p } of departures(state)) {
-    if (p.clubId !== oppId || state.season - e.season > 6) continue
-    const pl = e.payload ?? {}
-    const motm = fx.motm === p.id
-    // A match the manager watched keeps its events; one simmed around him does
-    // not, so there the try is read off his season tally against the count
-    // memoryWeek wrote down last week (he played this week, and it went up).
-    const scored = fx.events?.length ? tries.has(p.id)
-      : p.lastWk === state.week && pl.ss === state.season && Number.isFinite(pl.st) && p.stats.tries > Number(pl.st)
-    // he played: on the events when there are some, on his last outing when not
-    const played = fx.events?.length
-      ? fx.events.some(ev => ev.playerId === p.id) || p.lastWk === state.week
-      : p.lastWk === state.week
-    // A TRY BY A MAN OF NOTE (1.8.5): the squad man of no note who left is
-    // not a story for scoring once, and a try the match report has already
-    // filed as an old boy's (matchEngine, the old boy's Won/Lost story) is not filed twice
-    // the same afternoon; it is spent, so it does not come later either.
-    const onPage = state.news.some(n => n.playerId === p.id && n.fixtureId === fx.id && (n.k === 'news.oldBoyWeWon' || n.k === 'news.oldBoyWeLost'))
-    if (scored && onPage && !motm && !paid(e, 'try')) { markPaid(e, 'try'); if (!paid(e, 'met')) markPaid(e, 'met') }
-    const rank = motm && !paid(e, 'motm') ? 3
-      : scored && notable(e) && !paid(e, 'motm') && !paid(e, 'try') ? 2
-      : played && !paid(e, 'met') && !paid(e, 'try') && !paid(e, 'motm') && notable(e) ? 1
-      : 0
-    if (rank > (best?.rank ?? 0)) best = { e, p, rank }
-  }
-  if (!best) return
-  const { e, p, rank } = best
-  const tag = rank === 3 ? 'motm' : rank === 2 ? 'try' : 'met'
-  markPaid(e, tag)
-  if (tag !== 'met' && !paid(e, 'met')) markPaid(e, 'met')
-  tell(state, rank === 3 ? 'mem.motmVs' : rank === 2 ? 'mem.tryVs' : 'mem.metVs', { ...howVars(state, e), club: opp.name }, p.id)
-}
-
-/** Worth a story just for turning out against you (see notableDeparture); a
- *  departure recorded before the mark existed falls back on its salience. */
-const notable = (e: MemoryEntry) => e.payload?.nb === 1 || (e.payload?.nb == null && e.sal >= 2)
-
-/**
  * The weekly read-back, after the Wire. Each payoff once per subject, one story
  * a week, and the season-end reviews allowed a little extra room.
  */
@@ -415,105 +361,3 @@ function totyNames(state: GameState): Set<string> {
   return out
 }
 
-// ------------------------------------------------------------------
-// Read at the moment it matters (1.8.5)
-// ------------------------------------------------------------------
-//
-// THE AUDIT (scripts/memoryauditprobe.ts) played careers as a manager who
-// sells his young lads and meets them again, and asked where the game said
-// so. The news said it once a man (the 'met' payoff) and the Old Boys card
-// on the preview counted his games for you: a boy sold before he had played
-// was on neither, and a man met the second time was "once yours" on the
-// desk and nothing on the report. These read the log at the moment: before
-// the match (the report, the preview's card, the desk) and at full time.
-// Pure reads, no rng, nothing written. Only the notable (see notable()), so
-// the squad man of no note who left stays a squad man.
-
-/** What he has done since he left: games and tries, anywhere but the club
- *  he left, past the season so far he took with him (a0, t0). */
-function sinceLeft(state: GameState, p: Player, e: MemoryEntry): { n: number; tr: number } {
-  const from = e.clubId
-  const a0 = Number(e.payload?.a0 ?? 0) || 0
-  const t0 = Number(e.payload?.t0 ?? 0) || 0
-  let n = 0, tr = 0
-  const add = (season: number, apps: number, tries: number) => {
-    if (season < e.season) return
-    n += season === e.season ? Math.max(0, apps - a0) : apps
-    tr += season === e.season ? Math.max(0, tries - t0) : tries
-  }
-  for (const r of careerRows(p)) if (r.clubId !== from) add(r.season, r.apps, r.tries)
-  if (p.clubId && p.clubId !== from) add(state.season, p.stats.apps, p.stats.tries)
-  return { n, tr }
-}
-
-export interface Former { p: Player; e: MemoryEntry; k: string; v: Vars }
-
-/** The men past the first two, named in one line ("Also once yours: X, Y."),
- *  so a club that bought three of yours does not hide the third. Null when
- *  there are none. */
-export function formersAlso(all: readonly Former[]): { k: string; v: Vars } | null {
-  const rest = all.slice(2)
-  return rest.length ? { k: 'mem.faceAlso', v: { names: rest.map(f => f.p.name).join(', ') } } : null
-}
-
-/**
- * The men you let go who are at this club now, the most telling first, two
- * by default (`max`): each as a line, "You sold X to Y for £1.2m in 2027-28. 41 games
- * since, 14 tries." With `ids`, only those in this match's squad.
- */
-export function formerFacing(state: GameState, oppId: string, ids?: readonly (number | null)[], max = 2): Former[] {
-  if (state.unemployed || !state.memory?.entries.length || oppId === state.userClubId) return []
-  const club = state.clubs[oppId]
-  if (!club) return []
-  const want = ids ? new Set(ids.filter((x): x is number => x != null)) : null
-  const latest = new Map<number, MemoryEntry>()
-  // or one who has become somebody since: capped, or as good as the middle
-  // of the squad he would walk back into
-  const cas = (state.clubs[state.userClubId]?.players ?? []).map(id => state.players[id])
-    .filter(x => x && !x.acad).map(x => x.ca).sort((a, b) => a - b)
-  const mid = cas.length ? cas[Math.floor(cas.length / 2)] : 999
-  const now = (e: MemoryEntry, p: Player) => notable(e) || (p.caps ?? 0) > Number(e.payload?.caps ?? 0) || p.ca >= mid
-  for (const { e, p } of departures(state)) {
-    if (p.clubId !== oppId || (want && !want.has(p.id)) || !now(e, p)) continue
-    const had = latest.get(p.id)
-    if (!had || e.id > had.id) latest.set(p.id, e)
-  }
-  return [...latest.values()]
-    .sort((a, b) => b.sal - a.sal || b.id - a.id)
-    .slice(0, max)
-    .map(e => {
-      const p = state.players[e.playerId!]
-      const { n, tr } = sinceLeft(state, p, e)
-      const since_k = n === 0 ? 'mem.sinceNone' : tr === 0 ? 'mem.sinceGames' : tr === 1 ? 'mem.sinceTry' : 'mem.sinceTries'
-      // why he left, when it was on bad terms; else a cap won since
-      const sour = recall(state, { kind: ['promise-broken', 'request-refused'], playerId: p.id })
-        .filter(x => x.id < e.id && x.season >= e.season - 1).pop()
-      const extra_k = sour ? (sour.kind === 'promise-broken' ? 'mem.faceBroken' : 'mem.faceRefused')
-        : (p.caps ?? 0) > Number(e.payload?.caps ?? 0) ? 'mem.faceCapped' : null
-      const v: Vars = { ...howVars(state, e), since_k, n, tr, club: club.short }
-      if (extra_k) { v.extra_k = extra_k; v.bs = seasonLabel(sour?.season ?? e.season) }
-      return { p, e, k: extra_k ? 'mem.faceX' : 'mem.face', v }
-    })
-}
-
-/**
- * Full time: a man you let go DECIDED it against you. His try was worth the
- * margin of the defeat, or he was the best man on the pitch in a defeat.
- * None otherwise, and none for a win: the commentary has had its word on a try
- * that did not cost you.
- */
-export function formerDecided(
-  state: GameState, oppId: string, us: number, them: number,
-  events: readonly { type: string; teamId?: string; playerId?: number }[], motmId: number | null,
-): { k: string; v: Vars; p: number }[] {
-  // every man who decided it, not the first: two former players can share a
-  // defeat, one with the try and one as the best man on the pitch (1.8.5)
-  if (us >= them) return []
-  const out: { k: string; v: Vars; p: number }[] = []
-  for (const f of formerFacing(state, oppId, undefined, Infinity)) {
-    const tried = events.some(ev => ev.type === 'TRY' && ev.playerId === f.p.id)
-    if (tried && them - us <= 5) out.push({ k: 'mem.ftTry', v: { ...howVars(state, f.e), us, them }, p: f.p.id })
-    else if (motmId === f.p.id) out.push({ k: 'mem.ftMotm', v: { ...howVars(state, f.e), us, them }, p: f.p.id })
-  }
-  return out
-}

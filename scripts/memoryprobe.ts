@@ -32,9 +32,10 @@ import { answerRequest } from '../src/game/chats'
 import { sackStaff, appointStaff, staffCandidates } from '../src/game/staff'
 import { SEASON_WEEKS, seasonLabel, type GameState, type Player } from '../src/game/model'
 import {
-  MEMORY_CAP, agentWariness, memoryAfterMatch, memoryWeek, migrateMemory, recall, remember,
+  MEMORY_CAP, agentWariness, memoryWeek, migrateMemory, recall, remember,
   noteMemory, rememberDebut, rememberPromise,
 } from '../src/game/memory'
+import { afterClubMatch } from '../src/game/season/news'
 import { ensureLang, tIn } from '../src/game/i18n'
 import { ok, failures } from './lib/probe'
 
@@ -169,58 +170,21 @@ const leagueRival = (g: GameState) => {
   memoryWeek(g); g.week = 16; memoryWeek(g)
   ok(memNews(g, 'mem.captainVs').length === 1 && memNews(g).length === before, 'it is told once, not every week')
 
-  // b. sold, then scores against you
+  // b. THE OLD BOYS ARE GONE (owner, 1.9.6: "remove the old boys feature"). A
+  // man you sold who scores against you, takes the award or simply lines up
+  // is no longer a story: the match's own news passes over him
   g.week = 20
   const sold = seniors(g, me).sort((a, b) => b.ca - a.ca)[2]
   executeTransfer(g, sold, rival.id, 2_000_000)
+  sold.lastWk = g.week
   const fx = {
     id: 999_001, compId: g.clubs[me].leagueId, round: 1, week: g.week, homeId: me, awayId: rival.id,
-    played: true, homeScore: 10, awayScore: 17, homeTries: 1, awayTries: 2,
+    played: true, homeScore: 10, awayScore: 17, homeTries: 1, awayTries: 2, motm: sold.id,
     events: [{ min: 30, type: 'TRY' as const, teamId: rival.id, playerId: sold.id, text: 'try', homeScore: 0, awayScore: 5 }],
   }
-  memoryAfterMatch(g, fx)
-  const tryStory = memNews(g, 'mem.tryVs')[0]
-  ok(!!tryStory && tryStory.playerId === sold.id && tryStory.v?.buyer === rival.name && tryStory.body.includes('You sold'),
-    `${sold.name} scoring against you names the sale: "${tryStory?.body.slice(0, 90)}..."`)
-  g.week = 21
-  memoryAfterMatch(g, { ...fx, id: 999_002, week: 21 })
-  ok(memNews(g, 'mem.tryVs').length === 1, 'the same man scoring again is not a second story')
-  ok(memNews(g, 'mem.metVs').length === 0, 'and having scored, he is never merely "met" afterwards')
-
-  // b2. a notable man simply turning out against you, the first time only
-  const quiet = { ...fx, events: undefined, motm: undefined }
-  const squadNow = seniors(g, me).sort((a, b) => b.ca - a.ca)
-  const star = squadNow[1], nobody = squadNow[squadNow.length - 1]
-  executeTransfer(g, star, rival.id, 1_500_000)
-  executeTransfer(g, nobody, rival.id, 100_000)
-  const starE = recall(g, { kind: 'sold', playerId: star.id })[0]
-  const nobodyE = recall(g, { kind: 'sold', playerId: nobody.id })[0]
-  ok(starE.payload?.nb === 1 && nobodyE.payload?.nb !== 1, `${star.name} is notable when he goes, the squad's lowest-rated man is not`)
-  g.week = 23
-  nobody.lastWk = g.week
-  memoryAfterMatch(g, { ...quiet, id: 999_003, week: 23 })
-  ok(memNews(g, 'mem.metVs').length === 0, 'a man nobody would notice facing you is not news')
-  g.week = 24
-  star.lastWk = g.week; nobody.lastWk = g.week
-  memoryAfterMatch(g, { ...quiet, id: 999_004, week: 24 })
-  const metStory = memNews(g, 'mem.metVs')[0]
-  ok(!!metStory && metStory.playerId === star.id && metStory.v?.how_k === 'mem.howSold' && metStory.body.includes(star.name) && metStory.body.includes(rival.name),
-    `${star.name} lining up against you is told, with how he left: "${metStory?.body.slice(0, 100)}..."`)
-  ok(!/\{|\}/.test(tIn('fr', metStory!.k!, metStory!.v)) && tIn('fr', metStory!.k!, metStory!.v).includes('vendu'), 'and in French')
-  g.week = 25
-  star.lastWk = g.week
-  memoryAfterMatch(g, { ...quiet, id: 999_005, week: 25 })
-  ok(memNews(g, 'mem.metVs').length === 1, 'the second meeting is not a second story')
-  // the strongest wins: a notable man who also takes the award is the award story
-  const both = squadNow[2]
-  executeTransfer(g, both, rival.id, 1_000_000)
-  g.week = 26
-  both.lastWk = g.week
-  const before26 = memNews(g).length
-  memoryAfterMatch(g, { ...quiet, id: 999_006, week: 26, motm: both.id })
-  const told26 = memNews(g).slice(before26)
-  ok(told26.length === 1 && told26[0].k === 'mem.motmVs' && told26[0].playerId === both.id,
-    'a match that offers the award and a meeting tells the award, once')
+  afterClubMatch(g, fx)
+  ok(['mem.tryVs', 'mem.metVs', 'mem.motmVs'].every(k => memNews(g, k).length === 0),
+    `${sold.name} scoring against you, and taking the award, files no old boy story`)
 
   // c. the academy debut you gave, and the cap that follows
   g.week = 22
@@ -375,8 +339,14 @@ const leagueRival = (g: GameState) => {
   console.log(`  a man you let go played against you ${met} times (${(met / careerSeasons).toFixed(1)} a season)`)
   ok(unnamed.length === 0, `every story named, as it was told, a man the log remembered under that name${unnamed.length ? ` - ${unnamed.slice(0, 3).join('; ')}` : ''}`)
   ok(true, 'every career filled the log, stayed under the cap, and no story showed a hole or a key')
-  ok(total >= FLOOR, `the market decisions alone come back as stories: ${total} across ${careerSeasons} seasons (floor ${FLOOR})`)
-  ok(per.filter(n => n > 0).length >= 4, `and in nearly every career, not one lucky one (${per.filter(n => n > 0).length} of ${SEEDS.length})`)
+  // 1.9.6: the floor measured the old boys payoffs (met, award, try), and the
+  // owner removed them ("remove the old boys feature"). What is left of the
+  // market half is the rare follow-up (signed by a rival, his captaincy), so
+  // the count is printed above and not floored; what is held is that none of
+  // the old boys stories is told any more.
+  void FLOOR
+  const oldBoys = ['mem.metVs', 'mem.tryVs', 'mem.motmVs'].reduce((n, k) => n + (byKey[k] ?? 0), 0)
+  ok(oldBoys === 0, `no old boy story is told in ${careerSeasons} seasons (${oldBoys})`)
 }
 
 // ---- 6. it moves no match ----

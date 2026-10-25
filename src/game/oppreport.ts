@@ -38,7 +38,6 @@ import { absWeek as gameWeek } from './model'
 import { analystRead, analystSkill, readOdds, readUnit, sureBand, UNIT_PREP, type AnalystRead } from './analyst'
 import { tapeLine } from './armsrace'
 import { rematchLine, rematchOf } from './rematch'
-import { formerFacing, formersAlso } from './memory'
 import { rivalAt } from './rivalcoach'
 import { legendsFacing } from './legends'
 import { lineupFor, teamUnits } from './matchEngine'
@@ -400,22 +399,15 @@ export function buildReport(state: GameState, oppId: string): OppReport {
   if (club) lines.push(...styleLines(state, club, acc))
   const men = keyMenLine(state, oppId)
   if (men) lines.push(men)
-  // THE MEN YOU LET GO (1.8.5, memory.ts formerFacing): who, how, and what
-  // he has done since, for the notable ones in their twenty-three; ours to
-  // know at any accuracy
+  // the men you let go are no longer named here: the old boys went in 1.9.6
+  // (owner: "remove the old boys feature")
   const their23 = lineupFor(state, oppId).slice(0, 23)
-  const formers = formerFacing(state, oppId, their23, Infinity)
-  for (const f of formers.slice(0, 2)) {
-    lines.push({ cat: 'players', k: f.k, v: f.v as Record<string, string | number>, ok: true })
-  }
-  const also = formersAlso(formers)
-  if (also) lines.push({ cat: 'players', k: also.k, v: also.v as Record<string, string | number>, ok: true })
   // A LEGEND OF YOURS IN THEIR COLOURS (1.8.5, legends.ts legendsFacing).
   // The news tells the first meeting with each club and nothing after; the
   // report says it every time he is in their twenty-three or their staff
   const mine = state.clubs[state.userClubId]
   for (const { l, as } of legendsFacing(state, oppId)) {
-    if (!mine || (as === 'player' && !their23.includes(l.pid)) || formers.some(f => f.p.id === l.pid)) continue
+    if (!mine || (as === 'player' && !their23.includes(l.pid))) continue
     lines.push({ cat: 'players', k: as === 'player' ? 'oppreport.legendTheirs' : 'oppreport.legendStaff', v: { player: l.name, club: mine.short, n: l.apps }, ok: true })
   }
   if (club) lines.push(...setPieceLines(club, acc))

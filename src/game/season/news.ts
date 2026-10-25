@@ -10,7 +10,6 @@ import type { Rng } from '../rng'
 import { historyAfterMatch } from '../history'
 import { arcAfterMatch } from '../arc'
 import { tIn } from '../i18n'
-import { memoryAfterMatch } from '../memory'
 
 export function matchReport(state: GameState, fx: Fixture) {
   // the engine already filed a full report for matches played in detail -
@@ -81,7 +80,6 @@ export function matchReport(state: GameState, fx: Fixture) {
 export function afterClubMatch(state: GameState, fx: Fixture) {
   const club = state.clubs[state.userClubId]
   if (!club || fx.compId === 'fr') return
-  memoryAfterMatch(state, fx) // a man you let go comes back to hurt you (memory.ts)
   historyAfterMatch(state, fx) // the club's memory: tenure, legends, records (history.ts)
   arcAfterMatch(state, fx) // the career arc: the coach opposite, the era's book (arc.ts), no rng
   const isHome = fx.homeId === club.id

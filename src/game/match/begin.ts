@@ -1,6 +1,6 @@
 // Kick-off: beginMatch builds the live context. Split out of matchEngine.ts,
 // which re-exports the public parts.
-import type { Fixture, GameState, Player } from '../model'
+import type { Fixture, GameState } from '../model'
 import { subjectVar } from '../gender'
 import { prepLeaked } from '../talkingpoints'
 import { CHEM_SLOTS, careerRows, chemKey, demandCeiling, formGuide, grudgeBetween, oldBoyApps, unbeatenRun } from '../model'
@@ -182,9 +182,10 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   const grudge = !derby ? grudgeBetween(state, fx.homeId, fx.awayId) : null
   if (grudge) { layer(home, 'card', 1.25); layer(away, 'card', 1.25) }
   // old boys: a man facing his former club plays the game of his life
-  // (club matches only - career rows never reference national sides)
-  let returnee: Player | null = null
-  let returneeApps = 0
+  // (club matches only - career rows never reference national sides). Since
+  // 1.9.6 nothing says so: the card, the commentary line and the stories went
+  // (owner: "remove the old boys feature"), and only this lift stays, so the
+  // match stream is the one it was.
   if (state.clubs[fx.homeId] && state.clubs[fx.awayId]) {
     for (const side of [home, away]) {
       const oppId = side === home ? fx.awayId : fx.homeId
@@ -195,7 +196,6 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
         if (!oldApps) continue
         side.exIds.add(p.id)
         if (side.onPitch.has(p.id)) side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) + 0.2)
-        if (oldApps > returneeApps) { returnee = p; returneeApps = oldApps }
       }
     }
   }
@@ -483,14 +483,6 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   if (fx.testimonial != null && state.players[fx.testimonial]) {
     const hero = state.players[fx.testimonial]
     pushLine(state, ctx, 1, 'SUB', home, 'comm.testimonial', { player: hero.name }, hero.id)
-  }
-  if (returnee && returneeApps >= 10) {
-    const exSide = home.exIds.has(returnee.id) ? home : away
-    const oldClub = teamShort(state, exSide === home ? fx.awayId : fx.homeId)
-    pushLine(state, ctx, 1, 'SUB', exSide, 'comm.oldBoy', {
-      player: returnee.name, oldClub, n: returneeApps,
-      tail_k: exSide === home ? 'comm.oldBoyKnowsThem' : 'comm.oldBoyPolite',
-    }, returnee.id)
   }
   // a landmark afternoon announced at kickoff: the appearance he is about
   // to make sits on the salute ladder

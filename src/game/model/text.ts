@@ -64,6 +64,17 @@ export const poss = (name: string) => name.endsWith('s') ? `${name}'` : `${name}
 const OLD_EMOJI = /(?!\u{1F3F4}[\u{E0020}-\u{E007F}])[\u{1F000}-\u{1F1E5}\u{1F200}-\u{1FFFF}\u{2600}-\u{2604}\u{2607}-\u{2712}\u{2714}\u{2716}\u{2718}-\u{27BF}\u{2B50}\u{2B55}\u{23E9}-\u{23F3}]\u{FE0F}? ?/gu
 const noEmoji = (s: string): string => s.replace(OLD_EMOJI, '')
 
+/** KEYS NOTHING FILES ANY MORE, KEPT FOR WHAT IS ALREADY FILED (1.9.6). The
+ *  old boys went (owner: "remove the old boys feature"), so no new story or
+ *  commentary line carries these, but a career saved before then holds them in
+ *  its inbox and its match records, and a key that has left the dictionary is
+ *  printed as itself. Listed so the dictionary keeps them. */
+export const FILED_ONLY_KEYS = [
+  'news.oldBoyWeWon', 'news.oldBoyWeLost',
+  'mem.metVs', 'mem.metVsSubj', 'mem.tryVs', 'mem.tryVsSubj', 'mem.motmVs', 'mem.motmVsSubj',
+  'comm.oldBoy', 'comm.oldBoyKnowsThem', 'comm.oldBoyPolite',
+] as const
+
 export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : noEmoji(n.body))
 export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : noEmoji(n.subject))
 
