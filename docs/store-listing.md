@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.6, Play version code 65 (confirm 64 is accepted on the Console first)
+
+**en-GB**
+Pro Manager now means no adverts at all: the gold favour buttons work straight away. Fewer "no spot available" messages. A new career starts with cheap players on the transfer list. Other clubs' ratings stay hidden until you scout them. "Squad full" now explains seniors moved to the academy. The old boys feature is gone.
+
+**fr-FR**
+Pro Manager, c'est désormais zéro publicité : les boutons dorés accordent la faveur tout de suite. Moins de messages « aucun spot disponible ». Une nouvelle carrière commence avec des joueurs bon marché sur la liste des transferts. Les notes des autres clubs restent cachées tant que vous ne les avez pas observés. « Effectif complet » explique les seniors descendus à l'académie. La fonction anciens joueurs est retirée.
+
+**es-ES**
+Pro Manager ya no tiene ningún anuncio: los botones dorados conceden el favor al momento. Menos mensajes de «ningún anuncio disponible». Una nueva carrera empieza con jugadores baratos en la lista de traspasos. Las valoraciones de otros clubes siguen ocultas hasta que los observes. «Plantilla completa» explica los séniors bajados a la academia. Se retira la función de antiguos jugadores.
+
+**it-IT**
+Pro Manager ora significa nessuna pubblicità: i pulsanti dorati concedono il favore subito. Meno messaggi «nessuno spot disponibile». Una nuova carriera parte con giocatori economici in lista trasferimenti. Le valutazioni degli altri club restano nascoste finché non li osservi. «Rosa al completo» spiega i senior spostati nell'academy. Rimossa la funzione ex giocatori.
+
+**ja-JP**
+Pro Managerは広告が一切なくなり、金色のボタンはすぐに特典を与える。「CMがない」表示が減った。新しいキャリアは移籍リストに安い選手がいる状態で始まる。他クラブの評価は視察するまで隠れる。「登録枠が満杯」はアカデミーに下げたシニアも説明する。古巣対決の機能を削除。
+
+**af**
+Pro Manager beteken nou glad geen advertensies nie: die goue knoppies gee die guns dadelik. Minder "geen advertensie beskikbaar nie"-boodskappe. 'n Nuwe loopbaan begin met goedkoop spelers op die oordraglys. Ander klubs se graderings bly versteek totdat jy hulle verken. "Groep vol" verduidelik nou seniors wat na die akademie geskuif is. Die oud-spelers-funksie is weg.
+
 ### What's new (500 max) - v1.9.5, Play version code 64 (confirm 63 is accepted on the Console first)
 
 **en-GB**

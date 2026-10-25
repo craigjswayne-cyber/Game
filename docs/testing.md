@@ -100,6 +100,9 @@ over `tests/**/*.test.ts`: fast, deterministic, no browser, about a minute.
 | `tests/records.test.ts` | tries and kicks in friendlies and Tests stay out of a man's season tally | new (1.9.4 audit) |
 | `tests/loanshare.test.ts` | a loan's wage share outside nought to one is refused | new (1.9.4 audit) |
 | `tests/firststeps.test.ts` | the pre-season checklist shows through the three friendlies and goes when they are played, done or not; never on a skipped list, an older save or after a finished season | new (1.9.5) |
+| `tests/proadfree.test.ts` | a Pro Manager (either product) is granted every rewarded favour with no advert; a free player still watches one | new (1.9.6) |
+| `tests/openlist.test.ts` | a new career starts with six cheap fringe men listed in its own league, one per club, the same for the same seed; another club's rating is hidden until he is properly scouted | new (1.9.6) |
+| `tests/squadfull.test.ts` | the squad-full message counts seniors moved down to the academy, and says so | new (1.9.6) |
 
 New fast, deterministic checks belong here rather than in a new probe. Watch
 mode while working: `npx vitest`. vitest 4.1 runs on the repo's Vite 8, the
