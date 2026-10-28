@@ -1,6 +1,7 @@
 # PHASE: Rugby Manager 1.9.7: release notes
 
-Version 1.9.7, Play versionCode 66. Baseline: 1.9.6, code 65. One player
+Version 1.9.7, Play versionCode 66. Baseline: 1.9.6, code 65 (confirmed
+accepted on the Console: Production and Open testing, 25 Oct 2026). One player
 report from the 1.9.6 feedback card (Android, six seasons in, 25 Oct 2026):
 "There is no wage room even if I join a different club."
 

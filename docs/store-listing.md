@@ -120,7 +120,7 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.9.7, Play version code 66 (confirm 65 is accepted on the Console first)
+### What's new (500 max) - v1.9.7, Play version code 66 (65 confirmed accepted, 28 Oct 2026)
 
 **en-GB**
 Fixed: wage room no longer runs out over a long career. Wage budgets now rise with wages every summer and when you take a new job, and existing careers get their room back when they load.
