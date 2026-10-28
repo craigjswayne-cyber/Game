@@ -60,6 +60,16 @@ export function userCap(state: GameState, clubId: string, cap: number | null): n
  * too, because the board underwriting wages it cannot pay for is the whole
  * point of the resolution.
  */
+/** The wage budget a club opens with: the bill it actually pays (seniors, not
+ *  scholars) plus 18% of headroom, a weekly figure (newgame.ts). */
+export function openingWageBudget(state: GameState, club: Club): number {
+  const bill = club.players.reduce((s, id) => {
+    const p = state.players[id]
+    return p && !p.acad ? s + p.wage : s
+  }, 0)
+  return Math.max(50_000, Math.round((bill * 1.18) / 1_000) * 1_000)
+}
+
 export function userWageBudget(state: GameState, club: Club): number {
   if (club.id !== state.userClubId) return club.wageBudget
   if (state.uncapped) return Number.POSITIVE_INFINITY

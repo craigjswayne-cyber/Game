@@ -18,6 +18,7 @@ import { coachAppoint, coachSacked } from './rivalcoach'
 import { mgrTraits, traitLine, type Trait } from './repute'
 import { jobProfile, type JobProfile } from './chairman'
 import { fileHeldNews } from './heldnews'
+import { openingWageBudget } from './grants'
 
 /**
  * ---- THE THREE MONTHS AFTER THEY SACK YOU ----
@@ -489,6 +490,9 @@ function takeJob(state: GameState, clubId: string): string {
     seedPhilosophies(state)
     state.vacancies = state.vacancies.filter(x => x.clubId !== clubId)
     club.boardConfidence = 66
+    // a new manager walks in to the board's usual headroom on the bill as it
+    // stands, not to a figure set for some other season's squad
+    club.wageBudget = Math.max(club.wageBudget, openingWageBudget(state, club))
     state.devFocus = []
     state.intakeClass = null // the class previewed at the old club stays there
     state.newOwnerUntil = null // the old club's owner is not your problem now
