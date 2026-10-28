@@ -42,4 +42,4 @@ answerJobOffer(g, true)
 ok(g.userClubId === target.id, `the staged offer at ${target.short} is taken`)
 const u = g.clubs[g.userClubId]
 ok(userWageBudget(g, u) > bill(g, u.id), `a manager walking in to ${u.short} has wage room (bill ${bill(g, u.id)}, budget ${userWageBudget(g, u)})`)
-done()
+done('WAGE ROOM PROBE', 'every club opens every season with wage room, and a new job comes with some')

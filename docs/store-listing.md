@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.7, Play version code 66 (confirm 65 is accepted on the Console first)
+
+**en-GB**
+Fixed: wage room no longer runs out over a long career. Wage budgets now rise with wages every summer and when you take a new job, and existing careers get their room back when they load.
+
+**fr-FR**
+Corrigé : la marge salariale ne s'épuise plus au fil d'une longue carrière. Les budgets salariaux suivent désormais les salaires chaque été et quand vous prenez un nouveau poste, et les carrières en cours retrouvent leur marge au chargement.
+
+**es-ES**
+Corregido: el margen salarial ya no se agota en una carrera larga. Los presupuestos salariales suben con los sueldos cada verano y al aceptar un nuevo puesto, y las carreras en curso recuperan su margen al cargar.
+
+**it-IT**
+Corretto: il margine ingaggi non si esaurisce più in una carriera lunga. I budget ingaggi ora crescono con gli stipendi ogni estate e quando accetti un nuovo incarico, e le carriere in corso recuperano il margine al caricamento.
+
+**ja-JP**
+修正：長いキャリアで給与枠の余裕がなくなる問題を解消。給与予算は毎年夏と新しいクラブに就任した時に給与に合わせて上がり、進行中のキャリアも読み込み時に余裕が戻る。
+
+**af**
+Reggemaak: salarisruimte raak nie meer op oor 'n lang loopbaan nie. Salarisbegrotings styg nou elke somer en wanneer jy 'n nuwe pos aanvaar saam met die salarisse, en bestaande loopbane kry hul ruimte terug wanneer hulle laai.
+
 ### What's new (500 max) - v1.9.6, Play version code 65 (confirm 64 is accepted on the Console first)
 
 **en-GB**

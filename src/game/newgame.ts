@@ -439,6 +439,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     saveName: '',
     season: 0,
     basis: WEEK_BASIS,
+    wageFix: 1,
     week: 1,
     userClubId,
     players: {},

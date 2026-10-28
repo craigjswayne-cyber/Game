@@ -1,4 +1,5 @@
 import { healBackToAcademy } from './acadcall'
+import { healWageRoom } from './grants'
 import type { CareerRow, Club, FacilityId, GameState, Player } from './model'
 import { LEGEND_APPS, service } from './legends'
 import { migrateRivalBids } from './rivalbids'
@@ -1562,6 +1563,9 @@ export function migrate(s: GameState): GameState {
   migrateMatchMemory(s)
   migrateStylesAndPlans(s)
   migrateLeaders(s, settled)
+  // 1.9.7: the wage budget a long career never moved, after the clubs and
+  // their wages above are settled
+  healWageRoom(s)
   return s
 }
 
