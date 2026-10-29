@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.7, Play version code 66 (65 confirmed accepted, 28 Oct 2026)
+
+**en-GB**
+Fixed: wage room no longer runs out over a long career; existing careers get their room back when they load. Back now returns to your list with its filters, tab and place kept. Team > General Info shows each player's rating. Free agents can be shortlisted and scouted.
+
+**fr-FR**
+Corrigé : la marge salariale ne s'épuise plus au fil d'une longue carrière ; les carrières en cours la retrouvent au chargement. Le retour ramène à votre liste avec ses filtres, son onglet et sa position. Équipe > Général affiche le niveau de chaque joueur. Les agents libres peuvent être suivis et observés.
+
+**es-ES**
+Corregido: el margen salarial ya no se agota en una carrera larga; las carreras en curso lo recuperan al cargar. Volver atrás regresa a tu lista con sus filtros, pestaña y posición. Equipo > Info general muestra el nivel de cada jugador. Los agentes libres se pueden seguir y observar.
+
+**it-IT**
+Corretto: il margine ingaggi non si esaurisce più in una carriera lunga; le carriere in corso lo recuperano al caricamento. Indietro riporta alla tua lista con filtri, scheda e posizione. Squadra > Info generali mostra la valutazione di ogni giocatore. Gli svincolati si possono osservare.
+
+**ja-JP**
+修正：長いキャリアで給与枠の余裕がなくなる問題を解消し、進行中のキャリアも読み込み時に余裕が戻る。戻るボタンでフィルター、タブ、位置がそのままのリストに戻る。チーム＞基本情報に各選手の能力を表示。フリーエージェントも視察できる。
+
+**af**
+Reggemaak: salarisruimte raak nie meer op oor 'n lang loopbaan nie; bestaande loopbane kry dit terug wanneer hulle laai. Terug neem jou na jou lys met sy filters, oortjie en plek behou. Span > Algemene Inligting wys elke speler se gradering. Vrye agente kan verken word.
+
 ### What's new (500 max) - v1.9.6, Play version code 65 (confirm 64 is accepted on the Console first)
 
 **en-GB**

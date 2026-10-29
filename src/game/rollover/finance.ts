@@ -2,6 +2,7 @@
 // reinvestment, the summer sponsorship call, next season's budgets and
 // board mood, and the money the board promised the manager.
 import { aiTransferBudget } from '../aiecon'
+import { openingWageBudget } from '../grants'
 import { splitFor } from '../bench'
 import { book } from '../books'
 import { offersFor, SLOTS } from '../commercial'
@@ -207,6 +208,15 @@ export function resetBudgets(state: GameState, finishFrac: Map<string, number>, 
     // an AI board's allowance answers to its books (aiecon.ts, 1.8.3); the
     // manager's is the line above, unchanged
     if (!isMyClub(state, club.id)) club.budget = aiTransferBudget(state, club, rooms.get(club.id))
+    // THE WAGE BUDGET MOVES WITH THE WAGES (player report, 1.9.6: "there is no
+    // wage room even if I join a different club"). It was set once, at the
+    // career's start, and never again, while renewals and signings pushed
+    // every bill up: measured (scripts/wageroomprobe.ts), 6 of 113 clubs had
+    // no room in season one and 71 by season six, so whichever desk the
+    // manager took, the line read nil. Each summer it is at least the opening
+    // figure for the bill the club now pays; a budget already above that
+    // (a squad sold down, a takeover's raise) is kept.
+    club.wageBudget = Math.max(club.wageBudget, openingWageBudget(state, club))
     // the board injections bought this season stay spendable: whatever of
     // that cash is still in the account is the floor of next season's
     // allowance, not 15% of it (scripts/qa/p5_inject.ts, 1.6.3)

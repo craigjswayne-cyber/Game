@@ -1057,12 +1057,30 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             )}
         </>
       ) : (
-        <button className="btn gold block" onClick={() => {
-          // one path with the engine's guards (cap, embargo, wage budget) -
-          // the old inline version skipped the first two
-          setMsg(signFreeAgent(game, p.id).msg)
-          touch()
-        }}>{t('player.signFreeAgent')}</button>
+        <>
+          {/* A FREE AGENT CAN BE WATCHED TOO (player report, 1.9.5: "faire
+              évaluer par un recruteur les agents libres ou [...] avoir leur
+              dossier"). Since 1.9.6 his rating is "?" until scouted, and the
+              shortlist and the agency's file were only offered for a man at
+              a club, so a free agent could only be signed blind. The engine
+              never minded: weeklyScouting and agencyFile take any man. */}
+          <button className={`btn ${shortlisted ? '' : 'ghost'} block`} onClick={() => toggleShortlist(p.id)}>
+            {t(shortlisted ? 'player.onShortlist' : 'player.shortlistScout')}
+          </button>
+          {rewardedAvailable('scouting') && canAgencyFile(game, p.id) && (
+            <RewardedButton place="scouting" label={t('till.watchAgency')}
+              onDone={out => {
+                if (out === 'completed') setMsg(rewardAgency(p.id) ? t('till.agencyDone', { name: p.name }) : t('till.favourGone'))
+                else setMsg(spotNote(out))
+              }} />
+          )}
+          <button className="btn gold block" onClick={() => {
+            // one path with the engine's guards (cap, embargo, wage budget) -
+            // the old inline version skipped the first two
+            setMsg(signFreeAgent(game, p.id).msg)
+            touch()
+          }}>{t('player.signFreeAgent')}</button>
+        </>
       )}
       <div className="spacer" />
     </>

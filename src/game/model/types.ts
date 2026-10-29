@@ -1282,6 +1282,10 @@ export interface GameState {
    *  or 45 means a save from before the season grew to 48 weeks, and save.ts
    *  rebases it once, on load, to WEEK_BASIS. */
   basis?: number
+  /** 1 once the wage budget has been brought up to date (1.9.7). Absent means
+   *  a save from before the budget moved with the wages, and save.ts gives the
+   *  manager's club its headroom once, on load (grants.ts healWageRoom). */
+  wageFix?: number
   /** What the club has booked into the empty summer weeks, keyed by
    *  "season:week" (week alone before 1.8.1). One event a week, because it is
    *  one ground. */

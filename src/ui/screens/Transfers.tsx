@@ -1,4 +1,5 @@
 import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
+import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, POS_ORDER, seasonLabel, type Attrs, type Player, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
@@ -44,16 +45,16 @@ export default function Transfers() {
    *  reach them this week (round 183) */
   const tick = useStore(s => s.tick)
   const go = useStore(s => s.go)
-  const [pos, setPos] = useState<Pos | 'ALL'>('ALL')
-  const [query, setQuery] = useState('')
+  const [pos, setPos] = useVisitState<Pos | 'ALL'>('pos', 'ALL')
+  const [query, setQuery] = useVisitState('query', '')
   // THE BOX KEEPS UP WITH THE THUMB (1.9.1). Every letter filtered and sorted
   // every player in the world before the box could show it; the search now
   // runs on a deferred copy, so the letter lands first and the list follows.
   const search = useDeferredValue(query)
-  const [maxVal, setMaxVal] = useState(0)
-  const [maxAge, setMaxAge] = useState(0)
-  const [league, setLeague] = useState('ALL')
-  const [listedOnly, setListedOnly] = useState(false)
+  const [maxVal, setMaxVal] = useVisitState('maxVal', 0)
+  const [maxAge, setMaxAge] = useVisitState('maxAge', 0)
+  const [league, setLeague] = useVisitState('league', 'ALL')
+  const [listedOnly, setListedOnly] = useVisitState('listedOnly', false)
   /** the loan being negotiated: who, for how long, and who pays (v1.2.8) */
   const [loanDeal, setLoanDeal] = useState<{ id: number; length: LoanLength; share: number } | null>(null)
   /** TRANSFER OR LOAN (owner, 27 Sep 2026: "loans should be part of the
@@ -61,29 +62,29 @@ export default function Transfers() {
    *  Loan shows the men offered on loan, and, once three letters of a name are
    *  typed, anyone else a club might lend (the unsolicited approach): tapping
    *  either opens the loan sheet. */
-  const [deal, setDeal] = useState<'transfer' | 'loan'>('transfer')
+  const [deal, setDeal] = useVisitState<'transfer' | 'loan'>('deal', 'transfer')
   // WHO WOULD ACTUALLY COME? The engine has always refused a bid from a club
   // far below a happy player's, and never said so until you had spent the bid
   // (interest.ts). This chip asks that same question up front.
-  const [keenOnly, setKeenOnly] = useState(false)
+  const [keenOnly, setKeenOnly] = useVisitState('keenOnly', false)
   // 1.8.0, the classic search screen: which columns you are looking at, one
   // attribute to filter on, the injured and the expiring
-  const [view, setView] = useState<SearchView>('general')
-  const [attrKey, setAttrKey] = useState<keyof Attrs | ''>('')
-  const [attrMin, setAttrMin] = useState(12)
-  const [withInjured, setWithInjured] = useState(true)
-  const [expiringOnly, setExpiringOnly] = useState(false)
-  const [filtersOpen, setFiltersOpen] = useState(false)
-  const [msort, setMsort] = useState<'ca' | 'value' | 'age' | 'name' | 'form'>('ca')
-  const [mdesc, setMdesc] = useState(false)
+  const [view, setView] = useVisitState<SearchView>('view', 'general')
+  const [attrKey, setAttrKey] = useVisitState<keyof Attrs | ''>('attrKey', '')
+  const [attrMin, setAttrMin] = useVisitState('attrMin', 12)
+  const [withInjured, setWithInjured] = useVisitState('withInjured', true)
+  const [expiringOnly, setExpiringOnly] = useVisitState('expiringOnly', false)
+  const [filtersOpen, setFiltersOpen] = useVisitState('filtersOpen', false)
+  const [msort, setMsort] = useVisitState<'ca' | 'value' | 'age' | 'name' | 'form'>('msort', 'ca')
+  const [mdesc, setMdesc] = useVisitState('mdesc', false)
   // KEYED TO THE ROW, not to the page. Same class of bug as the coach market:
   // a banner above the tab bar answers a Sign on loan tapped eleven rows down,
   // where the manager never sees it.
   const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
   // Market, Scouting and Deals. Shortlist became Scouting and Loans moved into
   // the market's filters (owner, 27 Sep 2026)
-  const [xtab, setXtab] = useState<'market' | 'scouting' | 'deals'>('market')
-  const [page, setPage] = useState(0)
+  const [xtab, setXtab] = useVisitState<'market' | 'scouting' | 'deals'>('xtab', 'market')
+  const [page, setPage] = useVisitState('page', 0)
   const PER_PAGE = 10
 
   const user = game.clubs[game.userClubId]

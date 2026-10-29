@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
 import { SQUAD_LIMIT, seniorsOf } from '../../game/transferRules'
-import { AvailTag, condColour, LoanKey, LoanName, Mark, Nat, PosBadge, StickyControls } from '../components'
+import { AvailTag, condColour, LoanKey, LoanName, Mark, Nat, PosBadge, Stars, StickyControls } from '../components'
 import { STATUSES, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
@@ -61,11 +62,11 @@ export default function Squad() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
   const touch = useStore(s => s.touch)
-  const [view, setView] = useState<View>('selection')
-  const [sort, setSort] = useState<SortKey>('pkd')
-  const [desc, setDesc] = useState(false)
-  const [group, setGroup] = useState<'all' | 'aca'>('all')
-  const [avail, setAvail] = useState<'any' | 'fit' | 'out'>('any')
+  const [view, setView] = useVisitState<View>('view', 'selection')
+  const [sort, setSort] = useVisitState<SortKey>('sort', 'pkd')
+  const [desc, setDesc] = useVisitState('desc', false)
+  const [group, setGroup] = useVisitState<'all' | 'aca'>('group', 'all')
+  const [avail, setAvail] = useVisitState<'any' | 'fit' | 'out'>('avail', 'any')
 
   const club = game.clubs[game.userClubId]
   const stars = useMemo(() => starPlayerIds(game, club.id), [game, club.id, game.week])
@@ -161,6 +162,10 @@ export default function Squad() {
     general: [
       nameCol,
       { id: 'pos', head: t('squad.colPos'), width: 36, sort: 'pos', ascFirst: true, cell: p => <PosBadge pos={p.pos} /> },
+      // HIS RATING BESIDE HIS AGE (player report, 1.9.5: "faire apparaitre le
+      // niveau des joueurs en plus des autres infos [...] sur la page
+      // Équipe/Général"). Your own men are always known, so no "?" here.
+      { id: 'ca', head: t('squad.colAbl'), width: 34, align: 'center', sort: 'ca', cell: p => <Stars ca={p.ca} /> },
       { id: 'age', head: t('squad.colAge'), width: 32, align: 'right', sort: 'age', ascFirst: true, cell: p => p.age },
       { id: 'nat', head: t('squad.colNat'), width: 28, align: 'center', cell: p => <Nat code={p.nat} /> },
       { id: 'mor', head: t('squad.colMor'), width: 34, align: 'center', cell: p => <MoraleArrow v={p.morale} /> },

@@ -54,7 +54,7 @@ SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight option
 # phone, and every screen's words in both languages, in about six minutes
 # (5m23s measured on a four-core box, 17 Oct 2026; docs/testing.md).
 SMOKE="e2e storeprobe backupreach keyscreen"
-# THE SECOND PR JOB (1.9.2): the whole browser list is 102 harnesses and about
+# THE SECOND PR JOB (1.9.2): the whole browser list is 105 harnesses and about
 # forty minutes a shard in three, too long to sit on every pull request. These
 # 25 are the ones that guard what a player loses most by: reaching a control
 # and reading it (accessibility), keeping a career (save and load), keeping
@@ -210,7 +210,7 @@ case "$MODE" in browser|smoke|pr|soak|area) ENGINE=0;; *) ENGINE=1;; esac
   run "$n" timeout 900 npx vite-node "$f"
 done
 
-BROWSER="e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate nobenchprobe offlineprobe instantverdictprobe tapcontrols dealcardui unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe proprompt feedbackui backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe tryflash loanlistui floorad ruckui
+BROWSER="e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate nobenchprobe offlineprobe instantverdictprobe tapcontrols dealcardui unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe proprompt feedbackui backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe tryflash loanlistui floorad ruckui visitback
   brandprobe chaosui coachriftui countryui devpickui exportui formerui ftprobe hlliveprobe injurysheet loannameui pressbaroprobe roomui screensave setpieceui sheetprobe spotadui teamtalkui temperui uiqaprobe telemetryui traitcard
   a11yprobe smalltype
   purchasestate paletteqa iconshots tidyshots"
