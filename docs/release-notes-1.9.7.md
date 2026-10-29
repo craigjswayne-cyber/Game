@@ -1,9 +1,11 @@
 # PHASE: Rugby Manager 1.9.7: release notes
 
 Version 1.9.7, Play versionCode 66. Baseline: 1.9.6, code 65 (confirmed
-accepted on the Console: Production and Open testing, 25 Oct 2026). One player
-report from the 1.9.6 feedback card (Android, six seasons in, 25 Oct 2026):
-"There is no wage room even if I join a different club."
+accepted on the Console: Production and Open testing, 25 Oct 2026). Two player
+reports: one from the 1.9.6 feedback card (Android, six seasons in, 25 Oct
+2026): "There is no wage room even if I join a different club."; and the
+French Pro Manager at Aurillac who reported the adverts and the full squad
+fixed in 1.9.6, with three more requests.
 
 ## What changed for players
 
@@ -19,6 +21,23 @@ report from the 1.9.6 feedback card (Android, six seasons in, 25 Oct 2026):
 - A save from before 1.9.7 gives the manager's own club this headroom once,
   when it loads. It runs once only, so saving and reloading cannot be used
   to get more room. Other clubs catch up at the next summer.
+
+**Back keeps your place**
+- Back from a player now returns to the list as you left it: the transfer
+  centre keeps its filters, tab and page, Team keeps the tab you were on
+  (General Info, Stats and the rest, not the team sheet), and the list is
+  scrolled to where you were. Opening a screen from the menu still starts
+  clean. Memory only: restarting the game starts every screen fresh.
+
+**Team: the rating on General Info**
+- Team > General Info has an ability column (Abl) between position and age,
+  sortable. Your own players always show their number.
+
+**Free agents can be scouted**
+- A free agent's page now has Shortlist & Scout and the agency's file, the
+  same as a player at another club. Since 1.9.6 a free agent's rating was "?"
+  until scouted, and there was no way to scout him, so he could only be
+  signed blind.
 
 ## Measured
 
@@ -44,3 +63,9 @@ Northampton):
 
 - New: `tests/wageroom.test.ts` (the load fix), `scripts/wageroomprobe.ts`
   (five seasons and a job move).
+- New: `scripts/visitback.mjs` (browser): Back keeps the transfer filters, the
+  Team tab and the scroll; a fresh visit is clean; the ability column fits at
+  360px with no "?"; a free agent can be shortlisted. Fails 9 checks on the
+  1.9.6 screens.
+- `docs/testing.md` and `suite.sh` counted 102 browser harnesses; the list
+  holds 105 with this one.

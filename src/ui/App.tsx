@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
@@ -28,6 +28,7 @@ import { FeedbackPrompt } from './FeedbackPrompt'
 import { bigTablet, useTablet } from './tablet'
 import { COMMUNITY_URL } from '../game/community'
 import { TurningVeil } from './TurningVeil'
+import { VisitContext, noteScroll, scrollFor } from './visitState'
 import { Veil } from './Veil'
 
 /* A SCREEN WHOSE FILE IS GONE RELOADS THE GAME ONCE (1.9.1 re-audit). After
@@ -516,6 +517,14 @@ export default function App() {
 
   const cur = nav[nav.length - 1]
   useHardwareBack(nav.length, cur.screen, menu !== null, () => setMenu(null))
+  // BACK LANDS WHERE YOU WERE IN THE LIST (visitState.ts): a visit that was
+  // scrolled is put back at that point when Back returns to it; a new visit
+  // is left as it always was
+  const mainRef = useRef<HTMLElement | null>(null)
+  useLayoutEffect(() => {
+    const top = scrollFor(cur)
+    if (mainRef.current && top != null) mainRef.current.scrollTop = top
+  }, [cur])
   // a skin is a third class on the same root: tokens.css declares the skin
   // blocks after night and day, so the skin wins the cascade and the
   // floodlight toggle still does its job underneath
@@ -877,7 +886,9 @@ export default function App() {
           </div>
         </div>
       </header>
-      <main className="content" data-screen={cur.screen}><Suspense fallback={null}>{screen()}</Suspense></main>
+      <main className="content" data-screen={cur.screen} ref={mainRef} onScroll={e => noteScroll(cur, e.currentTarget.scrollTop)}>
+        <VisitContext.Provider value={cur}><Suspense fallback={null}>{screen()}</Suspense></VisitContext.Provider>
+      </main>
       <nav className="bottom-nav">
         {/* The order the user asked for, top to bottom: news, home, the hub,
             the manager. World comes last because it is the only group that is

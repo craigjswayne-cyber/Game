@@ -8,7 +8,7 @@ The counts:
 | group | how many | where it is listed | how it runs |
 |---|---|---|---|
 | engine probes | 275 | every top-level `scripts/*.ts` (the glob) | `npx vite-node`, 15 min timeout (30 for `LONG`) |
-| browser harnesses | 102 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
+| browser harnesses | 105 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
 | soaks and audits | 13 | `SLOW` in `suite.sh` | 90 min timeout each, weekly |
 | reporters | 20 | `REPORTERS` in `suite.sh` | never: no verdict, run by hand |
 | unit tests | 34 files | `tests/*.test.ts` | `npm test` (vitest) |

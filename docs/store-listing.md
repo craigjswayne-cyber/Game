@@ -123,22 +123,22 @@ First release.
 ### What's new (500 max) - v1.9.7, Play version code 66 (65 confirmed accepted, 28 Oct 2026)
 
 **en-GB**
-Fixed: wage room no longer runs out over a long career. Wage budgets now rise with wages every summer and when you take a new job, and existing careers get their room back when they load.
+Fixed: wage room no longer runs out over a long career; existing careers get their room back when they load. Back now returns to your list with its filters, tab and place kept. Team > General Info shows each player's rating. Free agents can be shortlisted and scouted.
 
 **fr-FR**
-Corrigé : la marge salariale ne s'épuise plus au fil d'une longue carrière. Les budgets salariaux suivent désormais les salaires chaque été et quand vous prenez un nouveau poste, et les carrières en cours retrouvent leur marge au chargement.
+Corrigé : la marge salariale ne s'épuise plus au fil d'une longue carrière ; les carrières en cours la retrouvent au chargement. Le retour ramène à votre liste avec ses filtres, son onglet et sa position. Équipe > Général affiche le niveau de chaque joueur. Les agents libres peuvent être suivis et observés.
 
 **es-ES**
-Corregido: el margen salarial ya no se agota en una carrera larga. Los presupuestos salariales suben con los sueldos cada verano y al aceptar un nuevo puesto, y las carreras en curso recuperan su margen al cargar.
+Corregido: el margen salarial ya no se agota en una carrera larga; las carreras en curso lo recuperan al cargar. Volver atrás regresa a tu lista con sus filtros, pestaña y posición. Equipo > Info general muestra el nivel de cada jugador. Los agentes libres se pueden seguir y observar.
 
 **it-IT**
-Corretto: il margine ingaggi non si esaurisce più in una carriera lunga. I budget ingaggi ora crescono con gli stipendi ogni estate e quando accetti un nuovo incarico, e le carriere in corso recuperano il margine al caricamento.
+Corretto: il margine ingaggi non si esaurisce più in una carriera lunga; le carriere in corso lo recuperano al caricamento. Indietro riporta alla tua lista con filtri, scheda e posizione. Squadra > Info generali mostra la valutazione di ogni giocatore. Gli svincolati si possono osservare.
 
 **ja-JP**
-修正：長いキャリアで給与枠の余裕がなくなる問題を解消。給与予算は毎年夏と新しいクラブに就任した時に給与に合わせて上がり、進行中のキャリアも読み込み時に余裕が戻る。
+修正：長いキャリアで給与枠の余裕がなくなる問題を解消し、進行中のキャリアも読み込み時に余裕が戻る。戻るボタンでフィルター、タブ、位置がそのままのリストに戻る。チーム＞基本情報に各選手の能力を表示。フリーエージェントも視察できる。
 
 **af**
-Reggemaak: salarisruimte raak nie meer op oor 'n lang loopbaan nie. Salarisbegrotings styg nou elke somer en wanneer jy 'n nuwe pos aanvaar saam met die salarisse, en bestaande loopbane kry hul ruimte terug wanneer hulle laai.
+Reggemaak: salarisruimte raak nie meer op oor 'n lang loopbaan nie; bestaande loopbane kry dit terug wanneer hulle laai. Terug neem jou na jou lys met sy filters, oortjie en plek behou. Span > Algemene Inligting wys elke speler se gradering. Vrye agente kan verken word.
 
 ### What's new (500 max) - v1.9.6, Play version code 65 (confirm 64 is accepted on the Console first)
 
