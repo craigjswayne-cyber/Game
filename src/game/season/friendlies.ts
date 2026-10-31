@@ -3,7 +3,7 @@
 import type { GameState, Player } from '../model'
 // FRIENDLY_DAY below is the Wednesday index this hands to dayDate
 import { dayDate, type DayIndex } from '../days'
-import { fixtureDayOff, leagueTier, SEASON_WEEKS } from '../model'
+import { fxDayOff, leagueTier, SEASON_WEEKS } from '../model'
 import { autoSelect } from '../matchEngine'
 import { mulberry32, cmpStr } from '../rng'
 import { t } from '../i18n'
@@ -67,11 +67,27 @@ export function arrangeFriendly(state: GameState, oppId: string): string {
  */
 export const FRIENDLY_DAY: DayIndex = 2 // Wednesday
 
-/** Where a club's league fixture falls that week, as a day index, or null. */
-function leagueDayThatWeek(state: GameState, week: number, clubId: string): number | null {
-  const fx = state.fixtures.find(f => f.week === week && f.compId !== 'fr' &&
-    (f.homeId === clubId || f.awayId === clubId))
-  return fx ? 5 + fixtureDayOff(fx.id) : null
+/** Minimum clear days between a midweek friendly and any other game the club
+ *  has (owner, 1.9.8: "no game within 3 days of each other"). */
+export const FRIENDLY_GAP_DAYS = 3
+
+/** Every other match a club has around a week, as day numbers counted from
+ *  that week's Monday (so last week's Sunday is -1 and next week's Friday 11).
+ *
+ *  EVERY FIXTURE, NOT ONLY THE LEAGUE. The first version looked at league
+ *  games alone (compId !== 'fr'), so a pre-season friendly on a Friday was
+ *  invisible and a Wednesday two days before it was offered. Pre-season games,
+ *  cup ties, Tests and midweek tour games all count; fxDayOff dates the
+ *  midweek ones on their Wednesday. */
+function matchDaysAround(state: GameState, week: number, clubId: string): number[] {
+  const out: number[] = []
+  for (const f of state.fixtures) {
+    if (f.homeId !== clubId && f.awayId !== clubId) continue
+    const dw = f.week - week
+    if (dw < -1 || dw > 1) continue
+    out.push(dw * 7 + 5 + fxDayOff(f))
+  }
+  return out
 }
 
 /**
@@ -85,11 +101,8 @@ function leagueDayThatWeek(state: GameState, week: number, clubId: string): numb
  * their Saturday is still three days away.
  */
 function midweekOk(state: GameState, week: number, clubId: string): boolean {
-  const here = leagueDayThatWeek(state, week, clubId)
-  if (here != null && here - FRIENDLY_DAY < 3) return false
-  const prev = leagueDayThatWeek(state, week - 1, clubId)
-  if (prev != null && (7 + FRIENDLY_DAY) - prev < 3) return false
-  return true
+  return matchDaysAround(state, week, clubId)
+    .every(d => Math.abs(d - FRIENDLY_DAY) >= FRIENDLY_GAP_DAYS)
 }
 
 /** Can a Wednesday friendly be played in this week without crowding a match? */

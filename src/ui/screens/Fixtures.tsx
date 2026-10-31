@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
-import { MIDWEEK_OFF, fixtureDate, fxDate, tieWinner, weekDate, type Fixture, type MatchEvent } from '../../game/model'
+import { MIDWEEK_OFF, fixtureDate, fxDate, fxDayOff, tieWinner, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageShort } from './Home'
@@ -29,7 +29,9 @@ export default function Fixtures() {
   const comps = [...new Set(mine.map(f => f.compId))]
   const fx = mine
     .filter(f => comp === 'ALL' || f.compId === comp)
-    .sort((a, b) => a.week - b.week)
+    // by kick-off day, not just by week: a Wednesday friendly sits before
+    // that week's weekend game (1.9.8)
+    .sort((a, b) => a.week - b.week || fxDayOff(a) - fxDayOff(b))
   const replay = replayId != null ? game.fixtures.find(f => f.id === replayId) : null
 
   const res = (f: Fixture) => {

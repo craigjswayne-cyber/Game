@@ -193,8 +193,17 @@ export function fixtureDate(season: number, week: number, fxId: number, dayOff?:
 /** One fixture's kick-off date, midweek rounds included: the one call every
  *  screen that dates a fixture makes, so the preview, the Home card and the
  *  report all print the same day (1.8.15). */
-export function fxDate(season: number, fx: { week: number; id: number; midweek?: boolean }): string {
-  return fixtureDate(season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)
+export function fxDate(season: number, fx: { week: number; id: number; midweek?: boolean; devSide?: boolean }): string {
+  return fixtureDate(season, fx.week, fx.id, fxDayOff(fx))
+}
+
+/** A fixture's kick-off day relative to its week's Saturday, midweek games
+ *  included. A midweek tour game and an arranged development friendly are both
+ *  Wednesday games (1.9.8: the friendly was checked as a Wednesday but printed
+ *  on its hashed weekend day, so it read as "Sat 19 Sep" the day before a
+ *  league match). */
+export function fxDayOff(fx: { id: number; midweek?: boolean; devSide?: boolean }): number {
+  return fx.midweek || fx.devSide ? MIDWEEK_OFF : fixtureDayOff(fx.id)
 }
 
 /**
