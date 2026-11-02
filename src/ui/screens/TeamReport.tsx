@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
 import { fmtMoney, XV_SLOTS, type Player } from '../../game/model'
 import { effAt } from '../../game/attributes'
@@ -22,7 +22,7 @@ export default function TeamReport({ initial }: { initial?: string }) {
   // 27 Sep change that had kept it on Team instead. Mentoring came over from
   // Club in 1.8.0; the Training screen's signpost opens it directly.
   type RTab = 'standing' | 'xv' | 'depth' | 'mentoring'
-  const [rtab, setRtab] = useState<RTab>(initial === 'mentoring' || initial === 'depth' ? initial : 'standing')
+  const [rtab, setRtab] = useVisitState<RTab>('rtab', initial === 'mentoring' || initial === 'depth' ? initial : 'standing')
   const club = game.clubs[game.userClubId]
   const squad = club.players.map(id => game.players[id]).filter((p): p is Player => !!p && !p.onLoan)
   const stars = starPlayerIds(game, club.id)

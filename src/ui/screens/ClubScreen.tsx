@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
 import { CHEM_SLOTS, careerRows, chemKey, chemTier, fmtMoney, grudgeReason, POS_ORDER, seasonLabel } from '../../game/model'
 import { Crest, FormPill, Jersey, Nat, PosBadge, SectionTitle, Stars } from '../components'
@@ -31,9 +32,9 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
   // because that page is about you - the dressing room, the feuds, the ground.
   // Tapping a rival's name is a scouting question, and the answer is his men.
   const [boardMsg, setBoardMsg] = useState<{ id: string; text: string } | null>(null)
-  const [ctab, setCtab] = useState<'club' | 'squad' | 'story'>(
+  const [ctab, setCtab] = useVisitState<'club' | 'squad' | 'story'>('ctab',
     clubId === game.userClubId ? 'club' : 'squad')
-  const [sqTab, setSqTab] = useState<'first' | 'acad'>('first')
+  const [sqTab, setSqTab] = useVisitState<'first' | 'acad'>('sqTab', 'first')
   const touch = useStore(s => s.touch)
   const [riftMsg, setRiftMsg] = useState<string | null>(null)
   const club = game.clubs[clubId]

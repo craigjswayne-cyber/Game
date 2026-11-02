@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.8, Play version code 67 (confirm 66 is accepted on the Console first)
+
+**en-GB**
+Players on the loan list can now be opened, shortlisted and scouted: tap one and choose his profile. Back now keeps your tab on Team Report, the Academy, the Agency, club pages and Tactics too.
+
+**fr-FR**
+Les joueurs de la liste des prêts peuvent maintenant être consultés, suivis et observés : touchez-en un et ouvrez sa fiche. Le retour conserve aussi votre onglet dans Rapport d'équipe, l'Académie, l'Agence de recrutement, les pages des clubs et la Tactique.
+
+**es-ES**
+Los jugadores de la lista de cesiones ya se pueden abrir, seguir y observar: toca uno y abre su perfil. Volver atrás también mantiene tu pestaña en el Informe del equipo, la Cantera, la Agencia de ojeadores, las páginas de los clubes y la Táctica.
+
+**it-IT**
+I giocatori in lista prestiti ora si possono aprire, seguire e osservare: toccane uno e apri il suo profilo. Indietro mantiene la scheda anche in Rapporto squadra, Academy, Agenzia, pagine dei club e Tattica.
+
+**ja-JP**
+レンタルリストの選手も開いて、リスト登録や視察ができるように。選手をタップしてプロフィールを開こう。戻るボタンは、チームレポート、アカデミー、スカウト会社、クラブページ、戦術でもタブを保つ。
+
+**af**
+Spelers op die leningslys kan nou oopgemaak, op die kortlys gesit en verken word: tik op een en maak sy profiel oop. Terug hou nou ook jou oortjie op Spanverslag, die Akademie, die Talentsoek-agentskap, klubbladsye en Taktiek.
+
 ### What's new (500 max) - v1.9.7, Play version code 66 (65 confirmed accepted, 28 Oct 2026)
 
 **en-GB**

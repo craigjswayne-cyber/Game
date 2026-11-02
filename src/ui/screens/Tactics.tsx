@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useVisitState } from '../visitState'
 import { noteStep } from '../../game/firststeps'
 import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
@@ -83,7 +84,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
   const touch = () => { noteUse('tactics', true); storeTouch() }
   // a visit here is the first season checklist's "set a game plan" (firststeps.ts)
   useEffect(() => { if (noteStep(game, 'plan')) storeTouch() }, [game, storeTouch])
-  const [ttab, setTtab] = useState<TTab>(TTABS.includes(initial as TTab) ? initial as TTab : 'tactics')
+  const [ttab, setTtab] = useVisitState<TTab>('ttab', TTABS.includes(initial as TTab) ? initial as TTab : 'tactics')
   const [spSub, setSpSubState] = useState<SpSub>(readSpSub)
   const [planSub, setPlanSubState] = useState<PlanSub>(readPlanSub)
   const setPlanSub = (v: PlanSub) => {

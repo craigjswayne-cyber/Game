@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney } from '../../game/model'
 import type { GameState } from '../../game/model'
@@ -42,7 +42,7 @@ export function MoveCell({ from, to, compared }: { from: number; to: number; com
 export default function Agency() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const [tab, setTab] = useState<'seniors' | 'kids'>('seniors')
+  const [tab, setTab] = useVisitState<'seniors' | 'kids'>('tab', 'seniors')
 
   const list = tab === 'seniors' ? agencySeniors(game) : agencyKids(game)
   const prev = tab === 'seniors' ? (game.agency?.seniors ?? []) : (game.agency?.kids ?? [])

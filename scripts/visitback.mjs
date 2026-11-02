@@ -116,6 +116,47 @@ try {
   const again = await page.$eval('main.content button.active', b => b.textContent.trim()).catch(() => '')
   ok(again === 'General Info', `and Back from it returns to General Info (on "${again}")`)
 
+  // ---- Team Report keeps its tab (player report, 1.9.7: Depth) ----
+  await home()
+  await go('report')
+  await page.click('main.content button >> text="Depth"')
+  await page.waitForSelector('.depth-man')
+  await page.click('.depth-man >> nth=0')
+  await page.waitForTimeout(400)
+  ok(await screen() === 'player', 'a man on the Depth chart opens his page')
+  await back()
+  await page.waitForTimeout(400)
+  const rt = await page.$eval('main.content button.active', b => b.textContent.trim()).catch(() => '')
+  ok(rt === 'Depth', `Back returns to Depth, not the first tab (on "${rt}")`)
+
+  // ---- a man on the loan list has a road to his page (1.9.7) ----
+  await home()
+  await go('transfers')
+  await page.waitForSelector('.filter-btn')
+  await page.click('.filter-btn')
+  await page.waitForSelector('#fs-deal')
+  await page.selectOption('#fs-deal', 'loan')
+  await page.click('.filter-sheet .btn.gold')
+  await page.waitForTimeout(400)
+  const loanRows = await page.$$(firstRow)
+  ok(loanRows.length > 0, `the loan list has men on it (${loanRows.length})`)
+  if (loanRows.length) {
+    await loanRows[0].click()
+    await page.waitForSelector('.loan-sheet')
+    const open = page.locator('.loan-sheet button', { hasText: 'profile' })
+    ok(await open.count() === 1, 'the loan sheet offers his profile')
+    await open.click()
+    await page.waitForTimeout(400)
+    ok(await screen() === 'player', 'and it opens his page')
+    ok(await page.locator('main.content button', { hasText: 'Shortlist' }).count() > 0, 'where he can be shortlisted')
+    await back()
+    await page.waitForTimeout(400)
+    await page.click('.filter-btn')
+    await page.waitForSelector('#fs-deal')
+    ok(await page.$eval('#fs-deal', el => el.value) === 'loan', 'Back returns to the loan list, still on Loan')
+    await page.click('.filter-sheet .btn.gold')
+  }
+
   // ---- a free agent can be shortlisted ----
   const fa = await page.evaluate(() => {
     const g = window.rugbyStore.getState().game
