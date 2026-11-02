@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useVisitState } from '../visitState'
+import { useNarrowPhone } from '../tablet'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
@@ -68,6 +69,7 @@ export default function Squad() {
   const [group, setGroup] = useVisitState<'all' | 'aca'>('group', 'all')
   const [avail, setAvail] = useVisitState<'any' | 'fit' | 'out'>('avail', 'any')
 
+  const narrow = useNarrowPhone()
   const club = game.clubs[game.userClubId]
   const stars = useMemo(() => starPlayerIds(game, club.id), [game, club.id, game.week])
   // the ledger's denominator, computed once for the whole table (F18)
@@ -167,7 +169,9 @@ export default function Squad() {
       // Équipe/Général"). Your own men are always known, so no "?" here.
       { id: 'ca', head: t('squad.colAbl'), width: 34, align: 'center', sort: 'ca', cell: p => <Stars ca={p.ca} /> },
       { id: 'age', head: t('squad.colAge'), width: 32, align: 'right', sort: 'age', ascFirst: true, cell: p => p.age },
-      { id: 'nat', head: t('squad.colNat'), width: 28, align: 'center', cell: p => <Nat code={p.nat} /> },
+      // the flag gives way on a phone under 360px, so the rating column
+      // (1.9.7) does not squeeze the name: his nationality is on his page
+      ...(narrow ? [] : [{ id: 'nat', head: t('squad.colNat'), width: 28, align: 'center' as const, cell: (p: Player) => <Nat code={p.nat} /> }]),
       { id: 'mor', head: t('squad.colMor'), width: 34, align: 'center', cell: p => <MoraleArrow v={p.morale} /> },
       // JUST THE RATING: the ability-trend arrow lives on the value, which is
       // the number that actually moves with ability (user: "how have these
