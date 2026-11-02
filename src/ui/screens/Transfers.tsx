@@ -334,6 +334,19 @@ export default function Transfers() {
           <Veil onClose={() => setLoanDeal(null)} boxClassName="modal loan-sheet">
             <div className="grab" />
             <SectionTitle sub={parent ? t('transfers.loanSheetSub', { club: parent.name }) : ''}>{lp?.name ?? ''}</SectionTitle>
+            {/* HIS PAGE, FROM THE LOAN SHEET (player report, 1.9.7: "les
+                joueurs étant sur la liste des prêts ne peuvent pas être
+                observés, pas de dossier, et surtout il n'est pas possible
+                d'accéder à leur fiche"). In Loan a row opens this sheet, so
+                there was no road to his page, where the shortlist and the
+                agency's file live. Back returns to the loan list as it was
+                (visitState.ts). */}
+            {lp && (
+              <button className="btn ghost block" style={{ margin: '4px 14px 0', width: 'calc(100% - 28px)' }}
+                onClick={() => { setLoanDeal(null); go('player', lp.id) }}>
+                {t('tacticsScreen.openProfile', { name: lp.name.split(' ').slice(-1)[0] })}
+              </button>
+            )}
             {!gone && (
               <div className="loan-deal">
                 <label className="meta">{t('transfers.loanLength')}

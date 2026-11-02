@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useVisitState } from '../visitState'
 import { noteStep } from '../../game/firststeps'
 import { DataTable } from '../DataTable'
 import { useStore } from '../../store'
@@ -26,7 +27,7 @@ export default function Academy() {
   const touch = useStore(s => s.touch)
   // a visit here is the first season checklist's "check the academy" (firststeps.ts)
   useEffect(() => { if (noteStep(game, 'academy')) touch() }, [game, touch])
-  const [tab, setTab] = useState<'squad' | 'table' | 'fixtures'>('squad')
+  const [tab, setTab] = useVisitState<'squad' | 'table' | 'fixtures'>('tab', 'squad')
 
   const club = game.clubs[game.userClubId]
   // an old save arriving here for the first time gets its A League built now.
