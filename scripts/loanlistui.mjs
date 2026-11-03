@@ -47,9 +47,9 @@ try {
     await page.locator('.loan-sheet select').nth(1).selectOption('1')
     await page.locator('.loan-sheet .btn.gold').click()
     await page.waitForTimeout(250)
-    const gone = await page.locator('.loan-sheet .btn.ghost', { hasText: 'Done' }).count()
-    if (gone) { signed = name; await page.locator('.loan-sheet .btn.ghost').click(); break }
-    await page.locator('.loan-sheet .btn.ghost').click()
+    const gone = await page.locator('.loan-sheet .btn-row .btn.ghost', { hasText: 'Done' }).count()
+    if (gone) { signed = name; await page.locator('.loan-sheet .btn-row .btn.ghost').click(); break }
+    await page.locator('.loan-sheet .btn-row .btn.ghost').click()
     await page.waitForTimeout(150)
   }
   ok(!!signed, `a parent club said yes${signed ? `: ${signed}` : ''}`)

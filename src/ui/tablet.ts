@@ -29,3 +29,20 @@ export function useTablet(): boolean {
   }, [])
   return on
 }
+
+/** A PHONE UNDER 360px (1.9.8): the narrowest Androids are 320 across, and a
+ *  table laid out for 360 leaves the name column too thin there to hold the
+ *  fitness ring, the name and (C) (scripts/loannameui.mjs). A screen that
+ *  asks drops its least-needed column on these. */
+const NARROW_Q = '(max-width: 359px)'
+export function useNarrowPhone(): boolean {
+  const [on, setOn] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(NARROW_Q).matches)
+  useEffect(() => {
+    const mq = window.matchMedia?.(NARROW_Q)
+    if (!mq) return
+    const f = () => setOn(mq.matches)
+    mq.addEventListener?.('change', f)
+    return () => mq.removeEventListener?.('change', f)
+  }, [])
+  return on
+}

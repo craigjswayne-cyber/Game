@@ -1769,7 +1769,7 @@
   "tabBench": "Bench",
   "tabPrep": "Prep",
   "tabPlan": "Game Plan",
-  "condCoach": "The conditioning coach wants a word",
+  "condCoach": "{who} wants a word",
   "condLine": {
    "one": "{n} week at the same extreme on {dial}. The GPS says the squad is running {pct}% hotter than it should, and you see that in the last twenty minutes. The opposition will have read it by now, too. Two weeks nearer the middle sorts both.",
    "other": "{n} weeks at the same extreme on {dial}. The GPS says the squad is running {pct}% hotter than it should, and you see that in the last twenty minutes. The opposition will have read it by now, too. Two weeks nearer the middle sorts both."
@@ -2727,6 +2727,8 @@
   "compareBtn": "Compare",
   "attributes": "Attributes",
   "attrsSub": "every attribute, rated 1 to 100",
+  "byPosition": "By position",
+  "byPositionSub": "Rating in each position worth trying",
   "attrsSubCompare": "his numbers beside each chip",
   "grpSetPiece": "Set Piece & Contact",
   "grpSkills": "Skills",
@@ -8875,7 +8877,8 @@
   "perVisit": "Points per visit"
  },
  "search": {
-  "anyAttr": "Attribute",
+  "attrsLabel": "Attributes",
+  "attrsHint": "A player must reach this on every attribute ticked.",
   "atLeast": "{n}+",
   "attrMin": "Lowest rating",
   "view": "View",

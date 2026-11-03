@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
+import { ATTR_KEYS, POS_ORDER, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
 import { FormPill, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton, spotNote } from '../components'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
-import { firstProWage, fineAttr } from '../../game/attributes'
+import { effAt, firstProWage, fineAttr } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, shownCa, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
@@ -509,6 +509,30 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </div>
         ))}
       </div>
+      {/* HIS RATING IN OTHER SHIRTS (player report, 1.9.8: "pouvoir
+          visualiser dans l'onglet caractéristiques d'un joueur ses niveaux
+          généraux aux autres postes où il pourrait jouer"). The figure the
+          team sheet uses (attributes.effAt): his own shirt, the ones he is
+          listed for, and their neighbours; a position outside his family is
+          a last resort and left off. Read through the scouts like his main
+          rating, so an unscouted man stays "?". */}
+      {(() => {
+        const seen = mine ? p.ca : shownCa(game, p)
+        const at = POS_ORDER
+          .map(pos => ({ pos, f: effAt(p, pos) / Math.max(1, p.ca) }))
+          .filter(x => x.f > 0.6)
+          .sort((a, b) => b.f - a.f || POS_ORDER.indexOf(a.pos) - POS_ORDER.indexOf(b.pos))
+        return <>
+          <SectionTitle sub={t('player.byPositionSub')}>{t('player.byPosition')}</SectionTitle>
+          <div className="chips by-pos">
+            {at.map(x => (
+              <span className="chip" key={x.pos} title={posName(x.pos)}>
+                <PosBadge pos={x.pos} /> <Stars ca={seen == null ? null : seen * x.f} />
+              </span>
+            ))}
+          </div>
+        </>
+      })()}
 
       </>}
       {ptab === 'profile' && <>

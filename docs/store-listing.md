@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.9, Play version code 68 (confirm 67 is accepted on the Console first)
+
+**en-GB**
+Transfer search: tick several attributes and set one minimum, now out of 100 like the player page. A player's Attributes tab shows his rating at each position he can play. The fatigue warning on Tactics now comes from your physio. Team > General Info fits better on small phones.
+
+**fr-FR**
+Recherche de transferts : cochez plusieurs attributs et fixez un minimum, désormais sur 100 comme sur la fiche joueur. L'onglet Attributs montre le niveau du joueur à chaque poste qu'il peut occuper. L'alerte de fatigue dans la Tactique vient désormais de votre kiné. Équipe > Général s'affiche mieux sur les petits écrans.
+
+**es-ES**
+Búsqueda de fichajes: marca varios atributos y fija un mínimo, ahora sobre 100 como en la ficha del jugador. La pestaña Atributos muestra su nivel en cada puesto que puede ocupar. El aviso de fatiga en la Táctica ahora lo da tu fisio. Equipo > Info general se ve mejor en pantallas pequeñas.
+
+**it-IT**
+Ricerca trasferimenti: seleziona più attributi e un minimo, ora su 100 come nella scheda giocatore. La scheda Attributi mostra la valutazione in ogni ruolo possibile. L'avviso di fatica nella Tattica ora arriva dal fisioterapista. Squadra > Info generali si legge meglio sugli schermi piccoli.
+
+**ja-JP**
+移籍検索：複数の能力をチェックし、最低値を1つ設定できるように。最低値は選手ページと同じ100点満点に。能力タブに各ポジションでの能力を表示。戦術画面の疲労警告はフィジオから届くように。チーム＞基本情報が小さな画面でも見やすく。
+
+**af**
+Oordragsoektog: merk verskeie eienskappe en stel een minimum, nou uit 100 soos op die spelerblad. Die Eienskappe-oortjie wys die speler se gradering in elke posisie wat hy kan speel. Die moegheidswaarskuwing op Taktiek kom nou van jou fisio. Span > Algemene Inligting pas beter op klein skerms.
+
 ### What's new (500 max) - v1.9.8, Play version code 67 (confirm 66 is accepted on the Console first)
 
 **en-GB**

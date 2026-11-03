@@ -1798,7 +1798,7 @@
   "tabBench": "Panchina",
   "tabPrep": "Prep",
   "tabPlan": "Piano gara",
-  "condCoach": "Il preparatore atletico vuole scambiare due parole",
+  "condCoach": "{who} vuole scambiare due parole",
   "condLine": {
    "one": "{n} settimana allo stesso estremo su {dial}. Il GPS dice che la squadra gira al {pct}% oltre il dovuto, e si vede negli ultimi venti minuti. E ormai gli avversari ti hanno letto. Due settimane più vicino al centro sistemano entrambe le cose.",
    "other": "{n} settimane allo stesso estremo su {dial}. Il GPS dice che la squadra gira al {pct}% oltre il dovuto, e si vede negli ultimi venti minuti. E ormai gli avversari ti hanno letto. Due settimane più vicino al centro sistemano entrambe le cose."
@@ -2766,6 +2766,8 @@
   "compareBtn": "Confronta",
   "attributes": "Attributi",
   "attrsSub": "ogni attributo, da 1 a 100",
+  "byPosition": "Per ruolo",
+  "byPositionSub": "Valutazione in ogni ruolo possibile",
   "attrsSubCompare": "i suoi numeri accanto a ogni voce",
   "grpSetPiece": "Fasi statiche e contatto",
   "grpSkills": "Tecnica",
@@ -8806,7 +8808,8 @@
   "perVisit": "Punti per visita"
  },
  "search": {
-  "anyAttr": "Attributo",
+  "attrsLabel": "Attributi",
+  "attrsHint": "Un giocatore deve raggiungere questo livello in ogni attributo selezionato.",
   "atLeast": "{n}+",
   "attrMin": "Voto minimo",
   "view": "Vista",

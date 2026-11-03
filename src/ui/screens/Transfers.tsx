@@ -1,7 +1,8 @@
 import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
-import { clubCode, fmtMoney, fmtWage, POS_ORDER, seasonLabel, type Attrs, type Player, type Pos } from '../../game/model'
+import { ATTR_KEYS, clubCode, fmtMoney, fmtWage, POS_ORDER, seasonLabel, type Attrs, type Player, type Pos } from '../../game/model'
+import { fineAttr } from '../../game/attributes'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
 import { isDeadlineWeek, openDate, shutDate } from '../../game/window'
 import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
@@ -35,7 +36,13 @@ function initialName(name: string): string {
   return parts.length < 2 ? name : `${parts[0][0]}. ${parts.slice(1).join(' ')}`
 }
 
-const ATTR_ORDER: (keyof Attrs)[] = ['pac', 'str', 'sta', 'agi', 'scr', 'lin', 'kic', 'goa', 'pas', 'han', 'tac', 'ruc', 'vis', 'dec', 'pos', 'lea', 'agg', 'wor']
+/** the filter's tick boxes, grouped as on the player's page */
+const ATTR_GROUPS: [string, (keyof Attrs)[]][] = [
+  ['player.grpSetPiece', ['scr', 'lin', 'ruc', 'tac', 'str']],
+  ['player.grpSkills', ['han', 'pas', 'kic', 'goa']],
+  ['player.grpPhysical', ['pac', 'agi', 'sta']],
+  ['player.grpMental', ['vis', 'dec', 'pos', 'wor', 'agg', 'lea']],
+]
 
 export default function Transfers() {
   const game = useStore(s => s.game)!
@@ -70,8 +77,13 @@ export default function Transfers() {
   // 1.8.0, the classic search screen: which columns you are looking at, one
   // attribute to filter on, the injured and the expiring
   const [view, setView] = useVisitState<SearchView>('view', 'general')
-  const [attrKey, setAttrKey] = useVisitState<keyof Attrs | ''>('attrKey', '')
-  const [attrMin, setAttrMin] = useVisitState('attrMin', 12)
+  // SEVERAL ATTRIBUTES, ON THE PAGE'S SCALE (player report, 1.9.8: "pouvoir
+  // lancer une recherche en cochant plusieurs caractéristiques [...] et le
+  // niveau [...] devrait être sur 100 comme sur les fiches joueurs et non sur
+  // 20"). Every ticked attribute must reach the minimum, read as the number his
+  // page prints: fineAttr of the scouts' midpoint, out of 100.
+  const [attrKeys, setAttrKeys] = useVisitState<(keyof Attrs)[]>('attrKeys', [])
+  const [attrMin, setAttrMin] = useVisitState('attrMin', 60)
   const [withInjured, setWithInjured] = useVisitState('withInjured', true)
   const [expiringOnly, setExpiringOnly] = useVisitState('expiringOnly', false)
   const [filtersOpen, setFiltersOpen] = useVisitState('filtersOpen', false)
@@ -168,7 +180,10 @@ export default function Transfers() {
     if (!withInjured) list = list.filter(p => !p.injury)
     if (expiringOnly) list = list.filter(p => p.clubId && p.contractEnds <= game.season)
     // an attribute filter reads what the scouts can see: the middle of the range
-    if (attrKey) list = list.filter(p => { const [lo, hi] = attrRange(game, p, attrKey); return (lo + hi) / 2 >= attrMin })
+    if (attrKeys.length) list = list.filter(p => attrKeys.every(k => {
+      const [lo, hi] = attrRange(game, p, k)
+      return fineAttr(p.id, ATTR_KEYS.indexOf(k), Math.round((lo + hi) / 2)) >= attrMin
+    }))
     const dir = mdesc ? -1 : 1
     list.sort((a, b) => {
       switch (msort) {
@@ -180,8 +195,8 @@ export default function Transfers() {
       }
     })
     return list.slice(0, 120)
-  }, [game, game.players, game.clubs, pos, search, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week, tick, deal, loanIds])
-  const activeFilters = [deal === 'loan', pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, !!attrKey,
+  }, [game, game.players, game.clubs, pos, search, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKeys, attrMin, msort, mdesc, game.week, tick, deal, loanIds])
+  const activeFilters = [deal === 'loan', pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, attrKeys.length > 0,
     listedOnly, keenOnly, expiringOnly, !withInjured].filter(Boolean).length
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
   const pageSafe = Math.min(page, pages - 1)
@@ -454,16 +469,26 @@ export default function Transfers() {
               {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
             </select>
             {/* the attributes are what the scouts can see (scout.attrRange) */}
-            <label htmlFor="fs-attr">{t('search.anyAttr')}</label>
-            <div className="fs-pair">
-              <select id="fs-attr" className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
-                <option value="">{t('search.any')}</option>
-                {ATTR_ORDER.map(k => <option key={k} value={k}>{attrName(k)}</option>)}
-              </select>
-              <select className="inline-input" aria-label={t('search.attrMin')} value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
-                {[8, 10, 12, 14, 16, 18].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
-              </select>
-            </div>
+            <label htmlFor="fs-attr-min">{t('search.attrsLabel')}</label>
+            <select id="fs-attr-min" className="inline-input" aria-label={t('search.attrMin')} value={attrMin} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
+              {[40, 50, 60, 70, 80, 90].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
+            </select>
+          </div>
+          <div className="fs-attrs">
+            <div className="meta muted">{t('search.attrsHint')}</div>
+            {ATTR_GROUPS.map(([title, keys]) => (
+              <fieldset key={title} className="fs-attr-group">
+                <legend>{t(title)}</legend>
+                {keys.map(k => (
+                  <label key={k} className="fs-toggle">
+                    <input type="checkbox" checked={attrKeys.includes(k)} onChange={() => {
+                      setAttrKeys(attrKeys.includes(k) ? attrKeys.filter(x => x !== k) : [...attrKeys, k]); setPage(0)
+                    }} />
+                    <span>{attrName(k)}</span>
+                  </label>
+                ))}
+              </fieldset>
+            ))}
           </div>
           <div className="fs-toggles">
             {([
@@ -480,7 +505,7 @@ export default function Transfers() {
           </div>
           <div className="btn-row" style={{ marginTop: 10 }}>
             <button className="btn ghost" onClick={() => {
-              setDeal('transfer'); setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKey('')
+              setDeal('transfer'); setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKeys([])
               setListedOnly(false); setKeenOnly(false); setExpiringOnly(false); setWithInjured(true); setPage(0)
             }}>{t('search.reset')}</button>
             <button className="btn gold" style={{ flex: 2 }} onClick={() => setFiltersOpen(false)}>

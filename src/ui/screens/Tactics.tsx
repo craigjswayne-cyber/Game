@@ -245,7 +245,14 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
 
       {repPct > 0 && worstDial && (
         <div className="card" style={{ ...accLine('var(--gold)') }}>
-          <div className="fact-label">{t('tacticsScreen.condCoach')}</div>
+          {/* THE PHYSIO SAYS IT (player report, 1.9.8: "le préparateur physique
+              [...] apparaît parfois pour donner des infos mais ne figure pas dans
+              les membres du staff"). There is no conditioning coach on the
+              staff; the physio, who is, and who already owns condition and
+              recovery, signs the warning by name, as on the Medical screen. */}
+          <div className="fact-label">{t('tacticsScreen.condCoach', {
+            who: game.staffPeople?.physio ? t('medical.physioNamed', { name: game.staffPeople.physio.name }) : t('medical.headPhysio'),
+          })}</div>
           <div style={{ fontSize: '0.8125rem', lineHeight: 1.45, marginTop: 4 }}>
             {t('tacticsScreen.condLine', {
               n: worstDial.n,

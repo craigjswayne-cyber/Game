@@ -157,6 +157,63 @@ try {
     await page.click('.filter-sheet .btn.gold')
   }
 
+  // ---- the filter ticks several attributes, out of 100 (player report, 1.9.8) ----
+  await home()
+  await go('transfers')
+  await page.waitForSelector('.filter-btn')
+  await page.click('.filter-btn')
+  await page.waitForSelector('#fs-attr-min')
+  const mins = await page.$$eval('#fs-attr-min option', os => os.map(o => Number(o.value)))
+  ok(mins.length && mins.every(n => n >= 40 && n <= 90 && n % 10 === 0), `the minimum is out of 100 (${mins.join(', ')})`)
+  const count = () => page.$eval('.filter-sheet .btn.gold', b => Number((b.textContent.match(/\d+/) ?? ['0'])[0]))
+  const all = await count()
+  await page.selectOption('#fs-attr-min', '70')
+  await page.click('.fs-attrs label:has-text("Pace")')
+  const one = await count()
+  await page.click('.fs-attrs label:has-text("Strength")')
+  const two = await count()
+  // the list shows the best 120, so one tick can leave it full: two must bite
+  ok(two < all && two <= one, `each ticked attribute narrows the list (${all} >= ${one} >= ${two}, and ${two} < ${all})`)
+  await page.click('.filter-sheet .btn.gold')
+  await page.click('.filter-btn')
+  await page.waitForSelector('#fs-attr-min')
+  const ticked = await page.$$eval('.fs-attrs input:checked', xs => xs.length)
+  ok(ticked === 2, `the ticks are kept when the sheet opens again (${ticked})`)
+  await page.click('.filter-sheet .btn.ghost')
+  ok(await page.$$eval('.fs-attrs input:checked', xs => xs.length) === 0, 'Reset clears the ticks')
+  await page.click('.filter-sheet .btn.gold')
+
+  // ---- his rating in other shirts, on Attributes (player report, 1.9.8) ----
+  const mineId = await page.evaluate(() => {
+    const g = window.rugbyStore.getState().game
+    return g.clubs[g.userClubId].players.map(id => g.players[id]).find(p => p && !p.acad && p.pos === 'FL')?.id ?? null
+  })
+  if (mineId != null) {
+    await go('player', mineId)
+    await page.click('main.content .tab-bar button:has-text("Attributes")')
+    await page.waitForSelector('.by-pos .chip')
+    const chips = await page.$$eval('.by-pos .chip', cs => cs.map(c => ({ pos: c.querySelector('.pos-badge, [class*=pos]')?.textContent.trim() ?? '', v: Number(c.querySelector('.ovr')?.textContent ?? 'NaN') })))
+    const want = await page.evaluate(id => Math.round(window.rugbyStore.getState().game.players[id].ca), mineId)
+    ok(chips.length >= 3, `a flanker lists the positions he can play (${chips.map(c => `${c.pos} ${c.v}`).join(', ')})`)
+    ok(chips[0]?.v === want, `his own position comes first at his rating (${chips[0]?.v} vs ${want})`)
+    const lk = chips.find(c => c.pos === 'LK')
+    ok(!!lk && lk.v < want, `and lock is there, lower (${lk?.v})`)
+  } else ok(false, 'the squad has a flanker to read')
+
+  // ---- the physio, on the staff, signs the conditioning warning (1.9.8) ----
+  const physio = await page.evaluate(() => {
+    const s = window.rugbyStore.getState()
+    s.game.dialStreak = { tempo: 4 }
+    s.touch()
+    return s.game.staffPeople?.physio?.name ?? null
+  })
+  await home()
+  await go('tactics')
+  await page.waitForTimeout(400)
+  const warn = await page.$$eval('main.content .fact-label', ls => ls.map(l => l.textContent.trim()).find(x => /wants a word/.test(x)) ?? '')
+  ok(!/conditioning coach/i.test(warn) && (physio ? warn.includes(physio) : /physio/i.test(warn)),
+    `the fatigue warning comes from the physio on the staff ("${warn}")`)
+
   // ---- a free agent can be shortlisted ----
   const fa = await page.evaluate(() => {
     const g = window.rugbyStore.getState().game
