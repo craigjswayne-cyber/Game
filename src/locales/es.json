@@ -1796,7 +1796,7 @@
   "tabBench": "Banquillo",
   "tabPrep": "Prep.",
   "tabPlan": "Plan de juego",
-  "condCoach": "El preparador físico quiere hablar contigo",
+  "condCoach": "{who} quiere hablar contigo",
   "condLine": {
    "one": "{n} semana al mismo extremo en {dial}. El GPS dice que la plantilla va un {pct}% más forzada de lo debido, y se nota en los últimos veinte minutos. Los rivales ya te lo habrán leído, además. Dos semanas más cerca del punto medio arreglan ambas cosas.",
    "other": "{n} semanas al mismo extremo en {dial}. El GPS dice que la plantilla va un {pct}% más forzada de lo debido, y se nota en los últimos veinte minutos. Los rivales ya te lo habrán leído, además. Dos semanas más cerca del punto medio arreglan ambas cosas."
@@ -2763,6 +2763,8 @@
   "compareBtn": "Comparar",
   "attributes": "Atributos",
   "attrsSub": "todos los atributos, de 1 a 100",
+  "byPosition": "Por puesto",
+  "byPositionSub": "Nivel en cada puesto posible",
   "attrsSubCompare": "sus números junto a cada ficha",
   "grpSetPiece": "Fases estáticas y contacto",
   "grpSkills": "Técnica",
@@ -8757,7 +8759,8 @@
   "perVisit": "Puntos por visita"
  },
  "search": {
-  "anyAttr": "Atributo",
+  "attrsLabel": "Atributos",
+  "attrsHint": "Un jugador debe alcanzar este nivel en cada atributo marcado.",
   "atLeast": "{n}+",
   "attrMin": "Nota mínima",
   "view": "Vista",

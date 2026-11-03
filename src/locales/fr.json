@@ -1806,7 +1806,7 @@
     "tabBench": "Banc",
     "tabPrep": "Prépa",
     "tabPlan": "Plan de jeu",
-    "condCoach": "Le préparateur physique veut vous parler",
+    "condCoach": "{who} veut vous parler",
     "condLine": {
       "one": "{n} semaine au même extrême sur {dial}. Le GPS montre un effectif {pct} % plus sollicité qu'il ne devrait l'être, et ça se voit dans les vingt dernières minutes. L'adversaire l'aura lu, lui aussi. Deux semaines plus près du milieu règlent les deux.",
       "other": "{n} semaines au même extrême sur {dial}. Le GPS montre un effectif {pct} % plus sollicité qu'il ne devrait l'être, et ça se voit dans les vingt dernières minutes. L'adversaire l'aura lu, lui aussi. Deux semaines plus près du milieu règlent les deux."
@@ -2785,6 +2785,8 @@
     "compareBtn": "Comparer",
     "attributes": "Attributs",
     "attrsSub": "chaque attribut, noté de 1 à 100",
+    "byPosition": "Par poste",
+    "byPositionSub": "Niveau à chaque poste envisageable",
     "attrsSubCompare": "ses chiffres à côté de chaque pastille",
     "grpSetPiece": "Conquête et combat",
     "grpSkills": "Technique",
@@ -8979,7 +8981,8 @@
     "perVisit": "Points par incursion"
   },
   "search": {
-    "anyAttr": "Attribut",
+    "attrsLabel": "Attributs",
+    "attrsHint": "Un joueur doit atteindre ce niveau sur chaque attribut coché.",
     "atLeast": "{n}+",
     "attrMin": "Note minimale",
     "view": "Vue",

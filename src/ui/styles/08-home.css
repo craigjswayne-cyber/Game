@@ -479,3 +479,7 @@
 }
 .news-item.open .subj .chev { transform: rotate(45deg); }
 @media (prefers-reduced-motion: reduce) { .news-item .subj .chev { transition: none; } }
+/* the attribute tick boxes (1.9.9): four groups, two columns on a phone */
+.fs-attrs { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px; }
+.fs-attr-group { border: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.fs-attr-group legend { font-family: var(--cond); font-size: 0.6875rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); padding: 4px 0 2px; }

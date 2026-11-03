@@ -1767,7 +1767,7 @@
   "tabBench": "Bank",
   "tabPrep": "Voorbereiding",
   "tabPlan": "Spelplan",
-  "condCoach": "Die kondisie-afrigter wil 'n woordjie hê",
+  "condCoach": "{who} wil 'n woordjie hê",
   "condLine": {
    "one": "{n} week op dieselfde uiterste met {dial}. Die GPS sê die spangroep werk {pct}% harder as wat hy moet, en jy sien dit in die laaste twintig minute. Die opponente het dit teen dié tyd ook gelees. Twee weke nader aan die middel los albei op.",
    "other": "{n} weke op dieselfde uiterste met {dial}. Die GPS sê die spangroep werk {pct}% harder as wat hy moet, en jy sien dit in die laaste twintig minute. Die opponente het dit teen dié tyd ook gelees. Twee weke nader aan die middel los albei op."
@@ -2725,6 +2725,8 @@
   "compareBtn": "Vergelyk",
   "attributes": "Eienskappe",
   "attrsSub": "elke eienskap, gegradeer 1 tot 100",
+  "byPosition": "Per posisie",
+  "byPositionSub": "Gradering in elke posisie wat werk",
   "attrsSubCompare": "sy syfers langs elke blokkie",
   "grpSetPiece": "Vaste spel & kontak",
   "grpSkills": "Vaardighede",
@@ -8916,7 +8918,8 @@
   "perVisit": "Punte per besoek"
  },
  "search": {
-  "anyAttr": "Eienskap",
+  "attrsLabel": "Eienskappe",
+  "attrsHint": "'n Speler moet dit haal op elke eienskap wat gemerk is.",
   "atLeast": "{n}+",
   "attrMin": "Laagste gradering",
   "view": "Aansig",
