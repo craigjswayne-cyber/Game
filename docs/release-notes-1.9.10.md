@@ -37,7 +37,12 @@ should rarely train in the opposite positions", and more depth in training.
   condition and more training-ground injuries. Light gives the legs back and
   lands less. Measured over three seasons at Northampton with the Attack
   focus: light 47 attribute gains, 2 training injuries, squad condition 94.7;
-  normal 86, 5.3, 92.6; hard 121, 8.7, 90.7.
+  normal 86, 5.3, 92.6; hard 140, 6.3, 92.2.
+- No load is a free win. Over 8 seasons each at Northampton and Bath, league
+  points in the season itself: light 50.8, normal 53.0, hard 51.0, all within
+  the noise of each other. Hard's extra growth is what carries into the next
+  season. A first version of hard (x1.6 injuries, -4 recovery) cost 5 to 9
+  points a season and was softened to x1.35 and -2.
 - Training shows what last week did: the load, the attribute gains and how
   many were hurt in training.
 - Your club only. AI clubs train as they always have.

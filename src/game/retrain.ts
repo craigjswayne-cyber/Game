@@ -184,11 +184,18 @@ export function settleRetrains(state: GameState): void {
  *   grow  the squad session's and the personal plans' weekly chance
  *   inj   the training-ground injury roll
  *   rec   condition points back on top of the week's recovery
+ *
+ * Measured (8 seasons each at Northampton and Bath, the Attack focus, the
+ * game picking the side): the first cut of hard (x1.6 injuries, -4 recovery)
+ * cost 5 and 9 league points a season against normal, a trap for anyone who
+ * chose it expecting it to pay. At x1.35 and -2 the three loads finish within
+ * the noise of each other in their own season (light 50.8, normal 53.0, hard
+ * 51.0 points), and hard's extra growth is carried into the next.
  */
 export const LOAD: Record<TrainLoad, { grow: number; inj: number; rec: number }> = {
   light: { grow: 0.5, inj: 0.6, rec: 4 },
   normal: { grow: 1, inj: 1, rec: 0 },
-  hard: { grow: 1.7, inj: 1.6, rec: -4 },
+  hard: { grow: 1.6, inj: 1.35, rec: -2 },
 }
 
 export function loadOf(state: GameState): TrainLoad {
