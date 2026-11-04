@@ -277,7 +277,7 @@ function page(c, i) {
   const s = c.slides[i]
   const n = c.slides.length
   const chrome = s.type === 'cta' ? '' : `<div class="top"><div class="brand">${MARK}<div class="wm"><b>PHASE</b> RUGBY MANAGER</div></div>
-    <div class="count"><b>${String(i + 1).padStart(2, '0')}</b> / ${String(n).padStart(2, '0')}</div></div>`
+    </div>`
   const bar = `<div class="bar">${c.slides.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>`
   return `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}</style></head>
     <body><div class="slide t-${s.type}">${chrome}${body(s)}${bar}</div></body></html>`
