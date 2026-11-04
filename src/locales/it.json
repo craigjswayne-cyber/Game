@@ -1980,7 +1980,7 @@
   "retrainTitle": "Cambio di ruolo",
   "retrainSub": "Imparare un nuovo ruolo occupa un piano individuale. Un ruolo vicino è il più probabile; passare dagli avanti ai trequarti, o viceversa, riesce di rado.",
   "retrainAs": "Nuovo ruolo",
-  "retrainStart": "Avvia ({n} settimane)",
+  "retrainStart": {"one": "Avvia ({n} settimana)", "other": "Avvia ({n} settimane)"},
   "retrainStop": "Interrompi",
   "retrainProgress": "Impara {pos_k}: settimana {done} di {of}",
   "retrainNone": "Nessuno sta cambiando ruolo.",

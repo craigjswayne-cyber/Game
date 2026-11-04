@@ -1951,7 +1951,7 @@
   "retrainTitle": "Heropleiding",
   "retrainSub": "Om 'n nuwe posisie te leer neem 'n persoonlike plan in beslag. 'n Posisie langs die speler s'n werk die waarskynlikste; voorspelers na agterlyn, of andersom, werk selde.",
   "retrainAs": "Heroplei as",
-  "retrainStart": "Begin ({n} weke)",
+  "retrainStart": {"one": "Begin ({n} week)", "other": "Begin ({n} weke)"},
   "retrainStop": "Stop",
   "retrainProgress": "Leer {pos_k}: week {done} van {of}",
   "retrainNone": "Niemand word heroplei nie.",

@@ -1987,7 +1987,7 @@
     "retrainTitle": "Reconversion",
     "retrainSub": "Apprendre un nouveau poste prend une place de plan individuel. Un poste voisin est le plus probable ; passer des avants aux arrières, ou l'inverse, réussit rarement.",
     "retrainAs": "Reconvertir au poste de",
-    "retrainStart": "Lancer ({n} semaines)",
+    "retrainStart": {"one": "Lancer ({n} semaine)", "other": "Lancer ({n} semaines)"},
     "retrainStop": "Arrêter",
     "retrainProgress": "Apprend {pos_k} : semaine {done} sur {of}",
     "retrainNone": "Personne n'est en reconversion.",

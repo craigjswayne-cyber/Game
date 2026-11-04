@@ -1974,7 +1974,7 @@
   "retrainTitle": "Reconversión",
   "retrainSub": "Aprender un puesto nuevo ocupa un plan individual. Un puesto vecino es lo más probable; pasar de delantero a tres cuartos, o al revés, rara vez funciona.",
   "retrainAs": "Reconvertir a",
-  "retrainStart": "Empezar ({n} semanas)",
+  "retrainStart": {"one": "Empezar ({n} semana)", "other": "Empezar ({n} semanas)"},
   "retrainStop": "Parar",
   "retrainProgress": "Aprendiendo {pos_k}: semana {done} de {of}",
   "retrainNone": "Nadie se está reconvirtiendo.",

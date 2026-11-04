@@ -1953,7 +1953,7 @@
   "retrainTitle": "Retraining",
   "retrainSub": "Learning a new position takes a personal-plan place. A position next to the player's own is likeliest; forwards to backs, or backs to forwards, rarely works.",
   "retrainAs": "Retrain as",
-  "retrainStart": "Start ({n} weeks)",
+  "retrainStart": {"one": "Start ({n} week)", "other": "Start ({n} weeks)"},
   "retrainStop": "Stop",
   "retrainProgress": "Learning {pos_k}: week {done} of {of}",
   "retrainNone": "Nobody is retraining.",

@@ -1906,7 +1906,7 @@
   "retrainTitle": "コンバート",
   "retrainSub": "新しいポジションの習得には個人プランの枠を1つ使う。隣のポジションほど成功しやすく、FWからBK、BKからFWへの転向はめったに成功しない。",
   "retrainAs": "コンバート先",
-  "retrainStart": "開始（{n}週間）",
+  "retrainStart": {"one": "開始（{n}週間）", "other": "開始（{n}週間）"},
   "retrainStop": "中止",
   "retrainProgress": "{pos_k}を習得中：{of}週中{done}週目",
   "retrainNone": "コンバート中の選手はいない。",
