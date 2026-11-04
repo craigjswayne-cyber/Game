@@ -1,5 +1,6 @@
 import { healBackToAcademy } from './acadcall'
 import { healWageRoom } from './grants'
+import { healRetrains } from './retrain'
 import type { CareerRow, Club, FacilityId, GameState, Player } from './model'
 import { LEGEND_APPS, service } from './legends'
 import { migrateRivalBids } from './rivalbids'
@@ -1547,6 +1548,8 @@ export function migrate(s: GameState): GameState {
   migrateCollections(s)
   // 1.9.6: a lad of the club's own academy sent down before the rule came in
   healBackToAcademy(s)
+  // 1.9.10: retrains and the training load, kept to what the week can read
+  healRetrains(s)
   migrateCalendar(s)
   migratePruneLists(s)
   migrateIdCounter(s)

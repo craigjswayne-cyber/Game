@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.10, Play version code 69 (confirm 68 is accepted on the Console first)
+
+**en-GB**
+Players can now retrain in a new position: they ask in the office, or you start it from their page. It takes a personal plan and does not always work, and forwards rarely become backs. New training load: Light, Normal or Hard. Harder training improves players faster but costs fitness and brings more injuries. Training shows what last week did.
+
+**fr-FR**
+Les joueurs peuvent désormais se reconvertir à un nouveau poste : ils le demandent au bureau, ou vous le lancez depuis leur fiche. Cela prend un plan individuel et ne réussit pas toujours ; un avant devient rarement un arrière. Nouvelle charge d'entraînement : légère, normale ou intense. Plus c'est dur, plus les joueurs progressent, au prix de la fraîcheur et de blessures. L'entraînement montre le bilan de la semaine.
+
+**es-ES**
+Los jugadores ya pueden reconvertirse a un puesto nuevo: lo piden en el despacho o lo inicias desde su ficha. Ocupa un plan individual y no siempre funciona; un delantero rara vez se convierte en tres cuartos. Nueva carga de entrenamiento: ligera, normal o dura. Entrenar más duro mejora más rápido, a costa de frescura y lesiones. El entrenamiento muestra el balance de la semana.
+
+**it-IT**
+I giocatori ora possono cambiare ruolo: lo chiedono in ufficio, oppure lo avvii dalla loro scheda. Occupa un piano individuale e non sempre riesce; un avanti diventa di rado un trequarti. Nuovo carico di allenamento: leggero, normale o intenso. Allenarsi più duramente fa crescere prima, a costo di freschezza e infortuni. L'allenamento mostra il bilancio della settimana.
+
+**ja-JP**
+選手を新しいポジションにコンバートできるように。選手が直訴するか、選手ページから開始。個人プランを1枠使い、必ず成功するわけではない。FWがBKになるのはまれ。練習の強度（軽め・普通・ハード）を新設。ハードほど成長は早いが、疲労とけがが増える。練習画面で先週の成果を確認できる。
+
+**af**
+Spelers kan nou na 'n nuwe posisie heroplei word: hulle vra in die kantoor, of jy begin dit op hul blad. Dit neem 'n persoonlike plan in beslag en werk nie altyd nie; 'n voorspeler word selde 'n agterspeler. Nuwe oefenlading: lig, normaal of hard. Harder oefening verbeter spelers vinniger, maar kos fiksheid en bring meer beserings. Oefening wys wat verlede week gebeur het.
+
 ### What's new (500 max) - v1.9.9, Play version code 68 (confirm 67 is accepted on the Console first)
 
 **en-GB**

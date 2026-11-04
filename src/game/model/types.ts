@@ -692,6 +692,7 @@ export interface Competition {
 }
 
 export type TrainingFocus = 'balanced' | 'scrum' | 'lineout' | 'attack' | 'defence' | 'fitness' | 'kicking'
+export type TrainLoad = 'light' | 'normal' | 'hard'
 
 /** Where the manager came from (18B, from the FM26 assessment: the story
  *  begins before the first whistle). Each origin front-loads a different
@@ -869,6 +870,9 @@ export interface PressOption {
    *  manager to go and find the Transfers screen is how a lad ended up asking
    *  the same question a week after his boss agreed to it. */
   loan?: boolean
+  /** "work on it in training first" starts the retrain it promises
+   *  (1.9.10, retrain.ts): the shirt he asked to learn */
+  retrain?: Pos
   /** the summer sponsorship decision (25C): choosing an option SIGNS the deal
    *  there and then. `offer` is the offer the button named, stored when the
    *  question was built (1.8.1): offersFor is deterministic on the slot's
@@ -1272,6 +1276,17 @@ export interface GameState {
    *  man's work rather than adding to it; pts counts the points the
    *  programme has landed since it was set, for the Training screen. */
   plans?: { id: number; plan: TrainingFocus; plan2?: TrainingFocus; pts?: number }[]
+  /** Position retraining (1.9.10, retrain.ts): a man learning a new shirt.
+   *  It takes a personal-plan place for its weeks; `odds` and `weeks` are set
+   *  when it starts, `start` is an absolute week, `asked` whether he wanted it. */
+  retrains?: { id: number; to: Pos; start: number; weeks: number; odds: number; asked: boolean }[]
+  /** A retrain that failed, so the same shirt is not tried again this season. */
+  retrainFails?: { id: number; to: Pos; season: number }[]
+  /** The squad's training load (1.9.10): light, normal or hard. Absent is normal. */
+  trainLoad?: TrainLoad
+  /** What last week's training did at the manager's club, for the Training
+   *  screen: attribute points landed and men hurt on the training ground. */
+  trainLog?: { season: number; week: number; load: TrainLoad; pts: number; inj: number }
   /** The office chat budget (20D): absolute week stamp and how many of the
    *  week's two manager-initiated conversations are spent. A manager who
    *  praises everybody praises nobody. */

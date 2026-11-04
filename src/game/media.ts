@@ -10,6 +10,7 @@ import { derbyName, isDerby } from './rivalries'
 import { nationByCode, nationVars } from './nations'
 import { applyResponse } from './authority'
 import { settleTalk } from './talkback'
+import { startRetrain } from './retrain'
 import { applyMoodAnswer, moodRoom, settlePressMood, userResults, trailingRun } from './pressmood'
 import { clamp, pick, type Rng, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
@@ -1268,6 +1269,16 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     item.fit = talk.fit
     item.rk = talk.rk; item.rv = talk.rv
     item.reaction = tIn('en', talk.rk, talk.rv)
+  }
+  // "work on it in training first" now does (1.9.10, retrain.ts). With no
+  // place in the department free, he is told so rather than promised a
+  // programme that never starts.
+  if (opt.retrain && item.playerId != null) {
+    if (!startRetrain(state, item.playerId, opt.retrain, true)) {
+      const v = { player: state.players[item.playerId]?.name ?? '' }
+      item.rk = 'training.retrainNoRoom'; item.rv = v
+      item.reaction = tIn('en', item.rk, v)
+    }
   }
   let playerDelta = 0
   if (item.playerId != null) {

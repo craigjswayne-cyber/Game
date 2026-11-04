@@ -25,6 +25,8 @@
 // week), never the week's shared one: a knock that appeared or did not must
 // not move a single draw anywhere else in the world.
 import { absWeek, logDecision, type GameState, type Personality, type Player, type PressItem, type PressOption, type OfficeTopic } from './model'
+import { reachOf, retrainOf, retrainTargets } from './retrain'
+import { devHash } from './devproject'
 import { clamp, mulberry32 } from './rng'
 import { tIn } from './i18n'
 import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './office'
@@ -85,6 +87,8 @@ export const FIT: Record<string, Record<string, Record<Personality, Fit>>> = {
   position: {
     try: row(G, G, G, G, G, G),     // a promise of minutes there
     train: row(G, G, M, M, B, M),
+    // (1.9.10) he asked to learn it, and the answer is yes: a real retrain
+    learn: row(G, G, G, M, M, G),
     no: row(M, M, B, B, B, M),
   },
   // a close friend, the week his mate was sold or released (bonds.ts)
@@ -310,18 +314,30 @@ export function talkbackWeek(state: GameState) {
     }
   }
 
-  // 4. POSITION: a squad man who thinks he would get on the field elsewhere
+  // 4. POSITION: a squad man who thinks he would get on the field elsewhere.
+  // Either a shirt he already plays ("try me there"), or (1.9.10, retrain.ts)
+  // one next to his own that he wants to learn, where "work on it in
+  // training first" starts a real retrain. A man already retraining is busy.
   if (wk >= 8 && wk <= 34) {
-    const movers = squad.filter(p => p.alt.length > 0 && p.age >= 21 && p.age <= 31 &&
-      p.stats.apps <= 3 && p.status !== 'key' && !xv23.has(p.id) && !askedRecently(state, p.id, 'position'))
+    const learnable = (p: Player) => retrainTargets(p).filter(pos => reachOf(p, pos) === 'near')
+    const movers = squad.filter(p => (p.alt.length > 0 || learnable(p).length > 0) && p.age >= 21 && p.age <= 31 &&
+      p.stats.apps <= 3 && p.status !== 'key' && !xv23.has(p.id) && !askedRecently(state, p.id, 'position') && !retrainOf(state, p.id))
     if (movers.length && rng() < 0.4) {
       const p = movers[Math.floor(rng() * movers.length)]
-      const to = p.alt[Math.floor(rng() * p.alt.length)]
+      // the same three rng draws as before (the stream is unchanged); which
+      // kind of ask it is, and which new shirt, are read off a hash
+      const known = p.alt[Math.floor(rng() * Math.max(1, p.alt.length))]
+      const learn = learnable(p)
+      const fresh = learn.length > 0 && (!known || devHash(state.seed, p.id, 72, absWeek(state.season, wk)) < 0.5)
+      const to = fresh ? learn[Math.floor(devHash(state.seed, p.id, 73, absWeek(state.season, wk)) * learn.length)] : known
       const v = { player: p.name, from_k: `pos.${p.pos}`, to_k: `pos.${to}` }
-      const q = rng() < 0.5 ? 'talk.positionQ1' : 'talk.positionQ2'
-      cands.push(() => knock(state, 'position', p, q, v, [
+      const qr = rng()
+      const q = fresh ? 'talk.positionQ3' : qr < 0.5 ? 'talk.positionQ1' : 'talk.positionQ2'
+      cands.push(() => knock(state, 'position', p, q, v, fresh ? [
+        tagged('position', 'learn', v, { retrain: to }),
+        tagged('position', 'no', v),
+      ] : [
         tagged('position', 'try', v, { pledge: 'minutes' }),
-        tagged('position', 'train', v),
         tagged('position', 'no', v),
       ]))
     }

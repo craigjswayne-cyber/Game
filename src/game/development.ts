@@ -1,5 +1,6 @@
 import type { GameState, Player, TrainingFocus } from './model'
 import { planCap } from './season/training'
+import { activeRetrains, retrainOf } from './retrain'
 
 /**
  * ---- WHO CAN BE PICKED FOR DEVELOPMENT FOCUS AND PERSONAL PLANS ----
@@ -90,7 +91,10 @@ export function setPlan(state: GameState, id: number, plan: TrainingFocus | null
   }
   const p = state.players[id]
   if (!p || planBlock(p)) return false
-  if (!had && cur.length >= planCap(state)) return false
+  // a retrain (retrain.ts) holds a place in the same book, and a man learning
+  // a new shirt is not on a plan as well
+  if (retrainOf(state, id)) return false
+  if (!had && cur.length + activeRetrains(state).length >= planCap(state)) return false
   // changing the programme keeps his place in the queue, and his second
   // programme unless it is now the same as the first
   state.plans = had

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { STAFF_INFO, fmtMoney, fmtWage, injuryDesc, type TrainingFocus, weeksBetween100 } from '../../game/model'
+import { STAFF_INFO, fmtMoney, fmtWage, injuryDesc, type TrainLoad, type TrainingFocus, weeksBetween100 } from '../../game/model'
+import { activeRetrains, loadOf, oddsWord, retrainProgress, stopRetrain } from '../../game/retrain'
 import { noteUse } from '../../game/usage'
 import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, appointBlock, appointStaff, backroomFund, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
 import DevelopmentPanel from './DevelopmentPanel'
@@ -20,6 +21,38 @@ const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
   { id: 'fitness', name: 'training.focusFitness', desc: 'training.focusFitnessDesc' },
   { id: 'kicking', name: 'training.focusKicking', desc: 'training.focusKickingDesc' },
 ]
+
+const LOADS: { id: TrainLoad; name: string; desc: string }[] = [
+  { id: 'light', name: 'training.loadLight', desc: 'training.loadLightDesc' },
+  { id: 'normal', name: 'training.loadNormal', desc: 'training.loadNormalDesc' },
+  { id: 'hard', name: 'training.loadHard', desc: 'training.loadHardDesc' },
+]
+
+/** Who is learning a new shirt, how far along, and the coaches' read (retrain.ts). */
+function RetrainPanel() {
+  const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const list = activeRetrains(game)
+  return <>
+    <SectionTitle sub={t('training.retrainSub')}>{t('training.retrainTitle')}</SectionTitle>
+    {list.length === 0 ? <div className="meta muted" style={{ padding: '0 14px' }}>{t('training.retrainNone')}</div> : (
+      <div className="retrain-list">
+        {list.map(r => {
+          const p = game.players[r.id]
+          if (!p) return null
+          const { done, of } = retrainProgress(game, r)
+          return (
+            <div key={r.id} className="card retrain-row">
+              <b>{p.name}</b>
+              <div className="meta">{t('training.retrainProgress', { pos_k: `pos.${r.to}`, done, of })} · {t(oddsWord(r.odds))}</div>
+              <button className="btn ghost" onClick={() => { stopRetrain(game, r.id); touch() }}>{t('training.retrainStop')}</button>
+            </div>
+          )
+        })}
+      </div>
+    )}
+  </>
+}
 
 export default function Training() {
   const game = useStore(s => s.game)!
@@ -48,6 +81,24 @@ export default function Training() {
           </button>
         ))}
       </div>
+      {/* THE LOAD (1.9.10, retrain.ts): the trade the focus never had */}
+      <SectionTitle sub={t('training.loadSub')}>{t('training.loadTitle')}</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 4, padding: '0 14px' }}>
+        {LOADS.map(l => (
+          <button key={l.id} className={`club-pick${loadOf(game) === l.id ? ' sel' : ''}`} style={{ margin: 0 }}
+            onClick={() => { if (loadOf(game) !== l.id) noteUse('training'); game.trainLoad = l.id; touch() }}>
+            <span style={{ fontSize: '1rem' }}>{loadOf(game) === l.id ? '●' : '○'}</span>
+            <span className="cname">{t(l.name)}</span>
+            <span className="muted" style={{ maxWidth: '52%', textAlign: 'right', fontSize: '0.6875rem' }}>{t(l.desc)}</span>
+          </button>
+        ))}
+      </div>
+      {game.trainLog && (
+        <div className="meta muted train-log" style={{ padding: '6px 14px 0' }}>
+          {t('training.lastWeek', { load_k: LOADS.find(l => l.id === game.trainLog!.load)!.name, pts: game.trainLog.pts, inj: game.trainLog.inj })}
+        </div>
+      )}
+      <RetrainPanel />
       {/* every player who qualifies, not the ten or twelve the chips used to
           show (owner, 1.8.0); the rules live in game/development.ts */}
       <DevelopmentPanel />

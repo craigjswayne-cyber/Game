@@ -4,6 +4,7 @@ import type { Player, TrainingFocus } from '../../game/model'
 import { planCap, activePlan, activeEntry } from '../../game/season'
 import { isForward } from '../../game/bench'
 import { FOCUS_MAX_AGE, FOCUS_SLOTS, focusBlock, focusIds, planBlock, planIds, setFocus, setPlan, setPlan2 } from '../../game/development'
+import { activeRetrains, retrainOf } from '../../game/retrain'
 import { monthKey } from '../../game/devproject'
 import { scoutPa } from '../../game/scout'
 import { SectionTitle } from '../components'
@@ -53,9 +54,11 @@ export default function DevelopmentPanel() {
   const planOn = planIds(game)
   const cap = view === 'focus' ? FOCUS_SLOTS : planCap(game)
   // places that count: a focused man who no longer qualifies holds nothing
-  const used = view === 'focus' ? focusOn.filter(id => !focusBlock(game.players[id])).length : planOn.length
+  // a retrain (retrain.ts) holds a plan place for its weeks
+  const retraining = activeRetrains(game).length
+  const used = view === 'focus' ? focusOn.filter(id => !focusBlock(game.players[id])).length : planOn.length + retraining
   const free = Math.max(0, cap - used)
-  const block = (p: Player) => (view === 'focus' ? focusBlock(p) : planBlock(p))
+  const block = (p: Player) => (view === 'focus' ? focusBlock(p) : planBlock(p) ?? (retrainOf(game, p.id) ? 'training.retrainWhyBusy' : null))
   const isOn = (p: Player) => (view === 'focus' ? focusOn.includes(p.id) : planOn.includes(p.id))
 
   const needle = q.trim().toLowerCase()
@@ -81,7 +84,7 @@ export default function DevelopmentPanel() {
           {t('training.devFocus')} <b>{focusOn.filter(id => !focusBlock(game.players[id])).length}/{FOCUS_SLOTS}</b>
         </button>
         <button className={view === 'plans' ? 'active' : ''} onClick={() => { setView('plans'); setSaid(null) }}>
-          {t('training.personalPlans')} <b>{planOn.length}/{planCap(game)}</b>
+          {t('training.personalPlans')} <b>{planOn.length + retraining}/{planCap(game)}</b>
         </button>
       </div>
       <SectionTitle sub={free > 0 ? t('training.placesFree', { n: free, cap }) : t('training.placesNone', { cap })}>
