@@ -8,26 +8,26 @@ should rarely train in the opposite positions", and more depth in training.
 ## What changed for players
 
 **Position retraining**
-- A player can now learn a new position. He asks in the office ("I want to
+- A player can now learn a new position. They ask in the office ("I want to
   learn number 8, boss"), and "Start on it in training" starts it; or you
-  start it yourself from his page: Attributes > Retrain as.
+  start it yourself from their page: Attributes > Retrain as.
 - Each position in the picker carries the coaches' read: likely to work,
   could go either way, unlikely, or a long shot.
-- It takes one personal-plan place for its weeks (8 next to his own
-  position, 12 further within the forwards or the backs, 16 across), and he
-  trains it instead of a plan or the squad session.
+- It takes one personal-plan place for its weeks (8 next to their own
+  position, 12 further within the forwards or the backs, 16 across), and they
+  train it instead of a plan or the squad session.
 - At the end it lands or it does not. A success adds the position to the
-  ones he plays (at 92% of his rating, as for any position he is listed
-  for); a failure costs a little morale and that position cannot be tried
+  ones they play (at 92% of their rating, as for any position they are
+  listed for); a failure costs a little morale and that position cannot be tried
   again until next season. You are told in the inbox either way.
-- The odds: a neighbouring position about 60%, further within his unit about
+- The odds: a neighbouring position about 60%, further within the unit about
   30%, a forward to a back or the other way about 5% and never better than
   one in eight. Younger players, ones who asked, a good assistant coach and
   attributes that suit the new position all help; over 30 it is harder.
 - A player told to retrain, rather than asking, takes it a little badly.
 - The Training screen lists who is retraining, how far along, and a Stop.
 - "Work on it in training first", the old answer to a player asking to play
-  a position he already has, did nothing. That ask now offers to try him
+  a position they already have, did nothing. That ask now offers to try them
   there or not, and the learning ask is the one that trains.
 
 **Training load**
@@ -47,6 +47,16 @@ should rarely train in the opposite positions", and more depth in training.
   many were hurt in training.
 - Your club only. AI clubs train as they always have.
 
+**The women's game**
+- Every 1.9 change (1.9.7 to 1.9.10) checked in a women's career: wage room
+  each summer and on a new job, Back keeping filters and tabs, the ability
+  column, the attribute search, By position, retraining, the office ask to
+  learn a position, and the training load all work there.
+- French, Spanish and Italian had sixteen new 1.9 lines that stayed
+  masculine in a women's career ("partant", "joueur", "motivato",
+  "giocatore", "lesionados" and the like). Each now has its women's version.
+  English, Japanese and Afrikaans were already neutral.
+
 ## Not changed
 
 - The match engine, and the world's random stream (the retrain roll is a
@@ -57,3 +67,6 @@ should rarely train in the opposite positions", and more depth in training.
 ## Tests
 
 - New: `tests/retrain.test.ts`, `scripts/retrainui.mjs` (browser).
+- New: `scripts/womens19probe.ts` (the 1.9 engine changes and their text in
+  a women's career, six languages) and `scripts/womens19ui.mjs` (the 1.9
+  screens in a women's career, read in French).

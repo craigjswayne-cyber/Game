@@ -6,10 +6,10 @@ notes from the French Pro Manager at Aurillac, after 1.9.7 (2 Nov 2026).
 ## What changed for players
 
 **The loan list**
-- A player on the loan list now has a road to his page. The loan sheet that
-  opens from the list has "Open {name}'s profile", and his page has Shortlist
+- A player on the loan list now has a road to their page. The loan sheet that
+  opens from the list has "Open {name}'s profile", and that page has Shortlist
   & Scout and the agency's file like any other player at a club. Before, a
-  row in Loan opened the sheet and nothing else, so he could not be scouted
+  row in Loan opened the sheet and nothing else, so they could not be scouted
   or read. Back returns to the loan list, still on Loan, with its filters.
 
 **Back keeps the tab on more screens**

@@ -126,13 +126,13 @@ First release.
 Players can now retrain in a new position: they ask in the office, or you start it from their page. It takes a personal plan and does not always work, and forwards rarely become backs. New training load: Light, Normal or Hard. Harder training improves players faster but costs fitness and brings more injuries. Training shows what last week did.
 
 **fr-FR**
-Les joueurs peuvent désormais se reconvertir à un nouveau poste : ils le demandent au bureau, ou vous le lancez depuis leur fiche. Cela prend un plan individuel et ne réussit pas toujours ; un avant devient rarement un arrière. Nouvelle charge d'entraînement : légère, normale ou intense. Plus c'est dur, plus les joueurs progressent, au prix de la fraîcheur et de blessures. L'entraînement montre le bilan de la semaine.
+Changement de poste : la demande vient du vestiaire, ou vous la lancez depuis la fiche. Cela prend un plan individuel et ne réussit pas toujours ; passer des avants aux arrières est rare. Nouvelle charge d'entraînement : légère, normale ou intense. Plus c'est dur, plus l'effectif progresse, au prix de la fraîcheur et de blessures. L'entraînement montre le bilan de la semaine.
 
 **es-ES**
-Los jugadores ya pueden reconvertirse a un puesto nuevo: lo piden en el despacho o lo inicias desde su ficha. Ocupa un plan individual y no siempre funciona; un delantero rara vez se convierte en tres cuartos. Nueva carga de entrenamiento: ligera, normal o dura. Entrenar más duro mejora más rápido, a costa de frescura y lesiones. El entrenamiento muestra el balance de la semana.
+Cambio de puesto: la petición llega desde el despacho o la inicias desde la ficha. Ocupa un plan individual y no siempre funciona; pasar de la delantera a los tres cuartos es raro. Nueva carga de entrenamiento: ligera, normal o dura. Entrenar más duro mejora más rápido, a costa de frescura y lesiones. El entrenamiento muestra el balance de la semana.
 
 **it-IT**
-I giocatori ora possono cambiare ruolo: lo chiedono in ufficio, oppure lo avvii dalla loro scheda. Occupa un piano individuale e non sempre riesce; un avanti diventa di rado un trequarti. Nuovo carico di allenamento: leggero, normale o intenso. Allenarsi più duramente fa crescere prima, a costo di freschezza e infortuni. L'allenamento mostra il bilancio della settimana.
+Cambio di ruolo: la richiesta arriva in ufficio, oppure lo avvii dalla scheda. Occupa un piano individuale e non sempre riesce; passare dalla mischia ai trequarti è raro. Nuovo carico di allenamento: leggero, normale o intenso. Allenarsi più duramente fa crescere prima, a costo di freschezza e infortuni. L'allenamento mostra il bilancio della settimana.
 
 **ja-JP**
 選手を新しいポジションにコンバートできるように。選手が直訴するか、選手ページから開始。個人プランを1枠使い、必ず成功するわけではない。FWがBKになるのはまれ。練習の強度（軽め・普通・ハード）を新設。ハードほど成長は早いが、疲労とけがが増える。練習画面で先週の成果を確認できる。
@@ -143,27 +143,27 @@ Spelers kan nou na 'n nuwe posisie heroplei word: hulle vra in die kantoor, of j
 ### What's new (500 max) - v1.9.9, Play version code 68 (confirm 67 is accepted on the Console first)
 
 **en-GB**
-Transfer search: tick several attributes and set one minimum, now out of 100 like the player page. A player's Attributes tab shows his rating at each position he can play. The fatigue warning on Tactics now comes from your physio. Team > General Info fits better on small phones.
+Transfer search: tick several attributes and set one minimum, now out of 100 like the player page. A player's Attributes tab shows their rating at each position they can play. The fatigue warning on Tactics now comes from your physio. Team > General Info fits better on small phones.
 
 **fr-FR**
-Recherche de transferts : cochez plusieurs attributs et fixez un minimum, désormais sur 100 comme sur la fiche joueur. L'onglet Attributs montre le niveau du joueur à chaque poste qu'il peut occuper. L'alerte de fatigue dans la Tactique vient désormais de votre kiné. Équipe > Général s'affiche mieux sur les petits écrans.
+Recherche de transferts : cochez plusieurs attributs et fixez un minimum, désormais sur 100 comme sur la fiche. L'onglet Attributs montre le niveau à chaque poste envisageable. L'alerte de fatigue dans la Tactique vient désormais de votre kiné. Équipe > Général s'affiche mieux sur les petits écrans.
 
 **es-ES**
-Búsqueda de fichajes: marca varios atributos y fija un mínimo, ahora sobre 100 como en la ficha del jugador. La pestaña Atributos muestra su nivel en cada puesto que puede ocupar. El aviso de fatiga en la Táctica ahora lo da tu fisio. Equipo > Info general se ve mejor en pantallas pequeñas.
+Búsqueda de fichajes: marca varios atributos y fija un mínimo, ahora sobre 100 como en la ficha. La pestaña Atributos muestra su nivel en cada puesto que puede ocupar. El aviso de fatiga en la Táctica ahora lo da tu fisio. Equipo > Info general se ve mejor en pantallas pequeñas.
 
 **it-IT**
-Ricerca trasferimenti: seleziona più attributi e un minimo, ora su 100 come nella scheda giocatore. La scheda Attributi mostra la valutazione in ogni ruolo possibile. L'avviso di fatica nella Tattica ora arriva dal fisioterapista. Squadra > Info generali si legge meglio sugli schermi piccoli.
+Ricerca trasferimenti: seleziona più attributi e un minimo, ora su 100 come nella scheda. La scheda Attributi mostra la valutazione in ogni ruolo possibile. L'avviso di fatica nella Tattica ora arriva dal fisioterapista. Squadra > Info generali si legge meglio sugli schermi piccoli.
 
 **ja-JP**
 移籍検索：複数の能力をチェックし、最低値を1つ設定できるように。最低値は選手ページと同じ100点満点に。能力タブに各ポジションでの能力を表示。戦術画面の疲労警告はフィジオから届くように。チーム＞基本情報が小さな画面でも見やすく。
 
 **af**
-Oordragsoektog: merk verskeie eienskappe en stel een minimum, nou uit 100 soos op die spelerblad. Die Eienskappe-oortjie wys die speler se gradering in elke posisie wat hy kan speel. Die moegheidswaarskuwing op Taktiek kom nou van jou fisio. Span > Algemene Inligting pas beter op klein skerms.
+Oordragsoektog: merk verskeie eienskappe en stel een minimum, nou uit 100 soos op die spelerblad. Die Eienskappe-oortjie wys die speler se gradering in elke posisie wat werk. Die moegheidswaarskuwing op Taktiek kom nou van jou fisio. Span > Algemene Inligting pas beter op klein skerms.
 
 ### What's new (500 max) - v1.9.8, Play version code 67 (confirm 66 is accepted on the Console first)
 
 **en-GB**
-Players on the loan list can now be opened, shortlisted and scouted: tap one and choose his profile. Back now keeps your tab on Team Report, the Academy, the Agency, club pages and Tactics too.
+Players on the loan list can now be opened, shortlisted and scouted: tap one and open the profile. Back now keeps your tab on Team Report, the Academy, the Agency, club pages and Tactics too.
 
 **fr-FR**
 Les joueurs de la liste des prêts peuvent maintenant être consultés, suivis et observés : touchez-en un et ouvrez sa fiche. Le retour conserve aussi votre onglet dans Rapport d'équipe, l'Académie, l'Agence de recrutement, les pages des clubs et la Tactique.
@@ -178,7 +178,7 @@ I giocatori in lista prestiti ora si possono aprire, seguire e osservare: toccan
 レンタルリストの選手も開いて、リスト登録や視察ができるように。選手をタップしてプロフィールを開こう。戻るボタンは、チームレポート、アカデミー、スカウト会社、クラブページ、戦術でもタブを保つ。
 
 **af**
-Spelers op die leningslys kan nou oopgemaak, op die kortlys gesit en verken word: tik op een en maak sy profiel oop. Terug hou nou ook jou oortjie op Spanverslag, die Akademie, die Talentsoek-agentskap, klubbladsye en Taktiek.
+Spelers op die leningslys kan nou oopgemaak, op die kortlys gesit en verken word: tik op een en maak die profiel oop. Terug hou nou ook jou oortjie op Spanverslag, die Akademie, die Talentsoek-agentskap, klubbladsye en Taktiek.
 
 ### What's new (500 max) - v1.9.7, Play version code 66 (65 confirmed accepted, 28 Oct 2026)
 
@@ -186,13 +186,13 @@ Spelers op die leningslys kan nou oopgemaak, op die kortlys gesit en verken word
 Fixed: wage room no longer runs out over a long career; existing careers get their room back when they load. Back now returns to your list with its filters, tab and place kept. Team > General Info shows each player's rating. Free agents can be shortlisted and scouted.
 
 **fr-FR**
-Corrigé : la marge salariale ne s'épuise plus au fil d'une longue carrière ; les carrières en cours la retrouvent au chargement. Le retour ramène à votre liste avec ses filtres, son onglet et sa position. Équipe > Général affiche le niveau de chaque joueur. Les agents libres peuvent être suivis et observés.
+Corrigé : la marge salariale ne s'épuise plus au fil d'une longue carrière ; les carrières en cours la retrouvent au chargement. Le retour ramène à votre liste avec ses filtres, son onglet et sa position. Équipe > Général affiche le niveau de tout l'effectif. Les agents libres peuvent être suivis et observés.
 
 **es-ES**
-Corregido: el margen salarial ya no se agota en una carrera larga; las carreras en curso lo recuperan al cargar. Volver atrás regresa a tu lista con sus filtros, pestaña y posición. Equipo > Info general muestra el nivel de cada jugador. Los agentes libres se pueden seguir y observar.
+Corregido: el margen salarial ya no se agota en una carrera larga; las carreras en curso lo recuperan al cargar. Volver atrás regresa a tu lista con sus filtros, pestaña y posición. Equipo > Info general muestra el nivel de toda la plantilla. Los agentes libres se pueden seguir y observar.
 
 **it-IT**
-Corretto: il margine ingaggi non si esaurisce più in una carriera lunga; le carriere in corso lo recuperano al caricamento. Indietro riporta alla tua lista con filtri, scheda e posizione. Squadra > Info generali mostra la valutazione di ogni giocatore. Gli svincolati si possono osservare.
+Corretto: il margine ingaggi non si esaurisce più in una carriera lunga; le carriere in corso lo recuperano al caricamento. Indietro riporta alla tua lista con filtri, scheda e posizione. Squadra > Info generali mostra la valutazione di tutta la rosa. Gli svincolati si possono osservare.
 
 **ja-JP**
 修正：長いキャリアで給与枠の余裕がなくなる問題を解消し、進行中のキャリアも読み込み時に余裕が戻る。戻るボタンでフィルター、タブ、位置がそのままのリストに戻る。チーム＞基本情報に各選手の能力を表示。フリーエージェントも視察できる。

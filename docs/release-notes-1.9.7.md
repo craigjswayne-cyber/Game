@@ -36,8 +36,8 @@ fixed in 1.9.6, with three more requests.
 **Free agents can be scouted**
 - A free agent's page now has Shortlist & Scout and the agency's file, the
   same as a player at another club. Since 1.9.6 a free agent's rating was "?"
-  until scouted, and there was no way to scout him, so he could only be
-  signed blind.
+  until scouted, and there was no way to scout them, so they could only
+  be signed blind.
 
 ## Measured
 

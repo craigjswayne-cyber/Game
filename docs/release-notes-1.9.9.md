@@ -11,15 +11,15 @@ turned the Gate green again after 1.9.7 and 1.9.8.
   page (Set piece, Skills, Physical, Mental), and one minimum: 40+ to 90+.
   A player must reach it on every attribute ticked.
 - The minimum is now on the same 1 to 100 scale as the player's page (it was
-  8+ to 18+ on the internal 20 scale). It compares the number his page
-  prints, so a man the scouts only half know is judged on their reading.
+  8+ to 18+ on the internal 20 scale). It compares the number their page
+  prints, so a player the scouts only half know is judged on their reading.
 
 **A player's rating at each position**
-- The Attributes tab shows "By position": his rating in his own shirt and in
-  each one he can sensibly play, best first, using the same figure as the
+- The Attributes tab shows "By position": their rating in their own shirt and
+  in each one they can sensibly play, best first, using the same figure as the
   team sheet. A flanker of 83 reads 66 at lock and at number 8. Positions
-  outside his family are left off. Another club's player shows "?" until he
-  has been scouted, like his main rating.
+  outside that family are left off. Another club's player shows "?" until
+  scouted, like the main rating.
 
 **The physio signs the fatigue warning**
 - The card on Tactics that warns about a dial kept at an extreme used to come
