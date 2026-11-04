@@ -34,3 +34,6 @@ android.keystore
 *.p12
 packaging/twa/app-release-*.a*
 packaging/twa/app-release-*.apk
+
+# a convenience bundle of docs/launch/social/carousels/out, rebuilt on demand
+docs/launch/social/*.zip
