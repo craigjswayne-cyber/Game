@@ -483,3 +483,8 @@
 .fs-attrs { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px; }
 .fs-attr-group { border: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
 .fs-attr-group legend { font-family: var(--cond); font-size: 0.6875rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); padding: 4px 0 2px; }
+/* the retraining list on Training (1.9.10): name and progress, Stop beside */
+.retrain-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; margin: 6px 14px; }
+.retrain-row > .btn { grid-column: 2; grid-row: 1 / span 2; }
+.retrain-pick { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; margin: 6px 14px; }
+.retrain-pick > .fact-label, .retrain-pick > .meta { grid-column: 1 / -1; }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, POS_ORDER, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
+import { ATTR_KEYS, POS_ORDER, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
@@ -8,6 +8,7 @@ import { FormPill, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton, spotN
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { effAt, firstProWage, fineAttr } from '../../game/attributes'
+import { oddsWord, retrainBlock, retrainOdds, retrainOf, retrainProgress, retrainTargets, retrainWeeks, startRetrain, stopRetrain } from '../../game/retrain'
 import { attrRange, fuzzedCa, knowledge, shownCa, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
@@ -531,6 +532,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               </span>
             ))}
           </div>
+          {mine && !p.acad && <RetrainBox p={p} />}
         </>
       })()}
 
@@ -1108,6 +1110,42 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       )}
       <div className="spacer" />
     </>
+  )
+}
+
+/** LEARN A NEW SHIRT (1.9.10, retrain.ts): the manager's own players only.
+ *  Each shirt in the picker carries the coaches' read of the odds, and the
+ *  reason it cannot start, when it cannot, is said beside the button. */
+function RetrainBox({ p }: { p: Player }) {
+  const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const targets = retrainTargets(p)
+  const [to, setTo] = useState<Pos>(targets[0] ?? p.pos)
+  const cur = retrainOf(game, p.id)
+  if (cur) {
+    const { done, of } = retrainProgress(game, cur)
+    return (
+      <div className="card retrain-row">
+        <b>{t('training.retrainTitle')}</b>
+        <div className="meta">{t('training.retrainProgress', { pos_k: `pos.${cur.to}`, done, of })} · {t(oddsWord(cur.odds))}</div>
+        <button className="btn ghost" onClick={() => { stopRetrain(game, p.id); touch() }}>{t('training.retrainStop')}</button>
+      </div>
+    )
+  }
+  if (!targets.length) return null
+  const pick = targets.includes(to) ? to : targets[0]
+  const block = retrainBlock(game, p, pick)
+  return (
+    <div className="card retrain-pick">
+      <label htmlFor="retrain-to" className="fact-label">{t('training.retrainAs')}</label>
+      <select id="retrain-to" className="inline-input" value={pick} onChange={e => setTo(e.target.value as Pos)}>
+        {targets.map(pos => <option key={pos} value={pos}>{posName(pos)} · {t(oddsWord(retrainOdds(game, p, pos, false)))}</option>)}
+      </select>
+      <button className="btn gold" disabled={!!block} onClick={() => { if (startRetrain(game, p.id, pick, false)) { noteUse('training'); touch() } }}>
+        {t('training.retrainStart', { n: retrainWeeks(p, pick) })}
+      </button>
+      {block && <div className="meta muted">{t(block)}</div>}
+    </div>
   )
 }
 

@@ -14,6 +14,7 @@ import { attrOdds, attrRoll, gapGrowth, PRODIGY_PA, trainPoint, youthPace } from
 import { confidence, devHash, heavyLoad, learning, planAffinity, weekGrowth } from '../devproject'
 import { canBeMentored, mentorWeek } from '../mentoring'
 import { recoveryShift } from '../condition'
+import { LOAD, loadOf, retrainOf, settleRetrains } from '../retrain'
 import { tIn, type Vars } from '../i18n'
 
 // ------------------------------------------------------------------
@@ -71,8 +72,9 @@ export function rollPlan(state: GameState, p: Player, rng: Rng): boolean {
     // learns quickly lands more often and one on what he is slow at less,
     // and the week itself is uneven: minutes, confidence, the right shirt,
     // the side's style, and the month's spell (weekGrowth, mean one)
+    // and the week's load (retrain.ts LOAD): a hard week lands more of it
     return 0.011 * (1 + coachLvl * 0.5 + facLevel(state, 'paddock') * 0.2) * ageF
-      * planAffinity(state.seed, p, focus) * weekGrowth(state, p)
+      * planAffinity(state.seed, p, focus) * weekGrowth(state, p) * LOAD[loadOf(state)].grow
   }
   // a second programme splits the week, seven parts to three: wider, not more
   const plan2 = entry.plan2 && entry.plan2 !== plan && entry.plan2 !== 'balanced' ? entry.plan2 : null
@@ -203,6 +205,9 @@ export function weeklyTraining(state: GameState, rng: Rng) {
   }
   // two coaches at odds this week (staffrift.ts): 1 or 0, the manager's club only
   const rift = riftDrag(state)
+  // the week's training load and what it did, for the Training screen (retrain.ts)
+  const load = LOAD[loadOf(state)]
+  let logPts = 0, logInj = 0
   for (const club of Object.values(state.clubs)) {
     // NOT state.userClubId directly: that still names the club after a
     // sacking, and this flag is what decides whose gym, physio, coaching staff
@@ -222,7 +227,9 @@ export function weeklyTraining(state: GameState, rng: Rng) {
       // week back whatever the gap between its fixtures
       const tf = isUser ? turnF : (aiTurn.get(club.id) ?? 1)
       // and his own week on top (condition.ts): age, engine, training, body
-      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym + (iron ? IRON_REC : 0) + recoveryShift(state, p, isUser)) * (iron ? Math.max(1, tf) : tf)), 20, 100)
+      // the training load (retrain.ts): a light week gives legs back, a hard one takes them
+      const loadRec = isUser ? load.rec : 0
+      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym + loadRec + (iron ? IRON_REC : 0) + recoveryShift(state, p, isUser)) * (iron ? Math.max(1, tf) : tf)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
       // ---- MATERNITY LEAVE: the grant, and the road back ----
@@ -293,7 +300,9 @@ export function weeklyTraining(state: GameState, rng: Rng) {
         // facility is where the squad WORKS, so a rutted one is what turns
         // an ankle on a Tuesday. Every club's own, not just the manager's.
         const surf = 1 - (club.facilities?.pitch ?? 0) * 0.05
-        if (rng() < 0.0026 * rustF * tiredF * ageF * surf * loadF) {
+        // and the week's training load, the manager's club only (retrain.ts)
+        const loadInj = isUser ? load.inj : 1
+        if (rng() < 0.0026 * rustF * tiredF * ageF * surf * loadF * loadInj) {
           let [dk, weeks] = pickTrainingInjury(rng, genderOf(state), p.real)
           if (isUser) {
             // the same care that shortens a match lay-off shortens this one
@@ -305,6 +314,7 @@ export function weeklyTraining(state: GameState, rng: Rng) {
           // NO TICKER TO CARRY IT. A match injury is narrated as it happens;
           // this one has nowhere to be seen, so the manager is written to or
           // he finds out by opening the team sheet and wondering.
+          if (isUser) logInj++
           if (isUser && !p.acad) {
             const v = { player: p.name, injury_k: dk, n: weeks }
             state.news.push({
@@ -364,16 +374,23 @@ export function weeklyTraining(state: GameState, rng: Rng) {
       if (p.lastWk != null) p.form = clamp(p.form + 0.04 * confidence(state, p), 1, 10)
       // a man on a personal plan works his own programme this week (18A);
       // everyone else takes the squad session
-      if (isUser && activePlan(state, p.id)) {
-        rollPlan(state, p, rng)
+      // a man learning a new shirt (retrain.ts) spends his week on that, in
+      // place of a plan or the session; no rng is drawn for him, as for a
+      // man on 'balanced'
+      if (isUser && retrainOf(state, p.id)) {
+        /* the retrain is his week */
+      } else if (isUser && activePlan(state, p.id)) {
+        if (rollPlan(state, p, rng)) logPts++
       } else if (isUser && state.training !== 'balanced') {
         const coach = coachFor[state.training]
         const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
         // 0.008, was 0.03, for the same reason as rollPlan's rate: the whole
         // squad took ten attribute points a season from the session
-        if (rng() < 0.008 * (1 - RIFT_TRAINING * rift) * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2)) {
+        if (rng() < 0.008 * (1 - RIFT_TRAINING * rift) * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2) * load.grow) {
           const abs = absWeek(state.season, state.week)
-          for (const k of focusMap[state.training]) trainPoint(p, k, focusMap[state.training], attrRoll(state.seed, p.id, abs, k))
+          let moved = false
+          for (const k of focusMap[state.training]) moved = trainPoint(p, k, focusMap[state.training], attrRoll(state.seed, p.id, abs, k)) || moved
+          if (moved) logPts++
         }
       }
       // Morale drift, made conditional (v1.1.4, owner: "make morale genuinely
@@ -453,6 +470,9 @@ export function weeklyTraining(state: GameState, rng: Rng) {
       p.value = playerValue(p.ca, p.age, p.pa, p.pos, p.form, p.contractEnds - state.season, p.caps)
     }
   }
+  state.trainLog = { season: state.season, week: state.week, load: loadOf(state), pts: logPts, inj: logInj }
+  // a retrain whose weeks are up lands or fails (retrain.ts)
+  settleRetrains(state)
   if (returned.length) {
     const one = returned.length === 1
     // sixteen of these a season, so it is told three ways in turn (tellings.ts)
