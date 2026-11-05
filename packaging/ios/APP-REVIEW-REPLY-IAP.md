@@ -59,7 +59,7 @@ club. This ground starts again."
 - Home → **Store** → **Max Upgrade Facilities** → Buy (this is the
   "Max your team facilities" product).
 - Tap **Build it at this club**, then **Build the whole estate, for good**.
-- Home → **Job Centre**. Tap **Apply** on any vacancy (clubs show the chance of
+- In the bottom bar tap **World** → **Job Centre**. Tap **Apply** on any vacancy (clubs show the chance of
   an offer; a lower-ranked club is the most likely to say yes). If the club
   offers the job, tap **Accept the Job**. If not, apply to another vacancy.
 - Home → **Store**. The **Max Upgrade Facilities** row now shows a Buy button
