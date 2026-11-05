@@ -31,7 +31,7 @@ confirm. You are now on the Home screen.
 **1. Full Squad Recovery ($0.99)**
 Shown in the app as **"Magic Sponge: Full Fitness"**.
 - Home → **Store**. It is on the shelf with a Buy button.
-- It is also sold inside **Medical Centre** (Home menu).
+- It is also sold inside the **Medical Centre** (bottom bar: **Hub** → **Medical Centre**).
 - It can be bought once per club match played. Right after a purchase the button
   greys out and reads "Available again after your next match"; play one match
   and it returns.
