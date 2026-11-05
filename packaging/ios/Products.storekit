@@ -24,12 +24,12 @@
       "localizations": [
         {
           "description": "New ownership arrives with lawyers: the wage cap no longer applies to your club. Permanent for the save that signs it.",
-          "displayName": "Remove the Wage Cap",
+          "displayName": "Remove the salary cap",
           "locale": "en_GB"
         }
       ],
       "productID": "phase.uncapped",
-      "referenceName": "Remove the Wage Cap",
+      "referenceName": "Remove the salary cap",
       "type": "NonConsumable"
     },
     {
@@ -39,12 +39,12 @@
       "localizations": [
         {
           "description": "Every one of your club's nine facilities raised to its maximum, at once. Once per save.",
-          "displayName": "Max your team facilities",
+          "displayName": "Max Upgrade Facilities",
           "locale": "en_GB"
         }
       ],
       "productID": "phase.estate",
-      "referenceName": "Max your team facilities",
+      "referenceName": "Max Upgrade Facilities",
       "type": "NonConsumable"
     },
     {
@@ -69,12 +69,12 @@
       "localizations": [
         {
           "description": "The board votes through 10m of extraordinary funds, plus a season of cap-exempt wages.",
-          "displayName": "Small Cash Injection",
+          "displayName": "Board Injection (Small)",
           "locale": "en_GB"
         }
       ],
       "productID": "phase.inject.s",
-      "referenceName": "Small Cash Injection",
+      "referenceName": "Board Injection (Small)",
       "type": "Consumable"
     },
     {
@@ -84,12 +84,12 @@
       "localizations": [
         {
           "description": "The board votes through 25m of extraordinary funds, plus a season of cap-exempt wages.",
-          "displayName": "Medium Cash Injection",
+          "displayName": "Board Injection (Medium)",
           "locale": "en_GB"
         }
       ],
       "productID": "phase.inject.m",
-      "referenceName": "Medium Cash Injection",
+      "referenceName": "Board Injection (Medium)",
       "type": "Consumable"
     },
     {
@@ -99,12 +99,12 @@
       "localizations": [
         {
           "description": "The board votes through 60m of extraordinary funds, plus a season of cap-exempt wages.",
-          "displayName": "Large Cash Injection",
+          "displayName": "Board Injection (Large)",
           "locale": "en_GB"
         }
       ],
       "productID": "phase.inject.l",
-      "referenceName": "Large Cash Injection",
+      "referenceName": "Board Injection (Large)",
       "type": "Consumable"
     },
     {
@@ -129,12 +129,12 @@
       "localizations": [
         {
           "description": "Every injury healed, the whole squad fresh. Buy it as often as you like, but never twice without a match between.",
-          "displayName": "Full Squad Recovery",
+          "displayName": "Magic Sponge: Full Fitness",
           "locale": "en_GB"
         }
       ],
       "productID": "phase.heal",
-      "referenceName": "Full Squad Recovery",
+      "referenceName": "Magic Sponge: Full Fitness",
       "type": "Consumable"
     },
     {
@@ -144,12 +144,12 @@
       "localizations": [
         {
           "description": "Every facility at your new club raised to its ceiling. The buildings you put up elsewhere stayed with that club; this ground starts again.",
-          "displayName": "The Estate, at the next ground",
+          "displayName": "Max Upgrade Facilities, again",
           "locale": "en_GB"
         }
       ],
       "productID": "phase.ground",
-      "referenceName": "The Estate, at the next ground",
+      "referenceName": "Max Upgrade Facilities, again",
       "type": "Consumable"
     },
     {
