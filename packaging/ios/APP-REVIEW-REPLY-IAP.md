@@ -59,9 +59,13 @@ club. This ground starts again."
 - Home → **Store** → **Max Upgrade Facilities** → Buy (this is the
   "Max your team facilities" product).
 - Tap **Build it at this club**, then **Build the whole estate, for good**.
-- In the bottom bar tap **World** → **Job Centre**. Tap **Apply** on any vacancy (clubs show the chance of
-  an offer; a lower-ranked club is the most likely to say yes). If the club
-  offers the job, tap **Accept the Job**. If not, apply to another vacancy.
+- Change club. A new career starts with no vacancies, so the quickest route is
+  to resign first: bottom bar **World** → **Job Centre** → **Resign from
+  [club]** → confirm. Then tap **Continue** once. An out-of-work manager always
+  has at least one vacancy the following week.
+- In **Job Centre**, tap **Apply** on any club other than the one just left. If
+  the club offers the job, tap **Accept the Job**. If it says no, apply to
+  another vacancy, or tap Continue and apply again.
 - Home → **Store**. The **Max Upgrade Facilities** row now shows a Buy button
   again. That button purchases "The Estate, at the next ground".
 
