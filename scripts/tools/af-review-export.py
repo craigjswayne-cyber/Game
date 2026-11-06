@@ -8,10 +8,15 @@ text, so a reviewer with limited time fixes what matters most first.
     python3 scripts/tools/af-review-export.py
     -> docs/afrikaans-review/afrikaans-review.xlsx
 
+    python3 scripts/tools/af-review-export.py --brief
+    -> docs/afrikaans-review/afrikaans-proofread-brief.xlsx  (paid proofread:
+       store listing plus the core screens, about 1,900 words)
+
 Bring the edits back with af-review-import.py.
 """
 import json
 import re
+import sys
 from pathlib import Path
 
 from openpyxl import Workbook
@@ -143,7 +148,65 @@ def add_sheet(wb, title, rows):
     return len(rows)
 
 
+BRIEF = ['menu', 'nav', 'titles', 'groups', 'wizard', 'common', 'home', 'settings', 'intro']
+BRIEF_OUT = ROOT / 'docs/afrikaans-review/afrikaans-proofread-brief.xlsx'
+BRIEF_HELP = """Afrikaans proofread: PHASE: Rugby Manager (a rugby management game for phones)
+
+The Afrikaans was machine translated. A native speaker told us it reads 'a bit too Dutch'.
+We need it to sound like a South African rugby fan wrote it: natural, everyday Afrikaans.
+
+WHAT TO DO
+1. Sheet 'Store listing' first, then 'Game screens'.
+2. Read 'Current Afrikaans'. The English is there for meaning.
+3. If a line is fine, leave 'Your version' empty.
+4. If it is wrong, stiff or Dutch-sounding, write the natural version in 'Your version'.
+5. On the 'Your notes' sheet, list the patterns you fixed, e.g. 'always X, not Y' or 'Z sounds Dutch'.
+   These notes matter most: we will use them to fix the other 90,000 words of the game.
+
+RULES THAT KEEP THE GAME WORKING
+- Keep every {word in curly brackets} exactly as it is. The game puts names and numbers there.
+  Example: 'Gaan voort: {manager}, {club}' -> you may move {club}, but not rename or remove it.
+- Keys ending .one / .other are singular / plural forms of the same text.
+- Keys ending _f are the women's-game version of the line above.
+- Buttons and tabs have little space: keep those about as short as they are now.
+- Keep rugby terms players would recognise from Afrikaans TV commentary.
+"""
+
+
+def brief():
+    rows = [(p, english_for(p), af) for p, af in flatten(AF)
+            if p.split('.')[0] in BRIEF and af.strip()]
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Start here'
+    ws.column_dimensions['A'].width = 120
+    for line in BRIEF_HELP.splitlines():
+        ws.append([line])
+    ws['A1'].font = Font(bold=True, size=14)
+    listing = store_listing_rows()
+    n1 = add_sheet(wb, 'Store listing', listing)
+    n2 = add_sheet(wb, 'Game screens', rows)
+    notes = wb.create_sheet('Your notes')
+    notes.append(['Pattern or word', 'Use instead', 'Why / example'])
+    for c, w in zip('ABC', [40, 40, 60]):
+        notes.column_dimensions[c].width = w
+    for cell in notes[1]:
+        cell.font = Font(bold=True, color='FFFFFF')
+        cell.fill = HEAD_FILL
+    wc = lambda t: len(re.findall(r'[^\s{}]+', PH_RE.sub('', t)))
+    words = sum(wc(r[2]) for r in listing + rows)
+    BRIEF_OUT.parent.mkdir(parents=True, exist_ok=True)
+    wb.save(BRIEF_OUT)
+    print(f'{n1} listing rows, {n2} screen rows, {words} Afrikaans words')
+    print(f'wrote {BRIEF_OUT.relative_to(ROOT)}')
+
+
+PH_RE = re.compile(r'\{\w+\}')
+
+
 def main():
+    if '--brief' in sys.argv:
+        return brief()
     rows = {name: [] for name, _ in SHEETS}
     for path, af in flatten(AF):
         section = path.split('.')[0]
