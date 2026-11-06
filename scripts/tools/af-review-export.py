@@ -150,10 +150,10 @@ def add_sheet(wb, title, rows):
 
 BRIEF = ['menu', 'nav', 'titles', 'groups', 'wizard', 'common', 'home', 'settings', 'intro']
 BRIEF_OUT = ROOT / 'docs/afrikaans-review/afrikaans-proofread-brief.xlsx'
-BRIEF_HELP = """Afrikaans proofread: PHASE: Rugby Manager (a rugby management game for phones)
+BRIEF_HELP = """Afrikaans proofread: PHASE: Rugby Manager (a phone app)
 
 The Afrikaans was machine translated. A native speaker told us it reads 'a bit too Dutch'.
-We need it to sound like a South African rugby fan wrote it: natural, everyday Afrikaans.
+It should read the way South Africans normally speak and write: natural, everyday Afrikaans.
 
 WHAT TO DO
 1. Sheet 'Store listing' first, then 'Game screens'.
@@ -161,15 +161,14 @@ WHAT TO DO
 3. If a line is fine, leave 'Your version' empty.
 4. If it is wrong, stiff or Dutch-sounding, write the natural version in 'Your version'.
 5. On the 'Your notes' sheet, list the patterns you fixed, e.g. 'always X, not Y' or 'Z sounds Dutch'.
-   These notes matter most: we will use them to fix the other 90,000 words of the game.
+   These notes matter most: we will use them to fix the rest of the app's text.
 
-RULES THAT KEEP THE GAME WORKING
-- Keep every {word in curly brackets} exactly as it is. The game puts names and numbers there.
+RULES THAT KEEP THE APP WORKING
+- Keep every {word in curly brackets} exactly as it is. The app puts names and numbers there.
   Example: 'Gaan voort: {manager}, {club}' -> you may move {club}, but not rename or remove it.
 - Keys ending .one / .other are singular / plural forms of the same text.
-- Keys ending _f are the women's-game version of the line above.
-- Buttons and tabs have little space: keep those about as short as they are now.
-- Keep rugby terms players would recognise from Afrikaans TV commentary.
+- Keys ending _f are the women's version of the line above.
+- Buttons have little space: keep those about as short as they are now.
 """
 
 
