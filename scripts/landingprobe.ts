@@ -103,13 +103,15 @@ ok(/href="https:\/\/discord\.gg\/3KKfDVsMb"/.test(html), 'and to the PHASE Disco
 
 // ---- 4. the store buttons ----
 //
-// Play's URL is derivable from the package id and was wired up before the app
-// reached production, on purpose: it starts working the moment it does. The
-// App Store one has no URL yet and must not pretend to.
+// Play's URL is derivable from the package id. The App Store one is the live
+// listing (id6826581592, live since 1.9.6, 6 Nov 2026), region-neutral so
+// Apple sends each visitor to their own storefront.
 ok(/play\.google\.com\/store\/apps\/details\?id=com\.phaserugbymanager\.app/.test(html),
   'the Google Play link uses the real package id')
-ok(/class="store soon"/.test(html) && !/apps\.apple\.com/.test(html),
-  'the App Store button is marked coming soon rather than linking nowhere')
+ok(/href="https:\/\/apps\.apple\.com\/app\/phase-rugby-manager\/id6826581592"/.test(html),
+  'the App Store link goes to the live listing')
+ok(!/class="store soon"/.test(html) && !/coming soon/i.test(html),
+  'no store button still says coming soon')
 
 // ---- 5. the assets it names all exist ----
 for (const m of html.matchAll(/(?:src|href)="\.\/([^"]+)"/g)) {
