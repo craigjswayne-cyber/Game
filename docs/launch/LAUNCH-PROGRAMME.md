@@ -17,12 +17,12 @@ Owner column: **O** = owner (needs a human, an account, money or a signature) ·
 
 | | |
 |---|---|
-| Current version | 1.8.18 uploaded to Play (owner, 13 Oct 2026; code 57); 1.9.0 release candidate on branch `ccr-ace3495e-5psx37` (see `docs/release-notes-1.9.0.md`) |
-| Target release | 1.9.0 (Play versionCode 58, after the Console check), staged rollout from 20% |
-| Target date | Set by the owner once Stage 1 is green (suggested: about 4 weeks after the product gate) |
-| Android | Live on Play under FWDS & BCKS LTD (org-account transfer complete); 1.8.17 in production, 1.8.18 uploaded (track and rollout to be confirmed by the owner) |
-| iOS | Not on the App Store. Apple developer enrolment pending; nothing created in App Store Connect |
-| Website | Live at phaserugbymanager.com (landing page, privacy, app-ads.txt), deploys from main |
+| Current version | 1.9.11 (6 Nov 2026): live on Play (code 70); on the App Store 1.9.6 is live and 1.9.11 is waiting for review |
+| Target release | Launched. Next: keep Android and iOS on the same version every release |
+| Target date | Android live; App Store approved and live on 6 Nov 2026 (1.9.6) |
+| Android | Live on Play under FWDS & BCKS LTD; 1.9.11 in production (code 70) |
+| iOS | Live on the App Store under FWDS & BCKS LTD: https://apps.apple.com/app/phase-rugby-manager/id6826581592 (1.9.6 approved 6 Nov 2026; 1.9.11 submitted) |
+| Website | Live at phaserugbymanager.com with both store badges linked (1.9.11), deploys from main after Gate |
 | Trailer | None |
 | Discord | Server exists; bot code in repo but not hosted; #feedback channel requested (Cowork prompt) |
 | Marketing | None started |
