@@ -1,0 +1,114 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:'BSC';font-weight:700;src:url(../../../landing/barlow-semi-condensed-latin-700-normal.woff2)}
+@font-face{font-family:'Barlow';font-weight:400;src:url(../../../landing/barlow-latin-400-normal.woff2)}
+@font-face{font-family:'Barlow';font-weight:700;src:url(../../../landing/barlow-latin-700-normal.woff2)}
+:root{--canvas:#1a201e;--surface:#242b29;--border:#4a5553;--text:#f0f4f2;--sec:#b3bdb9;--green:#34c06f;--gold:#e9be68;--on:#070d0a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000}
+.slide{position:relative;width:1080px;height:1440px;overflow:hidden;color:var(--text);font-family:'Barlow',sans-serif;background:var(--canvas)}
+.bg{position:absolute;inset:0;background:url(../../../landing/img/hero.webp) center var(--y,50%)/cover no-repeat}
+.shade{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(8,12,10,.90),rgba(8,12,10,.80) 45%,rgba(8,12,10,.93) 75%,var(--canvas))}
+.inner{position:absolute;inset:0;padding:100px 80px;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:16px;font-family:'BSC';font-size:34px}
+.brand img{width:58px;height:58px}
+.brand b{color:var(--green)}
+.num{font-family:'BSC';font-size:240px;line-height:.85;color:var(--gold);margin-top:110px}
+.title{font-family:'BSC';font-size:104px;line-height:.98;margin-top:30px}
+.title em{font-style:normal;color:var(--green)}
+.body{font-size:46px;line-height:1.35;margin-top:36px;color:var(--text)}
+.list{list-style:none;margin-top:44px;border-top:2px solid var(--border)}
+.list li{font-size:40px;font-weight:700;padding:28px 0 28px 46px;border-bottom:2px solid var(--border);position:relative;color:var(--sec)}
+.list li::before{content:"";position:absolute;left:4px;top:44px;width:20px;height:20px;border-radius:50%;background:var(--green)}
+.foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;font-size:26px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--sec)}
+.dots{display:flex;gap:12px}
+.dots i{width:16px;height:16px;border-radius:50%;background:var(--border)}
+.dots i.on{background:var(--green);width:44px;border-radius:8px}
+/* cover */
+.cover .inner{justify-content:center;text-align:center;align-items:center}
+.cover .mark{width:180px;height:180px}
+.cover .k{margin-top:50px;font-weight:700;font-size:34px;letter-spacing:7px;text-transform:uppercase;color:var(--gold)}
+.cover h1{font-family:'BSC';line-height:.92;margin-top:24px}
+.cover h1 .a{display:block;font-size:150px}
+.cover h1 .b{display:block;font-size:250px;color:var(--green)}
+.cover h1 .c{display:block;font-size:100px;margin-top:10px}
+.cover .swipe{margin-top:80px;font-size:42px;font-weight:700;color:var(--sec)}
+.cover .foot,.cta .foot{position:absolute;left:80px;right:80px;bottom:90px}
+/* cta */
+.cta .inner{justify-content:center;text-align:center;align-items:center}
+.cta h2{font-family:'BSC';font-size:120px;line-height:.95;margin-top:40px}
+.cta h2 em{font-style:normal;color:var(--green);display:block}
+.cta .tag{margin-top:26px;font-weight:700;font-size:32px;letter-spacing:5px;text-transform:uppercase;color:var(--gold)}
+.dl{margin-top:70px;font-weight:700;font-size:30px;letter-spacing:4px;text-transform:uppercase}
+.stores{display:flex;flex-direction:column;gap:22px;margin-top:24px;width:620px}
+.store{display:flex;align-items:center;gap:20px;padding:24px 34px;border-radius:18px;background:var(--green);color:var(--on);text-align:left;box-shadow:inset 0 2px rgba(255,255,255,.45)}
+.store svg{width:60px;height:60px;flex:none}
+.store .l1{display:block;font-size:22px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;opacity:.75}
+.store .l2{display:block;font-size:46px;font-weight:700;line-height:1.1}
+.fine{margin-top:40px;font-size:22px;color:#8f9993;max-width:800px}
+</style></head><body>
+
+<section class="slide cover" style="--y:40%"><div class="bg"></div><div class="shade"></div><div class="inner">
+  <img class="mark" src="../../../landing/img/icon.svg" alt="">
+  <p class="k">The five best things about</p>
+  <h1><span class="b">PHASE</span><span class="c">Rugby Manager</span></h1>
+  <p class="swipe">Swipe &rarr;</p>
+  <div class="foot"><span>Stories, seasons &amp; silverware</span><span class="dots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+</div></section>
+
+<section class="slide" style="--y:10%"><div class="bg"></div><div class="shade"></div><div class="inner">
+  <div class="brand"><img src="../../../landing/img/icon.svg" alt=""><span><b>PHASE</b> Rugby Manager</span></div>
+  <div class="num">01</div>
+  <div class="title">Two games.<br><em>One app.</em></div>
+  <p class="body">The men's and the women's game, built the same way. Neither one bolted on.</p>
+  <ul class="list"><li>171 clubs across 15 leagues</li><li>107 men's clubs, 64 women's</li><li>Its own cup and Test calendar</li></ul>
+  <div class="foot"><span>Swipe &rarr;</span><span class="dots"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span></div>
+</div></section>
+
+<section class="slide" style="--y:30%"><div class="bg"></div><div class="shade"></div><div class="inner">
+  <div class="brand"><img src="../../../landing/img/icon.svg" alt=""><span><b>PHASE</b> Rugby Manager</span></div>
+  <div class="num">02</div>
+  <div class="title">A career that<br><em>remembers.</em></div>
+  <p class="body">Season one still matters when you get to season fifteen.</p>
+  <ul class="list"><li>Release a player, they may score against you</li><li>Break a promise, the agent wants more</li><li>An academy kid may captain the side</li></ul>
+  <div class="foot"><span>Swipe &rarr;</span><span class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></span></div>
+</div></section>
+
+<section class="slide" style="--y:95%"><div class="bg"></div><div class="shade"></div><div class="inner">
+  <div class="brand"><img src="../../../landing/img/icon.svg" alt=""><span><b>PHASE</b> Rugby Manager</span></div>
+  <div class="num">03</div>
+  <div class="title">Saturday is<br><em>your call.</em></div>
+  <p class="body">Live text commentary and stats, with the pitch for the tries and big moments.</p>
+  <ul class="list"><li>The posts, the corner or the quick tap</li><li>Team talks and when to empty the bench</li><li>Five attack and five defence styles</li></ul>
+  <div class="foot"><span>Swipe &rarr;</span><span class="dots"><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></span></div>
+</div></section>
+
+<section class="slide" style="--y:70%"><div class="bg"></div><div class="shade"></div><div class="inner">
+  <div class="brand"><img src="../../../landing/img/icon.svg" alt=""><span><b>PHASE</b> Rugby Manager</span></div>
+  <div class="num">04</div>
+  <div class="title">Build the<br><em>whole club.</em></div>
+  <p class="body">Every week brings a real decision, on the pitch and off it.</p>
+  <ul class="list"><li>Agents who haggle, loans and the cap</li><li>A board with an opinion of you</li><li>A press pack that remembers your promises</li></ul>
+  <div class="foot"><span>Swipe &rarr;</span><span class="dots"><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+</div></section>
+
+<section class="slide" style="--y:55%"><div class="bg"></div><div class="shade"></div><div class="inner">
+  <div class="brand"><img src="../../../landing/img/icon.svg" alt=""><span><b>PHASE</b> Rugby Manager</span></div>
+  <div class="num">05</div>
+  <div class="title">Plays<br><em>offline.</em></div>
+  <p class="body">No account and no cloud. Your career stays on your phone.</p>
+  <ul class="list"><li>Works with aeroplane mode on</li><li>Six languages, from French to Japanese</li><li>New to rugby? The Handbook explains it all</li></ul>
+  <div class="foot"><span>Swipe &rarr;</span><span class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></span></div>
+</div></section>
+
+<section class="slide cta" style="--y:58%"><div class="bg"></div><div class="shade"></div><div class="inner">
+  <img class="mark" style="width:130px;height:130px" src="../../../landing/img/icon.svg" alt="">
+  <h2>Your club.<br>Your legacy.<em>Your time.</em></h2>
+  <p class="tag">Build something worth remembering</p>
+  <p class="dl">Download free on Apple &amp; Android</p>
+  <div class="stores">
+    <div class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.7c0-2.2 1.8-3.3 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4s-2.3-.9-2.3-3.4ZM14.3 6c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 2-.5 2.6-1.2Z"/></svg><span><span class="l1">Download on the</span><span class="l2">App Store</span></span></div>
+    <div class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 1.8a1.4 1.4 0 0 0-.5 1.1v18.2c0 .45.18.85.5 1.1l10-10.2-10-10.2Zm11.1 9.1 2.9-3-9.5-5.4 6.6 8.4Zm0 2.2-6.6 8.4 9.5-5.4-2.9-3Zm4.3-2.2-2.4-1.4-3 3.1 3 3.1 2.4-1.4c.9-.5.9-2.4 0-2.9v-.5Z"/></svg><span><span class="l1">Get it on</span><span class="l2">Google Play</span></span></div>
+  </div>
+  <p class="fine">An unofficial, independent game. Not affiliated with any player, club, league or governing body.</p>
+</div></section>
+</body></html>
