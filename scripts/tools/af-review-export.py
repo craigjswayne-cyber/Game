@@ -10,7 +10,7 @@ text, so a reviewer with limited time fixes what matters most first.
 
     python3 scripts/tools/af-review-export.py --brief
     -> docs/afrikaans-review/afrikaans-proofread-brief.xlsx  (paid proofread:
-       store listing plus the core screens, about 1,900 words)
+       store listing plus the core screens, Today, shop and Pro Manager: about 2,900 words)
 
 Bring the edits back with af-review-import.py.
 """
@@ -148,7 +148,8 @@ def add_sheet(wb, title, rows):
     return len(rows)
 
 
-BRIEF = ['menu', 'nav', 'titles', 'groups', 'wizard', 'common', 'home', 'settings', 'intro']
+BRIEF = ['menu', 'nav', 'titles', 'groups', 'wizard', 'common', 'home', 'settings', 'intro',
+         'desk', 'store', 'pro']
 BRIEF_OUT = ROOT / 'docs/afrikaans-review/afrikaans-proofread-brief.xlsx'
 BRIEF_HELP = """Afrikaans proofread: PHASE: Rugby Manager (a phone app)
 
