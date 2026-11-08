@@ -30,3 +30,17 @@ npx vite-node scripts/langparity.ts
 The import edits `af.json` value by value (formatting untouched), refuses any
 row whose `{placeholders}` changed, and prints store-listing edits for pasting
 into `docs/store-listing.md` by hand.
+
+## Paid proofread (Word)
+
+`afrikaans-proofread.docx` is the 2,901-word brief for a paid proofreader:
+store listing, menus, setup, home, settings, Today, shop and Pro Manager. The
+proofreader edits the yellow column, with or without Track Changes.
+`afrikaans-proofread.keys.json` maps each row number back to its key, so keep
+it alongside the document and regenerate both together.
+
+```
+python3 scripts/tools/af-review-docx.py export
+python3 scripts/tools/af-review-docx.py import returned.docx --dry-run
+python3 scripts/tools/af-review-docx.py import returned.docx
+```
