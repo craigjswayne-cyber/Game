@@ -11,19 +11,24 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:var(--canvas)}
 h1{top:294px;font-family:'BSC';font-size:150px;line-height:.92;text-shadow:0 4px 24px rgba(0,0,0,.7)}
 h1 em{font-style:normal;color:var(--green)}
 .sub{top:596px;font-family:'BSC';font-size:62px;line-height:1;color:var(--gold);text-shadow:0 3px 16px rgba(0,0,0,.8)}
-.phone{position:absolute;left:50%;top:700px;width:392px;height:624px;margin-left:-196px;transform:rotate(-5deg);
+.phone{position:absolute;left:50%;top:690px;width:340px;height:520px;margin-left:-170px;transform:rotate(-5deg);
  border-radius:60px;background:#111;padding:58px 16px 16px;overflow:hidden;
  box-shadow:0 0 0 3px #2a312e,0 40px 90px rgba(0,0,0,.75),0 0 140px rgba(52,192,111,.22)}
 .phone::before{content:"";position:absolute;top:20px;left:50%;width:110px;height:28px;margin-left:-55px;border-radius:14px;background:#000}
 .screen{width:100%;height:100%;border-radius:0 0 44px 44px;overflow:hidden}
 .screen img{display:block;width:100%}
-.brand{top:1360px;display:flex;justify-content:center}
+.brand{top:1248px;display:flex;justify-content:center}
 .brand .row{display:inline-flex;align-items:center;gap:20px}
 .brand img{width:82px;height:82px}
 .brand span{text-align:left;font-family:'BSC';line-height:.9}
 .brand b{display:block;font-size:80px;color:var(--green)}
 .brand i{display:block;font-style:normal;font-size:35px}
-.free{top:1494px;font-size:26px;letter-spacing:6px;text-transform:uppercase;color:var(--text)}
+.free{top:1368px;font-size:26px;letter-spacing:6px;text-transform:uppercase;color:var(--text)}
+.stores{top:1420px;display:flex;gap:20px;justify-content:center}
+.store{display:flex;align-items:center;gap:14px;flex:1;padding:16px 24px;border-radius:16px;background:var(--green);color:#070d0a;text-align:left;box-shadow:inset 0 2px rgba(255,255,255,.45)}
+.store svg{width:48px;height:48px;flex:none}
+.store .l1{display:block;font-size:19px;letter-spacing:1.5px;text-transform:uppercase;opacity:.75}
+.store .l2{display:block;font-size:38px;line-height:1.1}
 /* safe-zone overlay, shown only with ?overlay */
 .ov{display:none;position:absolute;inset:0;pointer-events:none;font:700 30px 'Barlow',sans-serif;color:#fff}
 .overlay .ov{display:block}
@@ -39,5 +44,9 @@ h1 em{font-style:normal;color:var(--green)}
 <div class="phone" id="phone"><div class="screen"><img src="screen.png" alt=""></div></div>
 <div class="k brand" id="brand"><div class="row"><img src="../../../landing/img/icon.svg" alt=""><span><b>PHASE</b><i>Rugby Manager</i></span></div></div>
 <p class="k free" id="free">Free on iPhone and Android</p>
+<div class="k stores" id="stores">
+  <div class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.7c0-2.2 1.8-3.3 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4s-2.3-.9-2.3-3.4ZM14.3 6c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 2-.5 2.6-1.2Z"/></svg><span><span class="l1">Download on the</span><span class="l2">App Store</span></span></div>
+  <div class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 1.8a1.4 1.4 0 0 0-.5 1.1v18.2c0 .45.18.85.5 1.1l10-10.2-10-10.2Zm11.1 9.1 2.9-3-9.5-5.4 6.6 8.4Zm0 2.2-6.6 8.4 9.5-5.4-2.9-3Zm4.3-2.2-2.4-1.4-3 3.1 3 3.1 2.4-1.4c.9-.5.9-2.4 0-2.9v-.5Z"/></svg><span><span class="l1">Get it on</span><span class="l2">Google Play</span></span></div>
+</div>
 <div class="ov"><div class="z t">TOP 270 PX: INSTAGRAM UI</div><div class="z b">BOTTOM 380 PX: INSTAGRAM UI AND LINK BUTTON</div><div class="m ml"></div><div class="m mr"></div><div class="line" style="top:270px"></div><div class="line" style="top:1540px"></div></div>
 </div><script>if(location.search.includes('overlay'))document.getElementById('post').classList.add('overlay')</script></body></html>
