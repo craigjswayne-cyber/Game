@@ -6,4 +6,4 @@ and the 65 px side margins.
 
 `node art/social/love-rugby-story/render.cjs` re-renders both from `story.html` and
 prints whether each element (headline, subline, phone, logo, store buttons) sits inside
-the safe band. `screen.png` is a real capture of the game's home screen.
+the safe band. `screen.png` is a real full-time capture from the game: Leicester 34-30 Auckland, a pre-season friendly played out in a new career.
