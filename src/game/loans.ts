@@ -251,6 +251,9 @@ export function loanIn(state: GameState, playerId: number, length: LoanLength = 
   parent.tactic.lineup = parent.tactic.lineup.map(id => (id === p.id ? null : id))
   user.players.push(p.id)
   p.loanFrom = parent.id
+  // off his parent's list: a loanee cannot be sold by the club borrowing him,
+  // and the chip on his page said he could (1.9.12)
+  p.transferListed = false
   p.loanUntil = LOAN_LENGTH_WEEKS[length] ? now + LOAN_LENGTH_WEEKS[length] : undefined
   p.loanShare = share
   p.loanCa = p.ca   // what he was worth walking in: the buy option reads it
@@ -284,7 +287,7 @@ const cap1 = (s: string) => s[0].toUpperCase() + s.slice(1)
  * (v1.2.8). The man grows a little from the rugby he got, and the inbox says
  * he has gone.
  */
-export function returnLoanIn(state: GameState, p: Player, rng: () => number, week = state.week): void {
+export function returnLoanIn(state: GameState, p: Player, rng: () => number, week = state.week, early = false): void {
   if (!p.loanFrom || !state.clubs[p.loanFrom]) return
   const user = state.clubs[state.userClubId]
   user.players = user.players.filter(id => id !== p.id)
@@ -296,7 +299,18 @@ export function returnLoanIn(state: GameState, p: Player, rng: () => number, wee
   p.loanFrom = null
   p.loanUntil = undefined
   p.loanShare = undefined
-  if (p.ca < p.pa) p.ca = clamp(p.ca + 1 + Math.floor(rng() * 3), 1, p.pa)
+  // the growth is the payoff of a loan that ran its course; one cut short
+  // pays none, and draws nothing from the stream
+  if (!early && p.ca < p.pa) p.ca = clamp(p.ca + 1 + Math.floor(rng() * 3), 1, p.pa)
+  if (early) {
+    const v = { player: p.name, club: state.clubs[p.clubId]?.short ?? '' }
+    state.news.push({
+      id: state.nextId++, week, season: state.season, type: 'transfer', read: true,
+      subject: tIn('en', 'news.loanSentBackSubj', v), body: tIn('en', 'news.loanSentBack', v),
+      k: 'news.loanSentBack', v, playerId: p.id,
+    })
+    return
+  }
   state.news.push({
     id: state.nextId++, week, season: state.season, type: 'transfer', read: false,
     subject: `${p.name} returns to ${state.clubs[p.clubId]?.short} after his loan`,
@@ -304,6 +318,34 @@ export function returnLoanIn(state: GameState, p: Player, rng: () => number, wee
     k: 'news.loanEnds', v: { player: p.name, club: state.clubs[p.clubId]?.short ?? '' },
     playerId: p.id,
   })
+}
+
+/** The fewest weeks a loan-in stays before the manager can end it early: the
+ *  same floor as recalling one of ours (loanRecall), so borrowing a man for a
+ *  single match and handing him back is not a move. */
+export const LOAN_SEND_BACK_MIN_WEEKS = 4
+
+/**
+ * END A LOAN-IN EARLY (1.9.12, player report: "il n'est pas possible de mettre
+ * fin à un prêt en cours"). A loan in rugby can be cut short by agreement, and
+ * the game could not do it: the man stayed, on the wage share, until his date.
+ * He goes back to his parent club today, the share stops with him, and the
+ * development a full loan pays (returnLoanIn) is not paid for a cut-short one.
+ */
+export function loanSendBack(state: GameState, playerId: number): LoanReply {
+  const p = state.players[playerId]
+  if (state.unemployed) return reply(false, 'reply.noDesk')
+  if (!p || !p.loanFrom || p.clubId !== state.userClubId || !state.clubs[p.loanFrom]) {
+    return reply(false, 'reply.unavailable')
+  }
+  const club = state.clubs[p.loanFrom].short
+  const served = absWeek(state.season, state.week) - (p.joinedAt ?? 0)
+  if (p.joinedAt != null && served < LOAN_SEND_BACK_MIN_WEEKS) {
+    return reply(false, 'reply.sendBackTooSoon', { player: p.name, club, n: LOAN_SEND_BACK_MIN_WEEKS - served })
+  }
+  p.transferListed = false
+  returnLoanIn(state, p, () => 0, state.week, true)
+  return reply(true, 'reply.loanSentBack', { player: p.name, club })
 }
 
 /** The loan-ins whose date has come. Run from the weekly settle. */

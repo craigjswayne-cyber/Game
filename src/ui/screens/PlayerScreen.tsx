@@ -17,7 +17,7 @@ import { playerStory } from '../../game/stories'
 import { bondsLine } from '../../game/bonds'
 import { canAgencyFile, canSecondOpinion } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
-import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanRecall } from '../../game/loans'
+import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanRecall, loanSendBack } from '../../game/loans'
 import { noteUse } from '../../game/usage'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
@@ -719,6 +719,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {mine && p.loanFrom && (() => {
         const buy = loanBuyOffer(game, p.id)
         if (!buy) return null
+        const parentShort = game.clubs[p.loanFrom]?.short ?? ''
         return (
           <div className="panel" style={{ marginTop: 10 }}>
             <div className="meta" style={{ marginBottom: 6 }}>
@@ -737,6 +738,15 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 {t(buy.k, { fee: fmtMoney(buy.fee), club: p.loanFrom ? game.clubs[p.loanFrom]?.short ?? '' : '' })}
               </div>
             )}
+            {/* END IT EARLY (1.9.12, player report: "il n'est pas possible de
+                mettre fin à un prêt en cours"). loanSendBack holds the
+                four-week floor and says so if it is too soon. */}
+            <div className="meta" style={{ margin: '10px 0 6px' }}>
+              {t('player.loanSendBackLine', { player: p.name, club: parentShort })}
+            </div>
+            <TwoStep className="btn ghost block" label={t('player.loanSendBack', { club: parentShort })}
+              confirm={t('player.loanSendBackConfirm')}
+              onConfirm={() => { setMsg(loanSendBack(game, p.id).msg); touch() }} />
           </div>
         )
       })()}
@@ -936,9 +946,14 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
               }}>{t('player.openContractTalks')}</button>
             )}
+            {/* NOT A LOANEE (1.9.12, player report: "il est possible de les
+                mettre sur la liste des transferts, ce qui ne devrait pas être
+                possible"). He belongs to his parent club; only they can sell
+                him, and no bid ever came for a listed loanee anyway. A listing
+                carried from before this can still be taken off. */}
             {p.transferListed
               ? <button className="btn ghost" onClick={() => { p.transferListed = false; setMsg(t('player.unlistedMsg', { name: p.name })); touch() }}>{t('player.unlist')}</button>
-              : <TwoStep className="btn danger" label={t('player.transferList')} confirm={t('player.transferListConfirm')}
+              : !p.loanFrom && <TwoStep className="btn danger" label={t('player.transferList')} confirm={t('player.transferListConfirm')}
                   onConfirm={() => { p.transferListed = true; setMsg(t('player.listedMsg', { name: p.name })); touch() }} />}
           </div>
           {/* RELEASE (owner, v1.2.7): pay off what is left and let him go.
