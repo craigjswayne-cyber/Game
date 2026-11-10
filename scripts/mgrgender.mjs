@@ -62,6 +62,13 @@ try {
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')
 
+  // ---- 1b. and Home asks, once (1.9.12) ----
+  // Player report: "the app assumes I am male as a manager". A career started
+  // without the question opens on "he", so Home says so and offers the choice.
+  say('\n--- 1b. Home asks, because the wizard does not')
+  ok(await page.locator('.pronoun-card .pronoun-btn').count() === 2,
+    'a new career on a device that has never answered is asked on Home')
+
   // ---- 2. Settings asks it, and the career opens on the device's answer ----
   say('\n--- 2. Settings asks it instead')
   await openSettings()
@@ -139,6 +146,31 @@ try {
   const reloaded = await state()
   ok(reloaded.saved === 'w', `the resumed career is still hers (${reloaded.saved})`)
   ok(reloaded.device === 'w', 'and the device still remembers')
+
+  // ---- 5. the Home card, answered (1.9.12) ----
+  say('\n--- 5. answered once, never asked again')
+  await page.evaluate(() => window.rugbyStore.getState().home())
+  await page.waitForTimeout(300)
+  ok(await page.locator('.pronoun-card').count() === 0, 'an answer given in Settings means Home does not ask')
+  // a save from before the card, on a device that never answered: Eilidh's
+  await page.evaluate(() => {
+    localStorage.removeItem('rm-mgr-gender')
+    const st = window.rugbyStore.getState()
+    delete st.game.pronounSet
+    st.game.mgrGender = undefined
+    st.touch()
+  })
+  await page.waitForTimeout(300)
+  ok(await page.locator('.pronoun-card').count() === 1, 'a career that never chose is asked')
+  await page.locator('.pronoun-card .pronoun-btn').nth(1).click()
+  await page.waitForTimeout(300)
+  const carded = await state()
+  ok(carded.saved === 'w' && carded.device === 'w', `tapping She on the card sets the save and the device (${carded.saved}/${carded.device})`)
+  ok(await page.locator('.pronoun-card').count() === 0, 'and the card goes')
+  await page.reload()
+  await page.waitForSelector('.bottom-nav', { timeout: 20000 })
+  await page.waitForTimeout(300)
+  ok(await page.locator('.pronoun-card').count() === 0, 'and stays gone after a reload')
 } catch (err) {
   say(`  FAIL  PROBE THREW: ${err.message.split('\n')[0]}`)
   fails++

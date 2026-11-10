@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, POS_ORDER, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
+import { ATTR_KEYS, POS_ORDER, SEASON_WEEKS, careerRows, kickRecord, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
@@ -17,7 +17,7 @@ import { playerStory } from '../../game/stories'
 import { bondsLine } from '../../game/bonds'
 import { canAgencyFile, canSecondOpinion } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
-import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanRecall } from '../../game/loans'
+import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanRecall, loanSendBack } from '../../game/loans'
 import { noteUse } from '../../game/usage'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
@@ -543,8 +543,18 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip">{t('player.apps')} <b>{p.stats.apps}</b> {t('player.appsStarts', { n: p.stats.starts })}</span>
         <span className="chip">{t('player.tries')} <b>{p.stats.tries}</b></span>
         <span className="chip">{t('player.points')} <b>{p.stats.points}</b></span>
-        <span className="chip">{t('player.cons')} <b>{p.stats.cons}</b></span>
-        <span className="chip">{t('player.pens')} <b>{p.stats.pens}</b></span>
+        {/* MADE FROM TAKEN, AND THE RATE (1.9.12, player report: "transformations
+            tentées et réussies ainsi que le % de réussite"). A season from
+            before attempts were counted shows the made count alone until a
+            kick is counted (kickRecord). */}
+        {(() => {
+          const kr = kickRecord(p.stats)
+          return <>
+            <span className="chip">{t('player.cons')} <b>{kr.con ? t('player.kickLine', { ...kr.con }) : p.stats.cons}</b></span>
+            <span className="chip">{t('player.pens')} <b>{kr.pen ? t('player.kickLine', { ...kr.pen }) : p.stats.pens}</b></span>
+          </>
+        })()}
+        {p.stats.tkl != null && <span className="chip">{t('player.tackles')} <b>{p.stats.tkl}</b></span>}
         {p.stats.drops > 0 && <span className="chip">{t('player.drops')} <b>{p.stats.drops}</b></span>}
         <span className="chip">{t('player.cards')} <b>{p.stats.yc}{t('squad.colYC').slice(0, 1)} {p.stats.rc}{t('squad.colRC').slice(0, 1)}</b></span>
         {p.stats.motm > 0 && <span className="chip">{t('player.motm')} <b>{p.stats.motm}</b></span>}
@@ -709,7 +719,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </div>
       )}
 
-      {/* ---- LOAN TO BUY ----
+      {/* ---- ON LOAN FROM: TERMINATE, OR BUY ----
           Owner, 7 Sep: "you should also do a loan to buy scheme where if things
           go well you can offer to buy the player at the value." It only appears
           on a player who is actually here on loan, and it says what it would
@@ -719,9 +729,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {mine && p.loanFrom && (() => {
         const buy = loanBuyOffer(game, p.id)
         if (!buy) return null
+        const parentShort = game.clubs[p.loanFrom]?.short ?? ''
         return (
-          <div className="panel" style={{ marginTop: 10 }}>
-            <div className="meta" style={{ marginBottom: 6 }}>
+          <div className="card loan-in-card" style={{ ...acc('var(--gold)'), marginTop: 10 }}>
+            <div className="fact-label">{t('player.onLoanFrom', { club: parentShort })}</div>
+            {/* TERMINATE IT (1.9.12, player report: "il n'est pas possible de
+                mettre fin à un prêt en cours"; owner: "needs to be an option to
+                terminate the loan deal"). First on the card, not under the buy
+                option. loanSendBack holds the four-week floor and says so. */}
+            <div className="meta" style={{ margin: '4px 0 6px' }}>
+              {t('player.loanSendBackLine', { player: p.name, club: parentShort })}
+            </div>
+            <TwoStep className="btn ghost block loan-terminate" label={t('player.loanSendBack')}
+              confirm={t('player.loanSendBackConfirm', { club: parentShort })}
+              onConfirm={() => { setMsg(loanSendBack(game, p.id).msg); touch() }} />
+            <div className="meta" style={{ margin: '12px 0 6px' }}>
               {t('player.loanBuyLine', { fee: fmtMoney(buy.fee), n: LOAN_BUY_MIN_WEEKS })}
             </div>
             {buy.ok ? (
@@ -729,12 +751,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 confirm={t('player.loanBuyConfirm')}
                 onConfirm={() => {
                   const r = loanBuy(game, p.id)
-                  setMsg(t(r.k, { player: p.name, fee: fmtMoney(r.fee), club: p.loanFrom ? game.clubs[p.loanFrom]?.short ?? '' : '' }))
+                  setMsg(t(r.k, { player: p.name, fee: fmtMoney(r.fee), club: parentShort }))
                   touch()
                 }} />
             ) : (
               <div className="muted" style={{ fontSize: '0.75rem' }}>
-                {t(buy.k, { fee: fmtMoney(buy.fee), club: p.loanFrom ? game.clubs[p.loanFrom]?.short ?? '' : '' })}
+                {t(buy.k, { fee: fmtMoney(buy.fee), club: parentShort })}
               </div>
             )}
           </div>
@@ -936,9 +958,14 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
               }}>{t('player.openContractTalks')}</button>
             )}
+            {/* NOT A LOANEE (1.9.12, player report: "il est possible de les
+                mettre sur la liste des transferts, ce qui ne devrait pas être
+                possible"). He belongs to his parent club; only they can sell
+                him, and no bid ever came for a listed loanee anyway. A listing
+                carried from before this can still be taken off. */}
             {p.transferListed
               ? <button className="btn ghost" onClick={() => { p.transferListed = false; setMsg(t('player.unlistedMsg', { name: p.name })); touch() }}>{t('player.unlist')}</button>
-              : <TwoStep className="btn danger" label={t('player.transferList')} confirm={t('player.transferListConfirm')}
+              : !p.loanFrom && <TwoStep className="btn danger" label={t('player.transferList')} confirm={t('player.transferListConfirm')}
                   onConfirm={() => { p.transferListed = true; setMsg(t('player.listedMsg', { name: p.name })); touch() }} />}
           </div>
           {/* RELEASE (owner, v1.2.7): pay off what is left and let him go.

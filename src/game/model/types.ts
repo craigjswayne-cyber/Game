@@ -38,6 +38,19 @@ export interface SeasonStats {
   points: number
   cons: number
   pens: number
+  /** Kicks at goal TAKEN, made or missed (1.9.12, player report: "transformations
+   *  tentées et réussies ainsi que le % de réussite"). cons and pens are the
+   *  ones that went over. Absent on a season from before, which reads as
+   *  "not counted" on screen, never as 0 from 0. */
+  conA?: number
+  penA?: number
+  /** Tackles made, from the engine's own count (field.ts). Same vintage. */
+  tkl?: number
+  /** Conversions and penalties already made when a season under way was first
+   *  loaded on 1.9.12: what cons and pens held before attempts were counted.
+   *  The success rate reads only the kicks counted since (kickRecord). */
+  con0?: number
+  pen0?: number
   drops: number
   yc: number
   rc: number
@@ -1214,6 +1227,10 @@ export interface GameState {
    *  a save from before the choice existed, which reads as a man, exactly
    *  what every line in the game assumed until then. See i18n.ts `_w`. */
   mgrGender?: import('../gender').Gender
+  /** Set once the manager has said which (1.9.12): on the Home card that asks
+   *  in a first week, or in Settings. Until then Home asks, because "he" was a
+   *  default nobody chose (player report: "the app assumes I am male"). */
+  pronounSet?: true
   /** the analyst's coin, drawn once per career: the strings about the
    *  analyst say "he" or "she" by it (i18n.ts `_w`). Absent on an older
    *  save until the migration draws it. */

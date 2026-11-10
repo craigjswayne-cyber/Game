@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { type Player } from '../../game/model'
+import { kickRecord, type KickLine, type Player } from '../../game/model'
+
+/** Kicks at goal a player needs this season before being ranked on the rate,
+ *  so one conversion from one is not the best boot in the league. */
+const MIN_KICKS = 10
 import { teamShort } from '../../game/matchEngine'
 import { ClubLink, Jersey, SectionTitle } from '../components'
 import { t, compLabel } from '../../game/i18n'
@@ -29,6 +33,24 @@ export default function DreamTeam() {
     b.stats.ratingSum / Math.max(1, b.stats.apps) - a.stats.ratingSum / Math.max(1, a.stats.apps)).slice(0, 8)
   const byTries = [...seasonPool].sort((a, b) => b.stats.tries - a.stats.tries).slice(0, 5)
   const byPoints = [...seasonPool].sort((a, b) => b.stats.points - a.stats.points).slice(0, 5)
+  // THE LEAGUE'S TACKLERS AND GOAL KICKERS (1.9.12, player report: "il n'y a
+  // pas de statistiques individuelles pour les championnats"; owner: under
+  // the Team of the Week). Season stats, so they build week by week and are
+  // wiped with every other season figure at the summer (closeSeasonStats).
+  // Anyone who has played counts: a tackle total needs no three-match floor,
+  // and the kickers have their own floor of attempts.
+  const leaguePool = Object.values(game.players).filter(p =>
+    p.clubId && game.clubs[p.clubId]?.leagueId === leagueId && p.stats.apps > 0)
+  const byTackles = leaguePool.filter(p => (p.stats.tkl ?? 0) > 0)
+    .sort((a, b) => (b.stats.tkl ?? 0) - (a.stats.tkl ?? 0)).slice(0, 5)
+  const kickOf = new Map<number, KickLine>()
+  for (const p of leaguePool) {
+    const k = kickRecord(p.stats).all
+    if (k && k.att >= MIN_KICKS) kickOf.set(p.id, k)
+  }
+  const byKicking = leaguePool.filter(p => kickOf.has(p.id))
+    .sort((a, b) => kickOf.get(b.id)!.pct - kickOf.get(a.id)!.pct || kickOf.get(b.id)!.made - kickOf.get(a.id)!.made)
+    .slice(0, 5)
 
   // rows arranged like the magazine graphic: 1-2-3 / 4-5 / 6-8-7 / 9-10 / 11-12-13-14 / 15
   const ROWS = [[0, 1, 2], [3, 4], [5, 7, 6], [8, 9], [10, 11, 12, 13], [14]]
@@ -48,9 +70,9 @@ export default function DreamTeam() {
   // A board with nobody on it is left out (UI QA, 1.8.0): two rounds into a
   // league nobody has the three appearances these need, and three headings
   // stacked over nothing read as a page that had failed to load.
-  const lb = (title: string, rows: Player[], val: (p: Player) => string) => rows.length === 0 ? null : (
+  const lb = (title: string, rows: Player[], val: (p: Player) => string, sub?: string) => rows.length === 0 ? null : (
     <>
-      <SectionTitle>{title}</SectionTitle>
+      <SectionTitle sub={sub}>{title}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {rows.map((p, i) => (
           <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
@@ -87,6 +109,8 @@ export default function DreamTeam() {
       {lb(t('world.dtRatings'), byRating, p => (p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2))}
       {lb(t('tables.topTryScorers'), byTries, p => `${p.stats.tries}`)}
       {lb(t('tables.topPointsScorers'), byPoints, p => `${p.stats.points}`)}
+      {lb(t('tables.topTacklers'), byTackles, p => `${p.stats.tkl ?? 0}`)}
+      {lb(t('tables.topKickers'), byKicking, p => t('player.kickLine', { ...kickOf.get(p.id)! }), t('tables.topKickersSub', { n: MIN_KICKS }))}
       <OnesToWatch leagueId={leagueId} />
       <div className="spacer" />
     </>

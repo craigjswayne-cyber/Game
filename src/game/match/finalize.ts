@@ -258,6 +258,9 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         if (started) p.stats.starts += 1
         p.stats.mins += Math.max(1, Math.round(minutesPlayed(side, pid, 80)))
         p.stats.ratingSum += r
+        // the tackles the engine counted for him (field.ts), onto his season
+        // (1.9.12). Read from a map the match already holds: no draw.
+        p.stats.tkl = (p.stats.tkl ?? 0) + (side.tackles?.get(pid) ?? 0)
         // and the same rating against the award window, which is cleared every
         // time a Player of the Month is named (see SeasonStats.mSum)
         p.stats.mSum = (p.stats.mSum ?? 0) + r

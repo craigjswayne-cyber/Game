@@ -37,7 +37,7 @@ export const settingsSlice = (set: SetState, get: GetState) => ({
   setMgrGender: (g: Gender) => {
     try { localStorage.setItem(MGR_GENDER_KEY, g) } catch { /* private mode */ }
     const game = get().game
-    if (game) game.mgrGender = g
+    if (game) { game.mgrGender = g; game.pronounSet = true }
     setManagerGender(g)
     set(st => ({ tick: st.tick + 1 }))
     // WRITTEN THROUGH, not left for the next week to carry. A career resumed
