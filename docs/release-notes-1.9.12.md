@@ -56,6 +56,25 @@ statistics, training and scrums.
   lines. Eleven of her edits wait on answers to follow-up questions, as do
   the short labels she queried; details in `docs/afrikaans-review/README.md`.
 
+- **Matches read more like real results** (the owner's scan of two simulated
+  seasons in each game, 10 Nov 2026):
+  - A side was held scoreless in about 1 league match in 18; it is now about
+    1 in 75. A side three scores down, or still without a point after the
+    first half hour, now gets back into the game, the other half of the
+    rule that already slowed the side in front. Blowouts (40 points or
+    more) fall from 9.0% to 6.6%. Points and tries per match are unchanged.
+  - Home sides win 55.5% of league matches, up from 53.6%.
+  - Player of the Match is counted in every competitive club match. It was
+    counted only in the manager's own, so nobody at another club had any.
+  - Japan's clubs no longer go broke: nine or ten of the twelve were in debt
+    within two seasons. They are company clubs and the company now backs them.
+  - Sarries in the women's Premier Division opened with 50 senior players
+    against a limit of 46, so that job could sign nobody. A club over the
+    limit now sends its youngest fringe players to its academy.
+- **The women's game in every language.** 36 player lines that were written
+  for a man in French, Spanish, Italian, Afrikaans or Japanese now have
+  their women's form (a captain was "le joueur le plus ancien").
+
 ## Not in this release
 
 From the French report: kick distances, training groups and a training load
@@ -91,7 +110,7 @@ bench and back up.
   season close starts every count again. Twelve
   weeks of a men's career: conversions 72%, penalties 75%, a median 8 tackles
   per 80 minutes, flankers top.
-- Unit tests 277/277, typecheck, lint, subjectprobe, langparity, i18nprobe,
+- Unit tests 293/293, typecheck, lint, subjectprobe, langparity, i18nprobe,
   englishprobe, subsprobe, injurysheet, tabletprobe, nobenchprobe,
   telemetryui, teamtalkui, a11yprobe, e2e, langprobe and womensui pass.
 

@@ -66,7 +66,19 @@ import { takePenaltyShot } from './kicking'
  * And 0.0843 to 0.0815 later in 1.8.0, with the two-layer contest (E12),
  * whose extra variance had thinned home advantage below its band.
  */
-const TRY_BASE = 0.0815
+// 0.0745 from 0.0815 (1.9.12): the trailing side's lift below adds tries at
+// the bottom of the scoreboard, and this takes the same number back out of
+// the middle, so the pooled rate stays where bandcheck holds it (6.5 a game).
+const TRY_BASE = 0.0745
+/** the trailing side's lift: from this many points down, rising to TRAIL_MAX
+ *  over TRAIL_SPAN more (see the note under GARBAGE TIME in simTick) */
+const TRAIL_FROM = 18
+const TRAIL_SPAN = 30
+const TRAIL_MAX = 0.9
+/** a side still scoreless from this tick (four minutes each) plays for its
+ *  first score: its try chance times NIL_LIFT */
+const NIL_FROM_TICK = 9
+const NIL_LIFT = 2.4
 /** late in a match: how much an empty tank costs the side defending, and the side attacking */
 const TIRED_DEF = 0.8, TIRED_ATT = 0.3
 /** the strength a side keeps on an empty tank from the 56th minute (0.78 before it).
@@ -419,6 +431,17 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // 20,000 past 90. Below 28 up nothing changes; at 56 up the leading side
     // keeps 38% of its chance rather than 50%.
     if (lead > 28) pTry *= Math.max(0.2, Math.pow(28 / lead, 1.4))
+    // AND THE OTHER HALF OF GARBAGE TIME (1.9.12, owner's stats scan: a side
+    // was held scoreless in 6% of league matches and to five points or fewer
+    // in 13%, where the professional game manages about one nil in a
+    // hundred). The damp above slows the side in front; nothing let the side
+    // behind back in. Three scores down the winners empty the bench and stop
+    // contesting the breakdown, and a side with nothing on the board in the
+    // last fifty minutes plays for its first score and nothing else. Both lift
+    // the trailing side's try chance only. The same draws either way: only
+    // the threshold the roll is compared against moves, as above.
+    if (lead < -TRAIL_FROM) pTry *= 1 + Math.min(TRAIL_MAX, (-lead - TRAIL_FROM) / TRAIL_SPAN)
+    if (side.score === 0 && tick >= NIL_FROM_TICK) pTry *= NIL_LIFT
 
     /**
      * PRESSURE (v1.7.0), read off this tick and never rolled for. It decays

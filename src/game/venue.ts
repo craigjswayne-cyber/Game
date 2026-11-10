@@ -61,6 +61,13 @@ export const RAW_MEAN = 0.0778
  *  the flat 6 per cent it used to be for both. */
 const SPREAD = 0.05
 
+/** The home side's base edge at a club ground, before the trip's own factor
+ *  (venueEffect().edge, mean 1.0) multiplies it. 1.09 from 1.06 in 1.9.12:
+ *  home sides were winning 53% of league matches, the bottom of the owner's
+ *  band (51-57, bandcheck.ts); this takes them to about 55.5. One number, read
+ *  by the engine (match/begin.ts) and by scripts/venueprobe.ts. */
+export const HOME_EDGE = 1.09
+
 interface VenueEffect {
   /** as the crow flies, kilometres */
   km: number
