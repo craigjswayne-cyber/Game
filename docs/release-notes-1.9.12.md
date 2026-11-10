@@ -39,8 +39,8 @@ statistics, training and scrums.
   (after eight weeks, in a window, if his club will sell) and is unchanged.
 - **Kicks and tackles are counted.** Conversions and penalties taken as well
   as made, with the rate ("Cons 8/10 (80%)"), and tackles, on every player's
-  season. World > Dream Team adds Top Tacklers and Top Goal Kickers (by rate,
-  at least 10 kicks) under the Team of the Week, with the try and points
+  season. World > Team of the Week adds Top Tacklers and Top Goal Kickers (by rate,
+  at least 10 kicks) under the team itself, with the try and points
   boards. All of them build through the season and start again from nothing
   at the summer, with every other season figure. In a season already under
   way the rate starts from the day 1.9.12 is first opened, and the tackle
