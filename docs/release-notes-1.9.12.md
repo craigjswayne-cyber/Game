@@ -1,8 +1,9 @@
 # PHASE: Rugby Manager 1.9.12: release notes
 
-Version 1.9.12, Play versionCode 71. Baseline: 1.9.11, code 70. One player
-report (Bristol, Premiership Women's Rugby, iPhone in a Safari tab, 10 Nov
-2026) with three points in it.
+Version 1.9.12, Play versionCode 71. Baseline: 1.9.11, code 70. Two player
+reports: one from Bristol in Premiership Women's Rugby (iPhone in a Safari
+tab, 10 Nov 2026) with three points in it, and one in French on loans,
+statistics, training and scrums.
 
 ## What changed for players
 
@@ -28,6 +29,28 @@ report (Bristol, Premiership Women's Rugby, iPhone in a Safari tab, 10 Nov
   nothing scrolling around it. Its heading also sits above the player list
   instead of floating inside it, so nothing can cover the loosehead.
 
+- **A player on loan to you cannot be transfer-listed.** The button was there
+  and did nothing (no club ever bid for a listed loanee). It is gone, and a
+  loanee arrives off any list his parent club had him on.
+- **A loan can be ended early.** "Send back" in the loan panel on his page,
+  after four weeks (the same floor as recalling one of yours). He goes back
+  that day and the wage share stops; a cut-short loan pays none of the
+  development a full one does. Buying him during the loan was already there
+  (after eight weeks, in a window, if his club will sell) and is unchanged.
+- **Kicks and tackles are counted.** Conversions and penalties taken as well
+  as made, with the rate ("Cons 8/10 (80%)"), and tackles, on every player's
+  season. The league tables add Top Tacklers and Top Goal Kickers (by rate,
+  at least 10 kicks). In a season already under way the rate starts from the
+  day 1.9.12 is first opened, and the tackle count from zero.
+- The leaderboard titles in French, Spanish and Italian now read in the
+  feminine in the women's game ("Meilleures marqueuses d'essais").
+
+## Not in this release
+
+From the French report: kick distances, training groups and a training load
+per player, and scrum weight with each player's weight. Each is a new system
+rather than a fix.
+
 ## What was not reproduced
 
 The shirt 1 report is the third of its kind, and Chromium has never shown
@@ -50,7 +73,13 @@ bench and back up.
   the middle of shirt 1 reaches the row when the sheet opens and after
   scrolling to the bench and back.
 - `scripts/mgrgender.mjs` section 5: the Home card.
-- Unit tests 265/265, typecheck, lint, subjectprobe, langparity, i18nprobe,
+- `tests/loansendback.test.ts`: a loanee arrives unlisted, cannot be sent
+  back inside four weeks, goes back after, with no development payoff.
+- `tests/kickstats.test.ts`: every kick made was a kick taken, tackles only
+  for men who played, and a season under way never reads over 100%. Twelve
+  weeks of a men's career: conversions 72%, penalties 75%, a median 8 tackles
+  per 80 minutes, flankers top.
+- Unit tests 275/275, typecheck, lint, subjectprobe, langparity, i18nprobe,
   englishprobe, subsprobe, injurysheet, tabletprobe, nobenchprobe,
   telemetryui, teamtalkui, a11yprobe, e2e, langprobe and womensui pass.
 
