@@ -62,12 +62,14 @@ statistics, training and scrums.
     1 in 75. A side three scores down, or still without a point after the
     first half hour, now gets back into the game, the other half of the
     rule that already slowed the side in front. Blowouts (40 points or
-    more) fall from 9.0% to 6.6%. Points and tries per match are unchanged.
-  - Home sides win 55.5% of league matches, up from 53.6%.
+    more) fall from 9.0% to 6.5%. Points and tries per match barely move
+    (49.6 to 49.2 points, 6.5 to 6.4 tries).
+  - Home sides win 55.7% of league matches, up from 53.6%.
   - Player of the Match is counted in every competitive club match. It was
     counted only in the manager's own, so nobody at another club had any.
   - Japan's clubs no longer go broke: nine or ten of the twelve were in debt
-    within two seasons. They are company clubs and the company now backs them.
+    within two seasons. They are company clubs, and the company now covers
+    their losses: one club in debt after three seasons.
   - Sarries in the women's Premier Division opened with 50 senior players
     against a limit of 46, so that job could sign nobody. A club over the
     limit now sends its youngest fringe players to its academy.

@@ -66,10 +66,10 @@ import { takePenaltyShot } from './kicking'
  * And 0.0843 to 0.0815 later in 1.8.0, with the two-layer contest (E12),
  * whose extra variance had thinned home advantage below its band.
  */
-// 0.0745 from 0.0815 (1.9.12): the trailing side's lift below adds tries at
+// 0.0730 from 0.0815 (1.9.12): the trailing side's lift below adds tries at
 // the bottom of the scoreboard, and this takes the same number back out of
 // the middle, so the pooled rate stays where bandcheck holds it (6.5 a game).
-const TRY_BASE = 0.0745
+const TRY_BASE = 0.0730
 /** the trailing side's lift: from this many points down, rising to TRAIL_MAX
  *  over TRAIL_SPAN more (see the note under GARBAGE TIME in simTick) */
 const TRAIL_FROM = 18

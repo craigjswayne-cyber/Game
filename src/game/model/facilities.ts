@@ -296,6 +296,10 @@ export function operatingCost(state: GameState): number {
 /** the weekly cheque a Japan Division One club has from the company that
  *  owns it (weeklyCentral) */
 const COMPANY_BACKING = 55_000
+/** ...and only while the club's balance is under this: the company covers
+ *  losses, it does not fund a war chest (distressprobe: a cheque paid every
+ *  week took the top flight's median balance at season 14 from £7.3m to £10.8m) */
+const COMPANY_FLOOR = 750_000
 
 /** the leagues whose small grounds draw the solidarity share (weeklyCentral) */
 const SOLIDARITY = ['prem', 'top14', 'urc']
@@ -343,10 +347,10 @@ export function weeklyCentral(club: Club): number {
   // the Premier Division pays £13.5m). Measured over one season the average
   // club there lost £1.67m; every other league's average club made money.
   // These are company clubs, and the company makes up the difference: a
-  // weekly cheque sized to that loss over the ledger's 45 weeks plus the
-  // margin the next-poorest league (the Pacific) makes, so Japan sits at the
-  // bottom of the world's range instead of below it.
-  const company = club.leagueId === 'jl1' ? COMPANY_BACKING : 0
+  // weekly cheque sized to that loss over the ledger's 45 weeks, paid only
+  // while the club's balance is low (COMPANY_FLOOR): it covers losses and
+  // stops when the club is on its feet.
+  const company = club.leagueId === 'jl1' && club.balance < COMPANY_FLOOR ? COMPANY_BACKING : 0
   return Math.round(commercial + missingSeats * perSeat + shortSeason + company)
 }
 
