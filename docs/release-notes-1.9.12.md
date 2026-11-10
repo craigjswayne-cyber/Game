@@ -48,6 +48,14 @@ statistics, training and scrums.
 - The leaderboard titles in French, Spanish and Italian now read in the
   feminine in the women's game ("Meilleures marqueuses d'essais").
 
+- **Afrikaans reads like South African Afrikaans, not Dutch.** 176 lines
+  rewritten after a native speaker's feedback, then a paid native proofread:
+  68 of the proofreader's edits to menus, setup, Home, Settings, Today, the
+  shop and Pro Manager, and three of her word choices carried across the
+  whole game (Raad for the board, span for the squad, vloedligte), about 400
+  lines. Eleven of her edits wait on answers to follow-up questions, as do
+  the short labels she queried; details in `docs/afrikaans-review/README.md`.
+
 ## Not in this release
 
 From the French report: kick distances, training groups and a training load
