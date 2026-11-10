@@ -72,6 +72,9 @@ export function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, m
   const pPen = clamp(kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side) + clutchKick(state.seed, kicker, min, side.score - other.score), 0.3, 0.92)
   const penOver = rng() < pPen
   noteKick(ctx, side, penOver)
+  // every kick taken, over or not (1.9.12). The shot clock above is not a
+  // kick: it returns before here.
+  if (kicker && onRecord(state, ctx, side)) kicker.stats.penA = (kicker.stats.penA ?? 0) + 1
   if (penOver) {
     side.score += 3
     side.pens += 1

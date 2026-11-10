@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, POS_ORDER, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
+import { ATTR_KEYS, POS_ORDER, SEASON_WEEKS, careerRows, kickRecord, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
@@ -543,8 +543,18 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip">{t('player.apps')} <b>{p.stats.apps}</b> {t('player.appsStarts', { n: p.stats.starts })}</span>
         <span className="chip">{t('player.tries')} <b>{p.stats.tries}</b></span>
         <span className="chip">{t('player.points')} <b>{p.stats.points}</b></span>
-        <span className="chip">{t('player.cons')} <b>{p.stats.cons}</b></span>
-        <span className="chip">{t('player.pens')} <b>{p.stats.pens}</b></span>
+        {/* MADE FROM TAKEN, AND THE RATE (1.9.12, player report: "transformations
+            tentées et réussies ainsi que le % de réussite"). A season from
+            before attempts were counted shows the made count alone until a
+            kick is counted (kickRecord). */}
+        {(() => {
+          const kr = kickRecord(p.stats)
+          return <>
+            <span className="chip">{t('player.cons')} <b>{kr.con ? t('player.kickLine', { ...kr.con }) : p.stats.cons}</b></span>
+            <span className="chip">{t('player.pens')} <b>{kr.pen ? t('player.kickLine', { ...kr.pen }) : p.stats.pens}</b></span>
+          </>
+        })()}
+        {p.stats.tkl != null && <span className="chip">{t('player.tackles')} <b>{p.stats.tkl}</b></span>}
         {p.stats.drops > 0 && <span className="chip">{t('player.drops')} <b>{p.stats.drops}</b></span>}
         <span className="chip">{t('player.cards')} <b>{p.stats.yc}{t('squad.colYC').slice(0, 1)} {p.stats.rc}{t('squad.colRC').slice(0, 1)}</b></span>
         {p.stats.motm > 0 && <span className="chip">{t('player.motm')} <b>{p.stats.motm}</b></span>}

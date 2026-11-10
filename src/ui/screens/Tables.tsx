@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
-import { fxDate } from '../../game/model'
+import { fxDate, kickRecord, type KickLine } from '../../game/model'
+
+/** Kicks at goal a man needs this season before he is ranked on his rate. */
+const MIN_KICKS = 10
 import { ClubLink, CrestT, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
@@ -66,11 +69,22 @@ function Leaders({ compId }: { compId: string }) {
   if (!pool.length) return null
   const tries = [...pool].sort((a, b) => b.stats.tries - a.stats.tries).slice(0, 5)
   const points = [...pool].sort((a, b) => b.stats.points - a.stats.points).slice(0, 5)
+  // THE LEAGUE'S TACKLERS AND KICKERS (1.9.12, player report: "il n'y a pas
+  // de statistiques individuelles pour les championnats ... plaqueurs, tireurs
+  // de coups de pied"). Kickers by success rate, with a floor of attempts so
+  // one conversion from one is not the best boot in the league.
+  const tacklers = pool.filter(p => (p.stats.tkl ?? 0) > 0)
+    .sort((a, b) => (b.stats.tkl ?? 0) - (a.stats.tkl ?? 0)).slice(0, 5)
+  const kickers = pool.map(p => ({ p, k: kickRecord(p.stats).all }))
+    .filter((r): r is { p: typeof r.p; k: KickLine } => !!r.k && r.k.att >= MIN_KICKS)
+    .sort((a, b) => b.k.pct - a.k.pct || b.k.made - a.k.made)
+    .slice(0, 5)
+  const kickOf = new Map(kickers.map(r => [r.p.id, r.k]))
   const rated = pool.filter(p => p.stats.apps >= 4)
     .sort((a, b) => b.stats.ratingSum / b.stats.apps - a.stats.ratingSum / a.stats.apps).slice(0, 5)
-  const block = (title: string, rows: typeof tries, val: (p: (typeof tries)[0]) => string) => (
+  const block = (title: string, rows: typeof tries, val: (p: (typeof tries)[0]) => string, sub = t('tables.allCompsThisSeason')) => (
     <>
-      <SectionTitle sub={t('tables.allCompsThisSeason')}>{title}</SectionTitle>
+      <SectionTitle sub={sub}>{title}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {rows.map((p, i) => (
           <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
@@ -87,6 +101,11 @@ function Leaders({ compId }: { compId: string }) {
     <>
       {block(t('tables.topTryScorers'), tries, p => String(p.stats.tries))}
       {block(t('tables.topPointsScorers'), points, p => String(p.stats.points))}
+      {tacklers.length > 0 && block(t('tables.topTacklers'), tacklers, p => String(p.stats.tkl ?? 0))}
+      {kickers.length > 0 && block(t('tables.topKickers'), kickers.map(r => r.p), p => {
+        const k = kickOf.get(p.id)!
+        return t('player.kickLine', { ...k })
+      }, t('tables.topKickersSub', { n: MIN_KICKS }))}
       {rated.length > 0 && block(t('tables.formPlayers'), rated, p => (p.stats.ratingSum / p.stats.apps).toFixed(2))}
     </>
   )

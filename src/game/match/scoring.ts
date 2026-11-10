@@ -240,6 +240,8 @@ export function scoreTry(
     + clutchKick(state.seed, kicker, min, side.score - (side === ctx.home ? ctx.away : ctx.home).score), 0.3, 0.92)
   const conOver = rng() < pCon
   noteKick(ctx, side, conOver)
+  // every kick taken, over or not (1.9.12): a count, never a draw
+  if (kicker && onRecord(state, ctx, side)) kicker.stats.conA = (kicker.stats.conA ?? 0) + 1
   if (conOver) {
     side.score += 2
     evPts(ctx, side, 2)

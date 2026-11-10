@@ -10,9 +10,23 @@ export const ATTR_KEYS = [
 ] as const
 
 export const emptyStats = (): SeasonStats => ({
-  apps: 0, starts: 0, tries: 0, points: 0, cons: 0, pens: 0, drops: 0,
+  apps: 0, starts: 0, tries: 0, points: 0, cons: 0, pens: 0, conA: 0, penA: 0, tkl: 0, drops: 0,
   yc: 0, rc: 0, ratingSum: 0, motm: 0, mins: 0, mSum: 0, mApps: 0,
 })
+
+/** A kicker's record at goal this season, from the kicks the game counted:
+ *  made, taken and the rate, for conversions, penalties and both together.
+ *  null for a kind with nothing counted yet, so a screen shows a dash rather
+ *  than 0 from 0, and a season from before attempts were counted (1.9.12)
+ *  reads from the day it was first loaded, never as more made than taken. */
+export interface KickLine { made: number; att: number; pct: number }
+export function kickRecord(s: SeasonStats): { con: KickLine | null; pen: KickLine | null; all: KickLine | null } {
+  const line = (made: number, att: number): KickLine | null =>
+    att > 0 ? { made: Math.min(made, att), att, pct: Math.round(Math.min(made, att) / att * 100) } : null
+  const cm = Math.max(0, s.cons - (s.con0 ?? 0)), ca = s.conA ?? 0
+  const pm = Math.max(0, s.pens - (s.pen0 ?? 0)), pa = s.penA ?? 0
+  return { con: line(cm, ca), pen: line(pm, pa), all: line(cm + pm, ca + pa) }
+}
 
 /** 1,300+ minutes (about sixteen full eighty-minute games) is the red zone:
  *  tired bodies break. Counted from the minutes each man was actually on the

@@ -1540,6 +1540,23 @@ function migrateLeaders(s: GameState, settled: Set<string>): void {
  * named last, for the clubs migrateClubsAndPeople found unsettled), so the
  * order is load-bearing.
  */
+/** A season under way when 1.9.12 first opens it has its conversions and
+ *  penalties MADE and no record of those TAKEN. Whatever was made before
+ *  today is set aside (con0, pen0) so the success rate reads only the kicks
+ *  counted from here, and the tackle count starts at nought. Once only: a
+ *  season with conA already on it is left alone. */
+function migrateKickCounts(s: GameState): void {
+  for (const p of Object.values(s.players)) {
+    const st = p.stats
+    if (!st || st.conA != null) continue
+    st.conA = 0
+    st.penA = 0
+    st.tkl = 0
+    st.con0 = st.cons
+    st.pen0 = st.pens
+  }
+}
+
 export function migrate(s: GameState): GameState {
   // not a save (hasReservedIds): handed back untouched, before any step can
   // look an id up, for isPlayable to refuse
@@ -1569,6 +1586,8 @@ export function migrate(s: GameState): GameState {
   // 1.9.7: the wage budget a long career never moved, after the clubs and
   // their wages above are settled
   healWageRoom(s)
+  // 1.9.12: kicks taken and tackles, counted from here on
+  migrateKickCounts(s)
   return s
 }
 
