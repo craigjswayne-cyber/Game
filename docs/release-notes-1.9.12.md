@@ -1,0 +1,57 @@
+# PHASE: Rugby Manager 1.9.12: release notes
+
+Version 1.9.12, Play versionCode 71. Baseline: 1.9.11, code 70. One player
+report (Bristol, Premiership Women's Rugby, iPhone in a Safari tab, 10 Nov
+2026) with three points in it.
+
+## What changed for players
+
+- **Women's players are no longer called "he".** Three player stories kept
+  their women's text where the game looks for the manager's pronoun instead
+  of the world's: a training injury ("so he misses the next one"), two
+  around-the-grounds stories about props, and the opposition report's "The
+  men who matter". So a women's career with the manager left on "he" read
+  them about men, and a men's career with the manager on "she" read "The
+  women who matter" about men. Nine more player lines had no women's text at
+  all: a contract renewal reply, the transfer request lines in the history,
+  four set-move descriptions and a scouting question. All are fixed in the
+  six languages where the language needs it.
+- **The game asks how the press should refer to you.** The choice has been
+  in Settings since v1.5.3, but a career started on "he" and nothing said so.
+  Home now shows a He / She card until one is picked, here or in Settings.
+  It also appears once in a career already under way, on a device that has
+  never answered.
+- **Shirt 1 can be reached in the match-day squad.** The heading of the
+  substitution sheet (title, casualty, what to tap next) floated inside the
+  same scrolling list as the players. It now sits above the list, which
+  scrolls on its own, so nothing can cover the loosehead and the top of the
+  list is always shirt 1.
+
+## What was not reproduced
+
+The shirt 1 report is the third of its kind, and Chromium has never shown
+it: at 390x844, at both larger text sizes, opened at half time and at the
+60' break, shirt 1 was on screen and could be tapped. The fix removes the
+only element that could sit over it, but it has not been seen on an iPhone.
+Check it on one before release: half time, Match-Day Squad, scroll to the
+bench and back up.
+
+## Checks
+
+- `tests/playerpronoun.test.ts`: each fixed line reads her in the women's
+  world and him in the men's, under either manager pronoun, with no
+  masculine marker in French, Spanish, Italian or Afrikaans (30 failures on
+  the 1.9.11 text).
+- `scripts/subreach.mjs`: what a tap on the middle of shirt 1 reaches, when
+  the sheet opens and after scrolling to the bench and back.
+- `scripts/mgrgender.mjs` section 5: the Home card.
+- Unit tests 265/265, typecheck, lint, subjectprobe, langparity, i18nprobe,
+  englishprobe, subsprobe, injurysheet, tabletprobe, nobenchprobe,
+  telemetryui, teamtalkui, e2e, langprobe and womensui pass.
+
+## Before uploading
+
+- Play: confirm 70 (1.9.11) is the highest accepted code on the Console, or
+  use one more than the highest.
+- App Store: set the build number in Xcode one higher than the 1.9.11 upload.
+  What's new is in `docs/store-listing.md`.

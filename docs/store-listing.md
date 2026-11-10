@@ -120,6 +120,11 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.12, Play version code 71 (confirm 70 is accepted on the Console first)
+
+**en-GB, Play and App Store** (235)
+In the women's game, players are no longer called he or him. Home now asks once whether the press should call you he or she, and you can change it any time in Settings. At half time, the match-day squad list scrolls back up to shirt 1.
+
 ### What's new (500 max) - v1.9.11, Play version code 70 (confirm 69 is accepted on the Console first)
 
 **en-GB, Play** (156)
