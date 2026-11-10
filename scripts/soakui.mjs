@@ -368,7 +368,9 @@ try {
           // the first of one menu and the last of another, with nothing more to
           // go on. Printed and photographed, so the next failure names its cause.
           const why = String(e).split('\n').filter(l => /intercepts|not stable|not visible|not enabled|outside of the viewport|waiting for|retrying/.test(l))
-          console.log(`  .. NAV detail for "${item}": ${why.slice(-6).map(l => l.trim()).join(' | ').slice(0, 900)}`)
+          // FAIL-prefixed on purpose: suite.sh copies a probe's FAIL lines and
+          // the three after them into the CI log, and nothing else
+          console.log(`  FAIL NAV detail for "${item}": ${why.slice(-6).map(l => l.trim()).join(' | ').slice(0, 900)}`)
           const hit = await page.evaluate(() => {
             const el = [...document.querySelectorAll('.submenu-item')].pop()
             const r = el?.getBoundingClientRect()
@@ -377,7 +379,7 @@ try {
               atLastItem: at ? `${at.tagName}.${at.className}` : null,
               veils: [...document.querySelectorAll('[class*="veil"], .save-warn, .toast')].map(v => v.className) }
           }).catch(() => null)
-          console.log(`  .. NAV page state: ${JSON.stringify(hit)}`)
+          console.log(`    NAV page state: ${JSON.stringify(hit).slice(0, 900)}`)
           await shot(`nav-${item.replace(/\W+/g, '')}-${tag.replace(/\W+/g, '')}`).catch(() => {})
         }
       }
