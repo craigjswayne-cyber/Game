@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { genderOf } from '../../game/gender'
 import { isDeadlineWeek } from '../../game/window'
-import { useStore } from '../../store'
+import { mgrGenderChosen, useStore } from '../../store'
 import { dismiss, dismissed, isOldPlayApp } from '../../game/shell'
 import { snIdFor, snWeeksFor } from '../../game/schedule'
 import { nationName } from '../../game/nations'
@@ -122,6 +122,15 @@ export default function Home() {
   const [firstHint] = useState(() => !dismissed('rm-first-hint'))
   useEffect(() => { if (firstHint) dismiss('rm-first-hint') }, [firstHint])
   const hook = weekHook(game, fx)
+  // ASKED, NOT ASSUMED (1.9.12). Player report from a women's career: "the
+  // app assumes I am male as a manager". The choice has lived in Settings
+  // since v1.5.3 and still does, but a career started on "he" without being
+  // asked, and nothing said the setting was there. So Home asks once, until
+  // either button is pressed here or in Settings. A save that has never had
+  // it chosen, on a device that has never answered, is asked - which takes
+  // in a career already under way from before this card existed.
+  const askPronoun = !game.pronounSet && !mgrGenderChosen()
+  const setMgrGender = useStore(s => s.setMgrGender)
 
   if (game.unemployed) {
     return (
@@ -150,6 +159,20 @@ export default function Home() {
           weeks of a first season, then it is gone for good. */}
       {/* ONCE (1.9.2, owner: "show once then move hints to a question
           mark"): the first Home a device sees, then never again (FirstHint) */}
+      {askPronoun && (
+        <div className="card pronoun-card" role="group" aria-label={t('settings.pronoun')}>
+          <b>{t('settings.pronoun')}</b>
+          <div className="meta" style={{ marginTop: 2 }}>{t('home.pronounLine')}</div>
+          <div className="btn-row" style={{ marginTop: 8 }}>
+            {(['m', 'w'] as const).map(g => (
+              <button key={g} className="btn ghost pronoun-btn" style={{ flex: 1 }}
+                onClick={() => setMgrGender(g)}>
+                {t(g === 'w' ? 'settings.pronounShe' : 'settings.pronounHe')}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {game.season === 0 && game.mgr.m === 0 && firstHint && (
         <div className="first-hint">
           <b>{t('home.hintBold')}</b> {t('home.hintRest')}

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { getLang, onLangChange, setManagerGender, setWorld } from './game/i18n'
 import { genderOf } from './game/gender'
-import { effectiveSkin, planSlots, proLocked, SKINS, skinLocked, type Skin } from './store/skins'
+import { effectiveSkin, mgrGenderChosen, planSlots, proLocked, SKINS, skinLocked, type Skin } from './store/skins'
 import type { Screen, Store } from './store/types'
 import { bindStore } from './store/api'
 import { saveQueue, saveStats } from './store/saveQueue'
@@ -17,7 +17,7 @@ import { purchasesSlice } from './store/slices/purchases'
  *  skin gating, the nav bookmark, the live-match helpers, the week settle, the
  *  save queue, and the actions in slices. Everything the rest of the game and
  *  the probes import still comes from here. */
-export { effectiveSkin, isSettling, planSlots, proLocked, saveStats, settleFault, settleInSlices, SKINS, skinLocked, TAP_GUARD_MS }
+export { effectiveSkin, isSettling, mgrGenderChosen, planSlots, proLocked, saveStats, settleFault, settleInSlices, SKINS, skinLocked, TAP_GUARD_MS }
 export type { Screen, Skin }
 
 export const useStore = create<Store>((set, get) => ({

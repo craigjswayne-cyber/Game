@@ -15,6 +15,12 @@ export const MGR_GENDER_KEY = 'rm-mgr-gender'
 export function readMgrGender(): Gender {
   try { return localStorage.getItem(MGR_GENDER_KEY) === 'w' ? 'w' : 'm' } catch { return 'm' }
 }
+/** Has anyone on this device ever ANSWERED? The key is written only by a
+ *  choice (store setMgrGender), never by the default, so its absence means
+ *  "he" was assumed rather than chosen (1.9.12, Home's pronoun card). */
+export function mgrGenderChosen(): boolean {
+  try { return localStorage.getItem(MGR_GENDER_KEY) != null } catch { return true }
+}
 
 export const SKIN_KEY = 'rm-skin'
 export function readSkin(): Skin {

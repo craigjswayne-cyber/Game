@@ -1214,6 +1214,10 @@ export interface GameState {
    *  a save from before the choice existed, which reads as a man, exactly
    *  what every line in the game assumed until then. See i18n.ts `_w`. */
   mgrGender?: import('../gender').Gender
+  /** Set once the manager has said which (1.9.12): on the Home card that asks
+   *  in a first week, or in Settings. Until then Home asks, because "he" was a
+   *  default nobody chose (player report: "the app assumes I am male"). */
+  pronounSet?: true
   /** the analyst's coin, drawn once per career: the strings about the
    *  analyst say "he" or "she" by it (i18n.ts `_w`). Absent on an older
    *  save until the migration draws it. */
