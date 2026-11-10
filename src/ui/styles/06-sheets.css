@@ -178,9 +178,15 @@
    away with the list. Reported from a live game: "she could see the team xv but
    couldnt see the text above it". The hint is the line that changes when a man is
    armed, so losing it means tapping a shirt and getting no answer at all.
-   The block is 3 short lines at most, and it earns every one of them. */
+   The block is 3 short lines at most, and it earns every one of them.
+   NOT STICKY ANY MORE (1.9.12): it sits above .sheet-body, the scroller, so it
+   stays on screen without floating over the rows. As a sticky block inside the
+   scroller it was the one thing that could cover shirt 1, and an iPhone at
+   half-time reported exactly that: no way to scroll up to the loosehead. */
+.squad-sheet { overflow: hidden; }
 .sheet-top {
-  position: sticky; top: 0; z-index: 2;
+  flex: none;
+  position: relative; z-index: 2;
   background: var(--canvas);
   padding-bottom: 2px;
   box-shadow: 0 6px 8px -6px rgba(0, 0, 0, .35);
@@ -201,6 +207,9 @@
   padding: 5px 8px;
   margin: 2px 0 5px;
 }
+/* everything under the brief: in landscape a column holding the two
+   side-by-side scrollers and the buttons, in portrait the one scroller */
+.sheet-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .sheet-cols {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px; flex: 1; min-height: 0;
@@ -231,14 +240,17 @@
      a .squad-sheet whose flex column stopped the modal itself from scrolling.
      The bench was there, and unreachable.
      Landscape genuinely wants two side-by-side scrollers. Portrait wants one
-     document. So portrait hands the scrolling back to the sheet. */
+     list. So portrait hands the scrolling to .sheet-body, the one scroller,
+     under the brief (1.9.12; it was the whole sheet until then). */
   .sheet-cols { display: block; flex: none; min-height: 0; overflow: visible; }
   .sheet-col { overflow: visible; max-height: none; }
   .squad-sheet {
-    display: block;
     /* the portrait sheet is the one the bug was reported against */
     max-height: 88vh;
     max-height: calc(88dvh / var(--zoom, 1));
+  }
+  .sheet-body {
+    display: block;
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;

@@ -213,6 +213,15 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
             : t('matchday.hintTap')}
         </div>
       </div>
+      {/* THE LIST SCROLLS ON ITS OWN, UNDER THE BRIEF (1.9.12). The brief was
+          a sticky block inside the same scroller as the rows, and three reports
+          from real phones (the last from an iPhone at half-time, 1.9.11: "I
+          don't seem to be able to scroll up to change out my 1") showed the
+          list starting at shirt 2 or 3 with no way back to the top. Chromium
+          never reproduced it. Now the brief sits above the scroller instead of
+          floating inside it, so nothing can sit on shirt 1 and the scroller's
+          first row is always the loosehead. */}
+      <div className="sheet-body">
       <div className="sheet-cols">
         <div className="sheet-col">
           <div className="fact-label">{t('matchday.onThePitch')}</div>
@@ -340,6 +349,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
           {made ? t('matchday.doneChanges', { n: made })
             : t(settled ? 'matchday.backToMatch' : 'matchday.nameFirst')}
         </button>
+      </div>
       </div>
     </Veil>
   )

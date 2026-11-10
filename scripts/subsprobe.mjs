@@ -395,7 +395,7 @@ try {
   await page.setViewportSize({ width: 412, height: 640 })
   await page.waitForTimeout(350)
   const reach = await page.evaluate(() => {
-    const sheet = document.querySelector('.squad-sheet')
+    const sheet = document.querySelector('.squad-sheet .sheet-body')
     const cols = [...document.querySelectorAll('.sheet-col')]
     const scrollable = el => el.scrollHeight - el.clientHeight > 4
     const rows = [...document.querySelectorAll('.sheet-col .sheet-row')]
@@ -421,7 +421,7 @@ try {
 
   // and prove it: scroll to the bottom and check the last bench man is on screen
   await page.evaluate(() => {
-    const sheet = document.querySelector('.squad-sheet')
+    const sheet = document.querySelector('.squad-sheet .sheet-body')
     if (sheet) sheet.scrollTop = sheet.scrollHeight
   })
   await page.waitForTimeout(250)

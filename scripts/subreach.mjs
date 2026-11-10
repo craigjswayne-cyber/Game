@@ -143,6 +143,7 @@ async function sweep(label, height, stopAt, width = 412) {
     // ---- what the sheet holds, and where it holds it
     const geo = await page.evaluate(() => {
       const sheet = document.querySelector('.squad-sheet')
+      const body = document.querySelector('.squad-sheet .sheet-body')
       const head = document.querySelector('.squad-sheet .sheet-head')
       const cols = [...document.querySelectorAll('.squad-sheet .sheet-col')]
       const xvCol = cols[0]
@@ -161,8 +162,9 @@ async function sweep(label, height, stopAt, width = 412) {
       return {
         sheet: sb,
         viewportH: window.innerHeight,
-        scrollTop: sheet ? Math.round(sheet.scrollTop) : null,
-        scrollH: sheet ? Math.round(sheet.scrollHeight) : null,
+        // the list scrolls in .sheet-body, under the brief (1.9.12)
+        scrollTop: body ? Math.round(body.scrollTop) : null,
+        scrollH: body ? Math.round(body.scrollHeight) : null,
         headVisible: inSheet(head),
         headText: head?.textContent?.trim().slice(0, 40) ?? '',
         shirts,
@@ -175,6 +177,15 @@ async function sweep(label, height, stopAt, width = 412) {
         posLabels: rows.map(r => (r.querySelector('.sh-pos')?.textContent ?? '').trim()),
         nrgLabels: rows.map(r => (r.querySelector('.sh-nrg')?.textContent ?? '').trim()),
         firstShirtVisible: rows.length ? inSheet(rows[0]) : false,
+        // AND NOTHING ON TOP OF IT (1.9.12, iPhone: "I don't seem to be able
+        // to scroll up to change out my 1"). In the sheet's box is not enough:
+        // the brief used to float over the rows, so ask what a finger on the
+        // middle of shirt 1 would actually touch.
+        firstShirtUncovered: rows.length ? (() => {
+          const r = rows[0].getBoundingClientRect()
+          const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+          return !!hit && rows[0].contains(hit)
+        })() : false,
         firstShirtDisabled: rows.length ? rows[0].disabled === true : null,
         // a disabled shirt 1 is legitimate when the man is visibly OFF - in
         // the bin or injured, both flagged on the row. The sim runs while the
@@ -185,7 +196,7 @@ async function sweep(label, height, stopAt, width = 412) {
         benchCount: bench.length,
         // a nested scroller inside the sheet is the first report's bug
         innerScrollers: [...document.querySelectorAll('.squad-sheet *')]
-          .filter(e => e.scrollHeight > e.clientHeight + 4 &&
+          .filter(e => !e.classList.contains('sheet-body') && e.scrollHeight > e.clientHeight + 4 &&
             ['auto', 'scroll'].includes(getComputedStyle(e).overflowY)).length,
       }
     })
@@ -205,6 +216,7 @@ async function sweep(label, height, stopAt, width = 412) {
     ok(geo.scrollTop === 0, `the sheet opens at its top, not part-way down (scrollTop ${geo.scrollTop})`)
     ok(geo.headVisible, 'the heading is on screen when the sheet opens')
     ok(geo.firstShirtVisible, 'shirt 1 is on screen when the sheet opens, with no scrolling')
+    ok(geo.firstShirtUncovered || geo.firstShirtFlagged, 'and nothing sits on top of shirt 1: a tap on it reaches the row')
     ok(geo.firstShirtDisabled === false || geo.firstShirtFlagged,
       `shirt 1 is tappable or visibly off (${geo.firstShirtDisabled ? 'off, flagged' : 'tappable'}): the top of the sheet is not blocked off`)
     ok(geo.innerScrollers === 0, `the sheet is one scrolling page, not nested scrollers (${geo.innerScrollers})`)
@@ -235,7 +247,7 @@ async function sweep(label, height, stopAt, width = 412) {
 
     // ---- the bench end still reachable after scrolling down
     await page.evaluate(() => {
-      const s = document.querySelector('.squad-sheet')
+      const s = document.querySelector('.squad-sheet .sheet-body')
       if (s) s.scrollTop = s.scrollHeight
     })
     await page.waitForTimeout(250)
@@ -260,8 +272,30 @@ async function sweep(label, height, stopAt, width = 412) {
       }
     })
     ok(tail.ok, 'scrolled to the end, the last bench man is fully on screen')
-    ok(tail.headVisible, 'and the sticky heading is still naming the casualty')
+    ok(tail.headVisible, 'and the heading is still naming the casualty')
     ok(tail.hintVisible, 'and the line telling you what to tap next is still on screen')
+
+    // ---- AND BACK UP AGAIN (1.9.12, iPhone at half-time: "I don't seem to be
+    // able to scroll up to change out my 1"). Down to the bench and back to the
+    // top, as a thumb does: shirt 1 must be on screen and nothing on top of it.
+    await page.mouse.move(Math.round((await page.viewportSize()).width / 2), Math.round((await page.viewportSize()).height * 0.7))
+    await page.mouse.wheel(0, -5000)
+    await page.waitForTimeout(300)
+    const back = await page.evaluate(() => {
+      const body = document.querySelector('.squad-sheet .sheet-body')
+      const row = document.querySelector('.squad-sheet .sheet-col .sheet-row')
+      if (!body || !row) return { top: null, on: false, uncovered: false, flagged: false }
+      const r = row.getBoundingClientRect(), b = body.getBoundingClientRect()
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+      return {
+        top: Math.round(body.scrollTop),
+        on: r.top >= b.top - 1 && r.bottom <= b.bottom + 1 && r.bottom <= window.innerHeight,
+        uncovered: !!hit && row.contains(hit),
+        flagged: !!row.querySelector('.sh-flag'),
+      }
+    })
+    ok(back.top === 0 && back.on, `scrolled back up, the list is at its top and shirt 1 is on screen (scrollTop ${back.top})`)
+    ok(back.uncovered || back.flagged, 'and a tap on shirt 1 reaches the row, not the heading')
 
     // ---- a sent-off man says so (round 23). Staged, not waited for: a red
     // card landing on the exact XV this probe is watching is a once-in-many-
