@@ -311,10 +311,18 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       if (r > motmR) { motmR = r; motmId = pid }
     }
   }
-  if (motmId != null && isUser) {
+  // EVERY COMPETITIVE CLUB MATCH HAS A PLAYER OF THE MATCH (1.9.12). This
+  // counted only the manager's own matches, so across a 182-match league
+  // season the leading count in most leagues was 0 or 1, and every player at
+  // another club showed no awards at all (owner's stats scan, 10 Nov 2026).
+  // The count is read by the screens and by nothing in the engine, and the
+  // man is the one this loop already chose: no draw, no change to any result.
+  // The fixture keeps its name only for the manager's matches, as before.
+  const clubMatch = fx.compId !== 'fr' && !!state.clubs[home.teamId] && !!state.clubs[away.teamId]
+  if (motmId != null && (isUser || clubMatch)) {
     const p = state.players[motmId]
     if (p) p.stats.motm += 1
-    fx.motm = motmId
+    if (isUser) fx.motm = motmId
   }
   ctx.motmId = motmId
 

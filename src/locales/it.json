@@ -2879,6 +2879,7 @@
   "recallFromLoan": "Richiama dal prestito",
   "promoteFirstTeam": "Promuovi in prima squadra",
   "promotedMsg": "{name} da oggi si allena con la prima squadra. Giornata importante per lui.",
+  "promotedMsg_f": "{name} da oggi si allena con la prima squadra. Giornata importante per lei.",
   "sendDown": "Rimanda nella rosa Academy",
   "sentDownMsg": "{name} si allena con la rosa Academy. Il suo ingaggio conta comunque nel tetto salariale: richiamalo da questa pagina quando vuoi.",
   "backToAcademyMsg": "{name} è di nuovo nell'academy con il suo contratto di formazione e non occupa più un posto senior.",
@@ -5624,6 +5625,7 @@
   "freeMany": "I pre-contratti firmati in primavera vanno in porto: {men_l}.{rest_k} Non è girato un centesimo.",
   "freeMan": "{name} ({pos}, {age}) a {to} per {wage}/settimana fino al {until}",
   "freeManFrom": "{name} ({pos}, {age}) a {to} per {wage}/settimana fino al {until}, e a {from} non resta niente per un giocatore valutato {value}",
+  "freeManFrom_f": "{name} ({pos}, {age}) a {to} per {wage}/settimana fino al {until}, e a {from} non resta niente per una giocatrice valutata {value}",
   "freeRest": {
    "one": " E {rest} altro affare dello stesso tipo, chiuso in sordina.",
    "other": " E {rest} altri affari dello stesso tipo, chiusi in sordina."
@@ -5782,6 +5784,7 @@
   "staffClash": "Una nuvola all'orizzonte: lui e {other} vedono il rugby in modo molto diverso ({note_k}).",
   "riftHeatedSubj": "Voci alte all'allenamento",
   "riftHeated": "{a} e {b} hanno avuto un acceso scambio di parole davanti alla squadra martedì. La seduta è andata avanti, ma i giocatori hanno sentito tutto.",
+  "riftHeated_f": "{a} e {b} hanno avuto un acceso scambio di parole davanti alla squadra martedì. La seduta è andata avanti, ma le giocatrici hanno sentito tutto.",
   "riftEarlySubj": "{b} lascia l'allenamento in anticipo",
   "riftEarly": "{b} ha lasciato il centro sportivo prima della fine della seduta, dopo l'ennesimo disaccordo con {a}. I giocatori se ne sono accorti.",
   "riftColdSubj": "Gelo nello staff",
@@ -7986,6 +7989,7 @@
   "unveilMarqueeR_f": "«Cambia tutto per noi.» {player} è raggiante. Ogni cronaca di questa stagione la misurerà su quella frase.",
   "unveilSettle": "Tempo per ambientarsi",
   "unveilSettleR": "Sensato. Nessuna pressione su di lui mentre impara le chiamate.",
+  "unveilSettleR_f": "Sensato. Nessuna pressione su di lei mentre impara le chiamate.",
   "unveilFight": "Si giocherà il posto",
   "unveilFightR": "Una doccia fredda alla sua stessa presentazione. La squadra prende nota: qui la maglia non la regala nessuno.",
   "crisisQ1": "{n} sconfitte nelle ultime {of}. I tifosi sono inquieti. Cosa rispondi a chi parla di crisi?",

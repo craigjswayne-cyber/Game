@@ -70,3 +70,31 @@ describe('every language has the women\'s form where its own text is gendered', 
     })
   }
 })
+
+// The recheck of every language (owner, 10 Nov 2026): 36 player lines had a
+// women's form in English and none in another language, so a women's career
+// in French read "il revient au joueur le plus ancien" about its captain.
+describe('player lines that had no women\'s form in one language', () => {
+  const CASES: [Lang, string, RegExp, Record<string, string | number>][] = [
+    ['fr', 'news.armband', /à la joueuse la plus ancienne/, { player: 'X', age: 30, pos: 'N8', how_k: 'common.nothing' }],
+    ['fr', 'news.loanEnds', /elle rentre/, { player: 'X', club: 'Y' }],
+    ['fr', 'comm.tired1', /Elle est sur la réserve/, { player: 'X' }],
+    ['fr', 'news.riftHeated', /les joueuses/, { a: 'A', b: 'B' }],
+    ['es', 'news.riftHeated', /las jugadoras/, { a: 'A', b: 'B' }],
+    ['es', 'player.promotedMsg', /para ella/, { name: 'X' }],
+    ['it', 'news.riftHeated', /le giocatrici/, { a: 'A', b: 'B' }],
+    ['it', 'player.promotedMsg', /per lei/, { name: 'X' }],
+    ['af', 'news.wAdvert2Subj', /terwyl sy/, { last: 'X' }],
+    ['ja', 'reply.chatWarnStung', /彼女は/, {}],
+  ]
+  for (const [lang, key, want, v] of CASES) {
+    it(`${lang} ${key}`, async () => {
+      await ensureLang(lang)
+      setLang(lang); setWorld('w'); setManagerGender('m')
+      expect(t(key, v)).toMatch(want)
+      setWorld('m')
+      expect(t(key, v)).not.toMatch(want)
+      setLang('en')
+    })
+  }
+})
