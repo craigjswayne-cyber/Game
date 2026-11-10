@@ -32,16 +32,19 @@ statistics, training and scrums.
 - **A player on loan to you cannot be transfer-listed.** The button was there
   and did nothing (no club ever bid for a listed loanee). It is gone, and a
   loanee arrives off any list his parent club had him on.
-- **A loan can be ended early.** "Send back" in the loan panel on his page,
-  after four weeks (the same floor as recalling one of yours). He goes back
+- **A loan can be terminated.** A player on loan to you has an "On loan from"
+  card on his page, with "Terminate the loan" first on it, after four weeks (the same floor as recalling one of yours). He goes back
   that day and the wage share stops; a cut-short loan pays none of the
   development a full one does. Buying him during the loan was already there
   (after eight weeks, in a window, if his club will sell) and is unchanged.
 - **Kicks and tackles are counted.** Conversions and penalties taken as well
   as made, with the rate ("Cons 8/10 (80%)"), and tackles, on every player's
-  season. The league tables add Top Tacklers and Top Goal Kickers (by rate,
-  at least 10 kicks). In a season already under way the rate starts from the
-  day 1.9.12 is first opened, and the tackle count from zero.
+  season. World > Dream Team adds Top Tacklers and Top Goal Kickers (by rate,
+  at least 10 kicks) under the Team of the Week, with the try and points
+  boards. All of them build through the season and start again from nothing
+  at the summer, with every other season figure. In a season already under
+  way the rate starts from the day 1.9.12 is first opened, and the tackle
+  count from zero.
 - The leaderboard titles in French, Spanish and Italian now read in the
   feminine in the women's game ("Meilleures marqueuses d'essais").
 
@@ -76,10 +79,11 @@ bench and back up.
 - `tests/loansendback.test.ts`: a loanee arrives unlisted, cannot be sent
   back inside four weeks, goes back after, with no development payoff.
 - `tests/kickstats.test.ts`: every kick made was a kick taken, tackles only
-  for men who played, and a season under way never reads over 100%. Twelve
+  for men who played, a season under way never reads over 100%, and the
+  season close starts every count again. Twelve
   weeks of a men's career: conversions 72%, penalties 75%, a median 8 tackles
   per 80 minutes, flankers top.
-- Unit tests 275/275, typecheck, lint, subjectprobe, langparity, i18nprobe,
+- Unit tests 277/277, typecheck, lint, subjectprobe, langparity, i18nprobe,
   englishprobe, subsprobe, injurysheet, tabletprobe, nobenchprobe,
   telemetryui, teamtalkui, a11yprobe, e2e, langprobe and womensui pass.
 

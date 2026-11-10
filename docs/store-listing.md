@@ -122,8 +122,8 @@ First release.
 
 ### What's new (500 max) - v1.9.12, Play version code 71 (confirm 70 is accepted on the Console first)
 
-**en-GB, Play and App Store** (385)
-Players on loan to you can be sent back early and can no longer be transfer-listed. Conversions, penalties and tackles are counted, with success rates, plus top tacklers and goal kickers in the league tables. In the women's game, players are no longer called he or him, and Home asks whether the press should call you he or she. At half time, the squad list scrolls back up to shirt 1.
+**en-GB, Play and App Store** (383)
+Loans to you can be terminated early and can no longer be transfer-listed. Conversions, penalties and tackles are counted, with success rates, and World > Dream Team shows the top tacklers and goal kickers. In the women's game, players are no longer called he or him, and Home asks whether the press should call you he or she. At half time, the squad list scrolls back up to shirt 1.
 
 ### What's new (500 max) - v1.9.11, Play version code 70 (confirm 69 is accepted on the Console first)
 

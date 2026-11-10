@@ -57,7 +57,7 @@ describe('a player on loan to you', () => {
     const { g, p } = borrowed()
     const msg = loanSendBack(g, p.id).msg
     expect(msg).not.toMatch(/^reply\./)
-    expect(t('player.loanSendBack', { club: 'X' })).toBe('Send back to X')
+    expect(t('player.loanSendBackConfirm', { club: 'X' })).toBe('Terminate: back to X')
   })
 
   it('is refused for a man who is not on loan to you', () => {

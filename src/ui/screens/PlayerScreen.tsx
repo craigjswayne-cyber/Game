@@ -719,7 +719,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </div>
       )}
 
-      {/* ---- LOAN TO BUY ----
+      {/* ---- ON LOAN FROM: TERMINATE, OR BUY ----
           Owner, 7 Sep: "you should also do a loan to buy scheme where if things
           go well you can offer to buy the player at the value." It only appears
           on a player who is actually here on loan, and it says what it would
@@ -731,8 +731,19 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         if (!buy) return null
         const parentShort = game.clubs[p.loanFrom]?.short ?? ''
         return (
-          <div className="panel" style={{ marginTop: 10 }}>
-            <div className="meta" style={{ marginBottom: 6 }}>
+          <div className="card loan-in-card" style={{ ...acc('var(--gold)'), marginTop: 10 }}>
+            <div className="fact-label">{t('player.onLoanFrom', { club: parentShort })}</div>
+            {/* TERMINATE IT (1.9.12, player report: "il n'est pas possible de
+                mettre fin à un prêt en cours"; owner: "needs to be an option to
+                terminate the loan deal"). First on the card, not under the buy
+                option. loanSendBack holds the four-week floor and says so. */}
+            <div className="meta" style={{ margin: '4px 0 6px' }}>
+              {t('player.loanSendBackLine', { player: p.name, club: parentShort })}
+            </div>
+            <TwoStep className="btn ghost block loan-terminate" label={t('player.loanSendBack')}
+              confirm={t('player.loanSendBackConfirm', { club: parentShort })}
+              onConfirm={() => { setMsg(loanSendBack(game, p.id).msg); touch() }} />
+            <div className="meta" style={{ margin: '12px 0 6px' }}>
               {t('player.loanBuyLine', { fee: fmtMoney(buy.fee), n: LOAN_BUY_MIN_WEEKS })}
             </div>
             {buy.ok ? (
@@ -740,23 +751,14 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 confirm={t('player.loanBuyConfirm')}
                 onConfirm={() => {
                   const r = loanBuy(game, p.id)
-                  setMsg(t(r.k, { player: p.name, fee: fmtMoney(r.fee), club: p.loanFrom ? game.clubs[p.loanFrom]?.short ?? '' : '' }))
+                  setMsg(t(r.k, { player: p.name, fee: fmtMoney(r.fee), club: parentShort }))
                   touch()
                 }} />
             ) : (
               <div className="muted" style={{ fontSize: '0.75rem' }}>
-                {t(buy.k, { fee: fmtMoney(buy.fee), club: p.loanFrom ? game.clubs[p.loanFrom]?.short ?? '' : '' })}
+                {t(buy.k, { fee: fmtMoney(buy.fee), club: parentShort })}
               </div>
             )}
-            {/* END IT EARLY (1.9.12, player report: "il n'est pas possible de
-                mettre fin à un prêt en cours"). loanSendBack holds the
-                four-week floor and says so if it is too soon. */}
-            <div className="meta" style={{ margin: '10px 0 6px' }}>
-              {t('player.loanSendBackLine', { player: p.name, club: parentShort })}
-            </div>
-            <TwoStep className="btn ghost block" label={t('player.loanSendBack', { club: parentShort })}
-              confirm={t('player.loanSendBackConfirm')}
-              onConfirm={() => { setMsg(loanSendBack(game, p.id).msg); touch() }} />
           </div>
         )
       })()}

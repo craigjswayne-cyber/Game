@@ -7,6 +7,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { kickRecord } from '../src/game/model'
 import { migrate } from '../src/game/save'
+import { closeSeasonStats } from '../src/game/rollover/development'
 
 function played(weeks = 8) {
   const g = newGame('northampton', 'Kicks', 31)
@@ -68,6 +69,30 @@ describe('a season under way from before 1.9.12', () => {
     for (const p of Object.values(g.players)) {
       const k = kickRecord(p.stats)
       if (k.all) expect(k.all.pct).toBeLessThanOrEqual(100)
+    }
+  })
+})
+
+describe('the season stats build and then reset', () => {
+  it('grow week by week through the season', () => {
+    const g = newGame('northampton', 'Kicks', 31)
+    const sum = () => Object.values(g.players).reduce((s, p) => s + (p.stats.tkl ?? 0) + (p.stats.conA ?? 0), 0)
+    const seen: number[] = []
+    for (let w = 0; w < 6; w++) { processWeekAndAdvance(g); seen.push(sum()) }
+    for (let i = 1; i < seen.length; i++) expect(seen[i]).toBeGreaterThanOrEqual(seen[i - 1])
+    expect(seen[seen.length - 1]).toBeGreaterThan(seen[0])
+  })
+
+  it('start from nothing when the season closes', () => {
+    const g = played(6)
+    expect(Object.values(g.players).some(p => (p.stats.tkl ?? 0) > 0)).toBe(true)
+    closeSeasonStats(g)
+    for (const p of Object.values(g.players)) {
+      expect(p.stats.tkl).toBe(0)
+      expect(p.stats.conA).toBe(0)
+      expect(p.stats.penA).toBe(0)
+      expect(p.stats.con0).toBeUndefined()
+      expect(kickRecord(p.stats).all).toBeNull()
     }
   })
 })
