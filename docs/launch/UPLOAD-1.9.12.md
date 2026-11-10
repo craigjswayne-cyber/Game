@@ -11,17 +11,15 @@ Do the steps in order; each one says what to check before moving on.
       "Release check"). The rule since 1.9.2: no release is cut until it is.
       If anything is pushed to the PR after this, it needs running again on
       the new commit.
-- [ ] **Merge #96 into main.** Both store builds are made from main, and the
-      merge also deploys the website.
-- [ ] **Shirt 1 on a real iPhone.** About 45 minutes after the merge the
-      website updates (the Gate runs on main first). Open
-      phaserugbymanager.com **in Safari on an iPhone** (the reporter's exact
-      setup, a browser tab), start a career, play to half time, tap
-      *Match-Day Squad: make replacements*, scroll down to the bench, then
-      back up. Shirt 1 must be reachable and tappable. It could not be
-      reproduced in Chromium, even emulating an iPhone 13 with real touch
-      swipes, so this is the only real test of the fix. If it still fails,
-      stop and send a screenshot of the whole screen.
+- [x] **Merge #96 into main.** Both store builds are made from main. (The
+      website deploy that follows is the landing page only, not the game.)
+- [ ] **Shirt 1 on a real iPhone: on the TestFlight build, in step 4.** The
+      game is not on the website (pages.yml publishes the landing page only),
+      so the check is made in the app. The reporter was in the iPhone app:
+      bug reports said "installed: no (browser tab)" from inside the store
+      apps, a misleading line fixed after 1.9.12 (it now says which app).
+      It could not be reproduced in Chromium, even emulating an iPhone 13
+      with real touch swipes, so this is the only real test of the fix.
 
 ## 2. Check the numbers
 
@@ -76,7 +74,9 @@ advert and purchase bridges back into the page (APP-STORE-WALKTHROUGH 17b).
 - [ ] Device dropdown **Any iOS Device (arm64)** > *Product > Archive*.
 - [ ] Organizer > *Distribute App* > *App Store Connect* > *Upload*.
       Encryption: **No**.
-- [ ] TestFlight: install and try section 5.
+- [ ] TestFlight: install and try section 5, **shirt 1 first**: half time,
+      Match-Day Squad, scroll to the bench and back up. If shirt 1 cannot be
+      reached, do not submit; send a screenshot of the whole screen.
 - [ ] App Store Connect > new version 1.9.12 > pick the build > paste the
       What's new for each language > *Add for Review* > *Submit*.
       The review notes from last time (`docs/store-listing.md`) still apply.

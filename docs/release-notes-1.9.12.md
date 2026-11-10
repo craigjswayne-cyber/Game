@@ -1,8 +1,8 @@
 # PHASE: Rugby Manager 1.9.12: release notes
 
 Version 1.9.12, Play versionCode 71. Baseline: 1.9.11, code 70. Two player
-reports: one from Bristol in Premiership Women's Rugby (iPhone in a Safari
-tab, 10 Nov 2026) with three points in it, and one in French on loans,
+reports: one from Bristol in Premiership Women's Rugby (the iPhone app,
+10 Nov 2026) with three points in it, and one in French on loans,
 statistics, training and scrums.
 
 ## What changed for players
@@ -24,7 +24,7 @@ statistics, training and scrums.
   never answered.
 - **Shirt 1 can be reached in the match-day squad.** The sheet opened from
   the half-time and 60' touchline was drawn inside the touchline panel, which
-  is itself a scrolling list, and mobile Safari is known to misplace fixed
+  is itself a scrolling list, and Safari's engine (which the iPhone app runs on) is known to misplace fixed
   overlays inside scrolled containers. It is now drawn at the app root, with
   nothing scrolling around it. Its heading also sits above the player list
   instead of floating inside it, so nothing can cover the loosehead.
