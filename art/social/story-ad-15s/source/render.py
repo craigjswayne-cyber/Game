@@ -29,9 +29,9 @@ def frames(root, clip):
     fr = [(t, f'{W}/{root}/{n}') for n, t in src if n.startswith(clip + '/')]
     t0 = fr[0][0]; return [t - t0 for t, _ in fr], [p for _, p in fr]
 CLIPS = [dict(cap='cap1', fr=frames('rec3','leagues'), s0=0.0, sp=1.6, d=1.85),
-         dict(cap='cap2', fr=frames('rec2','team'), s0=0.3, sp=1.6, d=1.85),
+         dict(cap='cap2', fr=frames('o-4','team'), s0=0.3, sp=1.6, d=1.85),
          dict(cap='cap3', fr=frames('rec2','moves'), s0=0.8, sp=1.8, d=1.8),
-         dict(cap='cap4', fr=frames('q-Northampton','match'), s0=8.4, sp=2.0, d=2.5)]
+         dict(cap='cap4', fr=frames('o-16','match0'), s0=19.0, sp=2.04, d=2.5)]
 G0, G1 = 3.5, 11.5
 STARTS = [G0]
 for c in CLIPS[:-1]: STARTS.append(STARTS[-1] + c['d'])
@@ -104,8 +104,6 @@ def frame(i):
         k = (t-11.7)/0.35; place(im, L['logo'], 0.6 + 0.4*back_out(k), ease_out(k*1.6))
     if t >= 12.1:
         k = ease_out((t-12.1)/0.3); place(im, L['free'], 1.0, k, 30*(1-k))
-    if t >= 12.3:
-        k = ease_out((t-12.3)/0.3); place(im, L['stores'], 1.0, k, 40*(1-k))
     return im
 
 ov = Image.new('RGBA', (SW, SH), (0,0,0,0)); od = ImageDraw.Draw(ov)
@@ -118,7 +116,7 @@ def overlay(im): o = im.copy(); o.alpha_composite(ov); return o
 if __name__ == '__main__':
     mode = sys.argv[1]
     if mode == 'stills':
-        for name, t in [('1-hook',1.0),('2-setup',2.8),('3-club',4.6),('4-team',6.4),('5-moves',8.2),('6-match',11.2),('7-endcard',14.0)]:
+        for name, t in [('1-hook',1.0),('2-setup',2.8),('3-club',4.6),('4-team',6.4),('5-moves',8.2),('6-match',10.0),('7-endcard',14.0)]:
             overlay(frame(round(t*FPS))).convert('RGB').save(f'{W}/out/still-{name}.png')
     elif mode == 'video':
         def enc(path):
