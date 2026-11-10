@@ -174,7 +174,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // man - tapping him again is a decision, it is just the same decision
   const settled = waitId != null ? !waiting() : !mustDecide || decided || !freeLeft
   return (
-    <Veil onClose={() => { if (settled) onClose() }} boxClassName="modal squad-sheet">
+    <Veil portal onClose={() => { if (settled) onClose() }} boxClassName="modal squad-sheet">
       <div className="grab" />
       {/* THE WHOLE BRIEF STICKS, not just the title.
           The title was made sticky on its own after a screenshot showed the

@@ -21,18 +21,22 @@ report (Bristol, Premiership Women's Rugby, iPhone in a Safari tab, 10 Nov
   Home now shows a He / She card until one is picked, here or in Settings.
   It also appears once in a career already under way, on a device that has
   never answered.
-- **Shirt 1 can be reached in the match-day squad.** The heading of the
-  substitution sheet (title, casualty, what to tap next) floated inside the
-  same scrolling list as the players. It now sits above the list, which
-  scrolls on its own, so nothing can cover the loosehead and the top of the
-  list is always shirt 1.
+- **Shirt 1 can be reached in the match-day squad.** The sheet opened from
+  the half-time and 60' touchline was drawn inside the touchline panel, which
+  is itself a scrolling list, and mobile Safari is known to misplace fixed
+  overlays inside scrolled containers. It is now drawn at the app root, with
+  nothing scrolling around it. Its heading also sits above the player list
+  instead of floating inside it, so nothing can cover the loosehead.
 
 ## What was not reproduced
 
 The shirt 1 report is the third of its kind, and Chromium has never shown
 it: at 390x844, at both larger text sizes, opened at half time and at the
-60' break, shirt 1 was on screen and could be tapped. The fix removes the
-only element that could sit over it, but it has not been seen on an iPhone.
+60' break, shirt 1 was on screen and could be tapped. What Chromium did show
+is that the sheet sat inside the scrolling touchline panel at both breaks
+(subreach.mjs now fails on that: 4 failures on the 1.9.11 layout). Both
+fixes remove what Safari could get wrong, but neither has been seen on an
+iPhone.
 Check it on one before release: half time, Match-Day Squad, scroll to the
 bench and back up.
 
@@ -42,12 +46,13 @@ bench and back up.
   world and him in the men's, under either manager pronoun, with no
   masculine marker in French, Spanish, Italian or Afrikaans (30 failures on
   the 1.9.11 text).
-- `scripts/subreach.mjs`: what a tap on the middle of shirt 1 reaches, when
-  the sheet opens and after scrolling to the bench and back.
+- `scripts/subreach.mjs`: the sheet has no scrolling ancestor, and a tap on
+  the middle of shirt 1 reaches the row when the sheet opens and after
+  scrolling to the bench and back.
 - `scripts/mgrgender.mjs` section 5: the Home card.
 - Unit tests 265/265, typecheck, lint, subjectprobe, langparity, i18nprobe,
   englishprobe, subsprobe, injurysheet, tabletprobe, nobenchprobe,
-  telemetryui, teamtalkui, e2e, langprobe and womensui pass.
+  telemetryui, teamtalkui, a11yprobe, e2e, langprobe and womensui pass.
 
 ## Before uploading
 

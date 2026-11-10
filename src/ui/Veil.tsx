@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * TAP OUTSIDE TO CLOSE.
@@ -16,7 +17,7 @@ import type { ReactNode } from 'react'
  * and Escape clicks the top veil, which is the same tap a thumb makes.
  */
 /* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- the veil is a tap-outside-to-close backdrop and Escape closes it (a11y.ts); the box only swallows taps inside the sheet so it stays open. Neither is a control: the sheet has its own buttons. */
-export function Veil({ onClose, className = 'modal-veil', boxClassName = 'modal', role, label, children }: {
+export function Veil({ onClose, className = 'modal-veil', boxClassName = 'modal', role, label, portal, children }: {
   /** what a tap on the veil (or Escape, via a11y.ts) does */
   onClose: () => void
   /** the veil's class: `modal-veil`, or the hub menu's and the tutorial's own */
@@ -27,13 +28,26 @@ export function Veil({ onClose, className = 'modal-veil', boxClassName = 'modal'
   role?: 'dialog'
   /** the box's aria-label */
   label?: string
+  /** Drawn at the app root instead of where it is written (1.9.12). A sheet
+   *  opened from inside a scrolling panel - the half-time touchline is one -
+   *  otherwise sits inside that scroller in the DOM. Its veil is position:
+   *  fixed and should not care, but mobile Safari has a long record of
+   *  placing and clipping fixed boxes inside scrolled ones, and an iPhone at
+   *  half-time could not scroll the squad sheet up to shirt 1 ("I don't seem
+   *  to be able to scroll up to change out my 1"). At the root nothing
+   *  scrolls around it. The root is `.app`, not <body>, so the skin, the
+   *  night palette and the club colours still reach it. */
+  portal?: boolean
   children: ReactNode
 }) {
-  return (
+  const veil = (
     <div className={className} onClick={onClose}>
       <div className={boxClassName} role={role} aria-label={label} onClick={e => e.stopPropagation()}>
         {children}
       </div>
     </div>
   )
+  if (!portal || typeof document === 'undefined') return veil
+  const root = document.querySelector('.app') ?? document.body
+  return createPortal(veil, root)
 }

@@ -176,6 +176,16 @@ async function sweep(label, height, stopAt, width = 412) {
         rowHs: rows.map(r => Math.round(r.getBoundingClientRect().height)),
         posLabels: rows.map(r => (r.querySelector('.sh-pos')?.textContent ?? '').trim()),
         nrgLabels: rows.map(r => (r.querySelector('.sh-nrg')?.textContent ?? '').trim()),
+        // NO SCROLLER AROUND IT (1.9.12). The half-time sheet was drawn inside
+        // the touchline panel, which scrolls; iPhone Safari is known to misplace
+        // fixed boxes there. It is drawn at the app root now (Veil portal).
+        scrollingAncestor: (() => {
+          for (let e = sheet?.parentElement; e && e !== document.body; e = e.parentElement) {
+            const oy = getComputedStyle(e).overflowY
+            if (oy === 'auto' || oy === 'scroll') return e.className || e.tagName
+          }
+          return null
+        })(),
         firstShirtVisible: rows.length ? inSheet(rows[0]) : false,
         // AND NOTHING ON TOP OF IT (1.9.12, iPhone: "I don't seem to be able
         // to scroll up to change out my 1"). In the sheet's box is not enough:
@@ -215,6 +225,7 @@ async function sweep(label, height, stopAt, width = 412) {
     ok(geo.shirts[0] === '1' || Number(geo.shirts[0]) >= 16, `the list starts at the loosehead's slot (shirt ${geo.shirts[0]})`)
     ok(geo.scrollTop === 0, `the sheet opens at its top, not part-way down (scrollTop ${geo.scrollTop})`)
     ok(geo.headVisible, 'the heading is on screen when the sheet opens')
+    ok(geo.scrollingAncestor === null, `the sheet sits in no scrolling panel (${geo.scrollingAncestor ?? 'none'})`)
     ok(geo.firstShirtVisible, 'shirt 1 is on screen when the sheet opens, with no scrolling')
     ok(geo.firstShirtUncovered || geo.firstShirtFlagged, 'and nothing sits on top of shirt 1: a tap on it reaches the row')
     ok(geo.firstShirtDisabled === false || geo.firstShirtFlagged,
