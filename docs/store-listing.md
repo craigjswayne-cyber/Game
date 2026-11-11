@@ -120,7 +120,7 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.9.12, Play version code 71 (confirm 70 is accepted on the Console first)
+### What's new (500 max) - v1.9.12, Play version code 72 (71 was the first build, uploaded and not rolled out)
 
 **en-GB, Play and App Store** (422)
 Scorelines are more realistic: far fewer teams are held to nil, fewer blowouts, and home advantage counts for more. Player of the Match is now counted across every league. Loans to you can be terminated early. Conversions, penalties and tackles are counted, with top tacklers and goal kickers under Team of the Week. The women's game reads correctly in every language, and Afrikaans has been proofread by a native speaker.
