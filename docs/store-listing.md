@@ -2160,39 +2160,39 @@ PHASE: Rugby Manager
 ### Kort beskrywing (80)
 
 ```
-Kies die XV en leef daarmee. 'n Diepgaande rugbybestuurspel wat vanlyn speel.
+Kies die XV en maak vrede daarmee. 'n Diep rugbybestuurspel wat aflyn speel.
 ```
-*(77)*
+*(76)*
 
 ### Volledige beskrywing
 
 ```
-Jou klub. Jou nalatenskap. Jou tyd.
+Jou klub. Jou erfenis. Jou tyd.
 
-Vat 'n rugbyklub en maak dit joune. Kies die XV, kontrakteer spelers, lê die plan neer en staan Saterdag vir alles in. PHASE: Rugby Manager is 'n rugbybestuurspel in die tradisie van teks-simulasies: digte spangroeptabelle, 'n regte besluit byna elke dag, en 'n loopbaan wat in seisoen vyftien nog seisoen een onthou.
+Vat 'n rugbyklub en maak dit jou eie. Kies die XV, kontrakteer spelers, maak 'n plan en staan Saterdag jou man. PHASE: Rugby Manager is 'n rugbybestuurspel in die tradisie van teks-simulasies: digte spantabelle, 'n regte besluit byna elke dag, en 'n loopbaan wat in seisoen vyftien nog seisoen een onthou.
 
 'n Speler wat jy laat gaan, kan terugkom om 'n drie teen jou te druk. Breek 'n belofte en die agent wil meer hê. 'n Tiener wat deur jou akademie kom, kan eendag jou kaptein wees.
 
-Bou iets wat onthou sal word.
+Bou iets wat die moeite werd is om te onthou.
 
-TWEE SPELLE, EEN TOEP
+TWEE SPELETJIES, EEN TOEP
 • Mansrugby: nege ligas en 107 klubs in Engeland, Frankryk, die Verenigde Provinsies, die Stille Oseaan, Japan en die VSA, van die topliga tot National One.
 • Vrouerugby, net so gebou en nie later aangelas nie: ses ligas en 64 klubs in Engeland, Frankryk, die Stille Oseaan en die Keltiese provinsies, met 'n eie kontinentale beker, toetskalender en loopbaanuitdagings.
 
 DIE WÊRELD
-Bekertrekkings voor jou oë, kontinentale rugby, uitspeelwedstryde, en bevordering en degradering in mansrugby. Toetsrugby vat jou beste spelers op die slegste oomblik, en as jou naam rondgaan, kan 'n nasionale pos volg. Mededingers bie op die spelers wat jy wil hê en dank hul afrigters af as dit skeefloop.
+Bekertrekkings voor jou oë, kontinentale rugby, uitspeelwedstryde, en bevordering en degradering in mansrugby. Toetsrugby vat jou beste spelers op die slegste oomblik, en as jou naam die rondte doen, kan 'n nasionale pos volg. Mededingers bie op die spelers wat jy wil hê en dank hul afrigters af as dit skeefloop.
 
 DIE WEEK
-Maandag, die oorsig. Dinsdag, die kameras en die direksie. Woensdag, klubsake. Donderdag, die spangroep. Vrydag, die teenstander. Dan Saterdag.
-• Agente wat beding, kontrakte wat uitloop, kontrakvrye spelers, en talentsoekers wat jou sê wat hulle weet en wat nie.
-• Somer- en Januarie-oordragvensters. Lenings volgens tydsduur en salarisdeel, en 'n moederklub wat sê waarom dit nee sê.
+Maandag, die oorsig. Dinsdag, die kameras en die Raad. Woensdag, klubsake. Donderdag, die span. Vrydag, die teenstander. Dan Saterdag.
+• Agente wat onderhandel, kontrakte wat uitloop, kontrakvrye spelers, en talentsoekers wat jou sê wat hulle weet en wat nie.
+• Somer- en Januarie-oordragvensters. Lenings volgens tydsduur en salarisverdeling, en 'n moederklub wat sê waarom dit nee sê.
 • Laat 'n speler gaan, dank 'n afrigter af, wys twee hoofspelers aan en werk binne die salarisperk.
-• Fasiliteite om te bou, borge om te hanteer, 'n direksie met 'n mening oor jou, 'n perskorps wat jou beloftes onthou, en ondersteuners wat 'n derby langer as die punteleer onthou.
+• Fasiliteite om te bou, borge om te hanteer, 'n Raad met 'n mening oor jou, 'n mediagroep wat jou beloftes onthou, en ondersteuners wat 'n derby langer as die ranglys onthou.
 
 WEDSTRYDDAG
-Regstreekse tekskommentaar en statistiek, met die veld vir drieë en groot oomblikke. Of vat die kitsuitslag en lees waarom dit so geloop het.
+Regstreekse tekskommentaar en statistieke, met die veld vir drieë en groot oomblikke. Of vat die kitsuitslag en lees waarom dit so uitgedraai het.
 • Jy besluit: die pale, die hoek of die vinnige tik; die spanpraatjies; wanneer om die bank leeg te maak.
-• Vyf aanvals- en vyf verdedigingstyle, oproepe by die vaste spel, 'n skopspel, en 'n spelboek wat die teenstander leer lees.
+• Vyf aanvals- en vyf verdedigingstyle, skrum- en lynstaanoproepe, 'n skopspel, en 'n spelboek wat die teenstanders leer lees.
 • Daarna noem die afrigter twee dinge om reg te stel, en kyk die week daarna of dit gedoen is.
 
 DIE REKORD
@@ -2203,12 +2203,12 @@ Die Bestuurder se Handboek verduidelik elke getal in die spel en elke woord van 
 
 OP JOU FOON
 • Portret, landskap en tablet. Dag- en nagmodus, drie teksgroottes, vier temas (drie met Pro-bestuurder).
-• Geen rekening of wolk nie: die spel speel vanlyn en jou loopbaan bly op jou foon. Net advertensies en aankope gebruik die netwerk.
-• Vier stoorgleuwe, elke week gestoor, met uitvoer en invoer vir jou eie rugsteun.
+• Geen rekening of wolk nie: die spel speel aflyn en jou loopbaan bly op jou foon. Net advertensies en aankope gebruik die netwerk.
+• Vier stoorgleuwe, weekliks gestoor, met uitvoer en invoer vir jou eie kopie.
 • Afrikaans, Engels, Frans, Spaans, Italiaans en Japannees.
 
 GRATIS OM TE SPEEL
-Klein baniere onderaan sommige skerms, nooit oor 'n besluit nie. Die “kyk 'n advertensie”-knoppies is opsioneel. Pro-bestuurder verwyder die baniere vir goed. Ander opsionele aankope versnel 'n loopbaan, van direksiefondse tot 'n volledig fikse span. Jy het nie een daarvan nodig nie.
+Klein baniere onderaan sommige skerms, nooit oor 'n besluit nie. Die “kyk 'n advertensie”-knoppies is opsioneel. Pro-bestuurder verwyder die baniere permanent. Ander opsionele aankope versnel 'n loopbaan, van Raadsfondse tot 'n volledig fikse span. Jy het niks daarvan nodig nie.
 
 Praat rugby, deel idees en rapporteer probleme op die PHASE-Discord: discord.gg/3KKfDVsMb
 
