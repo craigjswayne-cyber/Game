@@ -92,3 +92,48 @@ stock), and Nasionale Een.
 
 Not covered by this round: about 8,500 lines (news, commentary, press) were
 not in the brief; only the three word changes above reached them.
+
+
+## Round two: her answers (11 Nov 2026)
+
+Sheet: `proofread-final-2026-11-11.xlsx` (25 rows changed from round one),
+with her message on Fiverr answering the follow-up questions. Not in 1.9.12,
+which was already built: this is for the next release.
+
+**Applied**
+
+| What | Lines |
+|---|---|
+| Weeks are `wk`, the same for one or many: `BES {n}wk`, `{n}wk`, `ROESTERIG {n}wk`, the specialist and physio lines, the knock row | 7 |
+| Versus is `vs` (common.v, the fixture rows on Home, Tables and Country) | 1 |
+| Wage share is salarisverdeling (was loondeel), in the two loan lines | 2 |
+| Out of work: "of jy is klubloos" (her "die Bestuurder is klubloos", in the game's own second person) | 1 |
+| wizard.dreamBlurb: doelwitte, with the instruction sentence she had dropped put back | 1 |
+| The legacy screen is Bestuurder se Erfenis on every line that names it (six still said nalatenskap) | 6 |
+
+**Confirmed as they are**: W / G / V, T, BES, KE / HE / EIND / US, /wk,
+wk{n}, pte, the ordinals, Bevestig verkoop, uitgelate, akademie, derby.
+
+**Not applied, and why**
+
+- `common.w`: her sheet has `wk` against it, but this W is "won" in a
+  results row; her message confirms W / G / V. Left as W.
+- `desk.moneyRoom` and the four other wage room lines: her sheet has
+  "Salaris Begroting" (the budget itself, not what is left in it) and her
+  notes "Begrotings ruimte". Salarisruimte stays; asked once more.
+- `common.intlTag`: she offers "INT. / INTERNAT."; INTL stays until she says
+  INTL is wrong, since it is an abbreviation either way.
+- Compounds are written as one word (salarisverdeling, mediagroep), as the
+  rest of the game does; her sheet has them as two.
+- Six held keys she did not come back on keep the round-one decision:
+  common.friendly, desk.moneyAdmin, store.pinnacleLine, store.callMade,
+  desk.tRival, store.charterActivate. Nasionale Een: not answered, National
+  One stays.
+
+**Store listing** (`docs/store-listing.md`, Afrikaans listing, Google Play
+only): her wording applied where it is a word choice (erfenis, jou eie, jou
+man, Raad, span, onderhandel, salarisverdeling, mediagroep, ranglys, aflyn,
+speletjies, statistieke, permanent), her typos not (ronte, Mededringers,
+Nationale, "speel word"). The title stays PHASE: Rugby Manager. Short
+description 76 of 80, full description 3,998 of 4,000. It has to be pasted
+into the Play Console by hand.

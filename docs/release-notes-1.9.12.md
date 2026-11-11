@@ -1,6 +1,6 @@
 # PHASE: Rugby Manager 1.9.12: release notes
 
-Version 1.9.12, Play versionCode 71. Baseline: 1.9.11, code 70. Two player
+Version 1.9.12, Play versionCode 72 (71 was a first build, uploaded and never rolled out). Baseline: 1.9.11, code 70. Two player
 reports: one from Bristol in Premiership Women's Rugby (the iPhone app,
 10 Nov 2026) with three points in it, and one in French on loans,
 statistics, training and scrums.
@@ -55,6 +55,9 @@ statistics, training and scrums.
   whole game (Raad for the board, span for the squad, vloedligte), about 400
   lines. Eleven of her edits wait on answers to follow-up questions, as do
   the short labels she queried; details in `docs/afrikaans-review/README.md`.
+  Her second round of answers (11 Nov) is in too: weeks are `wk`, versus is
+  `vs`, wage share is salarisverdeling, and the legacy screen is Bestuurder
+  se Erfenis on every line. One question (wage room) is still with her.
 
 - **Matches read more like real results** (the owner's scan of two simulated
   seasons in each game, 10 Nov 2026):

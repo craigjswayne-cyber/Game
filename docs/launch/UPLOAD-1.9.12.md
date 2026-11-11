@@ -1,23 +1,26 @@
-# Uploading 1.9.12 tonight
+# Uploading 1.9.12
 
-Version **1.9.12**. Play versionCode **71**. Everything is on PR #96.
+Version **1.9.12**. Play versionCode **72**. 71 was the first build; its
+bundle was uploaded to Open testing and not rolled out, so the code is
+treated as spent.
 Do the steps in order; each one says what to check before moving on.
 
 ## 1. Before you build
 
-- [ ] **CI green on PR #96** (the Gate: 8 engine shards, browser smoke,
-      3 browser PR shards). https://github.com/craigjswayne-cyber/Game/pull/96
-- [ ] **Release check green** on commit `69be857` or later (Actions tab,
-      "Release check"). The rule since 1.9.2: no release is cut until it is.
-      If anything is pushed to the PR after this, it needs running again on
-      the new commit.
-- [x] **Merge #96 into main.** Both store builds are made from main. (The
-      website deploy that follows is the landing page only, not the game.)
+- [x] **#96 and #97 merged into main** (the two player reports, Afrikaans
+      round one, match balance, the languages recheck). The Release check was
+      green on that merge, `ba5dec2`.
+- [ ] **The Afrikaans round-two pull request merged into main.** It carries
+      the proofreader's second answers and version code 72. The commit to
+      build is that merge.
+- [ ] **Release check green on that merge commit** (Actions tab, "Release
+      check"). The rule since 1.9.2: no release is cut until it is green on
+      the commit that ships.
+- [ ] **The 71 draft in Open testing is discarded**, not rolled out. The
+      bundle to roll out is 72.
 - [ ] **Shirt 1 on a real iPhone: on the TestFlight build, in step 4.** The
       game is not on the website (pages.yml publishes the landing page only),
-      so the check is made in the app. The reporter was in the iPhone app:
-      bug reports said "installed: no (browser tab)" from inside the store
-      apps, a misleading line fixed after 1.9.12 (it now says which app).
+      so the check is made in the app. The reporter was in the iPhone app.
       It could not be reproduced in Chromium, even emulating an iPhone 13
       with real touch swipes, so this is the only real test of the fix.
 
@@ -42,13 +45,13 @@ npm install
 ./scaffold.sh
 ```
 
-- [ ] `scaffold.sh` prints the version code at the end. It must read **71**
+- [ ] `scaffold.sh` prints the version code at the end. It must read **72**
       (or the number you set in step 2).
 - [ ] Android Studio: *Build > Generate Signed App Bundle / APK* >
       Android App Bundle > your keystore, alias `phase` > **release**.
       Output: `android/app/release/app-release.aab`.
 - [ ] Play Console > *Testing > Internal testing* > *Create new release* >
-      upload the .aab. Release name: **1.9.12 (71)**. Release notes: the
+      upload the .aab. Release name: **1.9.12 (72)**. Release notes: the
       What's new for each language in `docs/store-listing.md` (section
       "v1.9.12").
 - [ ] On your phone, from the internal track (see section 5 for what to try).
@@ -83,7 +86,7 @@ advert and purchase bridges back into the page (APP-STORE-WALKTHROUGH 17b).
 
 ## 5. What to try on the device before promoting
 
-Five minutes, on each store's test build:
+Ten minutes, on each store's test build:
 
 1. **Women's game, manager left on "he"**: new women's career. Home shows the
    "The press call you" card; leave it. Play two or three weeks and read the
@@ -99,14 +102,18 @@ Five minutes, on each store's test build:
    "Cons 3/4 (75%)" and Tackles. *World > Team of the Week* shows Top
    Tacklers and Top Goal Kickers under the team (the kickers board needs ten
    kicks, so it appears after a few rounds).
-5. **An old career**: open a career saved on 1.9.11. It loads; Home asks the
+5. **Results**: Instant Result through three or four rounds and look at
+   the league's scores. A side on nil should be rare (about 1 match in 75;
+   it was 1 in 18). *World > Team of the Week* and player pages at other
+   clubs now show Player of the Match counts.
+6. **An old career**: open a career saved on 1.9.11. It loads; Home asks the
    pronoun once; kick percentages start from today.
 
 ## 6. After it is live
 
 - [ ] Reply to both players (drafts below).
 - [ ] Update `docs/launch/LAUNCH-PROGRAMME.md` status table: current version
-      1.9.12, Play code 71, App Store status.
+      1.9.12, Play code 72, App Store status.
 
 ## Replies to send once it is live
 
