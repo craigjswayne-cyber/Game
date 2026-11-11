@@ -241,7 +241,11 @@ console.log('\nCHAOS 5: everything zeroed - morale, condition, form, confidence\
   // the season plan branch in four of six (week 14 to 25, 2005 climbed to 38
   // and 2010 to 28). Which world escapes is the dice, so this block uses one
   // that tests the board rather than the fixture list.
-  const g = newGame('northampton', 'Chaos', 2007)
+  // SEED 2009, NOT 2007 (1.9.12). The trailing-side lift in tick.ts moved the
+  // dice, and 2007 became the world that escapes (confidence 41 by week 35).
+  // Seeds 2005-2012 over forty-four weeks: seven sacked between week 13 and
+  // week 16, 2007 not at all.
+  const g = newGame('northampton', 'Chaos', 2009)
   const club = g.clubs[g.userClubId]
   for (const id of club.players) {
     const p = g.players[id]
