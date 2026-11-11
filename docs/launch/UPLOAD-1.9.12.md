@@ -1,23 +1,24 @@
-# Uploading 1.9.12 tonight
+# Uploading 1.9.12
 
-Version **1.9.12**. Play versionCode **71**. Everything is on PR #96.
+Version **1.9.12**. Play versionCode **71**. Everything is merged into
+`main`: PR #96 (the two player reports and Afrikaans) and PR #97 (match
+balance, Player of the Match, the squad limit, the languages recheck).
 Do the steps in order; each one says what to check before moving on.
 
 ## 1. Before you build
 
-- [ ] **CI green on PR #96** (the Gate: 8 engine shards, browser smoke,
-      3 browser PR shards). https://github.com/craigjswayne-cyber/Game/pull/96
-- [ ] **Release check green** on commit `69be857` or later (Actions tab,
-      "Release check"). The rule since 1.9.2: no release is cut until it is.
-      If anything is pushed to the PR after this, it needs running again on
-      the new commit.
-- [x] **Merge #96 into main.** Both store builds are made from main. (The
-      website deploy that follows is the landing page only, not the game.)
+- [x] **#96 and #97 merged into main.** The commit to build is the merge of
+      #97, `ba5dec2`, or anything after it that touches only `docs/`.
+- [x] **Gate and Release check green on #97's last commit** (`40ce0aa`,
+      11 Nov 2026): 8 engine sets, browser smoke, 3 browser PR sets, 7 soak
+      sets, 4 browser sets.
+- [ ] **Release check green on main at `ba5dec2`** (Actions tab, "Release
+      check", started 11 Nov 2026 after the merge). The rule since 1.9.2: no
+      release is cut until it is green on the commit that ships. The code is
+      the same as `40ce0aa`; this run is the rule being kept.
 - [ ] **Shirt 1 on a real iPhone: on the TestFlight build, in step 4.** The
       game is not on the website (pages.yml publishes the landing page only),
-      so the check is made in the app. The reporter was in the iPhone app:
-      bug reports said "installed: no (browser tab)" from inside the store
-      apps, a misleading line fixed after 1.9.12 (it now says which app).
+      so the check is made in the app. The reporter was in the iPhone app.
       It could not be reproduced in Chromium, even emulating an iPhone 13
       with real touch swipes, so this is the only real test of the fix.
 
@@ -83,7 +84,7 @@ advert and purchase bridges back into the page (APP-STORE-WALKTHROUGH 17b).
 
 ## 5. What to try on the device before promoting
 
-Five minutes, on each store's test build:
+Ten minutes, on each store's test build:
 
 1. **Women's game, manager left on "he"**: new women's career. Home shows the
    "The press call you" card; leave it. Play two or three weeks and read the
@@ -99,7 +100,11 @@ Five minutes, on each store's test build:
    "Cons 3/4 (75%)" and Tackles. *World > Team of the Week* shows Top
    Tacklers and Top Goal Kickers under the team (the kickers board needs ten
    kicks, so it appears after a few rounds).
-5. **An old career**: open a career saved on 1.9.11. It loads; Home asks the
+5. **Results**: Instant Result through three or four rounds and look at
+   the league's scores. A side on nil should be rare (about 1 match in 75;
+   it was 1 in 18). *World > Team of the Week* and player pages at other
+   clubs now show Player of the Match counts.
+6. **An old career**: open a career saved on 1.9.11. It loads; Home asks the
    pronoun once; kick percentages start from today.
 
 ## 6. After it is live
