@@ -122,8 +122,8 @@ First release.
 
 ### What's new (500 max) - v1.9.12, Play version code 71 (confirm 70 is accepted on the Console first)
 
-**en-GB, Play and App Store** (389)
-Loans to you can be terminated early and can no longer be transfer-listed. Conversions, penalties and tackles are counted, with success rates, and World > Team of the Week shows the top tacklers and goal kickers. In the women's game, players are no longer called he or him, and Home asks whether the press should call you he or she. At half time, the squad list scrolls back up to shirt 1.
+**en-GB, Play and App Store** (422)
+Scorelines are more realistic: far fewer teams are held to nil, fewer blowouts, and home advantage counts for more. Player of the Match is now counted across every league. Loans to you can be terminated early. Conversions, penalties and tackles are counted, with top tacklers and goal kickers under Team of the Week. The women's game reads correctly in every language, and Afrikaans has been proofread by a native speaker.
 
 **fr-FR, Play and App Store** (483)
 Les joueurs prêtés à votre club ne peuvent plus être placés sur la liste des transferts, et le prêt peut être arrêté avant son terme. Transformations, pénalités et plaquages sont comptés, avec le taux de réussite ; Monde > Équipe de la semaine affiche les meilleurs plaqueurs et buteurs. Dans le jeu féminin, les joueuses ne sont plus désignées au masculin, et l'Accueil vous demande comment la presse doit parler de vous. À la mi-temps, la liste du groupe remonte jusqu'au numéro 1.

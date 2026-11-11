@@ -12,7 +12,7 @@
 // the file, and it measures it the way the engine consumes it: one reading per
 // fixture actually played, across every competition, over several worlds.
 import { newGame } from '../src/game/newgame'
-import { RAW_MEAN, venueEffect } from '../src/game/venue'
+import { RAW_MEAN, venueEffect, HOME_EDGE } from '../src/game/venue'
 import { venueOf } from '../src/game/geo'
 
 let fails = 0
@@ -249,7 +249,7 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
     const ctx = beginMatch(g, fx, mulberry32(fx.id), false, null)
     if (ctx.surface === 'artificial') continue
     checked++
-    if (Math.abs(ctx.hfa - 1.06 * e.edge) > 1e-9) { wrong++; worst ||= `${fx.homeId} v ${fx.awayId}: ${ctx.hfa} against ${1.06 * e.edge}` }
+    if (Math.abs(ctx.hfa - HOME_EDGE * e.edge) > 1e-9) { wrong++; worst ||= `${fx.homeId} v ${fx.awayId}: ${ctx.hfa} against ${HOME_EDGE * e.edge}` }
     if (Math.abs(e.edge - 1) > 1e-6) spread.add(fx.compId)
   }
   console.log(`\n${checked} league fixtures opened: the home advantage is the trip's edge on every one (${wrong} off)`)

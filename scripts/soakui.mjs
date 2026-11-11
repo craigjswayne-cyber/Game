@@ -335,6 +335,16 @@ try {
       for (const item of items) {
         lastBeat = Date.now()
         try {
+          // A CELEBRATION OVER THE MENU (1.9.12). The cause of the menu taps
+          // that timed out in three Release checks, named by the diagnostics
+          // below: "<div class="celebrate-veil"> intercepts pointer events".
+          // A trophy or milestone raised while the sweep is under way covers
+          // the whole screen until it is tapped, which a player does and the
+          // sweep did not.
+          for (let c = 0; c < 4 && await page.locator('.celebrate-veil').count() > 0; c++) {
+            await page.locator('.celebrate-veil').click({ position: { x: 5, y: 5 }, timeout: 2000 }).catch(() => {})
+            await page.waitForTimeout(150)
+          }
           await page.click(`.bottom-nav button[title="${group}"]`, { timeout: 4000 })
           await page.waitForSelector('.submenu-item', { timeout: 4000 })
           const has = await page.locator(`.submenu-item >> text=${item}`).count()

@@ -90,8 +90,10 @@ console.log('\n=== 1.9.10: the office knock that asks to learn a shirt, and the 
 {
   // the knock is rare in either game (about one career in five sees it in
   // three seasons, men's and women's alike, measured 4 Nov 2026); this is a
-  // women's career where it comes
-  const g = newGame('w:bristol', 'Probe', 33, undefined, 'coach', 'w')
+  // women's career where it comes. SEED 36, NOT 33 (1.9.12): the match
+  // retune moved the dice; of seeds 33-36 and 45 the knock comes in 36 (week
+  // 13) and 45 (week 24)
+  const g = newGame('w:bristol', 'Probe', 36, undefined, 'coach', 'w')
   g.trainLoad = 'hard'
   let knock: GameState['press'][number] | undefined
   for (let w = 0; w < 48 * 3 && !knock; w++) {

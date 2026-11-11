@@ -293,6 +293,14 @@ export function operatingCost(state: GameState): number {
  *
  * A club whose ground fits its name gets exactly what it always got.
  */
+/** the weekly cheque a Japan Division One club has from the company that
+ *  owns it (weeklyCentral) */
+const COMPANY_BACKING = 55_000
+/** ...and only while the club's balance is under this: the company covers
+ *  losses, it does not fund a war chest (distressprobe: a cheque paid every
+ *  week took the top flight's median balance at season 14 from £7.3m to £10.8m) */
+const COMPANY_FLOOR = 750_000
+
 /** the leagues whose small grounds draw the solidarity share (weeklyCentral) */
 const SOLIDARITY = ['prem', 'top14', 'urc']
 
@@ -331,7 +339,19 @@ export function weeklyCentral(club: Club): number {
   // American club was broke by design, and fire-sold its best men into the
   // rest of the world every season.
   const shortSeason = club.leagueId === 'mrc' ? 18_000 : 0
-  return Math.round(commercial + missingSeats * perSeat + shortSeason)
+  // THE COMPANY BEHIND THE CLUB (1.9.12, owner's stats scan: nine or ten of
+  // Japan's twelve clubs in debt after a season or two, where every other
+  // league had none to two). A Japan Division One club plays its league and
+  // nothing else: eleven home gates, no cup and no continental rugby, against
+  // the highest wage bill of any league in the world (£14.25m a season, where
+  // the Premier Division pays £13.5m). Measured over one season the average
+  // club there lost £1.67m; every other league's average club made money.
+  // These are company clubs, and the company makes up the difference: a
+  // weekly cheque sized to that loss over the ledger's 45 weeks, paid only
+  // while the club's balance is low (COMPANY_FLOOR): it covers losses and
+  // stops when the club is on its feet.
+  const company = club.leagueId === 'jl1' && club.balance < COMPANY_FLOOR ? COMPANY_BACKING : 0
+  return Math.round(commercial + missingSeats * perSeat + shortSeason + company)
 }
 
 /**

@@ -44,7 +44,7 @@ import { pickObjectives } from './objectives'
 import { hashString, mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
 import { t, tIn } from './i18n'
-import { askingPrice } from './transferRules'
+import { SQUAD_LIMIT, askingPrice, seniorsOf } from './transferRules'
 import { demandedFinish } from './chairman'
 
 export interface Challenge {
@@ -422,6 +422,47 @@ export function listOpeners(state: GameState): void {
   for (const p of pool) if (clubs.size < OPENERS && !clubs.has(p.clubId!) && !poss.has(p.pos)) take(p)
   // a small league may not have six positions to spread over
   for (const p of pool) if (clubs.size < OPENERS && !clubs.has(p.clubId!) && !p.transferListed) take(p)
+}
+
+/**
+ * NO CLUB OPENS OVER THE REGISTRATION LIMIT (1.9.12).
+ *
+ * The squad sheets are real, and one of them is longer than the game's rule:
+ * Sarries in the women's Premier Division open with 50 seniors against a limit
+ * of 46 (owner's stats scan, 10 Nov 2026). Nothing checked, so whoever took
+ * that job could not sign anybody until they had released four players, and
+ * was never told why the squad was "full" on day one.
+ *
+ * A club over the limit sends its lowest-rated players of 21 and under to its
+ * own academy, where they stay its players, until it fits. Only if that is not
+ * enough do its lowest-rated seniors leave as free agents. No draw is taken,
+ * and a club at or under the limit is not touched, so every other world opens
+ * exactly as it did.
+ */
+function trimToLimit(state: GameState): void {
+  for (const club of Object.values(state.clubs)) {
+    let over = seniorsOf(state, club) - SQUAD_LIMIT
+    if (over <= 0) continue
+    const seniors = club.players.map(id => state.players[id])
+      .filter(p => p && !p.acad)
+      .sort((a, b) => a.ca - b.ca || b.id - a.id)
+    const drop = (id: number) => { club.tactic.lineup = club.tactic.lineup.map(x => (x === id ? null : x)) }
+    for (const p of seniors) {
+      if (over <= 0) break
+      if (p.age > 21) continue
+      p.acad = true
+      drop(p.id)
+      over--
+    }
+    for (const p of seniors) {
+      if (over <= 0) break
+      if (p.acad) continue
+      club.players = club.players.filter(id => id !== p.id)
+      drop(p.id)
+      p.clubId = null
+      over--
+    }
+  }
 }
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
@@ -956,6 +997,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the A League: the academy sides of the manager's own league, fixtures and
   // table, played under the academy coach every league week (feedback 10G)
   ensureAcademyLeague(state)
+
+  // nobody opens over the registration limit (see trimToLimit)
+  trimToLimit(state)
 
   // every academy man on a development deal, BEFORE the cap is measured so the
   // cap is taken from a bill that is actually true (see repriceAcademies)

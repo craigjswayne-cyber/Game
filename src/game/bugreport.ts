@@ -23,6 +23,7 @@
 import type { GameState } from './model'
 import { billingReason, lookupReason } from './monetise'
 import { countScreen } from './usage'
+import { nativePlatform } from './shell'
 
 /**
  * Where a report is addressed. ONE constant, because it is the only line to
@@ -154,6 +155,8 @@ interface ReportInput {
   /** injectable for the probe, which has no browser */
   nav?: { userAgent: string; language: string }
   screen?: { w: number; h: number; dpr: number; standalone: boolean }
+  /** 'ios' or 'android' inside a store app, null in a browser; injectable for the probe */
+  app?: string | null
   when?: string
 }
 
@@ -205,7 +208,17 @@ export function buildReport(input: ReportInput): string {
 
   out += 'DEVICE\n'
   out += line('screen', `${scr.w}x${scr.h} at ${scr.dpr}x`)
-  out += line('installed', scr.standalone ? 'yes (home screen app)' : 'no (browser tab)')
+  // WHICH APP, NOT WHETHER IT IS "INSTALLED" (1.9.12). This line asked only
+  // whether a web page had been added to the home screen, which is never true
+  // inside the App Store or Play Store app, so every report from a store app
+  // said "no (browser tab)" and read as if the player was on the website.
+  // The game is not on the website at all (pages.yml publishes the landing
+  // page only); the store apps are where it is played.
+  const app = input.app !== undefined ? input.app : nativePlatform()
+  out += line('running in', app === 'ios' ? 'iPhone/iPad app (App Store)'
+    : app === 'android' ? 'Android app (Google Play)'
+    : app ? `${app} app`
+    : scr.standalone ? 'web app on the home screen' : 'a web browser')
   out += line('language', nav.language)
   out += line('browser', nav.userAgent)
   out += '\n'

@@ -7,7 +7,7 @@ import { CHEM_SLOTS, careerRows, chemKey, demandCeiling, formGuide, grudgeBetwee
 import { analystShift, respectLayers } from '../oppcoach'
 import { derbyName, isDerby } from '../rivalries'
 import { analystEdge, settleAnalyst } from '../analyst'
-import { venueEffect } from '../venue'
+import { venueEffect, HOME_EDGE } from '../venue'
 import { clamp, gauss, mulberry32, type Rng } from '../rng'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, playbookOf } from '../playbook'
 import { calledIds, callsOf } from '../moves'
@@ -364,7 +364,10 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
 
   // the terraces are worth points: a bouncing home crowd lifts the side,
   // a mutinous one flattens it (user's club only - the AI crowds average out)
-  let hfa = state.clubs[fx.homeId] ? 1.06 : 1.03
+  // 1.09 from 1.06 (1.9.12, owner's stats scan): home sides won 53% of league
+  // matches, the bottom of the band the owner set (51-57, bandcheck.ts), where
+  // professional leagues run nearer 60. This takes it to about 55.5.
+  let hfa = state.clubs[fx.homeId] ? HOME_EDGE : 1.03
   // F27: and the trip the other lot made. A flat 1.06 said a bus up the M1 and a
   // flight to the highveld cost a visiting side the same thing, which is nonsense
   // in a world where Belfast and Pretoria are in the same competition. The edge is

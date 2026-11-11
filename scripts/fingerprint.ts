@@ -24,6 +24,20 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED for 1.9.12 (owner's stats scan, 10 Nov 2026: a side held
+  // scoreless in 6% of league matches, and home sides winning 53%). Three
+  // dials, no new draw: the trailing side's try chance lifts from 18 points
+  // down and when still scoreless after tick 9 (tick.ts, under GARBAGE TIME),
+  // TRY_BASE comes down 0.0815 -> 0.0730 to hand the same tries back, and
+  // home advantage goes 1.06 -> 1.08 (HOME_EDGE, venue.ts). Five of six
+  // re-deal (all but the 5th). bandcheck, four worlds, 9,336 league games,
+  // before and after:
+  //   pts 49.6 -> 49.2   tries 6.51 -> 6.42   home 53.6% -> 55.7%
+  //   draws 1.9% -> 1.6%   blowouts 9.0% -> 6.5%   (every band holds)
+  // and across 2,741 league games in three worlds, men's and women's:
+  //   a side scoreless 5.4% -> 1.3%   held to five or fewer 13.1% -> 8.8%
+  // (0.0745 and 1.09 were tried first: bandcheck held, but movesprobe's one
+  // world read 6.61 tries against its 6.6, and home sat at 56.3 of 57.)
   // REBASELINED for 1.9.4 (owner: varied condition "with a real cost for
   // tired legs"). Condition after a match and the week's recovery carry a
   // per-player shift (condition.ts, a hash, not an rng draw), and the kick-off
@@ -684,12 +698,12 @@ export const EXPECTED: string[] = [
   // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
-  'sale 28-36 northampton',
-  'bath 29-14 saracens',
-  'leicester 24-26 exeter',
-  'newcastle 34-21 harlequins',
+  'sale 19-43 northampton',
+  'bath 52-7 saracens',
+  'leicester 24-22 exeter',
+  'newcastle 50-26 harlequins',
   'gloucester 14-32 bristol',
-  'bath 22-34 sale',
+  'bath 15-20 sale',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw
