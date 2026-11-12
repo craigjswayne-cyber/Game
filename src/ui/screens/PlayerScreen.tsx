@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { scrollContentTo } from '../pageReset'
-import { ATTR_KEYS, POS_ORDER, SEASON_WEEKS, careerRows, kickRecord, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
+import AttrGrid, { bestInShirt } from '../AttrGrid'
+import { POS_ORDER, SEASON_WEEKS, careerRows, kickRecord, fmtMoney, fmtWage, shownMoney, injuryDesc, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
 import { FormPill, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton, spotNote } from '../components'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
-import { effAt, firstProWage, fineAttr } from '../../game/attributes'
+import { effAt, firstProWage } from '../../game/attributes'
 import { oddsWord, retrainBlock, retrainOdds, retrainOf, retrainProgress, retrainTargets, retrainWeeks, startRetrain, stopRetrain } from '../../game/retrain'
-import { attrRange, fuzzedCa, knowledge, shownCa, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
+import { fuzzedCa, knowledge, shownCa, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
 import { habitHint } from '../../game/habits'
@@ -24,7 +25,7 @@ import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { requestLocked, startPromise } from '../../game/handshake'
-import { attrBand, attrBandIndex, attrName, persName, posName, traitName, t, tIn, localeTag } from '../../game/i18n'
+import { persName, posName, traitName, t, tIn, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { driverLines, learningLines, monthKey, outlookLine, TL } from '../../game/devproject'
 import { activeEntry } from '../../game/season'
@@ -129,18 +130,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
      the headings to find what a man's body can do was reading the wrong six.
      Tackling stays with the contact work (model.ts: `tac` is tackling, a
      collision skill, not a tactical one). */
-  const groups: [string, (keyof Attrs)[]][] = [
-    ['player.grpSetPiece', ['scr', 'lin', 'ruc', 'tac', 'str']],
-    ['player.grpSkills', ['han', 'pas', 'kic', 'goa']],
-    ['player.grpPhysical', ['pac', 'agi', 'sta']],
-    ['player.grpMental', ['vis', 'dec', 'pos', 'wor', 'agg', 'lea']],
-  ]
-
   // one-tap comparison: this man against your best in the same shirt
-  const rival = !mine ? game.clubs[game.userClubId].players
-    .map(id => game.players[id])
-    .filter(q => q && !q.acad && (q.pos === p.pos || q.alt.includes(p.pos)))
-    .sort((a, b) => b!.ca - a!.ca)[0] ?? null : null
+  const rival = !mine ? bestInShirt(game, p) : null
 
   return (
     <>
@@ -487,39 +478,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       )}
       {ptab === 'attrs' && <>
       <SectionTitle sub={compare && rival ? t('player.attrsSubCompare', { name: rival.name.split(' ').slice(-1)[0] }) : t('player.attrsSub')}>{t('player.attributes')}</SectionTitle>
-      <div className="fm-attrs">
-        {groups.map(([title, keys]) => (
-          <div className="fm-col" key={title}>
-            <div className="fm-col-head">{t(title)}</div>
-            {keys.map(k => {
-              const [lo, hi] = attrRange(game, p, k)
-              const exact = lo === hi
-              const mid = Math.round((lo + hi) / 2)
-              const idx = ATTR_KEYS.indexOf(k)
-              // see fineAttr for why the fifth is real rather than decoration
-              const v = fineAttr(p.id, idx, mid)
-              const rv = compare && rival ? fineAttr(rival.id, idx, rival.a[k]) : null
-              return (
-                <div className="fm-attr" key={k}>
-                  <span className="fm-name">{attrName(k)}</span>
-                  {/* THE WORD, not only the figure (owner, v1.7.0). A page of
-                      bare numbers only reads to somebody who already knows
-                      what the scale is. Hidden while a man is unscouted,
-                      because a range has no single word for it - the dashed
-                      chip is already saying "we do not know yet". */}
-                  {exact && <span className={`fm-word b${attrBandIndex(v)}`}>{attrBand(v)}</span>}
-                  {rv != null && (
-                    <b className="fm-rival" style={{ color: v > rv ? 'var(--text-positive)' : v < rv ? 'var(--text-negative)' : 'var(--text-muted)' }}>{rv}</b>
-                  )}
-                  <b className={`fm-chip ${exact ? (v >= 80 ? 'hi' : v >= 55 ? 'mid' : 'lo') : 'rng'}`}>
-                    {exact ? v : `${fineAttr(p.id, idx, lo)}-${fineAttr(p.id, idx, hi)}`}
-                  </b>
-                </div>
-              )
-            })}
-          </div>
-        ))}
-      </div>
+      <AttrGrid game={game} p={p} rival={compare ? rival : null} />
       {/* HIS RATING IN OTHER SHIRTS (player report, 1.9.8: "pouvoir
           visualiser dans l'onglet caractéristiques d'un joueur ses niveaux
           généraux aux autres postes où il pourrait jouer"). The figure the

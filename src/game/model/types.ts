@@ -1772,6 +1772,9 @@ export interface GameState {
   hof?: { name: string; pos: Pos; nat: string; apps: number; tries: number; points: number; season: number; club: string }[]
   /** league the scouting network is assigned to watch weekly */
   scoutFocus?: string | null
+  /** men under the chief scout's own watch (1.9.12, scout.ts): the road to a
+   *  full file, one slot for each of his badges, three at most */
+  scoutWatch?: number[]
   /** How the manager watches each competition (F5), keyed by competition id:
    *  'full' every line of commentary, 'highlights' the moments only, 'instant'
    *  the assistant takes it. A phone career is 40 matches a season and not all
@@ -1897,6 +1900,9 @@ export interface GameState {
   }
   /** shortlist players already alerted about this season */
   slAlerted?: number[]
+  /** player id to the spell of talk (recruit.talkSpell) the scouts last rang
+   *  about a rival club's interest in him (1.9.12) */
+  slRival?: Record<number, number>
   /** absolute week (season*100+week) the cotton-wool pick was last used */
   cottonWk?: number
   /** Last full time's two fixes, so the next one can mark the homework (C2).

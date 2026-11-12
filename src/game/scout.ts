@@ -11,11 +11,12 @@ import { tIn } from './i18n'
 import { fmtMoney } from './model'
 import { clamp, hashString, mulberry32 } from './rng'
 import { fileRec, makeRec } from './scoutrecs'
-import { WATCH_KNOW, bumpKnowledge, fuzzedCa, shownCa, knowledge, scoutPa } from './scoutknow'
+import { rivalTalk, talkSpell } from './recruit'
+import { FREE_CAP, LEAGUE_CAP, MATCH_CAP, WATCH_KNOW, bumpKnowledge, fadeKnowledge, fuzzedCa, shownCa, knowledge, scoutPa } from './scoutknow'
 
 // The knowledge ladder and its readings live in scoutknow.ts (a leaf) so the
 // recommendation modules can read a man without an import cycle.
-export { knowledge, margin, attrRange, fuzzedCa, caKnown, shownCa, CA_KNOW, WATCH_KNOW, youthPaMargin, secondOpinion, paRange, scoutPa, bumpKnowledge } from './scoutknow'
+export { knowledge, margin, attrRange, fuzzedCa, caKnown, shownCa, CA_KNOW, WATCH_KNOW, FREE_CAP, LEAGUE_CAP, MATCH_CAP, youthPaMargin, secondOpinion, paRange, scoutPa, bumpKnowledge, fadeKnowledge } from './scoutknow'
 
 /** His price as the club reads it: the market's own formula fed the scouts'
  *  reading instead of the truth, so a sort by value is not a hidden sort by
@@ -100,20 +101,79 @@ export function persKnown(state: GameState, p: Player): boolean {
   return reportStage(state, p) >= 3
 }
 
+/** What the club would know of a man with nobody watching him: what it knew
+ *  on the first day (seedKnowledge). A file fades back to this and no lower. */
+export function baseKnowledge(state: GameState, p: Player): number {
+  const userLeague = state.clubs[state.userClubId]?.leagueId
+  const sameLeague = !!p.clubId && state.clubs[p.clubId]?.leagueId === userLeague
+  return clamp((sameLeague ? 45 : 18) + (p.intl ? 20 : 0) + (p.ca >= 88 ? 10 : 0), 0, 90)
+}
+
+/** How many men the chief scout can keep under watch at once: one for each
+ *  badge, three at most. No scout, nobody watched. */
+export const watchSlots = (state: GameState): number => clamp(state.staff?.scout ?? 0, 0, 3)
+
+/** The men under the scout's own eye (1.9.12), tidied: gone, signed and
+ *  retired men drop off, and the list never outgrows his badge. */
+export function scoutWatchList(state: GameState): number[] {
+  const ok = (state.scoutWatch ?? []).filter(id => {
+    const p = state.players[id]
+    return !!p && !p.retiring && p.clubId !== state.userClubId
+  })
+  return ok.slice(0, watchSlots(state))
+}
+
+/** Put a man under the scout's watch, or take him off. Returns a reply key. */
+export function toggleScoutWatch(state: GameState, playerId: number): { ok: boolean; k: string; v?: Record<string, string | number> } {
+  const p = state.players[playerId]
+  const list = scoutWatchList(state)
+  if (list.includes(playerId)) {
+    state.scoutWatch = list.filter(id => id !== playerId)
+    return { ok: true, k: 'reply.watchOff', v: { player: p?.name ?? '' } }
+  }
+  if (!p || p.clubId === state.userClubId) return { ok: false, k: 'reply.watchNobody' }
+  const slots = watchSlots(state)
+  if (slots <= 0) return { ok: false, k: 'reply.noChiefScout' }
+  if (knowledge(state, p) >= 100) return { ok: false, k: 'reply.watchKnown', v: { player: p.name } }
+  if (list.length >= slots) return { ok: false, k: 'reply.watchFull', v: { n: slots } }
+  state.scoutWatch = [...list, playerId]
+  const weeks = watchWeeks(state, p)
+  return { ok: true, k: weeks === 1 ? 'reply.watchOnOne' : 'reply.watchOn', v: { player: p.name, weeks } }
+}
+
+/** What a week of the scout's own eye is worth, and how long the file takes. */
+const watchGain = (state: GameState) => 9 + (state.staff?.scout ?? 0) * 3
+export const watchWeeks = (state: GameState, p: Player): number =>
+  Math.max(1, Math.ceil((100 - knowledge(state, p)) / watchGain(state)))
+
 /** Weekly knowledge gathering. */
 export function weeklyScouting(state: GameState) {
   const scoutLvl = state.staff.scout
   const userLeague = state.clubs[state.userClubId].leagueId
-  // shortlisted players: focused reports
+  const watched = scoutWatchList(state)
+  state.scoutWatch = watched
+  // the scout's own eye: the one free road to a full file, a man at a time.
+  // When the file is complete he comes off the list and the verdict is filed
+  // (scoutrecs.ts carries it to the inbox), so the slot is free again.
+  for (const id of watched) {
+    const p = state.players[id]
+    if (!p) continue
+    bumpKnowledge(p, watchGain(state))
+    if (knowledge(state, p) >= 100) {
+      state.scoutWatch = state.scoutWatch.filter(x => x !== id)
+      fileRec(state, makeRec(state, p, 12, 'watch', false))
+    }
+  }
+  // shortlisted players: the department's weekly reports, up to a proper one
   for (const id of state.shortlist) {
     const p = state.players[id]
-    if (p) bumpKnowledge(p, 15 + scoutLvl * 6)
+    if (p) bumpKnowledge(p, 15 + scoutLvl * 6, FREE_CAP)
   }
   // background knowledge of your own league
   if (state.week % 2 === 0) {
     for (const p of Object.values(state.players)) {
       if (p.clubId && p.clubId !== state.userClubId && state.clubs[p.clubId]?.leagueId === userLeague) {
-        bumpKnowledge(p, 1 + scoutLvl)
+        bumpKnowledge(p, 1 + scoutLvl, FREE_CAP)
       }
     }
   }
@@ -121,33 +181,59 @@ export function weeklyScouting(state: GameState) {
   if (state.scoutFocus && state.comps[state.scoutFocus]) {
     for (const p of Object.values(state.players)) {
       if (p.clubId && p.clubId !== state.userClubId && state.clubs[p.clubId]?.leagueId === state.scoutFocus) {
-        bumpKnowledge(p, 2 + scoutLvl * 1.5)
+        bumpKnowledge(p, 2 + scoutLvl * 1.5, LEAGUE_CAP)
       }
     }
   }
+  // and what nobody is looking at goes stale (scoutknow.ts fadeKnowledge)
+  // (a man whose file was finished this week is still fresh)
+  const held = new Set<number>([...state.shortlist, ...watched])
+  for (const p of Object.values(state.players)) {
+    if (p.clubId === state.userClubId || held.has(p.id)) continue
+    // a league under watch holds what the watch can see, and so does your own
+    const lid = p.clubId ? state.clubs[p.clubId]?.leagueId : undefined
+    const kept = lid && lid === state.scoutFocus ? LEAGUE_CAP : lid && lid === userLeague ? FREE_CAP : 0
+    fadeKnowledge(p, Math.max(baseKnowledge(state, p), Math.min(kept, p.sc ?? 0)))
+  }
   // shortlist alerts: the scouts ring when a target's situation changes
+  // (1.9.12: the men on the scout's watch count as targets too)
   state.slAlerted ??= []
-  for (const id of state.shortlist) {
+  const targets = [...new Set([...state.shortlist, ...scoutWatchList(state)])]
+  const ring = (p: Player, alertKey: string, alertV: Record<string, string | number>) => {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+      subject: `Shortlist alert: ${p.name}`,
+      body: `The chief scout rings it in: ${p.name} (${p.pos}, ${state.clubs[p.clubId!]?.short}) ${tIn('en', alertKey, alertV)}`,
+      k: 'news.shortlistAlert',
+      v: { player: p.name, pos: p.pos, ...alertV, alert_k: alertKey },
+      playerId: p.id,
+    })
+  }
+  for (const id of targets) {
     const p = state.players[id]
-    if (!p || !p.clubId || p.clubId === state.userClubId || state.slAlerted.includes(id)) continue
+    if (!p || !p.clubId || p.clubId === state.userClubId) continue
+    // RIVALS IN THE HUNT (1.9.12): once per spell of talk, the week the
+    // scouts first hear another club is after him, with the chief scout's
+    // read of it. The line on his report was always there; nobody rang.
+    const talk = rivalTalk(state, p)
+    const spell = talkSpell(state)
+    if (talk && state.slRival?.[id] !== spell) {
+      (state.slRival ??= {})[id] = spell
+      ring(p, `news.slRival_${talk.read}`, { short: state.clubs[p.clubId]?.short ?? '', rival: state.clubs[talk.clubId]?.short ?? '' })
+      continue
+    }
+    if (state.slAlerted.includes(id)) continue
     const alertKey = p.transferListed ? 'news.slListed'
       : p.contractEnds <= state.season ? 'news.slExpiring'
       : p.form >= 8.2 ? 'news.slForm'
       : null
-    const alertV = { short: state.clubs[p.clubId]?.short ?? '', form: p.form.toFixed(1) }
-    const alert = alertKey ? tIn('en', alertKey, alertV) : null
-    if (alert) {
+    if (alertKey) {
       state.slAlerted.push(id)
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-        subject: `Shortlist alert: ${p.name}`,
-        body: `The chief scout rings it in: ${p.name} (${p.pos}, ${state.clubs[p.clubId]?.short}) ${alert}`,
-        k: 'news.shortlistAlert',
-        v: { player: p.name, pos: p.pos, ...alertV, alert_k: alertKey! },
-        playerId: p.id,
-      })
+      ring(p, alertKey, { short: state.clubs[p.clubId]?.short ?? '', form: p.form.toFixed(1) })
     }
   }
+  // spells that have passed are forgotten, so the map stays small
+  if (state.slRival) for (const k of Object.keys(state.slRival)) if (state.slRival[+k] !== talkSpell(state)) delete state.slRival[+k]
 }
 
 /** Facing a team teaches you plenty about their matchday squad. */
@@ -156,17 +242,17 @@ export function scoutOpponent(state: GameState, clubId: string) {
   if (!club) return
   for (const id of club.players) {
     const p = state.players[id]
-    if (p) bumpKnowledge(p, 12)
+    // half what it was, and short of the full file: two meetings a season
+    // used to finish the whole league's files by themselves (1.9.12)
+    if (p) bumpKnowledge(p, 6, MATCH_CAP)
   }
 }
 
 /** Initial knowledge levels at new-game time. */
 export function seedKnowledge(state: GameState) {
-  const userLeague = state.clubs[state.userClubId].leagueId
   for (const p of Object.values(state.players)) {
     if (p.clubId === state.userClubId) { p.sc = 100; continue }
-    const sameLeague = p.clubId && state.clubs[p.clubId]?.leagueId === userLeague
-    p.sc = clamp((sameLeague ? 45 : 18) + (p.intl ? 20 : 0) + (p.ca >= 88 ? 10 : 0), 0, 90)
+    p.sc = baseKnowledge(state, p)
   }
 }
 

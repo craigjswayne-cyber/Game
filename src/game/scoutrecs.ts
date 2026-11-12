@@ -37,7 +37,7 @@ import { clamp, hashString, mulberry32 } from './rng'
 import { fuzzedCa, knowledge, scoutPa } from './scoutknow'
 import { noteFor, type NoteRef } from './scoutnote'
 
-export type RecSource = 'brief' | 'road' | 'meeting'
+export type RecSource = 'brief' | 'road' | 'meeting' | 'watch'
 
 export interface ScoutRec {
   playerId: number
@@ -53,6 +53,29 @@ export interface ScoutRec {
   src: RecSource
   /** its story has gone to the inbox (or another story already carried it) */
   posted?: boolean
+  /** how far his judgement could miss when he gave it (judgementSpread), kept
+   *  so the page can say how sure he was (1.9.12). Absent on older verdicts. */
+  spread?: number
+}
+
+/** How sure the scout was of a verdict, from how far he could have missed:
+ *  a three-badge scout after months is sure; one badge after a month is
+ *  guessing. Null on a verdict from before the spread was kept. */
+export type Sureness = 'sure' | 'fair' | 'guess'
+export const surenessOf = (rec: Pick<ScoutRec, 'spread'>): Sureness | null =>
+  rec.spread == null ? null : rec.spread <= 6 ? 'sure' : rec.spread <= 11 ? 'fair' : 'guess'
+
+/** THE SCOUT'S RECORD (1.9.12): of the calls that can now be judged, because
+ *  the man is fully known, how many held up or turned out better. */
+export function scoutRecord(state: GameState): { held: number; judged: number } {
+  let held = 0, judged = 0
+  for (const r of scoutList(state)) {
+    const h = hindsight(state, r)
+    if (!h) continue
+    judged++
+    if (h !== 'worse') held++
+  }
+  return { held, judged }
 }
 
 /** How many recommendations the Scouting page remembers. */
@@ -98,7 +121,8 @@ export function scoutVerdict(state: GameState, p: Player, weeksWatched: number):
 export function makeRec(state: GameState, p: Player, weeksWatched: number, src: RecSource, posted: boolean): ScoutRec {
   const v = scoutVerdict(state, p, weeksWatched)
   const rng = mulberry32(hashString(`recnote|${p.id}|${state.season}|${state.week}`))
-  return { playerId: p.id, ...v, note: noteFor(v.grade, v.pot - v.cur, rng), season: state.season, week: state.week, src, posted }
+  return { playerId: p.id, ...v, note: noteFor(v.grade, v.pot - v.cur, rng), season: state.season, week: state.week, src, posted,
+    spread: judgementSpread(state.staff?.scout ?? 0, weeksWatched) }
 }
 
 /** File a recommendation: the newest verdict on a man replaces an older one. */

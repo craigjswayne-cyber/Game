@@ -81,6 +81,43 @@ statistics, training and scrums.
   for a man in French, Spanish, Italian, Afrikaans or Japanese now have
   their women's form (a captain was "le joueur le plus ancien").
 
+- **Scouting is rebuilt** (the owner, 12 Nov 2026: "assess the whole
+  scouting system", then "transform it all"). One chief scout, as before,
+  with more for him to do:
+  - **The report shows the attributes.** Tap a man on the Scouting screen
+    and his numbers are on the sheet as the file reads them: a figure where
+    the scouts are sure, a range where they are not. "Compare with" puts
+    your best player in the same shirt beside him.
+  - **Scout in person.** The chief scout can watch one man per level (up to
+    three) and comes back with the full file, exact numbers and character,
+    in a few weeks (three weeks from a proper report at level 2). The men
+    being watched have their own list on the Scouting screen.
+  - **Each source has a ceiling.** Measured on 1.9.11, every player in the
+    manager's own league had a full file by the end of a season for
+    nothing; now none do. The shortlist and your own league stop at a
+    proper report (74 of 100), a league under the network's watch at 84,
+    playing against a side at 89. The full file is the scout's own work.
+  - **Files go stale.** A man nobody is watching loses a little each week
+    (faster for a young player, who is still changing), down to what his
+    league's tape gives.
+  - **A brief with a specification.** A commissioned search can ask for a
+    player for now or for the future, a maximum age and a maximum fee. If
+    nobody fits, the scout says so before any money is spent.
+  - **How sure he is, and his record.** Every verdict says whether the scout
+    is sure, fairly sure or guessing, and the Scouting screen keeps his
+    record: how many of his judgements have held up.
+  - **Sort and filter the list**: newest, verdict, age or fee; by position;
+    only players inside the transfer budget.
+  - **Rivals in the hunt.** When another club is after a man on the
+    shortlist or on the scout's watch, the chief scout rings once per spell
+    of talk, with his read of whether it is genuine or agent talk.
+  - **The file on the next opponent.** Knowing their squad well firms up the
+    analyst's read by up to five points, and the opposition report says so.
+  - Careers under way keep every file they have; from then on the new rules
+    apply. Nothing in a save needs converting.
+  - Checked by `tests/scoutrules.test.ts` (19 tests) and
+    `scripts/scoutscreen.mjs` (the sheet on an iPhone-sized screen).
+
 - **A tester's four reports** (12 Nov 2026, on an iPhone):
   - **Zach Mercer is at Toulon**, where he has played since 2025-26. The
     squad files had him at Gloucester, a season behind. Albert Tuisue (to
