@@ -1,8 +1,8 @@
 # Uploading 1.9.12
 
-Version **1.9.12**. Play versionCode **72**. 71 was the first build; its
-bundle was uploaded to Open testing and not rolled out, so the code is
-treated as spent.
+Version **1.9.12**. Play versionCode **73**. 71 and 72 were earlier builds
+of 1.9.12 (each overtaken by a round of Afrikaans answers); treat both codes
+as spent.
 Do the steps in order; each one says what to check before moving on.
 
 ## 1. Before you build
@@ -10,14 +10,15 @@ Do the steps in order; each one says what to check before moving on.
 - [x] **#96 and #97 merged into main** (the two player reports, Afrikaans
       round one, match balance, the languages recheck). The Release check was
       green on that merge, `ba5dec2`.
-- [ ] **The Afrikaans round-two pull request merged into main.** It carries
-      the proofreader's second answers and version code 72. The commit to
+- [x] **Afrikaans round two merged into main** (#98, code 72).
+- [ ] **The Afrikaans round-three pull request merged into main.** It carries
+      the proofreader's last two answers and version code 73. The commit to
       build is that merge.
 - [ ] **Release check green on that merge commit** (Actions tab, "Release
       check"). The rule since 1.9.2: no release is cut until it is green on
       the commit that ships.
-- [ ] **The 71 draft in Open testing is discarded**, not rolled out. The
-      bundle to roll out is 72.
+- [ ] **Any 71 or 72 release in Open testing is not promoted.** The bundle
+      to promote to Production is 73.
 - [ ] **Shirt 1 on a real iPhone: on the TestFlight build, in step 4.** The
       game is not on the website (pages.yml publishes the landing page only),
       so the check is made in the app. The reporter was in the iPhone app.
@@ -45,13 +46,13 @@ npm install
 ./scaffold.sh
 ```
 
-- [ ] `scaffold.sh` prints the version code at the end. It must read **72**
+- [ ] `scaffold.sh` prints the version code at the end. It must read **73**
       (or the number you set in step 2).
 - [ ] Android Studio: *Build > Generate Signed App Bundle / APK* >
       Android App Bundle > your keystore, alias `phase` > **release**.
       Output: `android/app/release/app-release.aab`.
 - [ ] Play Console > *Testing > Internal testing* > *Create new release* >
-      upload the .aab. Release name: **1.9.12 (72)**. Release notes: the
+      upload the .aab. Release name: **1.9.12 (73)**. Release notes: the
       What's new for each language in `docs/store-listing.md` (section
       "v1.9.12").
 - [ ] On your phone, from the internal track (see section 5 for what to try).
@@ -113,7 +114,7 @@ Ten minutes, on each store's test build:
 
 - [ ] Reply to both players (drafts below).
 - [ ] Update `docs/launch/LAUNCH-PROGRAMME.md` status table: current version
-      1.9.12, Play code 72, App Store status.
+      1.9.12, Play code 73, App Store status.
 
 ## Replies to send once it is live
 
