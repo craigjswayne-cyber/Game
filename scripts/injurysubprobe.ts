@@ -103,8 +103,12 @@ console.log('--- 1. the owner\'s case: a back-rower down, no back-row on the ben
 {
   // the hardest version: the assistant's man is out of position, so the
   // stoppage wrote a line about him - the line that used to lock the sheet
+  // (and not on the final whistle: a stoppage on the last tick ends the match
+  // with it, and "The match is over" is the right answer to any swap there.
+  // The 1.9.12 squad changes re-dealt every world, and the first match the
+  // search found, seed 695, stopped exactly there)
   const hit = find('backrow', h => BACK_ROW.includes(h.pos),
-    s => s.ctx.events.slice(s.inj).some(e => e.k === 'comm.outOfCover'))
+    s => s.ctx.seg !== 3 && s.ctx.tick < 20 && s.ctx.events.slice(s.inj).some(e => e.k === 'comm.outOfCover'))
   ok(!!hit, `staged: a back-rower injured with no back-rower on the bench and the cover out of position${hit ? ` (seed ${hit.seed}, ${hit.stop.hurt.pos})` : ''}`)
   if (hit) {
     const { stop } = hit
