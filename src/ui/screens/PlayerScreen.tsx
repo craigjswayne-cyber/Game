@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
+import { scrollContentTo } from '../pageReset'
 import { ATTR_KEYS, POS_ORDER, SEASON_WEEKS, careerRows, kickRecord, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
@@ -42,6 +43,9 @@ import { acc } from '../accent'
 /** Set by the scout report's Make an offer (Scouting.tsx): the page opens
  *  scrolled to the deal, once. */
 export const offerFocus: { id: number | null } = { id: null }
+/** A caller that wants a man's page opened on a tab other than Profile (the
+ *  scout sheet's Attributes button, 1.9.12): set before go('player', id). */
+export const tabFocus: { id: number | null; tab: 'attrs' | 'career' } = { id: null, tab: 'attrs' }
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -50,7 +54,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   useEffect(() => {
     if (offerFocus.id !== playerId) return
     offerFocus.id = null
-    const id = window.setTimeout(() => document.getElementById('deal-desk')?.scrollIntoView({ block: 'start' }), 60)
+    // inside the game's own column only: scrollIntoView moves every ancestor,
+    // and WebKit will move the document (pageReset.ts)
+    const id = window.setTimeout(() => scrollContentTo(document.getElementById('deal-desk')), 60)
     return () => window.clearTimeout(id)
   }, [playerId])
   const [msg, setMsgRaw] = useState<string | null>(null)
@@ -98,7 +104,11 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   // another club's man: his development card is folded (1.8.2 trim, see below)
   const [devOpen, setDevOpen] = useState(false)
   // three pages instead of one long scroll (user: fewer scrolls, more pages)
-  const [ptab, setPtab] = useState<'profile' | 'attrs' | 'career'>('profile')
+  const [ptab, setPtab] = useState<'profile' | 'attrs' | 'career'>(() => {
+    if (tabFocus.id !== playerId) return 'profile'
+    tabFocus.id = null
+    return tabFocus.tab
+  })
 
   const p = game.players[playerId]
   if (!p) return <div className="muted" style={{ padding: 14 }}>{t('player.gone')}</div>

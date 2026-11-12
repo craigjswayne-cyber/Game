@@ -30,7 +30,7 @@ import { PosBadge, SectionTitle, Stars } from '../components'
 import { Glyph } from '../glyphs'
 import { plainNews } from '../NewsBody'
 import ScoutReportCard from '../ScoutReport'
-import { offerFocus } from './PlayerScreen'
+import { offerFocus, tabFocus } from './PlayerScreen'
 import { rowNav } from '../rowNav'
 import { Veil } from '../Veil'
 
@@ -120,8 +120,14 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
   const hs = rec ? hindsight(game, rec) : null
   const cur = rec ? rec.cur : fuzzedCa(game, p)
   const pot = rec ? rec.pot : Math.max(cur, scoutPa(game, p))
+  // THE NUMBERS ARE ONE TAP AWAY (1.9.12, tester: "it doesn't show their
+  // attributes, have to click make an offer to go and see"). The second button
+  // said "Player page" and opened the Profile tab; it now says Attributes and
+  // opens them. Make an offer still goes to the deal.
   const toPlayer = (offer: boolean) => {
     offerFocus.id = offer ? p.id : null
+    tabFocus.id = offer ? null : p.id
+    tabFocus.tab = 'attrs'
     onClose()
     go('player', p.id)
   }
@@ -166,7 +172,7 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
       </div>
       <div className="btn-row" style={{ margin: '4px 14px 4px' }}>
         <button className="btn ghost" onClick={onClose}>{t('scouting.close')}</button>
-        <button className="btn ghost" onClick={() => toPlayer(false)}>{t('scouting.toPlayer')}</button>
+        <button className="btn" onClick={() => toPlayer(false)}>{t('scouting.toPlayer')}</button>
       </div>
     </Veil>
   )

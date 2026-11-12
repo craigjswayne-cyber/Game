@@ -1,8 +1,8 @@
 # Uploading 1.9.12
 
-Version **1.9.12**. Play versionCode **73**. 71 and 72 were earlier builds
-of 1.9.12 (each overtaken by a round of Afrikaans answers); treat both codes
-as spent.
+Version **1.9.12**. Play versionCode **74**. 71, 72 and 73 were earlier
+builds of 1.9.12 (overtaken by two rounds of Afrikaans answers and then a
+tester's four reports); treat all three codes as spent.
 Do the steps in order; each one says what to check before moving on.
 
 ## 1. Before you build
@@ -11,14 +11,15 @@ Do the steps in order; each one says what to check before moving on.
       round one, match balance, the languages recheck). The Release check was
       green on that merge, `ba5dec2`.
 - [x] **Afrikaans round two merged into main** (#98, code 72).
-- [ ] **The Afrikaans round-three pull request merged into main.** It carries
-      the proofreader's last two answers and version code 73. The commit to
-      build is that merge.
+- [x] **Afrikaans round three merged into main** (#99, code 73).
+- [ ] **The tester-fixes pull request merged into main.** It carries Mercer,
+      Gloucester, the scout sheet's Attributes button, the zoom reset and
+      version code 74. The commit to build is that merge.
 - [ ] **Release check green on that merge commit** (Actions tab, "Release
       check"). The rule since 1.9.2: no release is cut until it is green on
       the commit that ships.
-- [ ] **Any 71 or 72 release in Open testing is not promoted.** The bundle
-      to promote to Production is 73.
+- [ ] **Any 71, 72 or 73 release in Open testing is not promoted.** The
+      bundle to promote to Production is 74.
 - [ ] **Shirt 1 on a real iPhone: on the TestFlight build, in step 4.** The
       game is not on the website (pages.yml publishes the landing page only),
       so the check is made in the app. The reporter was in the iPhone app.
@@ -46,13 +47,13 @@ npm install
 ./scaffold.sh
 ```
 
-- [ ] `scaffold.sh` prints the version code at the end. It must read **73**
+- [ ] `scaffold.sh` prints the version code at the end. It must read **74**
       (or the number you set in step 2).
 - [ ] Android Studio: *Build > Generate Signed App Bundle / APK* >
       Android App Bundle > your keystore, alias `phase` > **release**.
       Output: `android/app/release/app-release.aab`.
 - [ ] Play Console > *Testing > Internal testing* > *Create new release* >
-      upload the .aab. Release name: **1.9.12 (73)**. Release notes: the
+      upload the .aab. Release name: **1.9.12 (74)**. Release notes: the
       What's new for each language in `docs/store-listing.md` (section
       "v1.9.12").
 - [ ] On your phone, from the internal track (see section 5 for what to try).
@@ -103,7 +104,13 @@ Ten minutes, on each store's test build:
    "Cons 3/4 (75%)" and Tackles. *World > Team of the Week* shows Top
    Tacklers and Top Goal Kickers under the team (the kickers board needs ten
    kicks, so it appears after a few rounds).
-5. **Results**: Instant Result through three or four rounds and look at
+5. **Scouting** (the tester's reports): shortlist a player at another club,
+   open *Hub > Scouting*, tap them. The sheet has an *Attributes* button
+   that opens their attributes. Go back, tap them again, tap *Make an
+   offer*: the page scrolls to the deal and scrolls back up to the top.
+   Pinch to zoom in on any screen, then tap to another screen: it is back
+   to normal size. Zach Mercer is at Toulon, not Gloucester.
+5b. **Results**: Instant Result through three or four rounds and look at
    the league's scores. A side on nil should be rare (about 1 match in 75;
    it was 1 in 18). *World > Team of the Week* and player pages at other
    clubs now show Player of the Match counts.
@@ -114,7 +121,7 @@ Ten minutes, on each store's test build:
 
 - [ ] Reply to both players (drafts below).
 - [ ] Update `docs/launch/LAUNCH-PROGRAMME.md` status table: current version
-      1.9.12, Play code 73, App Store status.
+      1.9.12, Play code 74, App Store status.
 
 ## Replies to send once it is live
 

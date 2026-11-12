@@ -1,6 +1,6 @@
 # PHASE: Rugby Manager 1.9.12: release notes
 
-Version 1.9.12, Play versionCode 73 (71 and 72 were earlier builds, never rolled out to production). Baseline: 1.9.11, code 70. Two player
+Version 1.9.12, Play versionCode 74 (71, 72 and 73 were earlier builds, never rolled out to production). Baseline: 1.9.11, code 70. Two player
 reports: one from Bristol in Premiership Women's Rugby (the iPhone app,
 10 Nov 2026) with three points in it, and one in French on loans,
 statistics, training and scrums.
@@ -81,6 +81,31 @@ statistics, training and scrums.
   for a man in French, Spanish, Italian, Afrikaans or Japanese now have
   their women's form (a captain was "le joueur le plus ancien").
 
+- **A tester's four reports** (12 Nov 2026, on an iPhone):
+  - **Zach Mercer is at Toulon**, where he has played since 2025-26. The
+    squad files had him at Gloucester, a season behind. Albert Tuisue (to
+    Provence) and James Venter (to Gloucester from the Sharks) were behind
+    in the same way and are put right with him.
+  - **Gloucester are a tougher side.** They were top of the real table after
+    four rounds of 2026-27 and seventh of ten in the game on their best 23.
+    Reputation 78 to 81, and the men carrying the run rated up (Kleyn, Lake,
+    Byrne, Seb Atkinson, Fasogbon and others): now third or fourth on the
+    same measure, behind Bath and Sarries.
+  - **The scout sheet reaches the attributes.** Its second button said
+    "Player page" and opened the Profile tab, so the tester went through
+    "Make an offer" to find the numbers. It now says "Attributes" and opens
+    that tab.
+  - **A screen no longer stays zoomed in.** A zoom (a stray pinch, or iOS
+    zooming to a text box) used to stay through every screen after it, on a
+    shell that does not scroll. Now each change of screen puts the page back
+    to its own size and its own top; pinch-zoom still works where it is
+    wanted. "Make an offer" scrolls the game's own column and never the
+    page, and the two text boxes with writing under 16px (the Medical search
+    and the training search), which is what makes iOS zoom, are 16px.
+    Not seen on an iPhone: Chromium shows the zoom being reset, the column
+    scrolling and the page staying put (`scripts/pagereset.mjs`), but the
+    tester's exact stuck screen was not reproduced.
+
 ## Not in this release
 
 From the French report: kick distances, training groups and a training load
@@ -116,7 +141,14 @@ bench and back up.
   season close starts every count again. Twelve
   weeks of a men's career: conversions 72%, penalties 75%, a median 8 tackles
   per 80 minutes, flankers top.
-- Unit tests 293/293, typecheck, lint, subjectprobe, langparity, i18nprobe,
+- `tests/gloucester2627.test.ts`: Mercer at Toulon once, Tuisue and Venter
+  moved, Gloucester in the top half on their best 23 and not the best.
+- `scripts/pagereset.mjs`: a 1.6x zoom is gone on the next screen with no
+  maximum-scale left behind; the scout sheet's Attributes button opens the
+  Attributes tab; Make an offer moves the column and not the page.
+- `scripts/nobenchprobe.mjs` stages only on a match with nobody already
+  down (it collided with a real early injury about one run in twenty).
+- Unit tests 297/297, typecheck, lint, subjectprobe, langparity, i18nprobe,
   englishprobe, subsprobe, injurysheet, tabletprobe, nobenchprobe,
   telemetryui, teamtalkui, a11yprobe, e2e, langprobe and womensui pass.
 
