@@ -137,3 +137,20 @@ speletjies, statistieke, permanent), her typos not (ronte, Mededringers,
 Nationale, "speel word"). The title stays PHASE: Rugby Manager. Short
 description 76 of 80, full description 3,998 of 4,000. It has to be pasted
 into the Play Console by hand.
+
+
+## Round three: the last two answers (12 Nov 2026)
+
+Sheet: `proofread-final-3-2026-11-12.xlsx`. Two rows changed from round two,
+both answers to the questions left open. Not in 1.9.12 (code 72), which was
+already merged and checked: for the next release.
+
+| What | Lines |
+|---|---|
+| Wage room is "Beskikbare salaris" (available salary): desk.moneyRoom, transfers.wageRoom, finances.wageHeadroom and the two handbook lines | 5 |
+| The national-team badge is `INT.` (was INTL) | 1 |
+
+With these, every question put to her is answered. What stays as decided in
+round one, because she did not come back on it: common.friendly,
+desk.moneyAdmin, store.pinnacleLine, store.callMade, desk.tRival,
+store.charterActivate, and National One.
