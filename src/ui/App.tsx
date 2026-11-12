@@ -30,6 +30,7 @@ import { COMMUNITY_URL } from '../game/community'
 import { TurningVeil } from './TurningVeil'
 import { VisitContext, noteScroll, scrollFor } from './visitState'
 import { Veil } from './Veil'
+import { resetPage } from './pageReset'
 
 /* A SCREEN WHOSE FILE IS GONE RELOADS THE GAME ONCE (1.9.1 re-audit). After
    a new build replaces the old one, a tab still running the old build asks
@@ -525,6 +526,8 @@ export default function App() {
     const top = scrollFor(cur)
     if (mainRef.current && top != null) mainRef.current.scrollTop = top
   }, [cur])
+  // a zoom or a dragged page belongs to the screen it happened on (pageReset.ts)
+  useEffect(() => { resetPage() }, [cur.screen, cur.param])
   // a skin is a third class on the same root: tokens.css declares the skin
   // blocks after night and day, so the skin wins the cascade and the
   // floodlight toggle still does its job underneath

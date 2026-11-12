@@ -190,8 +190,8 @@ const EARLIER: Record<string, RawPlayer[]> = {
     { name: 'Phil Cokanasiga', pos: 'WG', age: 24, nat: 'ENG', q: 66 },
     // 2026-27 second instalment (owner's v1.1.6 list): the experienced
     // half-back and lock the window brings in.
-    { name: 'Dan Robson', pos: 'SH', age: 34, nat: 'ENG', q: 70 },
-    { name: 'Joe Joyce', pos: 'LK', age: 31, nat: 'ENG', q: 67 },
+    { name: 'Dan Robson', pos: 'SH', age: 34, nat: 'ENG', q: 77 },
+    { name: 'Joe Joyce', pos: 'LK', age: 31, nat: 'ENG', q: 72 },
   ],
   sharks: [
     { name: 'Andre Esterhuizen', pos: 'CE', age: 32, nat: 'RSA', q: 82, intl: true },

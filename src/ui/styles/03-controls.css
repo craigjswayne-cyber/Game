@@ -464,7 +464,9 @@ button.chip::before, .preset-chip::before { content: ''; position: absolute; ins
 }
 .settings-sheet > .btn.gold.block { margin-left: 16px; margin-right: 16px; width: calc(100% - 32px); }
 .speed-controls .btn { flex: 0 0 48px; width: 48px; padding: 0; }
-.med-search .inline-input { margin: 0; padding: 8px 10px; font-size: 0.8125rem; }
+/* 16px like every other text box: iOS zooms the page to a smaller one and
+   leaves it zoomed (01-base.css; the 13px here was the exception, 1.9.12) */
+.med-search .inline-input { margin: 0; padding: 8px 10px; }
 
 /* The handbook's search box sat flush against both edges of the glass while
    everything under it kept the 14px gutter. */

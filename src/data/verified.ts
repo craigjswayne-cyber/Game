@@ -153,6 +153,15 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'dewi lake@ospreys': 'gloucester',
   'jac morgan@ospreys': 'gloucester',
   'jean kleyn@munster': 'gloucester',
+  // 1.9.12, tester: "Zach Mercer does not play for Gloucester any more". He
+  // signed for Toulon for 2025-26 (Wikipedia, List of 2025-26 Premiership
+  // Rugby transfers, Gloucester OUT; all.rugby has him at Toulon in both
+  // 2025-26 and 2026-27). The same OUT list has Albert Tuisue to Provence,
+  // and its IN list has James Venter from the Sharks; the files had all
+  // three a season behind.
+  'zach mercer@gloucester': 'toulon',
+  'albert tuisue@gloucester': 'provence',
+  'james venter@sharks': 'gloucester',
   // -> harlequins
   'harry johnson-holmes@force': 'harlequins',
   'james dun@bristol': 'harlequins',
