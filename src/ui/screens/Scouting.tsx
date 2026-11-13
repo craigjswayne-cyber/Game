@@ -20,9 +20,10 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, weeksBetween100, type GameState, type Player, type Pos } from '../../game/model'
-import { fuzzedCa, knowledge, scoutPa, seenValue, shownCa } from '../../game/scout'
-import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
-import { hindsight, recFor, scoutList, type ScoutRec } from '../../game/scoutrecs'
+import { fuzzedCa, knowledge, scoutPa, scoutWatchList, seenValue, shownCa, toggleScoutWatch, watchSlots, watchWeeks } from '../../game/scout'
+import { commissionScout, searchFee, type BriefAim, type SearchMonths } from '../../game/commission'
+import { hindsight, recFor, scoutList, scoutRecord, surenessOf, type ScoutRec } from '../../game/scoutrecs'
+import { askingPrice } from '../../game/transferRules'
 import { rivalTalk } from '../../game/recruit'
 import { badgeLabel } from '../../game/staff'
 import { compLabel, posName, t } from '../../game/i18n'
@@ -30,6 +31,7 @@ import { PosBadge, SectionTitle, Stars } from '../components'
 import { Glyph } from '../glyphs'
 import { plainNews } from '../NewsBody'
 import ScoutReportCard from '../ScoutReport'
+import AttrGrid, { bestInShirt } from '../AttrGrid'
 import { offerFocus, tabFocus } from './PlayerScreen'
 import { rowNav } from '../rowNav'
 import { Veil } from '../Veil'
@@ -80,25 +82,68 @@ function ScoutRow({ game, p, rec, onOpen }: { game: GameState; p: Player; rec: S
   )
 }
 
+type RecSort = 'verdict' | 'new' | 'age' | 'fee'
+
 /** The scout's verdicts, newest first: the list the owner asked for. `limit`
- *  shortens it and hands the rest to the Scouting page. */
+ *  shortens it and hands the rest to the Scouting page.
+ *
+ *  SORTED AND FILTERED (1.9.12). Forty verdicts in the order they were filed
+ *  could not answer the question a manager actually has: who is the best
+ *  lock on this list that I can pay for. The full page sorts by verdict,
+ *  date, age or price, filters by shirt, and can hide every man whose asking
+ *  price is over the budget. The short preview is left as it was. */
 export function ScoutRecList({ onOpen, limit }: { onOpen: (id: number) => void; limit?: number }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
   const [all, setAll] = useState(false)
-  const list = scoutList(game).filter(r => game.players[r.playerId]?.clubId !== game.userClubId)
+  const [sort, setSort] = useState<RecSort>('new')
+  const [pos, setPos] = useState<Pos | 'any'>('any')
+  const [afford, setAfford] = useState(false)
+  const every = scoutList(game).filter(r => game.players[r.playerId]?.clubId !== game.userClubId)
+  const budget = game.clubs[game.userClubId]?.budget ?? 0
+  const fee = (r: ScoutRec) => { const p = game.players[r.playerId]; return p.clubId ? askingPrice(game, p) : 0 }
+  let list = every
+  if (!limit) {
+    if (pos !== 'any') list = list.filter(r => { const p = game.players[r.playerId]; return p.pos === pos || p.alt.includes(pos) })
+    if (afford) list = list.filter(r => fee(r) <= budget)
+    if (sort !== 'new') {
+      list = [...list].sort((a, b) =>
+        sort === 'verdict' ? b.grade - a.grade || b.pot - a.pot
+          : sort === 'age' ? game.players[a.playerId].age - game.players[b.playerId].age || b.grade - a.grade
+            : fee(a) - fee(b) || b.grade - a.grade)
+    }
+  }
   const cap = limit ?? (all ? list.length : 12)
   return (
     <>
       <SectionTitle sub={t('transfers.scoutsReportSub', { g: game.staffPeople?.scout?.g ?? 'm' })}>{t('transfers.scoutsReport')}</SectionTitle>
-      {!list.length && <div className="muted" style={{ padding: '4px 14px 10px', fontSize: '0.8125rem' }}>{t('scouting.empty')}</div>}
+      {!every.length && <div className="muted" style={{ padding: '4px 14px 10px', fontSize: '0.8125rem' }}>{t('scouting.empty')}</div>}
+      {!limit && every.length > 3 && (
+        <div className="scout-filters">
+          <select className="inline-input" value={sort} aria-label={t('scouting.sortBy')} onChange={e => setSort(e.target.value as RecSort)}>
+            <option value="new">{t('scouting.sortNew')}</option>
+            <option value="verdict">{t('scouting.sortVerdict')}</option>
+            <option value="age">{t('scouting.sortAge')}</option>
+            <option value="fee">{t('scouting.sortFee')}</option>
+          </select>
+          <select className="inline-input" value={pos} aria-label={t('transfers.filterPosition')} onChange={e => setPos(e.target.value as Pos | 'any')}>
+            <option value="any">{t('transfers.anyPosition')}</option>
+            {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
+          </select>
+          <label className="check-row scout-afford">
+            <input type="checkbox" checked={afford} onChange={e => setAfford(e.target.checked)} />
+            <span>{t('scouting.affordable')}</span>
+          </label>
+        </div>
+      )}
+      {every.length > 0 && !list.length && <div className="muted" style={{ padding: '4px 14px 10px', fontSize: '0.8125rem' }}>{t('scouting.noneMatch')}</div>}
       {list.length > 0 && (
         <div className="scout-list">
           {list.slice(0, cap).map(r => <ScoutRow key={r.playerId} game={game} p={game.players[r.playerId]} rec={r} onOpen={() => onOpen(r.playerId)} />)}
         </div>
       )}
       {list.length > cap && (limit
-        ? <button className="btn ghost block" style={{ marginTop: 6 }} onClick={() => go('scouting')}>{t('scouting.seeAll', { n: list.length })}</button>
+        ? <button className="btn ghost block" style={{ marginTop: 6 }} onClick={() => go('scouting')}>{t('scouting.seeAll', { n: every.length })}</button>
         : <button className="btn ghost block" style={{ marginTop: 6 }} onClick={() => setAll(true)}>{t('scouting.showAll', { n: list.length })}</button>)}
     </>
   )
@@ -109,14 +154,19 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
   const toggleShortlist = useStore(s => s.toggleShortlist)
+  const touch = useStore(s => s.touch)
   useStore(s => s.tick)
   const [msg, setMsg] = useState<string | null>(null)
+  const [compare, setCompare] = useState(false)
   const p = game.players[playerId]
   if (!p) return null
   const rec = recFor(game, playerId)
   const club = p.clubId ? game.clubs[p.clubId] : null
   const ours = p.clubId === game.userClubId
   const listed = game.shortlist.includes(p.id)
+  const watched = scoutWatchList(game).includes(p.id)
+  const sure = rec ? surenessOf(rec) : null
+  const best = bestInShirt(game, p)
   const hs = rec ? hindsight(game, rec) : null
   const cur = rec ? rec.cur : fuzzedCa(game, p)
   const pot = rec ? rec.pot : Math.max(cur, scoutPa(game, p))
@@ -150,6 +200,10 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
           <div className="scout-verdict-word" style={{ color: gradeColour(rec.grade) }}>{gradeWord(rec.grade)}</div>
           {/* his words without the opener: the verdict is the headline above it */}
           <div className="scout-verdict-quote">{`${t(rec.note.body_k)}${t(rec.note.growth_k)}`.trim()}</div>
+          {/* how sure he was when he said it (1.9.12): a verdict from one
+              badge after a month is not the same thing as one from three
+              badges after nine */}
+          {sure && <div className="meta" style={{ marginTop: 4 }}>{t(`scouting.sure_${sure}`)}</div>}
           {hs && <div className="meta" style={{ marginTop: 6, fontWeight: 700, color: hs === 'worse' ? 'var(--text-negative)' : hs === 'better' ? 'var(--text-positive)' : undefined }}>{t(`scouting.hs_${hs}`)}</div>}
         </div>
       )}
@@ -161,6 +215,25 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
         <div className="meta muted" style={{ fontSize: '0.6875rem', marginTop: 4 }}>{t(rec ? 'scouting.starsNote' : 'scouting.starsFile')}</div>
       </div>
       {!ours && <div style={{ margin: '0 0 0' }}><ScoutReportCard game={game} p={p} onMsg={setMsg} /></div>}
+      {/* THE NUMBERS, ON THE SHEET (1.9.12, tester: "when you click on scouted
+          players it doesn't show their attributes"). As the file reads them:
+          a figure where it is exact, a range where it is not. And beside
+          them, on a tap, your best man in the same shirt. */}
+      {knowledge(game, p) >= 35 && (
+        <div className="card scout-attrs">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span className="fact-label">{t('player.attributes')}</span>
+            {best && (
+              <button className={`btn tiny ${compare ? 'gold' : 'ghost'}`} onClick={() => setCompare(!compare)} aria-pressed={compare}>
+                {t(compare ? 'scouting.comparing' : 'scouting.compare', { name: best.name.split(' ').slice(-1)[0] })}
+              </button>
+            )}
+          </div>
+          <div className="meta muted" style={{ fontSize: '0.6875rem', margin: '2px 0 6px' }}>{t('scouting.attrsNote')}</div>
+          <AttrGrid game={game} p={p} rival={compare ? best : null} />
+        </div>
+      )}
+      {watched && <div className="meta" style={{ margin: '6px 14px', fontWeight: 700 }}><Glyph name="scout" /> {t(watchWeeks(game, p) === 1 ? 'scouting.watchingOne' : 'scouting.watching', { n: watchWeeks(game, p) })}</div>}
       {msg && <div className="meta" style={{ margin: '6px 14px', color: 'var(--gold)', fontWeight: 700 }}>{msg}</div>}
       <div className="btn-row" style={{ margin: '12px 14px 4px' }}>
         {!ours && (
@@ -171,8 +244,18 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
         {!ours && <button className="btn gold" onClick={() => toPlayer(true)}>{t('scouting.makeOffer')}</button>}
       </div>
       <div className="btn-row" style={{ margin: '4px 14px 4px' }}>
-        <button className="btn ghost" onClick={onClose}>{t('scouting.close')}</button>
+        {/* THE SCOUT IN PERSON (1.9.12): the shortlist reads a man as far as a
+            proper report; the full file, exact numbers and character, is the
+            chief scout's own work, a man at a time (scout.ts) */}
+        {!ours && (watched || knowledge(game, p) < 100) && (
+          <button className={`btn ${watched ? '' : 'ghost'}`} onClick={() => { const r = toggleScoutWatch(game, p.id); setMsg(t(r.k, r.v)); touch() }}>
+            {t(watched ? 'scouting.watchStop' : 'scouting.watch')}
+          </button>
+        )}
         <button className="btn" onClick={() => toPlayer(false)}>{t('scouting.toPlayer')}</button>
+      </div>
+      <div className="btn-row" style={{ margin: '4px 14px 4px' }}>
+        <button className="btn ghost" onClick={onClose}>{t('scouting.close')}</button>
       </div>
     </Veil>
   )
@@ -189,6 +272,24 @@ function ShortlistRows({ onOpen }: { onOpen: (id: number) => void }) {
       <div className="scout-list">
         {men.map(p => <ScoutRow key={p.id} game={game} p={p} rec={null} onOpen={() => onOpen(p.id)} />)}
       </div>
+    </>
+  )
+}
+
+/** The men under the chief scout's own eye (1.9.12). */
+function WatchRows({ onOpen }: { onOpen: (id: number) => void }) {
+  const game = useStore(s => s.game)!
+  const slots = watchSlots(game)
+  const men = scoutWatchList(game).map(id => game.players[id]).filter(Boolean)
+  return (
+    <>
+      <SectionTitle sub={slots > 0 ? t('scouting.watchSub', { n: men.length, slots }) : t('transfers.noChiefScout')}>{t('scouting.watchTitle')}</SectionTitle>
+      {!men.length && <div className="muted" style={{ padding: '4px 14px 10px', fontSize: '0.8125rem' }}>{t('scouting.watchEmpty')}</div>}
+      {men.length > 0 && (
+        <div className="scout-list">
+          {men.map(p => <ScoutRow key={p.id} game={game} p={p} rec={null} onOpen={() => onOpen(p.id)} />)}
+        </div>
+      )}
     </>
   )
 }
@@ -225,8 +326,14 @@ function ScoutCommission() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [pos, setPos] = useState<Pos | 'any'>('any')
+  const [maxAge, setMaxAge] = useState(0)
+  const [maxFee, setMaxFee] = useState(0)
+  const [aim, setAim] = useState<BriefAim | 'any'>('any')
   const [msg, setMsg] = useState('')
   const abs = game.season * 100 + game.week
+  const record = scoutRecord(game)
+  const budget = game.clubs[game.userClubId]?.budget ?? 0
+  const fees = [...new Set([250_000, 500_000, 1_000_000, 2_000_000, budget].filter(f => f > 0))].sort((a, b) => a - b)
   const man = game.staffPeople?.scout
   const tier = game.staff.scout ?? 0
   const out = game.commission
@@ -269,10 +376,27 @@ function ScoutCommission() {
               <option value="any">{t('transfers.anyPosition')}</option>
               {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
             </select>
+            {/* THE SPECIFICATION (1.9.12): what the manager actually wants,
+                which a position and a league could not say */}
+            <div className="scout-spec">
+              <select className="inline-input" value={aim} aria-label={t('scouting.specAim')} onChange={e => setAim(e.target.value as BriefAim | 'any')}>
+                <option value="any">{t('scouting.aimAny')}</option>
+                <option value="now">{t('scouting.aimNow')}</option>
+                <option value="future">{t('scouting.aimFuture')}</option>
+              </select>
+              <select className="inline-input" value={maxAge} aria-label={t('scouting.specAge')} onChange={e => setMaxAge(Number(e.target.value))}>
+                <option value={0}>{t('scouting.anyAge')}</option>
+                {[21, 23, 25, 28].map(n => <option key={n} value={n}>{t('scouting.ageUpTo', { n })}</option>)}
+              </select>
+              <select className="inline-input" value={maxFee} aria-label={t('scouting.specFee')} onChange={e => setMaxFee(Number(e.target.value))}>
+                <option value={0}>{t('scouting.anyFee')}</option>
+                {fees.map(f => <option key={f} value={f}>{t('scouting.feeUpTo', { fee: fmtMoney(f) })}</option>)}
+              </select>
+            </div>
             <div style={{ display: 'flex', gap: 8 }}>
               {([3, 6, 9] as SearchMonths[]).map(m => (
                 <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: '0.75rem', lineHeight: 1.25 }}
-                  onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
+                  onClick={() => { setMsg(commissionScout(game, pos, m, { maxAge: maxAge || undefined, maxFee: maxFee || undefined, aim: aim === 'any' ? undefined : aim })); touch() }}>
                   {t('transfers.months', { n: m })}<br />
                   <span style={{ fontSize: '0.6875rem', fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
                 </button>
@@ -281,6 +405,10 @@ function ScoutCommission() {
           </>
         )}
         {msg && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>{msg}</div>}
+        {/* HIS RECORD (1.9.12): of the calls that can be judged, how many held */}
+        {man && <div className="meta muted" style={{ marginTop: 8, fontSize: '0.75rem' }}>
+          {record.judged ? t('scouting.record', { held: record.held, judged: record.judged }) : t('scouting.recordNone')}
+        </div>}
       </div>
     </>
   )
@@ -327,6 +455,7 @@ export function ScoutingBody({ initial, preview }: { initial?: number; preview?:
   return (
     <>
       <ScoutRecList onOpen={setOpen} limit={preview ? 3 : undefined} />
+      {!preview && <WatchRows onOpen={setOpen} />}
       <ShortlistRows onOpen={setOpen} />
       <ScoutCommission />
       <ScoutAssignment />

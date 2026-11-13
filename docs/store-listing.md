@@ -122,23 +122,23 @@ First release.
 
 ### What's new (500 max) - v1.9.12, Play version code 74 (71, 72 and 73 were earlier builds of 1.9.12, not rolled out to production)
 
-**en-GB, Play and App Store** (422)
-Scorelines are more realistic: far fewer teams are held to nil, fewer blowouts, and home advantage counts for more. Player of the Match is now counted across every league. Loans to you can be terminated early. Conversions, penalties and tackles are counted, with top tacklers and goal kickers under Team of the Week. The women's game reads correctly in every language, and Afrikaans has been proofread by a native speaker.
+**en-GB, Play and App Store** (496)
+Scouting is rebuilt: attributes on the scout report, compare with your own player, and send your scout to watch a player in person for the full file. Scorelines are more realistic: far fewer teams are held to nil, fewer blowouts, and home advantage counts for more. Loans to you can be terminated early. Conversions, penalties and tackles are counted, with top tacklers and goal kickers under Team of the Week. The women's game reads correctly in every language, and Afrikaans has been proofread.
 
-**fr-FR, Play and App Store** (483)
-Les joueurs prêtés à votre club ne peuvent plus être placés sur la liste des transferts, et le prêt peut être arrêté avant son terme. Transformations, pénalités et plaquages sont comptés, avec le taux de réussite ; Monde > Équipe de la semaine affiche les meilleurs plaqueurs et buteurs. Dans le jeu féminin, les joueuses ne sont plus désignées au masculin, et l'Accueil vous demande comment la presse doit parler de vous. À la mi-temps, la liste du groupe remonte jusqu'au numéro 1.
+**fr-FR, Play and App Store** (491)
+Les joueurs prêtés à votre club ne peuvent plus être placés sur la liste des transferts, et le prêt peut être arrêté avant son terme. Transformations, pénalités et plaquages sont comptés, avec le taux de réussite ; Monde > Équipe de la semaine affiche les meilleurs plaqueurs et buteurs. Dans le jeu féminin, les joueuses ne sont plus désignées au masculin, et l'Accueil vous demande comment la presse doit parler de vous. Recrutement repensé : attributs sur le rapport et suivi en personne.
 
-**es-ES, Play and App Store** (476)
-Los jugadores cedidos a tu club ya no pueden ir a la lista de traspasos, y la cesión se puede rescindir antes de tiempo. Se cuentan transformaciones, golpes de castigo y placajes, con el porcentaje de acierto, y Mundo > Equipo de la semana muestra a los mejores placadores y pateadores. En el juego femenino, las jugadoras ya no se nombran en masculino, e Inicio te pregunta cómo debe referirse a ti la prensa. En el descanso, la convocatoria vuelve a subir hasta el número 1.
+**es-ES, Play and App Store** (475)
+Los jugadores cedidos a tu club ya no pueden ir a la lista de traspasos, y la cesión se puede rescindir antes de tiempo. Se cuentan transformaciones, golpes de castigo y placajes, con el porcentaje de acierto, y Mundo > Equipo de la semana muestra a los mejores placadores y pateadores. En el juego femenino, las jugadoras ya no se nombran en masculino, e Inicio te pregunta cómo debe referirse a ti la prensa. Ojeo renovado: atributos en el informe y seguimiento en persona.
 
-**it-IT, Play and App Store** (478)
-I giocatori in prestito al tuo club non possono più finire sulla lista dei trasferimenti, e il prestito si può rescindere in anticipo. Trasformazioni, piazzati e placcaggi vengono contati, con la percentuale di successo, e Mondo > XV della settimana mostra i migliori placcatori e calciatori. Nel gioco femminile le giocatrici non sono più nominate al maschile, e la Home ti chiede come deve riferirsi a te la stampa. All'intervallo, la rosa del match torna su fino al numero 1.
+**it-IT, Play and App Store** (495)
+I giocatori in prestito al tuo club non possono più finire sulla lista dei trasferimenti, e il prestito si può rescindere in anticipo. Trasformazioni, piazzati e placcaggi vengono contati, con la percentuale di successo, e Mondo > XV della settimana mostra i migliori placcatori e calciatori. Nel gioco femminile le giocatrici non sono più nominate al maschile, e la Home ti chiede come deve riferirsi a te la stampa. Osservatori rinnovati: attributi sulla scheda e giocatori seguiti di persona.
 
-**ja-JP, Play and App Store** (177)
-ローン加入選手を移籍リストに載せられないようにし、ローンを途中で解除できるようにした。コンバージョン、PG、タックルを成功率つきで記録し、ワールド＞週間ベストXVにタックルとキックのランキングを追加。女子リーグで選手が男性の代名詞で呼ばれる不具合を修正し、ホームでメディアでの呼ばれ方を選べるように。ハーフタイムのスコッド一覧で1番まで戻れるようにした。
+**ja-JP, Play and App Store** (222)
+ローン加入選手を移籍リストに載せられないようにし、ローンを途中で解除できるようにした。コンバージョン、PG、タックルを成功率つきで記録し、ワールド＞週間ベストXVにタックルとキックのランキングを追加。女子リーグで選手が男性の代名詞で呼ばれる不具合を修正し、ホームでメディアでの呼ばれ方を選べるように。ハーフタイムのスコッド一覧で1番まで戻れるようにした。スカウトを刷新：レポートで能力値を確認でき、スカウトを派遣すれば完全なファイルが手に入る。
 
-**af, Play and App Store** (428)
-Spelers wat aan jou klub geleen is, kan nie meer op die oordraglys geplaas word nie, en die leen kan vroeg gekanselleer word. Doelskoppe, strafskoppe en laagvattes word getel, met die suksessyfer, en Wêreld > Span van die Week wys die top laagvatters en doelskoppers. In die vrouespel word speelsters nie meer hy of hom genoem nie, en Tuis vra hoe die pers na jou moet verwys. By rustyd rol die groeplys weer op tot by nommer 1.
+**af, Play and App Store** (471)
+Spelers wat aan jou klub geleen is, kan nie meer op die oordraglys geplaas word nie, en die leen kan vroeg gekanselleer word. Doelskoppe, strafskoppe en laagvattes word getel, met die suksessyfer, en Wêreld > Span van die Week wys die top laagvatters en doelskoppers. In die vrouespel word speelsters nie meer hy of hom genoem nie, en Tuis vra hoe die pers na jou moet verwys. Talentsoek is herbou: eienskappe op die verslag, en hou 'n speler self dop vir die volle lêer.
 
 ### What's new (500 max) - v1.9.11, Play version code 70 (confirm 69 is accepted on the Console first)
 

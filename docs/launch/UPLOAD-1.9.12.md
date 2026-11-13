@@ -110,6 +110,11 @@ Ten minutes, on each store's test build:
    offer*: the page scrolls to the deal and scrolls back up to the top.
    Pinch to zoom in on any screen, then tap to another screen: it is back
    to normal size. Zach Mercer is at Toulon, not Gloucester.
+5a. **The new scouting**: on the same sheet, the attributes are on the report
+   itself, with ranges. Tap *Compare with ...*. Tap *Scout in person*: the
+   button changes to *Stop watching* and the player appears under *Scouted
+   in person* on the Scouting screen. On *Transfers > Scouting*, a brief
+   can ask for an aim, a maximum age and a maximum fee.
 5b. **Results**: Instant Result through three or four rounds and look at
    the league's scores. A side on nil should be rare (about 1 match in 75;
    it was 1 in 18). *World > Team of the Week* and player pages at other
