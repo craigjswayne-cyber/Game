@@ -142,3 +142,36 @@ Northern Championship window. Any World Cup year has to be re-checked against
 wearing a bigger hat. Existing saves would gain a competition mid-career,
 which the Continental Cup already proved is survivable but needs the same care
 at rollover.
+
+## 7. Update the AdMob plugin (both shells)
+
+**Missing today.** Nothing a player can see. `@capacitor-community/admob` is
+pinned at 8.1.0 in `packaging/ios/package.json` and
+`packaging/android/package.json`. The 1.9.12 iOS archive (13 Nov 2026) built
+and uploaded with 29 yellow warnings in Xcode, none in the game's own code.
+Four of them are deprecations inside the plugin, which mean Google intends to
+remove those calls from a later adverts SDK:
+
+- `kGADAdSizeSmartBannerPortrait` and
+  `currentOrientationAnchoredAdaptiveBanner(width:)` (BannerExecutor)
+- `tagForChildDirectedTreatment` and `tagForUnderAgeOfConsent` (AdMobPlugin),
+  replaced by an age-restricted-treatment property
+
+The other 25 are style notes in Capacitor and Cordova headers ("double-quoted
+include in framework header") and one unused value in Capacitor's file
+plugin. They are not ours to fix and are left alone.
+
+**What it would take.** Move the plugin to a release that no longer uses the
+four calls, in both shells. Half a day to a day, most of it re-testing.
+
+**What it would unlock.** Nothing new. It keeps adverts working when a future
+Google Mobile Ads SDK drops the old calls, and it clears the four warnings.
+
+**What it would disturb.** `packaging/ios/scaffold.sh` patches the plugin's
+`AdMobPlugin.swift` to wire it at `load()` and stops with "the plugin no
+longer looks like 8.1.0" if the file has changed, so that patch has to be
+re-checked or retired. The Android scaffold pins the adverts SDK
+(`ADS_SDK=25.4.0`) for the consent and 16 KB page-size reasons written
+beside it. Banners, rewarded adverts, the consent form and Pro Manager's
+no-adverts path all need trying on a real Android phone and a real iPhone
+afterwards. Not a change to make in the middle of a release.
