@@ -1557,6 +1557,29 @@ function migrateKickCounts(s: GameState): void {
   }
 }
 
+/** A season under way when 1.9.13 first opens it has tackles made and none
+ *  missed: the made so far are set aside (tkl0) so the success rate reads
+ *  only tackles counted on both sides. Once only. */
+function migrateTackleCounts(s: GameState): void {
+  for (const p of Object.values(s.players)) {
+    const st = p.stats
+    if (!st || st.tklM != null) continue
+    st.tklM = 0
+    st.tkl0 = st.tkl ?? 0
+  }
+}
+
+/** The loan option and a loanee's games for you (1.9.13, loans.ts): keep
+ *  them only as the types the loan code reads. A loan signed before 1.9.13
+ *  has neither, and keeps the option it was signed with. */
+function healLoanTerms(s: GameState): void {
+  for (const p of Object.values(s.players)) {
+    if (!p) continue
+    if (p.loanOpt !== undefined && typeof p.loanOpt !== 'boolean') p.loanOpt = undefined
+    if (p.loanApps !== undefined && !(typeof p.loanApps === 'number' && Number.isFinite(p.loanApps) && p.loanApps >= 0)) p.loanApps = undefined
+  }
+}
+
 export function migrate(s: GameState): GameState {
   // not a save (hasReservedIds): handed back untouched, before any step can
   // look an id up, for isPlayable to refuse
@@ -1588,6 +1611,8 @@ export function migrate(s: GameState): GameState {
   healWageRoom(s)
   // 1.9.12: kicks taken and tackles, counted from here on
   migrateKickCounts(s)
+  migrateTackleCounts(s)
+  healLoanTerms(s)
   return s
 }
 

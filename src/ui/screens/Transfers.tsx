@@ -5,7 +5,7 @@ import { ATTR_KEYS, clubCode, fmtMoney, fmtWage, POS_ORDER, seasonLabel, type At
 import { fineAttr } from '../../game/attributes'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
 import { isDeadlineWeek, openDate, shutDate } from '../../game/window'
-import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
+import { LOAN_LENGTHS, LOAN_SHARES, loanHasOption, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
 import { noteUse } from '../../game/usage'
 import { attrRange, knowledge, searchKey, seenValue, shownCa } from '../../game/scout'
 import { FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
@@ -377,6 +377,8 @@ export default function Transfers() {
                   </select>
                 </label>
                 {lp && <div className="meta muted">{t('transfers.loanCostLine', { wage: fmtWage(Math.round(lp.wage * loanDeal.share)) })}</div>}
+                {/* said before you sign (1.9.13, loans.ts loanHasOption) */}
+                {lp && <div className="meta loan-opt">{t(loanHasOption(game, lp) ? 'transfers.loanOptYes' : 'transfers.loanOptNo')}</div>}
               </div>
             )}
             {reply && <div className="meta sheet-log" style={{ ...accLine('var(--gold)'), paddingLeft: 8, margin: '8px 14px 0', whiteSpace: 'normal' }}>{reply}</div>}

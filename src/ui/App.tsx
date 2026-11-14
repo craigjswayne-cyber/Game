@@ -18,6 +18,7 @@ import Inbox from './screens/Inbox'
 import MatchDay from './screens/MatchDay'
 import Wire from './screens/Wire'
 import { isBoardroom } from '../game/media'
+import { jobBadge } from '../game/jobs'
 import Saves from './screens/Saves'
 import DayRoom from './screens/DayRoom'
 import Tutorial from './Tutorial'
@@ -594,7 +595,8 @@ export default function App() {
   const pressOpen = game.press.filter(p => !p.answered && !isBoardroom(p)).length
   const boardOpen = game.press.filter(p => !p.answered && isBoardroom(p)).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
-  const openJobs = game.vacancies.filter(v => !v.passed && !v.applied).length
+  // in work, only the jobs posted since the Job Centre was last opened (jobs.ts jobBadge)
+  const openJobs = jobBadge(game)
   // The Country button's badge is the one thing on that screen that is a JOB
   // this week: an open camp with places still to fill. A window that is open
   // and already full is not a red dot, it is a screen worth visiting.
@@ -654,7 +656,7 @@ export default function App() {
       case 'squad': return <Squad />
       case 'player': return <PlayerScreen playerId={cur.param as number} />
       case 'tactics': return <Tactics initial={cur.param as string | undefined} />
-      case 'fixtures': return <Fixtures />
+      case 'fixtures': return <Fixtures initial={cur.param as string | undefined} />
       case 'tables': return <Tables initial={cur.param as string | undefined} />
       case 'transfers': return <Transfers />
       case 'training': return <Training />

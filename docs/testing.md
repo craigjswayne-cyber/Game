@@ -8,10 +8,10 @@ The counts:
 | group | how many | where it is listed | how it runs |
 |---|---|---|---|
 | engine probes | 276 | every top-level `scripts/*.ts` (the glob) | `npx vite-node`, 15 min timeout (30 for `LONG`) |
-| browser harnesses | 108 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
+| browser harnesses | 109 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
 | soaks and audits | 13 | `SLOW` in `suite.sh` | 90 min timeout each, weekly |
 | reporters | 20 | `REPORTERS` in `suite.sh` | never: no verdict, run by hand |
-| unit tests | 35 files | `tests/*.test.ts` | `npm test` (vitest) |
+| unit tests | 43 files | `tests/*.test.ts` | `npm test` (vitest) |
 | tools and libraries | 18 | `TOOLS` and `LIBRARIES` in `orphancheck.mjs` | by hand, or imported |
 
 This page says how to run them, what CI runs where, and which probes cover

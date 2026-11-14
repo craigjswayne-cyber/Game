@@ -261,6 +261,11 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         // the tackles the engine counted for him (field.ts), onto his season
         // (1.9.12). Read from a map the match already holds: no draw.
         p.stats.tkl = (p.stats.tkl ?? 0) + (side.tackles?.get(pid) ?? 0)
+        // a loanee's games for the club borrowing him: what a loan with no
+        // option to buy is earned on (1.9.13, loans.ts)
+        if (p.loanFrom && p.clubId === state.userClubId) p.loanApps = (p.loanApps ?? 0) + 1
+        // and the ones he missed, for the tackle success rate (1.9.13)
+        p.stats.tklM = (p.stats.tklM ?? 0) + (side.missed?.get(pid) ?? 0)
         // and the same rating against the award window, which is cleared every
         // time a Player of the Month is named (see SeasonStats.mSum)
         p.stats.mSum = (p.stats.mSum ?? 0) + r
@@ -317,12 +322,14 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   // another club showed no awards at all (owner's stats scan, 10 Nov 2026).
   // The count is read by the screens and by nothing in the engine, and the
   // man is the one this loop already chose: no draw, no change to any result.
-  // The fixture keeps its name only for the manager's matches, as before.
+  // The fixture keeps the name too (1.9.13, owner: "not sure how to see other
+  // game motm"): it was kept only for the manager's own matches, so the count
+  // on a player's page had no match to point at. One number per fixture.
   const clubMatch = fx.compId !== 'fr' && !!state.clubs[home.teamId] && !!state.clubs[away.teamId]
   if (motmId != null && (isUser || clubMatch)) {
     const p = state.players[motmId]
     if (p) p.stats.motm += 1
-    if (isUser) fx.motm = motmId
+    fx.motm = motmId
   }
   ctx.motmId = motmId
 

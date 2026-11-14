@@ -11,6 +11,7 @@ import { userWageBudget } from './grants'
 import { playerWage } from './attributes'
 import { scoutPa } from './scout'
 import { noteBlocked } from './arcbook'
+import { devHash } from './devproject'
 
 /**
  * ---- WHO IS FREE TO BE LENT AT ALL ----
@@ -257,6 +258,9 @@ export function loanIn(state: GameState, playerId: number, length: LoanLength = 
   p.loanUntil = LOAN_LENGTH_WEEKS[length] ? now + LOAN_LENGTH_WEEKS[length] : undefined
   p.loanShare = share
   p.loanCa = p.ca   // what he was worth walking in: the buy option reads it
+  // the option to buy is written into the deal or it is not (loanHasOption)
+  p.loanOpt = loanHasOption(state, p)
+  p.loanApps = 0
   // AND WHEN HE WALKED IN. Only executeTransfer stamped this, so a loan arrival
   // left it unset and the buy option's eight-week trial measured against week
   // zero of season zero - which is to say it was no gate at all. He did join
@@ -299,6 +303,8 @@ export function returnLoanIn(state: GameState, p: Player, rng: () => number, wee
   p.loanFrom = null
   p.loanUntil = undefined
   p.loanShare = undefined
+  p.loanOpt = undefined
+  p.loanApps = undefined
   // the growth is the payoff of a loan that ran its course; one cut short
   // pays none, and draws nothing from the stream
   if (!early && p.ca < p.pa) p.ca = clamp(p.ca + 1 + Math.floor(rng() * 3), 1, p.pa)
@@ -521,6 +527,34 @@ export function loanRecall(state: GameState, playerId: number): LoanReply {
  */
 export const LOAN_BUY_MIN_WEEKS = 8
 
+/**
+ * ---- AN OPTION, OR A MOVE HE EARNS (1.9.13) ----
+ *
+ * Owner: "the option to buy should be with only a few loan players, most
+ * should be on how many times they play and if the player is happy etc."
+ * Every loan carried the option, so every good loanee was a signing waiting
+ * for week eight. Now about one loan in five has an option to buy written
+ * into it, shown on the loan sheet before you agree. The rest have none: the
+ * parent club listens only once he has played LOAN_EARN_APPS games for you
+ * and is happy here (morale LOAN_EARN_MORALE or more), which is the club
+ * seeing a player who wants to stay. Everything after that is as it was:
+ * the eight weeks, the window, crucial-to-them, the money and the wages.
+ *
+ * Whether a deal has the option is a hash of the seed, the player and the
+ * season, so the sheet can say so before you sign and the stream is not
+ * touched. A loan from before 1.9.13 keeps the option it was signed with.
+ */
+export const LOAN_OPTION_SHARE = 0.2
+export const LOAN_EARN_APPS = 8
+export const LOAN_EARN_MORALE = 7
+const SALT_LOAN_OPTION = 74
+
+export function loanHasOption(state: GameState, p: Player): boolean {
+  if (p.loanFrom && p.loanOpt !== undefined) return p.loanOpt
+  if (p.loanFrom) return true
+  return devHash(state.seed, p.id, SALT_LOAN_OPTION, state.season) < LOAN_OPTION_SHARE
+}
+
 interface LoanBuy {
   /** what it would take, whether or not they would take it */
   fee: number
@@ -554,6 +588,11 @@ export function loanBuyOffer(state: GameState, playerId: number): LoanBuy | null
   if (p.joinedAt == null) return { fee, willing, ok: false, k: 'reply.loanBuyTooSoon' }
   const served = (absWeek(state.season, state.week)) - p.joinedAt
   if (served < LOAN_BUY_MIN_WEEKS) return { fee, willing, ok: false, k: 'reply.loanBuyTooSoon' }
+  // no option in the deal: he has to have earned it, on the pitch and in the room
+  if (!loanHasOption(state, p)) {
+    if ((p.loanApps ?? 0) < LOAN_EARN_APPS) return { fee, willing, ok: false, k: 'reply.loanBuyNotEarned' }
+    if (p.morale < LOAN_EARN_MORALE) return { fee, willing, ok: false, k: 'reply.loanBuyUnhappy' }
+  }
   if (!willing) return { fee, willing, ok: false, k: 'reply.loanBuyCrucial' }
   // a purchase is a permanent transfer, so it waits for the window like any
   // other, and answers to the embargo like any other (1.8.1)
@@ -592,6 +631,8 @@ export function loanBuy(state: GameState, playerId: number): { ok: boolean; k: s
   p.loanUntil = undefined
   p.loanShare = undefined
   p.loanCa = undefined
+  p.loanOpt = undefined
+  p.loanApps = undefined
   executeTransfer(state, p, state.userClubId, offer.fee)
   return { ok: true, k: 'reply.loanBuyAgreed', fee: offer.fee }
 }

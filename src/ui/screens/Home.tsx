@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { genderOf } from '../../game/gender'
 import { isDeadlineWeek } from '../../game/window'
-import { mgrGenderChosen, useStore } from '../../store'
+import { useStore } from '../../store'
 import { dismiss, dismissed, isOldPlayApp } from '../../game/shell'
 import { snIdFor, snWeeksFor } from '../../game/schedule'
 import { nationName } from '../../game/nations'
@@ -129,7 +129,17 @@ export default function Home() {
   // either button is pressed here or in Settings. A save that has never had
   // it chosen, on a device that has never answered, is asked - which takes
   // in a career already under way from before this card existed.
-  const askPronoun = !game.pronounSet && !mgrGenderChosen()
+  //
+  // EVERY CAREER, NOT EVERY DEVICE (1.9.13, owner: "make sure the he/she
+  // shows for the mens manager too as they can be male/female if a women
+  // manages a mens team"). The card also stood down once the DEVICE had ever
+  // answered, so a woman who chose She in one career, or a tester who tried
+  // the women's game first, was never asked in the next one: the new men's
+  // career just took the last answer. The manager is a fact about the career,
+  // so each career asks once, the device's last answer already on as the
+  // default. It changes only how the game talks about and to the manager:
+  // a men's world is still men (i18n.ts, the `_w` axis, subjectprobe.ts).
+  const askPronoun = !game.pronounSet
   const setMgrGender = useStore(s => s.setMgrGender)
 
   if (game.unemployed) {

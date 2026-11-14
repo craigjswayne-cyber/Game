@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, mgrReputation } from '../../game/model'
-import { jobChance, jobFit, jobFitLine, offerCite, sackCooloff } from '../../game/jobs'
+import { jobChance, jobFit, jobFitLine, markJobsSeen, offerCite, sackCooloff } from '../../game/jobs'
 import { jobProfile } from '../../game/chairman'
 import { squadValue } from '../../game/analysis'
 import { Crest, SectionTitle } from '../components'
@@ -32,6 +32,10 @@ export default function Jobs() {
   const answerJobOffer = useStore(s => s.answerJobOffer)
   const passJob = useStore(s => s.passJob)
   const resign = useStore(s => s.resign)
+  const touch = useStore(s => s.touch)
+  // OPENED IS SEEN (1.9.13, jobs.ts jobBadge): the badge on World clears the
+  // moment the Job Centre is open, and a vacancy posted later lights it again
+  useEffect(() => { if (markJobsSeen(game)) touch() }, [game, game.vacancies.length, touch])
   // KEYED TO THE ROW THAT ASKED. This used to be a bare string rendered in one
   // card above the vacancy list, so applying for the fifth job printed the
   // club's answer several hundred pixels above the thumb that tapped Apply -

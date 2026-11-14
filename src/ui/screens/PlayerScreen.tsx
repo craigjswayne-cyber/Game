@@ -17,7 +17,7 @@ import { playerStory } from '../../game/stories'
 import { bondsLine } from '../../game/bonds'
 import { canAgencyFile, canSecondOpinion } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
-import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanRecall, loanSendBack } from '../../game/loans'
+import { LOAN_BUY_MIN_WEEKS, LOAN_EARN_APPS, loanBuy, loanBuyOffer, loanHasOption, loanOut, loanOutBoost, loanRecall, loanSendBack } from '../../game/loans'
 import { noteUse } from '../../game/usage'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
@@ -744,8 +744,14 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               confirm={t('player.loanSendBackConfirm', { club: parentShort })}
               onConfirm={() => { setMsg(loanSendBack(game, p.id).msg); touch() }} />
             <div className="meta" style={{ margin: '12px 0 6px' }}>
-              {t('player.loanBuyLine', { fee: fmtMoney(buy.fee), n: LOAN_BUY_MIN_WEEKS })}
+              {/* AN OPTION, OR EARNED (1.9.13, loans.ts loanHasOption) */}
+              {loanHasOption(game, p)
+                ? t('player.loanBuyLine', { fee: fmtMoney(buy.fee), n: LOAN_BUY_MIN_WEEKS })
+                : t('player.loanBuyEarnLine', { player: p.name, club: parentShort, fee: fmtMoney(buy.fee) })}
             </div>
+            {!loanHasOption(game, p) && (
+              <div className="meta muted" style={{ margin: '0 0 6px' }}>{t('player.loanAppsLine', { apps: p.loanApps ?? 0, n: LOAN_EARN_APPS })}</div>
+            )}
             {buy.ok ? (
               <TwoStep className="btn block" label={t('player.loanBuy', { fee: fmtMoney(buy.fee) })}
                 confirm={t('player.loanBuyConfirm')}
@@ -756,14 +762,18 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 }} />
             ) : (
               <div className="muted" style={{ fontSize: '0.75rem' }}>
-                {t(buy.k, { fee: fmtMoney(buy.fee), club: parentShort })}
+                {t(buy.k, { fee: fmtMoney(buy.fee), club: parentShort, player: p.name, apps: p.loanApps ?? 0, n: LOAN_EARN_APPS })}
               </div>
             )}
           </div>
         )
       })()}
 
-      {mine && !p.onLoan && p.age <= 23 && !game.clubs[game.userClubId].tactic.lineup.slice(0, 15).includes(p.id) && (
+      {/* NOT A LOANEE (1.9.13, owner: "ive taken someone on loan but I can also
+          send that player then on loan again"). loanOut refuses him, but the
+          button was offered all the same. He is not ours to lend, send down
+          or re-sign: his own card above is where his loan is run. */}
+      {mine && !p.onLoan && !p.loanFrom && p.age <= 23 && !game.clubs[game.userClubId].tactic.lineup.slice(0, 15).includes(p.id) && (
         <TwoStep className="btn ghost block" label={t('player.sendOnLoan')} confirm={t('player.sendOnLoanConfirm')}
           onConfirm={() => { setMsg(loanOut(game, p.id).msg); noteUse('loan'); touch() }} />
       )}
@@ -833,7 +843,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           release. He is not pleased about it, which is the point of morale.
           Since 1.9.6 a lad of our own academy, 19 or under, goes back as a
           scholar instead (acadcall.ts sendDown). */}
-      {mine && !p.acad && !p.onLoan && (
+      {mine && !p.acad && !p.onLoan && !p.loanFrom && (
         <button className="btn ghost block" onClick={() => {
           const back = sendDown(game, p) === 'academy'
           const club = game.clubs[game.userClubId]
@@ -952,7 +962,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             </div>
           )}
           <div className="btn-row">
-            {!negotiating && (
+            {!negotiating && !p.loanFrom && (
               <button className="btn" onClick={() => {
                 setNegotiating(true); setWageText(String(Math.round(renewalDemand(p) * 0.9 / 50) * 50))
                 setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
