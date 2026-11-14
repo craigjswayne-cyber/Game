@@ -30,6 +30,8 @@
     "and of every Finances tab).",
     "match-foot (v1.5.0) shows only while a highlight animation plays (1.8.7).",
     "news-foot AND press-foot ARE FROM 1.8.3. All five await their own units.",
+    "stats-foot, table-foot AND fixtures-foot ARE NEW IN 1.9.13 (the floors of the",
+    "Fixtures screen's Stats, Table and Fixtures tabs). They await units too.",
     "",
     "skAdNetworkIds IS GOOGLE'S PARTNER LIST, pasted from",
     "developers.google.com/admob/ios/3p-skadnetworks (page dated 30 Jan 2026,",
@@ -56,7 +58,10 @@
       "match-foot": "",
       "news-foot": "",
       "press-foot": "",
-      "finance-foot": ""
+      "finance-foot": "",
+      "stats-foot": "",
+      "table-foot": "",
+      "fixtures-foot": ""
     },
     "rewarded": "ca-app-pub-1341622370227647/8788994381"
   },
@@ -69,7 +74,10 @@
       "match-foot": "",
       "news-foot": "",
       "press-foot": "",
-      "finance-foot": ""
+      "finance-foot": "",
+      "stats-foot": "",
+      "table-foot": "",
+      "fixtures-foot": ""
     },
     "rewarded": "ca-app-pub-1341622370227647/8042159971"
   },

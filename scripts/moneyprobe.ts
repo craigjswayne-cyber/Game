@@ -180,6 +180,7 @@ ok(!M.adsAllowed('match-live'), 'an undeclared place may not, whatever a caller 
 // stats or lineups"). scripts/matchad.mjs drives a real match and holds it to
 // that, which is a stronger guarantee than this line.
 ok(M.adsAllowed('week-foot') && M.adsAllowed('finance-foot'), 'the floors of the week and of Finances carry one (owner, 1.8.7)')
+ok(['stats-foot', 'table-foot', 'fixtures-foot'].every(M.adsAllowed), 'the floors of Stats, the table and the fixtures list carry one (owner, 1.9.13)')
 const AD_EXCEPTIONS = ['match-foot']
 for (const place of M.AD_PLACES) {
   if (AD_EXCEPTIONS.includes(place)) continue

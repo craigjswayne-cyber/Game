@@ -10,6 +10,7 @@ import { arrangeMidweekFriendly, friendlyDate, friendlySuggestions, friendlyWeek
 import { rowNav } from '../rowNav'
 import { Veil } from '../Veil'
 import SeasonStats from './SeasonStats'
+import { AdSlot } from '../AdSlot'
 
 export default function Fixtures({ initial }: { initial?: string } = {}) {
   const game = useStore(s => s.game)!
@@ -87,6 +88,10 @@ export default function Fixtures({ initial }: { initial?: string } = {}) {
           <SectionTitle>{compLabel(game.comps[statsId]?.name) ?? t('tables.seasonStats')}</SectionTitle>
           {chips}
           <SeasonStats compId={statsId} />
+          {/* FREE PLAYERS ONLY, AT THE FOOT (owner, 1.9.13: the bottom of the
+              Stats tab, the league table and the fixtures list). Read-only
+              pages, below the last row, never between a tap and its answer. */}
+          <AdSlot place="stats-foot" />
           <div className="spacer" />
         </>
       ) : page === 'table' ? (
@@ -104,6 +109,7 @@ export default function Fixtures({ initial }: { initial?: string } = {}) {
             : <div className="card"><div className="muted" style={{ padding: 12 }}>
                 {t('fixtures.knockoutNoTable')}
               </div></div>}
+          <AdSlot place="table-foot" />
           <div className="spacer" />
         </>
       ) : (
@@ -220,6 +226,7 @@ export default function Fixtures({ initial }: { initial?: string } = {}) {
           </>
         )
       })()}
+          <AdSlot place="fixtures-foot" />
         </>
       )}
       {replay && (

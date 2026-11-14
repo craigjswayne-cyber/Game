@@ -45,6 +45,11 @@ Version 1.9.13, Play versionCode 72. Baseline: 1.9.12, code 71.
   open somewhere, so a manager in work saw a red number on World almost every
   week. In work, it now shows only jobs you have not seen, and clears when you
   open the Job Centre. Out of work it counts every open job, as before.
+- **Three more banner spots for free players**, each at the very bottom of a
+  read-only page: the Stats tab, the league table and the fixtures list (on
+  the Fixtures screen). Pro Manager shows none. They use the Home banner's
+  ad unit until their own units are created in AdMob
+  (`packaging/shell/ads.json`).
 
 ## Not changed
 
