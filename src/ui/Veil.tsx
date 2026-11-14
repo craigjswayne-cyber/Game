@@ -17,7 +17,7 @@ import { createPortal } from 'react-dom'
  * and Escape clicks the top veil, which is the same tap a thumb makes.
  */
 /* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- the veil is a tap-outside-to-close backdrop and Escape closes it (a11y.ts); the box only swallows taps inside the sheet so it stays open. Neither is a control: the sheet has its own buttons. */
-export function Veil({ onClose, className = 'modal-veil', boxClassName = 'modal', role, label, portal, children }: {
+export function Veil({ onClose, className = 'modal-veil', boxClassName = 'modal', role, label, portal = true, children }: {
   /** what a tap on the veil (or Escape, via a11y.ts) does */
   onClose: () => void
   /** the veil's class: `modal-veil`, or the hub menu's and the tutorial's own */
@@ -36,7 +36,18 @@ export function Veil({ onClose, className = 'modal-veil', boxClassName = 'modal'
    *  half-time could not scroll the squad sheet up to shirt 1 ("I don't seem
    *  to be able to scroll up to change out my 1"). At the root nothing
    *  scrolls around it. The root is `.app`, not <body>, so the skin, the
-   *  night palette and the club colours still reach it. */
+   *  night palette and the club colours still reach it.
+   *
+   *  EVERY SHEET, BY DEFAULT (1.9.13). Player report from an iPhone, Safari,
+   *  390x746: "When you open filters or try to loan a player the navigation
+   *  banner at the bottom blocks search and offer loan button". The Transfer
+   *  Centre's filter and loan sheets are written inside main.content, which
+   *  scrolls, so Safari clipped them to it and the bottom bar, outside it,
+   *  covered their buttons. Sixteen more sheets sat in the same place, so the
+   *  root is now the default rather than a fix applied one report at a time.
+   *  No style finds a sheet through the screen around it (theme files read
+   *  14 Nov 2026), and React context and events follow a portal as they always did.
+   *  `portal={false}` keeps a sheet where it is written. */
   portal?: boolean
   children: ReactNode
 }) {
