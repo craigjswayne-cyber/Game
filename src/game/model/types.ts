@@ -257,6 +257,15 @@ export interface Player {
    *  injury stored. Capped at twenty entries. */
   injLog?: { s: number; w: number; dk: string; weeks: number }[]
   lastWk?: number
+  /** the last week of this season he could not be picked: injured, away
+   *  with his country, suspended or out on loan (1.9.13, training.ts). The
+   *  weekly bench drag counts from here, not from his last game. */
+  outWk?: number
+  /** the career tries and points milestones already saluted in the inbox
+   *  (1.9.13). The salute used to look for its own story in the inbox, which
+   *  keeps 250 items, so a man parked on 1,000 points was saluted again once
+   *  the first story had been trimmed. */
+  saluted?: { t?: number; p?: number }
   talkWk?: number // retired v1.1.4 with talkToPlayer (chats.ts uses lastChatWk); kept so old saves load
   /** week his agent demanded improved terms (0/undefined = content) */
   wantsDeal?: number
@@ -976,6 +985,10 @@ export interface Pledge {
   due: number
   /** the player's apps when the promise was made */
   baseApps: number
+  /** his p.avail when the promise was made (1.9.13): a 'plans' or 'minutes'
+   *  promise he was not available long enough to collect is lifted, not
+   *  broken. Absent on promises made before 1.9.13. */
+  baseAvail?: number
   /** 'start' only (handshake.ts): his starts, and the club's competitive
    *  matches played, when the promise was made */
   baseStarts?: number

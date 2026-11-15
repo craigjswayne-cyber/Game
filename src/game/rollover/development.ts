@@ -34,6 +34,7 @@ export function closeSeasonStats(state: GameState): { sightsBefore: Map<number, 
     // week" until week 41 of the next season: the weekly morale drift never
     // saw him as frozen out, and the press never asked why he was benched.
     p.lastWk = undefined
+    p.outWk = undefined
     p.avail = 0
     p.form = 6
     // The summer lifts a man one notch - a break does that - but it no longer

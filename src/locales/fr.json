@@ -4752,6 +4752,8 @@
     "dealDoneSubj": "Transfert finalisé : {name}",
     "startVoid": "{player} n'était pas disponible, donc la titularisation promise ne tient plus.",
     "startVoidSubj": "Promesse levée : {player}",
+    "promiseVoid": "{player} n'a pas été disponible pendant l'essentiel de la période promise, donc la promesse ne tient plus.",
+    "promiseVoidSubj": "Promesse levée : {player}",
     "startBroke": "Vous aviez promis à {player} une titularisation au match suivant, et elle n'est pas venue. Une demande de transfert est sur votre bureau, et elle ne sera pas retirée.",
     "startBrokeSubj": "{player} dépose une demande de transfert",
     "startKept": "Vous aviez annoncé en conférence de presse que {player} serait titulaire, et la feuille de match l'a confirmé. Le vestiaire l'a remarqué.",

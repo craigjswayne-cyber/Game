@@ -410,7 +410,17 @@ export function weeklyTraining(state: GameState, rng: Rng) {
         // two coaches at odds take the edge off the whole room (staffrift.ts)
         const target = (played || p.injury || p.natSquad ? 6.5 : 5.5) - RIFT_MORALE * rift
         p.morale += (target - p.morale) * (p.morale < target ? 0.035 : 0.06)
-        const frozen = !played && (p.lastWk ?? -9) < state.week - 3 && !p.injury && !p.acad && !p.natSquad && p.stats.apps + 3 < state.week
+        // AWAY IS NOT LEFT OUT (1.9.13, player feedback: "Players get angry
+        // when your not playing them, but they are often away inj or int
+        // duty"). The drag counted every week since his last game and every
+        // week of the season, so a man back from eight weeks injured, or a
+        // Six Nations, started losing morale his first week back. It now
+        // counts from the last week he could not be picked (outWk), against
+        // the club matches he was available for (p.avail, gametime.ts).
+        const out = !!p.injury || !!p.natSquad || p.bans > 0 || !!p.onLoan
+        if (out) p.outWk = state.week
+        const since = Math.max(p.lastWk ?? -9, p.outWk ?? -9)
+        const frozen = !played && !out && since < state.week - 3 && !p.acad && p.stats.apps + 3 < (p.avail ?? state.week)
         if (played) p.morale = clamp(p.morale + 0.1, 1, 10)
         // a professional takes being left out better (E7, attributes.ts benchDrag)
         else if (frozen) p.morale = clamp(p.morale - (p.pers === 'Mercenary' || p.pers === 'Ambitious' ? 0.35 : 0.2 * benchDrag(p)), 1, 10)

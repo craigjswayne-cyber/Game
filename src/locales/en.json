@@ -4618,6 +4618,8 @@
   "dealDoneSubj": "Deal done: {name}",
   "startVoid": "{player} was not available for selection, so the promised start no longer stands.",
   "startVoidSubj": "Promise lifted: {player}",
+  "promiseVoid": "{player} was not available for most of the time your promise covered, so it no longer stands.",
+  "promiseVoidSubj": "Promise lifted: {player}",
   "startBroke": "You promised {player} a start in the next match, and it did not happen. A transfer request is on your desk, and it will not be withdrawn.",
   "startBrokeSubj": "{player} hands in a transfer request",
   "startKept": "You said in the press room that {player} would start, the team sheet agreed, and the dressing room took note.",

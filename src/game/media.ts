@@ -1295,7 +1295,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
         ;(state.pledges ??= []).push({
           playerId: p.id, kind: opt.pledge, week: state.week, season: state.season,
           due: opt.pledge === 'start' ? state.week : pledgeDue(state.week, opt.pledge === 'deal' ? 8 : 6),
-          baseApps: p.stats.apps,
+          baseApps: p.stats.apps, baseAvail: p.avail ?? 0,
           // a start is owed at the next match played, not by a date (handshake.ts)
           ...(opt.pledge === 'start' ? { baseStarts: p.stats.starts, baseGames: clubGamesPlayed(state, state.userClubId) } : {}),
         })
