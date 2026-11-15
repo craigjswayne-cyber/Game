@@ -52,7 +52,7 @@ export function freeDeal(state: GameState, p: Player): boolean {
 
 /** Asking price for a player from his current club's perspective. */
 /** What a club asks for a man in the final year of his contract, as a share
- *  of what it would ask otherwise (1.9.14). */
+ *  of what it would ask otherwise (1.9.13). */
 export const CONTRACT_END_F = 0.75
 
 export function askingPrice(state: GameState, p: Player): number {
@@ -82,7 +82,7 @@ export function askingPrice(state: GameState, p: Player): number {
   // one who has asked to leave or whose mood has gone, graded rather than the
   // old single step at morale 3.5
   f *= unsettledFee(p)
-  // THE LAST YEAR OF A CONTRACT (1.9.14, social feedback: "maybe make players
+  // THE LAST YEAR OF A CONTRACT (1.9.13, social feedback: "maybe make players
   // more affordable"; owner: keep the challenge). In rugby a man in his final
   // year moves for less, because his club would rather take a fee now than
   // lose him free in the summer. A quarter off, for every buyer, the AI clubs

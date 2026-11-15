@@ -80,7 +80,7 @@ export default function Transfers() {
   // far below a happy player's, and never said so until you had spent the bid
   // (interest.ts). This chip asks that same question up front.
   const [keenOnly, setKeenOnly] = useVisitState('keenOnly', false)
-  // WITHIN MY BUDGET (1.9.14, social feedback: "maybe make players more
+  // WITHIN MY BUDGET (1.9.13, social feedback: "maybe make players more
   // affordable"). The asking price the bid button is held to, against the
   // transfer budget: a free agent asks no fee. Transfers only; a loan has its
   // own terms.

@@ -88,6 +88,31 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   a regular's morale drops below 4, or when a regular's form genuinely
   slumps. At most two a week; measured at 10 to 15 a season.
 
+**Signings a little easier, the challenge kept** (social feedback: "maybe
+make players more affordable"; owner: "Will they not damage the game and lose
+the challenge aspect?")
+
+- **Within my budget.** A new transfer filter shows only players whose
+  asking price fits your transfer budget. Transfers only; loans have their
+  own terms.
+- **Players in the last year of their contract cost a quarter less**, for
+  every club, AI clubs included. As in real rugby, a club would rather take a
+  fee now than lose the player for nothing in the summer. Wages, the salary
+  cap, whether the player wants to come, and rival bids all still apply.
+
+Measured before it was kept (`scripts/contractendprobe.ts`: two careers,
+Quins and Leicester, four seasons each, Premiership, Top 14 and URC):
+
+| | 1.9.12 prices | half price (rejected) | a quarter off (kept) |
+|---|---|---|---|
+| clubs' strength drifting apart (rating points) | 0.86 | 0.34 | 0.00 |
+| different champions in 8 seasons (Prem, Top 14, URC) | 6, 4, 3 | 5, 3, 5 | 6, 3, 5 |
+| most of the better players a club could afford | 28% | 56% | 34% |
+
+Half price kept the leagues competitive but doubled what a manager could
+afford, which is the challenge going. A quarter off eases the market a little
+and changes nothing else.
+
 **The feedback report counts what happened** (two player reports, 6 and 15 Nov)
 - Offers read as never opened in both reports, by managers who are bid for
   about twenty times a season. Continue opens Offers, the press room, the
@@ -114,7 +139,8 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
 
 ## Not changed
 
-- The match engine and its results: nothing new is drawn. Missed tackles,
+- The match engine and its results: nothing new is drawn. Transfer fees for
+  players in their final contract year are the one world change, measured above. Missed tackles,
   every match's Player of the Match and a loanee's games are counted from
   what the match already holds (`scripts/fingerprint.ts`).
 - Saves: the new fields are optional. A season under way rates tackles from
@@ -136,6 +162,11 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   `tests/loanoption.test.ts`; `scripts/ui1913.mjs` (browser: loanee buttons,
   the Stats tab, Week Results' Player of the Match, the Job Centre badge);
   `scripts/mgrgender.mjs` now checks that a second, men's career is asked.
+- New: `scripts/contractendprobe.ts` (slow, weekly set; holds drift at most
+  0.9, a new champion at least one season in three, affordable at most 35%)
+  and `scripts/budgetfilter.mjs` (browser: Within my budget narrows the
+  market, is counted on the Filters button, resets, and is not offered for
+  loans).
 - Chromium does not clip the way Safari does, so the harness checks the
   structure that prevents the bug. Confirm on an iPhone in Safari before
   release.

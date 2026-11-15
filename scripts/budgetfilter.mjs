@@ -1,4 +1,4 @@
-// Probe: the 1.9.14 round on the screens.
+// Probe: "Within my budget" on the transfer screen (1.9.13).
 //
 //   - "Within my budget" in the transfer filters (social feedback: "maybe make
 //     players more affordable"): it narrows the market, it is counted on the
@@ -23,7 +23,7 @@ const shown = async () => Number(((await page.$eval('.filter-sheet .btn.gold', b
 try {
   await page.goto(`${server.origin}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
-  await page.evaluate(() => window.rugbyStore.getState().start('bedford', 'Round 1914'))
+  await page.evaluate(() => window.rugbyStore.getState().start('bedford', 'Budget Filter'))
   await page.waitForTimeout(700)
   await page.locator('.tut-close .btn').click({ timeout: 4000 }).catch(() => {})
   await go('transfers')
@@ -66,6 +66,6 @@ if (errors.length) {
   fails += errors.length
 }
 
-if (fails) { console.error(`\nUI 1.9.14 PROBE: ${fails} failures`); process.exit(1) }
-console.log('\nUI 1.9.14 PROBE PASSED: Within my budget narrows the market, resets and stays out of loans')
+if (fails) { console.error(`\nBUDGET FILTER PROBE: ${fails} failures`); process.exit(1) }
+console.log('\nBUDGET FILTER PROBE PASSED: Within my budget narrows the market, resets and stays out of loans')
 done(0)
