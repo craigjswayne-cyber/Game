@@ -70,6 +70,8 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   Haptics plugin (8.0.2), so iPhone uses its Taptic Engine and Android its
   motor; the website keeps the browser's buzz. **This needs a new native
   build of both apps** (run scaffold.sh in each), not just new web files.
+  Haptics have their own switch in Settings (on by default); the match
+  screen's Sound and buzz toggle still turns both off together.
 - **The physio's report.** On Medical: the players closest to breaking down
   and why (tired legs, just back from injury, past 1,300 minutes, heavy
   minutes for a young body, 32 or older, injury-prone once known), using the

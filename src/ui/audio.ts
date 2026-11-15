@@ -7,6 +7,21 @@ let muted = typeof localStorage !== 'undefined' && localStorage.getItem('rm-soun
 
 export function soundOn(): boolean { return !muted }
 
+/**
+ * HAPTICS, ON THEIR OWN SWITCH (1.9.13, owner: "You should be able to turn
+ * haptic off in settings"). The match screen's Sound and buzz toggle turns
+ * both off together; this is the buzz alone, in Settings, for a player who
+ * wants the whistle but not the phone jumping in the hand. Per device, like
+ * the sound, and on by default.
+ */
+const HAPTICS_KEY = 'rm-haptics'
+let hapticsOff = typeof localStorage !== 'undefined' && (() => { try { return localStorage.getItem(HAPTICS_KEY) === '0' } catch { return false } })()
+export function hapticsOn(): boolean { return !hapticsOff }
+export function setHapticsOn(on: boolean): void {
+  hapticsOff = !on
+  try { localStorage.setItem(HAPTICS_KEY, on ? '1' : '0') } catch { /* private mode */ }
+}
+
 export function toggleSound(): boolean {
   muted = !muted
   try { localStorage.setItem('rm-sound', muted ? '0' : '1') } catch { /* private mode */ }
@@ -68,7 +83,7 @@ function thud() {
  * shaking things at me", and a phone that jumps in your hand is motion.
  */
 function vibrate(pattern: number | number[], feel?: Feel) {
-  if (muted) return
+  if (muted || hapticsOff) return
   try {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
   } catch { /* no matchMedia: fall through and buzz */ }

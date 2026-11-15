@@ -8786,6 +8786,8 @@
   "textBiggest": "Grootste",
   "fineprint": "Kleure, vloedligte en teksgrootte word op hierdie foon gestoor, en nie in die stoorlêer nie, so 'n loopbaan wat na 'n ander toestel geskuif word, kry daardie toestel se instellings. Hoe die media na jou verwys, gaan saam met die loopbaan. Huidige taal: {lang}.",
   "intro": "Openingstitels",
+  "haptics": "Vibrasie",
+  "hapticsLine": "Die foon vibreer by drieë, skoppe, kaarte en die eindfluitjie",
   "introLine": "Die inleiding van vyf sekondes wanneer die spel begin. 'n Tik slaan dit oor."
  },
  "sack": {

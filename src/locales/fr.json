@@ -8868,6 +8868,8 @@
     "textBiggest": "La plus grande",
     "fineprint": "Les couleurs, les projecteurs et la taille du texte restent sur ce téléphone, pas dans la sauvegarde : une carrière emportée sur un autre appareil prend les réglages de celui-ci. La façon dont la presse parle de vous suit la carrière. Langue actuelle : {lang}.",
     "intro": "Générique d'ouverture",
+    "haptics": "Vibrations",
+    "hapticsLine": "Le téléphone vibre sur les essais, les coups de pied, les cartons et le coup de sifflet final",
     "introLine": "L'intro de cinq secondes au lancement du jeu. Touchez l'écran pour la passer."
   },
   "sack": {

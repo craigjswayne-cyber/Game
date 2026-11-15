@@ -8678,6 +8678,8 @@
   "textBiggest": "La più grande",
   "fineprint": "Colori, riflettori e dimensione del testo sono salvati su questo telefono, non nel salvataggio, quindi una carriera spostata su un altro dispositivo prende le impostazioni di quello. Il modo in cui la stampa parla di te viaggia con la carriera. Lingua attuale: {lang}.",
   "intro": "Sigla iniziale",
+  "haptics": "Vibrazione",
+  "hapticsLine": "Il telefono vibra a mete, calci, cartellini e fischio finale",
   "introLine": "L'intro di cinque secondi all'avvio del gioco. Un tocco la salta."
  },
  "sack": {

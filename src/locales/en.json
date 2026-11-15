@@ -8745,6 +8745,8 @@
   "textBiggest": "Biggest",
   "fineprint": "Colours, floodlights and text size are stored on this phone, not in the save, so a career moved to another device takes that device's settings. How the press refer to you travels with the career. Currently reading in {lang}.",
   "intro": "Opening titles",
+  "haptics": "Haptics",
+  "hapticsLine": "The phone buzzes on tries, kicks, cards and the final whistle",
   "introLine": "The five-second intro when the game starts. A tap skips it."
  },
  "sack": {

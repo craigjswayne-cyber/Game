@@ -173,6 +173,17 @@ try {
   await page.waitForTimeout(300)
   const fans = await page.$eval('[data-testid="fan-sentiment"]', e => e.innerText).catch(() => '')
   ok(/Results\s*\+6/.test(fans) && /Signings and the squad\s*−3/.test(fans), `the Board tab breaks down what the fans think ("${fans.replace(/\s+/g, ' ').slice(0, 120)}")`)
+
+  // haptics on their own switch in Settings (owner: "You should be able to
+  // turn haptic off in settings")
+  await go('settings')
+  await page.waitForTimeout(300)
+  const hap = page.locator('main.content button[role="switch"]:has-text("Haptics")')
+  ok(await hap.count() === 1, 'Settings has a Haptics switch')
+  ok(await hap.getAttribute('aria-checked') === 'true', 'on by default')
+  await hap.click()
+  await page.waitForTimeout(200)
+  ok(await hap.getAttribute('aria-checked') === 'false' && await page.evaluate(() => localStorage.getItem('rm-haptics')) === '0', 'and off with one tap, remembered on the device')
 } catch (e) {
   ok(false, `the harness threw: ${String(e).split('\n')[0].slice(0, 180)}`)
 } finally {

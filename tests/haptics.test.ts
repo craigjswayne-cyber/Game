@@ -2,7 +2,7 @@
 // no navigator.vibrate, so an iPhone felt nothing; the shells now carry
 // Capacitor's Haptics plugin and audio.ts plays it when it is there.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { matchSfx } from '../src/ui/audio'
+import { matchSfx, setHapticsOn } from '../src/ui/audio'
 
 type G = { Capacitor?: unknown; navigator?: { vibrate?: (p: unknown) => boolean } }
 const g = globalThis as unknown as G
@@ -27,6 +27,15 @@ describe('match haptics', () => {
     const calls = withPlugin()
     matchSfx('TRY'); matchSfx('PEN'); matchSfx('YC'); matchSfx('RC')
     expect(calls).toEqual(['note:SUCCESS', 'impact:LIGHT', 'impact:HEAVY', 'note:WARNING'])
+  })
+  it('the Settings switch turns them off, and back on', () => {
+    const calls = withPlugin()
+    setHapticsOn(false)
+    matchSfx('TRY')
+    expect(calls).toEqual([])
+    setHapticsOn(true)
+    matchSfx('TRY')
+    expect(calls).toEqual(['note:SUCCESS'])
   })
   it('falls back to the browser buzz without it, as the website always did', () => {
     const buzz = vi.fn(() => true)
