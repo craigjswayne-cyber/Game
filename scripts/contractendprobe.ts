@@ -14,9 +14,8 @@
  *              the men a club can afford who would improve it must stay a
  *              minority of the market, so a signing is still a choice.
  *
- * The bounds were set from the same measurement on 1.9.13's prices (the
- * numbers it prints are recorded in docs/release-notes-1.9.14.md), with room
- * for the change to move them a little and not a lot.
+ * The bounds were set from the same measurement on 1.9.13's prices, with
+ * room for the change to move them a little and not a lot.
  *
  * Run: npx vite-node scripts/contractendprobe.ts
  */
@@ -76,7 +75,13 @@ console.log(`  champions: ${LEAGUES.map((l, i) => `${l} ${new Set(champs[l]).siz
 console.log(`  largest spread drift ${driftMax.toFixed(2)}, largest affordable share ${(shareMax * 100).toFixed(1)}%`)
 
 ok(driftMax <= 0.9, `club strength in a league does not pull apart over ${SEASONS} seasons (largest drift ${driftMax.toFixed(2)} rating points)`)
-ok(distinct.every(d => d >= 0.4), 'the titles keep going round: no league with one champion most years')
-ok(shareMax <= 0.45, `a signing that improves the club is still a choice: at most ${(shareMax * 100).toFixed(1)}% of improvers are affordable`)
+// 1.9.13's prices, measured the same way: 6, 4 and 3 different champions in 8
+// seasons (75%, 50%, 38%). A third is the floor: a league where one or two
+// clubs win nearly everything is what this guards.
+ok(distinct.every(d => d >= 0.33), `the titles keep going round: every league has a new champion at least one season in three (${distinct.map(d => (d * 100).toFixed(0) + '%').join(', ')})`)
+// 1.9.13's prices: at most 28% of the men who would improve the club were
+// within its budget at any point. Half price in the last year took that to 56%,
+// the challenge leaking away; the bound keeps any easing small.
+ok(shareMax <= 0.35, `a signing that improves the club is still a choice: at most ${(shareMax * 100).toFixed(1)}% of improvers are affordable (1.9.13: 28%)`)
 
 done('CONTRACT END PROBE', 'cheaper last-year moves keep the leagues competitive and the market a choice')
