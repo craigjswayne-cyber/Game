@@ -4,6 +4,7 @@ import { useStore } from '../../store'
 import { ATTR_KEYS, clubCode, fmtMoney, fmtWage, POS_ORDER, seasonLabel, type Attrs, type Player, type Pos } from '../../game/model'
 import { fineAttr } from '../../game/attributes'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
+import { askingPrice } from '../../game/transferRules'
 import { isDeadlineWeek, openDate, shutDate } from '../../game/window'
 import { LOAN_LENGTHS, LOAN_SHARES, loanHasOption, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
 import { noteUse } from '../../game/usage'
@@ -79,6 +80,11 @@ export default function Transfers() {
   // far below a happy player's, and never said so until you had spent the bid
   // (interest.ts). This chip asks that same question up front.
   const [keenOnly, setKeenOnly] = useVisitState('keenOnly', false)
+  // WITHIN MY BUDGET (1.9.14, social feedback: "maybe make players more
+  // affordable"). The asking price the bid button is held to, against the
+  // transfer budget: a free agent asks no fee. Transfers only; a loan has its
+  // own terms.
+  const [affordOnly, setAffordOnly] = useVisitState('affordOnly', false)
   // 1.8.0, the classic search screen: which columns you are looking at, one
   // attribute to filter on, the injured and the expiring
   const [view, setView] = useVisitState<SearchView>('view', 'general')
@@ -188,6 +194,7 @@ export default function Transfers() {
     else if (league !== 'ALL') list = list.filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === league)
     if (listedOnly) list = list.filter(p => p.transferListed)
     if (keenOnly) list = list.filter(p => transferInterest(game, p) !== 'no')
+    if (affordOnly && deal === 'transfer') { const budget = game.clubs[game.userClubId]?.budget ?? 0; list = list.filter(p => askingPrice(game, p) <= budget) }
     if (!withInjured) list = list.filter(p => !p.injury)
     if (expiringOnly) list = list.filter(p => p.clubId && p.contractEnds <= game.season)
     // an attribute filter reads what the scouts can see: the middle of the range
@@ -208,9 +215,9 @@ export default function Transfers() {
       }
     })
     return list.slice(0, 120)
-  }, [game, game.players, game.clubs, pos, search, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKeys, attrMin, persF, traitF, msort, mdesc, game.week, tick, deal, loanIds])
+  }, [game, game.players, game.clubs, pos, search, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, affordOnly, attrKeys, attrMin, persF, traitF, msort, mdesc, game.week, tick, deal, loanIds])
   const activeFilters = [deal === 'loan', pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, attrKeys.length > 0,
-    persF !== 'ALL', traitF !== 'ALL', listedOnly, keenOnly, expiringOnly, !withInjured].filter(Boolean).length
+    persF !== 'ALL', traitF !== 'ALL', listedOnly, keenOnly, expiringOnly, affordOnly && deal === 'transfer', !withInjured].filter(Boolean).length
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
   const pageSafe = Math.min(page, pages - 1)
   const pageRows = results.slice(pageSafe * PER_PAGE, (pageSafe + 1) * PER_PAGE)
@@ -527,6 +534,7 @@ export default function Transfers() {
             {([
               [listedOnly, () => setListedOnly(!listedOnly), 'search.onlyListed'],
               [keenOnly, () => setKeenOnly(!keenOnly), 'search.onlyInterested'],
+              ...(deal === 'transfer' ? [[affordOnly, () => setAffordOnly(!affordOnly), 'search.onlyAffordable'] as [boolean, () => void, string]] : []),
               [expiringOnly, () => setExpiringOnly(!expiringOnly), 'search.onlyExpiring'],
               [withInjured, () => setWithInjured(!withInjured), 'search.includeInjured'],
             ] as [boolean, () => void, string][]).map(([on, flip, k]) => (
@@ -539,7 +547,7 @@ export default function Transfers() {
           <div className="btn-row" style={{ marginTop: 10 }}>
             <button className="btn ghost" onClick={() => {
               setDeal('transfer'); setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKeys([]); setPersF('ALL'); setTraitF('ALL')
-              setListedOnly(false); setKeenOnly(false); setExpiringOnly(false); setWithInjured(true); setPage(0)
+              setListedOnly(false); setKeenOnly(false); setAffordOnly(false); setExpiringOnly(false); setWithInjured(true); setPage(0)
             }}>{t('search.reset')}</button>
             <button className="btn gold" style={{ flex: 2 }} onClick={() => setFiltersOpen(false)}>
               {t('search.show', { n: results.length === 120 ? t('transfers.best120') : results.length })}

@@ -9063,6 +9063,7 @@
   "any": "Any",
   "onlyListed": "Transfer-listed only",
   "onlyInterested": "Only players interested in joining",
+  "onlyAffordable": "Within my budget",
   "onlyExpiring": "Contract expiring only",
   "includeInjured": "Include injured players",
   "reset": "Reset",

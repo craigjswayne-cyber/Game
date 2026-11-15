@@ -8586,6 +8586,7 @@
   "any": "すべて",
   "onlyListed": "移籍リストの選手のみ",
   "onlyInterested": "加入に前向きな選手のみ",
+  "onlyAffordable": "予算内のみ",
   "onlyExpiring": "契約満了間近のみ",
   "includeInjured": "負傷中の選手を含める",
   "reset": "リセット",

@@ -9194,6 +9194,7 @@
     "any": "Tous",
     "onlyListed": "Joueurs sur la liste des transferts",
     "onlyInterested": "Joueurs prêts à nous rejoindre",
+    "onlyAffordable": "Dans mon budget",
     "onlyExpiring": "Contrats en fin de validité",
     "includeInjured": "Inclure les blessés",
     "reset": "Réinitialiser",
