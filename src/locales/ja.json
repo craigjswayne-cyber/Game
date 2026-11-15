@@ -6312,6 +6312,12 @@
   "retrainDone": "コーチ陣は{player}の{pos_k}起用にゴーサインを出した。練習の積み重ねが実り、今後はそのポジションで起用できる。",
   "retrainFailSubj": "{player}の{pos_k}転向は失敗",
   "retrainFail": "コーチ陣の判断は出た。{player}は{pos_k}に適応できなかった。取り組みは真剣だったが、結果は出なかった。来季に再挑戦できる。",
+  "tryDroughtSubj": "{player}、トライ欠乏",
+  "tryDrought": "{player}は今季トライを挙げていたが、ここ6試合はトライがない。コーチ陣はチャンスは来ていると言うが、オフィスで声をかけるのも手だ。",
+  "moraleLowSubj": "{player}が沈んでいる",
+  "moraleLow": "{player}は練習場で口数が減り、ラグビーを楽しめていない。オフィスで励ましの言葉をかけてもいい。",
+  "formSlumpSubj": "{player}の調子が下降",
+  "formSlump": "{player}の直近の評価は悪い方向に向かっている。話をするか、休ませるか、その両方の時だ。",
   "trainInjury": {
    "one": "{player}が痛めを抱えて練習グラウンドを下がった。{injury_k}だ。フィジオは1週間の安静を指示し、次戦は欠場となる。",
    "other": "{player}が痛めを抱えて練習グラウンドを下がった。{injury_k}だ。フィジオは約{n}週間の離脱と見ており、それまで構想から外れる。"

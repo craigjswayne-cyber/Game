@@ -14,6 +14,7 @@ import { buildEvidence } from '../evidence'
 import { availablePlayers, teamShort } from './selection'
 import { minutesPlayed } from './field'
 import { visitsTo22 } from './stats'
+import { noteTryRun } from '../alerts'
 import type { SideCtx } from './side'
 import type { SimResult } from './lines'
 import { type LiveCtx, pushLine, userDials } from './live'
@@ -262,6 +263,8 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         // the tackles the engine counted for him (field.ts), onto his season
         // (1.9.12). Read from a map the match already holds: no draw.
         p.stats.tkl = (p.stats.tkl ?? 0) + (side.tackles?.get(pid) ?? 0)
+        // his run of games without a try, for the drought alert (1.9.13, alerts.ts)
+        if (p.clubId === state.userClubId) noteTryRun(p)
         // a loanee's games for the club borrowing him: what a loan with no
         // option to buy is earned on (1.9.13, loans.ts)
         if (p.loanFrom && p.clubId === state.userClubId) p.loanApps = (p.loanApps ?? 0) + 1

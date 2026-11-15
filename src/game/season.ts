@@ -1,4 +1,5 @@
 import { talkbackWeek } from './talkback'
+import { dressingRoomAlerts } from './alerts'
 import { settleStartPledge } from './handshake'
 import type { Fixture, GameState, Player, Pos } from './model'
 import { genderOf, subjectVar } from './gender'
@@ -2058,6 +2059,8 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
     // players who talk back (1.7.3): the four new knocks, on the office's own
     // stream, and only when nobody else is already at the door
     talkbackWeek(state)
+    // the dressing room in the inbox (1.9.13): a try drought, low morale, a slump
+    dressingRoomAlerts(state)
     // press tone cools toward neutral unless you keep feeding it
     if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8
   }

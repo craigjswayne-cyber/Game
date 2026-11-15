@@ -6677,6 +6677,13 @@
   "retrainDone_f": "Lo staff ha promosso {player} nel ruolo di {pos_k}. Le settimane di lavoro hanno pagato e ora può essere schierata lì.",
   "retrainFailSubj": "{player} non diventerà {pos_k}",
   "retrainFail": "Lo staff ha deciso: {player} non si è adattato al ruolo di {pos_k}. Il lavoro è stato serio, ma non funziona. Si potrà riprovare la prossima stagione.",
+  "tryDroughtSubj": "{player} a secco di mete",
+  "tryDrought": "{player} non segna da sei partite, dopo aver segnato all'inizio della stagione. Lo staff dice che le occasioni arriveranno; una parola in ufficio potrebbe aiutare.",
+  "moraleLowSubj": "{player} è giù di morale",
+  "moraleLow": "{player} è silenzioso agli allenamenti e non si diverte più in campo. Un po' di incoraggiamento in ufficio non guasterebbe.",
+  "moraleLow_f": "{player} è silenziosa agli allenamenti e non si diverte più in campo. Un po' di incoraggiamento in ufficio non guasterebbe.",
+  "formSlumpSubj": "La forma di {player} è in calo",
+  "formSlump": "Gli ultimi voti di {player} vanno nella direzione sbagliata. È il momento di una parola, di un turno di riposo, o di entrambi.",
   "retrainFail_f": "Lo staff ha deciso: {player} non si è adattata al ruolo di {pos_k}. Il lavoro è stato serio, ma non funziona. Si potrà riprovare la prossima stagione.",
   "trainInjury_f": {"one": "{player} ha lasciato il campo d'allenamento dolorante: {injury_k}. Il fisioterapista vuole una settimana, quindi salta la prossima.", "other": "{player} ha lasciato il campo d'allenamento dolorante: {injury_k}. Il fisioterapista la dà fuori circa {n} settimane, quindi è fuori dai tuoi piani fino ad allora."},
   "trainInjury": {

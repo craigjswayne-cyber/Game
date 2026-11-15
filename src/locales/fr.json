@@ -6785,6 +6785,13 @@
     "retrainDone": "Les entraîneurs ont validé {player} au poste de {pos_k}. Les semaines de travail ont payé : ce poste est désormais une option sur la feuille de match.",
     "retrainFailSubj": "{player} ne sera pas {pos_k}",
     "retrainFail": "Les entraîneurs ont tranché : {player} ne s'est pas adapté au poste de {pos_k}. Le travail était sérieux, mais ça ne passe pas. Une nouvelle tentative sera possible la saison prochaine.",
+    "tryDroughtSubj": "{player} en panne d'essais",
+    "tryDrought": "{player} n'a plus marqué depuis six matchs, après avoir marqué plus tôt dans la saison. Le staff assure que les occasions arrivent ; un mot dans le bureau pourrait aider.",
+    "moraleLowSubj": "{player} n'a pas le moral",
+    "moraleLow": "{player} se fait discret à l'entraînement et ne prend plus de plaisir sur le terrain. Quelques encouragements dans le bureau ne seraient pas de trop.",
+    "moraleLow_f": "{player} se fait discrète à l'entraînement et ne prend plus de plaisir sur le terrain. Quelques encouragements dans le bureau ne seraient pas de trop.",
+    "formSlumpSubj": "La forme de {player} décline",
+    "formSlump": "Les dernières notes de {player} vont dans le mauvais sens. Le moment d'un mot en privé, d'un peu de repos, ou des deux.",
     "retrainFail_f": "Les entraîneurs ont tranché : {player} ne s'est pas adaptée au poste de {pos_k}. Le travail était sérieux, mais ça ne passe pas. Une nouvelle tentative sera possible la saison prochaine.",
     "trainInjury_f": {"one": "{player} a quitté le terrain d'entraînement en se tenant la jambe : {injury_k}. Le kiné veut une semaine de repos, elle manquera donc le prochain match.", "other": "{player} a quitté le terrain d'entraînement en se tenant la jambe : {injury_k}. Le kiné l'annonce absente environ {n} semaines, elle sort donc de vos plans jusque-là."},
     "trainInjury": {

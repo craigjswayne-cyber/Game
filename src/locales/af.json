@@ -6680,6 +6680,12 @@
   "retrainDone": "Die afrigters het {player} as {pos_k} goedgekeur. Die weke op die oefenveld het vrugte afgewerp, en die posisie is nou 'n opsie op die spanblad.",
   "retrainFailSubj": "{player} sal nie 'n {pos_k} word nie",
   "retrainFail": "Die afrigters het besluit: {player} het nie by {pos_k} aangepas nie. Die werk was eerlik, maar die posisie is nie daar nie. Dit kan volgende seisoen weer probeer word.",
+  "tryDroughtSubj": "{player} soek 'n drie",
+  "tryDrought": "{player} het nou al ses wedstryde nie gedruk nie, ná drieë vroeër in die seisoen. Die afrigters sê die kanse kom; 'n woordjie in die kantoor kan help.",
+  "moraleLowSubj": "{player} is af",
+  "moraleLow": "{player} is stil by oefening en geniet nie die rugby nie. 'n Bietjie aanmoediging in die kantoor sal nie skade doen nie.",
+  "formSlumpSubj": "{player} se vorm daal",
+  "formSlump": "{player} se laaste paar wedstrydpunte gaan die verkeerde kant toe. Tyd vir 'n woordjie, 'n ruskans, of albei.",
   "trainInjury_f": {"one": "{player} het die oefenveld verlaat terwyl sy dit vashou: {injury_k}. Die fisio wil 'n week daaraan hê, so sy mis die volgende een.", "other": "{player} het die oefenveld verlaat terwyl sy dit vashou: {injury_k}. Die fisio skryf haar vir sowat {n} weke af, so sy is tot dan uit jou planne."},
   "trainInjury": {
    "one": "{player} het die oefenveld verlaat terwyl hy dit vashou: {injury_k}. Die fisio wil 'n week daaraan hê, so hy mis die volgende een.",

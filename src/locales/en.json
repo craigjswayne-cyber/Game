@@ -6646,6 +6646,12 @@
   "retrainDone": "The coaches have signed {player} off at {pos_k}. The weeks on the training ground paid off, and the position is now an option on the team sheet.",
   "retrainFailSubj": "{player} will not make a {pos_k}",
   "retrainFail": "The coaches have called it: {player} has not taken to {pos_k}. The work was honest, but the position is not there. It can be tried again next season.",
+  "tryDroughtSubj": "{player} searching for a try",
+  "tryDrought": "{player} has not crossed the line in six games, after scoring earlier in the season. The coaches say the chances are coming; a word in the office might help.",
+  "moraleLowSubj": "{player} is low",
+  "moraleLow": "{player} has gone quiet around the training ground and is not enjoying the rugby. Some encouragement in the office would not go amiss.",
+  "formSlumpSubj": "{player}'s form is dipping",
+  "formSlump": "{player}'s last few match ratings have been heading the wrong way. Time for a quiet word, a rest, or both.",
   "trainInjury_f": {"one": "{player} came off the training paddock holding it: {injury_k}. The physio wants a week on it, so she misses the next one.", "other": "{player} came off the training paddock holding it: {injury_k}. The physio has her down for about {n} weeks, so she is out of your reckoning until then."},
   "trainInjury": {
    "one": "{player} came off the training paddock holding it: {injury_k}. The physio wants a week on it, so he misses the next one.",

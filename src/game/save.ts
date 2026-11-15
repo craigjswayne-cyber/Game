@@ -1585,6 +1585,12 @@ function healLoanTerms(s: GameState): void {
     if (!p) continue
     if (p.loanOpt !== undefined && typeof p.loanOpt !== 'boolean') p.loanOpt = undefined
     if (p.loanApps !== undefined && !(typeof p.loanApps === 'number' && Number.isFinite(p.loanApps) && p.loanApps >= 0)) p.loanApps = undefined
+    // the alert counters (1.9.13, alerts.ts)
+    for (const k of ['dry', 'tryMark'] as const) {
+      const v = p[k]
+      if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v) && v >= 0)) p[k] = undefined
+    }
+    if (p.alerted !== undefined && (!p.alerted || typeof p.alerted !== 'object')) p.alerted = undefined
   }
 }
 

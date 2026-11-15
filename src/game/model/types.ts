@@ -378,6 +378,13 @@ export interface Player {
   /** Games played for the borrowing club on this loan (1.9.13): a loan with no
    *  option to buy is earned on these, and on his morale. */
   loanApps?: number
+  /** Games played in a row without a try, and the season's try count when
+   *  last read (1.9.13, alerts.ts noteTryRun). */
+  dry?: number
+  tryMark?: number
+  /** The dressing-room alerts already sent for the spell he is in (alerts.ts):
+   *  each clears when its spell ends. */
+  alerted?: { dry?: boolean; low?: boolean; slump?: boolean }
   /**
    * Written by hand in the squad data, rather than produced by the name
    * generator. Set once at world creation and never changed.
