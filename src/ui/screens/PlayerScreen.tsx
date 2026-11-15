@@ -747,7 +747,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           or re-sign: his own card above is where his loan is run. */}
       {mine && !p.onLoan && !p.loanFrom && p.age <= 23 && !game.clubs[game.userClubId].tactic.lineup.slice(0, 15).includes(p.id) && (
         <TwoStep className="btn ghost block" label={t('player.sendOnLoan')} confirm={t('player.sendOnLoanConfirm')}
-          onConfirm={() => { setMsg(loanOut(game, p.id).msg); noteUse('loan'); touch() }} />
+          onConfirm={() => { const r = loanOut(game, p.id); setMsg(r.msg); if (r.ok) noteUse('loan'); touch() }} />
       )}
       {/* the loan is visible from here too (16B, user: "there should be a
           report on how they are doing... they should also be able to be

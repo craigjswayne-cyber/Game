@@ -399,7 +399,14 @@ export default function Transfers() {
               <button className="btn ghost" onClick={() => setLoanDeal(null)}>{t(gone ? 'transfers.loanDone' : 'transfers.loanClose')}</button>
               {!gone && (
                 <button className="btn gold" style={{ flex: 1.6 }}
-                  onClick={() => { setMsg({ key: `loan:${loanDeal.id}`, text: loanIn(game, loanDeal.id, loanDeal.length, loanDeal.share) }); noteUse('loan'); touch() }}>
+                  onClick={() => {
+                    const text = loanIn(game, loanDeal.id, loanDeal.length, loanDeal.share)
+                    setMsg({ key: `loan:${loanDeal.id}`, text })
+                    // 'Loan made' in the feedback report: a loan that happened, not every
+                    // offer tapped and refused (1.9.13, report #2 read 24 attempts as 24 loans)
+                    if (game.players[loanDeal.id]?.loanFrom) noteUse('loan')
+                    touch()
+                  }}>
                   {t('transfers.loanOffer')}
                 </button>
               )}

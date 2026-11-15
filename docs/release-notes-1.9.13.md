@@ -95,6 +95,8 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   navigation, which is where a visit is counted; all five are counted now.
 - "Tactics changed in a match" counted every step of a slider drag (1,025 in
   25 matches, 41 a match). It now counts one change per stoppage used.
+- "Loan made" counted every loan offer tapped, refused ones included. It now
+  counts loans that happened, in and out.
 
 ## Not changed
 
