@@ -8,6 +8,7 @@ import { teamUnits, lineupFor } from './match/selection'
 import { t } from './i18n'
 import { subjectVar } from './gender'
 import { analystSkill } from './analystskill'
+import { FILE_EDGE, clubFile } from './scoutknow'
 
 export { analystSkill } from './analystskill'
 
@@ -126,7 +127,9 @@ export function readOdds(state: GameState, oppId: string, units: Record<AnalystR
   const sorted = scores.map(([u, v]) => [u, v / avg] as [AnalystRead['unit'], number]).sort((a, b) => a[1] - b[1])
   const clarity = Math.max(0, Math.min(1, (sorted[1][1] - sorted[0][1]) / CLARITY_GAP))
   const skill = analystSkill(state)
-  const p = Math.max(0.08, Math.min(0.95, skill + CLARITY_K * (clarity - CLARITY_MEAN)))
+  // and the scouts' file on them (1.9.12): a squad the club knows inside out
+  // is a little easier to read, up to five points at full files on all of them
+  const p = Math.max(0.08, Math.min(0.95, skill + CLARITY_K * (clarity - CLARITY_MEAN) + FILE_EDGE * clubFile(state, oppId)))
   const right = rollIsRight(state.seed, abs, oppId, p)
   // his blur: 0.3 of skill is a bare club, 0.78 the best there is
   const sNorm = Math.max(0, Math.min(1, (skill - 0.3) / 0.48))

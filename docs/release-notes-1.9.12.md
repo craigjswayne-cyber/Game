@@ -1,6 +1,6 @@
 # PHASE: Rugby Manager 1.9.12: release notes
 
-Version 1.9.12, Play versionCode 71. Baseline: 1.9.11, code 70. Two player
+Version 1.9.12, Play versionCode 74 (71, 72 and 73 were earlier builds, never rolled out to production). Baseline: 1.9.11, code 70. Two player
 reports: one from Bristol in Premiership Women's Rugby (the iPhone app,
 10 Nov 2026) with three points in it, and one in French on loans,
 statistics, training and scrums.
@@ -55,6 +55,10 @@ statistics, training and scrums.
   whole game (Raad for the board, span for the squad, vloedligte), about 400
   lines. Eleven of her edits wait on answers to follow-up questions, as do
   the short labels she queried; details in `docs/afrikaans-review/README.md`.
+  Her second round of answers (11 Nov) is in too: weeks are `wk`, versus is
+  `vs`, wage share is salarisverdeling, and the legacy screen is Bestuurder
+  se Erfenis on every line. Her last two answers (12 Nov) closed the list:
+  wage room is Beskikbare salaris and the national-team badge is INT.
 
 - **Matches read more like real results** (the owner's scan of two simulated
   seasons in each game, 10 Nov 2026):
@@ -76,6 +80,68 @@ statistics, training and scrums.
 - **The women's game in every language.** 36 player lines that were written
   for a man in French, Spanish, Italian, Afrikaans or Japanese now have
   their women's form (a captain was "le joueur le plus ancien").
+
+- **Scouting is rebuilt** (the owner, 12 Nov 2026: "assess the whole
+  scouting system", then "transform it all"). One chief scout, as before,
+  with more for him to do:
+  - **The report shows the attributes.** Tap a man on the Scouting screen
+    and his numbers are on the sheet as the file reads them: a figure where
+    the scouts are sure, a range where they are not. "Compare with" puts
+    your best player in the same shirt beside him.
+  - **Scout in person.** The chief scout can watch one man per level (up to
+    three) and comes back with the full file, exact numbers and character,
+    in a few weeks (three weeks from a proper report at level 2). The men
+    being watched have their own list on the Scouting screen.
+  - **Each source has a ceiling.** Measured on 1.9.11, every player in the
+    manager's own league had a full file by the end of a season for
+    nothing; now none do. The shortlist and your own league stop at a
+    proper report (74 of 100), a league under the network's watch at 84,
+    playing against a side at 89. The full file is the scout's own work.
+  - **Files go stale.** A man nobody is watching loses a little each week
+    (faster for a young player, who is still changing), down to what his
+    league's tape gives.
+  - **A brief with a specification.** A commissioned search can ask for a
+    player for now or for the future, a maximum age and a maximum fee. If
+    nobody fits, the scout says so before any money is spent.
+  - **How sure he is, and his record.** Every verdict says whether the scout
+    is sure, fairly sure or guessing, and the Scouting screen keeps his
+    record: how many of his judgements have held up.
+  - **Sort and filter the list**: newest, verdict, age or fee; by position;
+    only players inside the transfer budget.
+  - **Rivals in the hunt.** When another club is after a man on the
+    shortlist or on the scout's watch, the chief scout rings once per spell
+    of talk, with his read of whether it is genuine or agent talk.
+  - **The file on the next opponent.** Knowing their squad well firms up the
+    analyst's read by up to five points, and the opposition report says so.
+  - Careers under way keep every file they have; from then on the new rules
+    apply. Nothing in a save needs converting.
+  - Checked by `tests/scoutrules.test.ts` (19 tests) and
+    `scripts/scoutscreen.mjs` (the sheet on an iPhone-sized screen).
+
+- **A tester's four reports** (12 Nov 2026, on an iPhone):
+  - **Zach Mercer is at Toulon**, where he has played since 2025-26. The
+    squad files had him at Gloucester, a season behind. Albert Tuisue (to
+    Provence) and James Venter (to Gloucester from the Sharks) were behind
+    in the same way and are put right with him.
+  - **Gloucester are a tougher side.** They were top of the real table after
+    four rounds of 2026-27 and seventh of ten in the game on their best 23.
+    Reputation 78 to 81, and the men carrying the run rated up (Kleyn, Lake,
+    Byrne, Seb Atkinson, Fasogbon and others): now third or fourth on the
+    same measure, behind Bath and Sarries.
+  - **The scout sheet reaches the attributes.** Its second button said
+    "Player page" and opened the Profile tab, so the tester went through
+    "Make an offer" to find the numbers. It now says "Attributes" and opens
+    that tab.
+  - **A screen no longer stays zoomed in.** A zoom (a stray pinch, or iOS
+    zooming to a text box) used to stay through every screen after it, on a
+    shell that does not scroll. Now each change of screen puts the page back
+    to its own size and its own top; pinch-zoom still works where it is
+    wanted. "Make an offer" scrolls the game's own column and never the
+    page, and the two text boxes with writing under 16px (the Medical search
+    and the training search), which is what makes iOS zoom, are 16px.
+    Not seen on an iPhone: Chromium shows the zoom being reset, the column
+    scrolling and the page staying put (`scripts/pagereset.mjs`), but the
+    tester's exact stuck screen was not reproduced.
 
 ## Not in this release
 
@@ -112,7 +178,14 @@ bench and back up.
   season close starts every count again. Twelve
   weeks of a men's career: conversions 72%, penalties 75%, a median 8 tackles
   per 80 minutes, flankers top.
-- Unit tests 293/293, typecheck, lint, subjectprobe, langparity, i18nprobe,
+- `tests/gloucester2627.test.ts`: Mercer at Toulon once, Tuisue and Venter
+  moved, Gloucester in the top half on their best 23 and not the best.
+- `scripts/pagereset.mjs`: a 1.6x zoom is gone on the next screen with no
+  maximum-scale left behind; the scout sheet's Attributes button opens the
+  Attributes tab; Make an offer moves the column and not the page.
+- `scripts/nobenchprobe.mjs` stages only on a match with nobody already
+  down (it collided with a real early injury about one run in twenty).
+- Unit tests 297/297, typecheck, lint, subjectprobe, langparity, i18nprobe,
   englishprobe, subsprobe, injurysheet, tabletprobe, nobenchprobe,
   telemetryui, teamtalkui, a11yprobe, e2e, langprobe and womensui pass.
 

@@ -35,6 +35,17 @@ mkdirSync(OUT, { recursive: true })
 const server = await startPreview(0, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+// THE SAME CAREER EVERY RUN (1.9.12). The wizard draws the career's seed from
+// Math.random, so each run played a different match, and about one run in
+// twenty the match had something of its own going on while a scene was being
+// staged (Release check on b413a3d: scene 2 found a sheet that was not the
+// one it had staged; locally, scene 4's "the match goes on"). A fixed
+// generator in place of Math.random deals the same career, the same match
+// and the same bench to every run, so a failure here is the sheet's.
+await page.addInitScript(() => {
+  let s = 20261112
+  Math.random = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296 }
+})
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok' : 'FAIL'} ${what}`); if (!c) fails++ }
 

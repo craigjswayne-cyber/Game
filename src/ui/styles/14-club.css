@@ -256,3 +256,14 @@
   padding-left: 2px; padding-right: 2px;
 }
 .card:has(> .ledger-row) + .card:has(> .ledger-row) { margin-top: 2px; }
+
+/* THE SCOUTING OVERHAUL (1.9.12): the filters over the verdicts, the brief's
+   specification, and the attributes on the sheet. Selects share a row and
+   never outgrow it; the tick box keeps its 44px. */
+.scout-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; padding: 0 14px 8px; align-items: center; }
+.scout-filters .inline-input { margin: 0; width: 100%; min-width: 0; }
+.scout-filters .scout-afford { grid-column: 1 / -1; padding: 0; min-height: 44px; font-size: 0.8125rem; }
+.scout-spec { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0 0 8px; }
+.scout-spec .inline-input { margin: 0; width: 100%; min-width: 0; }
+@media (max-width: 420px) { .scout-spec { grid-template-columns: 1fr; } }
+.scout-attrs .fm-attrs { margin: 0; }

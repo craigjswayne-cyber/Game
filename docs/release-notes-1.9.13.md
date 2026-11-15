@@ -4,7 +4,7 @@
 come have it fixed and on pause").** Do not build or upload until the owner
 says it is ready. The store "What's new" text is written when it is.
 
-Version 1.9.13, Play versionCode 72. Baseline: 1.9.12, code 71.
+Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first written up as 72, before 1.9.12 shipped on 74).
 
 ## What changed for players
 

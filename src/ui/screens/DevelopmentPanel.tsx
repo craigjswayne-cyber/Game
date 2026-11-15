@@ -103,7 +103,7 @@ export default function DevelopmentPanel() {
           <span style={{ width: 15, height: 15, display: 'inline-flex', flexShrink: 0, color: 'var(--text-muted)' }}><IcoSearch /></span>
           <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('training.searchName')}
             aria-label={t('training.searchName')}
-            style={{ border: 0, background: 'transparent', color: 'inherit', font: 'inherit', outline: 'none', width: '100%', minWidth: 0, padding: 0 }} />
+            style={{ border: 0, background: 'transparent', color: 'inherit', font: 'inherit', fontSize: 'max(16px, 1rem)', outline: 'none', width: '100%', minWidth: 0, padding: 0 }} />
         </label>
         {(['all', 'fwd', 'back'] as Unit[]).map(u => (
           <button key={u} className={`inline-input filter-btn${unit === u ? ' on' : ''}`} onClick={() => setUnit(u)}>

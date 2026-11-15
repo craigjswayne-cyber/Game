@@ -355,10 +355,23 @@ console.log('\n--- 5. the secret habits\n')
   // ON THE PITCH, THE SAME MATCHES WITH THE HABITS AND WITHOUT THEM (the
   // probe switch HABITS.on): what a side's penalty-prone men and its sure
   // hands cost or save it, against the same fixtures and dice
+  // TWELVE WORLDS HERE, NOT FOUR (1.9.12). The effect is small by design (the
+  // world's mean penalty multiplier is 1.005) and four worlds gave about 80
+  // sides with three penalty-prone men: +0.09 against -0.23 on 1.9.11's
+  // squads and -0.04 against -0.01 after the 1.9.12 squad changes re-dealt
+  // every world, the same engine both times. A difference of a third of a
+  // penalty was inside the noise of a sample that size. Three times the
+  // worlds reads the habit, not the draw: +0.03 against -0.01 on 232 and 290
+  // sides. Still a small margin, because it is a small habit.
+  const WIDE: { g: GameState; fx: Fixture }[] = [...MANY]
+  for (const seed of [61, 79, 97, 113, 131, 149, 167, 181]) {
+    const g = newGame('leicester', 'Depth Probe', seed)
+    for (const fx of g.fixtures) if (fx.week <= 4 && g.clubs[fx.homeId] && g.clubs[fx.awayId] && g.comps[fx.compId]?.type === 'league') WIDE.push({ g, fx })
+  }
   const onOff = (on: boolean) => {
     HABITS.on = on
     const rows: { pr: number; sh: number; pens: number; lost: number }[] = []
-    MANY.forEach(({ g: g0, fx: f0 }, i) => {
+    WIDE.forEach(({ g: g0, fx: f0 }, i) => {
       const h = structuredClone(g0)
       const f = h.fixtures.find(y => y.id === f0.id)!
       f.weather = 'Dry'

@@ -2,12 +2,13 @@
 // 3, 6 or 9-month brief. He comes back with a shortlist of mixed quality - the
 // longer the trip and the better his badge, the more of it is worth signing.
 import { subjectVar } from './gender'
+import { askingPrice } from './transferRules'
 import { POS_NAMES, fmtMoney, logDecision, type GameState, type Player, type Pos, addWeeks100, weeksBetween100, stamp100 } from './model'
 import { t, tIn } from './i18n'
 import { mulberry32 } from './rng'
 import { bumpKnowledge } from './scoutknow'
 import { BADGE } from './staff'
-import { fileRec, makeRec, scoutVerdict, type ScoutRec } from './scoutrecs'
+import { fileRec, judgementSpread, makeRec, scoutVerdict, type ScoutRec } from './scoutrecs'
 import { noteFor, type NoteRef } from './scoutnote'
 
 
@@ -29,6 +30,35 @@ export interface Commission {
   sent?: number[]
   /** absolute week (season*100+week) of his last monthly letter */
   lastWord?: number
+  /** THE BRIEF HAS A SPECIFICATION (1.9.12). A brief was a position and a
+   *  league; the scout could not be told what the manager actually wanted.
+   *  All three are optional and an older brief has none of them. */
+  maxAge?: number
+  /** the most his club may ask (askingPrice), in pounds */
+  maxFee?: number
+  /** a man for Saturday, or one for three seasons' time */
+  aim?: BriefAim
+}
+
+export type BriefAim = 'now' | 'future'
+export interface BriefSpec { maxAge?: number; maxFee?: number; aim?: BriefAim }
+
+/** The men a brief is looking among: position, league and the specification. */
+export function briefPool(state: GameState, c: Pick<Commission, 'pos' | 'leagueId' | 'maxAge' | 'maxFee' | 'aim'>): Player[] {
+  const top = c.maxAge ?? 32
+  return Object.values(state.players).filter(p =>
+    !!p.clubId && p.clubId !== state.userClubId && !p.acad && p.age <= top &&
+    (c.pos === 'any' || p.pos === c.pos || p.alt.includes(c.pos)) &&
+    (!c.leagueId || state.clubs[p.clubId]?.leagueId === c.leagueId) &&
+    (c.maxFee == null || askingPrice(state, p) <= c.maxFee))
+}
+
+/** What the scout is looking for in a man. With no aim it is what it always
+ *  was; "now" weighs what he is, "future" what he could be and how young. */
+export function briefWorth(p: Player, aim?: BriefAim): number {
+  if (aim === 'now') return (p.ca - 60) * 3 + (p.pa - p.ca) * 0.4 + (30 - p.age) * 0.3
+  if (aim === 'future') return (p.ca - 60) * 0.8 + (p.pa - p.ca) * 3 + (30 - p.age) * 1.6
+  return (p.ca - 60) * 1.8 + (p.pa - p.ca) * 1.8 + (30 - p.age) * 0.8
 }
 
 export interface ScoutFind {
@@ -40,7 +70,7 @@ export interface ScoutFind {
 }
 
 /** Send the scout out. Returns the line to show the manager. */
-export function commissionScout(state: GameState, pos: Pos | 'any', months: SearchMonths): string {
+export function commissionScout(state: GameState, pos: Pos | 'any', months: SearchMonths, spec: BriefSpec = {}): string {
   const club = state.clubs[state.userClubId]
   const tier = state.staff.scout ?? 0
   const man = state.staffPeople?.scout
@@ -56,11 +86,19 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
     const left = Math.max(1, weeksBetween100(state.commission.done, stamp100(state)))
     return t('reply.scoutAlreadyOut', { ...subjectVar(man.g), scout: man.name, n: left })
   }
+  // a specification is three plain numbers or nothing: a stale screen or a
+  // hand-edited save must not book a brief for men of NaN years
+  const maxAge = Number.isFinite(spec.maxAge) && spec.maxAge! >= 17 && spec.maxAge! < 32 ? Math.round(spec.maxAge!) : undefined
+  const maxFee = Number.isFinite(spec.maxFee) && spec.maxFee! > 0 ? Math.round(spec.maxFee!) : undefined
+  const aim: BriefAim | undefined = spec.aim === 'now' || spec.aim === 'future' ? spec.aim : undefined
+  // and a brief nobody could answer is said so before the money goes
+  if (!briefPool(state, { pos, leagueId: state.scoutFocus ?? null, maxAge, maxFee, aim }).length) return t('reply.briefNobody')
   const fee = searchFee(months, tier)
   if (club.balance < fee) return t('reply.briefTooDear', { months, fee: fmtMoney(fee) })
   club.balance -= fee
   const abs = state.season * 100 + state.week
-  state.commission = { pos, months, done: addWeeks100(abs, SEARCH_WEEKS[months]), fee, leagueId: state.scoutFocus ?? null }
+  state.commission = { pos, months, done: addWeeks100(abs, SEARCH_WEEKS[months]), fee, leagueId: state.scoutFocus ?? null,
+    ...(maxAge != null ? { maxAge } : {}), ...(maxFee != null ? { maxFee } : {}), ...(aim ? { aim } : {}) }
   // 'wherever the game is played' is a phrase, not a competition: it travels as
   // its own fragment key, never through {where}
   const where = state.commission.leagueId ? state.comps[state.commission.leagueId]?.short ?? '' : ''
@@ -123,12 +161,8 @@ export function scoutPostcard(state: GameState) {
   const tier = state.staff.scout ?? 1
   c.lastWord = abs
   const rng = mulberry32((state.seed ^ Math.imul(abs, 40503) ^ (c.months * 104729)) >>> 0)
-  const pool = Object.values(state.players).filter(p =>
-    p.clubId && p.clubId !== state.userClubId && !p.acad && p.age <= 32 &&
-    (c.pos === 'any' || p.pos === c.pos || p.alt.includes(c.pos)) &&
-    (!c.leagueId || state.clubs[p.clubId]?.leagueId === c.leagueId) &&
-    !(c.sent ?? []).includes(p.id))
-  const worthOf = (p: Player) => (p.ca - 60) * 1.8 + (p.pa - p.ca) * 1.8 + (30 - p.age) * 0.8
+  const pool = briefPool(state, c).filter(p => !(c.sent ?? []).includes(p.id))
+  const worthOf = (p: Player) => briefWorth(p, c.aim)
   const ranked = pool.map(p => ({ p, worth: worthOf(p) })).sort((a, b) => b.worth - a.worth)
   const bias = 1.6 + tier * 0.6
   const pick = ranked.length
@@ -186,10 +220,7 @@ export function resolveCommission(state: GameState) {
   // deterministic per (seed, week, brief): the trip is not a dice roll the
   // player can reload away, and it never touches the shared match stream
   const rng = mulberry32((state.seed ^ Math.imul(c.done, 2654435761) ^ (c.months * 7919)) >>> 0)
-  const pool = Object.values(state.players).filter(p =>
-    p.clubId && p.clubId !== state.userClubId && !p.acad && p.age <= 32 &&
-    (c.pos === 'any' || p.pos === c.pos || p.alt.includes(c.pos)) &&
-    (!c.leagueId || state.clubs[p.clubId]?.leagueId === c.leagueId))
+  const pool = briefPool(state, c)
   if (!pool.length) return
   // a longer brief means more names and a better hit rate; the badge helps too
   const n = c.months === 3 ? 3 : c.months === 6 ? 5 : 7
@@ -197,7 +228,7 @@ export function resolveCommission(state: GameState) {
   // a scout looks for talent: rank the pool and sample from the top, with the
   // bias sharpening as the trip lengthens and the badge improves. A poor brief
   // still turns up men who had one good afternoon, which is the point.
-  const worthOf = (p: Player) => (p.ca - 60) * 1.8 + (p.pa - p.ca) * 1.8 + (30 - p.age) * 0.8
+  const worthOf = (p: Player) => briefWorth(p, c.aim)
   const ranked = pool
     .map(p => ({ p, worth: worthOf(p) }))
     .sort((a, b) => b.worth - a.worth)
@@ -219,7 +250,7 @@ export function resolveCommission(state: GameState) {
     const est = scoutVerdict(state, p, SEARCH_WEEKS[c.months])
     const note = noteFor(est.grade, est.pot - est.cur, rng)
     finds.push({ playerId: p.id, grade: est.grade, note })
-    recs.push({ playerId: p.id, ...est, note, season: state.season, week: state.week, src: 'brief', posted: false })
+    recs.push({ playerId: p.id, ...est, note, season: state.season, week: state.week, src: 'brief', posted: false, spread: judgementSpread(tier, SEARCH_WEEKS[c.months]) })
   }
   if (!finds.length) return
   finds.sort((a, b) => b.grade - a.grade)

@@ -24,6 +24,16 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED again for 1.9.12 (12 Nov 2026), for squad DATA, not the
+  // engine: Zach Mercer to Toulon, Albert Tuisue to Provence and James Venter
+  // to Gloucester (verified.ts), and Gloucester's ratings and reputation
+  // raised for a side that is top of the real 2026-27 table (prem_a.ts). The
+  // world is dealt from the squads, so the fixture list itself re-deals: all
+  // six are different matches now. No engine file changed; bandcheck holds.
+  // The six before this were:
+  //   sale 19-43 northampton, bath 52-7 saracens, leicester 24-22 exeter,
+  //   newcastle 50-26 harlequins, gloucester 14-32 bristol, bath 15-20 sale
+  //
   // REBASELINED for 1.9.12 (owner's stats scan, 10 Nov 2026: a side held
   // scoreless in 6% of league matches, and home sides winning 53%). Three
   // dials, no new draw: the trailing side's try chance lifts from 18 points
@@ -698,12 +708,12 @@ export const EXPECTED: string[] = [
   // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
-  'sale 19-43 northampton',
-  'bath 52-7 saracens',
-  'leicester 24-22 exeter',
-  'newcastle 50-26 harlequins',
-  'gloucester 14-32 bristol',
-  'bath 15-20 sale',
+  'bristol 3-34 sale',
+  'newcastle 15-17 gloucester',
+  'northampton 46-24 exeter',
+  'saracens 36-12 bath',
+  'harlequins 12-33 leicester',
+  'newcastle 12-44 bristol',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw

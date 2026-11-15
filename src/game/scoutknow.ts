@@ -173,6 +173,70 @@ export function scoutPa(state: GameState, p: Player): number {
   return clamp(fuzzedCa(state, p) + Math.max(0, 23 - p.age) * 2.5, 1, 99)
 }
 
-export function bumpKnowledge(p: Player, amt: number) {
-  p.sc = clamp((p.sc ?? 20) + amt, 0, 100)
+/**
+ * ---- WHAT CAN BE LEARNED FROM WHERE (1.9.12, the scouting overhaul) ----
+ *
+ * Measured on 1.9.11, one season at Northampton: every one of the 353 men in
+ * the manager's own league had a full file by week 24 without anybody doing
+ * anything, a man abroad went from a name to a full file in three weeks on
+ * the shortlist for nothing, and the chief scout's six-figure brief bought
+ * what the shortlist gave away. So each way of learning about a man now has
+ * a ceiling, and the top of the ladder belongs to the scout:
+ *
+ *   FREE_CAP   74  the shortlist and the background of your own league: a
+ *                  proper report, a rating, attribute ranges two either side
+ *   LEAGUE_CAP 84  the scout's league watch: ranges one either side
+ *   MATCH_CAP  89  playing against him: the same, a little further
+ *   100            the scout himself: a brief's finds, his letters from the
+ *                  road, a man put under watch, the agency's file
+ *
+ * The full file (90: character, and the numbers exact from 95) is therefore
+ * only ever the scout's work. Nothing here changes a man; AI clubs read true
+ * values as they always did.
+ */
+export const FREE_CAP = 74
+export const LEAGUE_CAP = 84
+export const MATCH_CAP = 89
+
+/** Add to what the club knows of a man, up to `cap` and never down: a source
+ *  with a low ceiling leaves a better file alone. */
+export function bumpKnowledge(p: Player, amt: number, cap = 100) {
+  const cur = p.sc ?? 20
+  if (cur >= cap) return
+  p.sc = clamp(Math.min(cap, cur + amt), 0, 100)
+}
+
+/**
+ * ---- A FILE GOES STALE (1.9.12) ----
+ *
+ * A report from four seasons ago used to be as good as new. A man nobody is
+ * watching now drifts back towards what the club would know of him anyway
+ * (`floor`): about a seventh of the ladder a season for a grown man and a
+ * quarter for one of 23 or under, who is still changing. A full file kept on
+ * nobody is a proper report within a season and a name again in about two.
+ */
+export function fadeKnowledge(p: Player, floor: number) {
+  const cur = p.sc ?? 20
+  if (cur <= floor) return
+  p.sc = Math.max(floor, cur - (p.age <= 23 ? 0.5 : 0.3))
+}
+
+/**
+ * THE FILE ON A CLUB (1.9.12): how well the scouts know the side you are about
+ * to play, 0 to 1. Nothing below what a league's own tape gives for free
+ * (FREE_CAP), everything at full files on the whole squad. Having played them
+ * gets most of the way; the scout's watch on their key men gets the rest. The
+ * analyst reads it (analyst.ts readOdds) and the opposition report says it.
+ */
+export const FILE_EDGE = 0.05
+export function clubFile(state: GameState, clubId: string): number {
+  const club = state.clubs[clubId]
+  if (!club || clubId === state.userClubId || !club.players.length) return 0
+  let sum = 0, n = 0
+  for (const id of club.players) {
+    const p = state.players[id]
+    if (p) { sum += p.sc ?? 0; n++ }
+  }
+  if (!n) return 0
+  return Math.max(0, Math.min(1, (sum / n - FREE_CAP) / (100 - FREE_CAP)))
 }

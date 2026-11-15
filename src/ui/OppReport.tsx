@@ -13,6 +13,7 @@ import { useStore } from '../store'
 import { t } from '../game/i18n'
 import { userMatchThisWeek } from '../game/season'
 import { prepLabel } from '../game/analyst'
+import { clubFile } from '../game/scoutknow'
 import { teamShort } from '../game/matchEngine'
 import {
   applyPlan, buildReport, isClubFixture, isCurrent, opponentIn, planOptions,
@@ -105,6 +106,7 @@ export function OppReportCard() {
   const ordered = [...lines.filter(l => l.cat === 'history'), ...lines.filter(l => l.cat === 'calls'), ...lines.filter(l => l.cat !== 'history' && l.cat !== 'calls')]
   const shown = more ? ordered : ordered.slice(0, 4)
   const opts = club ? planOptions(game, fx) : []
+  const file = club ? clubFile(game, oppId) : 0
   return (
     <div className="card opp-report" style={{ ...acc('var(--gold)') }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
@@ -112,6 +114,8 @@ export function OppReportCard() {
         <b className="meta" style={{ fontSize: '0.6875rem' }} data-band={rep.band}>{t(`oppreport.band_${rep.band}`)}</b>
       </div>
       <div className="meta muted" style={{ fontSize: '0.6875rem' }}>{t(`oppreport.bandHint_${rep.band}`)}</div>
+      {/* the scouts' file on them (1.9.12): it feeds the analyst's odds */}
+      {club && file >= 0.2 && <div className="meta" data-file={file >= 0.6 ? 'deep' : 'fair'} style={{ fontSize: '0.6875rem', color: 'var(--gold)' }}>{t(file >= 0.6 ? 'oppreport.fileDeep' : 'oppreport.fileFair')}</div>}
       <div style={{ marginTop: 4 }}>
         {shown.map((l, i) => (
           <div key={i} className="meta" data-cat={l.cat} data-conf={l.conf} style={{ fontSize: '0.75rem', padding: '2px 0' }}>

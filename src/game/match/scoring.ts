@@ -200,10 +200,12 @@ export function scoreTry(
     // his position is swapped after the draw, so the stream is untouched.
     else tryKey = fitTryLine(tryKey, scorer)
     pushLine(state, ctx, min, 'TRY', side, tryKey, mt ? mt.v : { player: scorer.name }, scorer.id)
+    // the debate that follows a tight call comes straight after the try it
+    // is about (1.9.12: a hat-trick try that stood put the hat-trick line
+    // between the two, fwdpassprobe on the re-dealt worlds)
+    if (fwdStands) pushLine(state, ctx, min, 'SUB', side, `comm.tmoFwdStands${1 + ((min + scorer.id) % 2)}`, { team: teamShort(state, side.teamId) }, scorer.id)
     // three in an afternoon (1.8.16)
     if (side.matchTries?.get(scorer.id) === 3) colour(state, ctx, side, 'comm.hatTrick', { player: scorer.name, team: teamShort(state, side.teamId) }, scorer.id)
-    // and the debate that follows a tight call
-    if (fwdStands) pushLine(state, ctx, min, 'SUB', side, `comm.tmoFwdStands${1 + ((min + scorer.id) % 2)}`, { team: teamShort(state, side.teamId) }, scorer.id)
   }
   else pushLine(state, ctx, min, 'TRY', side, 'comm.tryPackDrive')
   const cTries = scorer ? careerRows(scorer).reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
