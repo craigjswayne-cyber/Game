@@ -488,3 +488,21 @@
 .retrain-row > .btn { grid-column: 2; grid-row: 1 / span 2; }
 .retrain-pick { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; margin: 6px 14px; }
 .retrain-pick > .fact-label, .retrain-pick > .meta { grid-column: 1 / -1; }
+
+/* THE SEASON PLAN (1.9.14, PreseasonPlan.tsx): the pre-season card's three
+   questions, each a row of choices you can tap (44px, the app's minimum) */
+.preplan .pp-q { margin-top: 14px; font-family: var(--cond); font-weight: 700; font-size: 0.9375rem; letter-spacing: 0.5px; color: var(--text-primary); }
+.preplan .pp-label { margin-top: 8px; font-size: 0.75rem; color: var(--text-muted); }
+.preplan .pp-opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.preplan .pp-opt {
+  min-height: 44px; padding: 6px 11px;
+  display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  background: var(--surface-1); border: 1.5px solid var(--border); border-radius: 8px;
+  color: var(--text-secondary); font: inherit; font-size: 0.8125rem; text-align: left;
+}
+.preplan .pp-opt small { font-size: 0.6875rem; color: var(--text-muted); }
+.preplan .pp-opt.sel { border-color: var(--row-selected-border); background: var(--row-selected-bg); color: var(--text-primary); }
+.preplan .pp-check { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 6px; font-size: 0.8125rem; color: var(--text-secondary); }
+.preplan .pp-foot { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.preplan .pp-foot .btn { min-height: 48px; }
+.preplan.done .btn { margin-top: 8px; }

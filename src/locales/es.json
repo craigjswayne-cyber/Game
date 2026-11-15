@@ -1830,6 +1830,24 @@
   "planAside": "Esto deja de lado el plan ({plan}): se juzgará por la primera parte.",
   "planAsideEarly": "Esto deja de lado el plan ({plan}) antes de que haya tenido una parte, así que no se podrá juzgar."
  },
+ "preplan": {
+  "title": "Plan de temporada",
+  "sub": "Tres decisiones para la temporada. Cada una sigue también en su propia pantalla, así que puedes cambiarla más tarde.",
+  "how": "Cómo jugamos",
+  "attack": "Ataque",
+  "defence": "Defensa",
+  "drill": "Jugadas a ensayar",
+  "drillNote": "Una jugada que tus delanteros no han ensayado puede fallar hasta que la aprendan.",
+  "lineout": "Jugada de touch",
+  "scrum": "Jugada de melé",
+  "drilled": "ensayada",
+  "notDrilled": "sin ensayar",
+  "setpiece": "Fases estáticas: las jugadas mejoran más rápido (el ataque pierde algo en el próximo partido)",
+  "focus": "Enfoque de entrenamiento para las primeras semanas",
+  "note": "Los estilos van a la táctica, las jugadas al libro de jugadas y el enfoque al entrenamiento.",
+  "set": "Fijar el plan",
+  "change": "Cambiar el plan"
+ },
  "tacticsScreen": {
   "tabRoles": "Roles",
   "tabSetPiece": "Estáticas",

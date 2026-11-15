@@ -1840,6 +1840,24 @@
     "planAside": "Le plan ({plan}) est mis de côté : il sera jugé sur la première période.",
     "planAsideEarly": "Le plan ({plan}) est mis de côté avant d'avoir eu une mi-temps, on ne pourra donc pas le juger."
   },
+  "preplan": {
+    "title": "Plan de saison",
+    "sub": "Trois choix pour la saison à venir. Chacun reste aussi sur son propre écran, vous pourrez donc le changer plus tard.",
+    "how": "Notre façon de jouer",
+    "attack": "Attaque",
+    "defence": "Défense",
+    "drill": "Combinaisons à travailler",
+    "drillNote": "Un lancement que vos avants n'ont pas travaillé peut rater tant qu'ils ne le maîtrisent pas.",
+    "lineout": "Lancement en touche",
+    "scrum": "Lancement en mêlée",
+    "drilled": "maîtrisée",
+    "notDrilled": "pas encore travaillée",
+    "setpiece": "Travail de conquête : les lancements progressent plus vite (attaque un peu émoussée au prochain match)",
+    "focus": "Axe d'entraînement des premières semaines",
+    "note": "Les styles vont dans la tactique, les lancements dans le livre de jeu et l'axe dans l'entraînement.",
+    "set": "Valider le plan",
+    "change": "Modifier le plan"
+  },
   "tacticsScreen": {
     "tabRoles": "Rôles",
     "tabSetPiece": "Conquête",

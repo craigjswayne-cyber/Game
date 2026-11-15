@@ -1799,6 +1799,24 @@
   "planAside": "This sets the plan ({plan}) aside: it will be judged on the first half.",
   "planAsideEarly": "This sets the plan ({plan}) aside before it has had a half, so it cannot be judged."
  },
+ "preplan": {
+  "title": "Season plan",
+  "sub": "Three calls for the season ahead. Each one stays on its own screen too, so you can change it later.",
+  "how": "How we play",
+  "attack": "Attack",
+  "defence": "Defence",
+  "drill": "Set plays to drill",
+  "drillNote": "A call your pack has not drilled can misfire until they learn it.",
+  "lineout": "Lineout Call",
+  "scrum": "Scrum Call",
+  "drilled": "drilled",
+  "notDrilled": "not drilled yet",
+  "setpiece": "Set-Piece Work: the calls are drilled faster (attack is a little blunter in the next match)",
+  "focus": "Training focus for the opening weeks",
+  "note": "The styles go to Tactics, the calls to the playbook and the focus to Training.",
+  "set": "Set the plan",
+  "change": "Change the plan"
+ },
  "tacticsScreen": {
   "tabRoles": "Roles",
   "tabSetPiece": "Set Piece",

@@ -1797,6 +1797,24 @@
   "planAside": "Dit sit die plan ({plan}) eenkant: dit word op die eerste helfte beoordeel.",
   "planAsideEarly": "Dit sit die plan ({plan}) eenkant voordat dit 'n helfte gehad het, so dit kan nie beoordeel word nie."
  },
+ "preplan": {
+  "title": "Seisoensplan",
+  "sub": "Drie keuses vir die seisoen wat voorlê. Elkeen bly ook op sy eie skerm, so jy kan dit later verander.",
+  "how": "Hoe ons speel",
+  "attack": "Aanval",
+  "defence": "Verdediging",
+  "drill": "Stelspele om te oefen",
+  "drillNote": "'n Roep wat jou voorspelers nie ingeoefen het nie, kan misluk totdat hulle dit leer.",
+  "lineout": "Lynstaanroep",
+  "scrum": "Skrumroep",
+  "drilled": "ingeoefen",
+  "notDrilled": "nog nie ingeoefen nie",
+  "setpiece": "Vastespel-werk: die roepe verbeter vinniger (die aanval is effens stomper in die volgende wedstryd)",
+  "focus": "Oefenfokus vir die eerste weke",
+  "note": "Die style gaan na Taktiek, die roepe na die speelboek en die fokus na Oefening.",
+  "set": "Stel die plan",
+  "change": "Verander die plan"
+ },
  "tacticsScreen": {
   "tabRoles": "Rolle",
   "tabSetPiece": "Vaste spel",
