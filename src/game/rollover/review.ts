@@ -10,6 +10,7 @@ import { clamp } from '../rng'
 import { sortTable } from '../schedule'
 import { boardPriorityF } from '../seasonplan'
 import { ordinal } from './format'
+import { moveFans, setFans } from '../fans'
 
 /** The rival's year, settled (C3). Read at the top of the rollover, before
  *  the leagues are rebuilt empty. */
@@ -96,7 +97,7 @@ export function managerSeasonReview(state: GameState) {
     const trophyCount = state.history.filter(h => h.season === state.season && h.champion === uid).length
     let moodShift = trophyCount * 18
     if (predicted && actualPos > 0) moodShift += (predicted - actualPos) * 3
-    state.fanMood = clamp((state.fanMood ?? 60) * 0.6 + 55 * 0.4 + moodShift, 10, 95)
+    setFans(state, (state.fanMood ?? 60) * 0.6 + 55 * 0.4 + moodShift, 'results', 10, 95)
 
     const club0 = state.clubs[uid]
     state.review = {
@@ -140,7 +141,7 @@ export function managerSeasonReview(state: GameState) {
       state.legendOf ??= []
       if (tenure >= 8 && eraCups >= 3 && !state.legendOf.includes(club0.id)) {
         state.legendOf.push(club0.id)
-        state.fanMood = clamp((state.fanMood ?? 60) + 10, 5, 98)
+        moveFans(state, 10, 'manager')
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
           subject: `CLUB LEGEND: the supporters claim you as their own`,

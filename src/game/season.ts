@@ -72,6 +72,7 @@ import { weeklyFinance } from './season/finance'
 import { afterClubMatch, leagueRoundUp, matchReport, mgrMilestones, milestones } from './season/news'
 import { userFixtureThisWeek } from './season/whose'
 import { withDevelopmentSide } from './season/friendlies'
+import { moveFans } from './fans'
 
 // The season's subsystems live in src/game/season/ (split out of this file,
 // which was nearly five thousand lines); this file keeps the weekly settle,
@@ -1190,7 +1191,7 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           state.mgr.moms = (state.mgr.moms ?? 0) + 1
           const club = state.clubs[state.userClubId]
           club.boardConfidence = clamp(club.boardConfidence + 4, 0, 100)
-          state.fanMood = clamp((state.fanMood ?? 60) + 4, 5, 98)
+          moveFans(state, 4, 'results')
         }
         const ourMan = pom?.clubId === state.userClubId
         state.news.push({
@@ -2303,7 +2304,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
       // (1.8.0: 48.6).
       const uc = state.clubs[state.userClubId]
       if (uc) uc.boardConfidence = clamp(uc.boardConfidence - 0.8 * Math.min(1, boardPatience(uc.rep) / 1.3), 0, 100)
-      state.fanMood = clamp((state.fanMood ?? 60) - 0.4, 10, 95)
+      moveFans(state, -0.4, 'manager', 10, 95)
     }
   }
   for (const n of state.news) {

@@ -41,6 +41,7 @@ import { telling } from './tellings'
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { tIn } from './i18n'
+import { moveFans } from './fans'
 
 /** A terrace story. Keyed like everything else, so it reads in French too. */
 function terrace(
@@ -56,9 +57,8 @@ function terrace(
 }
 
 const setMood = (state: GameState, delta: number): number => {
-  const before = state.fanMood ?? 60
-  state.fanMood = clamp(before + delta, 5, 98)
-  return state.fanMood - before
+  // a star signed or sold: the squad's cause (fans.ts)
+  return moveFans(state, delta, 'squad')
 }
 
 /**

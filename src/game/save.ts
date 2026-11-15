@@ -1577,6 +1577,10 @@ function healLoanTerms(s: GameState): void {
   const n = (x: unknown) => typeof x === 'number' && Number.isFinite(x) && x >= 0
   if (s.in22 !== undefined && !(s.in22 && typeof s.in22 === 'object' && n(s.in22.season) && n(s.in22.v) && n(s.in22.p)
     && n(s.in22.ov) && n(s.in22.op) && n(s.in22.m))) s.in22 = undefined
+  // what moved the fans (1.9.13, fans.ts): five finite numbers, or nothing
+  const f = (x: unknown) => typeof x === 'number' && Number.isFinite(x)
+  const w = s.fanWhy
+  if (w !== undefined && !(w && typeof w === 'object' && f(w.season) && f(w.results) && f(w.squad) && f(w.club) && f(w.manager))) s.fanWhy = undefined
   for (const p of Object.values(s.players)) {
     if (!p) continue
     if (p.loanOpt !== undefined && typeof p.loanOpt !== 'boolean') p.loanOpt = undefined

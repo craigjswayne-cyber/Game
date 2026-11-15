@@ -1284,6 +1284,10 @@ export interface GameState {
    *  and the points they brought, and the opponents' in his matches, over m
    *  competitive matches. Starts again with the season. */
   in22?: { season: number; v: number; p: number; ov: number; op: number; m: number }
+  /** What moved fan mood this season, by cause (1.9.13, fans.ts): results,
+   *  the squad, club decisions and the manager. They sum to the season's
+   *  movement. Starts again with the season. */
+  fanWhy?: { season: number; results: number; squad: number; club: number; manager: number }
   /** open managerial vacancies at AI clubs */
   /**
    * `passed` is the manager saying he is not interested.
