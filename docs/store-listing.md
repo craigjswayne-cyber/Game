@@ -1712,7 +1712,7 @@ Libérez un joueur, il reviendra peut-être marquer contre vous. Rompez une prom
 Bâtissez quelque chose qui restera.
 
 DEUX JEUX, UNE APPLI
-• Rugby masculin : neuf championnats et 107 clubs en Angleterre, France, Provinces unies, Pacifique, Japon et États-Unis, de l'élite à la National One.
+• Rugby masculin : neuf championnats et 113 clubs en Angleterre, France, Provinces unies, Pacifique, Japon et États-Unis, de l'élite à la National One.
 • Rugby féminin, pensé pareil, pas greffé : six championnats et 64 clubs en Angleterre, France, Pacifique et provinces celtes, avec sa coupe continentale, ses tests et ses défis de carrière.
 
 LE MONDE
@@ -1942,7 +1942,7 @@ Da la baja a un jugador y quizá vuelva para marcarte un ensayo. Rompe una prome
 Construye algo digno de recordar.
 
 DOS JUEGOS, UNA APP
-• Rugby masculino: nueve ligas y 107 clubes en Inglaterra, Francia, las Provincias Unidas, el Pacífico, Japón y EE. UU., de la élite a la National One.
+• Rugby masculino: nueve ligas y 113 clubes en Inglaterra, Francia, las Provincias Unidas, el Pacífico, Japón y EE. UU., de la élite a la National One.
 • Rugby femenino, hecho igual, no como añadido: seis ligas y 64 clubes en Inglaterra, Francia, el Pacífico y las provincias celtas, con su copa continental, test matches y desafíos de carrera.
 
 EL MUNDO
@@ -2033,7 +2033,7 @@ Svincola un giocatore e magari tornerà a segnarti contro. Rompi una promessa e 
 Costruisci qualcosa da ricordare.
 
 DUE GIOCHI, UN'APP
-• Il maschile: nove campionati e 107 club tra Inghilterra, Francia, Province Unite, Pacifico, Giappone e Stati Uniti, dalla massima serie alla National One.
+• Il maschile: nove campionati e 113 club tra Inghilterra, Francia, Province Unite, Pacifico, Giappone e Stati Uniti, dalla massima serie alla National One.
 • Il femminile, costruito allo stesso modo, non aggiunto in coda: sei campionati e 64 club tra Inghilterra, Francia, Pacifico e province celtiche, con coppa continentale, test match e sfide di carriera propri.
 
 IL MONDO
@@ -2124,7 +2124,7 @@ PHASE: Rugby Manager
 語り継がれるクラブを築こう。
 
 ひとつのアプリに、ふたつのゲーム
-• 男子：イングランド、フランス、ユナイテッド・プロヴィンシズ、パシフィック、日本、アメリカの9リーグ107クラブ。最上位リーグからナショナル1まで。
+• 男子：イングランド、フランス、ユナイテッド・プロヴィンシズ、パシフィック、日本、アメリカの9リーグ113クラブ。最上位リーグからナショナル1まで。
 • 女子：後付けではなく、男子と同じ作り込みで。イングランド、フランス、パシフィック、ケルティックの6リーグ64クラブ。独自のコンチネンタルカップ、テストマッチ日程、キャリアチャレンジも。
 
 世界
@@ -2189,14 +2189,14 @@ Kies die XV en maak vrede daarmee. 'n Diep rugbybestuurspel wat aflyn speel.
 ```
 Jou klub. Jou erfenis. Jou tyd.
 
-Vat 'n rugbyklub en maak dit jou eie. Kies die XV, kontrakteer spelers, maak 'n plan en staan Saterdag jou man. PHASE: Rugby Manager is 'n rugbybestuurspel in die tradisie van teks-simulasies: digte spantabelle, 'n regte besluit byna elke dag, en 'n loopbaan wat in seisoen vyftien nog seisoen een onthou.
+Vat 'n rugbyklub en maak dit jou eie. Kies die XV, kontrakteer spelers, maak 'n plan, en Saterdag moet dit werk. PHASE: Rugby Manager is 'n rugbybestuurspel in die tradisie van teks-simulasies: digte spantabelle, 'n regte besluit byna elke dag, en 'n loopbaan wat in seisoen vyftien nog seisoen een onthou.
 
 'n Speler wat jy laat gaan, kan terugkom om 'n drie teen jou te druk. Breek 'n belofte en die agent wil meer hê. 'n Tiener wat deur jou akademie kom, kan eendag jou kaptein wees.
 
 Bou iets wat die moeite werd is om te onthou.
 
 TWEE SPELETJIES, EEN TOEP
-• Mansrugby: nege ligas en 107 klubs in Engeland, Frankryk, die Verenigde Provinsies, die Stille Oseaan, Japan en die VSA, van die topliga tot National One.
+• Mansrugby: nege ligas en 113 klubs in Engeland, Frankryk, die Verenigde Provinsies, die Stille Oseaan, Japan en die VSA, van die topliga tot National One.
 • Vrouerugby, net so gebou en nie later aangelas nie: ses ligas en 64 klubs in Engeland, Frankryk, die Stille Oseaan en die Keltiese provinsies, met 'n eie kontinentale beker, toetskalender en loopbaanuitdagings.
 
 DIE WÊRELD
@@ -2364,7 +2364,7 @@ Now on iPhone and iPad. New: retrain a player for a new position, set the traini
 ```
 Your club. Your legacy. Your time.
 
-A proper rugby union manager: 171 real clubs across the men's and women's game, 2026-27 squads with real player names, and a career that remembers season one when you reach season fifteen.
+A proper rugby union manager: 177 real clubs across the men's and women's game, 2026-27 squads with real player names, and a career that remembers season one when you reach season fifteen.
 
 Pick the XV, sign the players, set the plan, and answer for all of it on Saturday. Release a player and they may come back to score against you. Break a promise and the agent wants more.
 
@@ -2372,7 +2372,7 @@ Build something worth remembering.
 
 TWO GAMES, ONE APP
 
-• The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, from the top flight down to National One.
+• The men's game: nine leagues and 113 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, from the top flight down to National One.
 
 • The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar and career challenges.
 
