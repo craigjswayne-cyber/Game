@@ -13,6 +13,9 @@ import { t } from '../../game/i18n'
 import { rowNav } from '../rowNav'
 import { Veil } from '../Veil'
 import { acc } from '../accent'
+import { physioReport } from '../../game/physio'
+import { loadOf } from '../../game/retrain'
+import { noteUse } from '../../game/usage'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
 export default function Medical() {
@@ -129,6 +132,8 @@ export default function Medical() {
           there is no till and where there is nobody to heal, so a quiet room
           stays quiet. */}
       <FullFitness />
+
+      <PhysioReportCard />
 
       {allClear && (
         <div className="card center bar-sq" style={{ ...acc('var(--text-positive)') }}>
@@ -303,5 +308,47 @@ export default function Medical() {
         </Veil>
       )}
     </>
+  )
+}
+
+/**
+ * THE PHYSIO'S REPORT (1.9.13, game/physio.ts, owner's round): who
+ * is closest to breaking down and why, and the training load the physio
+ * would set this week, with the button to set it. Hidden while every senior
+ * is fine, so a quiet room stays quiet.
+ */
+function PhysioReportCard() {
+  const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const go = useStore(s => s.go)
+  const r = physioReport(game)
+  const load = loadOf(game)
+  if (!r.rows.length && r.recommend === load) return null
+  const who = game.staffPeople?.physio ? t('medical.physioNamed', { name: game.staffPeople.physio.name }) : t('medical.headPhysio')
+  const loadKey = (l: string) => `training.load${l[0].toUpperCase()}${l.slice(1)}`
+  return (
+    <div className="card physio-report" style={{ ...acc('var(--gold)') }} data-testid="physio-report">
+      <div className="fact-label">{t('medical.reportTitle', { who })}</div>
+      <div className="meta" style={{ marginTop: 2 }}>
+        {t(`medical.rec${r.recommend[0].toUpperCase()}${r.recommend.slice(1)}`)}
+      </div>
+      {r.recommend !== load && (
+        <button className="btn ghost block" style={{ marginTop: 8 }}
+          onClick={() => { noteUse('physio'); game.trainLoad = r.recommend; touch() }}>
+          {t('medical.setLoad', { load_k: loadKey(r.recommend) })}
+        </button>
+      )}
+      {r.rows.length > 0 && (
+        <div className="physio-rows" style={{ marginTop: 8 }}>
+          {r.rows.slice(0, 6).map(x => (
+            <div key={x.p.id} className="physio-row" {...rowNav(() => go('player', x.p.id))}>
+              <span className={`med-pill ${x.tier === 'high' ? 'long' : 'mid'}`}>{t(x.tier === 'high' ? 'medical.riskHigh' : 'medical.riskRaised')}</span>
+              <span className="med-name">{x.p.name}</span>
+              <span className="meta muted">{x.why.map(w => t(`medical.why_${w}`)).join(', ')}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

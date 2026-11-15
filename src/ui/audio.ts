@@ -1,10 +1,26 @@
 // Synthesised match-day sound & haptics. No audio assets - everything is
 // generated with WebAudio so the PWA stays tiny and offline.
+import { capPlugin } from '../game/nativeshare'
 
 let ctx: AudioContext | null = null
 let muted = typeof localStorage !== 'undefined' && localStorage.getItem('rm-sound') === '0'
 
 export function soundOn(): boolean { return !muted }
+
+/**
+ * HAPTICS, ON THEIR OWN SWITCH (1.9.13, owner: "You should be able to turn
+ * haptic off in settings"). The match screen's Sound and buzz toggle turns
+ * both off together; this is the buzz alone, in Settings, for a player who
+ * wants the whistle but not the phone jumping in the hand. Per device, like
+ * the sound, and on by default.
+ */
+const HAPTICS_KEY = 'rm-haptics'
+let hapticsOff = typeof localStorage !== 'undefined' && (() => { try { return localStorage.getItem(HAPTICS_KEY) === '0' } catch { return false } })()
+export function hapticsOn(): boolean { return !hapticsOff }
+export function setHapticsOn(on: boolean): void {
+  hapticsOff = !on
+  try { localStorage.setItem(HAPTICS_KEY, on ? '1' : '0') } catch { /* private mode */ }
+}
 
 export function toggleSound(): boolean {
   muted = !muted
@@ -66,13 +82,36 @@ function thud() {
  * motion is the other half: it is the closest thing a browser offers to "stop
  * shaking things at me", and a phone that jumps in your hand is motion.
  */
-function vibrate(pattern: number | number[]) {
-  if (muted) return
+function vibrate(pattern: number | number[], feel?: Feel) {
+  if (muted || hapticsOff) return
   try {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
   } catch { /* no matchMedia: fall through and buzz */ }
+  // THE PHONE'S OWN HAPTICS FIRST (1.9.13, owner's round:
+  // native haptic feedback). iOS has no navigator.vibrate at all, so an iPhone felt
+  // nothing: no try, no card, no full time. The shells now carry Capacitor's
+  // Haptics plugin, which plays the Taptic Engine on an iPhone and the motor
+  // on Android. The browser's buzz stays the fallback for the website and for
+  // a shell built before the plugin.
+  const h = feel ? capPlugin<HapticsPlugin>('Haptics') : null
+  if (h && feel) {
+    try {
+      const p = feel.kind === 'impact' ? h.impact({ style: feel.v }) : h.notification({ type: feel.v })
+      void p?.catch?.(() => {})
+      return
+    } catch { /* fall through to the browser's buzz */ }
+  }
   try { navigator.vibrate?.(pattern) } catch { /* unsupported */ }
 }
+
+/** Capacitor Haptics, as much of it as the game uses. */
+interface HapticsPlugin {
+  impact(o: { style: 'LIGHT' | 'MEDIUM' | 'HEAVY' }): Promise<void>
+  notification(o: { type: 'SUCCESS' | 'WARNING' | 'ERROR' }): Promise<void>
+}
+type Feel = { kind: 'impact'; v: 'LIGHT' | 'MEDIUM' | 'HEAVY' } | { kind: 'note'; v: 'SUCCESS' | 'WARNING' | 'ERROR' }
+const TAP = (v: 'LIGHT' | 'MEDIUM' | 'HEAVY'): Feel => ({ kind: 'impact', v })
+const NOTE = (v: 'SUCCESS' | 'WARNING' | 'ERROR'): Feel => ({ kind: 'note', v })
 
 /**
  * Short shaped noise for the title's lamp clicks and whoosh. Nothing loops it
@@ -96,21 +135,21 @@ function noiseBuffer(a: AudioContext, secs: number, brown: number): AudioBuffer 
 /** Play the right effect for a live-match event type. */
 export function matchSfx(type: string) {
   switch (type) {
-    case 'TRY': vibrate([30, 40, 60]); break
+    case 'TRY': vibrate([30, 40, 60], NOTE('SUCCESS')); break
     // The strike, not the result. A kick that goes over gets one short tick, the
     // length of a keyboard tap - enough to feel the contact without competing
     // with the try. A miss is pushed as a plain commentary line by the engine and
     // reaches no case here, so nothing buzzes when the kick drifts wide, which is
     // exactly right: you do not want the phone celebrating a miss.
     case 'CON':
-    case 'PEN': vibrate(12); break
-    case 'DG': vibrate(30); break
-    case 'YC': whistle(1); thud(); vibrate(60); break
-    case 'RC': whistle(1); thud(); vibrate([80, 60, 80]); break
+    case 'PEN': vibrate(12, TAP('LIGHT')); break
+    case 'DG': vibrate(30, TAP('MEDIUM')); break
+    case 'YC': whistle(1); thud(); vibrate(60, TAP('HEAVY')); break
+    case 'RC': whistle(1); thud(); vibrate([80, 60, 80], NOTE('WARNING')); break
     case 'INJ': whistle(1); break
     case 'KO': whistle(1); break
     case 'HT': whistle(2); break
-    case 'FT': whistle(3); vibrate([50, 50, 50, 50, 120]); break
+    case 'FT': whistle(3); vibrate([50, 50, 50, 50, 120], NOTE('SUCCESS')); break
   }
 }
 

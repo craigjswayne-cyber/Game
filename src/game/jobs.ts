@@ -210,6 +210,32 @@ export function jobFit(state: GameState, clubId: string): Trait | null {
   return top && traitFits(state, clubId, top.id) ? top.id : null
 }
 
+/**
+ * ---- THE JOB CENTRE BADGE ----
+ *
+ * Owner, 1.9.13: "fix the job notification coming up all the time". Two
+ * feedback reports from managers in work showed the Job Centre opened 18 and
+ * 13 times in a season. The game keeps two to four vacancies open at all
+ * times (refreshVacancies), and the badge counted every one not answered, so
+ * a manager with a job saw a red number on World nearly every week, and only
+ * turning each job down one by one would clear it.
+ *
+ * In work, the badge is news: a vacancy he has not seen yet. Opening the Job
+ * Centre marks every one on it seen (markJobsSeen), and the next sacking
+ * somewhere lights it again. Out of work, the jobs are the point, so it counts
+ * every open one he has not answered, as before.
+ */
+export function jobBadge(state: GameState): number {
+  return state.vacancies.filter(v => !v.passed && !v.applied && (state.unemployed || !v.seen)).length
+}
+
+/** The Job Centre is open: everything on it has been seen. True when anything changed. */
+export function markJobsSeen(state: GameState): boolean {
+  let changed = false
+  for (const v of state.vacancies) if (!v.seen) { v.seen = true; changed = true }
+  return changed
+}
+
 /** Keep a rolling set of 2-4 vacancies, biased towards struggling clubs. */
 export function refreshVacancies(state: GameState, rng: Rng) {
   // expire stale vacancies (filled behind the scenes by a new name)

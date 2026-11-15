@@ -1557,6 +1557,43 @@ function migrateKickCounts(s: GameState): void {
   }
 }
 
+/** A season under way when 1.9.13 first opens it has tackles made and none
+ *  missed: the made so far are set aside (tkl0) so the success rate reads
+ *  only tackles counted on both sides. Once only. */
+function migrateTackleCounts(s: GameState): void {
+  for (const p of Object.values(s.players)) {
+    const st = p.stats
+    if (!st || st.tklM != null) continue
+    st.tklM = 0
+    st.tkl0 = st.tkl ?? 0
+  }
+}
+
+/** The loan option and a loanee's games for you (1.9.13, loans.ts): keep
+ *  them only as the types the loan code reads. A loan signed before 1.9.13
+ *  has neither, and keeps the option it was signed with. */
+function healLoanTerms(s: GameState): void {
+  // the season in the 22 (1.9.13): six counts, or nothing
+  const n = (x: unknown) => typeof x === 'number' && Number.isFinite(x) && x >= 0
+  if (s.in22 !== undefined && !(s.in22 && typeof s.in22 === 'object' && n(s.in22.season) && n(s.in22.v) && n(s.in22.p)
+    && n(s.in22.ov) && n(s.in22.op) && n(s.in22.m))) s.in22 = undefined
+  // what moved the fans (1.9.13, fans.ts): five finite numbers, or nothing
+  const f = (x: unknown) => typeof x === 'number' && Number.isFinite(x)
+  const w = s.fanWhy
+  if (w !== undefined && !(w && typeof w === 'object' && f(w.season) && f(w.results) && f(w.squad) && f(w.club) && f(w.manager))) s.fanWhy = undefined
+  for (const p of Object.values(s.players)) {
+    if (!p) continue
+    if (p.loanOpt !== undefined && typeof p.loanOpt !== 'boolean') p.loanOpt = undefined
+    if (p.loanApps !== undefined && !(typeof p.loanApps === 'number' && Number.isFinite(p.loanApps) && p.loanApps >= 0)) p.loanApps = undefined
+    // the alert counters (1.9.13, alerts.ts)
+    for (const k of ['dry', 'tryMark'] as const) {
+      const v = p[k]
+      if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v) && v >= 0)) p[k] = undefined
+    }
+    if (p.alerted !== undefined && (!p.alerted || typeof p.alerted !== 'object')) p.alerted = undefined
+  }
+}
+
 export function migrate(s: GameState): GameState {
   // not a save (hasReservedIds): handed back untouched, before any step can
   // look an id up, for isPlayable to refuse
@@ -1588,6 +1625,8 @@ export function migrate(s: GameState): GameState {
   healWageRoom(s)
   // 1.9.12: kicks taken and tackles, counted from here on
   migrateKickCounts(s)
+  migrateTackleCounts(s)
+  healLoanTerms(s)
   return s
 }
 

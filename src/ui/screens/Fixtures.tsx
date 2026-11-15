@@ -9,8 +9,10 @@ import { t, compLabel } from '../../game/i18n'
 import { arrangeMidweekFriendly, friendlyDate, friendlySuggestions, friendlyWeeks } from '../../game/season'
 import { rowNav } from '../rowNav'
 import { Veil } from '../Veil'
+import SeasonStats from './SeasonStats'
+import { AdSlot } from '../AdSlot'
 
-export default function Fixtures() {
+export default function Fixtures({ initial }: { initial?: string } = {}) {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [replayId, setReplayId] = useState<number | null>(null)
@@ -23,7 +25,7 @@ export default function Fixtures() {
   // competition chip: filter the list to Europe and the table you flip to is the
   // European one, because a table for a competition you are not looking at is
   // just the Competitions screen with extra steps.
-  const [page, setPage] = useState<'fixtures' | 'table'>('fixtures')
+  const [page, setPage] = useState<'fixtures' | 'table' | 'stats'>(initial === 'stats' || initial === 'table' ? initial : 'fixtures')
   const me = game.userClubId
   const mine = game.fixtures.filter(f => f.homeId === me || f.awayId === me)
   const comps = [...new Set(mine.map(f => f.compId))]
@@ -52,13 +54,15 @@ export default function Fixtures() {
   // club actually plays in rather than showing nothing.
   const tableId = comp !== 'ALL' && game.comps[comp]?.table?.length ? comp : leagueId
   const tableComp = tableId ? game.comps[tableId] : undefined
+  // the stats read a competition's clubs: the chosen one, or the league for All and friendlies
+  const statsId = comp !== 'ALL' && game.comps[comp] ? comp : (leagueId ?? '')
 
   // one filter, shown on both pages, because the alternative is a table page
   // that tells you to go to the other page to change which table you are on
   const chips = (
     <div style={{ display: 'flex', gap: '8px 6px', padding: '0 14px 6px', flexWrap: 'wrap', alignItems: 'center' }}>
       <button className="preset-chip" style={comp === 'ALL' ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-        onClick={() => setComp('ALL')}>{t(page === 'table' ? 'fixtures.myLeague' : 'fixtures.allComps')}</button>
+        onClick={() => setComp('ALL')}>{t(page !== 'fixtures' ? 'fixtures.myLeague' : 'fixtures.allComps')}</button>
       {comps.map(cid => (
         <button key={cid} className="preset-chip" style={comp === cid ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
           onClick={() => setComp(cid)}>{compLabel(game.comps[cid]?.short) ?? (cid === 'fr' ? t('common.friendly') : cid)}</button>
@@ -75,8 +79,22 @@ export default function Fixtures() {
       <div className="tab-bar">
         <button className={page === 'fixtures' ? 'active' : ''} onClick={() => setPage('fixtures')}>{t('fixtures.tabFixtures')}</button>
         <button className={page === 'table' ? 'active' : ''} onClick={() => setPage('table')}>{t('fixtures.tabTable')}</button>
+        {/* THE SEASON'S STATS (1.9.13, owner: "in its own section maybe in a
+            tab to the right of fixtures, league table"): game/leaders.ts */}
+        <button className={page === 'stats' ? 'active' : ''} onClick={() => setPage('stats')}>{t('fixtures.tabStats')}</button>
       </div>
-      {page === 'table' ? (
+      {page === 'stats' ? (
+        <>
+          <SectionTitle>{compLabel(game.comps[statsId]?.name) ?? t('tables.seasonStats')}</SectionTitle>
+          {chips}
+          <SeasonStats compId={statsId} />
+          {/* FREE PLAYERS ONLY, AT THE FOOT (owner, 1.9.13: the bottom of the
+              Stats tab, the league table and the fixtures list). Read-only
+              pages, below the last row, never between a tap and its answer. */}
+          <AdSlot place="stats-foot" />
+          <div className="spacer" />
+        </>
+      ) : page === 'table' ? (
         <>
           <SectionTitle sub={tableComp?.champion
             ? t('fixtures.champions', { club: teamShort(game, tableComp.champion) })
@@ -91,6 +109,7 @@ export default function Fixtures() {
             : <div className="card"><div className="muted" style={{ padding: 12 }}>
                 {t('fixtures.knockoutNoTable')}
               </div></div>}
+          <AdSlot place="table-foot" />
           <div className="spacer" />
         </>
       ) : (
@@ -207,6 +226,7 @@ export default function Fixtures() {
           </>
         )
       })()}
+          <AdSlot place="fixtures-foot" />
         </>
       )}
       {replay && (

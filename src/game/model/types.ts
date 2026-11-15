@@ -46,6 +46,11 @@ export interface SeasonStats {
   penA?: number
   /** Tackles made, from the engine's own count (field.ts). Same vintage. */
   tkl?: number
+  /** Tackles missed, from the same count (1.9.13, the Stats tab's tackle
+   *  success). tkl0 is what tkl held when a season under way first met this,
+   *  so the rate reads only tackles counted on both sides of it. */
+  tklM?: number
+  tkl0?: number
   /** Conversions and penalties already made when a season under way was first
    *  loaded on 1.9.12: what cons and pens held before attempts were counted.
    *  The success rate reads only the kicks counted since (kickRecord). */
@@ -367,6 +372,19 @@ export interface Player {
   /** the share of his wage the borrowing club pays (0.25 .. 1); absent = the
    *  half every pre-v1.2.8 loan was struck at */
   loanShare?: number
+  /** Does this loan carry an option to buy (1.9.13, loans.ts loanHasOption)?
+   *  Absent on a loan signed before 1.9.13, which keeps the option it had. */
+  loanOpt?: boolean
+  /** Games played for the borrowing club on this loan (1.9.13): a loan with no
+   *  option to buy is earned on these, and on his morale. */
+  loanApps?: number
+  /** Games played in a row without a try, and the season's try count when
+   *  last read (1.9.13, alerts.ts noteTryRun). */
+  dry?: number
+  tryMark?: number
+  /** The dressing-room alerts already sent for the spell he is in (alerts.ts):
+   *  each clears when its spell ends. */
+  alerted?: { dry?: boolean; low?: boolean; slump?: boolean }
   /**
    * Written by hand in the squad data, rather than produced by the name
    * generator. Set once at world creation and never changed.
@@ -1269,6 +1287,14 @@ export interface GameState {
    *  then REFOCUS - name a new dream - and the honour is never erased by
    *  the new ambition. An unrealised dream is never reset by anything. */
   dreamsDone?: { id: string; clubId: string; season: number }[]
+  /** The manager's season in the opposition 22 (1.9.13, finalize.ts): visits
+   *  and the points they brought, and the opponents' in his matches, over m
+   *  competitive matches. Starts again with the season. */
+  in22?: { season: number; v: number; p: number; ov: number; op: number; m: number }
+  /** What moved fan mood this season, by cause (1.9.13, fans.ts): results,
+   *  the squad, club decisions and the manager. They sum to the season's
+   *  movement. Starts again with the season. */
+  fanWhy?: { season: number; results: number; squad: number; club: number; manager: number }
   /** open managerial vacancies at AI clubs */
   /**
    * `passed` is the manager saying he is not interested.
@@ -1279,8 +1305,11 @@ export interface GameState {
    * live: "reject available jobs to clear notifications - you should be able to."
    * Turning it down is now a real answer, and the badge counts only the jobs he
    * has not answered, so a new one still gets his attention.
+   *
+   * `seen` (1.9.13): the Job Centre has been opened since it was posted. For a
+   * manager in work the badge counts only jobs not yet seen (jobs.ts jobBadge).
    */
-  vacancies: { clubId: string; week: number; applied?: boolean; passed?: boolean }[]
+  vacancies: { clubId: string; week: number; applied?: boolean; passed?: boolean; seen?: boolean }[]
   /** up to 3 young players given individual development attention */
   devFocus: number[]
   /** Personal training plans (18A): a handful of men on individual

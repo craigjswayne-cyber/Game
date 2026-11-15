@@ -2,6 +2,7 @@ import { SKINS, skinLocked, useStore, type Skin } from '../../store'
 import { useState } from 'react'
 import { SectionTitle, Toggle } from '../components'
 import { introOn, setIntroOn } from '../Intro'
+import { hapticsOn, setHapticsOn } from '../audio'
 import { LANGS, getLang, t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { adPrivacyAvailable, showAdPrivacy } from '../../game/monetise'
@@ -72,6 +73,7 @@ export default function Settings() {
   const textScale = useStore(s => s.textScale)
   const setTextScale = useStore(s => s.setTextScale)
   const [intro, setIntro] = useState(introOn)
+  const [haptics, setHaptics] = useState(hapticsOn)
 
   return (
     <>
@@ -135,6 +137,12 @@ export default function Settings() {
         <button className="btn ghost block" style={{ marginTop: 8 }} onClick={toggleNight}>
           {t(night ? 'settings.goDay' : 'settings.goNight')}
         </button>
+      </div>
+
+      {/* ---- haptics (1.9.13): the buzz on its own switch, audio.ts ---- */}
+      <div className="card">
+        <Toggle on={haptics} onChange={v => { setHapticsOn(v); setHaptics(v) }}
+          label={t('settings.haptics')} sub={t('settings.hapticsLine')} />
       </div>
 
       {/* ---- the opening titles (1.8.0): on by default, off for good here ---- */}

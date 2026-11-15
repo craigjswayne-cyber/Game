@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.13, Play version code 75 (confirm 74 is accepted on the Console first)
+
+**en-GB, Play and App Store** (499)
+A new Stats tab beside Fixtures and Table: scorers, tacklers, kickers, discipline and your season in the 22. Every result names its Player of the Match. The Medical Centre has a physio report with injury risks and a suggested training load. See what the fans think, and why, on The Board. New in the office: Arm round the shoulder. Search by personality and trait. Haptics on iPhone, with a switch in Settings. Fewer loans include an option to buy. Fixed: buttons hidden by the bottom bar on iPhone.
+
+**fr-FR, Play and App Store** (499)
+Nouvel onglet Stats à côté du Calendrier et du Classement : marqueurs, plaqueurs, buteurs, discipline et votre saison dans les 22. Chaque résultat désigne son homme ou sa femme du match. L'Infirmerie propose un rapport médical avec les risques de blessure et une charge d'entraînement conseillée. Ce que pensent les supporters, et pourquoi : Le conseil. Nouveau au bureau : Remonter le moral. Recherche par personnalité et atout. Vibrations sur iPhone, réglables. Moins de prêts avec option d'achat.
+
+**es-ES, Play and App Store** (489)
+Nueva pestaña Estadísticas junto a Calendario y Clasificación: anotadores, placadores, pateadores, disciplina y tu temporada en los 22. Cada resultado muestra su mejor jugador o jugadora del partido. La Enfermería tiene un informe médico con riesgos de lesión y una carga de entrenamiento recomendada. Lo que piensa la afición, y por qué, en La junta. Nuevo en el despacho: Arropar. Búsqueda por personalidad y rasgo. Vibración en iPhone, desactivable. Menos cesiones con opción de compra.
+
+**it-IT, Play and App Store** (498)
+Nuova scheda Statistiche accanto a Calendario e Classifica: marcatori, placcaggi, calciatori, disciplina e la tua stagione nei 22. Ogni risultato indica il migliore in campo. Il Centro medico ha un rapporto con i rischi di infortunio e un carico di allenamento consigliato. Cosa pensano i tifosi, e perché, nel Consiglio. Novità in ufficio: Dare sostegno. Ricerca per personalità e tratto. Vibrazione su iPhone, disattivabile. Meno prestiti con opzione di riscatto. Pulsanti iPhone non più coperti.
+
+**ja-JP, Play and App Store** (232)
+日程・順位表の隣に新しい「スタッツ」タブ。得点、タックル、キック、規律、今季の22m侵入を確認できる。全試合でプレイヤー・オブ・ザ・マッチを表示。メディカルセンターにけがのリスクと推奨練習強度を示すレポートを追加。取締役会で「サポーターの声」とその理由を確認。オフィスに新しい声かけ「寄り添う」。性格・特徴で選手を検索。iPhoneで振動に対応し、設定でオフにできる。買い取りオプション付きのローンは一部のみに。iPhoneで下部バーにボタンが隠れる不具合を修正。
+
+**af, Play and App Store** (469)
+Nuwe Statistiek-oortjie langs Wedstryde en Puntestand: drieë, laagvattes, doelskoppe, dissipline en jou seisoen in die 22. Elke uitslag noem die speler van die wedstryd. Die Mediese Sentrum het 'n fisioverslag met beseringsrisiko's en 'n voorgestelde oefenlading. Sien wat die ondersteuners dink, en hoekom, by Die Raad. Nuut in die kantoor: Gee 'n hupstoot. Soek volgens persoonlikheid en kenmerk. Vibrasie op iPhone, met 'n skakelaar. Minder lenings met 'n koopopsie.
+
 ### What's new (500 max) - v1.9.12, Play version code 74 (71, 72 and 73 were earlier builds of 1.9.12, not rolled out to production)
 
 **en-GB, Play and App Store** (496)

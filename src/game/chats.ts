@@ -99,6 +99,39 @@ export function warnPlayer(state: GameState, p: Player): string {
 }
 
 /**
+ * An arm round the shoulder (1.9.13, owner's round). Praise and a quiet word
+ * were the only two things a manager could say, and both are about FORM:
+ * praise a struggling man and a hothead hears sarcasm, warn him and he may
+ * slam the door. An arm round the shoulder is about the man, so it is the safe word
+ * for a bad run: it lifts him most when he is out of form, a hothead most of
+ * all (he expected a rollicking), and it does no harm to a man in form, who
+ * did not need it. A mercenary takes it and moves on. Deterministic, like the
+ * other two, and it costs one of the week's two conversations.
+ */
+export function armRoundPlayer(state: GameState, p: Player): string {
+  spend(state, p)
+  if (p.form >= 6.8) {
+    p.morale = clamp(p.morale + 0.2, 1, 10)
+    logDecision(state, 'dec.armRound', { player: p.name }, true)
+    return t('reply.chatArmNotNeeded')
+  }
+  logDecision(state, 'dec.armRound', { player: p.name }, true)
+  if (p.pers === 'Mercenary') {
+    p.morale = clamp(p.morale + 0.2, 1, 10)
+    return t('reply.chatArmShrug')
+  }
+  if (p.pers === 'Temperamental') {
+    p.morale = clamp(p.morale + 0.8, 1, 10)
+    p.form = clamp(p.form + 0.1, 1, 10)
+    return t('reply.chatArmTemper')
+  }
+  p.morale = clamp(p.morale + 0.6, 1, 10)
+  p.form = clamp(p.form + 0.1, 1, 10)
+  if (p.pers === 'Loyal' || p.pers === 'Leader') trust(state, 1)
+  return t('reply.chatArmLifted')
+}
+
+/**
  * ---- ANSWERING A TRANSFER REQUEST ----
  *
  * Owner: "when someone makes a transfer request the user should have the

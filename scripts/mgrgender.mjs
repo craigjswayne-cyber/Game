@@ -171,6 +171,24 @@ try {
   await page.waitForSelector('.bottom-nav', { timeout: 20000 })
   await page.waitForTimeout(300)
   ok(await page.locator('.pronoun-card').count() === 0, 'and stays gone after a reload')
+
+  // ---- 6. a second career is asked again, men's game included (1.9.13) ----
+  // Owner: "make sure the he/she shows for the mens manager too". The device
+  // has answered She above; a new men's career opens on that answer and still
+  // asks, because the manager belongs to the career, not the phone.
+  say('\n--- 6. every career asks, the men\'s game too')
+  await page.evaluate(() => window.rugbyStore.getState().start('bath', 'Second Career', undefined, undefined, 'm'))
+  await page.waitForTimeout(700)
+  await page.locator('.tut-close .btn').click({ timeout: 4000 }).catch(() => {})
+  await page.evaluate(() => window.rugbyStore.getState().home())
+  await page.waitForTimeout(300)
+  const second = await page.evaluate(() => ({ g: window.rugbyStore.getState().game.gender ?? 'm', mgr: window.rugbyStore.getState().game.mgrGender }))
+  ok(second.g === 'm' && second.mgr === 'w', `a new men's career opens on the device's last answer, She (${JSON.stringify(second)})`)
+  ok(await page.locator('.pronoun-card').count() === 1, 'and Home asks again in that career')
+  await page.locator('.pronoun-card .pronoun-btn').nth(0).click()
+  await page.waitForTimeout(300)
+  ok(await page.evaluate(() => window.rugbyStore.getState().game.mgrGender) === 'm', 'He answers it for this career')
+  ok(await page.locator('.pronoun-card').count() === 0, 'and the card goes')
 } catch (err) {
   say(`  FAIL  PROBE THREW: ${err.message.split('\n')[0]}`)
   fails++

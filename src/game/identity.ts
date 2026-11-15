@@ -52,6 +52,7 @@ import { isForward } from './bench'
 import { packTilt } from './philosophy'
 import { remember } from './memory'
 import { fileHeldNews, type HeldStory } from './heldnews'
+import { moveFans } from './fans'
 
 export type Axis = 'play' | 'pack' | 'recruit' | 'purse'
 export const AXES: Axis[] = ['play', 'pack', 'recruit', 'purse']
@@ -339,7 +340,7 @@ export function identitySigning(state: GameState, p: Player, fee: number) {
     .filter(x => x.id !== p.id && x.homegrown && x.pos === p.pos && x.stats.apps >= 3)
     .sort((a, b) => b.stats.apps - a.stats.apps)[0]
   if (!own) return
-  state.fanMood = clamp((state.fanMood ?? 60) - 3, 5, 98)
+  moveFans(state, -3, 'squad')
   own.morale = clamp(own.morale - 1, 1, 10)
   state.identity = { ...id, objAt: now }
   wire(state, 'identity.fansObject', { club: club.short, player: p.name, own: own.name }, 'gossip', p.id)
@@ -358,10 +359,10 @@ export function identitySeasonEnd(state: GameState) {
   if (ls.includes('academy')) {
     const regulars = sq.filter(p => p.homegrown && p.stats.apps >= 8).length
     if (regulars >= 3) {
-      state.fanMood = clamp((state.fanMood ?? 60) + 2, 5, 98)
+      moveFans(state, 2, 'squad')
       wire(state, 'identity.academyKept', { club: club.short, n: regulars }, 'gossip', undefined, true)
     } else if (regulars === 0) {
-      state.fanMood = clamp((state.fanMood ?? 60) - 2, 5, 98)
+      moveFans(state, -2, 'squad')
       club.boardConfidence = clamp(club.boardConfidence - 1, 0, 100)
       wire(state, 'identity.academyStalled', { club: club.short }, 'board', undefined, true)
     }

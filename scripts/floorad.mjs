@@ -87,9 +87,29 @@ try {
     ok(await page.locator('.ad-slot').count() === 1, `the ${tab} tab carries a banner at its foot`)
   }
   ok(await mounted('finance-foot'), 'mounted as finance-foot')
+
+  // the Fixtures screen's three tabs (owner, 1.9.13: "the bottom of the new
+  // Stats tab, the bottom of the League table, the bottom of the Fixtures list")
+  await page.evaluate(() => window.rugbyStore.getState().go('fixtures'))
+  await page.waitForTimeout(400)
+  for (const [tab, place] of [['Fixtures', 'fixtures-foot'], ['Table', 'table-foot'], ['Stats', 'stats-foot']]) {
+    await page.locator(`main.content .tab-bar button:has-text("${tab}")`).first().click()
+    await page.waitForTimeout(300)
+    ok(await page.locator('.ad-slot').count() === 1, `the ${tab} tab carries one banner`)
+    ok(await mounted(place), `mounted as ${place}`)
+    const last = await page.evaluate(() => {
+      const main = document.querySelector('main.content')
+      const slot = main?.querySelector('.ad-slot')
+      if (!main || !slot) return false
+      // nothing but the spacer below it: the banner is the floor, not between rows
+      const after = [...main.querySelectorAll('button, table, .card')].filter(el => slot.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)
+      return after.length === 0
+    })
+    ok(last, `and it sits below everything on the ${tab} tab`)
+  }
 } catch (e) {
   ok(false, `walk broke: ${String(e.message ?? e).split('\n')[0]}`)
 }
 await browser.close()
 await server.stop?.()
-done('FLOOR AD PROBE', 'the news, press and finance floors carry a banner, never beside a question', { exit: true, blank: false })
+done('FLOOR AD PROBE', 'the news, press, finance and fixtures floors carry a banner, never beside a question', { exit: true, blank: false })

@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { useStore } from '../../store'
 import { leaguePos, parseResultsParam, sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
 import { CrestT, SectionTitle } from '../components'
 import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
+import { rowNavTr } from '../rowNav'
 
 /** The full-time round-up: everyone else's scores and the table as it
  *  stands, shown straight after your own final whistle. */
@@ -37,8 +38,12 @@ export default function WeekResults({ param }: { param: string }) {
       <div className="tblwrap"><table className="dtable"><tbody>
         {results.map(f => {
           const mine = f.homeId === game.userClubId || f.awayId === game.userClubId
+          // EVERY MATCH'S PLAYER OF THE MATCH (1.9.13, owner: "not sure how to
+          // see other game motm"): under the score, a tap to the player's page
+          const star = f.motm != null ? game.players[f.motm] : null
           return (
-            <tr key={f.id} className={mine ? 'me' : ''}>
+            <Fragment key={f.id}>
+            <tr className={mine ? 'me' : ''}>
               <td className="name" style={{ textAlign: 'right' }}>
                 {teamShort(game, f.homeId)} <CrestT g={game} teamId={f.homeId} size={15} />
               </td>
@@ -55,6 +60,12 @@ export default function WeekResults({ param }: { param: string }) {
                 <CrestT g={game} teamId={f.awayId} size={15} /> {teamShort(game, f.awayId)}
               </td>
             </tr>
+            {star && (
+              <tr className="rs-motm" {...rowNavTr(() => go('player', star.id))}>
+                <td colSpan={5} className="meta muted">★ {t('news.resMotm', { player: star.name })}</td>
+              </tr>
+            )}
+            </Fragment>
           )
         })}
         {results.length === 0 && <tr><td className="muted" style={{ padding: 14 }}>{t('week.wrNoOthers')}</td></tr>}

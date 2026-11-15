@@ -10,7 +10,7 @@ export const ATTR_KEYS = [
 ] as const
 
 export const emptyStats = (): SeasonStats => ({
-  apps: 0, starts: 0, tries: 0, points: 0, cons: 0, pens: 0, conA: 0, penA: 0, tkl: 0, drops: 0,
+  apps: 0, starts: 0, tries: 0, points: 0, cons: 0, pens: 0, conA: 0, penA: 0, tkl: 0, tklM: 0, drops: 0,
   yc: 0, rc: 0, ratingSum: 0, motm: 0, mins: 0, mSum: 0, mApps: 0,
 })
 
@@ -26,6 +26,14 @@ export function kickRecord(s: SeasonStats): { con: KickLine | null; pen: KickLin
   const cm = Math.max(0, s.cons - (s.con0 ?? 0)), ca = s.conA ?? 0
   const pm = Math.max(0, s.pens - (s.pen0 ?? 0)), pa = s.penA ?? 0
   return { con: line(cm, ca), pen: line(pm, pa), all: line(cm + pm, ca + pa) }
+}
+
+/** Tackle success this season: made over made-and-missed, from the tackles
+ *  counted on both sides (1.9.13). null with nothing counted yet. */
+export function tackleRecord(s: SeasonStats): KickLine | null {
+  const made = Math.max(0, (s.tkl ?? 0) - (s.tkl0 ?? 0))
+  const att = made + (s.tklM ?? 0)
+  return s.tklM == null || att === 0 ? null : { made, att, pct: Math.round(made / att * 100) }
 }
 
 /** 1,300+ minutes (about sixteen full eighty-minute games) is the red zone:

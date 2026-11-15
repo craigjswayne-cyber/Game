@@ -16,6 +16,7 @@ import { clamp, pick, type Rng, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
 import { clubGamesPlayed, competitiveMatchIn } from './handshake'
 import { OFFICE_OUTLET, isBoardroom, askedRecently, rememberAsk } from './office'
+import { moveFans } from './fans'
 
 // The office outlet and its ask memory live in office.ts (a leaf) so the
 // office's conversation modules need not import media back.
@@ -1327,7 +1328,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
         k: 'news.campHeat', v,
       })
     } else if (opt.camp === 'home') {
-      state.fanMood = clamp((state.fanMood ?? 60) + 6, 10, 95)
+      moveFans(state, 6, 'club', 10, 95)
       for (const p of squad) p.morale = clamp(p.morale + 0.2, 1, 10)
       logDecision(state, 'dec.campHome', undefined, true)
       state.news.push({
@@ -1339,7 +1340,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     } else {
       const banked = opt.campMoney ?? tourFee(c.budget)
       c.balance += banked
-      state.fanMood = clamp((state.fanMood ?? 60) - 3, 10, 95)
+      moveFans(state, -3, 'club', 10, 95)
       for (const p of squad) p.cond = clamp(p.cond - 8, 20, 100)
       const v = { fee: fmtMoney(banked) }
       logDecision(state, 'dec.campTour', v, false)
@@ -1388,7 +1389,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   const club = state.clubs[state.userClubId]
   club.boardConfidence = clamp(club.boardConfidence + opt.board * 5, 0, 100)
   // the terraces were listening too (v1.2.2)
-  if (opt.fans) state.fanMood = clamp((state.fanMood ?? 60) + opt.fans * 5, 5, 98)
+  if (opt.fans) moveFans(state, opt.fans * 5, 'manager')
   // "he starts" - so he starts. The weakest man in his position makes way;
   // if nobody in the XV plays there, the last bench slot does.
   if (opt.lock && item.playerId != null) {

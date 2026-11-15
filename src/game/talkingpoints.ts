@@ -29,6 +29,7 @@ import type { GameState } from './model'
 import { clamp, mulberry32 } from './rng'
 import { fmtMoney } from './model'
 import { tIn } from './i18n'
+import { moveFans } from './fans'
 
 type PointId = 'awaykit' | 'advert' | 'tickets' | 'breakaway' | 'breakawayEnd' | 'leak'
 
@@ -121,7 +122,7 @@ export function talkingPoints(state: GameState): void {
       // where the money actually matters.
       const cost = club.rep >= 55 ? clamp(Math.round((club.rep - 40) / 6), 2, 9) : 0
       club.boardConfidence = clamp(club.boardConfidence - cost, 0, 100)
-      state.fanMood = clamp((state.fanMood ?? 60) - 3, 5, 98)
+      moveFans(state, -3, 'club')
       push(state, 'tickets', 'point.tickets', {
         club: club.name, pct: Math.round(fill * 100), stadium: club.stadium,
       }, 'board')
@@ -135,7 +136,7 @@ export function talkingPoints(state: GameState): void {
   if (!already(state, 'advert') && w === weekFor(state, 'advert', 8, 30)) {
     const fee = Math.round(40_000 + club.rep * 1_800)
     club.balance += fee
-    state.fanMood = clamp((state.fanMood ?? 60) - 4, 5, 98)
+    moveFans(state, -4, 'club')
     push(state, 'advert', 'point.advert', { club: club.name, fee: fmtMoney(fee) })
     return
   }
@@ -146,7 +147,7 @@ export function talkingPoints(state: GameState): void {
   if (!already(state, 'awaykit') && w >= 1 && w <= 3) {
     const fee = Math.round(18_000 + club.rep * 900)
     club.balance += fee
-    state.fanMood = clamp((state.fanMood ?? 60) - 2, 5, 98)
+    moveFans(state, -2, 'club')
     push(state, 'awaykit', 'point.awaykit', { club: club.name, fee: fmtMoney(fee) })
     return
   }

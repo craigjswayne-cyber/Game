@@ -13,6 +13,8 @@ import { rememberDebut } from '../memory'
 import { buildEvidence } from '../evidence'
 import { availablePlayers, teamShort } from './selection'
 import { minutesPlayed } from './field'
+import { visitsTo22 } from './stats'
+import { noteTryRun } from '../alerts'
 import type { SideCtx } from './side'
 import type { SimResult } from './lines'
 import { type LiveCtx, pushLine, userDials } from './live'
@@ -261,6 +263,13 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         // the tackles the engine counted for him (field.ts), onto his season
         // (1.9.12). Read from a map the match already holds: no draw.
         p.stats.tkl = (p.stats.tkl ?? 0) + (side.tackles?.get(pid) ?? 0)
+        // his run of games without a try, for the drought alert (1.9.13, alerts.ts)
+        if (p.clubId === state.userClubId) noteTryRun(p)
+        // a loanee's games for the club borrowing him: what a loan with no
+        // option to buy is earned on (1.9.13, loans.ts)
+        if (p.loanFrom && p.clubId === state.userClubId) p.loanApps = (p.loanApps ?? 0) + 1
+        // and the ones he missed, for the tackle success rate (1.9.13)
+        p.stats.tklM = (p.stats.tklM ?? 0) + (side.missed?.get(pid) ?? 0)
         // and the same rating against the award window, which is cleared every
         // time a Player of the Month is named (see SeasonStats.mSum)
         p.stats.mSum = (p.stats.mSum ?? 0) + r
@@ -317,12 +326,14 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   // another club showed no awards at all (owner's stats scan, 10 Nov 2026).
   // The count is read by the screens and by nothing in the engine, and the
   // man is the one this loop already chose: no draw, no change to any result.
-  // The fixture keeps its name only for the manager's matches, as before.
+  // The fixture keeps the name too (1.9.13, owner: "not sure how to see other
+  // game motm"): it was kept only for the manager's own matches, so the count
+  // on a player's page had no match to point at. One number per fixture.
   const clubMatch = fx.compId !== 'fr' && !!state.clubs[home.teamId] && !!state.clubs[away.teamId]
   if (motmId != null && (isUser || clubMatch)) {
     const p = state.players[motmId]
     if (p) p.stats.motm += 1
-    if (isUser) fx.motm = motmId
+    fx.motm = motmId
   }
   ctx.motmId = motmId
 
@@ -360,6 +371,19 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   // PLAYOFF RECORDS (1.8.16, item 47): a hat-trick in a knockout tie, and
   // the fastest knockout try anybody has scored, are news wherever they come
   koRecords(state, ctx)
+
+  // THE SEASON IN THE 22 (1.9.13, owner's round): rugby's
+  // version is visits to the opposition 22 and the points each one brings.
+  // The match panels have shown it since 1.8.0; this keeps the manager's own
+  // season of it for the Stats tab. Read from the lines the match already
+  // holds (visitsTo22): no draw. A competitive club match only.
+  if (isUser && fx.compId !== 'fr' && ctx.events.length) {
+    const usHome = ctx.userSideId === fx.homeId
+    const us = visitsTo22(ctx.events, fx.homeId, usHome)
+    const them = visitsTo22(ctx.events, fx.homeId, !usHome)
+    const r = state.in22?.season === state.season ? state.in22 : { season: state.season, v: 0, p: 0, ov: 0, op: 0, m: 0 }
+    state.in22 = { season: state.season, v: r.v + us.visits, p: r.p + us.pts, ov: r.ov + them.visits, op: r.op + them.pts, m: r.m + 1 }
+  }
 
   // the morning paper: a proper match report for every game you took charge of
   if (detail && isUser) {

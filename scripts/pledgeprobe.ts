@@ -63,13 +63,21 @@ for (const w of [45, 46, 47, 48]) ok(pledgeDue(w, 6) > w, `made in week ${w}, du
   // ledger rightly voids a promise to anyone leaving
   const p = Object.values(g.players).find(x => x.clubId === g.userClubId && x.contractEnds > g.season + 1 &&
     !(g.preContracts ?? []).some(pc => pc.playerId === x.id) && !x.retiring)!
+  // THE SAME WEEK WITHOUT THE PROMISE, for comparison (1.9.13). Morale moves
+  // every week on its own (form, minutes, the room), and a fixed half-point
+  // allowance read that drift as a penalty the day the world dealt a man
+  // whose morale was high enough to drift more than that. The promise's own
+  // effect is the gap between the two weeks, and a broken one costs 1.5.
+  const control = structuredClone(g)
   g.pledges = [{ playerId: p.id, kind: 'plans', week: g.week, season: g.season, due: pledgeDue(g.week, 6), baseApps: p.stats.apps }]
   const morale = p.morale
+  settle(control)
   settle(g)
+  const without = control.players[p.id].morale
   const broken = g.news.some(n => n.k === 'news.brokePlans' && n.playerId === p.id)
   ok(!broken, 'the next settle does not call it broken')
   ok((g.pledges ?? []).some(pl => pl.playerId === p.id), 'and the promise is still on the books')
-  ok(p.morale >= morale - 0.5, `nor has his morale been docked for it (${morale.toFixed(2)} to ${p.morale.toFixed(2)})`)
+  ok(p.morale >= without - 0.01, `nor has his morale been docked for it (${morale.toFixed(2)} to ${p.morale.toFixed(2)}; ${without.toFixed(2)} the same week with no promise)`)
   guard = 0
   while (g.season === startSeason && guard++ < 10) settle(g)
   ok(g.season === startSeason + 1, `the season turns (season ${g.season}, week ${g.week})`)

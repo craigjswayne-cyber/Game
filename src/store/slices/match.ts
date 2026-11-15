@@ -19,6 +19,9 @@ import { fileEvidence } from '../../game/evidence'
 import { noteUse } from '../../game/usage'
 import type { GetState, SetState, Store } from '../types'
 
+/** Where in which match the last in-match tactics change was counted (usage.ts). */
+let lastLiveTactics = ''
+
 export const matchSlice = (set: SetState, get: GetState) => ({
   liveMatch: null,
   matchRec: null,
@@ -555,7 +558,12 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     // still holds whatever they were before he moved them
     const t = game.clubs[game.userClubId].tactic
     get().noteCmd({ kind: 'dials', style: t.style, tempo: t.tempo, kicking: t.kicking, aggression: t.aggression })
-    noteUse('liveTactics')
+    // ONE CHANGE A STOPPAGE, NOT ONE A SLIDER STEP (1.9.13). A drag fires
+    // onChange for every step it crosses, so the feedback report counted 1,025
+    // "tactics changes" in 25 matches (41 a match). The dials still apply on
+    // every step; the count is one per pause in play the manager used.
+    const at = `${liveMatch.fixture.id}:${liveMatch.cursor}`
+    if (at !== lastLiveTactics) { lastLiveTactics = at; noteUse('liveTactics') }
     applyTacticsChange(game, liveMatch.ctx)
     set(s => ({ tick: s.tick + 1 }))
   },

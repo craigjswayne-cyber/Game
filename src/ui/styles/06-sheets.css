@@ -371,3 +371,7 @@
    Telemetry). The veil is clear on this panel because the score is part of
    the reading: a bar of 40 means one thing at 12-10 and another at 30-3. */
 .modal-veil.mp-clear { background: transparent; backdrop-filter: none; }
+
+/* the physio's report on Medical (1.9.13, game/physio.ts) */
+.physio-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; padding: 6px 0; border-top: 1px solid var(--border); cursor: pointer; }
+.physio-row .meta { flex-basis: 100%; }

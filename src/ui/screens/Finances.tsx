@@ -33,6 +33,7 @@ import { OptionLabel } from '../OptionLabel'
 import { isBoardroom } from '../../game/media'
 import { INJECT_TIERS, injectionsLeft, userWageBudget, type InjectTier } from '../../game/grants'
 import { acc, accLine } from '../accent'
+import { FAN_CAUSES } from '../../game/fans'
 
 export default function Finances() {
   // two pages rather than one long scroll
@@ -668,6 +669,7 @@ export default function Finances() {
       })()}
       {ftab === 'board' && <>
       <BoardDecisions />
+      <FanSentiment />
       {/* asking the board for transfer funds is a boardroom matter, and it
           lived on the money tab, which was the deepest page in the game
           (scrollaudit, 3.3 screenfuls); the ask and the town collection sit
@@ -1031,5 +1033,38 @@ function BoardDecisions() {
         </div>
       )}
     </>
+  )
+}
+
+/**
+ * WHAT THE FANS THINK, AND WHY (1.9.13, game/fans.ts; owner's
+ * round). Fan mood, and what moved it this season by
+ * cause: results, the squad, club decisions and the manager. The four are the
+ * moves themselves, booked as they happened, so they add up to the season's
+ * change rather than estimating it.
+ */
+function FanSentiment() {
+  const game = useStore(s => s.game)!
+  const m = game.fanMood ?? 60
+  const word = t(m >= 80 ? 'club.fanBouncing' : m >= 62 ? 'club.fanBehind' : m >= 45 ? 'club.fanWatching' : m >= 30 ? 'club.fanRestless' : 'club.fanMutinous')
+  const w = game.fanWhy?.season === game.season ? game.fanWhy : null
+  const rows = FAN_CAUSES.map(c => ({ c, v: w ? w[c] : 0 }))
+  const sign = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(Math.round(v))}`
+  return (
+    <div className="card fan-sentiment" data-testid="fan-sentiment">
+      <div className="fact-label">{t('finances.fansTitle')}</div>
+      <div className="meta" style={{ margin: '2px 0 8px' }}>
+        <b style={{ color: m >= 62 ? 'var(--text-positive)' : m <= 30 ? 'var(--text-negative)' : undefined }}>{word}</b>
+        {' · '}{t('finances.fansSub')}
+      </div>
+      {rows.every(r => Math.round(r.v) === 0)
+        ? <div className="meta muted">{t('finances.fansNone')}</div>
+        : rows.map(r => (
+          <div key={r.c} className="ledger-row">
+            <span className="lg-what">{t(`finances.fan_${r.c}`)}</span>
+            <span className="lg-amt" style={{ color: r.v >= 1 ? 'var(--text-positive)' : r.v <= -1 ? 'var(--text-negative)' : 'var(--text-muted)' }}>{sign(r.v)}</span>
+          </div>
+        ))}
+    </div>
   )
 }

@@ -15,6 +15,7 @@ import { chairSwing, demandedFinish } from '../chairman'
 import { t, tIn } from '../i18n'
 import { runSpotlight } from './training'
 import { mgrMilestones } from './news'
+import { setFans } from '../fans'
 
 /** The manager is back at a door the board just closed (v1.1.4, owner's
  *  brief: "if they ask again after being denied - warning, respect halved;
@@ -547,15 +548,16 @@ export function boardReaction(state: GameState, fx: Fixture, delegated = false) 
   const big = state.clubs[state.userClubId].rep >= 80
   let mood = before + (us > them ? 4 * heat : us < them ? -(5 * heat + (isHome ? 1.5 : 0)) : big ? -2 : -1)
   mood += (55 - mood) * 0.03 // everything fades toward "fine"
-  state.fanMood = clamp(mood, 5, 98)
-  if (before < 80 && state.fanMood >= 80) {
+  setFans(state, mood, 'results')
+  const after = state.fanMood ?? 60
+  if (before < 80 && after >= 80) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `The terraces are in full voice`,
       body: `The songs have new verses and away allocations are selling out. The supporters believe in this team - and ${state.clubs[state.userClubId].stadium} is becoming a genuinely hard place to visit.`,
       k: 'news.fansUp', v: { stadium: state.clubs[state.userClubId].stadium },
     })
-  } else if (before > 30 && state.fanMood <= 30) {
+  } else if (before > 30 && after <= 30) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `Boos at full-time`,

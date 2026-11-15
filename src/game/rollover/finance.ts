@@ -13,6 +13,7 @@ import { demandCeiling, FACILITY_INFO, facilityCost, fmtMoney, GROUND_TIERS, gro
 import { clamp, type Rng } from '../rng'
 import { sortTable } from '../schedule'
 import { ordinal } from './format'
+import { moveFans } from '../fans'
 
 /**
  * A board does not sit on cash. Over the summer, anything well beyond a
@@ -60,7 +61,7 @@ export function boardReinvests(state: GameState) {
       built = tIn('en', 'news.reinvestBuilt', { name_k: FACILITY_INFO[weakest].name, lvl: lvl + 1 })
     }
   }
-  state.fanMood = clamp((state.fanMood ?? 60) + 2, 0, 100)
+  moveFans(state, 2, 'club', 0, 100)
   state.news.push({
     id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
     subject: `The board reinvests ${fmtMoney(spend)}`,

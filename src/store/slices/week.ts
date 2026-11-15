@@ -4,6 +4,7 @@ import { deskBlock, deskGates, inInbox, markRead, matchDayIndex, nextStep, press
 import { postWindowNotes } from '../../game/window'
 import { natSquadHold } from '../../game/country'
 import type { GetState, SetState, Store } from '../types'
+import { noteScreen } from '../../game/bugreport'
 
 /**
  * How close together two Continue taps have to be before the second is treated as
@@ -93,13 +94,18 @@ export const weekSlice = (set: SetState, get: GetState) => ({
       }))
       return
     }
+    // EVERY SCREEN CONTINUE OPENS IS COUNTED (1.9.13). These pushes went round
+    // the store's go(), which is where a visit is noted for the feedback report
+    // (bugreport.noteScreen), so two reports read Offers as never opened by
+    // managers who had answered twenty bids a season on it, and undercounted
+    // the press room, the board, the country desk and match day the same way.
     // A bid for one of your players cannot be ignored (feedback 10E). Offers used
     // to sit in a tab and lapse in silence after two weeks, so the biggest
     // decision of a season could be answered for you by a timeout. The week stops
     // here until the desk is clear.
     if (!g.unemployed && g.offers.some(o => o.status === 'pending' && o.forUser)) {
       set(s => ({
-        nav: s.nav[s.nav.length - 1]?.screen === 'offers' ? s.nav : [...s.nav, { screen: 'offers' as const }],
+        nav: s.nav[s.nav.length - 1]?.screen === 'offers' ? s.nav : (noteScreen('offers'), [...s.nav, { screen: 'offers' as const }]),
         tick: s.tick + 1,
       }))
       return
@@ -154,7 +160,7 @@ export const weekSlice = (set: SetState, get: GetState) => ({
         const where = press.kind === 'board' ? 'finances' as const : 'press' as const
         const onIt = get().nav[get().nav.length - 1]?.screen === where
         if (!onIt) {
-          set(s => ({ nav: [...s.nav, { screen: where }], tick: s.tick + 1 }))
+          set(s => { noteScreen(where); return { nav: [...s.nav, { screen: where }], tick: s.tick + 1 } })
         }
         return
       }
@@ -173,7 +179,7 @@ export const weekSlice = (set: SetState, get: GetState) => ({
       if (sq) {
         const onDesk = get().nav[get().nav.length - 1]?.screen === 'country'
         if (!onDesk) {
-          set(s => ({ nav: [...s.nav, { screen: 'country' as const }], tick: s.tick + 1 }))
+          set(s => { noteScreen('country'); return { nav: [...s.nav, { screen: 'country' as const }], tick: s.tick + 1 } })
         }
         return
       }
@@ -218,7 +224,7 @@ export const weekSlice = (set: SetState, get: GetState) => ({
           const press = pressBlock(g)
           if (press) {
             const where = press.kind === 'board' ? 'finances' as const : 'press' as const
-            set(s => ({ nav: [...s.nav, { screen: where }], tick: s.tick + 1 }))
+            set(s => { noteScreen(where); return { nav: [...s.nav, { screen: where }], tick: s.tick + 1 } })
             return
           }
         } else if (unread.length) {
@@ -237,7 +243,7 @@ export const weekSlice = (set: SetState, get: GetState) => ({
       // reads Friday for a Friday night game
       const md = matchDayIndex(g)
       if (md != null) g.day = md
-      set(s => ({ nav: [...s.nav, { screen: 'matchday' }], tick: s.tick + 1 }))
+      set(s => { noteScreen('matchday'); return { nav: [...s.nav, { screen: 'matchday' }], tick: s.tick + 1 } })
       // the day moved, so a reload should come back to the match day rather
       // than the day before it
       void get().persist()

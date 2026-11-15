@@ -105,3 +105,6 @@
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
+
+/* the Player of the Match under each result (1.9.13, WeekResults) */
+.rs-motm td { text-align: center; font-size: 0.75rem; padding-top: 0; padding-bottom: 6px; cursor: pointer; }
