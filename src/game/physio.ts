@@ -7,7 +7,7 @@ import { readLevel } from './temperament'
 /**
  * ---- THE PHYSIO'S REPORT (1.9.13) ----
  *
- * Owner, from FM27 Mobile's "dedicated physio report": injury risk for each
+ * Owner's round: injury risk for each
  * player, and a training-intensity recommendation. The Medical screen already
  * listed the tired, the rusty and the men past 1,300 minutes; what it did not
  * do was say how much each of those things adds up to, or what to do about it

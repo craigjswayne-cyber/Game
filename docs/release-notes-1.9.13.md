@@ -51,10 +51,10 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   ad unit until their own units are created in AdMob
   (`packaging/shell/ads.json`).
 
-**Ideas from Football Manager 2027 Mobile** (owner, 15 Nov 2026: "we do 1-7")
+**The owner's feature round** (15 Nov 2026: "we do 1-7")
 
-- **Encourage.** A third thing to say when you call a player in, beside
-  Praise and A quiet word. It is the safe word for a bad run: it lifts a
+- **Arm round the shoulder.** A third thing to say when you call a player in,
+  beside Praise and A quiet word. It is the safe word for a bad run: it lifts a
   player out of form (a struggling hothead most of all, who expected a
   rollicking), does no harm to one in form, and a mercenary shrugs it off.
   It uses one of the week's two conversations, like the others.
@@ -99,9 +99,9 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   sheets sit at the app root, not inside the scrolling screen, their
   buttons are what a tap lands on, and Escape still closes them. It fails
   on 1.9.12 and passes on 1.9.13.
-- New for the FM27 round: `tests/encourage.test.ts`, `tests/haptics.test.ts`,
+- New for the feature round: `tests/armround.test.ts`, `tests/haptics.test.ts`,
   `tests/physio.test.ts`, `tests/fans.test.ts`, `tests/alerts.test.ts`, and
-  `scripts/ui1913.mjs` checks Encourage (and the office row at 320px), the
+  `scripts/ui1913.mjs` checks Arm round the shoulder (and the office row at 320px), the
   character filters, the 22 card, the physio report and the fans card.
 - New: `tests/jobbadge.test.ts`, `tests/leaders.test.ts`,
   `tests/loanoption.test.ts`; `scripts/ui1913.mjs` (browser: loanee buttons,

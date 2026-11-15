@@ -72,8 +72,8 @@ function vibrate(pattern: number | number[], feel?: Feel) {
   try {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
   } catch { /* no matchMedia: fall through and buzz */ }
-  // THE PHONE'S OWN HAPTICS FIRST (1.9.13, owner, from FM27 Mobile's native
-  // haptic feedback). iOS has no navigator.vibrate at all, so an iPhone felt
+  // THE PHONE'S OWN HAPTICS FIRST (1.9.13, owner's round:
+  // native haptic feedback). iOS has no navigator.vibrate at all, so an iPhone felt
   // nothing: no try, no card, no full time. The shells now carry Capacitor's
   // Haptics plugin, which plays the Taptic Engine on an iPhone and the motor
   // on Android. The browser's buzz stays the fallback for the website and for

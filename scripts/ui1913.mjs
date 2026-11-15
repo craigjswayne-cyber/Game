@@ -106,8 +106,8 @@ try {
   ok(/No option to buy in this loan/.test(pg), 'his loan card says the deal has no option to buy')
   ok(/Games for you: 2\/8/.test(pg), 'and counts his games towards earning one')
 
-  // ---- the FM27 round ----
-  // 1. Encourage, beside praise and a quiet word, on one row at 320px too
+  // ---- the owner's feature round ----
+  // 1. Arm round the shoulder, beside praise and a quiet word, inside 320px
   const own = await game(() => {
     const g = window.rugbyStore.getState().game
     const p = g.clubs[g.userClubId].players.map(id => g.players[id]).find(q => q && !q.acad && !q.loanFrom)
@@ -116,19 +116,19 @@ try {
   })
   await go('player', own)
   await page.waitForTimeout(400)
-  ok(await page.locator('main.content button:has-text("Encourage")').count() === 1, 'the office offers Encourage')
+  ok(await page.locator('main.content button:has-text("Arm round the shoulder")').count() === 1, 'the office offers an arm round the shoulder')
   await page.setViewportSize({ width: 320, height: 640 })
   await page.waitForTimeout(300)
   const row = await page.evaluate(() => {
-    const bs = [...document.querySelectorAll('main.content button')].filter(b => /Praise|A quiet word|Encourage/.test(b.textContent))
+    const bs = [...document.querySelectorAll('main.content button')].filter(b => /Praise|A quiet word|Arm round the shoulder/.test(b.textContent))
     const r = bs.map(b => b.getBoundingClientRect())
     return { n: r.length, oneRow: r.every(x => Math.abs(x.top - r[0].top) < 2), inside: r.every(x => x.right <= window.innerWidth + 0.5) }
   })
   ok(row.n === 3 && row.inside, `the three office buttons fit a 320px screen (${JSON.stringify(row)})`)
   await page.setViewportSize({ width: 390, height: 746 })
-  await page.locator('main.content button:has-text("Encourage")').click()
+  await page.locator('main.content button:has-text("Arm round the shoulder")').click()
   await page.waitForTimeout(300)
-  ok(await game(() => window.rugbyStore.getState().game.chatsUsed) === 1, 'Encourage uses one of the week\'s conversations')
+  ok(await game(() => window.rugbyStore.getState().game.chatsUsed) === 1, 'an arm round the shoulder uses one of the week\'s conversations')
 
   // 2. personality and trait filters
   await go('transfers')
@@ -187,5 +187,5 @@ if (errors.length) {
 }
 
 if (fails) { console.error(`\nUI 1.9.13 PROBE: ${fails} failures`); process.exit(1) }
-console.log('\nUI 1.9.13 PROBE PASSED: the owner\'s round and the FM27 round work on screen')
+console.log('\nUI 1.9.13 PROBE PASSED: both owner\'s rounds work on screen')
 done(0)

@@ -89,8 +89,8 @@ export default function Transfers() {
   // page prints: fineAttr of the scouts' midpoint, out of 100.
   const [attrKeys, setAttrKeys] = useVisitState<(keyof Attrs)[]>('attrKeys', [])
   const [attrMin, setAttrMin] = useVisitState('attrMin', 60)
-  // WHO HE IS AND HOW HE PLAYS (1.9.13, owner, from FM27 Mobile's scouting
-  // filters). Matched only where the scouts KNOW it: a personality needs the
+  // WHO HE IS AND HOW HE PLAYS (1.9.13, owner's round:
+  // character filters). Matched only where the scouts KNOW it: a personality needs the
   // full file (persKnown), a trait a detailed report (reportStage 2), as on
   // his page. A filter that read the hidden truth would be a free scout.
   const [persF, setPersF] = useVisitState<string>('persF', 'ALL')

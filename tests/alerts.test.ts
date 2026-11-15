@@ -1,4 +1,4 @@
-// The dressing room in the inbox (owner, 1.9.13, from FM27 Mobile): alerts.ts.
+// The dressing room in the inbox (owner, 1.9.13): alerts.ts.
 import { describe, expect, it } from 'vitest'
 import { newGame } from '../src/game/newgame'
 import { DROUGHT_GAMES, dressingRoomAlerts, noteTryRun } from '../src/game/alerts'

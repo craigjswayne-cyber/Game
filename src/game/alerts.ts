@@ -5,10 +5,10 @@ import { tIn } from './i18n'
 /**
  * ---- THE DRESSING ROOM, IN THE INBOX (1.9.13) ----
  *
- * Owner, from FM27 Mobile's dynamics alerts ("surfaces morale shifts ...
- * and goal droughts"). A player's morale and form already moved every week
+ * Owner's round: alerts for morale shifts and
+ * try droughts. A player's morale and form already moved every week
  * and the office could answer them (chats.ts: praise, a quiet word, and now
- * encouragement), but nothing told the manager it was time to. Three alerts,
+ * an arm round the shoulder), but nothing told the manager it was time to. Three alerts,
  * each once per spell rather than every week the spell lasts, each opening
  * the player:
  *

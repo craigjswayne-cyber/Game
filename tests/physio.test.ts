@@ -1,4 +1,4 @@
-// The physio's report (owner, 1.9.13, from FM27 Mobile): game/physio.ts.
+// The physio's report (owner, 1.9.13): game/physio.ts.
 import { describe, expect, it } from 'vitest'
 import { newGame } from '../src/game/newgame'
 import { injuryRisk, physioReport } from '../src/game/physio'

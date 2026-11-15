@@ -1,7 +1,7 @@
-// Encourage (owner, 1.9.13, from FM27 Mobile): the safe word for a bad run.
+// An arm round the shoulder (owner, 1.9.13): the safe word for a bad run.
 import { describe, expect, it } from 'vitest'
 import { newGame } from '../src/game/newgame'
-import { chatBudget, encouragePlayer, praisePlayer } from '../src/game/chats'
+import { chatBudget, armRoundPlayer, praisePlayer } from '../src/game/chats'
 import type { Player } from '../src/game/model'
 
 function setup(pers: Player['pers'], form: number) {
@@ -13,10 +13,10 @@ function setup(pers: Player['pers'], form: number) {
   return { g, p }
 }
 
-describe('encouraging a player', () => {
+describe('an arm round the shoulder', () => {
   it('lifts a man out of form, and costs one of the week\'s two chats', () => {
     const { g, p } = setup('Professional', 5.5)
-    encouragePlayer(g, p)
+    armRoundPlayer(g, p)
     expect(p.morale).toBeCloseTo(5.6)
     expect(chatBudget(g)).toBe(1)
   })
@@ -25,15 +25,15 @@ describe('encouraging a player', () => {
     praisePlayer(a.g, a.p)
     expect(a.p.morale).toBeLessThan(5)
     const b = setup('Temperamental', 5.5)
-    encouragePlayer(b.g, b.p)
+    armRoundPlayer(b.g, b.p)
     expect(b.p.morale).toBeCloseTo(5.8)
   })
   it('does a man in form no harm, and a mercenary little good', () => {
     const a = setup('Ambitious', 7.5)
-    encouragePlayer(a.g, a.p)
+    armRoundPlayer(a.g, a.p)
     expect(a.p.morale).toBeCloseTo(5.2)
     const b = setup('Mercenary', 5.5)
-    encouragePlayer(b.g, b.p)
+    armRoundPlayer(b.g, b.p)
     expect(b.p.morale).toBeCloseTo(5.2)
   })
 })

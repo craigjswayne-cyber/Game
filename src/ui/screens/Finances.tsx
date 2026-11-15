@@ -1037,8 +1037,8 @@ function BoardDecisions() {
 }
 
 /**
- * WHAT THE FANS THINK, AND WHY (1.9.13, game/fans.ts; owner, from FM27
- * Mobile's Supporters Trust tab). Fan mood, and what moved it this season by
+ * WHAT THE FANS THINK, AND WHY (1.9.13, game/fans.ts; owner's
+ * round). Fan mood, and what moved it this season by
  * cause: results, the squad, club decisions and the manager. The four are the
  * moves themselves, booked as they happened, so they add up to the season's
  * change rather than estimating it.

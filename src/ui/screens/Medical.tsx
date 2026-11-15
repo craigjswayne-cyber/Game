@@ -312,7 +312,7 @@ export default function Medical() {
 }
 
 /**
- * THE PHYSIO'S REPORT (1.9.13, game/physio.ts, owner from FM27 Mobile): who
+ * THE PHYSIO'S REPORT (1.9.13, game/physio.ts, owner's round): who
  * is closest to breaking down and why, and the training load the physio
  * would set this week, with the button to set it. Hidden while every senior
  * is fine, so a quiet room stays quiet.

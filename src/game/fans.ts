@@ -4,7 +4,7 @@ import { clamp } from './rng'
 /**
  * ---- WHAT THE FANS THINK, AND WHY (1.9.13) ----
  *
- * Owner, from FM27 Mobile's Supporters Trust tab: fan approval broken down
+ * Owner's round: fan approval broken down
  * across form, transfers, stability and the manager. PHASE had one number,
  * fan mood, moved from sixteen places (results, the summer review, star
  * signings and sales, ticket and sponsor decisions, the press). Every one of

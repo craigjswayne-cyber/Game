@@ -1,4 +1,4 @@
-// What the fans think, and why (owner, 1.9.13, from FM27 Mobile): fans.ts.
+// What the fans think, and why (owner, 1.9.13): fans.ts.
 import { describe, expect, it } from 'vitest'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'

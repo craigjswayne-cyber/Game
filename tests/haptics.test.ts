@@ -1,4 +1,4 @@
-// Haptics on the phone's own engine (owner, 1.9.13, from FM27 Mobile). iOS has
+// Haptics on the phone's own engine (owner, 1.9.13). iOS has
 // no navigator.vibrate, so an iPhone felt nothing; the shells now carry
 // Capacitor's Haptics plugin and audio.ts plays it when it is there.
 import { afterEach, describe, expect, it, vi } from 'vitest'

@@ -372,7 +372,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   // the fastest knockout try anybody has scored, are news wherever they come
   koRecords(state, ctx)
 
-  // THE SEASON IN THE 22 (1.9.13, owner, from FM27 Mobile's xG): rugby's
+  // THE SEASON IN THE 22 (1.9.13, owner's round): rugby's
   // version is visits to the opposition 22 and the points each one brings.
   // The match panels have shown it since 1.8.0; this keeps the manager's own
   // season of it for the Stats tab. Read from the lines the match already
