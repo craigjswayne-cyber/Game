@@ -88,6 +88,14 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   a regular's morale drops below 4, or when a regular's form genuinely
   slumps. At most two a week; measured at 10 to 15 a season.
 
+**The feedback report counts what happened** (two player reports, 6 and 15 Nov)
+- Offers read as never opened in both reports, by managers who are bid for
+  about twenty times a season. Continue opens Offers, the press room, the
+  board, the country desk and match day without going through the store's
+  navigation, which is where a visit is counted; all five are counted now.
+- "Tactics changed in a match" counted every step of a slider drag (1,025 in
+  25 matches, 41 a match). It now counts one change per stoppage used.
+
 ## Not changed
 
 - The match engine and its results: nothing new is drawn. Missed tackles,
@@ -102,6 +110,8 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   sheets sit at the app root, not inside the scrolling screen, their
   buttons are what a tap lands on, and Escape still closes them. It fails
   on 1.9.12 and passes on 1.9.13.
+- New: `tests/usagecounts.test.ts` (Offers counted from Continue; one slider
+  drag in a stoppage is one change).
 - New for the feature round: `tests/armround.test.ts`, `tests/haptics.test.ts`,
   `tests/physio.test.ts`, `tests/fans.test.ts`, `tests/alerts.test.ts`, and
   `scripts/ui1913.mjs` checks Arm round the shoulder (and the office row at 320px), the

@@ -11,7 +11,7 @@ The counts:
 | browser harnesses | 111 | `BROWSER` in `suite.sh` | `node`, against a build and `vite preview` |
 | soaks and audits | 13 | `SLOW` in `suite.sh` | 90 min timeout each, weekly |
 | reporters | 20 | `REPORTERS` in `suite.sh` | never: no verdict, run by hand |
-| unit tests | 50 files | `tests/*.test.ts` | `npm test` (vitest) |
+| unit tests | 51 files | `tests/*.test.ts` | `npm test` (vitest) |
 | tools and libraries | 18 | `TOOLS` and `LIBRARIES` in `orphancheck.mjs` | by hand, or imported |
 
 This page says how to run them, what CI runs where, and which probes cover
