@@ -18,5 +18,7 @@ export function carryPledges(pledges: Pledge[], season: number, gender: Gender =
       week: pl.week - SEASON_WEEKS,
       due: preseasonWeeksFor(gender).length + Math.max(1, pl.due - SEASON_WEEKS),
       baseApps: 0,
+      // p.avail is reset with the season's stats
+      ...(pl.baseAvail != null ? { baseAvail: 0 } : {}),
     }))
 }

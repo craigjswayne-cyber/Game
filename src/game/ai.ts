@@ -608,7 +608,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (promiseMinutes) {
     ;(state.pledges ??= []).push({
       playerId: p.id, kind: 'plans', week: state.week, season: state.season,
-      due: pledgeDue(state.week, 6), baseApps: p.stats.apps,
+      due: pledgeDue(state.week, 6), baseApps: p.stats.apps, baseAvail: p.avail ?? 0,
     })
   }
   return { ok: true, msg: t('reply.signsFor', { name: p.name, club: user.name, fee: fmtMoney(fee), wage: fmtWage(wage), bonus: signOn > 0 ? t('reply.signsBonus', { bonus: fmtMoney(signOn) }) : '', promise: promiseMinutes ? t('reply.signsPromise') : '' }) }

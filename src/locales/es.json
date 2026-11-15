@@ -4683,6 +4683,8 @@
   "dealDoneSubj": "Fichaje cerrado: {name}",
   "startVoid": "{player} no estaba disponible, así que la titularidad prometida ya no vale.",
   "startVoidSubj": "Promesa anulada: {player}",
+  "promiseVoid": "{player} no estuvo disponible la mayor parte del tiempo que cubría tu promesa, así que ya no vale.",
+  "promiseVoidSubj": "Promesa anulada: {player}",
   "startBroke": "Prometiste a {player} la titularidad en el siguiente partido y no llegó. Hay una solicitud de traspaso en tu mesa, y no se va a retirar.",
   "startBrokeSubj": "{player} presenta una solicitud de traspaso",
   "startKept": "Dijiste en rueda de prensa que {player} sería titular, y la alineación lo confirmó. El vestuario se ha dado cuenta.",

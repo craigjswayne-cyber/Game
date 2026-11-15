@@ -27,6 +27,22 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   call, and nothing plays on until you answer. Results are unchanged: it only
   changes the order the lines are shown in.
 
+- **Away is not left out.** Player feedback: "Players get angry when your not
+  playing them, but they are often away inj or int duty". The main game-time
+  check already counted only the matches a player was available for, but two
+  other rules did not:
+  - The weekly morale drag for being left out counted every week since the
+    player's last game, so someone back from eight weeks injured (or a Test
+    window) started losing morale in their first week back. It now counts
+    from the last week they could not be picked: injured, on international
+    duty, suspended or out on loan.
+  - "You're in my plans" and "You'll get minutes" promises were judged on
+    games alone, so a player injured or away for most of the promise came
+    back to a broken promise and a morale hit. If they were not available
+    for the games the promise needed, it is now lifted, with an inbox note,
+    the way a promised start already was. A fit player left out is still
+    held to it.
+
 - **Every career asks He or She, the men's game included.** The Home card
   was remembered per phone, so once it had been answered in any career, a new
   one (often a men's career after a women's one) never asked. Each career now
@@ -148,7 +164,9 @@ and changes nothing else.
 
 ## Not changed
 
-- The match engine and its results: nothing new is drawn. Transfer fees for
+- The match engine: nothing new is drawn. Morale feeds the engine, so the
+  away-is-not-left-out change moves results a little in the manager's own
+  matches; the AI clubs are untouched. Transfer fees for
   players in their final contract year are the one world change, measured above. Missed tackles,
   every match's Player of the Match and a loanee's games are counted from
   what the match already holds (`scripts/fingerprint.ts`).
@@ -180,6 +198,10 @@ and changes nothing else.
   the answer; watched and silent matches end level) and
   `scripts/penaltywaitui.mjs` (browser: on the match screen the call follows
   the touchline line and the ticker holds). Both fail on the build before.
+- New: `scripts/awaymoraleprobe.ts` (a player back from injury is not dragged
+  for being left out, a fit one still is; a promise to a player injured
+  throughout is lifted, a fit one is still kept or broken). Fails 4 checks on
+  the build before.
 - Chromium does not clip the way Safari does, so the harness checks the
   structure that prevents the bug. Confirm on an iPhone in Safari before
   release.

@@ -4444,6 +4444,8 @@
   "dealDoneSubj": "移籍成立：{name}",
   "startVoid": "{player}は出場できる状態になかったため、先発の約束は白紙になった。",
   "startVoidSubj": "約束は白紙に：{player}",
+  "promiseVoid": "{player}は約束の期間の大半で出場できる状態になかったため、約束は白紙になった。",
+  "promiseVoidSubj": "約束は白紙に：{player}",
   "startBroke": "次の試合での先発を{player}に約束したが、果たされなかった。移籍願が机の上にある。取り下げられることはない。",
   "startBrokeSubj": "{player}が移籍願を提出",
   "startKept": "会見で{player}の先発を明言し、メンバー表もそのとおりになった。ロッカールームも見ている。",

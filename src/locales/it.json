@@ -4702,6 +4702,8 @@
   "dealDoneSubj": "Affare concluso: {name}",
   "startVoid": "{player} non era a disposizione, quindi la maglia da titolare promessa non vale più.",
   "startVoidSubj": "Promessa sciolta: {player}",
+  "promiseVoid": "{player} non era a disposizione per gran parte del periodo della promessa, quindi non vale più.",
+  "promiseVoidSubj": "Promessa sciolta: {player}",
   "startBroke": "Avevi promesso a {player} una maglia da titolare nella partita successiva, e non è arrivata. Sulla tua scrivania c'è una richiesta di trasferimento, e non verrà ritirata.",
   "startBrokeSubj": "{player} presenta richiesta di trasferimento",
   "startKept": "Avevi detto in conferenza stampa che {player} avrebbe giocato dall'inizio, e la formazione l'ha confermato. Lo spogliatoio se n'è accorto.",

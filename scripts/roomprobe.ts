@@ -352,8 +352,17 @@ console.log('\n--- 7b. a signing in his position: the starter wants assurances\n
     ok(P.players[n.id].morale < nm, 'and the new signing notices')
     ok(recall(P, { kind: 'role-promised', playerId: s.id }).length === 1, 'the promise is remembered')
     // and broken, it has history: out for six weeks, no appearances
-    P.players[s.id].injury = { desc: 'calf strain', dk: 'injury.calf', until: P.week + 12, weeks: 12 }
-    for (let i = 0; i < 8; i++) { for (const q of P.press) if (!q.answered) q.answered = true; processWeekAndAdvance(P) }
+    // KEPT OUT BY THE MANAGER, FIT (1.9.13): the signing takes his shirt every
+    // week. This used to injure him for twelve weeks, and an injured man's
+    // promise is now lifted rather than broken (awaymoraleprobe.ts), which
+    // is the point: only a man left out by choice holds you to it.
+    const sheet = P.clubs[P.userClubId].tactic.lineup
+    for (let i = 0; i < 8; i++) {
+      for (let k = 0; k < sheet.length; k++) if (sheet[k] === n.id) sheet[k] = null
+      for (let k = 0; k < sheet.length; k++) if (sheet[k] === s.id) sheet[k] = n.id
+      for (const q of P.press) if (!q.answered) q.answered = true
+      processWeekAndAdvance(P)
+    }
     ok(recall(P, { kind: 'promise-broken', playerId: s.id }).length === 1, 'kept out, the promise is settled as broken, with the role promise on the record before it')
     R.players[s.id].pers = 'Ambitious'
     R.players[s.id].morale = 5.5

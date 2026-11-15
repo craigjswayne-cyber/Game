@@ -450,6 +450,22 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       const kept = pl.kind === 'plans' ? gap >= 2
         : pl.kind === 'minutes' ? gap >= 1
         : p.contractEnds > state.season
+      // NOT AVAILABLE IS NOT LET DOWN (1.9.13, player feedback: "Players get
+      // angry when your not playing them, but they are often away inj or int
+      // duty"). A 'plans' or 'minutes' promise was judged on his games alone,
+      // so a man injured or on Test duty for most of it came back to a broken
+      // promise. If he was not available for the games the promise needed, it
+      // is lifted, as a promised start already was (handshake.ts).
+      const need = pl.kind === 'plans' ? 2 : pl.kind === 'minutes' ? 1 : 0
+      if (!kept && need > 0 && pl.baseAvail != null && (p.avail ?? 0) - pl.baseAvail < need) {
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+          subject: tIn('en', 'news.promiseVoidSubj', { player: p.name }),
+          body: tIn('en', 'news.promiseVoid', { player: p.name }),
+          k: 'news.promiseVoid', v: { player: p.name }, playerId: p.id,
+        })
+        continue
+      }
       const sulky = p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental'
       rememberPromise(state, p, kept, pl.kind) // memory.ts: the squad keeps the receipts, and so does the world
       if (kept) {

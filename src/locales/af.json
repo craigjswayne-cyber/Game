@@ -4625,6 +4625,8 @@
   "dealDoneSubj": "Ooreenkoms afgehandel: {name}",
   "startVoid": "{player} was nie beskikbaar nie, so die beloofde plek in die beginspan geld nie meer nie.",
   "startVoidSubj": "Belofte vervalle: {player}",
+  "promiseVoid": "{player} was vir die grootste deel van jou belofte nie beskikbaar nie, so dit geld nie meer nie.",
+  "promiseVoidSubj": "Belofte vervalle: {player}",
   "startBroke": "Jy het {player} 'n plek in die beginspan vir die volgende wedstryd belowe, en dit het nie gebeur nie. 'n Oordragversoek lê op jou lessenaar, en dit sal nie teruggetrek word nie.",
   "startBrokeSubj": "{player} dien 'n oordragversoek in",
   "startKept": "Jy het by die perskonferensie gesê {player} sal begin, en die spanlys het saamgestem. Die kleedkamer het dit raakgesien.",
