@@ -47,7 +47,7 @@ REPORTERS="analysis leaguestrength gapreport icons shots qa-shots qa-shots2 news
 LONG="memoryloopprobe frliveprobe analystprobe"
 # runtimematrix (1.9.1, was scripts/qa2/matrix.ts): fifteen seasons on three
 # seeds in each world with every invariant checked every season.
-SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight optionsprobe autopilotprobe aiecon stackprobe distressprobe runtimematrix"
+SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight optionsprobe autopilotprobe aiecon stackprobe distressprobe runtimematrix contractendprobe"
 # THE PR SMOKE (1.9.1): the browser half only ran on main and overnight, so a
 # pull request that broke the wizard found out after it merged. These four
 # cover the whole flow end to end, the till, the way a career leaves the
@@ -210,7 +210,7 @@ case "$MODE" in browser|smoke|pr|soak|area) ENGINE=0;; *) ENGINE=1;; esac
   run "$n" timeout 900 npx vite-node "$f"
 done
 
-BROWSER="e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate nobenchprobe offlineprobe instantverdictprobe tapcontrols dealcardui unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe proprompt feedbackui backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe tryflash loanlistui floorad ruckui visitback retrainui womens19ui sheetroot ui1913
+BROWSER="e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate nobenchprobe offlineprobe instantverdictprobe tapcontrols dealcardui unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe proprompt feedbackui backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe tryflash loanlistui floorad ruckui visitback retrainui womens19ui sheetroot ui1913 budgetfilter
   brandprobe chaosui coachriftui countryui devpickui exportui formerui ftprobe hlliveprobe injurysheet loannameui pagereset pressbaroprobe scoutscreen roomui screensave setpieceui sheetprobe spotadui teamtalkui temperui uiqaprobe telemetryui traitcard
   a11yprobe smalltype
   purchasestate paletteqa iconshots tidyshots"

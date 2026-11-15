@@ -8958,6 +8958,7 @@
   "any": "Todos",
   "onlyListed": "Solo transferibles",
   "onlyInterested": "Solo interesados en venir",
+  "onlyAffordable": "Dentro de mi presupuesto",
   "onlyExpiring": "Solo contratos que vencen",
   "includeInjured": "Incluir lesionados",
   "reset": "Restablecer",
