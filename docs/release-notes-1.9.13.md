@@ -43,6 +43,13 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
     the way a promised start already was. A fit player left out is still
     held to it.
 
+- **A career milestone is saluted once.** The 50 and 100 career tries and
+  500 and 1,000 career points stories checked the inbox for their own story,
+  and the inbox keeps 250 items: a player sitting on exactly 1,000 points
+  could be saluted a second time once the first story had dropped off. Each
+  player now records the milestones already marked (found by
+  `scripts/historyprobe.ts`).
+
 - **Every career asks He or She, the men's game included.** The Home card
   was remembered per phone, so once it had been answered in any career, a new
   one (often a men's career after a women's one) never asked. Each career now

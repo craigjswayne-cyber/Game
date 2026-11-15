@@ -261,6 +261,11 @@ export interface Player {
    *  with his country, suspended or out on loan (1.9.13, training.ts). The
    *  weekly bench drag counts from here, not from his last game. */
   outWk?: number
+  /** the career tries and points milestones already saluted in the inbox
+   *  (1.9.13). The salute used to look for its own story in the inbox, which
+   *  keeps 250 items, so a man parked on 1,000 points was saluted again once
+   *  the first story had been trimmed. */
+  saluted?: { t?: number; p?: number }
   talkWk?: number // retired v1.1.4 with talkToPlayer (chats.ts uses lastChatWk); kept so old saves load
   /** week his agent demanded improved terms (0/undefined = content) */
   wantsDeal?: number

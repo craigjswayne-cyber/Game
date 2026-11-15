@@ -1726,7 +1726,10 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
     // tries/points can park exactly on a number for weeks - salute once only
     const trySubj = `${p.name}: ${cTries} career tries`
     const ptsSubj = `${p.name}: ${cPts.toLocaleString()} career points`
-    if ((cTries === 50 || cTries === 100) && !state.news.some(n => n.subject === trySubj)) {
+    // the player's own record first (a trimmed inbox forgets), the inbox
+    // second for a save from before the record existed
+    if ((cTries === 50 || cTries === 100) && (p.saluted?.t ?? 0) < cTries && !state.news.some(n => n.subject === trySubj)) {
+      ;(p.saluted ??= {}).t = cTries
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: trySubj,
@@ -1734,7 +1737,8 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
         k: 'news.careerTries', v: { player: p.name, n: cTries, n_o: cTries },
         playerId: p.id,
       })
-    } else if ((cPts === 500 || cPts === 1000) && !state.news.some(n => n.subject === ptsSubj)) {
+    } else if ((cPts === 500 || cPts === 1000) && (p.saluted?.p ?? 0) < cPts && !state.news.some(n => n.subject === ptsSubj)) {
+      ;(p.saluted ??= {}).p = cPts
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: ptsSubj,
