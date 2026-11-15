@@ -45,6 +45,20 @@ export function coverInjury(state: GameState, ctx: LiveCtx, hurtId: number, inId
   return ''
 }
 
+/** The held "captain looks to the touchline" line, written after the rest of
+ *  the tick so it is the last line before the call (1.9.13). Words only: it
+ *  draws nothing, and its minute is already on the clock from the tick. The
+ *  ground is where the penalty was given, as the call itself reads it. */
+function flushAsk(state: GameState, ctx: LiveCtx): void {
+  const a = ctx.askLine
+  if (!a) return
+  ctx.askLine = null
+  const side = a.home ? ctx.home : ctx.away
+  pushLine(state, ctx, a.min, 'SUB', side, 'comm.penKickableAsk', { team: teamShort(state, side.teamId) })
+  const e = ctx.detail ? ctx.events[ctx.events.length - 1] : undefined
+  if (e && e.k === 'comm.penKickableAsk' && ctx.decision?.fld != null) e.fld = Math.round(ctx.decision.fld)
+}
+
 export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' | 'FT' {
   if (ctx.tick >= 20) return 'FT'
   // nobody may play on while a man is down and unanswered: a caller that
@@ -57,6 +71,7 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   // the dials the second half kicks off with, against the half-time read
   if (ctx.tick === 10 && ctx.htEv && !ctx.shDials) ctx.shDials = userDials(state, ctx)
   simTick(state, ctx, ctx.tick)
+  flushAsk(state, ctx)
   ctx.tick += 1
   aiTacticShift(state, ctx)
   if (ctx.tick === 10) {

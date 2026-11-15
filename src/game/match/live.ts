@@ -127,6 +127,9 @@ export interface LiveCtx {
   htTone?: string
   /** a touchline call waiting on the user (kickable penalty etc) */
   decision: { kind: 'penalty'; min: number; fld?: number } | null
+  /** the captain's look to the touchline, held until the tick has played
+   *  out so no line follows it before the call (tick.ts, control.ts flushAsk) */
+  askLine?: { min: number; home: boolean } | null
   /** Index of the whistle line for the period that has just ended, while a
    *  touchline call awarded BEFORE it is still unanswered. The kick belongs
    *  in front of that line, not behind it - see resolveDecision. Null
