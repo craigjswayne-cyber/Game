@@ -1,8 +1,9 @@
 # PHASE: Rugby Manager 1.9.13: release notes
 
-**IN PROGRESS, ON HOLD (owner, 14 Nov 2026: "1.9.13 but there may be more to
-come have it fixed and on pause").** Do not build or upload until the owner
-says it is ready. The store "What's new" text is written when it is.
+**READY (owner, 15 Nov 2026: "Yes if all tasks are complete ... MERGE").**
+It was held from 14 Nov while more was added. The store "What's new" text is
+in `docs/store-listing.md`. Both native apps need a fresh `npm install` and
+`scaffold.sh` for the Haptics plugin.
 
 Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first written up as 72, before 1.9.12 shipped on 74).
 
