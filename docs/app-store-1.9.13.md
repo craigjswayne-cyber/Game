@@ -6,6 +6,12 @@ Club counts checked against the game on 15 Nov 2026: 113 men's clubs in 9 league
 
 ## English (U.K.)
 
+### What's New (498 of 4000; Play's limit is 500)
+
+```
+New Stats tab beside Fixtures and Table: scorers, tacklers, kickers, discipline and your season in the 22. Every result names its Player of the Match. A physio report on Medical shows injury risks and a training load. See what the fans think, and why, on The Board. New: Arm round the shoulder. Search by personality, trait or budget. Players in their last contract year cost less. iPhone haptics, with a switch. Fewer loans have an option to buy. Fixed: buttons hidden by the bottom bar on iPhone.
+```
+
 ### Promotional text (145 of 170)
 
 ```
@@ -84,6 +90,12 @@ PHASE: Rugby Manager is an unofficial, independent game. Club names are real; co
 
 ## French
 
+### What's New (486 of 4000; Play's limit is 500)
+
+```
+Nouvel onglet Stats près du Calendrier et du Classement : marqueurs, plaqueurs, buteurs, discipline et votre saison dans les 22. Chaque résultat désigne son homme ou sa femme du match. L'Infirmerie montre les risques de blessure et une charge conseillée. L'avis des supporters, et pourquoi : Le conseil. Nouveau : Remonter le moral. Recherche par personnalité, atout ou budget. Joueurs en dernière année de contrat moins chers. Vibrations sur iPhone. Moins de prêts avec option d'achat.
+```
+
 ### Promotional text (156 of 170)
 
 ```
@@ -142,6 +154,12 @@ PHASE: Rugby Manager est un jeu non officiel et indépendant. Les noms de clubs 
 ```
 
 ## Spanish
+
+### What's New (491 of 4000; Play's limit is 500)
+
+```
+Nueva pestaña Estadísticas junto a Calendario y Clasificación: anotadores, placadores, pateadores, disciplina y tu temporada en los 22. Cada resultado muestra su mejor jugador o jugadora. La Enfermería muestra riesgos de lesión y una carga recomendada. Lo que piensa la afición, y por qué, en La junta. Nuevo: Arropar. Búsqueda por personalidad, rasgo o presupuesto. Jugadores en su último año de contrato, más baratos. Vibración en iPhone, desactivable. Menos cesiones con opción de compra.
+```
 
 ### Promotional text (158 of 170)
 
@@ -202,6 +220,12 @@ PHASE: Rugby Manager es un juego no oficial e independiente. Los nombres de los 
 
 ## Italian
 
+### What's New (489 of 4000; Play's limit is 500)
+
+```
+Nuova scheda Statistiche accanto a Calendario e Classifica: marcatori, placcaggi, calciatori, disciplina e la tua stagione nei 22. Ogni risultato indica il migliore in campo. Il Centro medico mostra i rischi di infortunio e un carico consigliato. Cosa pensano i tifosi, e perché, nel Consiglio. Novità: Dare sostegno. Ricerca per personalità, tratto o budget. Giocatori all'ultimo anno di contratto più economici. Vibrazione su iPhone, disattivabile. Meno prestiti con opzione di riscatto.
+```
+
 ### Promotional text (158 of 170)
 
 ```
@@ -261,6 +285,12 @@ PHASE: Rugby Manager è un gioco non ufficiale e indipendente. I nomi dei club s
 
 ## Japanese
 
+### What's New (251 of 4000; Play's limit is 500)
+
+```
+日程・順位表の隣に新しい「スタッツ」タブ。得点、タックル、キック、規律、今季の22m侵入を確認できる。全試合でプレイヤー・オブ・ザ・マッチを表示。メディカルセンターにけがのリスクと推奨練習強度を示すレポートを追加。取締役会で「サポーターの声」とその理由を確認。オフィスに新しい声かけ「寄り添う」。性格・特徴・予算で選手を検索。契約最終年の選手は移籍金が安く。iPhoneで振動に対応し、設定でオフにできる。買い取りオプション付きのローンは一部のみに。iPhoneで下部バーにボタンが隠れる不具合を修正。
+```
+
 ### Promotional text (75 of 170)
 
 ```
@@ -319,6 +349,12 @@ PHASE: Rugby Managerは非公式の独立系ゲームです。クラブ名は実
 ```
 
 ## Afrikaans
+
+### What's New (491 of 4000; Play's limit is 500)
+
+```
+Nuwe Statistiek-oortjie langs Wedstryde en Puntestand: drieë, laagvattes, doelskoppe, dissipline en jou seisoen in die 22. Elke uitslag noem die speler van die wedstryd. Die Mediese Sentrum wys beseringsrisiko's en 'n voorgestelde oefenlading. Sien wat die ondersteuners dink, en hoekom, by Die Raad. Nuut: Gee 'n hupstoot. Soek volgens persoonlikheid, kenmerk of begroting. Spelers in hul laaste kontrakjaar kos minder. Vibrasie op iPhone, met 'n skakelaar. Minder lenings met 'n koopopsie.
+```
 
 ### Promotional text (151 of 170)
 
