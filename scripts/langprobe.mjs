@@ -375,9 +375,11 @@ try {
   await page.waitForSelector('.submenu')
   await page.locator('.submenu-item', { hasText: 'Infirmerie' }).click()
   // the search box only shows with more than six men injured (1.8.2), so
-  // wait for the physio line instead
-  await page.waitForSelector('.card .meta')
-  const physio = await page.locator('.card .meta').first().innerText()
+  // wait for the physio line instead. The staff card by its own class: the
+  // physio's report (1.9.13) is a card with a .meta line above the rest, so
+  // "the first .meta on the page" stopped meaning the header.
+  await page.waitForSelector('.card.med-staff')
+  const physio = await page.locator('.card.med-staff').first().innerText()
   say(`  medical header: "${physio.replace(/\s+/g, ' ').trim().slice(0, 70)}"`)
   ok(/kiné|blessé|blessures|poste vacant/i.test(physio), 'the medical header is French')
   if (await page.locator('.inline-input').count())
