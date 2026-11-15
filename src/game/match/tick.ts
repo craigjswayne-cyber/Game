@@ -563,7 +563,15 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             // anybody was looking. Held here either way; with nobody to ask,
             // playSegment answers 'posts' where a skip would. Silent, the line
             // is not written but still moves the clock (pushLine).
-            pushLine(state, ctx, min, 'SUB', side, 'comm.penKickableAsk', { team: teamShort(state, side.teamId) })
+            //
+            // AND NOTHING IS SAID AFTER IT (1.9.13, player feedback: "improve
+            // timing for penalties so no play happens till I decide the
+            // penalty"). The rest of the tick still plays, for the dice, but
+            // its lines used to follow the captain's look to the touchline, so
+            // the ticker showed scrums, lineouts and even cards before the call
+            // came up (6 asks in 6). The line is held and written once the tick
+            // is over (stepTick, flushAsk): the last thing read before the call.
+            ctx.askLine = { min, home: side === home }
           } else {
             // resolveDecision reads ctx.decision and works out the side itself,
             // so the instruction goes through exactly the path a tap would take.

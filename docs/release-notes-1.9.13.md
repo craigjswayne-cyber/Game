@@ -18,6 +18,15 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   squad sheet to the app's top level for the same reason; now every sheet in
   the game is drawn there (18 in all).
 
+- **The match waits for your penalty call.** Player feedback: "improve
+  timing for penalties so no play happens till I decide the penalty". The
+  match always stopped for the call, but the lines for the rest of that
+  passage of play were written after "the captain looks to the touchline",
+  so scrums, lineouts and even a card could scroll past before the call came
+  up (10 calls out of 10 in a test). That line is now the last one before the
+  call, and nothing plays on until you answer. Results are unchanged: it only
+  changes the order the lines are shown in.
+
 - **Every career asks He or She, the men's game included.** The Home card
   was remembered per phone, so once it had been answered in any career, a new
   one (often a men's career after a women's one) never asked. Each career now
@@ -167,6 +176,10 @@ and changes nothing else.
   and `scripts/budgetfilter.mjs` (browser: Within my budget narrows the
   market, is counted on the Filters button, resets, and is not offered for
   loans).
+- New: `scripts/penaltywaitprobe.ts` (nothing is written between the ask and
+  the answer; watched and silent matches end level) and
+  `scripts/penaltywaitui.mjs` (browser: on the match screen the call follows
+  the touchline line and the ticker holds). Both fail on the build before.
 - Chromium does not clip the way Safari does, so the harness checks the
   structure that prevents the bug. Confirm on an iPhone in Safari before
   release.
