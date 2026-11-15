@@ -45,9 +45,27 @@ export default function SeasonStats({ compId }: { compId: string }) {
 
   const all = t('tables.allCompsThisSeason')
   const empty = !b.tries.length && !b.points.length && !b.tackles.length && !b.teamTries.length
-  if (empty) return <div className="card muted">{t('tables.statsNone')}</div>
+  // YOUR SEASON IN THE 22 (1.9.13, rugby's xG: finalize.ts state.in22). Your
+  // own matches only: the visits are read from a match's lines, and only the
+  // manager's matches keep them.
+  const z = game.in22?.season === game.season && game.in22.m > 0 ? game.in22 : null
+  const per = (p: number, v: number) => (v ? p / v : 0).toFixed(1)
+  const in22 = z && (
+    <>
+      <SectionTitle sub={all}>{t('tables.in22Title')}</SectionTitle>
+      <div className="tblwrap"><table className="dtable in22-table">
+        <thead><tr><th /><th className="num">{t('tables.colYou')}</th><th className="num">{t('tables.colOpp')}</th></tr></thead>
+        <tbody>
+          <tr><td>{t('matchday.st22')}</td><td className="num">{z.v}</td><td className="num">{z.ov}</td></tr>
+          <tr><td>{t('matchday.stPerVisit')}</td><td className="num" style={{ fontWeight: 700 }}>{per(z.p, z.v)}</td><td className="num">{per(z.op, z.ov)}</td></tr>
+        </tbody>
+      </table></div>
+    </>
+  )
+  if (empty) return in22 || <div className="card muted">{t('tables.statsNone')}</div>
   return (
     <>
+      {in22}
       {players(t('tables.topTryScorers'), b.tries, r => String(r.n), all)}
       {players(t('tables.topPointsScorers'), b.points, r => String(r.n), all)}
       {players(t('tables.topTacklers'), b.tackles, r => String(r.n), all)}

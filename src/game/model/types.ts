@@ -1280,6 +1280,10 @@ export interface GameState {
    *  then REFOCUS - name a new dream - and the honour is never erased by
    *  the new ambition. An unrealised dream is never reset by anything. */
   dreamsDone?: { id: string; clubId: string; season: number }[]
+  /** The manager's season in the opposition 22 (1.9.13, finalize.ts): visits
+   *  and the points they brought, and the opponents' in his matches, over m
+   *  competitive matches. Starts again with the season. */
+  in22?: { season: number; v: number; p: number; ov: number; op: number; m: number }
   /** open managerial vacancies at AI clubs */
   /**
    * `passed` is the manager saying he is not interested.

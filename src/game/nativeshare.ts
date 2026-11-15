@@ -36,7 +36,7 @@ type Cap = {
 
 /** The same honest lookup storekit.ts uses: the native side must say the
  *  plugin is there, because registerPlugin answers to every name. */
-function plugin<T>(name: string): T | null {
+export function capPlugin<T>(name: string): T | null {
   const cap = (globalThis as { Capacitor?: Cap }).Capacitor
   if (!cap) return null
   const already = cap.Plugins?.[name] as T | undefined
@@ -50,7 +50,7 @@ function plugin<T>(name: string): T | null {
 
 /** Can this build hand a save to the phone's share sheet? */
 export function canShareNatively(): boolean {
-  return !!plugin<FilesystemPlugin>('Filesystem') && !!plugin<SharePlugin>('Share')
+  return !!capPlugin<FilesystemPlugin>('Filesystem') && !!capPlugin<SharePlugin>('Share')
 }
 
 type ShareResult = 'shared' | 'cancelled' | 'unavailable' | 'failed'
@@ -86,8 +86,8 @@ let busy = false
  * is 'cancelled', which is not a failure and is not reported as one.
  */
 export async function shareSaveNatively(name: string, text: string): Promise<ShareResult> {
-  const fs = plugin<FilesystemPlugin>('Filesystem')
-  const sh = plugin<SharePlugin>('Share')
+  const fs = capPlugin<FilesystemPlugin>('Filesystem')
+  const sh = capPlugin<SharePlugin>('Share')
   if (!fs || !sh) return 'unavailable'
   if (busy) return 'cancelled' // the first tap is still writing; this one adds nothing
   busy = true

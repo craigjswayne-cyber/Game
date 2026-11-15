@@ -1573,6 +1573,10 @@ function migrateTackleCounts(s: GameState): void {
  *  them only as the types the loan code reads. A loan signed before 1.9.13
  *  has neither, and keeps the option it was signed with. */
 function healLoanTerms(s: GameState): void {
+  // the season in the 22 (1.9.13): six counts, or nothing
+  const n = (x: unknown) => typeof x === 'number' && Number.isFinite(x) && x >= 0
+  if (s.in22 !== undefined && !(s.in22 && typeof s.in22 === 'object' && n(s.in22.season) && n(s.in22.v) && n(s.in22.p)
+    && n(s.in22.ov) && n(s.in22.op) && n(s.in22.m))) s.in22 = undefined
   for (const p of Object.values(s.players)) {
     if (!p) continue
     if (p.loanOpt !== undefined && typeof p.loanOpt !== 'boolean') p.loanOpt = undefined

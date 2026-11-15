@@ -23,7 +23,7 @@ import { LOAN_BUY_MIN_WEEKS, LOAN_EARN_APPS, loanBuy, loanBuyOffer, loanHasOptio
 import { noteUse } from '../../game/usage'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
-import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
+import { answerRequest, canAnswerRequest, canChat, chatBudget, encouragePlayer, praisePlayer, warnPlayer } from '../../game/chats'
 import { requestLocked, startPromise } from '../../game/handshake'
 import { persName, posName, traitName, t, tIn, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
@@ -456,6 +456,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               <button className="btn ghost" style={{ flex: 1 }}
                 title={t(p.form < 6.8 ? 'player.warnTitleGood' : 'player.warnTitleBad')}
                 onClick={() => { setChatMsg(warnPlayer(game, p)); touch() }}>{t('player.quietWord')}</button>
+              {/* the safe word for a bad run (1.9.13, chats.ts encouragePlayer) */}
+              <button className="btn ghost" style={{ flex: 1 }} title={t('player.encourageTitle')}
+                onClick={() => { setChatMsg(encouragePlayer(game, p)); touch() }}>{t('player.encourage')}</button>
             </div>
           )}
         </div>

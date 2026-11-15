@@ -7,9 +7,9 @@ import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from 
 import { isDeadlineWeek, openDate, shutDate } from '../../game/window'
 import { LOAN_LENGTHS, LOAN_SHARES, loanHasOption, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
 import { noteUse } from '../../game/usage'
-import { attrRange, knowledge, searchKey, seenValue, shownCa } from '../../game/scout'
+import { attrRange, knowledge, persKnown, reportStage, searchKey, seenValue, shownCa } from '../../game/scout'
 import { FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
-import { attrName, posName, t, compLabel } from '../../game/i18n'
+import { attrName, persName, posName, traitName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 import { ScoutingBody } from './Scouting'
@@ -43,6 +43,11 @@ const ATTR_GROUPS: [string, (keyof Attrs)[]][] = [
   ['player.grpPhysical', ['pac', 'agi', 'sta']],
   ['player.grpMental', ['vis', 'dec', 'pos', 'wor', 'agg', 'lea']],
 ]
+
+/** The personalities and the signature traits, in the order the game names
+ *  them (model Personality, attributes.ts deriveTrait). */
+const PERSONALITIES = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
+const TRAIT_NAMES = ['The Step', 'Offload King', 'Siege Gun', 'Metronome', 'Jackal', 'Enforcer', 'Big-Game Player', 'Hot Head'] as const
 
 export default function Transfers() {
   const game = useStore(s => s.game)!
@@ -84,6 +89,12 @@ export default function Transfers() {
   // page prints: fineAttr of the scouts' midpoint, out of 100.
   const [attrKeys, setAttrKeys] = useVisitState<(keyof Attrs)[]>('attrKeys', [])
   const [attrMin, setAttrMin] = useVisitState('attrMin', 60)
+  // WHO HE IS AND HOW HE PLAYS (1.9.13, owner, from FM27 Mobile's scouting
+  // filters). Matched only where the scouts KNOW it: a personality needs the
+  // full file (persKnown), a trait a detailed report (reportStage 2), as on
+  // his page. A filter that read the hidden truth would be a free scout.
+  const [persF, setPersF] = useVisitState<string>('persF', 'ALL')
+  const [traitF, setTraitF] = useVisitState<string>('traitF', 'ALL')
   const [withInjured, setWithInjured] = useVisitState('withInjured', true)
   const [expiringOnly, setExpiringOnly] = useVisitState('expiringOnly', false)
   const [filtersOpen, setFiltersOpen] = useVisitState('filtersOpen', false)
@@ -184,6 +195,8 @@ export default function Transfers() {
       const [lo, hi] = attrRange(game, p, k)
       return fineAttr(p.id, ATTR_KEYS.indexOf(k), Math.round((lo + hi) / 2)) >= attrMin
     }))
+    if (persF !== 'ALL') list = list.filter(p => p.pers === persF && persKnown(game, p))
+    if (traitF !== 'ALL') list = list.filter(p => p.trait === traitF && reportStage(game, p) >= 2)
     const dir = mdesc ? -1 : 1
     list.sort((a, b) => {
       switch (msort) {
@@ -195,9 +208,9 @@ export default function Transfers() {
       }
     })
     return list.slice(0, 120)
-  }, [game, game.players, game.clubs, pos, search, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKeys, attrMin, msort, mdesc, game.week, tick, deal, loanIds])
+  }, [game, game.players, game.clubs, pos, search, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKeys, attrMin, persF, traitF, msort, mdesc, game.week, tick, deal, loanIds])
   const activeFilters = [deal === 'loan', pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, attrKeys.length > 0,
-    listedOnly, keenOnly, expiringOnly, !withInjured].filter(Boolean).length
+    persF !== 'ALL', traitF !== 'ALL', listedOnly, keenOnly, expiringOnly, !withInjured].filter(Boolean).length
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
   const pageSafe = Math.min(page, pages - 1)
   const pageRows = results.slice(pageSafe * PER_PAGE, (pageSafe + 1) * PER_PAGE)
@@ -470,6 +483,16 @@ export default function Transfers() {
               <option value={0}>{t('search.any')}</option>
               {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
             </select>
+            <label htmlFor="fs-pers">{t('search.persLabel')}</label>
+            <select id="fs-pers" className="inline-input" value={persF} onChange={e => { setPersF(e.target.value); setPage(0) }}>
+              <option value="ALL">{t('search.any')}</option>
+              {PERSONALITIES.map(x => <option key={x} value={x}>{persName(x)}</option>)}
+            </select>
+            <label htmlFor="fs-trait">{t('search.traitLabel')}</label>
+            <select id="fs-trait" className="inline-input" value={traitF} onChange={e => { setTraitF(e.target.value); setPage(0) }}>
+              <option value="ALL">{t('search.any')}</option>
+              {TRAIT_NAMES.map(x => <option key={x} value={x}>{traitName(x)}</option>)}
+            </select>
             {/* the attributes are what the scouts can see (scout.attrRange) */}
             <label htmlFor="fs-attr-min">{t('search.attrsLabel')}</label>
             <select id="fs-attr-min" className="inline-input" aria-label={t('search.attrMin')} value={attrMin} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
@@ -477,6 +500,7 @@ export default function Transfers() {
             </select>
           </div>
           <div className="fs-attrs">
+            {(persF !== 'ALL' || traitF !== 'ALL') && <div className="meta muted">{t('search.charHint')}</div>}
             <div className="meta muted">{t('search.attrsHint')}</div>
             {ATTR_GROUPS.map(([title, keys]) => (
               <fieldset key={title} className="fs-attr-group">
@@ -507,7 +531,7 @@ export default function Transfers() {
           </div>
           <div className="btn-row" style={{ marginTop: 10 }}>
             <button className="btn ghost" onClick={() => {
-              setDeal('transfer'); setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKeys([])
+              setDeal('transfer'); setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKeys([]); setPersF('ALL'); setTraitF('ALL')
               setListedOnly(false); setKeenOnly(false); setExpiringOnly(false); setWithInjured(true); setPage(0)
             }}>{t('search.reset')}</button>
             <button className="btn gold" style={{ flex: 2 }} onClick={() => setFiltersOpen(false)}>
