@@ -452,13 +452,13 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <div className="btn-row" style={{ marginTop: 6 }}>
               <button className="btn ghost" style={{ flex: 1 }}
                 title={t(p.form >= 6.8 ? 'player.praiseTitleGood' : 'player.praiseTitleBad')}
-                onClick={() => { setChatMsg(praisePlayer(game, p)); touch() }}>{t('player.praiseForm')}</button>
+                onClick={() => { setChatMsg(praisePlayer(game, p)); noteUse('chat'); touch() }}>{t('player.praiseForm')}</button>
               <button className="btn ghost" style={{ flex: 1 }}
                 title={t(p.form < 6.8 ? 'player.warnTitleGood' : 'player.warnTitleBad')}
-                onClick={() => { setChatMsg(warnPlayer(game, p)); touch() }}>{t('player.quietWord')}</button>
+                onClick={() => { setChatMsg(warnPlayer(game, p)); noteUse('chat'); touch() }}>{t('player.quietWord')}</button>
               {/* the safe word for a bad run (1.9.13, chats.ts armRoundPlayer) */}
               <button className="btn ghost" style={{ flex: 1 }} title={t('player.armRoundTitle')}
-                onClick={() => { setChatMsg(armRoundPlayer(game, p)); touch() }}>{t('player.armRound')}</button>
+                onClick={() => { setChatMsg(armRoundPlayer(game, p)); noteUse('chat'); touch() }}>{t('player.armRound')}</button>
             </div>
           )}
         </div>
@@ -1150,7 +1150,7 @@ function RetrainBox({ p }: { p: Player }) {
       <select id="retrain-to" className="inline-input" value={pick} onChange={e => setTo(e.target.value as Pos)}>
         {targets.map(pos => <option key={pos} value={pos}>{posName(pos)} · {t(oddsWord(retrainOdds(game, p, pos, false)))}</option>)}
       </select>
-      <button className="btn gold" disabled={!!block} onClick={() => { if (startRetrain(game, p.id, pick, false)) { noteUse('training'); touch() } }}>
+      <button className="btn gold" disabled={!!block} onClick={() => { if (startRetrain(game, p.id, pick, false)) { noteUse('retrain'); touch() } }}>
         {t('training.retrainStart', { n: retrainWeeks(p, pick) })}
       </button>
       {block && <div className="meta muted">{t(block)}</div>}

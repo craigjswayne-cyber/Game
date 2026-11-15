@@ -97,6 +97,20 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   25 matches, 41 a match). It now counts one change per stoppage used.
 - "Loan made" counted every loan offer tapped, refused ones included. It now
   counts loans that happened, in and out.
+- **Offered again as a career grows** (owner: "add it for the end of season
+  3, 5 and 10 and 20"): after seasons 1, 3, 5, 10 and 20, each once. A
+  career that jumps past one (one season to four) is asked once, at three.
+- **New in the report**, still counts only, nothing named:
+  - PLAY TIME: time played, sessions and the average session, and the five
+    screens most time went to. A stretch on one screen counts at most five
+    minutes (an idle phone); a gap of half an hour starts a new session.
+  - CAREER: the win-draw-loss record, trophies, clubs managed, the last five
+    league finishes with their tier, board confidence, fan mood, in debt or
+    not, squad size, and Pro or free.
+  - SETTINGS: haptics, sound, night mode and text size.
+  - Four new actions: office chats, retraining started, the physio's load
+    set, and the character filters used.
+  The heaviest report possible still fits an email (1,791 of 1,800).
 
 ## Not changed
 

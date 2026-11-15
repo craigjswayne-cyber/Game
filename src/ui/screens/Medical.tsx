@@ -334,7 +334,7 @@ function PhysioReportCard() {
       </div>
       {r.recommend !== load && (
         <button className="btn ghost block" style={{ marginTop: 8 }}
-          onClick={() => { noteUse('training'); game.trainLoad = r.recommend; touch() }}>
+          onClick={() => { noteUse('physio'); game.trainLoad = r.recommend; touch() }}>
           {t('medical.setLoad', { load_k: loadKey(r.recommend) })}
         </button>
       )}

@@ -18,7 +18,7 @@ import { genderOf } from '../src/game/gender'
 import { DEV_CONTACT, MAILTO_LIMIT, mailtoUrl, noteScreen } from '../src/game/bugreport'
 import {
   ACTIONS, FEEDBACK_SUBJECT, MAIN_SCREENS, USAGE_KEY, buildFeedbackReport, countFinished, countMatch, countWeek,
-  countScreen, feedbackDue, freshUsage, neverOpened, noteUse, parseUsage, readUsage, withOffered, writeUsage,
+  careerSnap, countScreen, dueMilestone, feedbackDue, freshUsage, neverOpened, noteUse, parseUsage, readUsage, withOffered, withTime, writeUsage,
   type Usage,
 } from '../src/game/usage'
 import { ok, done } from './lib/probe'
@@ -225,6 +225,71 @@ console.log('--- the first season')
   const store = storeSource()
   const cfp = store.slice(store.indexOf('function countForPro'), store.indexOf('function countForPro') + 600)
   ok(/compId === 'fr'\) return[\s\S]*countMatch\(/.test(cfp), 'friendlies return before the match is counted')
+}
+
+// ---- 1.9.13: offered again at seasons 3, 5, 10 and 20 --------------------------
+// Owner: "add it for the end of season 3,5 and 10 and 20".
+console.log('--- the season milestones')
+{
+  const at = (finished: number, offeredFor: number[] = []) => ({ ...freshUsage(), finished, offered: offeredFor.length > 0, offeredFor })
+  ok(dueMilestone(at(1)) === 1 && dueMilestone(at(2, [1])) === null, 'season one, and not again at two')
+  ok(dueMilestone(at(3, [1])) === 3 && dueMilestone(at(4, [1, 3])) === null, 'season three, and not again at four')
+  ok(dueMilestone(at(5, [1, 3])) === 5 && dueMilestone(at(10, [1, 3, 5])) === 10 && dueMilestone(at(20, [1, 3, 5, 10])) === 20, 'five, ten and twenty')
+  ok(dueMilestone(at(25, [1, 3, 5, 10, 20])) === null, 'and nothing after twenty')
+  // a long gap between visits: from one season to four is one card, at three
+  ok(dueMilestone(at(4, [1])) === 3, 'a career that jumps from one to four is asked once, at three')
+  const w = withOffered(at(4, [1]))
+  ok(dueMilestone(w) === null && w.offeredFor.includes(3), 'and is not asked again until five')
+  // a ledger from before 1.9.13 that was offered had its first card
+  const old = parseUsage(JSON.stringify({ v: 1, finished: 3, offered: true, offeredAt: 20 }))
+  ok(old.offeredFor.includes(1) && dueMilestone(old) === 3, 'an old ledger already offered at one is asked at three')
+  // opening it from the menu answers every milestone reached so far
+  ok(dueMilestone(withOffered(at(6))) === null, 'opened by hand, nothing is left queued behind it')
+}
+
+// ---- 1.9.13: play time, by screen, in sessions ----------------------------------
+console.log('--- play time')
+{
+  let u = freshUsage()
+  const t0 = 1_000_000_000_000
+  u = withTime(u, t0, 'squad')                       // a session opens on Team
+  u = withTime(u, t0 + 90_000, 'player')             // 90 seconds on Team
+  u = withTime(u, t0 + 90_000 + 40 * 60_000, 'player') // left for 40 minutes on Player: a new session, nothing counted
+  u = withTime(u, t0 + 90_000 + 40 * 60_000 + 12 * 60_000, 'tactics') // 12 minutes, capped at 5
+  ok(u.sessions === 2, `a gap over half an hour is a new session (${u.sessions})`)
+  ok(u.time.squad === 90 && u.time.player === 300, `time goes to the screen it was spent on, an idle stretch capped (${JSON.stringify(u.time)})`)
+  ok(u.secs === 390, `and adds up (${u.secs}s)`)
+  const r = report({ ...u, secs: 7_800, sessions: 12, time: { squad: 3_000, player: 1_800, tactics: 900, inbox: 120, press: 61, fixtures: 30 } })
+  ok(/PLAY TIME\n2h 10m over 12 sessions, 11m average\n/.test(r), 'the report gives the total, the sessions and the average')
+  ok(/most time: Team 50m, Player page 30m, Tactics 15m, Inbox 2m, Press room 1m\n/.test(r), 'and the five screens most time went to, by name')
+  ok(!/Fixtures and results \d+m/.test(r.split('SCREENS OPENED')[0]), 'under a minute is left out')
+  ok(/PLAY TIME\nnot measured yet\n/.test(report(freshUsage())), 'a ledger from before 1.9.13 says so rather than reading zero')
+}
+
+// ---- 1.9.13: the career and the settings, as numbers -----------------------------
+console.log('--- the career')
+{
+  const g = newGame('bath', 'Career Probe', 4242)
+  g.mgr.w = 30; g.mgr.d = 2; g.mgr.l = 14
+  g.mgr.finishes = [{ season: 0, leagueId: 'prem', pos: 4, clubId: 'bath' }, { season: 1, leagueId: 'prem', pos: 1, clubId: 'bath' }]
+  g.mgr.trophies = [{ compId: 'prem', season: 1, clubId: 'bath' }]
+  const snap = careerSnap(g, false)
+  const r = report(readUsage(), { career: snap, prefs: { haptics: false, sound: true, night: true, text: 1.15 } })
+  ok(/CAREER\nrecord 30-2-14, trophies 1, clubs 1\n/.test(r), 'the record, the silverware and the clubs')
+  ok(/finishes \(pos\/tier\) 4\/1, 1\/1\n/.test(r), 'the league finishes with their tier')
+  ok(/board \d+, fans \d+, in (debt|credit), squad \d+, free\n/.test(r), 'the board, the terraces, the books, the squad and Pro')
+  ok(/SETTINGS\nhaptics off, sound on, night on, text 115%\n/.test(r), 'and the settings')
+  const club = g.clubs[g.userClubId]
+  ok(!r.includes('Career Probe') && !r.includes(club.name) && !r.includes(club.short) && !/\bprem\b|\bbath\b/.test(r), 'no manager, club or league named in the career section')
+  ok(!/—|–/.test(r), 'no em or en dashes')
+  // the heaviest report there can be still fits a mail body
+  const heavy = freshUsage()
+  for (const s of [...MAIN_SCREENS, 'supporter', 'player', 'matchday', 'results', 'day', 'wire', 'country', 'seasonreview', 'annual', 'draw']) { heavy.screens[s] = 12345; heavy.time[s] = 999_999 }
+  for (const a of ACTIONS) heavy.acts[a] = 9999
+  heavy.matches = 9999; heavy.seasons = 99; heavy.finished = 99; heavy.secs = 9_999_999; heavy.sessions = 9999
+  const big: typeof snap = { w: 999, d: 999, l: 999, fin: Array.from({ length: 5 }, () => ({ pos: 12, tier: 3 })), trophies: 99, clubs: 12, board: 100, fans: 100, debt: true, squad: 60, pro: true }
+  const hr = report(heavy, { career: big, prefs: { haptics: true, sound: true, night: true, text: 1.3 } })
+  ok(hr.length <= MAILTO_LIMIT, `the heaviest full report still fits a mail body (${hr.length} of ${MAILTO_LIMIT})`)
 }
 
 done('FEEDBACK PROBE', '', { exit: true, blank: false })

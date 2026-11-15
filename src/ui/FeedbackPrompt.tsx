@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { proLocked, useStore, type Screen } from '../store'
 import { getLang, t } from '../game/i18n'
-import { canBuy, msSincePurchase, purchaseActive, tillOpen } from '../game/monetise'
+import { canBuy, hasSupporter, msSincePurchase, purchaseActive, tillOpen } from '../game/monetise'
 import { proDue, readFunnel } from '../game/profunnel'
 import { userMatchThisWeek } from '../game/season'
 import { mailtoUrl } from '../game/bugreport'
 import { COMMUNITY_URL } from '../game/community'
 import { nativePlatform } from '../game/shell'
 import { genderOf } from '../game/gender'
-import { FEEDBACK_SUBJECT, buildFeedbackReport, feedbackDue, readUsage, withOffered, writeUsage } from '../game/usage'
+import { FEEDBACK_SUBJECT, buildFeedbackReport, careerSnap, feedbackDue, readUsage, withOffered, writeUsage } from '../game/usage'
+import { hapticsOn, soundOn } from './audio'
 import { useTablet } from './tablet'
 import { Glyph } from './glyphs'
 
@@ -127,6 +128,9 @@ export function FeedbackPrompt() {
     tablet,
     gender: game ? genderOf(game) : null,
     store: tillOpen(),
+    // the career and the device's settings, as numbers (1.9.13)
+    career: game && !game.unemployed ? careerSnap(game, hasSupporter()) : undefined,
+    prefs: { haptics: hapticsOn(), sound: soundOn(), night: useStore.getState().night, text: useStore.getState().textScale },
   }) : '', [open, tablet, game])
 
   if (!open) return null

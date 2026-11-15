@@ -491,12 +491,12 @@ export default function Transfers() {
               {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
             </select>
             <label htmlFor="fs-pers">{t('search.persLabel')}</label>
-            <select id="fs-pers" className="inline-input" value={persF} onChange={e => { setPersF(e.target.value); setPage(0) }}>
+            <select id="fs-pers" className="inline-input" value={persF} onChange={e => { setPersF(e.target.value); if (e.target.value !== 'ALL') noteUse('charFilter', true); setPage(0) }}>
               <option value="ALL">{t('search.any')}</option>
               {PERSONALITIES.map(x => <option key={x} value={x}>{persName(x)}</option>)}
             </select>
             <label htmlFor="fs-trait">{t('search.traitLabel')}</label>
-            <select id="fs-trait" className="inline-input" value={traitF} onChange={e => { setTraitF(e.target.value); setPage(0) }}>
+            <select id="fs-trait" className="inline-input" value={traitF} onChange={e => { setTraitF(e.target.value); if (e.target.value !== 'ALL') noteUse('charFilter', true); setPage(0) }}>
               <option value="ALL">{t('search.any')}</option>
               {TRAIT_NAMES.map(x => <option key={x} value={x}>{traitName(x)}</option>)}
             </select>
