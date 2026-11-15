@@ -6,6 +6,12 @@ Club counts checked against the game on 15 Nov 2026: 113 men's clubs in 9 league
 
 ## English (U.K.)
 
+### Keywords (96 of 100 bytes)
+
+```
+union,management,sim,simulation,coach,tactics,transfers,career,league,season,sport,offline,scrum
+```
+
 ### What's New (498 of 4000; Play's limit is 500)
 
 ```
@@ -90,6 +96,12 @@ PHASE: Rugby Manager is an unofficial, independent game. Club names are real; co
 
 ## French
 
+### Keywords (97 of 100 bytes)
+
+```
+gestion,simulation,entraineur,equipe,tactique,transferts,carriere,championnat,sport,hors ligne,xv
+```
+
 ### What's New (486 of 4000; Play's limit is 500)
 
 ```
@@ -154,6 +166,12 @@ PHASE: Rugby Manager est un jeu non officiel et indépendant. Les noms de clubs 
 ```
 
 ## Spanish
+
+### Keywords (97 of 100 bytes)
+
+```
+gestion,simulador,entrenador,tactica,fichajes,carrera,liga,temporada,deporte,sin conexion,mele,xv
+```
 
 ### What's New (491 of 4000; Play's limit is 500)
 
@@ -220,6 +238,12 @@ PHASE: Rugby Manager es un juego no oficial e independiente. Los nombres de los 
 
 ## Italian
 
+### Keywords (97 of 100 bytes)
+
+```
+manageriale,gestione,simulatore,allenatore,tattica,mercato,carriera,campionato,offline,mischia,xv
+```
+
 ### What's New (489 of 4000; Play's limit is 500)
 
 ```
@@ -285,6 +309,12 @@ PHASE: Rugby Manager è un gioco non ufficiale e indipendente. I nomi dei club s
 
 ## Japanese
 
+### Keywords (94 of 100 bytes)
+
+```
+育成,戦術,移籍,経営,スポーツ,オフライン,スクラム,シミュレーション
+```
+
 ### What's New (251 of 4000; Play's limit is 500)
 
 ```
@@ -349,6 +379,8 @@ PHASE: Rugby Managerは非公式の独立系ゲームです。クラブ名は実
 ```
 
 ## Afrikaans
+
+App Store Connect has no Afrikaans localisation, so this section is for Google Play only. There are no App Store keywords for it.
 
 ### What's New (491 of 4000; Play's limit is 500)
 
