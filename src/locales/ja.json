@@ -553,7 +553,7 @@
   "why_redZone": "1,300分超",
   "why_youngLoad": "若さの割に出場過多",
   "why_age": "32歳以上",
-  "why_brittle": "けがをしやすい",
+  "why_brittle": "疲れていると痛めやすい",
   "physioNamed": "フィジオ {name}",
   "physioVacant": "・ポスト空席。負傷は自然回復に任せるのみ（トレーニング → バックルームスタッフ）",
   "physioShorter": "・負傷期間およそ{pct}%短縮",
