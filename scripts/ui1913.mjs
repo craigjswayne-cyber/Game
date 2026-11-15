@@ -105,6 +105,74 @@ try {
   ok(!/Open contract talks/i.test(pg), 'nor contract talks')
   ok(/No option to buy in this loan/.test(pg), 'his loan card says the deal has no option to buy')
   ok(/Games for you: 2\/8/.test(pg), 'and counts his games towards earning one')
+
+  // ---- the FM27 round ----
+  // 1. Encourage, beside praise and a quiet word, on one row at 320px too
+  const own = await game(() => {
+    const g = window.rugbyStore.getState().game
+    const p = g.clubs[g.userClubId].players.map(id => g.players[id]).find(q => q && !q.acad && !q.loanFrom)
+    p.form = 5.5; p.morale = 5; p.lastChatWk = undefined; g.chatsUsed = 0
+    return p.id
+  })
+  await go('player', own)
+  await page.waitForTimeout(400)
+  ok(await page.locator('main.content button:has-text("Encourage")').count() === 1, 'the office offers Encourage')
+  await page.setViewportSize({ width: 320, height: 640 })
+  await page.waitForTimeout(300)
+  const row = await page.evaluate(() => {
+    const bs = [...document.querySelectorAll('main.content button')].filter(b => /Praise|A quiet word|Encourage/.test(b.textContent))
+    const r = bs.map(b => b.getBoundingClientRect())
+    return { n: r.length, oneRow: r.every(x => Math.abs(x.top - r[0].top) < 2), inside: r.every(x => x.right <= window.innerWidth + 0.5) }
+  })
+  ok(row.n === 3 && row.inside, `the three office buttons fit a 320px screen (${JSON.stringify(row)})`)
+  await page.setViewportSize({ width: 390, height: 746 })
+  await page.locator('main.content button:has-text("Encourage")').click()
+  await page.waitForTimeout(300)
+  ok(await game(() => window.rugbyStore.getState().game.chatsUsed) === 1, 'Encourage uses one of the week\'s conversations')
+
+  // 2. personality and trait filters
+  await go('transfers')
+  await page.waitForSelector('.filter-btn')
+  await page.click('.filter-btn')
+  await page.waitForSelector('#fs-pers')
+  ok(await page.$$eval('#fs-pers option', os => os.length) === 7, 'the filter sheet offers every personality')
+  ok(await page.$$eval('#fs-trait option', os => os.length) === 9, 'and every trait')
+  await page.selectOption('#fs-pers', 'Leader')
+  ok(await page.locator('.filter-sheet .meta:has-text("scouts know well enough")').count() === 1, 'and says it only finds players the scouts know')
+  await page.click('.filter-sheet .btn.gold')
+
+  // 3. your season in the 22 on the Stats tab
+  await game(() => { const s = window.rugbyStore.getState(); s.game.in22 = { season: s.game.season, v: 12, p: 30, ov: 9, op: 14, m: 3 }; s.touch() })
+  await go('fixtures', 'stats')
+  await page.waitForTimeout(400)
+  const st22 = await text()
+  ok(/Your Season in the 22/.test(st22) && /2\.5/.test(st22) && /1\.6/.test(st22), 'the Stats tab shows your season in the 22 against your opponents')
+
+  // 5. the physio's report
+  await game(() => {
+    const g = window.rugbyStore.getState().game
+    const ps = g.clubs[g.userClubId].players.map(id => g.players[id]).filter(q => q && !q.acad && !q.injury).slice(0, 4)
+    for (const p of ps) { p.cond = 50; p.rust = 2 }
+    g.trainLoad = 'normal'
+    window.rugbyStore.getState().touch()
+  })
+  await go('medical')
+  await page.waitForTimeout(400)
+  ok(await page.locator('[data-testid="physio-report"]').count() === 1, 'Medical carries the physio report')
+  const setBtn = page.locator('[data-testid="physio-report"] button:has-text("Set training to")')
+  ok(await setBtn.count() === 1, 'with the load the physio recommends')
+  await setBtn.click()
+  await page.waitForTimeout(200)
+  ok(await game(() => window.rugbyStore.getState().game.trainLoad) === 'light', 'and one tap sets it')
+
+  // 6. what the fans think
+  await game(() => { const s = window.rugbyStore.getState(); s.game.fanWhy = { season: s.game.season, results: 6, squad: -3, club: -2, manager: 1 }; s.touch() })
+  await go('finances')
+  await page.waitForTimeout(300)
+  await page.locator('main.content .tab-bar button:has-text("The Board")').click()
+  await page.waitForTimeout(300)
+  const fans = await page.$eval('[data-testid="fan-sentiment"]', e => e.innerText).catch(() => '')
+  ok(/Results\s*\+6/.test(fans) && /Signings and the squad\s*−3/.test(fans), `the Board tab breaks down what the fans think ("${fans.replace(/\s+/g, ' ').slice(0, 120)}")`)
 } catch (e) {
   ok(false, `the harness threw: ${String(e).split('\n')[0].slice(0, 180)}`)
 } finally {
@@ -119,5 +187,5 @@ if (errors.length) {
 }
 
 if (fails) { console.error(`\nUI 1.9.13 PROBE: ${fails} failures`); process.exit(1) }
-console.log('\nUI 1.9.13 PROBE PASSED: loanee buttons, the Stats tab, every MOTM and the Job Centre badge work on screen')
+console.log('\nUI 1.9.13 PROBE PASSED: the owner\'s round and the FM27 round work on screen')
 done(0)

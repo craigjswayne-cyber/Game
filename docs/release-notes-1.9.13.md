@@ -51,6 +51,40 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   ad unit until their own units are created in AdMob
   (`packaging/shell/ads.json`).
 
+**Ideas from Football Manager 2027 Mobile** (owner, 15 Nov 2026: "we do 1-7")
+
+- **Encourage.** A third thing to say when you call a player in, beside
+  Praise and A quiet word. It is the safe word for a bad run: it lifts a
+  player out of form (a struggling hothead most of all, who expected a
+  rollicking), does no harm to one in form, and a mercenary shrugs it off.
+  It uses one of the week's two conversations, like the others.
+- **Search by personality and trait.** Two new transfer filters. They only
+  find players your scouts know well enough: a full report for personality,
+  a detailed one for a trait, as on the player's page.
+- **Your season in the 22.** Rugby's version of xG is visits to the
+  opposition 22 and the points each one brings. The match screens have shown
+  it since 1.8.0; the Stats tab now adds your season of it, against your
+  opponents', from every competitive match you play.
+- **Haptics on iPhone.** iPhones felt nothing on a try or a card, because
+  Safari's engine has no vibration API. Both apps now include Capacitor's
+  Haptics plugin (8.0.2), so iPhone uses its Taptic Engine and Android its
+  motor; the website keeps the browser's buzz. **This needs a new native
+  build of both apps** (run scaffold.sh in each), not just new web files.
+- **The physio's report.** On Medical: the players closest to breaking down
+  and why (tired legs, just back from injury, past 1,300 minutes, heavy
+  minutes for a young body, 32 or older, injury-prone once known), using the
+  same factors the injury rolls use, and the training load the physio
+  recommends this week, with a button to set it.
+- **What the fans think, and why.** On Finances > The Board: fan mood and
+  what moved it this season, split into results, signings and the squad,
+  club decisions, and you and the press. Every change to fan mood is now
+  booked under its cause as it happens, so the four add up to the season's
+  movement.
+- **The dressing room in the inbox.** An alert, once per spell and opening
+  the player, when a back who has scored goes six games without a try, when
+  a regular's morale drops below 4, or when a regular's form genuinely
+  slumps. At most two a week; measured at 10 to 15 a season.
+
 ## Not changed
 
 - The match engine and its results: nothing new is drawn. Missed tackles,
@@ -65,6 +99,10 @@ Version 1.9.13, Play versionCode 75. Baseline: 1.9.12, code 74 (1.9.13 was first
   sheets sit at the app root, not inside the scrolling screen, their
   buttons are what a tap lands on, and Escape still closes them. It fails
   on 1.9.12 and passes on 1.9.13.
+- New for the FM27 round: `tests/encourage.test.ts`, `tests/haptics.test.ts`,
+  `tests/physio.test.ts`, `tests/fans.test.ts`, `tests/alerts.test.ts`, and
+  `scripts/ui1913.mjs` checks Encourage (and the office row at 320px), the
+  character filters, the 22 card, the physio report and the fans card.
 - New: `tests/jobbadge.test.ts`, `tests/leaders.test.ts`,
   `tests/loanoption.test.ts`; `scripts/ui1913.mjs` (browser: loanee buttons,
   the Stats tab, Week Results' Player of the Match, the Job Centre badge);
