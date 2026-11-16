@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { useVisitState } from '../visitState'
 import { useNarrowPhone } from '../tablet'
 import { useStore } from '../../store'
+import { NatSquad } from './Country'
+import { nationName } from '../../game/nations'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
 import { SQUAD_LIMIT, seniorsOf } from '../../game/transferRules'
@@ -71,6 +73,9 @@ export default function Squad() {
   const [desc, setDesc] = useVisitState('desc', false)
   const [group, setGroup] = useVisitState<'all' | 'aca'>('group', 'all')
   const [avail, setAvail] = useVisitState<'any' | 'fit' | 'out'>('avail', 'any')
+  // CLUB | COUNTRY (1.9.14): a manager with both jobs looks for his Test
+  // squad here (player feedback: "couldn't edit the squad")
+  const [side, setSide] = useVisitState<'club' | 'country'>('side', 'club')
 
   const narrow = useNarrowPhone()
   const club = game.clubs[game.userClubId]
@@ -255,8 +260,29 @@ export default function Squad() {
     ],
   }
 
+  const sideSwitch = game.natTeam ? (
+    <div className="game-pick side-switch" role="tablist" data-side-switch>
+      {(['club', 'country'] as const).map(k => (
+        <button key={k} type="button" role="tab" aria-selected={side === k} className={side === k ? 'sel' : ''} data-side={k}
+          onClick={() => setSide(k)}>
+          {k === 'club' ? club.short : nationName(game.natTeam!)}
+        </button>
+      ))}
+    </div>
+  ) : null
+  if (game.natTeam && side === 'country') {
+    return (
+      <>
+        {sideSwitch}
+        <NatSquad />
+        <div className="spacer" />
+      </>
+    )
+  }
+
   return (
     <>
+      {sideSwitch}
       {/* the tabs and the chips ride along with the scroll: a 38-man table is
           four screenfuls, and the controls used to sail off the top of it */}
       <StickyControls>

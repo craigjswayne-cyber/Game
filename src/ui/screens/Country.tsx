@@ -24,20 +24,11 @@ const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 export default function Country() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const { resign, resignNat, persist } = useStore.getState()
+  const { resign, resignNat } = useStore.getState()
   const bump = useStore(s => s.tick)
   void bump
-  const [msg, setMsg] = useState<{ key: number | string; text: string } | null>(null)
   const [confirmClub, setConfirmClub] = useState(false)
   const [confirmNat, setConfirmNat] = useState(false)
-  const [, redraw] = useState(0)
-  // FM'S ONE AFFORDANCE (owner: "simplify/work on the call up/drop stage - see
-  // how fm do it"): you never scroll a national pool, you filter it to the
-  // shirt you are short of. England's qualified population is two thousand
-  // names, so an unfiltered "next men in" list was not a shortlist, it was a
-  // census.
-  const [posFilter, setPosFilter] = useState<Pos | 'ALL'>('ALL')
-
   const natId = game.natTeam
   if (!natId) {
     // stepped down (or sacked) with the screen open - nothing to run here
@@ -54,24 +45,6 @@ export default function Country() {
   const conf = game.natConfidence != null ? Math.round(game.natConfidence) : null
   const rec = game.natRecord
   const club = game.unemployed ? null : game.clubs[game.userClubId]
-  const w = natWindow(game)
-  const squad = (game.natSquads[natId] ?? []).map(id => game.players[id]).filter(Boolean)
-  // ---- THE COACHES' PICKS, AT THE TOP ----
-  //
-  // Owner, v1.1.17: "Showing who is available with recommended/in form at top."
-  //
-  // natEligible ranks on ability alone, which is the honest ranking of who is
-  // BEST and not of who you would pick this month. A selection meeting looks at
-  // the man in form as hard as it looks at the man on paper, so the desk sorts
-  // on both: ability, plus what he has actually been doing. Form runs 1-10 and
-  // sits around 5, so the lift is worth a handful of ability points either way -
-  // enough to move a man up the page, never enough to put a journeyman above a
-  // Lion.
-  const recommend = (p: { ca: number; form: number }) => p.ca + (p.form - 5) * 2.2
-  const pool = [...natEligible(game)].sort((a, b) => recommend(b) - recommend(a))
-  // IN FORM is a fact about the man, not about the sort: it is called out on
-  // the row so the reason he has climbed is visible rather than implied.
-  const inForm = (p: { form: number }) => p.form >= 7
   const testFx = natFixtureThisWeek(game)
   const upcoming = game.fixtures
     .filter(f => !f.played && (f.homeId === natId || f.awayId === natId))
@@ -80,47 +53,6 @@ export default function Country() {
     .filter(f => f.played && (f.homeId === natId || f.awayId === natId) &&
       !game.clubs[f.homeId] && !game.clubs[f.awayId])
     .sort((a, b) => b.week - a.week).slice(0, 5)
-
-  const act = (p: { id: number; name: string }, fn: (g: typeof game, id: number) => string | null) => {
-    const refusal = fn(game, p.id)
-    setMsg({ key: p.id, text: refusal ?? '' })
-    if (!refusal) void persist()
-    redraw(n => n + 1)
-  }
-
-  const row = (p: NonNullable<(typeof squad)[number]>, inSquad: boolean) => (
-    <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
-      <td style={{ width: 34 }}><PosBadge pos={p.pos} /></td>
-      <td className="name" style={p.clubId === game.userClubId ? { fontWeight: 800 } : undefined}>
-        {p.name}{(p.caps ?? 0) > 0 ? <span className="muted">{t('legacy.coCaps', { n: p.caps ?? 0 })}</span> : <span className="muted">{t('legacy.coUncapped')}</span>}
-        {/* the reason he is near the top, said out loud rather than implied by
-            the sort order (owner: "recommended/in form at top") */}
-        {!inSquad && inForm(p) && <span style={{ color: 'var(--text-positive)', fontWeight: 700 }}> {t('legacy.coInForm')}</span>}
-      </td>
-      <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>
-      <td style={{ width: 64, textAlign: 'right' }}>
-        {w && (
-          <button className="btn ghost" style={{ fontSize: '0.75rem', padding: '6px 10px', color: inSquad ? 'var(--text-negative)' : 'var(--text-positive)' }}
-            onClick={e => { e.stopPropagation(); act(p, inSquad ? natDrop : natCallUp) }}>
-            {t(inSquad ? 'legacy.coDrop' : 'legacy.coCallUp')}
-          </button>
-        )}
-      </td>
-    </tr>
-  )
-
-  const table = (list: typeof squad, inSquad: boolean) => (
-    <div className="tblwrap"><table className="dtable"><tbody>
-      {list.map(p => (
-        <Fragment key={p.id}>
-          {row(p, inSquad)}
-          {msg?.key === p.id && msg.text && (
-            <tr><td colSpan={4} className="meta" style={{ color: 'var(--text-negative)', paddingTop: 0 }}>{msg.text}</td></tr>
-          )}
-        </Fragment>
-      ))}
-    </tbody></table></div>
-  )
 
   return (
     <>
@@ -187,6 +119,127 @@ export default function Country() {
           where there is no till and where nobody is hurt. */}
       <FullFitness compact />
 
+      <NatSquad />
+
+      <SectionTitle>{t('legacy.coTests')}</SectionTitle>
+      <div className="tblwrap"><table className="dtable"><tbody>
+        {upcoming.map(f => (
+          <tr key={f.id}>
+            <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
+            <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
+            <td className="num muted">-</td>
+          </tr>
+        ))}
+        {results.map(f => {
+          const us = f.homeId === natId ? f.homeScore : f.awayScore
+          const them = f.homeId === natId ? f.awayScore : f.homeScore
+          return (
+            <tr key={f.id}>
+              <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
+              <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
+              <td className="num" style={{ fontWeight: 700, color: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }}>
+                {f.homeScore}-{f.awayScore}
+              </td>
+            </tr>
+          )
+        })}
+        {!upcoming.length && !results.length && (
+          <tr><td className="meta">{t('legacy.coNoTests')}</td></tr>
+        )}
+      </tbody></table></div>
+      <div className="meta" style={{ padding: '4px 16px', fontSize: '0.75rem' }}>
+        {t('legacy.coFullTables')}
+      </div>
+      <div className="spacer" />
+    </>
+  )
+}
+
+/**
+ * THE WINDOW SQUAD, ON ITS OWN (1.9.14). The same list on Club & Country and
+ * behind the Squad screen's Country switch (player feedback, from a manager
+ * with both jobs: "couldn't edit the squad" - he looked for it where the club
+ * squad is). Call up and drop while the camp is open; between windows, the
+ * countdown and the men the coaches rate.
+ */
+export function NatSquad() {
+  const game = useStore(s => s.game)!
+  const go = useStore(s => s.go)
+  const { persist } = useStore.getState()
+  useStore(s => s.tick)
+  const [msg, setMsg] = useState<{ key: number | string; text: string } | null>(null)
+  const [, redraw] = useState(0)
+  // FILTER, DON'T SCROLL (owner: "simplify/work on the call up/drop stage"):
+  // you never scroll a national pool, you filter it to the
+  // shirt you are short of. England's qualified population is two thousand
+  // names, so an unfiltered "next men in" list was not a shortlist, it was a
+  // census.
+  const [posFilter, setPosFilter] = useState<Pos | 'ALL'>('ALL')
+
+  const natId = game.natTeam
+  if (!natId) return null
+  const club = game.unemployed ? null : game.clubs[game.userClubId]
+  const w = natWindow(game)
+  const squad = (game.natSquads[natId] ?? []).map(id => game.players[id]).filter(Boolean)
+  // ---- THE COACHES' PICKS, AT THE TOP ----
+  //
+  // Owner, v1.1.17: "Showing who is available with recommended/in form at top."
+  //
+  // natEligible ranks on ability alone, which is the honest ranking of who is
+  // BEST and not of who you would pick this month. A selection meeting looks at
+  // the man in form as hard as it looks at the man on paper, so the desk sorts
+  // on both: ability, plus what he has actually been doing. Form runs 1-10 and
+  // sits around 5, so the lift is worth a handful of ability points either way -
+  // enough to move a man up the page, never enough to put a journeyman above a
+  // Lion.
+  const recommend = (p: { ca: number; form: number }) => p.ca + (p.form - 5) * 2.2
+  const pool = [...natEligible(game)].sort((a, b) => recommend(b) - recommend(a))
+  // IN FORM is a fact about the man, not about the sort: it is called out on
+  // the row so the reason he has climbed is visible rather than implied.
+  const inForm = (p: { form: number }) => p.form >= 7
+  const act = (p: { id: number; name: string }, fn: (g: typeof game, id: number) => string | null) => {
+    const refusal = fn(game, p.id)
+    setMsg({ key: p.id, text: refusal ?? '' })
+    if (!refusal) void persist()
+    redraw(n => n + 1)
+  }
+
+  const row = (p: NonNullable<(typeof squad)[number]>, inSquad: boolean) => (
+    <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
+      <td style={{ width: 34 }}><PosBadge pos={p.pos} /></td>
+      <td className="name" style={p.clubId === game.userClubId ? { fontWeight: 800 } : undefined}>
+        {p.name}{(p.caps ?? 0) > 0 ? <span className="muted">{t('legacy.coCaps', { n: p.caps ?? 0 })}</span> : <span className="muted">{t('legacy.coUncapped')}</span>}
+        {/* the reason he is near the top, said out loud rather than implied by
+            the sort order (owner: "recommended/in form at top") */}
+        {!inSquad && inForm(p) && <span style={{ color: 'var(--text-positive)', fontWeight: 700 }}> {t('legacy.coInForm')}</span>}
+      </td>
+      <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>
+      <td style={{ width: 64, textAlign: 'right' }}>
+        {w && (
+          <button className="btn ghost" style={{ fontSize: '0.75rem', padding: '6px 10px', color: inSquad ? 'var(--text-negative)' : 'var(--text-positive)' }}
+            onClick={e => { e.stopPropagation(); act(p, inSquad ? natDrop : natCallUp) }}>
+            {t(inSquad ? 'legacy.coDrop' : 'legacy.coCallUp')}
+          </button>
+        )}
+      </td>
+    </tr>
+  )
+
+  const table = (list: typeof squad, inSquad: boolean) => (
+    <div className="tblwrap"><table className="dtable"><tbody>
+      {list.map(p => (
+        <Fragment key={p.id}>
+          {row(p, inSquad)}
+          {msg?.key === p.id && msg.text && (
+            <tr><td colSpan={4} className="meta" style={{ color: 'var(--text-negative)', paddingTop: 0 }}>{msg.text}</td></tr>
+          )}
+        </Fragment>
+      ))}
+    </tbody></table></div>
+  )
+
+  return (
+    <>
       {w ? (
         <>
           <SectionTitle sub={t('legacy.coSquadSub', { max: w.size, floor: NAT_SQUAD_FLOOR })}>
@@ -301,36 +354,6 @@ export default function Country() {
         </>
       )}
 
-      <SectionTitle>{t('legacy.coTests')}</SectionTitle>
-      <div className="tblwrap"><table className="dtable"><tbody>
-        {upcoming.map(f => (
-          <tr key={f.id}>
-            <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-            <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
-            <td className="num muted">-</td>
-          </tr>
-        ))}
-        {results.map(f => {
-          const us = f.homeId === natId ? f.homeScore : f.awayScore
-          const them = f.homeId === natId ? f.awayScore : f.homeScore
-          return (
-            <tr key={f.id}>
-              <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-              <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
-              <td className="num" style={{ fontWeight: 700, color: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }}>
-                {f.homeScore}-{f.awayScore}
-              </td>
-            </tr>
-          )
-        })}
-        {!upcoming.length && !results.length && (
-          <tr><td className="meta">{t('legacy.coNoTests')}</td></tr>
-        )}
-      </tbody></table></div>
-      <div className="meta" style={{ padding: '4px 16px', fontSize: '0.75rem' }}>
-        {t('legacy.coFullTables')}
-      </div>
-      <div className="spacer" />
     </>
   )
 }

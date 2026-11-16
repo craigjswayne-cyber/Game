@@ -233,3 +233,6 @@
 }
 .gt-choice small { font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; }
 .gt-choice.sel { border-color: var(--row-selected-border); background: var(--row-selected-bg); }
+
+/* Club | Country (1.9.14): the segmented track from the new-career screen */
+.game-pick.side-switch { margin: 10px 14px 6px; }

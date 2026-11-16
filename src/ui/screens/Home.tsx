@@ -7,7 +7,7 @@ import { snIdFor, snWeeksFor } from '../../game/schedule'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { leaguePos, sortTable } from '../../game/schedule'
-import { arrangeFriendly, assistantFixtureThisWeek, userFixtureThisWeek } from '../../game/season'
+import { arrangeFriendly, assistantFixtureThisWeek, natFixtureThisWeek, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
 import { derbyName, rivalsOf } from '../../game/rivalries'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
@@ -109,6 +109,14 @@ export default function Home() {
   // played another international game").
   const assistantFx = assistantFixtureThisWeek(game)
   const assistants = !!assistantFx && !!fx && assistantFx.id === fx.id
+  // ---- THE TEST IS THE HERO ON A TEST WEEK (1.9.14) ----
+  // Player feedback, from a manager with a club and a country: "match week for
+  // club got muddled with international". The card above was relabelled
+  // "Assistant's match" in an earlier round, but it was still the club fixture
+  // in the hero's place, with the Test the manager actually coaches a tile
+  // further down. Now the Test takes the hero and the club match is one line
+  // under it, saying who has it.
+  const testFx = natFixtureThisWeek(game)
 
   // hub widgets: form pips, the board and the fans. The pips sort by week
   // inside formGuide - see its comment for the W W W W W screenshot this
@@ -199,7 +207,27 @@ export default function Home() {
           other card is a compact tile in the status grid below it, each still
           a button to the door it always opened, and the gold edge is kept for
           the hero while something waits on him (Desk.tsx). */}
-      <DeskCard desk={desk} hero match={fx ? (
+      <DeskCard desk={desk} hero match={testFx ? (
+        <div className="desk-match" data-desk-test {...rowNav(() => go('country'))} style={{ borderLeftColor: 'var(--gold)' }}>
+          <div className="desk-mhead">
+            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: '0.6875rem' }}>
+              {t('home.yourTest')}{compLabel(game.comps[testFx.compId]?.name) ? ` · ${compLabel(game.comps[testFx.compId]?.name)}` : ''}{testFx.stage ? ` · ${stageName(testFx.stage)}` : ''}
+            </div>
+          </div>
+          <h3 className="fx-line">
+            <Flag code={testFx.homeId} size={20} /> {nationName(testFx.homeId)} {t('common.v')} <Flag code={testFx.awayId} size={20} /> {nationName(testFx.awayId)}
+          </h3>
+          <div className="meta">
+            {fxDate(game.season, testFx)}{testFx.venue ? t('home.atNeutral') : testFx.homeId === game.natTeam || testFx.homeId === 'LIO' ? t('home.atHome') : t('home.atAway')}
+          </div>
+          <div className="desk-hook"><b>{t('home.testHook')}</b></div>
+          {assistantFx && (
+            <div className="muted" data-desk-assistant style={{ marginTop: 6 }}>
+              {t('home.assistantHas', { home: teamShort(game, assistantFx.homeId), away: teamShort(game, assistantFx.awayId) })}
+            </div>
+          )}
+        </div>
+      ) : fx ? (
         <div className="desk-match" {...rowNav(() => go(assistants ? 'country' : 'squad'))} style={{
           borderLeftColor: assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)',
         }}>

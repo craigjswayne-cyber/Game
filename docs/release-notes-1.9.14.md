@@ -3,7 +3,8 @@
 **READY (owner, 16 Nov 2026: "Ok we need to merge and upload this").**
 Started 15 Nov from player feedback ("Work on it now but dont merge and ill
 keep adding to it"). Free-agent talks added 16 Nov after the merge, before
-upload (owner: "Add it into 1.9.14 as I haven't uploaded that"). The store "What's new" text is in `docs/store-listing.md`.
+upload (owner: "Add it into 1.9.14 as I haven't uploaded that"), then the
+club-and-country fixes the same night (owner: add to 1.9.14). The store "What's new" text is in `docs/store-listing.md`.
 
 Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
 
@@ -41,6 +42,29 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   budget. A one-season deal still counts as two seasons for the resale rule,
   so signing free and selling on stays as hard as before. The two-season
   asking wage is exactly what the old button charged.
+
+- **One manager, two jobs: club and country, kept apart.** Player feedback
+  (Instagram, 16 Nov 2026), from a manager holding a club and a country:
+  "Couldn't see training for my international team, couldn't edit the squad,
+  match week for club got muddled with international". Three fixes:
+  - **The Test comes first on Home.** On a week with both, the hero card was
+    still the club match (labelled "Assistant's match", from an earlier
+    report) with the Test a tile further down. Now the hero is the Test,
+    with the club match one line under it: "Your assistant takes Leicester v
+    Sarries and reports back." Tapping it opens Club & Country.
+  - **The national squad is on the Team screen.** A **Club | Country**
+    switch at the top while you hold a national job. Country is the same
+    window squad as on Club & Country (call up and drop while camp is open,
+    the countdown and the coaches' picks between windows), not a copy.
+  - **National training: the camp focus.** A **Country** tab on Training &
+    Staff (with a dot while camp is open and nothing is chosen). Fitness, Set
+    pieces or Attack, the club's match prep with the same sizes and trade,
+    minus the briefing room: fitness tires about 8% slower; set pieces +4% on
+    scrum and lineout and -1% attack; attack +3.5% and -1% defence. It lasts
+    the window it was chosen in. Between windows the tab says when the next
+    camp opens.
+  The handbook's national-job answer says where both now live, in six
+  languages.
 
 - **Changing your marquee players.** Player feedback: "Not sure if an issue
   or user error, but I can't change my Marquee Players". It was the game:
@@ -91,6 +115,12 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
 
 ## Tests
 
+- New: `tests/natcamp.test.ts` (a focus only inside a window, gone the week
+  after it closes, tied to its nation, reaches the Test at kick-off, a
+  damaged one dropped on load) and `scripts/dualroleui.mjs` (browser: a
+  Leicester career with the England job walked to a week with both; the
+  Home hero is the Test with the assistant's line, the Team screen's
+  Country side has Drop and Call up, the Country tab stores a focus).
 - New: `tests/freeagenttalks.test.ts` (the old door unchanged, each length's
   asking, 95% signs, a lowball refused, a counter always honoured and the same
   week repeats it, never under the last wage, the guards, the two-season

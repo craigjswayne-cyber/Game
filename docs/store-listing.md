@@ -122,23 +122,23 @@ First release.
 
 ### What's new (500 max) - v1.9.14, Play version code 76 (confirm 75 is accepted on the Console first)
 
-**en-GB, Play and App Store** (421)
-New: a Season plan tab on Training & Staff. Between seasons, choose how you want to play (forwards, balanced or backs) and your pre-season work. Negotiate with free agents: offer a wage and a deal of one to three seasons. Marquee players: when both slots are full, swap one in a single tap from the player's page. The Game Time list is now as tight as Stats. Clearer leadership notes. And a new link to the PHASE Discord.
+**en-GB, Play and App Store** (429)
+New: a Season plan tab on Training & Staff to choose how you play and your pre-season work. Negotiate with free agents: offer a wage and a deal of one to three seasons. Club and country: on a Test week the Test comes first on Home, your national squad is on the Team screen, and each camp gets a focus. Marquee players can be swapped in one tap. Game Time is as tight as Stats. Clearer leadership notes. A new PHASE Discord link.
 
-**fr-FR, Play and App Store** (443)
-Nouveau : un onglet Plan de saison dans Entraînement et staff. Entre deux saisons, choisissez votre jeu (avants, équilibré ou trois-quarts) et votre travail de pré-saison. Négociez avec les agents libres : salaire et contrat d'une à trois saisons. Joueurs hors plafond : échangez-en un d'un seul geste depuis sa fiche. La liste Temps de jeu est aussi compacte que les Stats. Leadership mieux expliqué. Et un nouveau lien vers le Discord PHASE.
+**fr-FR, Play and App Store** (414)
+Nouveau : un onglet Plan de saison dans Entraînement et staff. Négociez avec les agents libres : salaire et contrat d'une à trois saisons. Club et sélection : le test passe en premier sur l'Accueil, le groupe national est sur l'écran Équipe et chaque rassemblement a son axe de travail. Joueurs hors plafond échangeables d'un geste. Temps de jeu plus compact. Leadership mieux expliqué. Nouveau lien Discord PHASE.
 
-**es-ES, Play and App Store** (455)
-Nuevo: una pestaña Plan de temporada en Entrenamiento y cuerpo técnico. Entre temporadas, elige cómo jugar (delanteros, equilibrado o tres cuartos) y tu pretemporada. Negocia con agentes libres: salario y contrato de una a tres temporadas. Jugadores franquicia: con las dos plazas ocupadas, cambia uno con un toque desde su ficha. La lista de Minutos es tan compacta como Estadísticas. Notas de liderazgo más claras. Y un nuevo enlace al Discord de PHASE.
+**es-ES, Play and App Store** (423)
+Nuevo: una pestaña Plan de temporada en Entrenamiento y cuerpo técnico. Negocia con agentes libres: salario y contrato de una a tres temporadas. Club y selección: en semana de test, el test va primero en Inicio, la convocatoria está en la pantalla Equipo y cada concentración tiene su enfoque. Jugadores franquicia: cambia uno con un toque. Minutos más compacto. Liderazgo mejor explicado. Nuevo enlace al Discord de PHASE.
 
-**it-IT, Play and App Store** (469)
-Novità: una scheda Piano della stagione in Allenamento e staff. Tra una stagione e l'altra, scegli come giocare (avanti, equilibrato o trequarti) e il lavoro precampionato. Tratta con i giocatori svincolati: ingaggio e contratto da una a tre stagioni. Giocatori marquee: con entrambi i posti occupati, scambiane uno con un tocco dalla sua scheda. L'elenco Minutaggio è compatto come le Statistiche. Note sulla leadership più chiare. E un nuovo link al Discord di PHASE.
+**it-IT, Play and App Store** (414)
+Novità: una scheda Piano della stagione in Allenamento e staff. Tratta con gli svincolati: ingaggio e contratto da una a tre stagioni. Club e nazionale: nella settimana del test il test è in cima alla Home, il gruppo nazionale è nella schermata Squadra e ogni raduno ha il suo tema. Giocatori marquee: scambiane uno con un tocco. Minutaggio più compatto. Leadership spiegata meglio. Nuovo link al Discord di PHASE.
 
-**ja-JP, Play and App Store** (215)
-新機能：トレーニングとスタッフに「シーズンプラン」タブ。シーズンの合間に戦い方（フォワード、バランス、バックス）とプレシーズンの練習を選べる。フリーエージェントと交渉可能に：週給と1〜3シーズンの契約年数を提示。マーキー選手：2枠とも埋まっていても、選手ページからワンタップで入れ替え可能に。出場時間の一覧がスタッツと同じくコンパクトに。チーム画面のリーダーシップ説明をわかりやすく。PHASEのDiscordへの新しいリンクも。
+**ja-JP, Play and App Store** (197)
+新機能：トレーニングとスタッフに「シーズンプラン」タブ。フリーエージェントと交渉可能に：週給と1〜3シーズンの契約年数を提示。クラブと代表：テストマッチの週はホームでテストが最優先に表示され、代表スコッドはチーム画面から、合宿ごとにテーマを選べる。マーキー選手はワンタップで入れ替え。出場時間の一覧をコンパクトに。リーダーシップ説明をわかりやすく。PHASEのDiscordへの新しいリンクも。
 
-**af, Play and App Store** (445)
-Nuut: 'n Seisoensplan-oortjie by Oefening & Personeel. Tussen seisoene kies jy hoe jy wil speel (voorspelers, gebalanseerd of agterspelers) en jou voorseisoenwerk. Onderhandel met vrye agente: bied 'n loon en 'n kontrak van een tot drie seisoene. Hoofspelers: as albei plekke vol is, ruil een met een tik op die speler se blad. Die Speeltyd-lys is nou so kompak soos Statistiek. Duideliker leierskapnotas. En 'n nuwe skakel na die PHASE-Discord.
+**af, Play and App Store** (386)
+Nuut: 'n Seisoensplan-oortjie by Oefening & Personeel. Onderhandel met vrye agente: bied 'n loon en 'n kontrak van een tot drie seisoene. Klub en land: in 'n toetsweek kom die toets eerste op Tuis, jou nasionale groep is op die Span-skerm en elke kamp kry 'n fokus. Ruil hoofspelers met een tik. Speeltyd is nou kompakter. Duideliker leierskapnotas. 'n Nuwe skakel na die PHASE-Discord.
 
 ### What's new (500 max) - v1.9.13, Play version code 75 (confirm 74 is accepted on the Console first)
 

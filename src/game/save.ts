@@ -1007,6 +1007,9 @@ function migrateManagerAndNation(s: GameState): void {
   s.natLineup ??= null
   // 9.10's sent-home list: absent before it existed, and a damaged one is just dropped
   if (s.natSent != null && !Array.isArray(s.natSent)) delete s.natSent
+  // the camp's focus (1.9.14): a malformed one is no focus, never a crash
+  if (s.natCamp != null && (typeof s.natCamp !== 'object' || !['fitness', 'setpiece', 'attack'].includes(s.natCamp.focus) ||
+    ![s.natCamp.season, s.natCamp.start, s.natCamp.end].every(n => typeof n === 'number' && Number.isFinite(n)) || typeof s.natCamp.nat !== 'string')) delete s.natCamp
   if (s.natFed != null && (typeof s.natFed !== 'object' || typeof s.natFed.nat !== 'string' || !Array.isArray(s.natFed.ids))) delete s.natFed
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist

@@ -12,6 +12,9 @@ import { Glyph } from '../glyphs'
 import { acc } from '../accent'
 import { planOpen, planThisSeason } from '../../game/preseasonplan'
 import { PreseasonPlan } from '../PreseasonPlan'
+import { CampFocus } from '../CampFocus'
+import { campWindow } from '../../game/country'
+import { campFocus } from '../../game/natcamp'
 
 /* keys, not words - see docs/i18n.md */
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -63,8 +66,10 @@ export default function Training() {
   // the Season plan tab is there from the last game of a season to the first
   // league match of the next (1.9.14, preseasonplan.ts planOpen)
   const planTab = planOpen(game)
-  const [ttab, setTtab] = useState<'training' | 'staff' | 'cond' | 'plan'>('training')
-  const tab = ttab === 'plan' && !planTab ? 'training' : ttab
+  // the Country tab: there while he also coaches a country (1.9.14, natcamp.ts)
+  const campTab = !!game.natTeam
+  const [ttab, setTtab] = useState<'training' | 'staff' | 'cond' | 'plan' | 'camp'>('training')
+  const tab = (ttab === 'plan' && !planTab) || (ttab === 'camp' && !campTab) ? 'training' : ttab
   const players = club.players.map(id => game.players[id]).filter(Boolean)
     .sort((a, b) => a.cond - b.cond)
 
@@ -79,8 +84,14 @@ export default function Training() {
             {t('preplan.title')}{!planThisSeason(game) && <span aria-hidden style={{ color: 'var(--gold)', marginLeft: 4 }}>•</span>}
           </button>
         )}
+        {campTab && (
+          <button className={tab === 'camp' ? 'active' : ''} data-tab="camp" onClick={() => setTtab('camp')}>
+            {t('camp.tab')}{campWindow(game) && !campFocus(game) && <span aria-hidden style={{ color: 'var(--gold)', marginLeft: 4 }}>•</span>}
+          </button>
+        )}
       </div>
       {tab === 'plan' && <div style={{ padding: '12px 14px 0' }}><PreseasonPlan /></div>}
+      {tab === 'camp' && <div style={{ padding: '12px 14px 0' }}><CampFocus /></div>}
       {tab === 'training' && <>
       <SectionTitle sub={t('training.weeklyFocusSub')}>{t('training.weeklyFocus')}</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 4, padding: '0 14px' }}>

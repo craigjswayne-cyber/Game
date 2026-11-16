@@ -1351,7 +1351,6 @@ export interface GameState {
    *  praises everybody praises nobody. */
   chatWk?: number
   chatsUsed?: number
-  /** national side the manager also coaches (FM-style dual role) */
   /** Which multiplier this save's absolute-week stamps were written on. Absent
    *  or 45 means a save from before the season grew to 48 weeks, and save.ts
    *  rebases it once, on load, to WEEK_BASIS. */
@@ -1959,6 +1958,9 @@ export interface GameState {
    *  call-up and drop cannot be cycled to grind another club's player's
    *  morale down (9.10). Absent in older saves, cleared with the window. */
   natSent?: number[]
+  /** THE CAMP'S FOCUS (1.9.14, natcamp.ts): what the national side works on
+   *  in the window it was chosen for, which the window's own weeks bound. */
+  natCamp?: { nat: string; season: number; start: number; end: number; focus: 'fitness' | 'setpiece' | 'attack' } | null
   /** the federation's own list for the user's nation, snapshotted when the
    *  window opened: the yardstick for the two-jobs rule (9.10). Absent in
    *  older saves and between windows. */
