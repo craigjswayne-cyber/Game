@@ -55,8 +55,9 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   as in 1.9.13 (one flag, SHOW_FAN_SENTIMENT, brings the card back).
 - **New Discord invite.** The old invites expired (owner, 16 Nov 2026). The
   game, the website, the support page and the store descriptions now use
-  discord.gg/kJg5NdsRnq. The bug-report and ideas buttons open the same
-  server invite until there are channel invites that do not expire.
+  discord.gg/kJg5NdsRnq. The bug screen's Post on Discord still opens the
+  bug-reports channel (its invite is live, owner); the ideas box opens the
+  server invite.
 
 - **Privacy policy and in-app data notice now list everything the adverts
   collect** (advertising ID, IP address, ad and app interactions, device and

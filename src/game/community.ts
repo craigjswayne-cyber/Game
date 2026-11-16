@@ -33,9 +33,8 @@ export const COMMUNITY_URL = 'https://discord.gg/kJg5NdsRnq'
  * Same rules as above: a link the player taps, nothing sent by the game
  * (scripts/netprobe.ts allows this address in this file too).
  */
-// 1.9.14: the channel invite expired with the server one; the server invite
-// stands in until the owner sends a channel invite that does not expire
-export const BUG_CHANNEL_URL = 'https://discord.gg/kJg5NdsRnq'
+// confirmed live by the owner, 16 Nov 2026, when the server invite was replaced
+export const BUG_CHANNEL_URL = 'https://discord.gg/TWmWQxu38z'
 
 /**
  * ---- IDEAS AND SUGGESTIONS (owner, round 6) ----
