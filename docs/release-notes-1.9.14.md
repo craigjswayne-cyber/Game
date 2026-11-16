@@ -6,19 +6,22 @@ closed, not before.
 
 ## What changed for players
 
-- **A season plan, every pre-season.** Player feedback: "Be good have a
+- **A season plan, every summer.** Player feedback: "Be good have a
   preseason focus choose how you will play that season & practice set play".
-  A card on Home in the pre-season weeks asks two questions, three answers
+  A **Season plan** tab on Training & Staff asks two questions, three answers
   each. **How do you want to play?** Forwards (direct attack, choke-tackle
   defence), Balanced (pods, drift) or Backs (width, blitz). **Pre-season
   work:** Fitness, Set pieces (scrum focus, with Set-Piece Work drilling the
-  lineout and scrum calls faster) or Attack. Each answer goes where its own
-  screen already reads it, so the detail can still be changed on Tactics and
-  Training; the card folds to one line with Change, ticks "Set your game plan"
-  on the first season's checklist, and is gone once the season starts. It
-  adds no rule of its own and leaves the set-piece calls alone (a call the
-  pack has not drilled misfires). The first version asked for 27 choices on
-  one card; owner: "I think the season plan is too confusing".
+  lineout and scrum calls faster) or Attack. The tab is there from the club's
+  last game of a season to its first league match of the next (owner: "It
+  dissapears for other times"), with a dot until the plan is set; a plan set
+  in the summer is for the season ahead. Each answer goes where its own screen
+  already reads it, so the detail can still be changed on Tactics and
+  Training; set, it folds to one line with Change, and ticks "Set your game
+  plan" on the first season's checklist. It adds no rule of its own and leaves
+  the set-piece calls alone (a call the pack has not drilled misfires). The
+  first version was a Home card with 27 choices; owner: "I think the season
+  plan is too confusing".
 
 - **Changing your marquee players.** Player feedback: "Not sure if an issue
   or user error, but I can't change my Marquee Players". It was the game:
@@ -41,8 +44,9 @@ closed, not before.
   list offers the swap, the swap moves the slot, Finances opens the player,
   and the locked page says why).
 - New: `tests/preseasonplan.test.ts`, `scripts/preplanui.mjs` (browser: the
-  card in week 1, Set waits for both answers, every answer at least 44px,
-  each lands on its screen, the card folds and is gone in the season).
+  tab on Training & Staff in week 1 and not on Home, Set waits for both answers, every answer at least 44px,
+  each lands on its screen, the card folds, and the tab is gone once the
+  first league match is played; the unit test walks a whole season).
 
 ## Still to come in this round
 

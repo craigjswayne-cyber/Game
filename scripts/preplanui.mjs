@@ -23,9 +23,13 @@ try {
   await page.waitForTimeout(700)
   await page.locator('.tut-close .btn').click({ timeout: 4000 }).catch(() => {})
   await page.evaluate(() => window.rugbyStore.getState().go('home'))
+  await page.waitForTimeout(400)
+  ok(await page.locator('.preplan').count() === 0, 'the season plan is not on Home (owner: a tab of Training and Staff)')
+  await page.evaluate(() => window.rugbyStore.getState().go('training'))
+  await page.locator('[data-tab="plan"]').click({ timeout: 5000 })
   const card = page.locator('.preplan[data-preplan="open"]')
   await card.waitFor({ timeout: 5000 })
-  ok(await card.count() === 1, `pre-season week ${(await G()).week}: the season plan is on Home`)
+  ok(await card.count() === 1, `pre-season week ${(await G()).week}: the Season plan tab is on Training and Staff`)
   ok(await card.locator('[data-preplan-set]').isDisabled(), 'Set the plan waits for both answers')
   await card.locator('[data-group="style"] [data-opt="backs"]').click()
   await card.locator('[data-group="work"] [data-opt="setpiece"]').click()
@@ -42,10 +46,10 @@ try {
   ok(await page.locator('.preplan[data-preplan="set"]').count() === 1, 'the card folds to one line')
   await page.locator('.preplan[data-preplan="set"] .btn').click()
   ok(await page.locator('.preplan[data-preplan="open"] [data-group="style"] [data-opt="backs"].sel').count() === 1, 'Change opens it again on the plan as set')
-  // into the season: the card goes
-  await page.evaluate(() => { const st = window.rugbyStore.getState(); st.game.week = 8; window.rugbyStore.setState({ game: { ...st.game } }) })
+  // the first league match played: the tab goes
+  await page.evaluate(() => { const st = window.rugbyStore.getState(); const g = st.game; const lg = g.clubs[g.userClubId].leagueId; const f = g.fixtures.find(x => x.compId === lg && (x.homeId === g.userClubId || x.awayId === g.userClubId)); f.played = true; window.rugbyStore.setState({ game: { ...g } }) })
   await page.waitForTimeout(300)
-  ok(await page.locator('.preplan').count() === 0, 'once the season is under way the card is gone')
+  ok(await page.locator('[data-tab="plan"]').count() === 0 && await page.locator('.preplan').count() === 0, 'once the first league match is played the tab is gone')
 } catch (e) {
   ok(false, `the harness threw: ${String(e).split('\n')[0].slice(0, 180)}`)
 } finally {

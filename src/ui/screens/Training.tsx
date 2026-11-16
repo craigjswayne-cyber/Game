@@ -10,6 +10,8 @@ import { SectionTitle, TwoStep } from '../components'
 import { t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { acc } from '../accent'
+import { planOpen, planThisSeason } from '../../game/preseasonplan'
+import { PreseasonPlan } from '../PreseasonPlan'
 
 /* keys, not words - see docs/i18n.md */
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -58,18 +60,28 @@ export default function Training() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const club = game.clubs[game.userClubId]
-  const [ttab, setTtab] = useState<'training' | 'staff' | 'cond'>('training')
+  // the Season plan tab is there from the last game of a season to the first
+  // league match of the next (1.9.14, preseasonplan.ts planOpen)
+  const planTab = planOpen(game)
+  const [ttab, setTtab] = useState<'training' | 'staff' | 'cond' | 'plan'>('training')
+  const tab = ttab === 'plan' && !planTab ? 'training' : ttab
   const players = club.players.map(id => game.players[id]).filter(Boolean)
     .sort((a, b) => a.cond - b.cond)
 
   return (
     <>
       <div className="tab-bar">
-        <button className={ttab === 'training' ? 'active' : ''} onClick={() => setTtab('training')}>{t('training.tabTraining')}</button>
-        <button className={ttab === 'staff' ? 'active' : ''} onClick={() => setTtab('staff')}>{t('training.tabStaff')}</button>
-        <button className={ttab === 'cond' ? 'active' : ''} onClick={() => setTtab('cond')}>{t('training.tabCondition')}</button>
+        <button className={tab === 'training' ? 'active' : ''} onClick={() => setTtab('training')}>{t('training.tabTraining')}</button>
+        <button className={tab === 'staff' ? 'active' : ''} onClick={() => setTtab('staff')}>{t('training.tabStaff')}</button>
+        <button className={tab === 'cond' ? 'active' : ''} onClick={() => setTtab('cond')}>{t('training.tabCondition')}</button>
+        {planTab && (
+          <button className={tab === 'plan' ? 'active' : ''} data-tab="plan" onClick={() => setTtab('plan')}>
+            {t('preplan.title')}{!planThisSeason(game) && <span aria-hidden style={{ color: 'var(--gold)', marginLeft: 4 }}>•</span>}
+          </button>
+        )}
       </div>
-      {ttab === 'training' && <>
+      {tab === 'plan' && <div style={{ padding: '12px 14px 0' }}><PreseasonPlan /></div>}
+      {tab === 'training' && <>
       <SectionTitle sub={t('training.weeklyFocusSub')}>{t('training.weeklyFocus')}</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 4, padding: '0 14px' }}>
         {FOCUSES.map(f => (
@@ -103,8 +115,8 @@ export default function Training() {
           show (owner, 1.8.0); the rules live in game/development.ts */}
       <DevelopmentPanel />
       </>}
-      {ttab === 'staff' && <StaffPanel />}
-      {ttab === 'cond' && <>
+      {tab === 'staff' && <StaffPanel />}
+      {tab === 'cond' && <>
       <SectionTitle sub={t('training.conditionReportSub')}>{t('training.conditionReport')}</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>{t('squad.colName')}</th><th className="num">{t('training.colFitness')}</th><th className="num">{t('training.colSharpness')}</th><th>{t('training.colStatus')}</th></tr></thead>

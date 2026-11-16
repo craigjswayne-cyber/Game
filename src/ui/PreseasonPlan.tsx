@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import { t } from '../game/i18n'
-import { PLAN_STYLES, PLAN_WORKS, planThisSeason, planWeeks, setPreseasonPlan, type PlanStyle, type PlanWork } from '../game/preseasonplan'
+import { PLAN_STYLES, PLAN_WORKS, planOpen, planThisSeason, setPreseasonPlan, type PlanStyle, type PlanWork } from '../game/preseasonplan'
 import { acc } from './accent'
 
 /**
- * THE SEASON PLAN (1.9.14, preseasonplan.ts): one card on Home in the
- * pre-season weeks, two questions with three big answers each. Set, it folds
+ * THE SEASON PLAN (1.9.14, preseasonplan.ts): the Season plan tab of Training
+ * and Staff, open from the club's last game of a season to its first league
+ * match of the next (planOpen). Two questions with three big answers each. Set, it folds
  * to one line with Change; the detail stays on Tactics and Training.
  */
 export function PreseasonPlan() {
@@ -16,7 +17,7 @@ export function PreseasonPlan() {
   const [editing, setEditing] = useState(false)
   const [style, setStyle] = useState<PlanStyle | null>(null)
   const [work, setWork] = useState<PlanWork | null>(null)
-  if (!game || !planWeeks(game)) return null
+  if (!game || !planOpen(game)) return null
   const set = planThisSeason(game)
 
   if (set && !editing) {

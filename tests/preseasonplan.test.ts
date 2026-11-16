@@ -6,17 +6,44 @@
  */
 import { describe, expect, it } from 'vitest'
 import { newGame } from '../src/game/newgame'
-import { FOCUS_OF, STYLE_OF, planThisSeason, planWeeks, setPreseasonPlan } from '../src/game/preseasonplan'
+import { FOCUS_OF, STYLE_OF, planOpen, planSeason, planThisSeason, setPreseasonPlan } from '../src/game/preseasonplan'
+import { processWeekAndAdvance } from '../src/game/season'
 
 describe('the season plan', () => {
-  it('is offered in pre-season and not once the season starts', () => {
+  it('is open in pre-season, and not for an unemployed manager', () => {
     const g = newGame('leicester', 'Plan', 3)
-    expect(planWeeks(g)).toBe(true)
-    g.week = 10
-    expect(planWeeks(g)).toBe(false)
-    g.week = 1; g.unemployed = true
-    expect(planWeeks(g)).toBe(false)
+    expect(planOpen(g)).toBe(true)
+    expect(planSeason(g)).toBe(g.season)
+    g.unemployed = true
+    expect(planOpen(g)).toBe(false)
   })
+
+  it('closes at the first league match, opens after the last game for next season, and carries over', () => {
+    const g = newGame('leicester', 'Plan', 3)
+    const s0 = g.season
+    const mine = () => g.fixtures.filter(f => (f.homeId === g.userClubId || f.awayId === g.userClubId) && f.compId !== 'fr')
+    const leaguePlayed = () => mine().some(f => f.compId === g.clubs[g.userClubId].leagueId && f.played)
+    // through the pre-season: open until the first league match is played
+    let guard = 0
+    while (!leaguePlayed() && guard++ < 30) { expect(planOpen(g)).toBe(true); processWeekAndAdvance(g) }
+    expect(planOpen(g)).toBe(false)
+    // in the season it stays shut while any competitive game is left
+    while (g.season === s0 && mine().some(f => !f.played) && guard++ < 80) {
+      expect(planOpen(g)).toBe(false)
+      processWeekAndAdvance(g)
+    }
+    // the summer: open, for next season
+    if (g.season === s0) {
+      expect(planOpen(g)).toBe(true)
+      expect(planSeason(g)).toBe(s0 + 1)
+      setPreseasonPlan(g, 'backs', 'attack')
+      while (g.season === s0 && guard++ < 120) { expect(planOpen(g)).toBe(true); processWeekAndAdvance(g) }
+    }
+    // the new pre-season: still open, and a summer plan counts for it
+    expect(g.season).toBe(s0 + 1)
+    expect(planOpen(g)).toBe(true)
+    expect(planThisSeason(g)?.style).toBe('backs')
+  }, 120_000)
 
   it.each(['forwards', 'balanced', 'backs'] as const)('%s sets its attack and defence styles', style => {
     const g = newGame('leicester', 'Plan', 3)

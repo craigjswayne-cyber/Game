@@ -5,7 +5,8 @@
 // sounds like a good update for 1.9.14", then, on the first version (five
 // rows, 27 choices): "I think the season plan is too confusing".
 //
-// So it is two questions with three answers each. How do you want to play
+// So it is two questions with three answers each, on its own tab of Training
+// and Staff while the plan is open (planOpen). How do you want to play
 // (forwards, balanced, backs) picks an attack and a defence style; the
 // pre-season work (fitness, set pieces, attack) picks the training focus, and
 // set pieces also turns on Set-Piece Work, which drills the lineout and scrum
@@ -15,7 +16,6 @@
 // the same way are the same club. The set-piece calls are left alone: a call
 // the pack has not drilled misfires, and a one-tap card should not do that.
 import type { GameState, TrainingFocus } from './model'
-import { preseasonWeeksFor } from './calendar'
 import { applyAtkStyle, applyDefStyle, type AtkStyle, type DefStyle } from './styles'
 import { noteStep } from './firststeps'
 
@@ -43,17 +43,51 @@ export interface PreseasonPlan {
   work: PlanWork
 }
 
-/** The weeks the card is on Home: the pre-season, in work. */
-export function planWeeks(state: GameState): boolean {
-  if (state.unemployed || !state.clubs[state.userClubId]) return false
-  return preseasonWeeksFor(state.gender ?? 'm').includes(state.week)
+/**
+ * WHEN THE PLAN IS OPEN (owner, 16 Nov 2026: "have it as a tab that appears
+ * in pre season and from the last game to the first league season of the next
+ * season. Repeating. It dissapears for other times"). Two stretches:
+ *   - the summer: the club has played every competitive match it has, and the
+ *     league's last round is behind it (a club still in the play-offs has its
+ *     tie on the list, unplayed, so it is not in the summer yet);
+ *   - the pre-season: no league match played yet this season.
+ * Friendlies count for neither.
+ */
+export function planOpen(state: GameState): boolean {
+  if (state.unemployed) return false
+  return afterLastGame(state) || beforeFirstLeague(state)
 }
 
-/** The plan this season, if one has been set (a plan saved by the first
- *  version of the card, with no style, reads as not set). */
+function mine(state: GameState) {
+  const id = state.userClubId
+  return state.fixtures.filter(f => (f.homeId === id || f.awayId === id) && f.compId !== 'fr')
+}
+
+function beforeFirstLeague(state: GameState): boolean {
+  const club = state.clubs[state.userClubId]
+  if (!club) return false
+  return !mine(state).some(f => f.compId === club.leagueId && f.played)
+}
+
+function afterLastGame(state: GameState): boolean {
+  const club = state.clubs[state.userClubId]
+  if (!club) return false
+  const fx = mine(state)
+  const league = fx.filter(f => f.compId === club.leagueId)
+  if (!league.length || fx.some(f => !f.played)) return false
+  return state.week > Math.max(...league.map(f => f.week))
+}
+
+/** The season the plan is for: next season once this one's games are done. */
+export function planSeason(state: GameState): number {
+  return afterLastGame(state) ? state.season + 1 : state.season
+}
+
+/** The plan for the season ahead, if one has been set (a plan saved by the
+ *  first version of the card, with no style, reads as not set). */
 export function planThisSeason(state: GameState): PreseasonPlan | null {
   const p = state.preplan
-  return p && p.season === state.season && PLAN_STYLES.includes(p.style) && PLAN_WORKS.includes(p.work) ? p : null
+  return p && p.season === planSeason(state) && PLAN_STYLES.includes(p.style) && PLAN_WORKS.includes(p.work) ? p : null
 }
 
 /** Write the two answers where the game already reads them. */
@@ -66,7 +100,7 @@ export function setPreseasonPlan(state: GameState, style: PlanStyle, work: PlanW
   state.training = FOCUS_OF[work]
   if (work === 'setpiece') state.matchPrep = 'setpiece'
   else if (state.matchPrep === 'setpiece') state.matchPrep = undefined
-  state.preplan = { season: state.season, style, work }
+  state.preplan = { season: planSeason(state), style, work }
   // the plan IS the game plan: the first season's checklist ticks it
   noteStep(state, 'plan')
 }
