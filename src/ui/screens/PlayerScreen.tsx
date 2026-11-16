@@ -849,17 +849,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         if (!isMarquee && marquee.length >= MARQUEE_SLOTS) return (
           <div className="marquee-swap" data-marquee-swap>
             <div className="meta muted" style={{ marginTop: 6 }}>{t('player.marqueeFull')}</div>
-            {marquee.map(id => {
-              const o = game.players[id]
-              if (!o) return null
-              return (
-                <button key={id} className="btn ghost block" style={{ marginTop: 6 }} onClick={() => {
-                  if (!swapMarquee(game, id, p.id)) return
-                  setMsg(t('player.marqueeSwapped', { name: p.name, out: o.name }))
-                  touch()
-                }}>{t('player.marqueeSwap', { out: o.name })}</button>
-              )
-            })}
+            {/* one row, side by side: the player page is held to three
+                screens on a phone (scrollaudit) */}
+            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+              {marquee.map(id => {
+                const o = game.players[id]
+                if (!o) return null
+                return (
+                  <button key={id} className="btn ghost" style={{ flex: 1, minWidth: 0 }} onClick={() => {
+                    if (!swapMarquee(game, id, p.id)) return
+                    setMsg(t('player.marqueeSwapped', { name: p.name, out: o.name }))
+                    touch()
+                  }}>{t('player.marqueeSwap', { out: o.name })}</button>
+                )
+              })}
+            </div>
           </div>
         )
         return (
