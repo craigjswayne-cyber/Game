@@ -153,6 +153,8 @@ async function sweep(label, { night, systemScheme }) {
     // tab across on the same screen; it lists the whole squad since the "Needs
     // a word" shortlist chip went (owner, round 2), so opening the tab is enough. Visiting Team twice used to measure the Selection
     // pane both times and never reach the ledger's status selects at all.
+    // Since 1.9.14 the ledger holds no field either (its status opens a sheet
+    // of buttons), so it too is measured for the record and reports none.
     for (const [where, menu, item, ...then] of [
       ['the leadership card and selection', 'Hub', 'Team'],
       ['the game-time ledger', 'Hub', 'Team', '.tab-bar >> text=Game Time'],
@@ -180,11 +182,15 @@ async function sweep(label, { night, systemScheme }) {
       report(`the ${tab.toLowerCase()} page`, await measure())
     }
 
-    // The floor. Fourteen is comfortably under what the sweep finds today and
-    // comfortably over zero, so a menu label that gets renamed shows up as a
-    // failure here rather than as a quiet row of "no form controls on screen".
+    // The floor, so a menu label that gets renamed shows up as a failure here
+    // rather than as a quiet row of "no form controls on screen". It was 14
+    // while the game-time ledger held a status select per player; 1.9.14 made
+    // that a line of text that opens a sheet of buttons (owner: "tighter like
+    // the stats page"), as 0f30962 did for the leadership card, leaving five
+    // fields: the manager's name, the mentoring search, the transfer filters'
+    // two and the handbook search. Losing any one of those screens drops below.
     console.log(`  ${measured} controls measured across the sweep`)
-    ok(measured >= 14, `the sweep reached the game's fields (${measured} measured, floor 14)`)
+    ok(measured >= 5, `the sweep reached the game's fields (${measured} measured, floor 5)`)
   } finally {
     await page.close()
   }

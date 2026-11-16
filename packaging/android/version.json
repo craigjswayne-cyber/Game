@@ -109,12 +109,13 @@
     "62 IS 1.9.3, the owner's round of 19 Oct 2026: plain menus, head injury checks only for made-up players, the store review card after eight matches, TikTok and Instagram, Source Serif 4 and Hanken Grotesk, a spare save copy each session. Check the Console's highest accepted code before building: 62 assumes 61 was the last.",
     "61 IS 1.9.2, the owner's feedback round of 18 Oct 2026: 2026-27 squads, the real pitch for every club, head injury checks that ask the manager, team talks with bigger stakes, half-time recovery, female referees, one save slot free and four with Pro Manager, and the new fonts and cards. Check the Console's highest accepted code before building: 61 assumes 60 was the last.",
     "75 IS 1.9.13 (it was first written up as 72, before 1.9.12 shipped on 74). Every sheet drawn at the app root, He/She per career, the Stats tab, every match's MOTM, loan options, the Job Centre badge, three footer banners, the physio report, the fans breakdown, the Stats tab's season in the 22, Arm round the shoulder, character filters, dressing-room alerts, native haptics with a Settings switch, the Within my budget filter and last-year contracts a quarter cheaper. Needs npm install before scaffold.sh (the Haptics plugin). Check the Console's highest accepted code before building: 75 assumes 74 (1.9.12) was the last.",
+    "76 IS 1.9.14: the season plan (a Training & Staff tab from the last game to the first league match), marquee players swappable when both slots are full, Game Time as tight as Stats, plainer leadership notes, the feedback report's STORE line, what the fans think hidden, the new Discord invite, and the privacy policy and in-app notice listing everything the adverts collect. Check the Console's highest accepted code is 75 before building.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026).",
     "reviewLibrary is the Play In-App Review library behind PhaseBilling.review() (1.9.3)."
   ],
-  "versionCode": 75,
+  "versionCode": 76,
   "billingLibrary": "8.0.0",
   "reviewLibrary": "2.0.2"
 }

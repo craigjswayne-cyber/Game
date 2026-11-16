@@ -1581,6 +1581,8 @@ export interface GameState {
   /** the first season's checklist (firststeps.ts); absent on a career begun
    *  before it existed, which then never shows it */
   firstSteps?: import('../firststeps').FirstSteps
+  /** the season plan set on Home in pre-season (1.9.14, preseasonplan.ts) */
+  preplan?: import('../preseasonplan').PreseasonPlan
   /** ---- v1.1.0: what the owner paid for (grants.ts, monetise.ts) ----
    *  Nothing below is ever set by the game itself - scripts/grantprobe.ts
    *  holds that a fresh career carries none of it. */

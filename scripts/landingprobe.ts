@@ -85,7 +85,7 @@ ok(/mailto:info@fwdsandbcks\.com/.test(html), 'and carries the contact address f
 }
 // the publisher is the company, by its registered name (1.8.0)
 ok(/A game by <a href="https:\/\/www\.fwdsandbcks\.com\/">FWDS &amp; BCKS LTD<\/a>/.test(html), 'it names the publisher and links to the studio site')
-ok(/href="https:\/\/discord\.gg\/3KKfDVsMb"/.test(html), 'and to the PHASE Discord')
+ok(/href="https:\/\/discord\.gg\/kJg5NdsRnq"/.test(html), 'and to the PHASE Discord')
 // app-ads.txt at the site root (1.8.0): AdMob checks the developer website on
 // the store listing for it, and serves fewer, cheaper adverts to an app whose
 // site does not vouch for its publisher id

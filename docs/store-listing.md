@@ -92,7 +92,7 @@ ON YOUR PHONE
 FREE TO PLAY
 Small banners sit at the foot of some screens, never over a decision. The "watch an advert" buttons are optional. Pro Manager removes the banners for good. Other optional purchases speed a career along, from board funding to a fully fit squad. You don't need any of them.
 
-Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/3KKfDVsMb
+Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 ```
@@ -119,6 +119,26 @@ First release.
 • Fixed a layout gap above the scoreboard on very tall screens.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
+
+### What's new (500 max) - v1.9.14, Play version code 76 (confirm 75 is accepted on the Console first)
+
+**en-GB, Play and App Store** (390)
+New: a Season plan tab on Training & Staff. Between seasons, choose how you want to play (forwards, balanced or backs) and your pre-season work. Marquee players: when both slots are full, swap one in a single tap from the player's page. The Game Time list is now as tight as Stats; tap a status to change it. Clearer leadership notes on the Team screen. And a new link to the PHASE Discord.
+
+**fr-FR, Play and App Store** (471)
+Nouveau : un onglet Plan de saison dans Entraînement et staff. Entre deux saisons, choisissez votre façon de jouer (avants, équilibré ou trois-quarts) et votre travail de pré-saison. Joueurs hors plafond : quand les deux places sont prises, échangez-en un d'un seul geste depuis sa fiche. La liste Temps de jeu est aussi compacte que les Stats ; touchez un statut pour le changer. Des explications plus claires sur le leadership. Et un nouveau lien vers le Discord PHASE.
+
+**es-ES, Play and App Store** (437)
+Nuevo: una pestaña Plan de temporada en Entrenamiento y cuerpo técnico. Entre temporadas, elige cómo quieres jugar (delanteros, equilibrado o tres cuartos) y tu trabajo de pretemporada. Jugadores franquicia: con las dos plazas ocupadas, cambia uno con un solo toque desde su ficha. La lista de Minutos es tan compacta como Estadísticas; toca un estado para cambiarlo. Notas de liderazgo más claras. Y un nuevo enlace al Discord de PHASE.
+
+**it-IT, Play and App Store** (426)
+Novità: una scheda Piano della stagione in Allenamento e staff. Tra una stagione e l'altra, scegli come vuoi giocare (avanti, equilibrato o trequarti) e il lavoro precampionato. Giocatori marquee: con entrambi i posti occupati, scambiane uno con un tocco dalla sua scheda. L'elenco Minutaggio è compatto come le Statistiche; tocca uno stato per cambiarlo. Note sulla leadership più chiare. E un nuovo link al Discord di PHASE.
+
+**ja-JP, Play and App Store** (194)
+新機能：トレーニングとスタッフに「シーズンプラン」タブ。シーズンの合間に戦い方（フォワード、バランス、バックス）とプレシーズンの練習を選べる。マーキー選手：2枠とも埋まっていても、選手ページからワンタップで入れ替え可能に。出場時間の一覧がスタッツと同じくコンパクトに。ステータスをタップして変更。チーム画面のリーダーシップ説明をわかりやすく。PHASEのDiscordへの新しいリンクも。
+
+**af, Play and App Store** (417)
+Nuut: 'n Seisoensplan-oortjie by Oefening & Personeel. Tussen seisoene kies jy hoe jy wil speel (voorspelers, gebalanseerd of agterspelers) en jou voorseisoenwerk. Hoofspelers: as albei plekke vol is, ruil een met een tik op die speler se blad. Die Speeltyd-lys is nou so kompak soos Statistiek; tik op 'n status om dit te verander. Duideliker leierskapnotas op die Span-skerm. En 'n nuwe skakel na die PHASE-Discord.
 
 ### What's new (500 max) - v1.9.13, Play version code 75 (confirm 74 is accepted on the Console first)
 
@@ -1712,7 +1732,7 @@ Libérez un joueur, il reviendra peut-être marquer contre vous. Rompez une prom
 Bâtissez quelque chose qui restera.
 
 DEUX JEUX, UNE APPLI
-• Rugby masculin : neuf championnats et 107 clubs en Angleterre, France, Provinces unies, Pacifique, Japon et États-Unis, de l'élite à la National One.
+• Rugby masculin : neuf championnats et 113 clubs en Angleterre, France, Provinces unies, Pacifique, Japon et États-Unis, de l'élite à la National One.
 • Rugby féminin, pensé pareil, pas greffé : six championnats et 64 clubs en Angleterre, France, Pacifique et provinces celtes, avec sa coupe continentale, ses tests et ses défis de carrière.
 
 LE MONDE
@@ -1746,7 +1766,7 @@ SUR MOBILE
 GRATUIT
 De petites bannières au bas de certains écrans, jamais sur une décision. Les boutons « regarder une pub » sont facultatifs. Pro Manager supprime les bannières pour de bon. D'autres achats facultatifs accélèrent la carrière, des fonds du conseil à un effectif en pleine forme. Aucun n'est nécessaire.
 
-Parlez rugby, partagez vos idées, signalez un bug sur le Discord PHASE : discord.gg/3KKfDVsMb
+Parlez rugby, partagez vos idées, signalez un bug sur le Discord PHASE : discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager est un jeu non officiel et indépendant. Les noms de clubs sont réels ; compétitions, stades et sponsors sont renommés ou inventés. Les noms des joueurs sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre ; le jeu n'est affilié à aucun joueur, club, ligue ou instance dirigeante, ni approuvé ou licencié par eux, et ne contient aucun écusson, maillot ou logo officiel.
 ```
@@ -1942,7 +1962,7 @@ Da la baja a un jugador y quizá vuelva para marcarte un ensayo. Rompe una prome
 Construye algo digno de recordar.
 
 DOS JUEGOS, UNA APP
-• Rugby masculino: nueve ligas y 107 clubes en Inglaterra, Francia, las Provincias Unidas, el Pacífico, Japón y EE. UU., de la élite a la National One.
+• Rugby masculino: nueve ligas y 113 clubes en Inglaterra, Francia, las Provincias Unidas, el Pacífico, Japón y EE. UU., de la élite a la National One.
 • Rugby femenino, hecho igual, no como añadido: seis ligas y 64 clubes en Inglaterra, Francia, el Pacífico y las provincias celtas, con su copa continental, test matches y desafíos de carrera.
 
 EL MUNDO
@@ -1976,7 +1996,7 @@ EN TU MÓVIL
 GRATIS
 Pequeños banners al pie de algunas pantallas, nunca sobre una decisión. Los botones «ver un anuncio» son opcionales. Pro Manager elimina los banners para siempre. Otras compras opcionales aceleran la carrera, de fondos de la directiva a una plantilla en plena forma. No necesitas ninguna.
 
-Habla de rugby, comparte ideas e informa de fallos en el Discord de PHASE: discord.gg/3KKfDVsMb
+Habla de rugby, comparte ideas e informa de fallos en el Discord de PHASE: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager es un juego no oficial e independiente. Los nombres de los clubes son reales; competiciones, estadios y patrocinadores están renombrados o inventados. Los nombres de los jugadores son reales y solo sirven para identificar a personas en una base de datos deportiva; el juego no está afiliado a ningún jugador, club, liga u organismo rector, ni cuenta con su respaldo o licencia, y no contiene escudos, equipaciones ni logotipos oficiales.
 ```
@@ -2033,7 +2053,7 @@ Svincola un giocatore e magari tornerà a segnarti contro. Rompi una promessa e 
 Costruisci qualcosa da ricordare.
 
 DUE GIOCHI, UN'APP
-• Il maschile: nove campionati e 107 club tra Inghilterra, Francia, Province Unite, Pacifico, Giappone e Stati Uniti, dalla massima serie alla National One.
+• Il maschile: nove campionati e 113 club tra Inghilterra, Francia, Province Unite, Pacifico, Giappone e Stati Uniti, dalla massima serie alla National One.
 • Il femminile, costruito allo stesso modo, non aggiunto in coda: sei campionati e 64 club tra Inghilterra, Francia, Pacifico e province celtiche, con coppa continentale, test match e sfide di carriera propri.
 
 IL MONDO
@@ -2067,7 +2087,7 @@ SUL TUO TELEFONO
 GRATIS
 Piccoli banner in fondo a certe schermate, mai sopra una decisione. I pulsanti «guarda una pubblicità» sono facoltativi. Pro Manager toglie i banner per sempre. Altri acquisti facoltativi accelerano la carriera, dai fondi della società a una rosa in piena forma. Non ne serve nessuno.
 
-Parla di rugby, condividi idee e segnala problemi sul Discord di PHASE: discord.gg/3KKfDVsMb
+Parla di rugby, condividi idee e segnala problemi sul Discord di PHASE: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager è un gioco non ufficiale e indipendente. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi dei giocatori sono reali e usati solo per identificare persone in un database sportivo; il gioco non è affiliato ad alcun giocatore, club, lega o organo di governo, né da essi approvato o concesso in licenza, e non contiene stemmi, divise o loghi ufficiali.
 ```
@@ -2124,7 +2144,7 @@ PHASE: Rugby Manager
 語り継がれるクラブを築こう。
 
 ひとつのアプリに、ふたつのゲーム
-• 男子：イングランド、フランス、ユナイテッド・プロヴィンシズ、パシフィック、日本、アメリカの9リーグ107クラブ。最上位リーグからナショナル1まで。
+• 男子：イングランド、フランス、ユナイテッド・プロヴィンシズ、パシフィック、日本、アメリカの9リーグ113クラブ。最上位リーグからナショナル1まで。
 • 女子：後付けではなく、男子と同じ作り込みで。イングランド、フランス、パシフィック、ケルティックの6リーグ64クラブ。独自のコンチネンタルカップ、テストマッチ日程、キャリアチャレンジも。
 
 世界
@@ -2158,7 +2178,7 @@ PHASE: Rugby Manager
 基本プレイ無料
 一部の画面の下に小さなバナーが出ますが、決断の上に重なることはありません。「広告を見る」ボタンは任意です。Pro Managerでバナーは完全に消えます。そのほかの任意の購入で、取締役会からの資金からスカッド全員のコンディション回復まで、キャリアを早めることができます。どれも必須ではありません。
 
-PHASEのDiscordで、ラグビー談義、アイデアの共有、不具合の報告をどうぞ：discord.gg/3KKfDVsMb
+PHASEのDiscordで、ラグビー談義、アイデアの共有、不具合の報告をどうぞ：discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Managerは非公式の独立系ゲームです。クラブ名は実在のものです。大会、スタジアム、スポンサーは名称を変更したもの、または架空のものです。選手名は実在のもので、スポーツデータベース内で人物を識別するためだけに使用しています。本ゲームはいかなる選手、クラブ、リーグ、統括団体とも提携しておらず、承認やライセンスも受けていません。公式のエンブレム、ユニフォーム、ロゴは一切含まれていません。
 ```
@@ -2189,14 +2209,14 @@ Kies die XV en maak vrede daarmee. 'n Diep rugbybestuurspel wat aflyn speel.
 ```
 Jou klub. Jou erfenis. Jou tyd.
 
-Vat 'n rugbyklub en maak dit jou eie. Kies die XV, kontrakteer spelers, maak 'n plan en staan Saterdag jou man. PHASE: Rugby Manager is 'n rugbybestuurspel in die tradisie van teks-simulasies: digte spantabelle, 'n regte besluit byna elke dag, en 'n loopbaan wat in seisoen vyftien nog seisoen een onthou.
+Vat 'n rugbyklub en maak dit jou eie. Kies die XV, kontrakteer spelers, maak 'n plan, en Saterdag moet dit werk. PHASE: Rugby Manager is 'n rugbybestuurspel in die tradisie van teks-simulasies: digte spantabelle, 'n regte besluit byna elke dag, en 'n loopbaan wat in seisoen vyftien nog seisoen een onthou.
 
 'n Speler wat jy laat gaan, kan terugkom om 'n drie teen jou te druk. Breek 'n belofte en die agent wil meer hê. 'n Tiener wat deur jou akademie kom, kan eendag jou kaptein wees.
 
 Bou iets wat die moeite werd is om te onthou.
 
 TWEE SPELETJIES, EEN TOEP
-• Mansrugby: nege ligas en 107 klubs in Engeland, Frankryk, die Verenigde Provinsies, die Stille Oseaan, Japan en die VSA, van die topliga tot National One.
+• Mansrugby: nege ligas en 113 klubs in Engeland, Frankryk, die Verenigde Provinsies, die Stille Oseaan, Japan en die VSA, van die topliga tot National One.
 • Vrouerugby, net so gebou en nie later aangelas nie: ses ligas en 64 klubs in Engeland, Frankryk, die Stille Oseaan en die Keltiese provinsies, met 'n eie kontinentale beker, toetskalender en loopbaanuitdagings.
 
 DIE WÊRELD
@@ -2230,7 +2250,7 @@ OP JOU FOON
 GRATIS OM TE SPEEL
 Klein baniere onderaan sommige skerms, nooit oor 'n besluit nie. Die “kyk 'n advertensie”-knoppies is opsioneel. Pro-bestuurder verwyder die baniere permanent. Ander opsionele aankope versnel 'n loopbaan, van Raadsfondse tot 'n volledig fikse span. Jy het niks daarvan nodig nie.
 
-Praat rugby, deel idees en rapporteer probleme op die PHASE-Discord: discord.gg/3KKfDVsMb
+Praat rugby, deel idees en rapporteer probleme op die PHASE-Discord: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager is 'n nie-amptelike, onafhanklike spel. Klubname is eg; kompetisies, stadions en borge is herdoop of versin. Spelersname is eg en word net gebruik om mense in 'n sportdatabasis te identifiseer; die spel is nie geaffilieer met, onderskryf deur of gelisensieer deur enige speler, klub, liga of beheerliggaam nie, en bevat geen amptelike klubwapens, truie of logo's nie.
 ```
@@ -2364,7 +2384,7 @@ Now on iPhone and iPad. New: retrain a player for a new position, set the traini
 ```
 Your club. Your legacy. Your time.
 
-A proper rugby union manager: 171 real clubs across the men's and women's game, 2026-27 squads with real player names, and a career that remembers season one when you reach season fifteen.
+A proper rugby union manager: 177 real clubs across the men's and women's game, 2026-27 squads with real player names, and a career that remembers season one when you reach season fifteen.
 
 Pick the XV, sign the players, set the plan, and answer for all of it on Saturday. Release a player and they may come back to score against you. Break a promise and the agent wants more.
 
@@ -2372,7 +2392,7 @@ Build something worth remembering.
 
 TWO GAMES, ONE APP
 
-• The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, from the top flight down to National One.
+• The men's game: nine leagues and 113 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, from the top flight down to National One.
 
 • The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar and career challenges.
 
@@ -2424,7 +2444,7 @@ FREE TO PLAY
 
 Small banners at the foot of some screens, never over a decision. "Watch an advert" buttons are optional. Pro Manager removes every advert for good. Other optional purchases speed a career along, from board funding to a fully fit squad. You don't need any of them.
 
-Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/3KKfDVsMb
+Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used only to identify people in a sporting database. The game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 ```

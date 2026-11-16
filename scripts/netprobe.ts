@@ -75,12 +75,11 @@ const ALLOWED: [string, RegExp][] = [
   // AND THE COMMUNITY INVITE (1.8.1). A link the player taps, opened outside
   // the game; nothing is sent with it and nothing fetches it. Exact code only:
   // another invite, another host or this one in another file still fails.
-  ['src/game/community.ts', /https:\/\/discord\.gg\/3KKfDVsMb/g],
+  ['src/game/community.ts', /https:\/\/discord\.gg\/kJg5NdsRnq/g],
   // and the bug-reports channel invite (1.8.2), the same kind of link, the
   // same file, only the bug screen's Post on Discord button opens it
   ['src/game/community.ts', /https:\/\/discord\.gg\/TWmWQxu38z/g],
-  // and the ideas invite (owner, round 6): ideas and suggestions open it
-  ['src/game/community.ts', /https:\/\/discord\.gg\/472rzEQbZ/g],
+  // the ideas box uses the server invite since 1.9.14 (its own invite expired)
   // the game's TikTok and Instagram (1.9.3): links the player taps on About
   ['src/game/community.ts', /https:\/\/www\.tiktok\.com\/@phaserugbymanager/g],
   ['src/game/community.ts', /https:\/\/www\.instagram\.com\/phaserugbymanager\//g],

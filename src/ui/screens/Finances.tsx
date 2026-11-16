@@ -11,7 +11,7 @@ import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { demandedFinish } from '../../game/chairman'
-import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
+import { MARQUEE_SLOTS, capPosition, capWord, marqueeOpen, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle, RewardedButton, spotNote } from '../components'
 import { AdSlot } from '../AdSlot'
 import { IcoClock, IcoOpen, IcoTick } from '../icons'
@@ -627,11 +627,15 @@ export default function Finances() {
               {marquee.length === 0
                 ? <div className="meta">{t('finances.noMarquee')}</div>
                 : marquee.map(p => (
-                  <div key={p.id} className="ledger-row">
+                  // a tap opens him, where the designation is removed or swapped
+                  // (1.9.14: these rows were text only, and nothing said where
+                  // the list was changed)
+                  <button key={p.id} type="button" className="ledger-row marquee-row" data-marquee-row={p.id} onClick={() => go('player', p.id)}>
                     <span>{p.name}</span>
-                    <span className="num">{fmtWage(p.wage)}</span>
-                  </div>
+                    <span className="num">{fmtWage(p.wage)} ›</span>
+                  </button>
                 ))}
+              <div className="meta muted" style={{ marginTop: 6 }}>{t(marqueeOpen(game) ? 'finances.marqueeHow' : 'player.marqueeLocked')}</div>
             </div>
             <SectionTitle sub={t('finances.squadCoverSub')}>
               {t('finances.squadCover')}
@@ -669,7 +673,7 @@ export default function Finances() {
       })()}
       {ftab === 'board' && <>
       <BoardDecisions />
-      <FanSentiment />
+      {SHOW_FAN_SENTIMENT && <FanSentiment />}
       {/* asking the board for transfer funds is a boardroom matter, and it
           lived on the money tab, which was the deepest page in the game
           (scrollaudit, 3.3 screenfuls); the ask and the town collection sit
@@ -1043,6 +1047,12 @@ function BoardDecisions() {
  * moves themselves, booked as they happened, so they add up to the season's
  * change rather than estimating it.
  */
+/** WHAT THE FANS THINK stays in the game but off the screen (owner, 1.9.14:
+ *  "Remove the visual what the fans think - this should be in the game but
+ *  hidden"). fans.ts still books every move by cause (state.fanWhy) and fan
+ *  mood still does everything it did; only this card is not drawn. */
+const SHOW_FAN_SENTIMENT = false
+
 function FanSentiment() {
   const game = useStore(s => s.game)!
   const m = game.fanMood ?? 60

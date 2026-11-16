@@ -22,7 +22,7 @@ import { rewardedAvailable } from '../../game/monetise'
 import { LOAN_BUY_MIN_WEEKS, LOAN_EARN_APPS, loanBuy, loanBuyOffer, loanHasOption, loanOut, loanOutBoost, loanRecall, loanSendBack } from '../../game/loans'
 import { noteUse } from '../../game/usage'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
-import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
+import { MARQUEE_SLOTS, marqueeOpen, swapMarquee, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, armRoundPlayer, praisePlayer, warnPlayer } from '../../game/chats'
 import { requestLocked, startPromise } from '../../game/handshake'
 import { persName, posName, traitName, t, tIn, localeTag } from '../../game/i18n'
@@ -839,10 +839,33 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         const club = game.clubs[game.userClubId]
         const marquee = club.marquee ?? []
         const isMarquee = marquee.includes(p.id)
-        if (!isMarquee && marquee.length >= 2) return null
         // the list is lodged in the window (cap.ts marqueeOpen): outside it the
         // page says why rather than offering a button that cannot work
-        if (!marqueeOpen(game)) return <div className="meta muted" style={{ marginTop: 6 }}>{t('player.marqueeLocked')}</div>
+        if (!marqueeOpen(game)) return <div className="meta muted" style={{ margin: '12px 14px' }}>{t('player.marqueeLocked')}</div>
+        // BOTH SLOTS TAKEN (1.9.14, player feedback: "I can't change my
+        // Marquee Players"): this page showed nothing at all, and the only way
+        // was to find one of the two and remove him first. It says so, and
+        // offers the swap with either.
+        if (!isMarquee && marquee.length >= MARQUEE_SLOTS) return (
+          <div className="marquee-swap" data-marquee-swap style={{ margin: '12px 14px' }}>
+            <div className="meta muted">{t('player.marqueeFull')}</div>
+            {/* one row, side by side: the player page is held to three
+                screens on a phone (scrollaudit) */}
+            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+              {marquee.map(id => {
+                const o = game.players[id]
+                if (!o) return null
+                return (
+                  <button key={id} className="btn ghost" style={{ flex: 1, minWidth: 0 }} onClick={() => {
+                    if (!swapMarquee(game, id, p.id)) return
+                    setMsg(t('player.marqueeSwapped', { name: p.name, out: o.name }))
+                    touch()
+                  }}>{t('player.marqueeSwap', { out: o.name })}</button>
+                )
+              })}
+            </div>
+          </div>
+        )
         return (
           <button className={`btn ${isMarquee ? '' : 'ghost'} block`} onClick={() => {
             if (!toggleMarquee(game, p.id)) return
