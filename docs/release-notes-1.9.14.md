@@ -2,7 +2,8 @@
 
 **READY (owner, 16 Nov 2026: "Ok we need to merge and upload this").**
 Started 15 Nov from player feedback ("Work on it now but dont merge and ill
-keep adding to it"). The store "What's new" text is in `docs/store-listing.md`.
+keep adding to it"). Free-agent talks added 16 Nov after the merge, before
+upload (owner: "Add it into 1.9.14 as I haven't uploaded that"). The store "What's new" text is in `docs/store-listing.md`.
 
 Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
 
@@ -24,6 +25,22 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   the set-piece calls alone (a call the pack has not drilled misfires). The
   first version was a Home card with 27 choices; owner: "I think the season
   plan is too confusing".
+
+- **Negotiating with free agents.** Player feedback (Instagram, 16 Nov
+  2026): "You currently can't negotiate with free agents on wages. Be good to
+  add in!" Sign Free Agent signed at a fixed wage on a two-year deal. It now
+  opens contract talks: choose one, two or three seasons (each shows what the
+  player asks for it, and the length they would choose is the cheapest: one
+  season at 23 or under, three at 29 or over, otherwise two), offer a wage,
+  or sign at the asking in one tap. From 95% of the asking signs; under 80%
+  is turned down; in between, character decides, and a counter is always
+  honoured when you meet it. The same offer in the same week gets the same
+  answer. Free agents are easier to talk down than your own players at
+  renewal (97% and 85% there), since they have no club. Never under the wage
+  they last earned. Every guard stays: squad limit, embargo, salary cap, wage
+  budget. A one-season deal still counts as two seasons for the resale rule,
+  so signing free and selling on stays as hard as before. The two-season
+  asking wage is exactly what the old button charged.
 
 - **Changing your marquee players.** Player feedback: "Not sure if an issue
   or user error, but I can't change my Marquee Players". It was the game:
@@ -74,6 +91,12 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
 
 ## Tests
 
+- New: `tests/freeagenttalks.test.ts` (the old door unchanged, each length's
+  asking, 95% signs, a lowball refused, a counter always honoured and the same
+  week repeats it, never under the last wage, the guards, the two-season
+  resale term) and `scripts/freeagentui.mjs` (browser: three lengths with
+  their own asking, the card scrolls up to the thumb, a lowball answered in
+  the card, signing at the asking on three seasons).
 - New: `tests/marqueeswap.test.ts`, `scripts/marqueeui.mjs` (browser: a full
   list offers the swap, the swap moves the slot, Finances opens the player,
   and the locked page says why).

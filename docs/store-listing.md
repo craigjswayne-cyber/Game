@@ -122,23 +122,23 @@ First release.
 
 ### What's new (500 max) - v1.9.14, Play version code 76 (confirm 75 is accepted on the Console first)
 
-**en-GB, Play and App Store** (390)
-New: a Season plan tab on Training & Staff. Between seasons, choose how you want to play (forwards, balanced or backs) and your pre-season work. Marquee players: when both slots are full, swap one in a single tap from the player's page. The Game Time list is now as tight as Stats; tap a status to change it. Clearer leadership notes on the Team screen. And a new link to the PHASE Discord.
+**en-GB, Play and App Store** (421)
+New: a Season plan tab on Training & Staff. Between seasons, choose how you want to play (forwards, balanced or backs) and your pre-season work. Negotiate with free agents: offer a wage and a deal of one to three seasons. Marquee players: when both slots are full, swap one in a single tap from the player's page. The Game Time list is now as tight as Stats. Clearer leadership notes. And a new link to the PHASE Discord.
 
-**fr-FR, Play and App Store** (471)
-Nouveau : un onglet Plan de saison dans Entraînement et staff. Entre deux saisons, choisissez votre façon de jouer (avants, équilibré ou trois-quarts) et votre travail de pré-saison. Joueurs hors plafond : quand les deux places sont prises, échangez-en un d'un seul geste depuis sa fiche. La liste Temps de jeu est aussi compacte que les Stats ; touchez un statut pour le changer. Des explications plus claires sur le leadership. Et un nouveau lien vers le Discord PHASE.
+**fr-FR, Play and App Store** (443)
+Nouveau : un onglet Plan de saison dans Entraînement et staff. Entre deux saisons, choisissez votre jeu (avants, équilibré ou trois-quarts) et votre travail de pré-saison. Négociez avec les agents libres : salaire et contrat d'une à trois saisons. Joueurs hors plafond : échangez-en un d'un seul geste depuis sa fiche. La liste Temps de jeu est aussi compacte que les Stats. Leadership mieux expliqué. Et un nouveau lien vers le Discord PHASE.
 
-**es-ES, Play and App Store** (437)
-Nuevo: una pestaña Plan de temporada en Entrenamiento y cuerpo técnico. Entre temporadas, elige cómo quieres jugar (delanteros, equilibrado o tres cuartos) y tu trabajo de pretemporada. Jugadores franquicia: con las dos plazas ocupadas, cambia uno con un solo toque desde su ficha. La lista de Minutos es tan compacta como Estadísticas; toca un estado para cambiarlo. Notas de liderazgo más claras. Y un nuevo enlace al Discord de PHASE.
+**es-ES, Play and App Store** (455)
+Nuevo: una pestaña Plan de temporada en Entrenamiento y cuerpo técnico. Entre temporadas, elige cómo jugar (delanteros, equilibrado o tres cuartos) y tu pretemporada. Negocia con agentes libres: salario y contrato de una a tres temporadas. Jugadores franquicia: con las dos plazas ocupadas, cambia uno con un toque desde su ficha. La lista de Minutos es tan compacta como Estadísticas. Notas de liderazgo más claras. Y un nuevo enlace al Discord de PHASE.
 
-**it-IT, Play and App Store** (426)
-Novità: una scheda Piano della stagione in Allenamento e staff. Tra una stagione e l'altra, scegli come vuoi giocare (avanti, equilibrato o trequarti) e il lavoro precampionato. Giocatori marquee: con entrambi i posti occupati, scambiane uno con un tocco dalla sua scheda. L'elenco Minutaggio è compatto come le Statistiche; tocca uno stato per cambiarlo. Note sulla leadership più chiare. E un nuovo link al Discord di PHASE.
+**it-IT, Play and App Store** (469)
+Novità: una scheda Piano della stagione in Allenamento e staff. Tra una stagione e l'altra, scegli come giocare (avanti, equilibrato o trequarti) e il lavoro precampionato. Tratta con i giocatori svincolati: ingaggio e contratto da una a tre stagioni. Giocatori marquee: con entrambi i posti occupati, scambiane uno con un tocco dalla sua scheda. L'elenco Minutaggio è compatto come le Statistiche. Note sulla leadership più chiare. E un nuovo link al Discord di PHASE.
 
-**ja-JP, Play and App Store** (194)
-新機能：トレーニングとスタッフに「シーズンプラン」タブ。シーズンの合間に戦い方（フォワード、バランス、バックス）とプレシーズンの練習を選べる。マーキー選手：2枠とも埋まっていても、選手ページからワンタップで入れ替え可能に。出場時間の一覧がスタッツと同じくコンパクトに。ステータスをタップして変更。チーム画面のリーダーシップ説明をわかりやすく。PHASEのDiscordへの新しいリンクも。
+**ja-JP, Play and App Store** (215)
+新機能：トレーニングとスタッフに「シーズンプラン」タブ。シーズンの合間に戦い方（フォワード、バランス、バックス）とプレシーズンの練習を選べる。フリーエージェントと交渉可能に：週給と1〜3シーズンの契約年数を提示。マーキー選手：2枠とも埋まっていても、選手ページからワンタップで入れ替え可能に。出場時間の一覧がスタッツと同じくコンパクトに。チーム画面のリーダーシップ説明をわかりやすく。PHASEのDiscordへの新しいリンクも。
 
-**af, Play and App Store** (417)
-Nuut: 'n Seisoensplan-oortjie by Oefening & Personeel. Tussen seisoene kies jy hoe jy wil speel (voorspelers, gebalanseerd of agterspelers) en jou voorseisoenwerk. Hoofspelers: as albei plekke vol is, ruil een met een tik op die speler se blad. Die Speeltyd-lys is nou so kompak soos Statistiek; tik op 'n status om dit te verander. Duideliker leierskapnotas op die Span-skerm. En 'n nuwe skakel na die PHASE-Discord.
+**af, Play and App Store** (445)
+Nuut: 'n Seisoensplan-oortjie by Oefening & Personeel. Tussen seisoene kies jy hoe jy wil speel (voorspelers, gebalanseerd of agterspelers) en jou voorseisoenwerk. Onderhandel met vrye agente: bied 'n loon en 'n kontrak van een tot drie seisoene. Hoofspelers: as albei plekke vol is, ruil een met een tik op die speler se blad. Die Speeltyd-lys is nou so kompak soos Statistiek. Duideliker leierskapnotas. En 'n nuwe skakel na die PHASE-Discord.
 
 ### What's new (500 max) - v1.9.13, Play version code 75 (confirm 74 is accepted on the Console first)
 

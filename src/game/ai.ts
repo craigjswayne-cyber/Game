@@ -614,37 +614,102 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   return { ok: true, msg: t('reply.signsFor', { name: p.name, club: user.name, fee: fmtMoney(fee), wage: fmtWage(wage), bonus: signOn > 0 ? t('reply.signsBonus', { bonus: fmtMoney(signOn) }) : '', promise: promiseMinutes ? t('reply.signsPromise') : '' }) }
 }
 
-/** Sign a clubless player: no fee, his wage demand, and the same guards a
- *  paid signing passes (user: "you should be able to search for free agents
- *  on the transfer centre"). This used to live inline in the player page's
- *  button, where it skipped the salary-cap and embargo checks entirely - an
- *  engine rule a screen can bypass is not a rule. One function now, called
- *  by the button, probed headlessly. */
+/** Sign a clubless player at his asking wage on a two-year deal: the
+ *  one-tap door, and what the probes sign with. The talks are offerFreeAgent. */
 export function signFreeAgent(state: GameState, playerId: number): { ok: boolean; msg: string } {
   const p = state.players[playerId]
-  const user = state.clubs[state.userClubId]
+  if (!p) return { ok: false, msg: t('reply.notFreeAgent') }
+  return offerFreeAgent(state, playerId, freeAgentDemand(p, 2), 2)
+}
+
+/** The deal lengths a free agent can be offered. */
+export const FREE_TERMS = [1, 2, 3] as const
+export type FreeTerm = typeof FREE_TERMS[number]
+
+/** The length a free agent would choose: a young one keeps his options
+ *  open, a man near thirty wants the security. */
+export function freeAgentTerm(p: Player): FreeTerm {
+  return p.age <= 23 ? 1 : p.age >= 29 ? 3 : 2
+}
+
+/**
+ * WHAT A FREE AGENT ASKS, FOR A DEAL OF THIS LENGTH (1.9.14). Player feedback
+ * (Instagram, 16 Nov 2026): "You currently can't negotiate with free agents on
+ * wages. Be good to add in!" The two-year figure is the one the one-tap
+ * signing always paid (renewalDemand), so nothing about the old door moves.
+ * The length he would choose himself is 6% cheaper than that when it is not
+ * two years; every year away from it costs 6% more.
+ */
+export function freeAgentDemand(p: Player, years: number): number {
+  // a scholar let go by his academy signs as a senior: on the professional
+  // scale and in the senior count (1.8.4 exploit hunt, E9)
+  const base = renewalDemand(p.acad ? { ...p, acad: false } : p)
+  const pref = freeAgentTerm(p)
+  const f = 1 + 0.06 * (Math.abs(years - pref) - Math.abs(2 - pref))
+  const floor = Math.round((Number.isFinite(p.wage) ? Math.max(0, p.wage) : 0) / 50) * 50
+  return Math.max(Math.round((base * f) / 50) * 50, floor)
+}
+
+/**
+ * Talks with a clubless player: offer a wage and a length (1.9.14). He has no
+ * club to fall back on, so he is easier to talk down than one of your own at
+ * renewal: anything from 95% of his asking signs, a lowball is under 80%, and
+ * the close range in between is the same character roll. The roll is seeded
+ * on the week, so asking again the same week gets the same answer, and a
+ * quoted number is a promise. Never under what he last earned (a released
+ * man's wage is already cut 30% by release.ts, and a pay-off is never bought
+ * back with a lower wage: tests/econexploit). Every guard the one-tap door
+ * had is kept: no desk, squad limit, embargo, the cap, the wage budget.
+ */
+export function offerFreeAgent(state: GameState, playerId: number, offer: number, years: number): { ok: boolean; msg: string; counter?: number } {
+  if (!realMoney(offer)) return notAFigure()
   if (state.unemployed) return noDesk()
+  const p = state.players[playerId]
+  const user = state.clubs[state.userClubId]
   if (!p || p.clubId != null || !user) return { ok: false, msg: t('reply.notFreeAgent') }
+  const term: FreeTerm = (FREE_TERMS as readonly number[]).includes(years) ? years as FreeTerm : 2
   if (squadFull(state, user)) return { ok: false, msg: squadFullMsg(state, user) }
   if (embargoed(state, user.id)) {
     noteBlocked(state, p.id, 'emb')
     return { ok: false, msg: t('reply.embargoSign') }
   }
-  // a scholar let go by his academy signs as a senior: on the professional
-  // scale and in the senior count (1.8.4 exploit hunt, E9)
-  const wage = renewalDemand(p.acad ? { ...p, acad: false } : p)
-  const capMsg = capBreak(state, user.id, wage)
+  const demand = freeAgentDemand(p, term)
+  const capMsg = capBreak(state, user.id, offer)
   if (capMsg) { noteBlocked(state, p.id, 'cap'); return { ok: false, msg: capMsg } }
-  if (capBill(state, user) + wage > userWageBudget(state, user)) {
-    return { ok: false, msg: t('reply.wageDemandsExceed', { wage: fmtWage(wage) }) }
+  if (capBill(state, user) + offer > userWageBudget(state, user)) {
+    return { ok: false, msg: t('reply.wageDemandsExceed', { wage: fmtWage(offer) }) }
   }
+  const earns = Math.round((Number.isFinite(p.wage) ? Math.max(0, p.wage) : 0) / 50) * 50
+  const counterAt = Math.max(Math.round((demand * 0.95) / 50) * 50, earns)
+  if (offer < counterAt) {
+    const ratio = offer / Math.max(1, demand)
+    if (ratio < 0.8) {
+      if (p.pers === 'Mercenary' || p.pers === 'Temperamental') p.morale = clamp(p.morale - 0.6, 1, 10)
+      return {
+        ok: false,
+        msg: p.pers === 'Mercenary'
+          ? t('reply.agentLaughs', { offer: fmtWage(offer), name: p.name })
+          : t('reply.someWayShort', { name: p.name }),
+      }
+    }
+    const rng = mulberry32(state.seed ^ (playerId * 37 + state.week * 11 + state.season * 103 + term * 5))
+    const acceptP =
+      (p.pers === 'Loyal' ? 0.6 : p.pers === 'Professional' ? 0.45 : p.pers === 'Mercenary' ? 0.12 : 0.3)
+      + (p.morale >= 7.5 ? 0.15 : 0) + (ratio - 0.8) * 1.5
+    if (rng() >= acceptP || offer < earns) {
+      return { ok: false, msg: t('reply.signTodayAt', { name: p.name, counter: fmtWage(counterAt) }), counter: counterAt }
+    }
+  }
+  const wage = Math.min(offer, Math.round(demand * 1.3)) // no accidental silly money
   executeTransfer(state, p, user.id, 0)
   p.acad = false
   p.wage = wage
-  p.contractEnds = state.season + 2
-  // the free deal's term, fixed now: a renewal does not wash it (freeDeal)
-  p.freeUntil = p.contractEnds
-  return { ok: true, msg: t('reply.signsFree', { name: p.name, wage: fmtWage(wage) }) }
+  p.contractEnds = state.season + term
+  // the free deal's term, fixed now: a renewal does not wash it (freeDeal).
+  // Never under two seasons, whatever the length: FREE_RESALE was measured
+  // against a two-year hold, and a one-year deal must not halve it.
+  p.freeUntil = Math.max(p.contractEnds, state.season + 2)
+  return { ok: true, msg: t('reply.signsFreeFor', { name: p.name, wage: fmtWage(wage), n: term }) }
 }
 
 /** Legacy one-shot bid: agree the fee and sign at his demanded wage. */
