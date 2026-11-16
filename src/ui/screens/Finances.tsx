@@ -673,7 +673,7 @@ export default function Finances() {
       })()}
       {ftab === 'board' && <>
       <BoardDecisions />
-      <FanSentiment />
+      {SHOW_FAN_SENTIMENT && <FanSentiment />}
       {/* asking the board for transfer funds is a boardroom matter, and it
           lived on the money tab, which was the deepest page in the game
           (scrollaudit, 3.3 screenfuls); the ask and the town collection sit
@@ -1047,6 +1047,12 @@ function BoardDecisions() {
  * moves themselves, booked as they happened, so they add up to the season's
  * change rather than estimating it.
  */
+/** WHAT THE FANS THINK stays in the game but off the screen (owner, 1.9.14:
+ *  "Remove the visual what the fans think - this should be in the game but
+ *  hidden"). fans.ts still books every move by cause (state.fanWhy) and fan
+ *  mood still does everything it did; only this card is not drawn. */
+const SHOW_FAN_SENTIMENT = false
+
 function FanSentiment() {
   const game = useStore(s => s.game)!
   const m = game.fanMood ?? 60

@@ -47,6 +47,15 @@ closed, not before.
   in the game counts, the Pro offer and Full Fitness included. Still counts
   only, and the heaviest report still fits an email (1,793 of 1,800).
 
+- **What the fans think is hidden.** Owner: "Remove the visual what the fans
+  think - this should be in the game but hidden". The Board tab no longer
+  shows the breakdown; fan mood and what moves it are still tracked exactly
+  as in 1.9.13 (one flag, SHOW_FAN_SENTIMENT, brings the card back).
+- **New Discord invite.** The old invites expired (owner, 16 Nov 2026). The
+  game, the website, the support page and the store descriptions now use
+  discord.gg/kJg5NdsRnq. The bug-report and ideas buttons open the same
+  server invite until there are channel invites that do not expire.
+
 ## Not changed
 
 - The match engine and the world: the plan only writes settings that already

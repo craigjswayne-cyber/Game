@@ -82,14 +82,14 @@ try {
   {
     const home = page.locator('.content a.home-community')
     ok(await home.count() === 1, 'the foot of Home carries the Discord link')
-    ok(await home.getAttribute('href') === 'https://discord.gg/3KKfDVsMb' && await home.getAttribute('target') === '_blank'
+    ok(await home.getAttribute('href') === 'https://discord.gg/kJg5NdsRnq' && await home.getAttribute('target') === '_blank'
       && /noopener/.test(await home.getAttribute('rel') ?? ''), 'a plain link to the invite, opened in a new tab')
     ok(await home.locator('svg').count() === 1 && /Join us on Discord/.test(await home.innerText()), 'with an icon and the words, no emoji')
     await page.click('.bottom-nav button[data-group="manager"]')
     await page.waitForSelector('.submenu')
     const rows = await page.locator('.submenu .submenu-item').evaluateAll(els => els.map(e => ({ tag: e.tagName, text: e.textContent.trim(), href: e.getAttribute('href') })))
     const i = rows.findIndex(r => /Discord/.test(r.text))
-    ok(i > 0 && rows[i].tag === 'A' && rows[i].href === 'https://discord.gg/3KKfDVsMb', `the manager's menu has it as a link (${rows[i]?.tag} ${rows[i]?.href})`)
+    ok(i > 0 && rows[i].tag === 'A' && rows[i].href === 'https://discord.gg/kJg5NdsRnq', `the manager's menu has it as a link (${rows[i]?.tag} ${rows[i]?.href})`)
     ok(i > 0 && /Main Menu/.test(rows[i - 1].text), `directly under ${rows[i - 1]?.text}`)
     await page.mouse.click(400, 450)
     await page.waitForTimeout(200)

@@ -92,7 +92,7 @@ ON YOUR PHONE
 FREE TO PLAY
 Small banners sit at the foot of some screens, never over a decision. The "watch an advert" buttons are optional. Pro Manager removes the banners for good. Other optional purchases speed a career along, from board funding to a fully fit squad. You don't need any of them.
 
-Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/3KKfDVsMb
+Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 ```
@@ -1746,7 +1746,7 @@ SUR MOBILE
 GRATUIT
 De petites bannières au bas de certains écrans, jamais sur une décision. Les boutons « regarder une pub » sont facultatifs. Pro Manager supprime les bannières pour de bon. D'autres achats facultatifs accélèrent la carrière, des fonds du conseil à un effectif en pleine forme. Aucun n'est nécessaire.
 
-Parlez rugby, partagez vos idées, signalez un bug sur le Discord PHASE : discord.gg/3KKfDVsMb
+Parlez rugby, partagez vos idées, signalez un bug sur le Discord PHASE : discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager est un jeu non officiel et indépendant. Les noms de clubs sont réels ; compétitions, stades et sponsors sont renommés ou inventés. Les noms des joueurs sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre ; le jeu n'est affilié à aucun joueur, club, ligue ou instance dirigeante, ni approuvé ou licencié par eux, et ne contient aucun écusson, maillot ou logo officiel.
 ```
@@ -1976,7 +1976,7 @@ EN TU MÓVIL
 GRATIS
 Pequeños banners al pie de algunas pantallas, nunca sobre una decisión. Los botones «ver un anuncio» son opcionales. Pro Manager elimina los banners para siempre. Otras compras opcionales aceleran la carrera, de fondos de la directiva a una plantilla en plena forma. No necesitas ninguna.
 
-Habla de rugby, comparte ideas e informa de fallos en el Discord de PHASE: discord.gg/3KKfDVsMb
+Habla de rugby, comparte ideas e informa de fallos en el Discord de PHASE: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager es un juego no oficial e independiente. Los nombres de los clubes son reales; competiciones, estadios y patrocinadores están renombrados o inventados. Los nombres de los jugadores son reales y solo sirven para identificar a personas en una base de datos deportiva; el juego no está afiliado a ningún jugador, club, liga u organismo rector, ni cuenta con su respaldo o licencia, y no contiene escudos, equipaciones ni logotipos oficiales.
 ```
@@ -2067,7 +2067,7 @@ SUL TUO TELEFONO
 GRATIS
 Piccoli banner in fondo a certe schermate, mai sopra una decisione. I pulsanti «guarda una pubblicità» sono facoltativi. Pro Manager toglie i banner per sempre. Altri acquisti facoltativi accelerano la carriera, dai fondi della società a una rosa in piena forma. Non ne serve nessuno.
 
-Parla di rugby, condividi idee e segnala problemi sul Discord di PHASE: discord.gg/3KKfDVsMb
+Parla di rugby, condividi idee e segnala problemi sul Discord di PHASE: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager è un gioco non ufficiale e indipendente. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi dei giocatori sono reali e usati solo per identificare persone in un database sportivo; il gioco non è affiliato ad alcun giocatore, club, lega o organo di governo, né da essi approvato o concesso in licenza, e non contiene stemmi, divise o loghi ufficiali.
 ```
@@ -2158,7 +2158,7 @@ PHASE: Rugby Manager
 基本プレイ無料
 一部の画面の下に小さなバナーが出ますが、決断の上に重なることはありません。「広告を見る」ボタンは任意です。Pro Managerでバナーは完全に消えます。そのほかの任意の購入で、取締役会からの資金からスカッド全員のコンディション回復まで、キャリアを早めることができます。どれも必須ではありません。
 
-PHASEのDiscordで、ラグビー談義、アイデアの共有、不具合の報告をどうぞ：discord.gg/3KKfDVsMb
+PHASEのDiscordで、ラグビー談義、アイデアの共有、不具合の報告をどうぞ：discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Managerは非公式の独立系ゲームです。クラブ名は実在のものです。大会、スタジアム、スポンサーは名称を変更したもの、または架空のものです。選手名は実在のもので、スポーツデータベース内で人物を識別するためだけに使用しています。本ゲームはいかなる選手、クラブ、リーグ、統括団体とも提携しておらず、承認やライセンスも受けていません。公式のエンブレム、ユニフォーム、ロゴは一切含まれていません。
 ```
@@ -2230,7 +2230,7 @@ OP JOU FOON
 GRATIS OM TE SPEEL
 Klein baniere onderaan sommige skerms, nooit oor 'n besluit nie. Die “kyk 'n advertensie”-knoppies is opsioneel. Pro-bestuurder verwyder die baniere permanent. Ander opsionele aankope versnel 'n loopbaan, van Raadsfondse tot 'n volledig fikse span. Jy het niks daarvan nodig nie.
 
-Praat rugby, deel idees en rapporteer probleme op die PHASE-Discord: discord.gg/3KKfDVsMb
+Praat rugby, deel idees en rapporteer probleme op die PHASE-Discord: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager is 'n nie-amptelike, onafhanklike spel. Klubname is eg; kompetisies, stadions en borge is herdoop of versin. Spelersname is eg en word net gebruik om mense in 'n sportdatabasis te identifiseer; die spel is nie geaffilieer met, onderskryf deur of gelisensieer deur enige speler, klub, liga of beheerliggaam nie, en bevat geen amptelike klubwapens, truie of logo's nie.
 ```
@@ -2424,7 +2424,7 @@ FREE TO PLAY
 
 Small banners at the foot of some screens, never over a decision. "Watch an advert" buttons are optional. Pro Manager removes every advert for good. Other optional purchases speed a career along, from board funding to a fully fit squad. You don't need any of them.
 
-Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/3KKfDVsMb
+Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/kJg5NdsRnq
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used only to identify people in a sporting database. The game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 ```

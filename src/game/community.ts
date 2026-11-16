@@ -12,14 +12,16 @@
  * So the store forms' "collects no data" stays true (scripts/netprobe.ts
  * allows this one address, in this one file, for that reason).
  *
- * The invite never expires (owner, 28 Sep 2026). If it is ever replaced, this
- * is the only line to change.
+ * The invite was meant never to expire (owner, 28 Sep 2026); it did, and was
+ * replaced on 16 Nov 2026 (owner: "The in game discord link and website
+ * discord link have expired"). Change it here, and on the landing page, the
+ * support page and the store descriptions (docs/store-listing.md).
  *
  * Every button that uses it is a plain link opened in a new tab, not a
  * window.open(): an in-app browser that blocks script-opened windows still
  * follows a link the player tapped.
  */
-export const COMMUNITY_URL = 'https://discord.gg/3KKfDVsMb'
+export const COMMUNITY_URL = 'https://discord.gg/kJg5NdsRnq'
 
 /**
  * ---- THE BUG-REPORTS CHANNEL (1.8.2) ----
@@ -31,7 +33,9 @@ export const COMMUNITY_URL = 'https://discord.gg/3KKfDVsMb'
  * Same rules as above: a link the player taps, nothing sent by the game
  * (scripts/netprobe.ts allows this address in this file too).
  */
-export const BUG_CHANNEL_URL = 'https://discord.gg/TWmWQxu38z'
+// 1.9.14: the channel invite expired with the server one; the server invite
+// stands in until the owner sends a channel invite that does not expire
+export const BUG_CHANNEL_URL = 'https://discord.gg/kJg5NdsRnq'
 
 /**
  * ---- IDEAS AND SUGGESTIONS (owner, round 6) ----
@@ -41,7 +45,8 @@ export const BUG_CHANNEL_URL = 'https://discord.gg/TWmWQxu38z'
  * Bug reports keep BUG_CHANNEL_URL. Same rules: a link the player taps,
  * nothing sent by the game (scripts/netprobe.ts allows it in this file).
  */
-export const IDEAS_URL = 'https://discord.gg/472rzEQbZ'
+// 1.9.14: as BUG_CHANNEL_URL, the server invite until a lasting channel one
+export const IDEAS_URL = 'https://discord.gg/kJg5NdsRnq'
 
 /**
  * ---- THE GAME'S SOCIAL ACCOUNTS (1.9.3, owner) ----

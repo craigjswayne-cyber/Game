@@ -165,14 +165,16 @@ try {
   await page.waitForTimeout(200)
   ok(await game(() => window.rugbyStore.getState().game.trainLoad) === 'light', 'and one tap sets it')
 
-  // 6. what the fans think
+  // 6. what the fans think: tracked, not shown (owner, 1.9.14: "this should
+  // be in the game but hidden"). The breakdown is still booked (tests/fans),
+  // and the Board tab no longer draws it.
   await game(() => { const s = window.rugbyStore.getState(); s.game.fanWhy = { season: s.game.season, results: 6, squad: -3, club: -2, manager: 1 }; s.touch() })
   await go('finances')
   await page.waitForTimeout(300)
   await page.locator('main.content .tab-bar button:has-text("The Board")').click()
   await page.waitForTimeout(300)
-  const fans = await page.$eval('[data-testid="fan-sentiment"]', e => e.innerText).catch(() => '')
-  ok(/Results\s*\+6/.test(fans) && /Signings and the squad\s*−3/.test(fans), `the Board tab breaks down what the fans think ("${fans.replace(/\s+/g, ' ').slice(0, 120)}")`)
+  ok(await page.locator('[data-testid="fan-sentiment"]').count() === 0, 'the Board tab no longer shows what the fans think')
+  ok(await game(() => window.rugbyStore.getState().game.fanWhy?.results) === 6, 'and the game still keeps it')
 
   // haptics on their own switch in Settings (owner: "You should be able to
   // turn haptic off in settings")
