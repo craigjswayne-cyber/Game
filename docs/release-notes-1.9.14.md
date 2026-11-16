@@ -8,15 +8,17 @@ closed, not before.
 
 - **A season plan, every pre-season.** Player feedback: "Be good have a
   preseason focus choose how you will play that season & practice set play".
-  A card on Home in the pre-season weeks asks three things at once: how we
-  play (attack and defence style), the set plays to drill (the lineout and
-  scrum calls, each marked drilled or not yet, with Set-Piece Work to drill
-  them faster), and the training focus for the opening weeks. Set the plan and
-  each choice goes where its own screen already reads it (Tactics, the
-  playbook, Training, match prep), so it can still be changed there later; the
-  card folds to one line with Change, and is gone once the season starts. It
-  adds no rule of its own: a club planned this way plays exactly like one set
-  up by hand the same way.
+  A card on Home in the pre-season weeks asks two questions, three answers
+  each. **How do you want to play?** Forwards (direct attack, choke-tackle
+  defence), Balanced (pods, drift) or Backs (width, blitz). **Pre-season
+  work:** Fitness, Set pieces (scrum focus, with Set-Piece Work drilling the
+  lineout and scrum calls faster) or Attack. Each answer goes where its own
+  screen already reads it, so the detail can still be changed on Tactics and
+  Training; the card folds to one line with Change, ticks "Set your game plan"
+  on the first season's checklist, and is gone once the season starts. It
+  adds no rule of its own and leaves the set-piece calls alone (a call the
+  pack has not drilled misfires). The first version asked for 27 choices on
+  one card; owner: "I think the season plan is too confusing".
 
 - **Changing your marquee players.** Player feedback: "Not sure if an issue
   or user error, but I can't change my Marquee Players". It was the game:
@@ -39,8 +41,8 @@ closed, not before.
   list offers the swap, the swap moves the slot, Finances opens the player,
   and the locked page says why).
 - New: `tests/preseasonplan.test.ts`, `scripts/preplanui.mjs` (browser: the
-  card in week 1, every choice at least 44px, each choice lands on its screen,
-  the card folds and is gone in the season).
+  card in week 1, Set waits for both answers, every answer at least 44px,
+  each lands on its screen, the card folds and is gone in the season).
 
 ## Still to come in this round
 

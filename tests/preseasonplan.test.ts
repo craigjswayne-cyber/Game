@@ -1,12 +1,12 @@
 /**
- * The season plan (1.9.14, src/game/preseasonplan.ts): one card in pre-season
- * that writes the styles, the set-piece calls and the training focus where
- * their own screens read them. It adds no rule of its own.
+ * The season plan (1.9.14, src/game/preseasonplan.ts): two questions on Home
+ * in pre-season. How you play sets an attack and a defence style; the
+ * pre-season work sets the training focus (and Set-Piece Work for set pieces).
+ * It adds no rule of its own and leaves the set-piece calls alone.
  */
 import { describe, expect, it } from 'vitest'
 import { newGame } from '../src/game/newgame'
-import { planDraft, planThisSeason, planWeeks, setPreseasonPlan } from '../src/game/preseasonplan'
-import { stylesOf } from '../src/game/styles'
+import { FOCUS_OF, STYLE_OF, planThisSeason, planWeeks, setPreseasonPlan } from '../src/game/preseasonplan'
 
 describe('the season plan', () => {
   it('is offered in pre-season and not once the season starts', () => {
@@ -18,42 +18,35 @@ describe('the season plan', () => {
     expect(planWeeks(g)).toBe(false)
   })
 
-  it('opens on the club as it stands', () => {
+  it.each(['forwards', 'balanced', 'backs'] as const)('%s sets its attack and defence styles', style => {
     const g = newGame('leicester', 'Plan', 3)
-    const d = planDraft(g)
-    const st = stylesOf(g, g.clubs[g.userClubId])!
-    expect(d.atk).toBe(st.atk)
-    expect(d.def).toBe(st.def)
-    expect(d.focus).toBe(g.training)
+    setPreseasonPlan(g, style, 'fitness')
+    const tac = g.clubs[g.userClubId].tactic
+    expect(tac.atkStyle).toBe(STYLE_OF[style].atk)
+    expect(tac.defStyle).toBe(STYLE_OF[style].def)
   })
 
-  it('writes each choice where its own screen reads it', () => {
+  it.each(['fitness', 'setpiece', 'attack'] as const)('%s sets the training focus', work => {
     const g = newGame('leicester', 'Plan', 3)
-    setPreseasonPlan(g, { atk: 'kick', def: 'choke', lineout: 'lo_back', scrum: 'sc_wheel', focus: 'kicking', setpiece: true })
-    const tac = g.clubs[g.userClubId].tactic
-    expect(tac.atkStyle).toBe('kick')
-    expect(tac.defStyle).toBe('choke')
-    expect(tac.lineoutCall).toBe('lo_back')
-    expect(tac.scrumCall).toBe('sc_wheel')
-    expect(g.training).toBe('kicking')
-    expect(g.matchPrep).toBe('setpiece')
-    expect(planThisSeason(g)?.season).toBe(g.season)
-    expect(g.firstSteps?.seen).toContain('plan')
+    setPreseasonPlan(g, 'balanced', work)
+    expect(g.training).toBe(FOCUS_OF[work])
+    expect(g.matchPrep === 'setpiece').toBe(work === 'setpiece')
   })
 
-  it('turns Set-Piece Work off again, and ignores a call of the wrong kind', () => {
+  it('leaves the set-piece calls alone, and ticks the checklist', () => {
     const g = newGame('leicester', 'Plan', 3)
     const tac = g.clubs[g.userClubId].tactic
-    const lo = tac.lineoutCall
-    setPreseasonPlan(g, { atk: 'direct', def: 'drift', lineout: 'sc_wheel', scrum: 'sc_wheel', focus: 'balanced', setpiece: true })
+    const lo = tac.lineoutCall, sc = tac.scrumCall
+    setPreseasonPlan(g, 'forwards', 'setpiece')
     expect(tac.lineoutCall).toBe(lo)
-    setPreseasonPlan(g, { atk: 'direct', def: 'drift', lineout: 'lo_middle', scrum: 'sc_hold', focus: 'balanced', setpiece: false })
-    expect(g.matchPrep).toBeUndefined()
+    expect(tac.scrumCall).toBe(sc)
+    expect(g.firstSteps?.seen).toContain('plan')
   })
 
   it('belongs to one season', () => {
     const g = newGame('leicester', 'Plan', 3)
-    setPreseasonPlan(g, planDraft(g))
+    setPreseasonPlan(g, 'backs', 'attack')
+    expect(planThisSeason(g)?.style).toBe('backs')
     g.season += 1
     expect(planThisSeason(g)).toBeNull()
   })
