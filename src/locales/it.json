@@ -524,14 +524,14 @@
   "onTestDuty": "in nazionale",
   "outOnLoan": "in prestito",
   "awaySuffix": " ({why})",
-  "leadershipNote": "Il capitano alza attacco e difesa e calma gli animi; quando manca, il vice guida a metà effetto. Gli incarichi qui sotto non aggiungono forza, la concentrano: li porta solo chi nel XV ha vera autorevolezza, e un vero leader può portarne più d'uno.",
+  "leadershipNote": "Il capitano migliora attacco e difesa e tiene a bada i nervi. Il vice fa lo stesso, con metà dell'effetto, quando il capitano non gioca. I quattro ruoli qui sopra non rendono la squadra più forte: ognuno sposta l'attenzione su un'area a scapito delle altre. Assegnali solo a titolari con vera autorità. Un leader forte può averne due.",
   "pfPack": "Guida il pacchetto",
   "pfDefence": "Chiama la difesa",
   "pfAttack": "Dirige l'attacco",
   "pfCulture": "Detta gli standard",
   "captain_f": "Capitana",
   "injured_f": "infortunata",
-  "leadershipNote_f": "La capitana alza attacco e difesa e calma gli animi; quando manca, la vice guida a metà effetto. Gli incarichi qui sotto non aggiungono forza, la concentrano: li porta solo chi nel XV ha vera autorevolezza, e una vera leader può portarne più d'uno."
+  "leadershipNote_f": "Il capitano migliora attacco e difesa e tiene a bada i nervi. Il vice fa lo stesso, con metà dell'effetto, quando il capitano non gioca. I quattro ruoli qui sopra non rendono la squadra più forte: ognuno sposta l'attenzione su un'area a scapito delle altre. Assegnali solo a titolari con vera autorità. Un leader forte può averne due."
  },
  "fixtures": {
   "tabFixtures": "Calendario",

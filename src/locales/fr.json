@@ -530,13 +530,13 @@
     "onTestDuty": "en sélection",
     "outOnLoan": "en prêt",
     "awaySuffix": " ({why})",
-    "leadershipNote": "Le capitaine tire l'attaque et la défense vers le haut et calme les esprits ; le vice-capitaine prend le relais à moitié d'effet quand il manque. Une responsabilité en dessous n'ajoute pas de la force, elle la concentre : seuls les titulaires ayant une vraie autorité en portent une, et un vrai leader peut en porter plusieurs.",
+    "leadershipNote": "Le capitaine améliore l'attaque et la défense et calme les esprits. Le vice-capitaine fait de même, avec moitié moins d'effet, quand le capitaine ne joue pas. Les quatre rôles ci-dessus ne rendent pas l'équipe plus forte : chacun met l'accent sur un domaine au détriment des autres. Confiez-les seulement à des titulaires qui ont une vraie autorité. Un grand leader peut en prendre deux.",
     "pfPack": "Patron des avants",
     "pfDefence": "Patron de la défense",
     "pfAttack": "Patron de l'attaque",
     "pfCulture": "Garant des standards",
     "injured_f": "blessée",
-    "leadershipNote_f": "La capitaine tire l'attaque et la défense vers le haut et calme les esprits ; la vice-capitaine prend le relais à moitié d'effet quand elle manque. Une responsabilité en dessous n'ajoute pas de la force, elle la concentre : seules les titulaires ayant une vraie autorité en portent une, et une vraie leader peut en porter plusieurs."
+    "leadershipNote_f": "Le capitaine améliore l'attaque et la défense et calme les esprits. Le vice-capitaine fait de même, avec moitié moins d'effet, quand le capitaine ne joue pas. Les quatre rôles ci-dessus ne rendent pas l'équipe plus forte : chacun met l'accent sur un domaine au détriment des autres. Confiez-les seulement à des titulaires qui ont une vraie autorité. Un grand leader peut en prendre deux."
   },
   "fixtures": {
     "tabFixtures": "Calendrier",

@@ -511,13 +511,13 @@
   "onTestDuty": "on Test duty",
   "outOnLoan": "out on loan",
   "awaySuffix": " ({why})",
-  "leadershipNote": "The skipper lifts attack and defence and calms tempers; the vice leads at half effect when he is missing. A role below that moves strength onto one area without adding any: give one only to starters with real authority, and a real leader can carry more than one.",
+  "leadershipNote": "The captain lifts your attack and defence and keeps tempers cool. The vice-captain does the same at half strength when the captain is not playing. The four jobs above do not make the side stronger: each one shifts focus onto one area and away from the others. Only give them to starters with real authority. A strong leader can take two.",
   "pfPack": "Leads the Pack",
   "pfDefence": "Calls the Line",
   "pfAttack": "Runs the Attack",
   "pfCulture": "Sets the Standards",
   "pickAnybody_f": "Pick anybody: the shirt takes her position",
-  "leadershipNote_f": "The skipper lifts attack and defence and calms tempers; the vice leads at half effect when she is missing. A role below that moves strength onto one area without adding any: give one only to starters with real authority, and a real leader can carry more than one.",
+  "leadershipNote_f": "The captain lifts your attack and defence and keeps tempers cool. The vice-captain does the same at half strength when the captain is not playing. The four jobs above do not make the side stronger: each one shifts focus onto one area and away from the others. Only give them to starters with real authority. A strong leader can take two.",
   "untouched_w": "Untouched sheet: your assistant named this side and nobody is updating it for form or fitness. Change a shirt and it becomes your team."
  },
  "fixtures": {

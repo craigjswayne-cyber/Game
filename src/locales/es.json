@@ -523,14 +523,14 @@
   "outOnLoan": "cedido",
   "outOnLoan_f": "cedida",
   "awaySuffix": " ({why})",
-  "leadershipNote": "El capitán mejora ataque y defensa y calma los ánimos; el vicecapitán lidera a medio gas cuando él falta. Los cargos de abajo no suman fuerza, la concentran: dáselos solo a titulares con autoridad real, y un líder de verdad puede llevar más de uno.",
+  "leadershipNote": "El capitán mejora el ataque y la defensa y calma los ánimos. El vicecapitán hace lo mismo, con la mitad de efecto, cuando el capitán no juega. Los cuatro cargos de arriba no hacen más fuerte al equipo: cada uno pone el foco en un área a costa de las demás. Dáselos solo a titulares con verdadera autoridad. Un líder fuerte puede asumir dos.",
   "pfPack": "Lidera la delantera",
   "pfDefence": "Dirige la defensa",
   "pfAttack": "Dirige el ataque",
   "pfCulture": "Marca la pauta",
   "captain_f": "Capitana",
   "injured_f": "lesionada",
-  "leadershipNote_f": "La capitana mejora ataque y defensa y calma los ánimos; la vicecapitana lidera a medio gas cuando ella falta. Los cargos de abajo no suman fuerza, la concentran: dáselos solo a titulares con autoridad real, y una líder de verdad puede llevar más de uno."
+  "leadershipNote_f": "El capitán mejora el ataque y la defensa y calma los ánimos. El vicecapitán hace lo mismo, con la mitad de efecto, cuando el capitán no juega. Los cuatro cargos de arriba no hacen más fuerte al equipo: cada uno pone el foco en un área a costa de las demás. Dáselos solo a titulares con verdadera autoridad. Un líder fuerte puede asumir dos."
  },
  "fixtures": {
   "tabFixtures": "Calendario",
