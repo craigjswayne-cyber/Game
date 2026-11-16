@@ -140,9 +140,9 @@ export function readLine(e: MatchEvent, i: number, homeId: string, prev: Phase |
 
   // ---- the whistles
   if (e.type === 'KO') {
-    return kickoff(base, isHome || !known, i, 'lp.kickoff')
+    return kickoff(base, isHome || !known, i, 'lp.kickoff', next)
   }
-  if (s.startsWith('restart')) return kickoff({ ...base }, isHome, i, 'lp.restart')
+  if (s.startsWith('restart')) return kickoff({ ...base }, isHome, i, 'lp.restart', next)
   if (e.type === 'HT' || e.type === 'FT' || e.type === 'BRK') {
     return { ...base, kind: 'break', x: 50, y: 35, label: e.type === 'FT' ? 'lp.fullTime' : e.type === 'HT' ? 'lp.halfTime' : 'lp.break' }
   }
@@ -210,10 +210,14 @@ export function readLine(e: MatchEvent, i: number, homeId: string, prev: Phase |
   return null
 }
 
-function kickoff(base: { homeBall: boolean; x: number; at: number; carrier?: number }, kickerHome: boolean, i: number, label: string): Phase {
+function kickoff(base: { homeBall: boolean; x: number; at: number; carrier?: number }, kickerHome: boolean, i: number, label: string, next?: MatchEvent): Phase {
   const d = kickerHome ? 1 : -1
+  // it comes down where the next line picks the play up, when that is in
+  // the receivers' half; otherwise a standard restart
+  const nx = next?.fld
+  const tx = nx != null && (nx - 50) * d > 10 ? clamp(nx, 4, 96) : 50 + d * (14 + wob(i, 4) * 14)
   return { ...base, homeBall: kickerHome, kind: 'kickoff', x: 50, y: 35,
-    to: { x: 50 + d * (14 + wob(i, 4) * 14), y: 35 + (wob(i, 5) - 0.5) * 36 }, hang: 16, label }
+    to: { x: tx, y: 35 + (wob(i, 5) - 0.5) * 36 }, hang: 16, label }
 }
 
 /** the shape after the first `upto` lines: the latest phase, the banner that

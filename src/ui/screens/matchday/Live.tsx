@@ -752,7 +752,7 @@ export function Live() {
       {!panelActive && !clip && !showPreReact && (
         <LivePitch events={events} cursor={cursor} homeId={fixture.homeId}
           home={pitchSide(true)} away={pitchSide(false)}
-          beatMs={tickMs + hold} paused={!playing}
+          paused={!playing}
           names={pid => game.players[pid]?.name} />
       )}
 
