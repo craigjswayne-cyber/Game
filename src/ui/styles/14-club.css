@@ -270,4 +270,4 @@
 
 /* THE MARQUEE ROWS OPEN THE PLAYER (1.9.14): a row you can tap, the same
    look as the ledger row it was */
-button.marquee-row { width: 100%; min-height: 44px; background: none; border-left: 0; border-right: 0; border-bottom: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+button.marquee-row { width: 100%; justify-content: space-between; align-items: center; min-height: 44px; background: none; border-left: 0; border-right: 0; border-bottom: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }

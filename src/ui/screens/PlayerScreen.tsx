@@ -841,14 +841,14 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         const isMarquee = marquee.includes(p.id)
         // the list is lodged in the window (cap.ts marqueeOpen): outside it the
         // page says why rather than offering a button that cannot work
-        if (!marqueeOpen(game)) return <div className="meta muted" style={{ marginTop: 6 }}>{t('player.marqueeLocked')}</div>
+        if (!marqueeOpen(game)) return <div className="meta muted" style={{ margin: '12px 14px' }}>{t('player.marqueeLocked')}</div>
         // BOTH SLOTS TAKEN (1.9.14, player feedback: "I can't change my
         // Marquee Players"): this page showed nothing at all, and the only way
         // was to find one of the two and remove him first. It says so, and
         // offers the swap with either.
         if (!isMarquee && marquee.length >= MARQUEE_SLOTS) return (
-          <div className="marquee-swap" data-marquee-swap>
-            <div className="meta muted" style={{ marginTop: 6 }}>{t('player.marqueeFull')}</div>
+          <div className="marquee-swap" data-marquee-swap style={{ margin: '12px 14px' }}>
+            <div className="meta muted">{t('player.marqueeFull')}</div>
             {/* one row, side by side: the player page is held to three
                 screens on a phone (scrollaudit) */}
             <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
