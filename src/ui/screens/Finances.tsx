@@ -11,7 +11,7 @@ import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { demandedFinish } from '../../game/chairman'
-import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
+import { MARQUEE_SLOTS, capPosition, capWord, marqueeOpen, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle, RewardedButton, spotNote } from '../components'
 import { AdSlot } from '../AdSlot'
 import { IcoClock, IcoOpen, IcoTick } from '../icons'
@@ -627,11 +627,15 @@ export default function Finances() {
               {marquee.length === 0
                 ? <div className="meta">{t('finances.noMarquee')}</div>
                 : marquee.map(p => (
-                  <div key={p.id} className="ledger-row">
+                  // a tap opens him, where the designation is removed or swapped
+                  // (1.9.14: these rows were text only, and nothing said where
+                  // the list was changed)
+                  <button key={p.id} type="button" className="ledger-row marquee-row" data-marquee-row={p.id} onClick={() => go('player', p.id)}>
                     <span>{p.name}</span>
-                    <span className="num">{fmtWage(p.wage)}</span>
-                  </div>
+                    <span className="num">{fmtWage(p.wage)} ›</span>
+                  </button>
                 ))}
+              <div className="meta muted" style={{ marginTop: 6 }}>{t(marqueeOpen(game) ? 'finances.marqueeHow' : 'player.marqueeLocked')}</div>
             </div>
             <SectionTitle sub={t('finances.squadCoverSub')}>
               {t('finances.squadCover')}

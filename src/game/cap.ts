@@ -203,6 +203,21 @@ export function toggleMarquee(state: GameState, playerId: number): boolean {
   return true
 }
 
+/** Put one man in another's marquee slot (1.9.14, player feedback: "I can't
+ *  change my Marquee Players"). With both slots taken the only way was to
+ *  find one of the two and remove him first, and nothing said so. The same
+ *  rules as toggleMarquee: the window, the user's own senior, and the man
+ *  going out must hold a slot. */
+export function swapMarquee(state: GameState, outId: number, inId: number): boolean {
+  const club = state.clubs[state.userClubId]
+  const p = state.players[inId]
+  if (!club || !p || p.clubId !== club.id || p.acad || !marqueeOpen(state)) return false
+  const list = club.marquee ?? []
+  if (!list.includes(outId) || list.includes(inId)) return false
+  club.marquee = list.map(id => (id === outId ? inId : id))
+  return true
+}
+
 /**
  * An AI club sells its way back under the line before the auditors arrive.
  *
