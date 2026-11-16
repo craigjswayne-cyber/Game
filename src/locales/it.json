@@ -4618,7 +4618,7 @@
   "communityLink": "Unisciti al Discord di PHASE",
   "publishedBy": "Pubblicato da",
   "contactLabel": "Di' la tua",
-  "privacyBody": "Il gioco in sé non raccoglie nulla su di te. Le carriere sono salvate solo su questo dispositivo, ed è per questo che la schermata Salva / Carica ha un pulsante Esporta: è l'unico backup che c'è. Nelle app per telefono, le pubblicità sono fornite da Google AdMob, che usa l'identificativo pubblicitario del tuo dispositivo; i dettagli sono nell'informativa sulla privacy.",
+  "privacyBody": "Il gioco in sé non raccoglie nulla su di te. Le carriere sono salvate solo su questo dispositivo, ed è per questo che la schermata Salva / Carica ha un pulsante Esporta: è l'unico backup che c'è. Nelle app per telefono, le pubblicità sono fornite da Google AdMob, che usa l'identificativo pubblicitario e l'indirizzo IP del tuo dispositivo e registra come interagisci con le pubblicità; i dettagli sono nell'informativa sulla privacy.",
   "privacyBtn": "Leggi l'informativa sulla privacy",
   "privacyLabel": "I tuoi dati",
   "sub": "cos'è questa cosa, e quali dati raccoglie",

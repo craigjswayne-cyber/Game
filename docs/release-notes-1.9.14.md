@@ -56,6 +56,14 @@ closed, not before.
   discord.gg/kJg5NdsRnq. The bug-report and ideas buttons open the same
   server invite until there are channel invites that do not expire.
 
+- **Privacy policy and in-app data notice now list everything the adverts
+  collect** (advertising ID, IP address, ad and app interactions, device and
+  performance data), in all six languages. The policy also now says the
+  banners are on ten screens (1.9.13 added the Stats tab, league table and
+  fixtures list) and that Pro keeps the optional "watch an advert" buttons.
+  Store declarations: `docs/launch/STORE-PRIVACY-1.9.14.md`. Publish the new
+  page before updating the store forms.
+
 ## Not changed
 
 - The match engine and the world: the plan only writes settings that already
