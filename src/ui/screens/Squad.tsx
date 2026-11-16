@@ -1,11 +1,12 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useVisitState } from '../visitState'
 import { useNarrowPhone } from '../tablet'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
 import { SQUAD_LIMIT, seniorsOf } from '../../game/transferRules'
-import { AvailTag, condColour, LoanKey, LoanName, Mark, Nat, PosBadge, Stars, StickyControls } from '../components'
+import { AvailTag, condColour, LoanKey, LoanName, Mark, Nat, PosBadge, SectionTitle, Stars, StickyControls } from '../components'
+import { Veil } from '../Veil'
 import { STATUSES, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
@@ -63,6 +64,8 @@ export default function Squad() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
   const touch = useStore(s => s.touch)
+  // the game-time status chooser, open for one player (1.9.14)
+  const [pickFor, setPickFor] = useState<number | null>(null)
   const [view, setView] = useVisitState<View>('view', 'selection')
   const [sort, setSort] = useVisitState<SortKey>('sort', 'pkd')
   const [desc, setDesc] = useVisitState('desc', false)
@@ -208,21 +211,14 @@ export default function Squad() {
       nameCol,
       {
         id: 'told', head: t('squad.colToldHim'), width: '29%',
-        // swallows the row's tap so choosing a status does not open the
-        // player; the select inside is the control
-        td: () => ({ onClick: e => e.stopPropagation() }),
-        // the box you see is the span's, drawn small; the select inside it
-        // keeps the 44px a thumb needs (owner, round 183)
-        cell: p => (
-          <span className="gt-pick">
-            <select className="inline-input gt-sel" value={statusOf(game, club, p)} aria-label={`${p.name}: ${t('squad.colStatus')}`}
-              onChange={e => { p.status = e.target.value as SquadStatus; touch() }}>
-              {/* the engine keeps the English name on the def; the option
-                  shows the translated one, keyed by id */}
-              {STATUSES.map(st => <option key={st.id} value={st.id}>{t(statusKey(st.id))}</option>)}
-            </select>
-          </span>
-        ),
+        // A LINE OF TEXT, NOT A SELECT (1.9.14, owner: "decrease the space
+        // around each player on game time page - make it listed and tighter
+        // like the stats page"). The select kept its 44px tap height in every
+        // row, so the page ran at 59px a player against Stats' 31. The status
+        // reads like any other cell; a tap on it opens the chooser below, with
+        // full-size buttons, and does not open the player.
+        td: p => ({ className: 'gt-told', onClick: e => { e.stopPropagation(); setPickFor(p.id) } }),
+        cell: p => <span className="gt-status">{t(statusKey(statusOf(game, club, p)))}<span className="gt-caret" aria-hidden>▾</span></span>,
       },
       { id: 'apps', head: t('squad.colAp'), width: 30, align: 'right', sort: 'apps', td: () => ({ style: { fontWeight: 700 } }), cell: p => ledgerOf(p).actual },
       // 50, NOT 34 (owner, 1.9.5): the Afrikaans VERWAG and Italian ATTESE are
@@ -371,6 +367,26 @@ export default function Squad() {
         </div>
       )}
       {view !== 'selection' && <LoanKey show={players.some(p => !!p.loanFrom)} />}
+      {pickFor != null && game.players[pickFor] && (() => {
+        const p = game.players[pickFor]
+        const cur = statusOf(game, club, p)
+        return (
+          <Veil onClose={() => setPickFor(null)} boxClassName="modal gt-sheet">
+            <div className="grab" />
+            <SectionTitle sub={t('squad.colToldHim')}>{p.name}</SectionTitle>
+            <div className="gt-choices" role="radiogroup" aria-label={`${p.name}: ${t('squad.colStatus')}`}>
+              {STATUSES.map(st => (
+                <button key={st.id} type="button" role="radio" aria-checked={cur === st.id} data-status={st.id}
+                  className={`gt-choice${cur === st.id ? ' sel' : ''}`}
+                  onClick={() => { p.status = st.id as SquadStatus; touch(); setPickFor(null) }}>
+                  <b>{t(statusKey(st.id))}</b>
+                  <small>{t(statusKey(st.id, 'Desc'))}</small>
+                </button>
+              ))}
+            </div>
+          </Veil>
+        )
+      })()}
       <div className="spacer" />
     </>
   )

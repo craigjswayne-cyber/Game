@@ -989,19 +989,29 @@ export function revokeMissing(skus: readonly string[], session = SESSION, now = 
   return revoked
 }
 
+/** How a Buy tap ended, for the feedback report's STORE line (1.9.14). A
+ *  pending payment is left uncounted until the store settles it elsewhere. */
+function noteBuy(out: PurchaseOutcome): PurchaseOutcome {
+  if (out === 'owned') noteUse('bought')
+  else if (out === 'cancelled') noteUse('buyCancel')
+  else if (out !== 'pending') noteUse('buyFail')
+  return out
+}
+
 /** Open the store's sheet for a non-consumable, and write the receipt if it
  *  closes with a sale. */
 export async function buyOwnable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
   setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
-  if (!b || !(NC_SKUS as readonly string[]).includes(sku)) return 'unavailable'
+  noteUse('buyTap')
+  if (!b || !(NC_SKUS as readonly string[]).includes(sku)) return noteBuy('unavailable')
   buying++
   try {
     const out = await b.buy(sku)
     if (out === 'owned') grant(sku)
-    return out
+    return noteBuy(out)
   } catch {
-    return 'error'
+    return noteBuy('error')
   } finally { buying--; lastBuyEnd = Date.now() }
 }
 
@@ -1033,13 +1043,14 @@ export async function buySupporter(): Promise<PurchaseOutcome> {
 export async function buyConsumable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
   setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
-  if (!b || typeof b.consume !== 'function' || !CONSUMABLE_SKUS.includes(sku)) return 'unavailable'
+  noteUse('buyTap')
+  if (!b || typeof b.consume !== 'function' || !CONSUMABLE_SKUS.includes(sku)) return noteBuy('unavailable')
   buying++
   try {
     const out = await b.buy(sku)
-    return out
+    return noteBuy(out)
   } catch {
-    return 'error'
+    return noteBuy('error')
   } finally { buying--; lastBuyEnd = Date.now() }
 }
 

@@ -33,6 +33,20 @@ closed, not before.
   the player, and says when the list can change. The rule itself is the same:
   marquee players are named while the transfer window is open.
 
+- **Game Time, as tight as Stats.** Owner: "decrease the space around each
+  player on game time page - make it listed and tighter like the stats
+  page". Each row held a drop-down kept at 44px for a thumb, so the page ran
+  at 59px a player against Stats' 31. What each player was told now reads as
+  text, rows are 31px, and a tap on it opens a sheet with the five choices as
+  full-size buttons, each saying what it means.
+- **Plainer leadership note** on the Team screen (owner: "Check the
+  sentences. Doesnt make sense to me?"), with no he or she, in six languages.
+- **The feedback report's STORE line.** After six days without a sale
+  (purchases checked and working), the report now counts the Store: visits,
+  Buy taps, and how each ended (bought, cancelled, failed). Every Buy button
+  in the game counts, the Pro offer and Full Fitness included. Still counts
+  only, and the heaviest report still fits an email (1,793 of 1,800).
+
 ## Not changed
 
 - The match engine and the world: the plan only writes settings that already

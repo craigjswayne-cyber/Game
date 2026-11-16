@@ -292,4 +292,15 @@ console.log('--- the career')
   ok(hr.length <= MAILTO_LIMIT, `the heaviest full report still fits a mail body (${hr.length} of ${MAILTO_LIMIT})`)
 }
 
+console.log('--- the store (1.9.14)')
+{
+  const u = freshUsage()
+  u.screens.supporter = 4
+  u.acts.buyTap = 3; u.acts.bought = 1; u.acts.buyCancel = 1; u.acts.buyFail = 1
+  const r = report(u)
+  ok(/\nSTORE\nvisits 4, taps 3, bought 1, cancelled 1, failed 1\n/.test(r), 'the STORE line: visits, Buy taps and how they ended')
+  ok(!/Buy tapped|Purchase cancelled/.test(r), 'and the purchase counts are not repeated on the ACTIONS line')
+  ok(!report(u, { store: false }).includes('\nSTORE\n'), 'a build with no store (the website) has no STORE line')
+}
+
 done('FEEDBACK PROBE', '', { exit: true, blank: false })

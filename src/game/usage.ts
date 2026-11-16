@@ -41,7 +41,13 @@ export const ACTIONS = [
   'talk', 'watched', 'instant', 'sub', 'liveTactics', 'advert', 'skin', 'lang', 'night',
   // 1.9.13: the office, retraining, the physio's load, the character filters
   'chat', 'retrain', 'physio', 'charFilter',
+  // 1.9.14, the STORE section (owner, after six days without a sale): every
+  // Buy tap in the game, and how it ended. Counted at monetise.ts's two
+  // purchase doors, so the Store, the Pro offer and Full Fitness all count.
+  'buyTap', 'bought', 'buyCancel', 'buyFail',
 ] as const
+/** reported on the STORE line, not the ACTIONS one */
+const STORE_ACTS: readonly Action[] = ['buyTap', 'bought', 'buyCancel', 'buyFail']
 export type Action = typeof ACTIONS[number]
 
 /** How each reads in the report (developer-facing, English like the bug report). */
@@ -66,6 +72,10 @@ const ACTION_NAMES: Record<Action, string> = {
   retrain: 'Retrain',
   physio: 'Physio load',
   charFilter: 'Character filter',
+  buyTap: 'Buy tapped',
+  bought: 'Bought',
+  buyCancel: 'Purchase cancelled',
+  buyFail: 'Purchase failed',
 }
 
 /** Readable names for the screens. A screen not listed here is reported by its
@@ -435,7 +445,15 @@ export function buildFeedbackReport(i: FeedbackInput): string {
     out += `haptics ${p.haptics ? 'on' : 'off'}, sound ${p.sound ? 'on' : 'off'}, night ${p.night ? 'on' : 'off'}, text ${Math.round(p.text * 100)}%\n\n`
   }
 
-  const screens = Object.entries(u.screens).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+  // THE STORE (1.9.14): visits, then every Buy tap and how it ended. A tap
+  // that ends neither bought nor cancelled nor failed is a pending payment.
+  if (i.store) {
+    out += 'STORE\n'
+    out += `visits ${u.screens.supporter ?? 0}, taps ${u.acts.buyTap ?? 0}, bought ${u.acts.bought ?? 0}, cancelled ${u.acts.buyCancel ?? 0}, failed ${u.acts.buyFail ?? 0}\n\n`
+  }
+
+  // the Store's visits are on its own line when there is one
+  const screens = Object.entries(u.screens).filter(([k]) => !(i.store && k === 'supporter')).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
   out += 'SCREENS OPENED\n'
   out += screens.length ? screens.map(([k, n]) => `${SCREEN_NAMES[k] ?? k} ${n}`).join(', ') + '\n\n' : 'none yet\n\n'
 
@@ -444,10 +462,10 @@ export function buildFeedbackReport(i: FeedbackInput): string {
   out += never.length ? never.map(k => SCREEN_NAMES[k] ?? k).join(', ') + '\n\n' : 'none, every main screen was opened\n\n'
 
   out += 'ACTIONS\n'
-  out += ACTIONS.map(a => `${ACTION_NAMES[a]} ${u.acts[a] ?? 0}`).join(', ') + '\n\n'
+  out += ACTIONS.filter(a => !STORE_ACTS.includes(a)).map(a => `${ACTION_NAMES[a]} ${u.acts[a] ?? 0}`).join(', ') + '\n\n'
 
-  out += 'Counts only. No names, no save, nothing else. Built on the device and\n'
-  out += 'sent by the player.\n'
+  // shorter since 1.9.14, to make room for the STORE line in a mail body
+  out += 'Counts only: no names, no save.\n'
   return out
 }
 
