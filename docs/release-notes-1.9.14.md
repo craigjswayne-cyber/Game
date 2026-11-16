@@ -1,8 +1,10 @@
 # PHASE: Rugby Manager 1.9.14: release notes
 
-**IN PROGRESS (owner, 15 Nov 2026: "Work on it now but dont merge and ill
-keep adding to it").** Version and versionCode are raised when the round is
-closed, not before.
+**READY (owner, 16 Nov 2026: "Ok we need to merge and upload this").**
+Started 15 Nov from player feedback ("Work on it now but dont merge and ill
+keep adding to it"). The store "What's new" text is in `docs/store-listing.md`.
+
+Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
 
 ## What changed for players
 
@@ -79,8 +81,8 @@ closed, not before.
   each lands on its screen, the card folds, and the tab is gone once the
   first league match is played; the unit test walks a whole season).
 
-## Still to come in this round
+## Not in this round
 
-- The Xcode warnings (29): the AdMob and Filesystem plugin upgrades, tested
-  against the adverts.
-- Whatever the owner adds.
+- The Xcode warnings (29, from the AdMob and Filesystem plugins): still
+  waiting on the full list; the plugin upgrades need testing against the
+  adverts, so they go in a later round.
