@@ -38,6 +38,7 @@ describe('the season plan', () => {
     expect(g.training).toBe('kicking')
     expect(g.matchPrep).toBe('setpiece')
     expect(planThisSeason(g)?.season).toBe(g.season)
+    expect(g.firstSteps?.seen).toContain('plan')
   })
 
   it('turns Set-Piece Work off again, and ignores a call of the wrong kind', () => {

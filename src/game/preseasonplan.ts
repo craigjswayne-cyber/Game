@@ -16,6 +16,7 @@ import type { GameState, MatchPrep, TrainingFocus } from './model'
 import { preseasonWeeksFor } from './calendar'
 import { applyAtkStyle, applyDefStyle, stylesOf, type AtkStyle, type DefStyle } from './styles'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID } from './playbook'
+import { noteStep } from './firststeps'
 
 export interface PreseasonPlan {
   season: number
@@ -70,4 +71,6 @@ export function setPreseasonPlan(state: GameState, plan: Omit<PreseasonPlan, 'se
   if (plan.setpiece) state.matchPrep = 'setpiece' as MatchPrep
   else if (state.matchPrep === 'setpiece') state.matchPrep = undefined
   state.preplan = { season: state.season, ...plan }
+  // the plan IS the game plan: the first season's checklist ticks it
+  noteStep(state, 'plan')
 }
