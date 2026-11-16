@@ -31,6 +31,7 @@ import { MatchVerdict } from './Verdict'
 import { FEED_ROWS, useFeedGlide } from './feedGlide'
 import { WEATHER_ICON, weatherWord } from './weather'
 import { Veil } from '../../Veil'
+import { LivePitch, type PitchSide } from '../../livepitch/LivePitch'
 
 // ------------------------------------------------------------------
 // Live match
@@ -458,6 +459,20 @@ export function Live() {
   useFeedGlide(feedRef, panelActive ? -1 : shown.length)
   useFeedGlide(tabRef, panelActive || !tablet ? -1 : shown.length)
 
+  // the two sides for the live pitch: who is in which shirt, the number on
+  // it, and the kit as the canvas draws it (the highlight's own colours)
+  const pitchKits = (() => {
+    const white = tokenColor('--prop-ink')
+    const k = kitColours(pageSpares(tokenColor), game.clubs[fixture.homeId]?.colors ?? [tokenColor('--kit-home'), white],
+      game.clubs[fixture.awayId]?.colors ?? [tokenColor('--kit-away'), white], false)
+    return { home: [k.home[0], k.home[1] ?? white] as [string, string], away: [k.away[0], k.away[1] ?? white] as [string, string] }
+  })()
+  const pitchSide = (isHome: boolean): PitchSide => {
+    const sd = isHome ? ctx.home : ctx.away
+    const lineup = sd.lineup.slice(0, 15)
+    return { lineup, nums: lineup.map((id, i) => (id != null ? shirtNumber(sd, id) : undefined) ?? i + 1), kit: isHome ? pitchKits.home : pitchKits.away }
+  }
+
   return (
     <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}`}>
       <MatchAnnouncer game={game} shown={shown} homeId={fixture.homeId} awayId={fixture.awayId} />
@@ -731,7 +746,15 @@ export function Live() {
           onDone={() => setClip(null)} />
       )}
       {!panelActive && !clip && !tablet && showPreReact && preReact}
-      {!panelActive && !clip && !tablet && !showPreReact && <LiveStats shown={shown} />}
+      {/* THE LIVE PITCH (2.0.0, owner: "in game should be evolved into
+          this"): the match on the grass between the highlights, every line
+          moving the thirty men into the shape it describes */}
+      {!panelActive && !clip && !showPreReact && (
+        <LivePitch events={events} cursor={cursor} homeId={fixture.homeId}
+          home={pitchSide(true)} away={pitchSide(false)}
+          beatMs={tickMs + hold} paused={!playing}
+          names={pid => game.players[pid]?.name} />
+      )}
 
       {/* THE TABLET DECK (1.8.0). A phone reads the match a line at a time;
           a tablet has half a screen under the pitch that used to be empty, so
