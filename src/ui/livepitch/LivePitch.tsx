@@ -345,7 +345,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // the far side's boards stop either side of each dugout, which stands on
       // the touchline itself; the near side runs unbroken
       const runs: [boolean, [number, number][]][] = [
-        [true, [[-GOAL, 10.5], [10.5, 29], [45, 55], [71, 89.5], [89.5, 100 + GOAL]]],
+        [true, [[-GOAL, 9.5], [9.5, 27.5], [46.5, 53.5], [72.5, 90.5], [90.5, 100 + GOAL]]],
         [false, [0, 1, 2, 3, 4, 5].map(i => [-GOAL + i * 116 / 6, -GOAL + (i + 1) * 116 / 6] as [number, number])],
       ]
       for (const [left, segs] of runs) {
@@ -354,7 +354,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           const fill = boardFills[(i + (left ? 0 : 2)) % boardFills.length]
           const y1 = fy(m1), ln = (m1 - m0) * sc
           g.fillStyle = fill; g.fillRect(bx, y1 + 0.5, boardW, ln - 1)
-          text(names[(i * 2 + (left ? 0 : 1)) % names.length], bx + boardW / 2, y1 + ln / 2, Math.max(6, sc * 1.45), fill, left || !dim.up ? -Math.PI / 2 : Math.PI / 2, ln - sc * 2.4)
+          // (the short board between the dugouts is left plain: no name fits it)
+          if (m1 - m0 >= 10) text(names[(i * 2 + (left ? 0 : 1)) % names.length], bx + boardW / 2, y1 + ln / 2, Math.max(6, sc * 1.45), fill, left || !dim.up ? -Math.PI / 2 : Math.PI / 2, ln - sc * 2.4)
         })
       }
 
@@ -416,8 +417,12 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // in the technical area)
       for (const [mid, kit] of [[37, hk], [63, ak]] as [number, [string, string]][]) {
         const y0 = fy(mid + 8), len = 16 * sc
-        const bw = off + boardW + sc * 0.9, bx = pitchL - off * 0.55 - bw
-        // its shadow on the stand front, then the floor and the back wall
+        const bw = sc * 3.8, ta = off + boardW, bx = pitchL - ta - bw
+        // (owner, 17 Nov 2026: "Sink them more into the stand and push the
+        // technical area beyond the pitch lines": the dugout is set back into
+        // the stand, and the technical area is the grass between it and the
+        // touchline, none of it on the field)
+        g.fillStyle = ink.grassB; g.fillRect(pitchL - ta, y0 - sc * 1.5, ta - sc * 0.3, len + sc * 3)
         g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(bx - sc * 0.5, y0 + sc * 0.5, bw, len)
         g.fillStyle = 'rgba(22,27,35,1)'; g.fillRect(bx, y0, bw, len)
         g.fillStyle = 'rgba(232,236,242,1)'; g.fillRect(bx, y0, sc * 0.5, len)
@@ -443,8 +448,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.fillStyle = lum(kit[0]) > 0.17 ? kit[0] : kit[1]; g.fillRect(bx + bw * 0.46 - Math.max(1.2, sc * 0.3), y0, Math.max(1.2, sc * 0.3), len)
         // the technical area on the run-off, and the coach standing in it
         g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = Math.max(0.8, sc * 0.16); g.setLineDash([sc * 0.9, sc * 0.9])
-        g.strokeRect(pitchL - off * 0.55, y0 - sc * 1.5, off * 0.55 + sc * 1.6, len + sc * 3); g.setLineDash([])
-        const kx = pitchL + sc * 0.4, ky = y0 + len * (mid < 50 ? 0.62 : 0.38), kr = Math.max(2.4, sc * 0.9)
+        g.strokeRect(pitchL - ta + sc * 0.3, y0 - sc * 1.1, ta - sc * 1.0, len + sc * 2.2); g.setLineDash([])
+        const kx = pitchL - ta * 0.42, ky = y0 + len * (mid < 50 ? 0.62 : 0.38), kr = Math.max(2.4, sc * 0.9)
         g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(kx + kr * 0.25, ky + kr * 0.35, kr, 0, Math.PI * 2); g.fill()
         g.fillStyle = 'rgba(26,32,44,1)'; g.beginPath(); g.arc(kx, ky, kr, 0, Math.PI * 2); g.fill()
         g.strokeStyle = lum(kit[0]) > 0.17 ? kit[0] : kit[1]; g.lineWidth = Math.max(1, sc * 0.26); g.stroke()
