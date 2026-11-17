@@ -11,6 +11,7 @@ import type { MatchEvent } from '../../game/model'
 import { readInk, isLight, refereeColour, tokenColor } from '../highlight/draw'
 import { phaseAt, readLine, type Banner, type Phase } from './phase'
 import { PitchSim } from './sim'
+import type { PitchTac } from './agents'
 
 export interface PitchSide {
   /** the lineup by shirt index, as the engine holds it */
@@ -40,7 +41,9 @@ function h2(a: number, b: number): number {
   return ((h ^ (h >>> 16)) % 10000) / 10000
 }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics }: {
+  /** how each club plays (home, away): its own dials, so the two sides look different */
+  tactics?: [PitchTac, PitchTac]
   events: MatchEvent[]
   cursor: number
   homeId: string
@@ -104,6 +107,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   }
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
   const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null })
+  if (tactics) sim.current.tac = tactics
   io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null }
 
   useEffect(() => {

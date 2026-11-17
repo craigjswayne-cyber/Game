@@ -36,6 +36,21 @@
 
 import type { Pt } from './shapes'
 
+/**
+ * A CLUB PLAYS ITS OWN WAY (docs/match-authenticity-2.0.0.md, sections 1, 2
+ * and 11). These are the manager's own dials (model Tactic), all 0..100 with
+ * 50 the middle, read by the pitch so two clubs do not look the same:
+ *   style     forwards-led and tight .. expansive: which pod shape the pack
+ *             stands in and how often the ball goes wide
+ *   tempo     how quickly the ball comes back from the ruck
+ *   commit    how many go into their own ruck
+ *   defLine   drift .. blitz: how hard the line comes up, how far it slides
+ *   defWidth  narrow round the ruck .. spread to the touchlines
+ *   contest   fan out and hold the line .. go after the ball on the floor
+ */
+export interface PitchTac { style: number; tempo: number; commit: number; defLine: number; defWidth: number; contest: number }
+export const MID_TAC: PitchTac = { style: 50, tempo: 50, commit: 50, defLine: 50, defWidth: 50, contest: 50 }
+
 export interface OpenWorld {
   /** the thirty, 0-14 home and 15-29 away */
   b: Pt[]
@@ -56,8 +71,9 @@ export interface OpenWorld {
   /** the attacker with the ball or just tackled (side-relative), if any */
   carrier: number | null
   downMan: number | null
-  /** how this defence defends */
-  rush: boolean
+  /** how each side plays: the attack's shape and the defence's system, from the clubs' own tactics */
+  att: PitchTac
+  def: PitchTac
   /** 0..1: the attack is on the move. The pods and the backs do not stand
    *  and wait for the ball: as it comes available they start their runs, so
    *  whoever gets it is already going forward when he takes it */
@@ -112,8 +128,9 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   if (w.ruck) {
     // the tackled man on the ball, two over him, one latched on behind; the 9 at the base
     if (w.downMan != null && !taken.has(w.downMan)) put(w.downMan, -0.3, 0)
+    // (a side that commits few keeps its third man out of it and on his feet)
     const spots: [number, number][] = [[0.7, -0.9], [0.7, 0.9], [-1.5, -0.2]]
-    rk.filter(k => !taken.has(k)).forEach((k, j) => put(k, spots[j][0], spots[j][1]))
+    rk.filter(k => !taken.has(k)).slice(0, w.att.commit < 42 ? 2 : 3).forEach((k, j) => put(k, spots[j][0], spots[j][1]))
     if (!taken.has(8)) put(8, -2.6, 1.1)
   } else {
     // with the carrier: a man on each shoulder a stride behind, one further back, the 9 trailing
@@ -126,9 +143,24 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   // (spaced for the size a man is drawn at: nothing here stands on the ruck
   // or on the defence's toes)
   const vB = clamp(far * 0.5, 23, 32)
-  const podSlots: [number, number][] = [[-4, 11.6], [-4.8, 8], [-4.8, 15.2], [-6.5, vB], [-6.9, vB + 3.8]]
-  if (near > 15) podSlots.splice(3, 0, [-4, -Math.min(9, near * 0.45)])
-  podSlots.push([-5.5, 19], [-7, vB + 7.6])
+  let podSlots: [number, number][]
+  if (w.att.style >= 60) {
+    // 1-3-3-1: a pod of three off the 9, a pod of three in midfield, and a
+    // forward holding each 15 metre channel
+    podSlots = [[-4, 11.6], [-4.8, 8], [-4.8, 15.2], [-6.5, vB], [-6.9, vB + 3.8], [-9, Math.max(vB + 12, far - 10)]]
+    if (near > 15) podSlots.push([-5, -(near - 9)])
+    podSlots.push([-6.9, vB - 3.8])
+  } else if (w.att.style <= 40) {
+    // tight: both pods close to the ruck, one after the other, nobody out wide
+    podSlots = [[-3.6, 9.6], [-4.4, 6], [-4.4, 13.2], [-5.6, 18.4], [-6.2, 22], [-6.2, 14.8 + 10.8]]
+    if (near > 15) podSlots.splice(3, 0, [-4, -Math.min(7, near * 0.4)])
+    podSlots.push([-5, -Math.min(11, near * 0.6)])
+  } else {
+    // 1-3-2 and a spare: a pod of three off the 9, a pair in midfield, one on a wide short side
+    podSlots = [[-4, 11.6], [-4.8, 8], [-4.8, 15.2], [-6.5, vB], [-6.9, vB + 3.8]]
+    if (near > 15) podSlots.splice(3, 0, [-4, -Math.min(9, near * 0.45)])
+    podSlots.push([-5.5, 19], [-7, vB + 7.6])
+  }
   const freeFwd = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !taken.has(k))
   for (const [g, [u, v]] of deal(freeFwd.map(k => att0 + k), vOf, podSlots.slice(0, freeFwd.length))) { out[g] = P(Math.min(-3, u + go * 1.2), v); taken.add(g - att0) }
   // the backs: 10 out the back of the first pod; 12, 13 and the open wing
@@ -178,7 +210,8 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
     // the tackler is on the floor and the second man is over the ball for a
     // moment; then they are out of it and back in the line
     if (t0 != null && w.ruckAge < 1.3) dput(t0, D(0.9, -0.6))
-    if (t1 != null && w.ruckAge < 1.0) dput(t1, D(1.3, 0.6))
+    // (a side that goes after the ball leaves its man over it for longer)
+    if (t1 != null && w.ruckAge < 0.5 + w.def.contest / 100 * 1.3) dput(t1, D(1.3, 0.6))
   }
   // a post either side of the ruck: the two nearest forwards
   const posts = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !dTaken.has(k))
@@ -192,13 +225,13 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   }
   // line speed: once the ball is out the line goes up at it, together. The
   // men in front of the ball lead by a stride, nobody is left behind.
-  const upBy = C ? clamp(L - (Cu + 1.5), 0, 9) * (w.rush ? 1 : 0.7) : 0
+  const upBy = C ? clamp(L - (Cu + 1.5), 0, 9) * (0.55 + 0.55 * w.def.defLine / 100) : 0
   const up = (v: number) => {
     if (!C) return L
     const here = v * Cv < 0 ? 0.25 : clamp(1.05 - Math.abs(v - Cv) / 45, 0.6, 1)
     return L - upBy * here
   }
-  const slide = (v: number) => (C && v * Cv > 0 ? v + clamp((Cv - v) * (w.rush ? 0.1 : 0.25), -4, 4) : v)
+  const slide = (v: number) => (C && v * Cv > 0 ? v + clamp((Cv - v) * (0.3 - 0.22 * w.def.defLine / 100), -4, 4) : v)
   // the wings: the short-side wing is in the line when there is a short
   // side to defend; the open wing hangs a few metres back until the ball
   // comes his way, then he is up
@@ -215,7 +248,7 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   for (let k = 0; k < nShort; k++) slots.push([0, -(7.4 + k * Math.min(5.5, Math.max(4, (dnear - 14) / 2)))])
   const nOpen = lineMen.length - slots.length
   // close together near the ruck, a little wider each man out, and never stretched thin
-  const W = Math.max(11, Math.min(dfar - 9, 7.4 + (nOpen - 1) * 6.2))
+  const W = Math.max(11, Math.min(dfar - 9, 7.4 + (nOpen - 1) * (5 + 2.6 * w.def.defWidth / 100)))
   for (let k = 0; k < nOpen; k++) slots.push([0, 7.4 + (W - 7.4) * Math.pow(nOpen === 1 ? 0.4 : k / (nOpen - 1), 1.15)])
   for (const [g, [, v]] of deal(lineMen.map(k => def0 + k), dvOf, slots)) {
     const vv = slide(v)

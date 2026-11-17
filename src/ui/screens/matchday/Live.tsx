@@ -31,6 +31,7 @@ import { MatchVerdict } from './Verdict'
 import { FEED_ROWS, useFeedGlide } from './feedGlide'
 import { WEATHER_ICON, weatherWord } from './weather'
 import { Veil } from '../../Veil'
+import type { PitchTac } from '../../livepitch/agents'
 import { LivePitch, type PitchSide } from '../../livepitch/LivePitch'
 import { NAMES as SPONSOR_NAMES } from '../../../game/commercial'
 
@@ -492,6 +493,11 @@ export function Live() {
     const own = fixture.homeId === ctx.userSideId ? Object.values(game.deals ?? {}).map(d => d?.sponsor).filter((x): x is string => !!x) : []
     return [...new Set([...own, ...SPONSOR_NAMES.shirt, ...SPONSOR_NAMES.sleeve])].slice(0, 12)
   }, [fixture.homeId])
+  // each club plays its own way on the pitch: its own dials (model Tactic)
+  const pitchTactics = useMemo(() => [fixture.homeId, fixture.awayId].map(id => {
+    const tc = game.clubs[id]?.tactic
+    return { style: tc?.style ?? 50, tempo: tc?.tempo ?? 50, commit: tc?.ruckCommit ?? 50, defLine: tc?.defLine ?? 50, defWidth: tc?.defWidth ?? 50, contest: tc?.ruckContest ?? 50 }
+  }) as [PitchTac, PitchTac], [fixture.homeId, fixture.awayId, cursor === 0])
   const pitchSide = (isHome: boolean): PitchSide => {
     const sd = isHome ? ctx.home : ctx.away
     const lineup = sd.lineup.slice(0, 15)
@@ -779,7 +785,7 @@ export function Live() {
         <LivePitch events={events} cursor={cursor} homeId={fixture.homeId}
           home={pitchSide(true)} away={pitchSide(false)}
           paused={!playing} speed={[0.85, 1, 1.6][speedIdx] ?? 1}
-          boards={pitchBoards}
+          boards={pitchBoards} tactics={pitchTactics}
           onPlayed={moved => setPitchPlayed({ at: useStore.getState().liveMatch?.cursor ?? cursor, moved })}
           tr={(k, v) => t(k, v)} teams={{ home: teamShort(game, fixture.homeId), away: teamShort(game, fixture.awayId) }}
           names={pid => game.players[pid]?.name} />

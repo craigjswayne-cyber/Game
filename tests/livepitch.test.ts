@@ -31,6 +31,11 @@ describe('the live pitch', () => {
       const { events, homeId, lineups } = match(seed)
       expect(events.length).toBeGreaterThan(60)
       const S = new PitchSim()
+      // the second match is an expansive blitzing side against a tight drifting one
+      if (seed === 777) S.tac = [
+        { style: 85, tempo: 80, commit: 30, defLine: 90, defWidth: 75, contest: 80 },
+        { style: 15, tempo: 25, commit: 80, defLine: 10, defWidth: 20, contest: 20 },
+      ]
       const lp = (en as unknown as { lp: Record<string, unknown> }).lp
       let cur: Phase | null = null, total = 0, top = 0, plays = 0, wall = 0
       for (let i = 0; i < events.length; i++) {

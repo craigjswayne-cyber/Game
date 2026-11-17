@@ -24,7 +24,7 @@
 import type { Phase, PhaseKind } from './phase'
 import { shapeOf, type Pt } from './shapes'
 import { FLIGHT, TRACKS, trackAt, type Track } from '../clipPlays'
-import { openPlayTargets } from './agents'
+import { openPlayTargets, MID_TAC, type PitchTac } from './agents'
 
 export interface Body { x: number; y: number; vx: number; vy: number }
 
@@ -68,9 +68,11 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
  * than half are quicker (docs/match-authenticity-2.0.0.md, section 3); the
  * tackle and the 9's pick-up are played out either side of this wait.
  */
-function ruckLen(seed: number): number {
+function ruckLen(seed: number, tempo = 50): number {
   const r = jit(seed, 91) + 0.5
-  return r < 0.55 ? 1.0 + r : r < 0.88 ? 1.8 + (r - 0.55) : 2.6 + (r - 0.88) * 3
+  const t = r < 0.55 ? 1.0 + r : r < 0.88 ? 1.8 + (r - 0.55) : 2.6 + (r - 0.88) * 3
+  // a quick side plays it away sooner, a slow one sets itself first
+  return t * (1.25 - 0.5 * tempo / 100)
 }
 function jit(i: number, salt: number): number {
   let h = ((i + 1) * 374761393 + salt * 668265263) >>> 0
@@ -117,8 +119,8 @@ export class PitchSim {
   private downMan: number | null = null
   /** seconds since the ball last went to ground in a ruck */
   private ruckT = 0
-  /** this match's defences: a rush comes up hard, a drift slides (by side: home, away) */
-  rush: [boolean, boolean] = [true, true]
+  /** how each club plays (home, away), from its own tactics */
+  tac: [PitchTac, PitchTac] = [MID_TAC, MID_TAC]
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
@@ -197,14 +199,14 @@ export class PitchSim {
       }
       case 'ruck':
         cut = cut || d > 16
-        if (cut) steps.push({ k: 'ground' }, { k: 'wait', t: ruckLen(p.at) })
+        if (cut) steps.push({ k: 'ground' }, { k: 'wait', t: ruckLen(p.at, this.tac[p.homeBall ? 0 : 1].tempo) })
         else if (holderAtt) {
           // he carries it into contact, then it is a ruck
           mode = 'carry'; cIdx = this.holder - att0; anchor = B
-          steps.push({ k: 'run', to: E, v: 6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at) })
+          steps.push({ k: 'run', to: E, v: 6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at, this.tac[p.homeBall ? 0 : 1].tempo) })
         } else {
           anchor = B
-          steps.push({ k: 'ground' }, { k: 'run', to: E, v: 5 }, { k: 'wait', t: ruckLen(p.at) })
+          steps.push({ k: 'ground' }, { k: 'run', to: E, v: 5 }, { k: 'wait', t: ruckLen(p.at, this.tac[p.homeBall ? 0 : 1].tempo) })
         }
         break
       case 'penalty':
@@ -460,7 +462,7 @@ export class PitchSim {
         out: inRuck && this.grounded ? null : out,
         ruckers: this.ruckers ?? [], tacklers: this.tacklers ?? [],
         carrier: inRuck ? null : (holderAtt ? this.holder - att0 : this.cIdx), downMan: this.downMan,
-        rush: this.rush[p.homeBall ? 1 : 0],
+        att: this.tac[p.homeBall ? 0 : 1], def: this.tac[p.homeBall ? 1 : 0],
         go: inRuck ? clamp((this.ruckT - 0.35) / 0.7, 0, 1) : 1,
         side: this.side, meet: inRuck ? null : this.meet,
       }).map((q, i) => ({ x: q.x + jit(i, 1) * 0.7, y: q.y + jit(i, 2) * 0.5 }))
@@ -497,7 +499,7 @@ export class PitchSim {
     if (holderAtt && this.mode === 'carry') {
       // he is tackled where he is
       this.mark(B, att0, this.holder)
-      steps.push({ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at + this.idleN) })
+      steps.push({ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at + this.idleN, this.tac[p.homeBall ? 0 : 1].tempo) })
     } else if (this.mode === 'ruck' && safe) {
       const n = ++this.idleN
       const h = (k: number) => Math.abs(jit(n * 7 + p.at, k)) * 2
@@ -516,7 +518,7 @@ export class PitchSim {
       steps.push({ k: 'wait', t: 0.1 })
       this.feed(steps, att0, dir, B, c, me.y)
       steps.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true },
-        { k: 'run', to: E, v: c < 8 ? 6 : 7.6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at + n) })
+        { k: 'run', to: E, v: c < 8 ? 6 : 7.6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at + n, this.tac[p.homeBall ? 0 : 1].tempo) })
     } else return
     this.steps = steps; this.si = 0; this.st = 0; this.entered = false
   }
@@ -682,7 +684,7 @@ export class PitchSim {
           const tackle: Step[] = [{ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 0.7 }]
           // how far this carry goes: a few phases, however far it is
           // a forward makes a few metres, a back a few more: nobody runs the length of the field
-          const carrierIsFwd = mine ? this.holder - att0 < 8 : n % 2 === 1
+          const carrierIsFwd = mine ? this.holder - att0 < 8 : true
           const len = carrierIsFwd ? clamp(rem / 4, 5, 9) : clamp(rem / 2.5, 9, 18)
           const P: Pt = rem - len < 4 ? { ...s.to } : { x: B.x + (s.to.x - B.x) / rem * len, y: clamp(B.y + (s.to.y - B.y) / rem * len, 4, 66) }
           if (n > 14) { over = true; break }
@@ -715,7 +717,8 @@ export class PitchSim {
           } else {
             // quick ball: the 9 to a man coming on to it, forwards and backs in turn
             const side = Math.abs(s.to.y - B.y) > 4 ? Math.sign(s.to.y - B.y) : (B.y <= 35 ? 1 : -1)
-            const wide = n % 2 === 0
+            const st = this.tac[this.phase.homeBall ? 0 : 1].style
+            const wide = st >= 60 ? n % 2 === 0 : st <= 40 ? n % 4 === 0 : n % 3 === 0
             const busy = [8, ...(this.ruckers ?? []), ...(this.downMan != null ? [this.downMan] : []), ...(join >= 0 ? [join - att0] : [])]
             const pool = (wide ? [9, 11, 12, 10, 13, 14] : [0, 1, 2, 3, 4, 5, 6, 7]).filter(k => !busy.includes(k))
             const W: Pt = { x: B.x - dir * (wide ? 7 : 3.5), y: clamp(B.y + side * (wide ? 12 : 6), 3, 67) }
