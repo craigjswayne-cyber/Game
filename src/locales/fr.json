@@ -5397,7 +5397,7 @@
     "cxTwo": "quinze jours",
     "expiringMan": "{name} ({pos}, {age} ans)",
     "natTakenSubj": "Nomination : sélection nationale ({nat})",
-    "natTaken": "Vous entraînerez la sélection ({nat}) en plus de votre club. Pendant les fenêtres internationales, quand le club ne joue pas, vous dirigez la sélection le jour du match. Tout titre remporté rejoint votre vitrine.",
+    "natTaken": "Vous entraînerez la sélection ({nat}) en plus de votre club. Un week-end de test, vous dirigez la sélection et votre adjoint prend le match du club, s'il y en a un. Tout titre remporté rejoint votre vitrine.",
     "natTakenSoleSubj": "Nomination : sélection nationale ({nat})",
     "natTakenSole": "La sélection ({nat}) est désormais tout votre travail. Chaque fenêtre internationale est à vous, comme chaque trophée remporté.",
     "natResignedSubj": "Vous quittez la sélection ({nat})",

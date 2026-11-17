@@ -98,7 +98,9 @@ export default function Nations() {
       {/* and when there is a tour on that he is NOT part of, the panel says
           which condition he has not met - a locked door with no sign on it is
           just a missing feature */}
-      {!game.isles && game.comps['lions'] && !islesCoach(game) && (
+      {/* only for a coach of one of the four unions it picks from (1.9.14): the
+          international stage shows itself to the men and women who hold it */}
+      {!game.isles && game.comps['lions'] && !islesCoach(game) && ['ENG', 'IRE', 'SCO', 'WAL'].includes(game.natTeam ?? '') && (
         <div className="card">
           <SectionTitle sub={compLabel(game.comps['lions']?.name)}>{t('isles.title')}</SectionTitle>
           <div className="muted" style={{ padding: '0 10px 10px', fontSize: '0.75rem' }}>{t(islesEligible(game).why)}</div>

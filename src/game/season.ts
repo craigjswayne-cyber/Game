@@ -1644,6 +1644,20 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           state.natTeam != null && ['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)
         if ((state.natTeam != null && comp.champion === state.natTeam) || lionsWin) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
+          // A TABLE WON IS A TROPHY LIFTED (1.9.14). A knockout title (a World
+          // Championship final) set the celebration and a table title (the
+          // Championship, the Rugby Championship, a tour) only filed a letter:
+          // the biggest day of a national coach's year passed as an inbox line.
+          {
+            const hv: Vars = { comp: comp.name.toUpperCase() }
+            const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
+            state.celebration = {
+              headline: tIn('en', 'cel.championsOf', hv),
+              sub: tIn('en', 'cel.championsSub', sv),
+              icon: 'trophy',
+              hk: 'cel.championsOf', hv, sk: 'cel.championsSub', sv,
+            }
+          }
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,

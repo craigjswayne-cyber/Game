@@ -5332,7 +5332,7 @@
   "cxTwo": "quince días",
   "expiringMan": "{name} ({pos}, {age})",
   "natTakenSubj": "Nombramiento: al frente de {nat}",
-  "natTaken": "Dirigirás a {nat} sin dejar el club. En las ventanas de Test, cuando el club no juega, tú llevas a la selección el día de partido. Cualquier campeonato que ganen va a tu vitrina.",
+  "natTaken": "Dirigirás a {nat} sin dejar el club. En un fin de semana de Test diriges a la selección, y tu asistente se encarga del partido del club, si lo hay. Cualquier campeonato que ganen va a tu vitrina.",
   "natTakenSoleSubj": "Nombramiento: al frente de {nat}",
   "natTakenSole": "{nat} es ahora todo tu trabajo. Cada ventana de Test es tuya, y también cualquier trofeo que ganen.",
   "natResignedSubj": "Dejas el banquillo de {nat}",

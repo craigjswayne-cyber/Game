@@ -5357,7 +5357,7 @@
   "cxTwo": "due settimane",
   "expiringMan": "{name} ({pos}, {age})",
   "natTakenSubj": "Nomina: CT di {nat}",
-  "natTaken": "Allenerai {nat} insieme al club. Nelle finestre dei Test, quando il club non gioca, guidi tu la nazionale nel giorno della partita. Ogni titolo che vincono finisce nella tua bacheca.",
+  "natTaken": "Allenerai {nat} insieme al club. In un fine settimana di Test guidi tu la nazionale, e l'eventuale partita del club la prende il tuo vice. Ogni titolo che vincono finisce nella tua bacheca.",
   "natTakenSoleSubj": "Nomina: CT di {nat}",
   "natTakenSole": "{nat} adesso è tutto il tuo lavoro. Ogni finestra dei Test è tua, e così ogni trofeo che vincono.",
   "natResignedSubj": "Lasci la panchina di {nat}",

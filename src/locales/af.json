@@ -5273,7 +5273,7 @@
   "cxTwo": "twee weke",
   "expiringMan": "{name} ({pos}, {age})",
   "natTakenSubj": "Aangestel: nasionale hoofafrigter van {nat}",
-  "natTaken": "Jy sal {nat} saam met die klubwerk afrig. In toetsvensters, wanneer die klub nie speel nie, neem jy die nasionale span op wedstryddag. Enige kampioenskap wat hulle wen, gaan in jou kabinet.",
+  "natTaken": "Jy sal {nat} saam met die klubwerk afrig. Op 'n toetsnaweek neem jy die nasionale span, en jou assistent neem enige klubwedstryd. Enige kampioenskap wat hulle wen, gaan in jou kabinet.",
   "natTakenSoleSubj": "Aangestel: nasionale hoofafrigter van {nat}",
   "natTakenSole": "{nat} is nou die hele werk. Elke toetsvenster is joune, en so ook enige trofee wat hulle wen.",
   "natResignedSubj": "Jy bedank as {nat} se hoofafrigter",

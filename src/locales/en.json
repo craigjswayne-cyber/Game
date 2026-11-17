@@ -5260,7 +5260,7 @@
   "cxTwo": "a fortnight",
   "expiringMan": "{name} ({pos}, {age})",
   "natTakenSubj": "Appointed: national head coach of {nat}",
-  "natTaken": "You'll coach {nat} alongside the club job. In Test windows, when the club has no fixture, you take the national side on match day. Any championship they win goes in your cabinet.",
+  "natTaken": "You'll coach {nat} alongside the club job. On a Test weekend you take the national side, and your assistant takes any club match. Any championship they win goes in your cabinet.",
   "natTakenSoleSubj": "Appointed: national head coach of {nat}",
   "natTakenSole": "{nat} is the whole job now. Every Test window is yours, and so is any trophy they win.",
   "natResignedSubj": "You step down as {nat} head coach",

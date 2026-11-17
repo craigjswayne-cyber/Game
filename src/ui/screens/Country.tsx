@@ -85,35 +85,6 @@ export default function Country() {
         )}
       </div>
 
-      {/* both hats, and the way out of either - in the open, not buried
-          (user: "OR you can step down from your club role") */}
-      <div className="card">
-        <SectionTitle sub={t('legacy.coAppointmentsSub')}>{t('legacy.coAppointments')}</SectionTitle>
-        {club && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-            <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name="stadium" /></span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{club.name}</div>
-              <div className="meta">{t('legacy.coDirectorBoard', { n: Math.round(club.boardConfidence) })}</div>
-            </div>
-            {confirmClub
-              ? <button className="btn danger" style={{ fontSize: '0.75rem' }} onClick={() => { resign(); setConfirmClub(false) }}>{t('legacy.coConfirm')}</button>
-              : <button className="btn ghost" style={{ fontSize: '0.75rem', color: 'var(--text-negative)' }} onClick={() => { setConfirmClub(true); setConfirmNat(false) }}>{t('legacy.coStepDown')}</button>}
-          </div>
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-          <Flag code={natId} size={16} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{nationName(natId)}</div>
-            <div className="meta">{t('legacy.coNatCoach')}{conf != null ? t('legacy.coNatUnion', { n: conf }) : ''}</div>
-          </div>
-          {confirmNat
-            ? <button className="btn danger" style={{ fontSize: '0.75rem' }} onClick={() => { resignNat(); setConfirmNat(false); go('home') }}>{t('legacy.coConfirm')}</button>
-            : <button className="btn ghost" style={{ fontSize: '0.75rem', color: 'var(--text-negative)' }} onClick={() => { setConfirmNat(true); setConfirmClub(false) }}>{t('legacy.coStepDown')}</button>}
-        </div>
-        {!club && <div className="meta">{t('legacy.coNoClubPost')}</div>}
-      </div>
-
       {/* The Thursday of a Test week is the other moment a manager wants a fit
           squad and cannot get to the shop. Same card, same rules - silent
           where there is no till and where nobody is hurt. */}
@@ -150,6 +121,36 @@ export default function Country() {
       <div className="meta" style={{ padding: '4px 16px', fontSize: '0.75rem' }}>
         {t('legacy.coFullTables')}
       </div>
+      {/* both hats, and the way out of either - in the open, not buried
+          (user: "OR you can step down from your club role"), and at the foot
+          of the page since 1.9.14: the work first, the exit after it */}
+      <div className="card">
+        <SectionTitle sub={t('legacy.coAppointmentsSub')}>{t('legacy.coAppointments')}</SectionTitle>
+        {club && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+            <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name="stadium" /></span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{club.name}</div>
+              <div className="meta">{t('legacy.coDirectorBoard', { n: Math.round(club.boardConfidence) })}</div>
+            </div>
+            {confirmClub
+              ? <button className="btn danger" style={{ fontSize: '0.75rem' }} onClick={() => { resign(); setConfirmClub(false) }}>{t('legacy.coConfirm')}</button>
+              : <button className="btn ghost" style={{ fontSize: '0.75rem', color: 'var(--text-negative)' }} onClick={() => { setConfirmClub(true); setConfirmNat(false) }}>{t('legacy.coStepDown')}</button>}
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+          <Flag code={natId} size={16} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{nationName(natId)}</div>
+            <div className="meta">{t('legacy.coNatCoach')}{conf != null ? t('legacy.coNatUnion', { n: conf }) : ''}</div>
+          </div>
+          {confirmNat
+            ? <button className="btn danger" style={{ fontSize: '0.75rem' }} onClick={() => { resignNat(); setConfirmNat(false); go('home') }}>{t('legacy.coConfirm')}</button>
+            : <button className="btn ghost" style={{ fontSize: '0.75rem', color: 'var(--text-negative)' }} onClick={() => { setConfirmNat(true); setConfirmClub(false) }}>{t('legacy.coStepDown')}</button>}
+        </div>
+        {!club && <div className="meta">{t('legacy.coNoClubPost')}</div>}
+      </div>
+
       <div className="spacer" />
     </>
   )

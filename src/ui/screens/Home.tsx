@@ -150,6 +150,60 @@ export default function Home() {
   const askPronoun = !game.pronounSet
   const setMgrGender = useStore(s => s.setMgrGender)
 
+  // the country desk tile, shared with the out-of-work Home: a national coach
+  // between clubs still has Tests to run (1.9.14)
+  const countryTile = game.natTeam && (() => {
+        const next = game.fixtures
+          .filter(f => !f.played && (f.homeId === game.natTeam || f.awayId === game.natTeam))
+          .sort((a, b) => a.week - b.week)[0]
+        const rank = natRankOrder(game).indexOf(game.natTeam) + 1
+        const testWeek = next && next.week === game.week
+        return (
+          <button className="home-tile wide" data-tile="country" onClick={() => go('country')}>
+            <span className="ht-l">
+              {t('home.headCoach')} · {nationName(game.natTeam)}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}
+            </span>
+            {next ? (
+              <>
+                <span className="ht-v">
+                  <Flag code={next.homeId} size={17} /> {nationName(next.homeId)} {t('common.v')} <Flag code={next.awayId} size={17} /> {nationName(next.awayId)}
+                </span>
+                <span className="ht-s">
+                  {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}
+                </span>
+                {/* DAYS UNTIL THE SQUAD (owner: "could we have days til squad
+                    work"). The window calendar always knew this and never said
+                    it, so a Test job spent most of a season looking like
+                    nothing was happening between fixtures. Three states, in
+                    order of urgency: camp open with places to fill, the week
+                    the party is named, and the countdown to the next one. */}
+                {(() => {
+                  const w = natWindow(game)
+                  if (w) {
+                    return (
+                      <span className="ht-s" style={{ fontWeight: 700, color: 'var(--gold)' }}>
+                        {t('home.campOpen', { n: (game.natSquads[game.natTeam!] ?? []).length, size: w.size })}
+                      </span>
+                    )
+                  }
+                  const wks = weeksToSquad(game)
+                  if (wks == null) return null
+                  return (
+                    <span className="ht-s" style={{ fontWeight: 700, color: wks <= 1 ? 'var(--gold)' : undefined }}>
+                      {wks <= 0
+                        ? t('home.squadThisWeek', { nat: nationName(game.natTeam!) })
+                        : t('home.squadIn', { n: wks * 7 })}
+                    </span>
+                  )
+                })()}
+              </>
+            ) : (
+              <span className="ht-s">{t('home.noTest')}</span>
+            )}
+          </button>
+        )
+      })()
+
   if (game.unemployed) {
     return (
       <>
@@ -158,6 +212,7 @@ export default function Home() {
           <h3>{t('home.jobCentre')}</h3>
           <div className="meta">{t('home.betweenJobs', { n: game.vacancies.length })}</div>
         </button>
+        {countryTile && <div className="card-grid home-tiles">{countryTile}</div>}
         {/* With no club there is no summary to separate the inbox from, so it
             stays inline here. */}
         <SectionTitle sub={t('home.inboxSub')}>{t('home.inbox')}</SectionTitle>
@@ -280,7 +335,10 @@ export default function Home() {
           a women's manager played a Northern Championship her home screen never
           mentioned. */}
       {(() => { const snId = snIdFor(genderOf(game)); const snWks = snWeeksFor(genderOf(game)); return (
-      game.comps[snId] && game.week >= snWks[0] - 1 && game.week <= snWks[snWks.length - 1] && (() => {
+      // the Championship on Home is a national coach's business (1.9.14, owner:
+      // the international stage "should only appear when coaching"); everyone
+      // else follows it on World > Nations
+      !!game.natTeam && game.comps[snId] && game.week >= snWks[0] - 1 && game.week <= snWks[snWks.length - 1] && (() => {
         const rows = sortTable(game.comps[snId].table).slice(0, 3)
         const thisWk = game.fixtures.filter(f => f.compId === snId && f.week === game.week)
         return (
@@ -313,57 +371,7 @@ export default function Home() {
           Test, the world ranking, the union's confidence - and on a Test week
           the card says plainly that this Saturday is your country's, with the
           assistant minding any club fixture. */}
-      {game.natTeam && (() => {
-        const next = game.fixtures
-          .filter(f => !f.played && (f.homeId === game.natTeam || f.awayId === game.natTeam))
-          .sort((a, b) => a.week - b.week)[0]
-        const rank = natRankOrder(game).indexOf(game.natTeam) + 1
-        const testWeek = next && next.week === game.week
-        return (
-          <button className="home-tile wide" data-tile="country" onClick={() => go('country')}>
-            <span className="ht-l">
-              {t('home.headCoach')} · {nationName(game.natTeam)}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}
-            </span>
-            {next ? (
-              <>
-                <span className="ht-v">
-                  <Flag code={next.homeId} size={17} /> {nationName(next.homeId)} {t('common.v')} <Flag code={next.awayId} size={17} /> {nationName(next.awayId)}
-                </span>
-                <span className="ht-s">
-                  {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}
-                </span>
-                {/* DAYS UNTIL THE SQUAD (owner: "could we have days til squad
-                    work"). The window calendar always knew this and never said
-                    it, so a Test job spent most of a season looking like
-                    nothing was happening between fixtures. Three states, in
-                    order of urgency: camp open with places to fill, the week
-                    the party is named, and the countdown to the next one. */}
-                {(() => {
-                  const w = natWindow(game)
-                  if (w) {
-                    return (
-                      <span className="ht-s" style={{ fontWeight: 700, color: 'var(--gold)' }}>
-                        {t('home.campOpen', { n: (game.natSquads[game.natTeam!] ?? []).length, size: w.size })}
-                      </span>
-                    )
-                  }
-                  const wks = weeksToSquad(game)
-                  if (wks == null) return null
-                  return (
-                    <span className="ht-s" style={{ fontWeight: 700, color: wks <= 1 ? 'var(--gold)' : undefined }}>
-                      {wks <= 0
-                        ? t('home.squadThisWeek', { nat: nationName(game.natTeam!) })
-                        : t('home.squadIn', { n: wks * 7 })}
-                    </span>
-                  )
-                })()}
-              </>
-            ) : (
-              <span className="ht-s">{t('home.noTest')}</span>
-            )}
-          </button>
-        )
-      })()}
+      {countryTile}
       {/* THE STORE, above the Dream because that is where the owner asked for
           it (27 Aug) and because the Dream is the only other card on this
           screen that is about the save rather than about this week. Everything
