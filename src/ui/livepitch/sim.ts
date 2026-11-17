@@ -222,17 +222,22 @@ export class PitchSim {
         break
       }
       case 'kick': {
-        const k = carrierIdx ?? 9
+        // a box kick is the scrum-half's, off the base of the ruck
+        const box = p.label === 'lp.boxKick'
+        const k = box ? 8 : carrierIdx ?? 9
         cut = cut || d > 16
         if (cut) { mode = 'carry'; cIdx = k; init = att0 + k; steps.push({ k: 'wait', t: 0.8 }) }
         else {
           mode = this.mode; cIdx = this.cIdx; anchor = this.anchor
           if (this.holder !== att0 + k) {
             need9()
-            this.over.set(att0 + k, { x: B.x - dir * 8, y: clamp(B.y + open(B.y) * 4, 3, 67) })
-            steps.push({ k: 'wait', t: 0.4 }, { k: 'pass', to: att0 + k })
+            if (!box) {
+              // back to the kicker in the pocket, well behind the ruck
+              this.over.set(att0 + k, { x: B.x - dir * 10, y: clamp(B.y + open(B.y) * 5, 3, 67) })
+              steps.push({ k: 'wait', t: 0.4 }, { k: 'pass', to: att0 + k })
+            }
           }
-          steps.push({ k: 'wait', t: 0.3 })
+          steps.push({ k: 'wait', t: box ? 0.7 : 0.35 })
         }
         steps.push({ k: 'mode', mode: 'kick', anchorOn: att0 + k, clear: true },
           { k: 'kick', to: p.to ?? { x: E.x + dir * 30, y: E.y }, hang: p.hang ?? 12 }, { k: 'wait', t: 0.4 })
@@ -669,7 +674,8 @@ export class PitchSim {
         case 'kick':
           if (first) {
             const from = { x: this.ball.x, y: this.ball.y }
-            const T = clamp(hyp(from, s.to) / 16, 1.1, 3.4)
+            // a high ball hangs: that is what lets the chase get under it
+            const T = clamp(Math.max(hyp(from, s.to) / 16, s.hang >= 15 && !s.silent ? 3.5 : 0), 1.1, 4)
             this.flight = { from, to: s.to, toIdx: -1, T, t: 0, hang: s.hang, silent: s.silent }
             this.holder = -1; this.grounded = false
           }
@@ -768,7 +774,7 @@ export class PitchSim {
     if (!this.phase) return
     const T = this.targets()
     const tight = this.mode === 'scrum' || this.mode === 'maul'
-    const chase = this.mode === 'kick' || this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'try'
+    const chase = (this.mode === 'kick' && this.phase.label !== 'lp.kickTouch') || this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'try'
     const calm = this.mode === 'penalty' || this.mode === 'break' || this.mode === 'con' || this.mode === 'goal'
     for (let i = 0; i < 30; i++) {
       const bd = this.b[i]

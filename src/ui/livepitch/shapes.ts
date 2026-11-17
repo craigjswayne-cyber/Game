@@ -143,21 +143,62 @@ function maul(): { att: UV[]; def: UV[] } {
 
 /** the kicking side chasing in a line towards where it comes down, the other
  *  side's back three under it and their forwards turning */
-function kickChase(landU: number, landV: number): { att: UV[]; def: UV[] } {
-  const chase = landU - 9
+/**
+ * A KICK AND WHAT BOTH SIDES DO ABOUT IT (docs/match-authenticity-2.0.0.md,
+ * section 7).
+ *
+ * contest  a box kick or an up-and-under: short and high so it can be won
+ *          back. The wing on that side leads the chase from the outside and
+ *          gets under it; two back-rowers are on his shoulder for the loose
+ *          ball; the rest come up behind in a line across the field; the 10
+ *          sits in the pocket and the full-back and far wing stay home for
+ *          the kick that comes back.
+ * long     for territory: nobody gets there, so the whole line goes up
+ *          together and stops ten metres short, where the catcher must be
+ *          met or kick back.
+ * touch    it is going out: both sides walk to the lineout.
+ *
+ * The side it is kicked to: the full-back under it, a wing beside him to
+ * take the pass infield, the other wing dropping in behind, the half-backs
+ * and the rest turning and working back to get behind the ball.
+ */
+function kickChase(landU: number, landV: number, kind: 'contest' | 'long' | 'touch' = 'long'): { att: UV[]; def: UV[] } {
+  const sv = landV >= 0 ? 1 : -1
   const att: UV[] = []
   for (let k = 0; k < 15; k++) att.push([0, 0])
-  const front = [5, 6, 7, 9, 11, 12, 10, 13]
-  front.forEach((k, j) => { att[k] = [chase - Math.abs(j - 3.5) * 0.8, landV - 18 + j * 5] })
-  ;[0, 1, 2, 3, 4].forEach((k, j) => { att[k] = [Math.max(-2, chase - 12), landV - 10 + j * 5] })
-  att[8] = [Math.max(-2, chase - 6), landV + 2]
-  att[14] = [-6, landV * 0.5]
+  // the wing on the side it has gone to, and the other one
+  const wNear = sv > 0 ? 13 : 10, wFar = sv > 0 ? 10 : 13
+  const line = kind === 'touch' ? Math.min(landU - 14, 8) : kind === 'contest' ? landU - 9 : landU - 11
+  if (kind === 'contest') {
+    att[wNear] = [landU - 1.2, landV + sv * 1.8]
+    att[5] = [landU - 4.5, landV - sv * 2.6]
+    att[6] = [landU - 5.5, landV + sv * 1.2]
+  } else {
+    att[wNear] = [line + 1, landV + sv * 5]
+    att[5] = [line, landV - sv * 1]
+    att[6] = [line, landV - sv * 7]
+  }
+  // the line behind them, across the field, connected
+  const inLine = [7, 11, 12, 3, 4, 0, 1, 2]
+  inLine.forEach((k, j) => { att[k] = [line - (k < 3 ? 5 : k < 5 ? 2.5 : 0) - Math.abs(j - 2) * 0.4, landV - sv * (kind === 'contest' ? 7.5 + j * 5.2 : 13 + j * 5.2)] })
+  att[8] = [Math.max(2, line - 8), landV * 0.5 - sv * 3]
+  att[9] = [Math.max(-4, line - 13), landV * 0.4 - sv * 8]
+  att[wFar] = [Math.max(-6, line - 10), landV - sv * 52]
+  att[14] = [Math.max(-14, line - 24), landV * 0.35 - sv * 14]
+
   const def: UV[] = []
   for (let k = 0; k < 15; k++) def.push([0, 0])
+  // (their wings, seen from the kicker: 10 is on the -v side, 13 on the +v side)
+  const dNear = sv > 0 ? 13 : 10, dFar = sv > 0 ? 10 : 13
   def[14] = [landU, landV]
-  def[10] = [landU - 3, landV - 12]
-  def[13] = [landU - 2, landV + 12]
-  ;[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12].forEach((k, j) => { def[k] = [Math.min(landU - 6, 6 + (j % 4) * 3), landV - 22 + j * 4] })
+  def[dNear] = [landU + 4.5, landV + sv * 3.5]
+  def[dFar] = [landU + 2, landV - sv * 13]
+  def[9] = [landU - 4, landV - sv * 9]
+  def[8] = [landU - 9, landV - sv * 4]
+  // the rest have turned and are working back to get behind the ball
+  ;[5, 6, 7, 11, 12, 3, 4, 0, 1, 2].forEach((k, j) => {
+    def[k] = [Math.max(3, landU - 9 - (j % 3) * 3.4 - (k < 5 ? 5 : 0)), landV - sv * (-4 + j * 5)]
+  })
   return { att, def }
 }
 
@@ -258,7 +299,8 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       const to = p.to ?? { x: ux(30), y: p.y }
       const landU = (to.x - p.x) * dir
       const landV = (to.y - p.y) * open
-      ;({ att, def } = kickChase(landU, landV))
+      const how = p.label === 'lp.kickTouch' ? 'touch' : (p.hang ?? 0) >= 15 ? 'contest' : 'long'
+      ;({ att, def } = kickChase(landU, landV, p.kind === 'kick' ? how : 'long'))
       if (p.kind === 'kickoff' || p.kind === 'dropout') {
         // the kicking side level along the line, the others waiting in pods
         // v is measured from the ball, which sits mid-field for a kick-off
