@@ -2014,6 +2014,13 @@ export interface GameState {
     tj?: string } | null
   /** challenges conquered this career, badged forever on the profile */
   challengesDone?: string[]
+  /** A Pro challenge laid over this career (1.9.14, prochallenge.ts): the
+   *  rule, the club, the first season, Shoestring's run of targets met, and
+   *  whether it was won or ran out. */
+  proChallenge?: { id: 'academy' | 'shoestring' | 'firesale'; clubId: string; since: number; streak: number; done?: boolean; over?: boolean } | null
+  /** The career has ended (1.9.14): a Pro challenge's deadline passed. The
+   *  app shows one screen, a new career or the main menu, and nothing else. */
+  careerOver?: { k: string; v: Record<string, string | number> } | null
   /** absolute week (season*100+week) a bigger club last courted the manager -
    *  the tap on the shoulder comes at most once every 12 weeks */
   courtedAt?: number

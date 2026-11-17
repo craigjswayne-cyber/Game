@@ -13,6 +13,7 @@
  * way everything seasonal is. monetise.showRewarded() is the only way a spot
  * plays; nothing here runs unless the provider confirmed a completed view.
  */
+import { proBlocksMoney } from './prochallenge'
 import {absWeek, fmtMoney, type GameState } from './model'
 import { bumpKnowledge, reportStage, secondOpinion, youthPaMargin } from './scout'
 import { clamp } from './rng'
@@ -105,6 +106,7 @@ export function armAnalyst(state: GameState) {
 /** ---- the town's collection: the lower-tier lifeline ---- */
 export function canTownCollection(state: GameState): boolean {
   if (state.unemployed) return false
+  if (proBlocksMoney(state)) return false // a Pro challenge's purse is the purse
   const club = state.clubs[state.userClubId]
   if (!club || club.rep >= 60) return false
   const wages = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)

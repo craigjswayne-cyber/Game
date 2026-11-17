@@ -1,4 +1,6 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { proMoment, readFunnel, writeFunnel } from '../game/profunnel'
+import { CareerOver } from './CareerOver'
 import { NatUnveiling } from './NatOccasion'
 import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
@@ -167,6 +169,9 @@ function WeekWarning() {
 function Celebration() {
   const game = useStore(s => s.game)
   useStore(s => s.tick)
+  // a big moment: the one-time Pro price may be offered once, after it
+  // (1.9.14, profunnel.ts proMoment; device state, nothing in the save)
+  useEffect(() => { if (game?.celebration) writeFunnel(proMoment(readFunnel())) }, [game?.celebration])
   if (!game?.celebration) return null
   const cel = game.celebration
   return (
@@ -282,6 +287,8 @@ function Overlays() {
       <Celebration />
       {/* the union unveils its new head coach (1.9.14, NatOccasion.tsx) */}
       <NatUnveiling />
+      {/* a Pro challenge run out ends the career (1.9.14) */}
+      <CareerOver />
       {/* Pro Manager, at most one card per match flow and only at a safe
           moment on Home or the day room (ProPrompt.tsx) */}
       <ProPrompt />

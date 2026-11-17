@@ -80,8 +80,9 @@ try {
     'and puts the men\'s game out')
   await page.waitForSelector("text=English Women's Premier Division")
 
-  // the women's four, and not one of the men's
-  const wCards = await page.locator('.challenge-card').count()
+  // the women's four, and not one of the men's (the Pro challenges below
+  // them, since 1.9.14, are rules for any club, in either game)
+  const wCards = await page.locator('.challenge-card:not(.pro-card)').count()
   ok(wCards === 4, `the women's wizard offers its own four challenges (${wCards})`)
   // 'Stop the Circus' since 1.5.8 - the id behind it is still 'threepeat',
   // because every save that has started or finished it carries that string

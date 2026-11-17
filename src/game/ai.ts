@@ -1,4 +1,5 @@
 import type { GameState, NewsItem, Player, TransferOffer } from './model'
+import { proBlocksSigning } from './prochallenge'
 import { MARQUEE_SLOTS, capBill, capWage } from './cap'
 import { t, tIn, type Vars } from './i18n'
 import { userCap, userWageBudget } from './grants'
@@ -410,6 +411,7 @@ export function personalTermsDemand(state: GameState, p: Player): number {
 export function agreeFee(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string; counter?: number } {
   if (!realMoney(fee)) return notAFigure()
   if (state.unemployed) return noDesk()
+  if (proBlocksSigning(state)) return { ok: false, msg: t('reply.proAcademy') } // Pro: Academy Only (prochallenge.ts)
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
@@ -517,6 +519,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
 export function signOnTerms(state: GameState, playerId: number, fee: number, wage: number, signOn: number, promiseMinutes: boolean, asMarquee = false, completing = false): { ok: boolean; msg: string } {
   if (!realMoney(fee, wage, signOn)) return notAFigure()
   if (state.unemployed) return noDesk()
+  if (proBlocksSigning(state)) return { ok: false, msg: t('reply.proAcademy') } // Pro: Academy Only (prochallenge.ts)
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
@@ -664,6 +667,7 @@ export function freeAgentDemand(p: Player, years: number): number {
 export function offerFreeAgent(state: GameState, playerId: number, offer: number, years: number): { ok: boolean; msg: string; counter?: number } {
   if (!realMoney(offer)) return notAFigure()
   if (state.unemployed) return noDesk()
+  if (proBlocksSigning(state)) return { ok: false, msg: t('reply.proAcademy') } // Pro: Academy Only (prochallenge.ts)
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId != null || !user) return { ok: false, msg: t('reply.notFreeAgent') }
@@ -863,6 +867,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (state.unemployed) return noDesk()
+  if (proBlocksSigning(state)) return { ok: false, msg: t('reply.proAcademy') } // Pro: Academy Only (prochallenge.ts)
   if (embargoed(state, state.userClubId)) {
     return { ok: false, msg: t('reply.embargoPre') }
   }

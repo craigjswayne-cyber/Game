@@ -10,6 +10,10 @@
  *              same product at the one-time price (PRO_INTRO_SKU).
  *   REMINDER - after that, one light card per ten competitive matches played
  *              while free.
+ *   MOMENT   - once ever (1.9.14), for a player deep into the game: the
+ *              one-time price again, straight after a big moment (a trophy,
+ *              a promotion, a challenge won). Owner, on a free player four
+ *              seasons in: ask at the right moment, not at random.
  *
  * ALL OF IT IS DEVICE STATE, NEVER CAREER STATE. It lives in localStorage
  * beside the entitlement ledger (rm-ent), so a new career, a club change, a
@@ -27,7 +31,7 @@
  * below are the only impure part.
  */
 
-export type ProKind = 'first' | 'offer' | 'reminder'
+export type ProKind = 'first' | 'offer' | 'reminder' | 'moment'
 
 export interface Funnel {
   v: 1
@@ -44,6 +48,10 @@ export interface Funnel {
   remindAt: number
   /** the count when a card was last shown: at most one per match flow */
   lastShownAt: number
+  /** a big moment happened while free and past MOMENT_MIN (1.9.14) */
+  momentDue: boolean
+  /** the moment card has been shown: once ever */
+  momentShown: boolean
   /** the last few matches counted, so one match is never counted twice (a
    *  reload that plays a match out, a duplicate finish) */
   seen: string[]
@@ -51,10 +59,12 @@ export interface Funnel {
 
 /** How many competitive matches between reminders. */
 export const REMIND_EVERY = 10
+/** The moment offer only for a player this deep in (competitive matches). */
+export const MOMENT_MIN = 40
 
 export const FRESH: Funnel = {
   v: 1, firstPromptShown: false, firstOfferShown: false, firstOfferAccepted: false, firstOfferDeclined: false,
-  played: 0, offerDueAt: 1, remindAt: 0, lastShownAt: -1, seen: [],
+  played: 0, offerDueAt: 1, remindAt: 0, lastShownAt: -1, momentDue: false, momentShown: false, seen: [],
 }
 
 const int = (n: unknown, d: number) => (typeof n === 'number' && Number.isFinite(n) ? Math.floor(n) : d)
@@ -76,6 +86,8 @@ export function parseFunnel(raw: string | null): Funnel {
       offerDueAt: Math.max(1, int(o.offerDueAt, 1)),
       remindAt: Math.max(0, int(o.remindAt, 0)),
       lastShownAt: int(o.lastShownAt, -1),
+      momentDue: o.momentDue === true,
+      momentShown: o.momentShown === true,
       seen: Array.isArray(o.seen) ? o.seen.filter((k): k is string => typeof k === 'string').slice(-8) : [],
     }
   } catch { return { ...FRESH, seen: [] } }
@@ -97,6 +109,7 @@ export function proDue(f: Funnel, upcomingCompetitive: boolean): ProKind | null 
   if (f.lastShownAt >= 0 && f.lastShownAt === f.played) return null
   if (!f.firstPromptShown) return f.played > 0 || upcomingCompetitive ? 'first' : null
   if (!f.firstOfferShown) return f.played >= Math.max(1, f.offerDueAt) ? 'offer' : null
+  if (f.momentDue && !f.momentShown && f.played >= MOMENT_MIN) return 'moment'
   return f.remindAt > 0 && f.played >= f.remindAt ? 'reminder' : null
 }
 
@@ -109,6 +122,7 @@ export function proDue(f: Funnel, upcomingCompetitive: boolean): ProKind | null 
 export function proShown(f: Funnel, kind: ProKind, fallback = false): Funnel {
   const n: Funnel = { ...f, seen: [...f.seen], lastShownAt: f.played }
   if (kind === 'first') n.firstPromptShown = true
+  else if (kind === 'moment') { n.momentShown = true; n.momentDue = false; n.remindAt = Math.max(n.remindAt, f.played + REMIND_EVERY) }
   else if (kind === 'offer') {
     if (fallback) n.offerDueAt = f.played + REMIND_EVERY
     else { n.firstOfferShown = true; n.remindAt = f.played + REMIND_EVERY }
@@ -124,6 +138,13 @@ export function proShown(f: Funnel, kind: ProKind, fallback = false): Funnel {
  *  sale. Nothing else changes: the next card is a reminder either way. */
 export function proOfferAnswered(f: Funnel, accepted: boolean): Funnel {
   return { ...f, seen: [...f.seen], firstOfferAccepted: f.firstOfferAccepted || accepted, firstOfferDeclined: f.firstOfferDeclined || !accepted }
+}
+
+/** A big moment (a celebration on screen): the moment offer becomes due,
+ *  once, for a player past MOMENT_MIN who has not had it. */
+export function proMoment(f: Funnel): Funnel {
+  if (f.momentShown || f.momentDue || f.played < MOMENT_MIN) return f
+  return { ...f, seen: [...f.seen], momentDue: true }
 }
 
 /** One competitive match completed while free. `key` names the match so a

@@ -1,5 +1,6 @@
 // The season judged: the rival's year, the manager's season in review and
 // the awards dinner, and the board's verdict against its objective.
+import { proSeasonVerdict } from '../prochallenge'
 import { rivalVerdict } from '../boss'
 import { demandedFinish } from '../chairman'
 import { dreamState } from '../dream'
@@ -227,6 +228,7 @@ export function boardVerdict(state: GameState): { userFinishPos: number; userWon
       userFinishPos = pos
       userWonLeague = wonLeague
       const met = wonLeague || (pos > 0 && pos <= obj.pos)
+      proSeasonVerdict(state, met) // Shoestring's run of targets met (prochallenge.ts)
       // PATIENCE SCALES WITH STATURE (wave 2, same curve boardReaction and the
       // half-term check use). The trophy itself still lands the same flat +25
       // everywhere - winning the whole league is exceptional at any club, so it

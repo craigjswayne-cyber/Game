@@ -3,6 +3,7 @@
 // (ageing, intake, contracts, squads, development, awards, review, national,
 // finance, competitions, registry, pledges). The names below are re-exported
 // so every caller keeps importing from './rollover'.
+import { applyShoestring, proCheck } from './prochallenge'
 import { closeAcademySeason, topUpAcademy } from './academy'
 import { aiBoardsReinvest, aiWageRooms } from './aiecon'
 import { ensureCaptains } from './analysis'
@@ -255,6 +256,7 @@ export function rebuildSeason(state: GameState) {
 
   // budgets: base by rep + carryover health
   resetBudgets(state, finishFrac, rooms, methodPts)
+  applyShoestring(state) // Pro: Shoestring's purse, every summer (prochallenge.ts)
 
   // Money the board promised the manager is settled HERE, after the refresh
   // above has assigned every budget from scratch - earlier in this function it
@@ -332,4 +334,5 @@ export function rebuildSeason(state: GameState) {
   punditPredictions(state, rng)
   state.tryOfSeason = null // the new season starts its own reel
   challengeCheck(state)
+  proCheck(state) // Pro challenges: won, run out, or void (prochallenge.ts)
 }

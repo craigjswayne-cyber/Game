@@ -22,6 +22,7 @@
  *     inbox, a line in the decisions ledger - in both languages, so a bought
  *     pound is as legible as an earned one.
  */
+import { proBlocksMoney } from './prochallenge'
 import { startTenure } from './natera'
 import { FACILITY_INFO, MAX_FACILITY, fmtMoney, logDecision, mgrReputation, type Club, type FacilityId, type GameState } from './model'
 import { tIn } from './i18n'
@@ -86,6 +87,8 @@ export function healWageRoom(state: GameState): void {
 
 export function userWageBudget(state: GameState, club: Club): number {
   if (club.id !== state.userClubId) return club.wageBudget
+  // a Pro challenge's purse is the purse (1.9.14, prochallenge.ts)
+  if (proBlocksMoney(state)) return club.wageBudget
   if (state.uncapped) return Number.POSITIVE_INFINITY
   if (state.wageBoost) return Math.round(club.wageBudget * (1 + state.wageBoost))
   return club.wageBudget
