@@ -221,6 +221,8 @@ export class PitchSim {
         // while the pack goes forward, and the 9 away from the base
         steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'heel', by: -dir * 8.8 }, { k: 'run', to: { x: E.x + dir * 2.5, y: E.y }, v: 0.9 },
           { k: 'pick', who: att0 + 8 }, { k: 'wait', t: 0.3 })
+        // one scrum in four the number 8 picks up from the base himself and feeds his 9 (the 8-9)
+        if (p.at % 4 === 0) steps.splice(steps.length - 2, 2, { k: 'pick', who: att0 + 7 }, { k: 'wait', t: 0.5 }, { k: 'pass', to: att0 + 8, hang: 0.2 }, { k: 'wait', t: 0.2 })
         break
       case 'lineout':
         cut = cut || d > 10; init = att0 + 1
@@ -544,6 +546,16 @@ export class PitchSim {
     // open play is ragged; a set piece and a kick-off line are not
     const loose = this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
     const pts = [...S.home, ...S.away].map((q, i) => ({ x: q.x + jit(i, 1) * (loose ? 2.4 : 0.7), y: q.y + jit(i, 2) * (loose ? 1.6 : 0.5) }))
+    // THE BALL IS OUT OF THE SCRUM: the defending flankers and number 8 break
+    // off their binds and go at the half-backs; the attack's flankers stay
+    // bound a moment longer to hold them in
+    if (this.mode === 'scrum' && this.holder >= 0 && this.modeT > 1) {
+      const d0 = p.homeBall ? 15 : 0, dr = p.homeBall ? 1 : -1
+      const h = this.b[this.holder]
+      pts[d0 + 5] = { x: this.anchor.x + dr * 2.2, y: clamp(this.anchor.y + 7, 2, 68) }
+      pts[d0 + 6] = { x: this.anchor.x + dr * 2.2, y: clamp(this.anchor.y - 7, 2, 68) }
+      pts[d0 + 7] = { x: h.x + dr * 3.5, y: h.y }
+    }
     // A MAUL IS BUILT, NOT DROPPED IN: the catcher and his lifters first,
     // then the rest of the pack binding on one by one; the defence the same,
     // a moment behind
