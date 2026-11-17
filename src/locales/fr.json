@@ -1977,7 +1977,7 @@
     "unveilLine": "La fédération présente {manager} comme nouveau sélectionneur ({nat}). Le maillot, l'hymne et chaque fenêtre internationale sont désormais à vous.",
     "termsTitle": "Les objectifs de la fédération",
     "termsSub": "La fédération fait le bilan de chaque fenêtre internationale, et de toute la saison à son terme.",
-    "termRank": "Faire entrer {nat} dans le top {n} mondial.",
+    "termRank": "Faire entrer {nat_k} dans le top {n} mondial.",
     "termTop": "Devenir numéro un mondial, et le rester.",
     "termTitle": "Remporter le {comp}.",
     "termTopWin": "Battre une équipe du top 5 mondial.",

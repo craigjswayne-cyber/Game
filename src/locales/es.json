@@ -1963,7 +1963,7 @@
   "unveilLine": "La federación presenta a {manager} al frente de {nat}. La camiseta, el himno y cada ventana de tests son ahora tuyos.",
   "termsTitle": "Lo que pide la federación",
   "termsSub": "La federación hace balance de cada ventana de tests, y de toda la temporada al final.",
-  "termRank": "Meter a {nat} entre los {n} primeros del mundo.",
+  "termRank": "Meter a {nat_k} entre los {n} primeros del mundo.",
   "termTop": "Llegar al n.º 1 del mundo y mantenerse.",
   "termTitle": "Ganar el {comp}.",
   "termTopWin": "Ganar a una selección del top cinco mundial.",

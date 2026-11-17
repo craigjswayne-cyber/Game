@@ -1928,7 +1928,7 @@
   "unveilLine": "Die unie stel {manager} voor as die nuwe hoofafrigter van {nat}. Die trui, die volkslied en elke toetsvenster is nou joune.",
   "termsTitle": "Die unie se voorwaardes",
   "termsSub": "Die unie hersien elke toetsvenster, en die hele seisoen aan die einde.",
-  "termRank": "Neem {nat} in die wêreld se top {n}.",
+  "termRank": "Neem {nat_k} in die wêreld se top {n}.",
   "termTop": "Word wêreld nr. 1, en bly daar.",
   "termTitle": "Wen die {comp}.",
   "termTopWin": "Klop 'n span in die wêreld se top vyf.",

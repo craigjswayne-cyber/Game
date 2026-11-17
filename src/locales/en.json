@@ -1930,7 +1930,7 @@
   "unveilLine": "The union presents {manager} as the new head coach of {nat}. The shirt, the anthem and every Test window are yours now.",
   "termsTitle": "The union's terms",
   "termsSub": "The union reviews every Test window, and the whole season at its end.",
-  "termRank": "Take {nat} into the world's top {n}.",
+  "termRank": "Take {nat_k} into the world's top {n}.",
   "termTop": "Make them world no. 1, and keep them there.",
   "termTitle": "Win the {comp}.",
   "termTopWin": "Beat a side in the world's top five.",

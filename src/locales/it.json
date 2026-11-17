@@ -1967,7 +1967,7 @@
   "unveilLine": "La federazione presenta {manager} come nuovo CT di {nat}. La maglia, l'inno e ogni finestra dei test adesso sono tuoi.",
   "termsTitle": "Gli obiettivi della federazione",
   "termsSub": "La federazione fa il bilancio di ogni finestra dei test, e di tutta la stagione alla fine.",
-  "termRank": "Portare {nat} tra le prime {n} del mondo.",
+  "termRank": "Portare {nat_k} tra le prime {n} del mondo.",
   "termTop": "Diventare numero uno al mondo, e restarci.",
   "termTitle": "Vincere il {comp}.",
   "termTopWin": "Battere una nazionale tra le prime cinque al mondo.",

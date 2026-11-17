@@ -123,7 +123,7 @@
 .walkout {
   position: fixed; inset: 0; z-index: 90;
   display: flex; flex-direction: column;
-  background: var(--bg);
+  background: var(--canvas);
   padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
   overflow-y: auto;
 }
@@ -169,7 +169,7 @@
 .nc-steps li { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.6875rem; text-align: center; color: var(--text-muted); line-height: 1.2; }
 .nc-steps .nc-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-strong); display: grid; place-items: center; font-size: 0.6875rem; font-weight: 800; }
 .nc-steps li.done { color: var(--text-secondary); }
-.nc-steps li.done .nc-dot { background: var(--text-positive); border-color: var(--text-positive); color: var(--bg); }
+.nc-steps li.done .nc-dot { background: var(--text-positive); border-color: var(--text-positive); color: var(--canvas); }
 .nc-steps li.now { color: var(--text-primary); font-weight: 700; }
 .nc-steps li.now .nc-dot { border-color: var(--gold); }
 .nc-target { margin-top: 6px; font-size: 0.875rem; }
@@ -188,7 +188,7 @@
 .nat-band .nb-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px 0; }
 .nat-band .nb-row b { font-family: var(--cond); font-size: 1.25rem; letter-spacing: .5px; color: var(--text-primary); }
 .nat-unveil {
-  position: fixed; inset: 0; z-index: 95; background: var(--bg); overflow-y: auto;
+  position: fixed; inset: 0; z-index: 95; background: var(--canvas); overflow-y: auto;
   display: flex; flex-direction: column;
   padding: calc(env(safe-area-inset-top, 0px) + 6px) 0 calc(env(safe-area-inset-bottom, 0px) + 14px);
 }
