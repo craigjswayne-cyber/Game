@@ -229,6 +229,20 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         const wl = Math.max(1.5, sc * 0.55)
         if (out === 'u') g.fillRect(x, y + h - wl, w, wl); else if (out === 'd') g.fillRect(x, y, w, wl)
         else if (out === 'l') g.fillRect(x + w - wl, y, wl, h); else g.fillRect(x, y, wl, h)
+        // the people standing at the rail, in front of the wall
+        {
+          const pr = Math.max(1.2, sc * 0.4), step = Math.max(3.2, sc * 1.25)
+          for (let a = step; a < len - step; a += step) {
+            const k = h2(Math.round(a) + seed * 71, seed * 13)
+            if (k < 0.38) continue
+            const d = wl + pr * 1.3
+            const px = alongX ? x + a : out === 'l' ? x + w + d - wl * 2 : x - d + wl * 2
+            const py = alongX ? (out === 'u' ? y + h + d - wl * 2 : y - d + wl * 2) : y + a
+            g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.arc(px + pr * 0.3, py + pr * 0.4, pr, 0, Math.PI * 2); g.fill()
+            g.fillStyle = k < 0.6 ? hk[1] : k < 0.78 ? ink.white : k < 0.9 ? ak[0] : hk[0]
+            g.beginPath(); g.arc(px, py, pr, 0, Math.PI * 2); g.fill()
+          }
+        }
         if (rows >= 4) {
           const rd = depth * roofFrac
           // the dark under the roof, where the back rows are in its shadow
@@ -247,9 +261,11 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           g.fillStyle = 'rgba(255,255,255,.5)'
           if (out === 'u') g.fillRect(x, y + rd - 1, w, 1.2); else if (out === 'd') g.fillRect(x, y + h - rd, w, 1.2)
           else if (out === 'l') g.fillRect(x + rd - 1, y, 1.2, h); else g.fillRect(x + w - rd, y, 1.2, h)
-          g.fillStyle = 'rgba(255,255,255,.13)'
-          const truss = Math.max(14, sc * 9)
-          for (let a = truss * 0.5; a < len; a += truss) { if (alongX) g.fillRect(x + a, oy, 1, rd); else g.fillRect(ox, y + a, rd, 1) }
+          // white trusses across the roof and a beam along it, as the reference has
+          g.fillStyle = 'rgba(255,255,255,.34)'
+          const truss = Math.max(12, sc * 7), tw2 = Math.max(1, sc * 0.24)
+          for (let a = truss * 0.5; a < len; a += truss) { if (alongX) g.fillRect(x + a, oy, tw2, rd); else g.fillRect(ox, y + a, rd, tw2) }
+          if (alongX) g.fillRect(x, oy + rd * 0.45, w, tw2); else g.fillRect(ox + rd * 0.45, y, tw2, h)
         }
       }
       const pitchT = fy(100 + GOAL), pitchB = fy(-GOAL), pitchL = fx(0), pitchR = fx(70)
@@ -283,19 +299,43 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // side of halfway on the far touchline, in front of the stand, the
       // replacements sitting in it in their own colours, and the technical
       // area marked on the run-off in front
-      for (const [mid, kit] of [[39, hk], [61, ak]] as [number, [string, string]][]) {
-        const y0 = fy(mid + 6), len = 12 * sc
-        const bx = pitchL - off - boardW - sc * 3.1, bw = sc * 2.6
-        g.fillStyle = 'rgba(18,22,28,.96)'; g.fillRect(bx, y0, bw, len)
+      // (owner, 17 Nov 2026: "Lets build them then": the reference's glass
+      // dugouts, the replacements 16 to 23 sitting in them, a coach standing
+      // in the technical area)
+      for (const [mid, kit] of [[37, hk], [63, ak]] as [number, [string, string]][]) {
+        const y0 = fy(mid + 8), len = 16 * sc
+        const bw = sc * 4.4, bx = pitchL - off - boardW - bw - sc * 0.3
+        // its shadow on the stand front, then the floor and the back wall
+        g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(bx - sc * 0.5, y0 + sc * 0.5, bw, len)
+        g.fillStyle = 'rgba(22,27,35,1)'; g.fillRect(bx, y0, bw, len)
+        g.fillStyle = 'rgba(232,236,242,1)'; g.fillRect(bx, y0, sc * 0.5, len)
+        g.fillRect(bx, y0, bw, sc * 0.35); g.fillRect(bx, y0 + len - sc * 0.35, bw, sc * 0.35)
+        // the replacements, 16 to 23, in their own colours
+        const rr = Math.max(2.2, sc * 0.82)
         for (let i = 0; i < 8; i++) {
-          g.fillStyle = kit[0]; g.beginPath(); g.arc(bx + bw * 0.62, y0 + (i + 0.5) * len / 8, Math.max(1.3, sc * 0.42), 0, Math.PI * 2); g.fill()
-          g.strokeStyle = kit[1]; g.lineWidth = Math.max(0.6, sc * 0.14); g.stroke()
+          const cx = bx + bw * 0.6, cy = y0 + (i + 0.5) * len / 8
+          g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.arc(cx + rr * 0.2, cy + rr * 0.3, rr, 0, Math.PI * 2); g.fill()
+          g.fillStyle = kit[0]; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.fill()
+          g.strokeStyle = kit[1]; g.lineWidth = Math.max(0.7, sc * 0.16); g.stroke()
+          if (rr >= 3.4) {
+            g.save(); g.translate(cx, cy); if (!dim.up) g.rotate(-Math.PI / 2)
+            g.font = `800 ${Math.round(rr * 1.05)}px system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'
+            g.fillStyle = isLight(kit[0]) ? ink.dark : ink.white
+            g.fillText(String(dim.up ? 16 + i : 23 - i), 0, 0.5); g.restore()
+          }
         }
-        // the dugout roof: clear, with a rim in the team's colour
-        g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(bx, y0, bw * 0.5, len)
-        g.fillStyle = lum(kit[0]) > 0.17 ? kit[0] : kit[1]; g.fillRect(bx + bw - Math.max(1.2, sc * 0.3), y0, Math.max(1.2, sc * 0.3), len)
+        // the glass roof over the back of it, its frame, and a rim in the team's colour
+        g.fillStyle = 'rgba(190,225,255,.26)'; g.fillRect(bx, y0, bw * 0.46, len)
+        g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = Math.max(0.8, sc * 0.16)
+        for (let i = 0; i <= 4; i++) { g.beginPath(); g.moveTo(bx, y0 + i * len / 4); g.lineTo(bx + bw * 0.46, y0 + i * len / 4); g.stroke() }
+        g.fillStyle = lum(kit[0]) > 0.17 ? kit[0] : kit[1]; g.fillRect(bx + bw * 0.46 - Math.max(1.2, sc * 0.3), y0, Math.max(1.2, sc * 0.3), len)
+        // the technical area on the run-off, and the coach standing in it
         g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = Math.max(0.8, sc * 0.16); g.setLineDash([sc * 0.9, sc * 0.9])
-        g.strokeRect(pitchL - off + sc * 0.15, y0, off - sc * 0.4, len); g.setLineDash([])
+        g.strokeRect(pitchL - off + sc * 0.15, y0 + len * 0.2, off - sc * 0.4, len * 0.6); g.setLineDash([])
+        const kx = pitchL - off * 0.5, ky = y0 + len * (mid < 50 ? 0.62 : 0.38), kr = Math.max(2.4, sc * 0.9)
+        g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(kx + kr * 0.25, ky + kr * 0.35, kr, 0, Math.PI * 2); g.fill()
+        g.fillStyle = 'rgba(26,32,44,1)'; g.beginPath(); g.arc(kx, ky, kr, 0, Math.PI * 2); g.fill()
+        g.strokeStyle = lum(kit[0]) > 0.17 ? kit[0] : kit[1]; g.lineWidth = Math.max(1, sc * 0.26); g.stroke()
       }
       // trees in the four corners, overhanging the ends of the stands
       for (const [cx, cy, sd] of [[0, 0, 11], [W, 0, 23], [0, L, 37], [W, L, 51]] as [number, number, number][]) {
@@ -499,7 +539,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         // the way up, a pad at each foot, a shadow on the grass behind.
         for (const x of [0, 100]) {
           const out = x === 0 ? -1 : 1
-          const H = sc * 11, lean = out * 0.2
+          const H = sc * 15, lean = out * 0.2
           const foot = [32.2, 37.8].map(y => ({ x: SX(x, y), y: SY(x, y) }))
           g.lineCap = 'round'
           g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = Math.max(1.5, sc * 0.5)
@@ -508,7 +548,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           for (const f of foot) { g.beginPath(); g.moveTo(f.x, f.y); g.lineTo(f.x + lean * H, f.y - H); g.stroke() }
           g.beginPath(); g.moveTo(foot[0].x + lean * H * 0.3, foot[0].y - H * 0.3); g.lineTo(foot[1].x + lean * H * 0.3, foot[1].y - H * 0.3); g.stroke()
           const kit = io.current.home.kit
-          for (const f of foot) { g.strokeStyle = kit[0]; g.lineWidth = Math.max(3, sc * 1.1); g.beginPath(); g.moveTo(f.x, f.y); g.lineTo(f.x + lean * H * 0.16, f.y - H * 0.16); g.stroke() }
+          // the shaded side of each upright, so it reads as a round post
+          g.strokeStyle = 'rgba(120,130,145,.8)'; g.lineWidth = Math.max(0.7, sc * 0.16)
+          for (const f of foot) { g.beginPath(); g.moveTo(f.x + sc * 0.17, f.y); g.lineTo(f.x + sc * 0.17 + lean * H, f.y - H); g.stroke() }
+          for (const f of foot) {
+            g.strokeStyle = kit[0]; g.lineWidth = Math.max(3.4, sc * 1.3); g.beginPath(); g.moveTo(f.x, f.y); g.lineTo(f.x + lean * H * 0.14, f.y - H * 0.14); g.stroke()
+            g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = Math.max(1, sc * 0.3); g.beginPath(); g.moveTo(f.x - sc * 0.3, f.y); g.lineTo(f.x - sc * 0.3 + lean * H * 0.14, f.y - H * 0.14); g.stroke()
+          }
           g.lineCap = 'butt'
         }
         // THE FLAGS: one at every corner, and at each 22 and halfway a couple
@@ -635,9 +681,24 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const br = Math.max(3.6, R * 0.5) * (1 + S.ball.lift * 0.03)
       const inHand = S.holder >= 0 && !flying
       const bx = SX(S.ball.x, S.ball.y) + (inHand ? R * 0.7 : 0), by = SY(S.ball.x, S.ball.y) - (inHand ? R * 0.6 : 0)
-      if (!inHand) { g.beginPath(); g.ellipse(SX(S.ball.x, S.ball.y), SY(S.ball.x, S.ball.y) + 1.5, br * 0.9, br * 0.55, 0, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.3)'; g.fill() }
-      g.beginPath(); g.ellipse(bx, by - S.ball.lift * sc * 0.45, br * 0.72, br, 0.5, 0, Math.PI * 2)
-      g.fillStyle = ink.ball; g.fill(); g.lineWidth = 1; g.strokeStyle = ink.ballEdge; g.stroke()
+      // a real ball: its shadow stays on the grass and softens as it climbs,
+      // the ball itself is lit from above with a seam down it
+      if (!inHand) {
+        const k = Math.min(1, S.ball.lift / 12)
+        g.beginPath(); g.ellipse(SX(S.ball.x, S.ball.y) + br * 0.3 + k * sc * 1.2, SY(S.ball.x, S.ball.y) + br * 0.5, br * (0.95 + k * 0.4), br * (0.6 + k * 0.2), 0, 0, Math.PI * 2)
+        g.fillStyle = `rgba(0,0,0,${(0.4 - k * 0.2).toFixed(2)})`; g.fill()
+      }
+      {
+        const cy = by - S.ball.lift * sc * 0.45
+        g.beginPath(); g.ellipse(bx, cy, br * 0.72, br, 0.5, 0, Math.PI * 2)
+        g.fillStyle = ink.ball; g.fill()
+        const bg = g.createRadialGradient(bx - br * 0.3, cy - br * 0.4, br * 0.05, bx, cy, br * 1.05)
+        bg.addColorStop(0, 'rgba(255,255,255,.75)'); bg.addColorStop(0.5, 'rgba(255,255,255,0)'); bg.addColorStop(1, 'rgba(0,0,0,.38)')
+        g.fillStyle = bg; g.fill()
+        g.lineWidth = 1; g.strokeStyle = ink.ballEdge; g.stroke()
+        g.save(); g.translate(bx, cy); g.rotate(0.5); g.strokeStyle = 'rgba(0,0,0,.3)'; g.lineWidth = Math.max(0.6, br * 0.1)
+        g.beginPath(); g.moveTo(0, -br * 0.6); g.lineTo(0, br * 0.6); g.stroke(); g.restore()
+      }
 
       // the man on the ball, by name, when he is the one the line names
       if (inHand && carrierId != null) {
