@@ -38,6 +38,8 @@ describe('the live pitch', () => {
       ]
       const lp = (en as unknown as { lp: Record<string, unknown> }).lp
       let cur: Phase | null = null, total = 0, top = 0, plays = 0, wall = 0
+      // the laws the pitch must keep: passes go backwards
+      let passes = 0, forward = 0
       for (let i = 0; i < events.length; i++) {
         const p = readLine(events[i], i, homeId, cur, events[i + 1])
         if (!p) continue
@@ -49,9 +51,19 @@ describe('the live pitch', () => {
         const ci = p.carrier != null ? side.indexOf(p.carrier) : -1
         S.start(p, ci >= 0 ? ci : null)
         let t = 0, prev = S.b.map(b => ({ x: b.x, y: b.y }))
+        let had: unknown = null
         while (!S.done && t < 30) {
           const cutsBefore = S.cuts
           S.step(1 / 120); t += 1 / 120; wall += 1 / 120 / Math.max(0.5, S.rate)
+          {
+            const Z = S as unknown as { flight: { from: { x: number }; to: { x: number }; toIdx: number } | null; mode: string; holder: number }
+            const f = Z.flight
+            if (f && f !== had && f.toIdx >= 0 && (Z.mode === 'ruck' || Z.mode === 'carry') && (f.toIdx < 15) === p.homeBall) {
+              passes++
+              if ((f.to.x - f.from.x) * (p.homeBall ? 1 : -1) > 1.5) forward++
+            }
+            had = f
+          }
           for (let k = 0; k < 30; k++) {
             if (S.cuts === cutsBefore) top = Math.max(top, Math.hypot(S.b[k].x - prev[k].x, S.b[k].y - prev[k].y) * 120)
             prev[k].x = S.b[k].x; prev[k].y = S.b[k].y
@@ -61,6 +73,9 @@ describe('the live pitch', () => {
         total += t
       }
       expect(plays).toBeGreaterThan(50)
+      // open play is passed through the hands, and (all but the odd pop off the floor) backwards
+      expect(passes).toBeGreaterThan(40)
+      expect(forward / passes).toBeLessThan(0.06)
       // a sprint is 8.2 m/s, the man with the ball a touch more
       expect(top).toBeLessThan(9.5)
       // nothing is teleported after the first picture: the match never cuts

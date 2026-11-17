@@ -31,7 +31,7 @@ export interface Body { x: number; y: number; vx: number; vy: number }
 type Step = ({ rate?: number }) & (
   | { k: 'wait'; t: number }
   /** the man goes to the ball and picks it up */
-  | { k: 'pick'; who: number; max?: number }
+  | { k: 'pick'; who: number; max?: number; re?: boolean }
   /** everybody gets to his place (most of them), or `max` seconds pass */
   | { k: 'settle'; max: number }
   /** a called move: its men to their marks, then the move as it is drawn */
@@ -677,6 +677,10 @@ export class PitchSim {
           const gap = hyp(this.b[s.who], this.ball)
           if (gap < 1.6 && this.ball.lift < 0.5 && !this.flight) {
             this.over.delete(s.who); this.holder = s.who; this.grounded = false; over = true
+          } else if (this.st > (s.max ?? 3) && !this.flight && !s.re && gap > 4) {
+            // he is not getting there: the nearest man to it goes instead
+            s.re = true; this.over.delete(s.who)
+            s.who = this.nearest(s.who < 15 ? 0 : 15, this.ball); this.st = 0; s.max = 3
           } else if (this.st > (s.max ?? 3) && !this.flight) {
             // he has not got there: it is popped up to him. The ball is never
             // simply in a man's hands who was not at it.
