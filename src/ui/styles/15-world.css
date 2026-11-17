@@ -108,3 +108,52 @@
 
 /* the Player of the Match under each result (1.9.13, WeekResults) */
 .rs-motm td { text-align: center; font-size: 0.75rem; padding-top: 0; padding-bottom: 6px; cursor: pointer; }
+
+/* ---- THE TEST DAY (1.9.14, matchday/TestDay.tsx) ----
+   The analysts' read, the armband, and the walk-out: out of the tunnel, both
+   sides standing in a line for the anthems, then the kick-off. The walk-out
+   covers the screen in the page's own surface with the two nations' shirt
+   colours as a band, so the words keep the page's contrast whatever the kit. */
+.test-reads { margin: 6px 0 0; padding-left: 18px; font-size: 0.8125rem; line-height: 1.45; color: var(--text-secondary); }
+.test-reads li + li { margin-top: 2px; }
+.cap-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cap-chip { min-height: 44px; padding: 6px 10px; font-weight: 600; }
+.cap-chip.sel { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); font-weight: 800; }
+
+.walkout {
+  position: fixed; inset: 0; z-index: 90;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  overflow-y: auto;
+}
+.walkout .wo-band {
+  height: 6px; border-radius: 3px; margin-bottom: 10px;
+  background: linear-gradient(90deg, var(--wo-a) 0 50%, var(--wo-b) 50% 100%);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.walkout .wo-head { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--cond); font-size: 1rem; flex-wrap: wrap; }
+.walkout .wo-body { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; gap: 6px; }
+.walkout h2 { font-family: var(--cond); font-size: 1.75rem; letter-spacing: .5px; margin: 0; color: var(--text-primary); }
+.walkout p { margin: 0; font-size: 0.9375rem; line-height: 1.45; color: var(--text-secondary); }
+.walkout .wo-pitch {
+  margin: 14px auto 4px; padding: 14px 6px; width: 100%; max-width: 460px;
+  border-radius: 12px; background: var(--pitch, #1f5c34);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.walkout .wo-line { display: flex; justify-content: center; gap: 1px; }
+.walkout .wo-fig { width: 6%; max-width: 22px; height: auto; }
+.walkout .wo-gap { height: 18px; border-bottom: 2px dashed rgba(255,255,255,.35); margin: 0 12px 18px; }
+.walkout .wo-anthems { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; font-size: 0.9375rem; color: var(--text-primary); }
+.walkout .wo-anthems li { padding: 8px 10px; border-radius: 8px; background: var(--surface-1); border: 1px solid var(--border); }
+.walkout .wo-actions { padding-top: 10px; }
+.walkout .wo-actions .btn.block { width: 100%; min-height: 52px; font-size: 1.0625rem; margin: 0; }
+.walkout .wo-links { display: flex; justify-content: space-between; margin-top: 6px; }
+.walkout .wo-links .btn { min-height: 44px; }
+@media (prefers-reduced-motion: no-preference) {
+  .walkout .wo-body { animation: wo-in .45s ease-out both; }
+  .walkout .wo-walk .wo-fig { animation: wo-walk .9s ease-out both; }
+  .walkout .wo-walk .wo-fig:nth-child(n+2) { animation-delay: calc(.05s * var(--i, 1)); }
+}
+@keyframes wo-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes wo-walk { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }

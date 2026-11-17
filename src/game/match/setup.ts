@@ -31,7 +31,7 @@ export function kickoffTank(c0: number): number {
   const raw = 100 - (100 - c0) * TANK_K
   return raw >= TANK_FLOOR ? raw : TANK_FLOOR - (TANK_FLOOR - raw) * TANK_SOFT
 }
-import { applyCamp } from '../natcamp'
+import { applyCamp, applyNatPlan, natCaptain } from '../natcamp'
 import { type SideCtx, aggPenRisk, fieldLineup, freshMods, personnelKey } from './side'
 
 /** WHAT THE SKY DOES TO THE UNITS (conditions.ts), one place for kick-off and
@@ -300,7 +300,12 @@ export function applyModifiers(state: GameState, side: SideCtx, weather: Weather
   // a proper captain in the XV steadies the ship and keeps discipline;
   // when he's missing, the vice-captain leads at half the effect
   const xvIds = shirts.filter(present)
-  const leader = club?.captain != null && xvIds.includes(club.captain)
+  // the national captain (1.9.14, natcamp.ts): a nation has no club, so the
+  // armband the Test coach hands out is read here
+  const natCap = club ? null : natCaptain(state, side.teamId)
+  const leader = natCap != null && xvIds.includes(natCap)
+    ? { p: state.players[natCap], f: 1 }
+    : club?.captain != null && xvIds.includes(club.captain)
     ? { p: state.players[club.captain], f: 1 }
     : club?.vice != null && xvIds.includes(club.vice)
       ? { p: state.players[club.vice], f: 0.5 }
@@ -403,6 +408,8 @@ export function applyModifiers(state: GameState, side: SideCtx, weather: Weather
   // the national camp's focus (1.9.14, natcamp.ts): the club's match prep,
   // for the country, chosen on Training & Staff while the window is open
   applyCamp(state, side)
+  // and its game plan (1.9.14): the club's four dials, for the country
+  applyNatPlan(state, side)
 
   // THE ROOM CARRIES OUT WHAT IT BELIEVES IN (1.8.14, authority.ts EXEC_BITE).
   // Keyed on the club like the coaching baseline above: the manager's club

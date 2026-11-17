@@ -553,7 +553,13 @@ export const matchSlice = (set: SetState, get: GetState) => ({
   liveTactics: () => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return
-    if (liveMatch.ctx.userSideId !== game.userClubId) return // Test match: no club tactic board
+    // a Test's dials are the national plan's (1.9.14): rebuild the side from
+    // them, and leave the club's command log alone
+    if (liveMatch.ctx.userSideId !== game.userClubId) {
+      applyTacticsChange(game, liveMatch.ctx)
+      set(s => ({ tick: s.tick + 1 }))
+      return
+    }
     // the dial VALUES, not the fact that he opened the board: the pre-match save
     // still holds whatever they were before he moved them
     const t = game.clubs[game.userClubId].tactic

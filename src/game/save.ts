@@ -1010,6 +1010,18 @@ function migrateManagerAndNation(s: GameState): void {
   // the camp's focus (1.9.14): a malformed one is no focus, never a crash
   if (s.natCamp != null && (typeof s.natCamp !== 'object' || !['fitness', 'setpiece', 'attack'].includes(s.natCamp.focus) ||
     ![s.natCamp.season, s.natCamp.start, s.natCamp.end].every(n => typeof n === 'number' && Number.isFinite(n)) || typeof s.natCamp.nat !== 'string')) delete s.natCamp
+  // the Test game plan (1.9.14): a dial that is not a number reads as the
+  // middle, a captain who is not a player is no captain
+  if (s.natPlan != null) {
+    if (typeof s.natPlan !== 'object' || typeof s.natPlan.nat !== 'string') delete s.natPlan
+    else {
+      for (const k of ['style', 'tempo', 'kicking', 'aggression'] as const) {
+        const v = s.natPlan[k]
+        s.natPlan[k] = typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 50
+      }
+      if (s.natPlan.captain != null && !s.players?.[s.natPlan.captain]) s.natPlan.captain = null
+    }
+  }
   if (s.natFed != null && (typeof s.natFed !== 'object' || typeof s.natFed.nat !== 'string' || !Array.isArray(s.natFed.ids))) delete s.natFed
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist

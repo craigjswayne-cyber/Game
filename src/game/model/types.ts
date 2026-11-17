@@ -1961,6 +1961,10 @@ export interface GameState {
   /** THE CAMP'S FOCUS (1.9.14, natcamp.ts): what the national side works on
    *  in the window it was chosen for, which the window's own weeks bound. */
   natCamp?: { nat: string; season: number; start: number; end: number; focus: 'fitness' | 'setpiece' | 'attack' } | null
+  /** THE TEST GAME PLAN (1.9.14, natcamp.ts): the national side's four dials
+   *  and its captain, set on the Test preview and from the touchline. Every
+   *  dial at 50 and no captain is exactly the engine before it existed. */
+  natPlan?: { nat: string; style: number; tempo: number; kicking: number; aggression: number; captain: number | null } | null
   /** the federation's own list for the user's nation, snapshotted when the
    *  window opened: the yardstick for the two-jobs rule (9.10). Absent in
    *  older saves and between windows. */

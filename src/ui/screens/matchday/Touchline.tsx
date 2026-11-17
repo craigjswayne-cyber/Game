@@ -1,6 +1,7 @@
 // The touchline panel: team talk, tactics and replacements.
 
 import { useState } from 'react'
+import { NatPlanDials } from './TestDay'
 import { useStore } from '../../../store'
 import { MAX_SUBS } from '../../../game/matchEngine'
 import { PRESETS, SLIDER_INFO, sliderReadout } from '../../../game/tactics'
@@ -146,6 +147,12 @@ export function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
         </div>
       ))}
       {explain && <div className="meta" style={{ margin: '6px 0' }}>{explain}</div>}
+      </>}
+      {/* A TEST HAS A TOUCHLINE TOO (1.9.14): the national plan's four dials,
+          moved from here as they are on the club's board */}
+      {!isClubMatch && game.natTeam && mine.teamId === game.natTeam && <>
+        <div className="fact-label" style={{ marginTop: 12 }}>{t('testday.plan')}</div>
+        <NatPlanDials compact onChange={liveTactics} />
       </>}
 
       {/* One button into the match-day squad, where several changes can be made
