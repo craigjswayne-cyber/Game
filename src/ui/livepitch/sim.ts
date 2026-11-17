@@ -37,7 +37,7 @@ type Step = ({ rate?: number }) & (
   /** a called move: its men to their marks, then the move as it is drawn */
   | { k: 'trackset' }
   | { k: 'track' }
-  | { k: 'pass'; to: number; hang?: number }
+  | { k: 'pass'; to: number; hang?: number; thrown?: boolean }
   /** the anchor (and the man with the ball) moves to a point at v m/s */
   | { k: 'run'; to: Pt; v: number; straight?: boolean }
   | { k: 'kick'; to: Pt; hang: number; silent?: boolean }
@@ -430,10 +430,21 @@ export class PitchSim {
       const cand = [9, 11, 12, 14].filter(k => k !== c && this.down[att0 + k] <= 0 && !this.off[att0 + k] && (this.b[att0 + k].x - B.x) * dir < -1)
         .map(k => ({ k, v: (this.b[att0 + k].y - B.y) * sgn })).filter(o => o.v > 3 && o.v < wide - 4).sort((a, b) => a.v - b.v)
       let at = 0
+      const used: number[] = []
       for (const o of cand) {
         if (o.v - at < 5 || wide - at <= 11) continue
         steps.push({ k: 'pass', to: att0 + o.k, rate }, { k: 'wait', t: 0.2, rate })
-        at = o.v
+        at = o.v; used.push(o.k)
+      }
+      // still a long way to throw it: whoever is standing in between takes it on
+      for (let guard = 0; guard < 3 && wide - at > 15; guard++) {
+        const o = [...Array(15).keys()].filter(k => k !== c && k !== 8 && !used.includes(k) && this.down[att0 + k] <= 0 && !this.off[att0 + k]
+          && !(this.ruckers ?? []).includes(k) && k !== this.downMan && (this.b[att0 + k].x - B.x) * dir < -1)
+          .map(k => ({ k, v: (this.b[att0 + k].y - B.y) * sgn })).filter(q => q.v > at + 4 && q.v < wide - 4)
+          .sort((a, b) => Math.abs(a.v - (at + 9)) - Math.abs(b.v - (at + 9)))[0]
+        if (!o) break
+        steps.push({ k: 'pass', to: att0 + o.k, rate }, { k: 'wait', t: 0.2, rate })
+        at = o.v; used.push(o.k)
       }
     }
     steps.push({ k: 'pass', to: att0 + c, rate })
@@ -727,12 +738,23 @@ export class PitchSim {
           break
         }
         case 'pass':
-          if (first && this.holder === s.to) { over = true; break }
-          if (first) {
+          if (!s.thrown) {
+            if (this.holder === s.to) { over = true; break }
+            // NO FORWARD PASSES: if the man it is going to is in front of the
+            // ball he drops back behind it first, and it is held until he has
+            if (this.holder >= 0 && (this.holder < 15) === (s.to < 15) && (this.mode === 'ruck' || this.mode === 'carry')) {
+              const d1 = s.to < 15 ? 1 : -1
+              if ((this.b[s.to].x - this.ball.x) * d1 > -0.4 && this.st < 2.5) {
+                this.over.set(s.to, { x: this.ball.x - d1 * 3, y: this.b[s.to].y })
+                this.st += dt
+                break
+              }
+            }
             const from = { x: this.ball.x, y: this.ball.y }
             const T = clamp(hyp(from, this.b[s.to]) / V_PASS, 0.22, 1.1)
             this.flight = { from, to: this.b[s.to], toIdx: s.to, T, t: 0, hang: s.hang ?? 0.5 }
             this.holder = -1; this.grounded = false
+            s.thrown = true
           }
           over = !this.flight; break
         case 'kick':
