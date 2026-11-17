@@ -44,6 +44,8 @@ type Step = ({ rate?: number }) & (
   /** open play nobody wrote a line for: the side with the ball plays it up
    *  the field through phases until there is a ruck at `to` */
   | { k: 'advance'; to: Pt; n?: number; join?: number; kicked?: boolean; chase?: boolean; t0?: number }
+  /** in the tackle the ball is slipped to the man on his shoulder, who goes on */
+  | { k: 'offload'; thrown?: boolean }
   /** the ball goes to ground at the anchor */
   | { k: 'ground' }
   | { k: 'mode'; mode: PhaseKind; cIdx?: number | null; anchorOn?: number; at?: Pt; clear?: boolean }
@@ -757,6 +759,22 @@ export class PitchSim {
             s.thrown = true
           }
           over = !this.flight; break
+        case 'offload':
+          if (!s.thrown) {
+            s.thrown = true
+            const h = this.holder
+            if (h < 0) { over = true; break }
+            const a0 = h < 15 ? 0 : 15, d1 = h < 15 ? 1 : -1
+            const mate = [...Array(15).keys()].filter(k => a0 + k !== h && k !== 8 && this.down[a0 + k] <= 0 && !this.off[a0 + k])
+              .map(k => ({ k, d: hyp(this.b[a0 + k], this.b[h]), u: (this.b[a0 + k].x - this.b[h].x) * d1 })).filter(o => o.d < 6 && o.u < -0.3).sort((a, b) => a.d - b.d)[0]
+            if (!mate) { over = true; break }
+            const from = { x: this.ball.x, y: this.ball.y }
+            this.flight = { from, to: this.b[a0 + mate.k], toIdx: a0 + mate.k, T: 0.22, t: 0, hang: 0.2 }
+            // the man who gave it is the one who was tackled
+            this.down[h] = 1.2
+            this.holder = -1; this.grounded = false
+          }
+          over = !this.flight; break
         case 'kick':
           if (first) {
             const from = { x: this.ball.x, y: this.ball.y }
@@ -839,7 +857,12 @@ export class PitchSim {
                   .map(k => ({ k, d: hyp(this.b[att0 + k], me) })).filter(o => o.d < 6.5).sort((a, b) => a.d - b.d)[0]
                 if (mate) { run = mate.k; sub.push({ k: 'wait', t: 0.18 }, { k: 'pass', to: att0 + run, hang: 0.2 }) }
               }
-              sub.push({ k: 'mode', mode: 'carry', cIdx: run, anchorOn: att0 + run }, { k: 'run', to: P, v: run < 8 ? 6.3 : 8 }, ...tackle)
+              sub.push({ k: 'mode', mode: 'carry', cIdx: run, anchorOn: att0 + run })
+              if (n % 4 === 2 && rem > 14) {
+                // AN OFFLOAD: he is caught but gets it away, and the support man goes on
+                const mid: Pt = { x: (B.x + P.x) / 2, y: (B.y + P.y) / 2 }
+                sub.push({ k: 'run', to: mid, v: run < 8 ? 6.3 : 8 }, { k: 'offload' }, { k: 'mode', mode: 'carry', anchorOn: -1 }, { k: 'run', to: P, v: 7.4 }, ...tackle)
+              } else sub.push({ k: 'run', to: P, v: run < 8 ? 6.3 : 8 }, ...tackle)
             }
           }
           this.steps.splice(this.si, 0, ...sub.map(x => ({ ...x, rate: s.rate })))
@@ -885,7 +908,9 @@ export class PitchSim {
       const dx = tx - bd.x, dy = ty - bd.y
       const dist = Math.hypot(dx, dy)
       const fwd = i % 15 < 8
-      const urgent = i === this.holder || this.over.has(i) || chase || dist > 9 || this.rate >= FF
+      // a man in front of the ball is out of the game until he is back behind it: he hurries
+      const ahead = (this.mode === 'ruck' || this.mode === 'carry') && this.phase != null && (i < 15) === this.phase.homeBall && (bd.x - this.ball.x) * (i < 15 ? 1 : -1) > 1
+      const urgent = i === this.holder || this.over.has(i) || chase || dist > 9 || this.rate >= FF || ahead
       const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
       const want = Math.min(vmax, dist * 2.6)
       const wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0
