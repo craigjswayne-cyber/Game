@@ -107,11 +107,15 @@ function openPlay(p: Phase, ruck: boolean, far: number, near: number): { att: UV
 function scrum(): { att: UV[]; def: UV[] } {
   const att: UV[] = [
     [-1.7, -3.3], [-1.7, 0], [-1.7, 3.3], [-4.9, -1.7], [-4.9, 1.7], [-4.4, -5.6], [-4.4, 5.6], [-8, 0],
-    [-1, 6.6], [-9, 13], [-10, -12], [-11, 19], [-13, 25], [-14, 33], [-18, 16],
+    // THE LAW (10, scrum offside): every back but the 9 is five metres behind
+    // the last foot of his own scrum. The attack's line is staggered deeper
+    // from there; the defence's is flat on it, the full-back deep, and the
+    // far wing hangs back for the kick (the pendulum).
+    [-1, 6.6], [-13.2, 12], [-13.5, -13], [-14.8, 18.5], [-16.4, 25], [-18, 33], [-21, 15],
   ]
   const def: UV[] = [
     [1.7, 3.3], [1.7, 0], [1.7, -3.3], [4.9, 1.7], [4.9, -1.7], [4.4, 5.6], [4.4, -5.6], [8, 0],
-    [2.2, 7.4], [8, 13], [9, -12], [8.2, 19], [8.6, 25], [9.4, 33], [22, 14],
+    [2.2, 7.4], [13.2, 11], [13.4, -12], [13.2, 17], [13.2, 23.5], [18, 33], [27, 12],
   ]
   return { att, def }
 }
@@ -120,11 +124,15 @@ function scrum(): { att: UV[]; def: UV[] } {
 function lineout(): { att: UV[]; def: UV[] } {
   const att: UV[] = [
     [-1.8, 5.5], [0, -1], [-1.8, 23.5], [-1.8, 12.7], [-1.8, 16.3], [-1.8, 9.1], [-1.8, 27.1], [-1.8, 19.9],
-    [-5.5, 31], [-13, 36], [-10, 3], [-14, 42], [-15, 48], [-16, 57], [-21, 40],
+    // THE LAW (18): the line stands between the 5 and 15 metre lines, the
+    // receiver two metres off it, and everyone else ten metres back until
+    // the ball is caught. The other hooker is in the five-metre channel; the
+    // defending 9 is often the one in the tramlines with the hooker at the tail.
+    [-4, 17], [-13, 36], [-10.5, 3], [-14.5, 42], [-16, 48], [-17.5, 57], [-22, 40],
   ]
   const def: UV[] = [
-    [1.8, 5.5], [5, 3], [1.8, 23.5], [1.8, 12.7], [1.8, 16.3], [1.8, 9.1], [1.8, 27.1], [1.8, 19.9],
-    [5, 31], [11, 36], [11, 5], [11.5, 42], [12, 48], [13.5, 57], [25, 38],
+    [1.8, 5.5], [3.6, 30.5], [1.8, 23.5], [1.8, 12.7], [1.8, 16.3], [1.8, 9.1], [1.8, 27.1], [1.8, 19.9],
+    [2.6, 2.6], [11, 36], [11, 5], [11, 42], [11, 48], [14, 57], [26, 38],
   ]
   return { att, def }
 }

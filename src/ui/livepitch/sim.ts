@@ -124,6 +124,8 @@ export class PitchSim {
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
+  /** the man the lineout throw is going to */
+  private jumper = -1
   private side: 1 | -1 = 1
   /** where the running man is going to be met */
   private meet: Pt | null = null
@@ -185,7 +187,9 @@ export class PitchSim {
       case 'lineout':
         cut = cut || d > 10; init = att0 + 1
         if (!cut) steps.push({ k: 'pick', who: att0 + 1 })
-        steps.push({ k: 'wait', t: cut ? 1.3 : 2.4 }, { k: 'pass', to: att0 + 3, hang: 4 }, { k: 'wait', t: 0.5 },
+        // front, middle or tail: a different jumper, lifted by the men either side of him
+        this.jumper = att0 + [3, 4, 7][p.at % 3]
+        steps.push({ k: 'wait', t: cut ? 1.3 : 2.4 }, { k: 'pass', to: this.jumper, hang: 4 }, { k: 'wait', t: 0.5 },
           { k: 'pass', to: att0 + 8 }, { k: 'wait', t: 0.3 })
         break
       case 'maul': {
@@ -478,6 +482,19 @@ export class PitchSim {
     // open play is ragged; a set piece and a kick-off line are not
     const loose = this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
     const pts = [...S.home, ...S.away].map((q, i) => ({ x: q.x + jit(i, 1) * (loose ? 2.4 : 0.7), y: q.y + jit(i, 2) * (loose ? 1.6 : 0.5) }))
+    // the lift: the men either side of the jumper step in under him
+    if (this.mode === 'lineout' && this.jumper >= 0 && (this.flight?.toIdx === this.jumper || this.holder === this.jumper)) {
+      const order = [0, 5, 3, 4, 7, 2, 6]
+      for (const j0 of [this.jumper, this.jumper < 15 ? this.jumper + 15 : this.jumper - 15]) {
+        const base = j0 < 15 ? 0 : 15, at = order.indexOf(j0 - base)
+        const J = pts[j0]
+        for (const [n, sgn] of [[order[at - 1], -1], [order[at + 1], 1]] as [number | undefined, number][]) {
+          if (n == null) continue
+          const side = Math.sign(pts[base + n].y - J.y) || sgn
+          pts[base + n] = { x: J.x, y: J.y + side * 2.3 }
+        }
+      }
+    }
     for (const [i, q] of this.over) pts[i] = q
     return { pts, ref: S.ref }
   }
@@ -526,6 +543,17 @@ export class PitchSim {
         { k: 'run', to: E, v: c < 8 ? 6 : 7.6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at + n, this.tac[p.homeBall ? 0 : 1].tempo) })
     } else return
     this.steps = steps; this.si = 0; this.st = 0; this.entered = false
+  }
+
+  /** the lineout jumper while he is in the air (drawn larger: he is up), and
+   *  the man opposite him going up against the throw; -1 when nobody is */
+  lifted(): [number, number] {
+    if (this.mode !== 'lineout' || this.jumper < 0) return [-1, -1]
+    const up = (this.flight != null && this.flight.toIdx === this.jumper && this.flight.t > this.flight.T * 0.35) || this.holder === this.jumper
+    if (!up) return [-1, -1]
+    const opp = this.jumper < 15 ? this.jumper + 15 : this.jumper - 15
+    const contests = this.tac[this.jumper < 15 ? 1 : 0].contest >= 45
+    return [this.jumper, contests && this.holder !== this.jumper ? opp : -1]
   }
 
   /** is this man bound into the ruck (drawn smaller, as one of a pile) */

@@ -351,6 +351,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       let R = R0
       const { home: H, away: A, names: N, carrierId } = io.current
       const flying = S.ball.lift > 0.4
+      // a lineout jumper in the air is drawn larger: he is above the rest
+      const up2 = S.lifted()
       const dot = (i: number) => {
         const side = i < 15 ? H : A, k = i % 15
         const p = S.b[i]
@@ -360,7 +362,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         // a man on the ground after a tackle: fainter until he is back up
         const floor = S.down[i] > 0
         // the men in a ruck are a pile, not six separate discs
-        R = S.bound(i) || floor ? R0 * 0.74 : R0
+        R = S.bound(i) || floor ? R0 * 0.74 : up2[0] === i || up2[1] === i ? R0 * 1.24 : R0
         if (floor) g.globalAlpha = 0.6
         g.beginPath(); g.arc(x + R * 0.14, y + R * 0.24, R, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()
         g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fillStyle = side.kit[0]; g.fill()
