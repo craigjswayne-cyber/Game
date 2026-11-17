@@ -285,6 +285,9 @@ export default function Profile() {
           {(game.natHistory ?? []).map((ten, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
               <Flag code={ten.nat} /> <b>{nationName(ten.nat)}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
+              {/* the era, where the tenure kept one (1.9.14) */}
+              {ten.best ? <> · {t('natera.histBest', { n: ten.best })}</> : null}
+              {ten.debuts ? <> · {t('natera.histCaps', { n: ten.debuts })}</> : null}
             </div>
           ))}
           {game.natTeam && game.natRecord && (

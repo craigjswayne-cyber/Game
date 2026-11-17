@@ -1,4 +1,5 @@
 import { readMgrGender } from '../skins'
+import { startTenure } from '../../game/natera'
 import { saveQueue } from '../saveQueue'
 import { noteWhere, readWhere, sameSession } from '../nav'
 import { tIn } from '../../game/i18n'
@@ -254,6 +255,7 @@ export const careerSlice = (set: SetState, get: GetState) => ({
       g.natTeam = nat
       g.natConfidence = 60
       g.natRecord = { m: 0, w: 0, d: 0, l: 0 } // a new tenure starts at nought
+      startTenure(g) // the union's terms and the unveiling (1.9.14, natera.ts)
       // filed as a key and its variables, with the English beside it: the
       // nation travels as its English name plus a code twin (nat_n), so the
       // reader's language names the country

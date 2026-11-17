@@ -115,6 +115,8 @@ export function closeNatTenure(state: GameState) {
   state.natPlan = null
   state.natCamp = null
   state.natEra = null
+  state.natTerm = null
+  state.natUnveil = null
   state.natPrevSquad = []
   state.natTeam = null
   state.natConfidence = null

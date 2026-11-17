@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { NatUnveiling } from './NatOccasion'
 import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
@@ -279,6 +280,8 @@ function Overlays() {
       <TurningVeil />
       <Tutorial />
       <Celebration />
+      {/* the union unveils its new head coach (1.9.14, NatOccasion.tsx) */}
+      <NatUnveiling />
       {/* Pro Manager, at most one card per match flow and only at a safe
           moment on Home or the day room (ProPrompt.tsx) */}
       <ProPrompt />

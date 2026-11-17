@@ -14,6 +14,8 @@ import { Glyph } from '../glyphs'
 import { rowNavTr } from '../rowNav'
 import { acc } from '../accent'
 import { NatCampaign } from '../NatCampaign'
+import { NatBand, NatEraCard } from '../NatOccasion'
+import { natKit } from '../../game/natcolours'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -57,7 +59,8 @@ export default function Country() {
 
   return (
     <>
-      <div className="card" style={{ ...acc('var(--text-positive)') }}>
+      <NatBand nat={natId} sub={t('natera.headCoach', { g: game.mgrGender ?? 'm' })} />
+      <div className="card" style={{ ...acc(natKit(natId)?.[0] ?? 'var(--text-positive)') }}>
         <h3 style={{ fontSize: '1.125rem' }}><Flag code={natId} /> {nationName(natId)}</h3>
         <div className="meta" style={{ marginTop: 2 }}>
           {t('legacy.coRankLine', {
@@ -93,6 +96,7 @@ export default function Country() {
 
       <NatCampaign />
       <NatSquad />
+      <NatEraCard />
 
       <SectionTitle>{t('legacy.coTests')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>

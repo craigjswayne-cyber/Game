@@ -177,3 +177,31 @@
 .nc-answers .btn { width: 100%; margin: 0; min-height: 44px; text-align: left; justify-content: flex-start; }
 .nc-reveal { padding: 0 4px 6px; }
 .nc-reveal-row { padding: 6px 12px; }
+
+/* ---- the nation's colours, the unveiling, the era (1.9.14, NatOccasion.tsx) ---- */
+.nat-band { margin: 10px 14px 6px; }
+.nat-band .nb-stripe {
+  height: 8px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--nb-a) 0 50%, var(--nb-b) 50% 100%);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.nat-band .nb-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px 0; }
+.nat-band .nb-row b { font-family: var(--cond); font-size: 1.25rem; letter-spacing: .5px; color: var(--text-primary); }
+.nat-unveil {
+  position: fixed; inset: 0; z-index: 95; background: var(--bg); overflow-y: auto;
+  display: flex; flex-direction: column;
+  padding: calc(env(safe-area-inset-top, 0px) + 6px) 0 calc(env(safe-area-inset-bottom, 0px) + 14px);
+}
+.nat-unveil .nu-body { flex: 1; padding: 6px 16px; }
+.nat-unveil h1 { font-family: var(--cond); font-size: 1.75rem; line-height: 1.15; margin: 4px 0 8px; color: var(--text-primary); }
+.nat-unveil p { color: var(--text-secondary); line-height: 1.5; margin: 0 0 10px; }
+.nat-unveil .nu-terms ol { margin: 6px 0; padding-left: 20px; line-height: 1.5; }
+.nat-unveil .nu-go { margin: 8px 16px 0; width: auto; min-height: 52px; font-size: 1.0625rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .nat-unveil .nu-body { animation: wo-in .5s ease-out both; }
+}
+.nat-era .ne-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px; text-align: center; }
+.nat-era .ne-grid b { display: block; font-family: var(--cond); font-size: 1.25rem; color: var(--text-primary); }
+.nat-era .ne-grid span { font-size: 0.6875rem; color: var(--text-muted); line-height: 1.2; display: block; }
+.nat-era .ne-terms { list-style: none; margin: 4px 0 0; padding: 0; font-size: 0.875rem; line-height: 1.6; color: var(--text-secondary); }
+.nat-era .ne-terms li.done { color: var(--text-positive); font-weight: 700; }

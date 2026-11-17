@@ -22,6 +22,7 @@
  *     inbox, a line in the decisions ledger - in both languages, so a bought
  *     pound is as legible as an earned one.
  */
+import { startTenure } from './natera'
 import { FACILITY_INFO, MAX_FACILITY, fmtMoney, logDecision, mgrReputation, type Club, type FacilityId, type GameState } from './model'
 import { tIn } from './i18n'
 import { pickableNations } from './nations'
@@ -387,6 +388,7 @@ export function applyPinnacle(state: GameState, nat?: string): boolean {
   state.natConfidence = 60
   state.natRecord = { m: 0, w: 0, d: 0, l: 0 }
   state.natKeepAsk = state.unemployed ? null : chosen
+  startTenure(state) // the union's terms and the unveiling (1.9.14, natera.ts)
   // the nation renders in the reader's language: nat_k holds the key, not
   // the three letters (i18n.ts, the _k convention)
   const v = { nat_k: `nation.${chosen}` }

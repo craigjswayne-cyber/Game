@@ -1976,7 +1976,11 @@ export interface GameState {
   /** THE COACH'S ERA (1.9.14, nattest.ts): this tenure's best world ranking
    *  and the players handed a first cap, for Club & Country and the Profile.
    *  natRecord keeps the results; this keeps what they add up to. */
-  natEra?: { nat: string; bestRank: number; debuts: number[] } | null
+  natEra?: { nat: string; bestRank: number; debuts: number[]; topWin?: boolean } | null
+  /** the union's terms for the tenure (1.9.14, natera.ts) */
+  natTerm?: { nat: string; since: number; rank: number; comp: string | null } | null
+  /** the unveiling still to be shown (1.9.14, natera.ts) */
+  natUnveil?: { nat: string; season: number; week: number } | null
   /** THE WINDOW AS A CAMPAIGN (1.9.14, natwin.ts): the union's target, the
    *  announcement, the camp's one event and the review, for the window the
    *  coach's nation is in (or last was). */

@@ -7,6 +7,10 @@
 import type { Fixture, GameState } from './model'
 import { natRankOrder } from './natrank'
 
+/** the opponent's ranking going into the Test being settled (one match is
+ *  settled at a time, open then close, so a module slot is enough) */
+let natRankOrderBefore: number | null = null
+
 const mineIn = (state: GameState, fx: Fixture): string | null => {
   const nat = state.natTeam
   return nat && (fx.homeId === nat || fx.awayId === nat) ? nat : null
@@ -22,6 +26,7 @@ export function openTestLedger(state: GameState, fx: Fixture): void {
     rankBefore: natRankOrder(state).indexOf(nat) + 1, rankAfter: 0,
     ptsBefore: state.natRank?.[nat] ?? 0, ptsAfter: 0, debuts: [], caps: [],
   }
+  natRankOrderBefore = natRankOrder(state).indexOf(fx.homeId === nat ? fx.awayId : fx.homeId) + 1 || 99
 }
 
 /** After the exchange: the score, the new ranking, the era's best. */
@@ -34,6 +39,11 @@ export function closeTestLedger(state: GameState, fx: Fixture): void {
   L.ptsAfter = state.natRank?.[L.nat] ?? 0
   const era = eraOf(state)
   if (era && L.rankAfter > 0 && (era.bestRank === 0 || L.rankAfter < era.bestRank)) era.bestRank = L.rankAfter
+  // a win over a side in the world's top five, as ranked going in (natera.ts)
+  if (era && L.us > L.them) {
+    const oppBefore = natRankOrderBefore ?? 99
+    if (oppBefore <= 5) era.topWin = true
+  }
 }
 
 /** A cap for one of the coach's men: the card lists the milestones, the era

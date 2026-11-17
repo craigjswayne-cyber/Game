@@ -16,6 +16,7 @@ import { SPEECHES, type SpeechId, ViewPicker } from './prematch'
 import { Veil } from '../../Veil'
 import { acc } from '../../accent'
 import { AnalystReport, NatCaptain, NatPlanDials, WalkOut } from './TestDay'
+import { NatBand } from '../../NatOccasion'
 
 /** Test-match preview: you're coaching your COUNTRY this week. */
 export function NationPreview({ fxId }: { fxId: number }) {
@@ -108,6 +109,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
         </div>
       </header>
       <main className="content">
+        <NatBand nat={nat} sub={t('natera.testDay')} />
         <div className="card center">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={40} />

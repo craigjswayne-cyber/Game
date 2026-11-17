@@ -1029,6 +1029,8 @@ function migrateManagerAndNation(s: GameState): void {
   if (s.natWin != null && (typeof s.natWin !== 'object' || typeof s.natWin.nat !== 'string' ||
     ![s.natWin.season, s.natWin.start, s.natWin.end, s.natWin.tests, s.natWin.target, s.natWin.w, s.natWin.d, s.natWin.l].every(n => typeof n === 'number' && Number.isFinite(n)))) delete s.natWin
   if (s.natPrevSquad != null && !Array.isArray(s.natPrevSquad)) delete s.natPrevSquad
+  if (s.natTerm != null && (typeof s.natTerm !== 'object' || typeof s.natTerm.nat !== 'string' || !Number.isFinite(s.natTerm.rank) || !Number.isFinite(s.natTerm.since))) delete s.natTerm
+  if (s.natUnveil != null && (typeof s.natUnveil !== 'object' || typeof s.natUnveil.nat !== 'string')) delete s.natUnveil
   if (s.natFed != null && (typeof s.natFed !== 'object' || typeof s.natFed.nat !== 'string' || !Array.isArray(s.natFed.ids))) delete s.natFed
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist
