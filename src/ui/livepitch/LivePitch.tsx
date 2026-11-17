@@ -25,8 +25,12 @@ export interface PitchSide {
 /** in-goal metres drawn each end; the ground round the pitch: SIDE metres
  *  along each touchline (run-off, boards, a strip of crowd) and END metres
  *  behind each dead-ball line (boards and a stand) */
-const GOAL = 8, SIDE = 5.6, END = 11.5
-const FIELD_L = 100 + GOAL * 2 + END * 2, FIELD_W = 70 + SIDE * 2
+const GOAL = 8
+/** the least ground drawn round the pitch; the rest of the box is filled with
+ *  more stand, so the ground runs off the edge of the screen as a real one does */
+const SIDE_MIN = 6.6, END_MIN = 5.5
+let SIDE = SIDE_MIN, END = END_MIN
+let FIELD_L = 100 + GOAL * 2 + END * 2, FIELD_W = 70 + SIDE * 2
 
 /** the verdict's type size: full size for TRY, smaller the longer the word */
 function bannerSize(label: string, good: boolean): { fontSize: string } {
@@ -179,41 +183,75 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
 
       // ---- the ground: concrete, then the stands, then the grass on top
       g.fillStyle = lp.ground; g.fillRect(0, 0, W, L)
-      // the two end stands: rows of seats in the home colour, a crowd in them
-      const stand = (top: boolean) => {
-        const y0 = top ? 0 : fy(-GOAL - 4.6), hgt = (END - 4.6) * sc
-        g.fillStyle = lp.stand; g.fillRect(0, y0, W, hgt)
-        const rows = 5, rh = hgt / rows
+      // THE GROUND (owner, 17 Nov 2026, from the reference: "build stands like
+      // the video", "Advertising on two sides"). A stand down each touchline
+      // and one behind each goal: tiers of seats in the home colours with a
+      // crowd in them, stairways between the blocks, a roof over the back
+      // rows, and trees in the corners. The advertising boards run down the
+      // two touchlines only.
+      /** a block of seating: rows parallel to the pitch edge it faces. (x, y, w, h)
+       *  in pixels; `out` is which way is away from the pitch */
+      const seating = (x: number, y: number, w: number, h: number, out: 'l' | 'r' | 'u' | 'd', seed: number) => {
+        if (w < 2 || h < 2) return
+        const alongX = out === 'u' || out === 'd'
+        const depth = alongX ? h : w, len = alongX ? w : h
+        g.fillStyle = lp.stand; g.fillRect(x, y, w, h)
+        const rowPx = Math.max(3, sc * 1.05), rows = Math.max(1, Math.floor(depth / rowPx))
+        const seat = Math.max(2.4, sc * 0.9), n = Math.floor(len / seat)
         for (let r = 0; r < rows; r++) {
-          g.fillStyle = hk[0]; g.globalAlpha = 0.5 + 0.08 * r
-          g.fillRect(sc * 0.6, y0 + r * rh + rh * 0.18, W - sc * 1.2, rh * 0.64)
+          // row r counts from the pitch outwards
+          const d0 = r * rowPx
+          const rx = out === 'l' ? x + w - d0 - rowPx : out === 'r' ? x + d0 : x
+          const ry = out === 'u' ? y + h - d0 - rowPx : out === 'd' ? y + d0 : y
+          g.fillStyle = hk[0]; g.globalAlpha = 0.42 + 0.3 * (r / Math.max(1, rows - 1))
+          if (alongX) g.fillRect(rx, ry + rowPx * 0.14, w, rowPx * 0.72); else g.fillRect(rx + rowPx * 0.14, ry, rowPx * 0.72, h)
           g.globalAlpha = 1
-          const n = Math.floor((W - sc * 1.2) / (sc * 0.95))
           for (let c = 0; c < n; c++) {
-            const k = h2(c + (top ? 0 : 500), r)
-            if (k < 0.2) continue
-            g.fillStyle = k < 0.62 ? hk[0] : k < 0.8 ? ink.white : k < 0.9 ? ak[0] : hk[1]
-            g.beginPath(); g.arc(sc * 0.6 + (c + 0.5) * sc * 0.95, y0 + r * rh + rh * 0.5, Math.max(1, sc * 0.3), 0, Math.PI * 2); g.fill()
+            const k = h2(c + seed * 131, r + seed * 17)
+            if (k < 0.3) continue
+            g.fillStyle = k < 0.62 ? hk[1] : k < 0.82 ? ink.white : k < 0.92 ? ak[0] : hk[0]
+            const cx = alongX ? x + (c + 0.5) * seat : rx + rowPx * 0.5, cy = alongX ? ry + rowPx * 0.5 : y + (c + 0.5) * seat
+            g.beginPath(); g.arc(cx, cy, Math.max(0.9, sc * 0.27), 0, Math.PI * 2); g.fill()
           }
         }
-        // the aisles
+        // the stairways between the blocks
         g.fillStyle = lp.stand
-        for (const a of [0.25, 0.5, 0.75]) g.fillRect(W * a - sc * 0.5, y0, sc, hgt)
-      }
-      stand(true); stand(false)
-      // a strip of crowd down each touchline
-      for (const left of [true, false]) {
-        const x0 = left ? 0 : fx(70 + SIDE - 1.7)
-        g.fillStyle = lp.stand; g.fillRect(x0, fy(100 + GOAL + 4.6), 1.7 * sc, (116 + 9.2) * sc)
-        const n = Math.floor((116 + 9.2) / 1.0)
-        for (let c = 0; c < n; c++) {
-          const k = h2(c, left ? 77 : 99)
-          if (k < 0.25) continue
-          g.fillStyle = k < 0.65 ? hk[0] : k < 0.82 ? ink.white : k < 0.92 ? ak[0] : hk[1]
-          g.beginPath(); g.arc(x0 + 0.85 * sc, fy(100 + GOAL + 4.6) + (c + 0.5) * sc, Math.max(1, sc * 0.32), 0, Math.PI * 2); g.fill()
+        const gap = Math.max(18, sc * 13)
+        for (let a = gap; a < len - gap * 0.4; a += gap) { if (alongX) g.fillRect(x + a - sc * 0.45, y, sc * 0.9, h); else g.fillRect(x, y + a - sc * 0.45, w, sc * 0.9) }
+        // the roof over the back rows, with its front edge catching the light
+        if (rows >= 5) {
+          const rd = depth * 0.42
+          const ox = out === 'l' ? x : out === 'r' ? x + w - rd : x, oy = out === 'u' ? y : out === 'd' ? y + h - rd : y
+          g.fillStyle = 'rgba(8,12,18,.72)'
+          if (alongX) g.fillRect(ox, oy, w, rd); else g.fillRect(ox, oy, rd, h)
+          g.fillStyle = 'rgba(255,255,255,.28)'
+          if (out === 'u') g.fillRect(x, y + rd - 1, w, 1.2); else if (out === 'd') g.fillRect(x, y + h - rd, w, 1.2)
+          else if (out === 'l') g.fillRect(x + rd - 1, y, 1.2, h); else g.fillRect(x + w - rd, y, 1.2, h)
+          g.fillStyle = 'rgba(255,255,255,.07)'
+          const truss = Math.max(14, sc * 9)
+          for (let a = truss * 0.5; a < len; a += truss) { if (alongX) g.fillRect(x + a, oy, 1, rd); else g.fillRect(ox, y + a, rd, 1) }
         }
       }
-      // the boards: along both touchlines (the names up the pitch) and both ends
+      const pitchT = fy(100 + GOAL), pitchB = fy(-GOAL), pitchL = fx(0), pitchR = fx(70)
+      const boardW = 2.3 * sc, off = 1.5 * sc
+      // down each touchline: run-off, boards, then the stand out to the edge
+      seating(0, pitchT, pitchL - off - boardW - sc * 0.5, pitchB - pitchT, 'l', 1)
+      seating(pitchR + off + boardW + sc * 0.5, pitchT, W - (pitchR + off + boardW + sc * 0.5), pitchB - pitchT, 'r', 2)
+      // behind each goal
+      seating(pitchL, 0, pitchR - pitchL, pitchT - sc * 2.4, 'u', 3)
+      seating(pitchL, pitchB + sc * 2.4, pitchR - pitchL, L - pitchB - sc * 2.4, 'd', 4)
+      // trees in the four corners, overhanging the ends of the stands
+      for (const [cx, cy, sd] of [[0, 0, 11], [W, 0, 23], [0, L, 37], [W, L, 51]] as [number, number, number][]) {
+        const reach = Math.min(Math.max(pitchL - off - boardW, sc * 5), Math.max(pitchT, sc * 5)) * 1.3
+        for (let t = 0; t < 6; t++) {
+          const a = h2(t, sd) * Math.PI * 2, rr = h2(t, sd + 1) * reach
+          const tx = cx + Math.cos(a) * rr * (cx === 0 ? 1 : -1) * 0.9, ty = cy + Math.sin(a) * rr * (cy === 0 ? 1 : -1) * 0.9
+          const rad = Math.max(5, sc * (2.2 + h2(t, sd + 2) * 2.4))
+          g.fillStyle = ink.grassB; g.beginPath(); g.arc(Math.abs(tx - cx) * (cx === 0 ? 1 : -1) + cx, Math.abs(ty - cy) * (cy === 0 ? 1 : -1) + cy, rad, 0, Math.PI * 2); g.fill()
+          g.fillStyle = `rgba(0,0,0,${(0.28 + h2(t, sd + 3) * 0.3).toFixed(2)})`; g.fill()
+        }
+      }
+      // the boards: down both touchlines, and nowhere else
       const boardFills = [hk[0], lp.light, lp.dark, hk[1]]
       const text = (label: string, cx: number, cy: number, size: number, fill: string, rot: number, maxW: number) => {
         g.save(); g.translate(cx, cy); g.rotate(rot)
@@ -221,24 +259,14 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = isLight(fill) ? lp.boardInk : lp.light
         g.fillText(label.toUpperCase(), 0, 0.5, maxW); g.restore()
       }
-      const panels = 6, pl = (116 + 3) / panels
+      const panels = 6, pl = 116 / panels
       for (const left of [true, false]) {
-        const bx = left ? fx(-1.4 - 2.4) : fx(71.4)
+        const bx = left ? pitchL - off - boardW : pitchR + off
         for (let i = 0; i < panels; i++) {
           const fill = boardFills[(i + (left ? 0 : 2)) % boardFills.length]
-          const y1 = fy(100 + GOAL + 1.5 - i * pl)
-          g.fillStyle = fill; g.fillRect(bx, y1 + 0.5, 2.4 * sc, pl * sc - 1)
-          text(names[(i * 2 + (left ? 0 : 1)) % names.length], bx + 1.2 * sc, y1 + pl * sc / 2, Math.max(6.5, sc * 1.55), fill, left || !dim.up ? -Math.PI / 2 : Math.PI / 2, pl * sc - 6)
-        }
-      }
-      const ep = 3, ew = (70 + 2.8) / ep
-      for (const top of [true, false]) {
-        const by = top ? fy(100 + GOAL + 1.4 + 2.6) : fy(-GOAL - 1.4)
-        for (let i = 0; i < ep; i++) {
-          const fill = boardFills[(i + (top ? 1 : 3)) % boardFills.length]
-          const x1 = fx(-1.4 + i * ew)
-          g.fillStyle = fill; g.fillRect(x1 + 0.5, by, ew * sc - 1, 2.6 * sc)
-          text(names[(i + (top ? 3 : 6)) % names.length], x1 + ew * sc / 2, by + 1.3 * sc, Math.max(7, sc * 1.7), fill, 0, ew * sc - 8)
+          const y1 = fy(100 + GOAL - i * pl)
+          g.fillStyle = fill; g.fillRect(bx, y1 + 0.5, boardW, pl * sc - 1)
+          text(names[(i * 2 + (left ? 0 : 1)) % names.length], bx + boardW / 2, y1 + pl * sc / 2, Math.max(6.5, sc * 1.5), fill, left || !dim.up ? -Math.PI / 2 : Math.PI / 2, pl * sc - 6)
         }
       }
 
@@ -288,7 +316,14 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const dpr = Math.min(2, window.devicePixelRatio || 1)
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr)
       const up = h >= w
-      const sc = up ? Math.min(w / FIELD_W, h / FIELD_L) : Math.min(w / FIELD_L, h / FIELD_W)
+      // the pitch as large as the box allows with the least ground round it,
+      // then the ground stretched to fill what is left
+      const across = up ? w : h, along = up ? h : w
+      // (turned on its side there is room behind the goals to spare, so the
+      // touchline stands get more of it)
+      const sideMin = up ? SIDE_MIN : 9
+      const sc = Math.min(across / (70 + sideMin * 2), along / (100 + GOAL * 2 + END_MIN * 2))
+      if (sc > 0) { SIDE = (across / sc - 70) / 2; END = (along / sc - 100 - GOAL * 2) / 2; FIELD_L = 100 + GOAL * 2 + END * 2; FIELD_W = 70 + SIDE * 2 }
       dim = { w, h, dpr, sc, up, ox: (w - (up ? FIELD_W : FIELD_L) * sc) / 2, oy: (h - (up ? FIELD_L : FIELD_W) * sc) / 2 }
       if (sc > 0) paintField()
     }
