@@ -24,6 +24,13 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED for 2.0.0 (17 Nov 2026), for the ENGINE, deliberately: the
+  // quick tap in open field and the penalty for not being back ten (owner:
+  // "Yes to quick taps and penalties for not being back 10m which each team
+  // would do"; scoring.ts quickTapMid and notBackTen, tick.ts). Neither draws
+  // on the stream, so only the matches where a tap is taken move: one of the
+  // six, which was 'bristol 3-34 sale'. bandcheck holds (tries 6.42, home
+  // 55.2%, draws 1.7%, blowouts 6.5%).
   // REBASELINED again for 1.9.12 (12 Nov 2026), for squad DATA, not the
   // engine: Zach Mercer to Toulon, Albert Tuisue to Provence and James Venter
   // to Gloucester (verified.ts), and Gloucester's ratings and reputation
@@ -708,7 +715,7 @@ export const EXPECTED: string[] = [
   // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
-  'bristol 3-34 sale',
+  'bristol 10-27 sale',
   'newcastle 15-17 gloucester',
   'northampton 46-24 exeter',
   'saracens 36-12 bath',

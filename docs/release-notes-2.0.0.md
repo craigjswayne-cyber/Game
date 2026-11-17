@@ -85,6 +85,20 @@ not bumped yet: that is the owner's call when it ships.
 - On Key, `hlliveprobe` and `feedprobe` pass against a build.
 - NOT yet run: the full browser suite, the soaks, a real phone.
 
+## Match engine (changes results)
+
+- **Quick taps in open field.** A penalty out of kicking range is no longer
+  always a kick to touch. A side that plays at tempo sometimes taps and goes
+  (about one in ten for a slow side, four in ten for a quick one). It keeps
+  the ball and makes less ground than the kick would.
+- **Not back ten.** After a quick tap the defence can be caught inside ten
+  metres: another penalty against them and the mark goes ten metres on. How
+  often is the defending side's aggression dial. It counts towards the
+  referee's patience, so it can lead to a card. Same for the manager's side
+  and the AI's.
+- Fixed-seed baseline rebaselined for this (one of six matches moved);
+  the league balance check holds.
+
 ## Decisions for the owner
 
 - **Make Extended the default?** Today a player only sees the pitch if he

@@ -525,7 +525,54 @@ export function tapAndGo(state: GameState, ctx: LiveCtx, mine: SideCtx, opp: Sid
     return t('touch.quickTapWorks')
   }
   pushLine(state, ctx, min, 'SUB', mine, 'comm.quickTapPhases', { team: teamShort(state, mine.teamId) })
+  // NOT BACK TEN (2.0.0; owner, 17 Nov 2026: "Yes to quick taps and
+  // penalties for not being back 10m which each team would do"). A quick tap
+  // is taken before the defence has retreated; a man who plays the tapper
+  // from inside ten metres gives away another penalty and the mark goes ten
+  // metres on. It is the defending side's doing, so it is their aggression
+  // dial that sets how often, the same for the manager's side and the AI's,
+  // and it counts towards the referee's patience like any other penalty.
+  notBackTen(state, ctx, mine, opp, min, true)
   return t('touch.tempoLifted')
+}
+
+/**
+ * Was the defence back ten when the tap was taken? Read off the moment (the
+ * minute, the mark, the count), never a draw, so the stream every other
+ * decision reads is exactly what it was. The defending side's aggression
+ * dial sets how often: 8% for a clean side, about a third for a side told
+ * to live on the edge. Returns whether it was given.
+ */
+export function notBackTen(state: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, min: number, detail: boolean): boolean {
+  const agg = state.clubs[opp.teamId]?.tactic.aggression ?? 50
+  const roll = ((min * 53 + Math.round(ctx.field) * 29 + opp.consPens * 17 + 11) % 100) / 100
+  if (roll >= clamp(0.16 + (agg - 50) * 0.003, 0.08, 0.32)) return false
+  backTowards(ctx, mine, -10)
+  if (detail) pushLine(state, ctx, min, 'SUB', opp, 'comm.notBackTen', { team: teamShort(state, opp.teamId) })
+  concedePenalty(state, ctx, opp, min, null)
+  mine.pressure = clamp(mine.pressure + 8, 0, 100)
+  return true
+}
+
+/**
+ * THE QUICK TAP IN OPEN FIELD (2.0.0; owner, 17 Nov 2026: "Yes to quick
+ * taps"). A penalty out of kicking range used to be a kick to touch every
+ * time. A side that plays at tempo now sometimes taps and goes instead: it
+ * keeps the ball and makes less ground than the boot would, unless the
+ * defence is caught inside ten metres, when it gets ten more and another
+ * penalty against them. How often is the side's own tempo dial (about one
+ * in ten for a slow side, four in ten for a quick one), read off the moment
+ * and never a draw. Returns whether the tap was taken.
+ */
+export function quickTapMid(state: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, min: number, detail: boolean): boolean {
+  const tempo = state.clubs[mine.teamId]?.tactic.tempo ?? 50
+  const roll = ((min * 37 + Math.round(ctx.field) * 41 + mine.consPens * 13 + 5) % 100) / 100
+  if (roll >= clamp(0.1 + tempo * 0.003, 0.1, 0.4)) return false
+  if (detail) pushLine(state, ctx, min, 'SUB', mine, 'comm.quickTapMid', { team: teamShort(state, mine.teamId) })
+  mine.poss += 1
+  backTowards(ctx, mine, -(7 + Math.min(6, Math.max(0, mine.units.attack - opp.units.defence) * 2)))
+  notBackTen(state, ctx, mine, opp, min, detail)
+  return true
 }
 
 /** A penalty conceded: the count climbs, and when it reaches the referee's

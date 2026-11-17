@@ -287,7 +287,9 @@ export class PitchSim {
         break
       }
       case 'carry': case 'try': case 'heldup': {
-        const c = carrierIdx ?? (p.kind === 'carry' ? 11 : 13)
+        // (a quick tap is the scrum-half's: he taps it to himself and goes, the
+        // defence still getting back its ten metres)
+        const c = p.label === 'lp.quickTap' ? 8 : carrierIdx ?? (p.kind === 'carry' ? 11 : 13)
         const scoring = p.kind !== 'carry'
         const v = p.kind === 'try' ? 8.6 : c < 8 ? 6.3 : 8
         // A GAP IN THE SAME ATTACK IS A BREAK, NOT A CUT: when the side that

@@ -82,7 +82,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
 
 /** lines about the side WITHOUT the ball: the tackler, the defensive line, the
  *  man who gave the penalty away */
-const DEFENDING = /^(defSet|defHit|off_|heldUp|flav(8|12|15|23)$|ycRepeated|yc|rc)/
+const DEFENDING = /^(defSet|defHit|off_|notBackTen|heldUp|flav(8|12|15|23)$|ycRepeated|yc|rc)/
 
 /**
  * ---- WHAT ONE LINE SHOWS ----
@@ -180,6 +180,9 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     return { ...base, kind: 'maul', y, label: 'lp.maul' }
   }
 
+  // ---- the quick tap, and the penalty for not being back ten that it draws
+  if (s === 'quickTapPhases' || s === 'quickTapMid') return { ...base, kind: 'carry', y: prevY, label: 'lp.quickTap' }
+  if (s === 'notBackTen') return { ...base, kind: 'penalty', y: prevY, label: 'lp.notBackTen' }
   // ---- penalties and free kicks in open play
   if (s.startsWith('off_') || s.startsWith('fk_') || s === 'penKickableAsk' || raw === 'flav4') {
     return { ...base, kind: 'penalty', y: drift(6), label: 'lp.penalty' }

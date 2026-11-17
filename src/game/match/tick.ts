@@ -15,7 +15,7 @@ import { teamShort } from './selection'
 import { refFor } from './referee'
 import { backTowards, describeDefence, describeMoveCall, describeMoveOutcome, describePlay, describeState, describeStyle, describeTurnover, moveInPlay, moveTryOf, said, styleSalt, upOf } from './commentary'
 import { dropChance, dropGoalAttempt, kicksFromHand } from './kickplay'
-import { aiPenaltyCall, concedePenalty, kickToCorner, resolveDecision, scoreTry, tapAndGo } from './scoring'
+import { aiPenaltyCall, concedePenalty, kickToCorner, resolveDecision, scoreTry, tapAndGo, quickTapMid } from './scoring'
 import { aiAutoSubs, applyFinishers, benchTank, checkFrontRow, frontRowCoverEnds, injuryCoverFor, liveFrontRowCover, pickBenchSub, sendOnForInjury } from './subs'
 import { describeDay } from './day'
 import { CARD_SHARE, MAN_DOWN, YC_REASONS } from './discipline'
@@ -531,6 +531,8 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       } else if (advRoll < pAdvTry + pAdvOver) {
         // ground made, nothing at the end of it, and the kick is gone with it
         if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advOver', { team: teamShort(state, side.teamId) })
+      } else if (up < 50 && quickTapMid(state, ctx, side, opp, min, detail)) {
+        // tapped and gone: no kick, no lineout, the ball still in hand
       } else if (up < 50) {
         // OUT OF RANGE: KICK FOR TOUCH (1.7.4, owner: "kicks at goal should be
         // limited to within the opposition teams halfway"). A penalty in your

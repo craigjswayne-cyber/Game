@@ -7294,6 +7294,8 @@
   "maulHeldUp": "¡Balón retenido en el ingoal! {team} mete cuerpos debajo del balón y sobrevive. Saque desde la línea de marca.",
   "maulRepelledPenalty": "Paran el maul, pero cometen otro castigo. La presión no afloja.",
   "quickTapPhases": "¡Saque rápido! {team} encadenan fases, acampados sobre la línea...",
+  "quickTapMid": "¡Golpe rápido! {team} sale mientras la defensa todavía se retira.",
+  "notBackTen": "¡No se retiraron diez metros! {team} vuelve a ser sancionado y el árbitro adelanta la marca diez metros.",
   "benchSixTwo": "{team} han vaciado un banquillo de seis-dos. A partir de aquí todo pasará por el medio.",
   "benchFiveThree": "{team} tienen a cuatro tres cuartos frescos en el campo. Intentarán ganar esto por los canales anchos.",
   "outOfCover": "{team} se han quedado sin recambios. {player}, {pos} de oficio, acaba el partido de {shirt}, y los dos equipos lo saben.",
@@ -9827,6 +9829,8 @@
  },
  "lp": {
   "move": "Jugada",
+  "quickTap": "Golpe rápido",
+  "notBackTen": "No a diez metros",
   "attack": "{team} ataca",
   "try": "Ensayo",
   "con": "Transformación",

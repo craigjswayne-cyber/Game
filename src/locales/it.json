@@ -7331,6 +7331,8 @@
   "maulHeldUp": "Pallone tenuto alto oltre la linea! {team} mette i corpi sotto il pallone e sopravvive. Drop dalla linea di meta.",
   "maulRepelledPenalty": "Fermano il maul, ma concedono un'altra punizione. La pressione resta.",
   "quickTapPhases": "Punizione giocata veloce! {team} macina fasi, accampata sulla linea...",
+  "quickTapMid": "Punizione veloce! {team} riparte mentre la difesa sta ancora arretrando.",
+  "notBackTen": "Non a dieci metri! {team} viene punita ancora e l'arbitro avanza il punto di dieci metri.",
   "benchSixTwo": "{team} ha svuotato una panchina sei-due. Da qui in poi passerà tutto dal centro.",
   "benchFiveThree": "{team} ha messo dentro quattro trequarti freschi. Proveranno a vincerla nei canali larghi.",
   "outOfCover": "{team} ha finito le coperture. {player}, un {pos}, chiude la partita con il numero {shirt} e lo sanno entrambe le squadre.",
@@ -9871,6 +9873,8 @@
  },
  "lp": {
   "move": "Schema",
+  "quickTap": "Punizione veloce",
+  "notBackTen": "Non a dieci metri",
   "attack": "{team} attacca",
   "try": "Meta",
   "con": "Trasformazione",

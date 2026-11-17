@@ -7332,6 +7332,8 @@
   "maulHeldUp": "Opgehou oor die doellyn! {team} kry lywe onder die bal en oorleef. Doellyn-uitskop.",
   "maulRepelledPenalty": "Hulle stop die losgemaal, maar staan nog 'n strafskop af. Die druk bly aan.",
   "quickTapPhases": "Vinnig getik! {team} gaan deur die fases, vasgekamp op die lyn...",
+  "quickTapMid": "Vinnige tik! {team} is weg terwyl die verdediging nog terugval.",
+  "notBackTen": "Nie tien meter terug nie! {team} word weer gestraf en die skeidsregter skuif die merk tien meter vorentoe.",
   "benchSixTwo": "{team} het 'n ses-twee-bank leeg gemaak. Alles van hier af gaan deur die middel.",
   "benchFiveThree": "{team} het vier vars agterspelers ingebring. Hulle gaan probeer om dit in die wye kanale te wen.",
   "outOfCover": "{team} het geen dekking meer nie. {player}, 'n {pos}, maak die wedstryd klaar op {shirt} en albei spanne weet dit.",
@@ -9914,6 +9916,8 @@
  },
  "lp": {
   "move": "Beweging",
+  "quickTap": "Vinnige tik",
+  "notBackTen": "Nie tien meter terug nie",
   "attack": "{team} val aan",
   "try": "Drie",
   "con": "Doelskop",

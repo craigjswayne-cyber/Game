@@ -7141,6 +7141,8 @@
   "maulHeldUp": "Held up over the line! {team} get bodies under the ball and survive. Goal-line drop-out.",
   "maulRepelledPenalty": "They stop the maul, but give away another penalty. The pressure stays on.",
   "quickTapPhases": "Quick tap! {team} go through the phases, camped on the line...",
+  "quickTapMid": "Quick tap! {team} are away while the defence is still getting back.",
+  "notBackTen": "Not back ten! {team} are pinged again and the referee marches them ten metres.",
   "benchSixTwo": "{team} have emptied a six-two bench. Everything from here goes through the middle.",
   "benchFiveThree": "{team} have four fresh backs on. They will try to win this in the wide channels.",
   "outOfCover": "{team} are out of cover. {player}, a {pos}, finishes the game at {shirt} and both sides know it.",
@@ -9871,6 +9873,8 @@
  },
  "lp":{
   "move": "Move",
+  "quickTap": "Quick tap",
+  "notBackTen": "Not back ten",
   "attack": "{team} attack",
   "try": "Try",
   "con": "Conversion",

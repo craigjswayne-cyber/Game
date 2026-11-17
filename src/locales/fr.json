@@ -7444,6 +7444,8 @@
     "maulHeldUp": "Ballon tenu en l'air dans l'en-but ! {team} glisse des corps sous le ballon et survit. Renvoi depuis l'en-but.",
     "maulRepelledPenalty": "Ils stoppent le maul, mais concèdent une nouvelle pénalité. La pression reste.",
     "quickTapPhases": "Pénalité jouée vite ! {team} enchaîne les temps de jeu, campé sur la ligne...",
+    "quickTapMid": "Pénalité vite jouée ! {team} repart pendant que la défense recule encore.",
+    "notBackTen": "Pas à dix mètres ! {team} est de nouveau pénalisé et l'arbitre avance la marque de dix mètres.",
     "benchSixTwo": "{team} a vidé un banc à six avants. Tout passera désormais par le milieu.",
     "benchFiveThree": "{team} a fait entrer quatre trois-quarts frais. Ils vont tenter de gagner dans les couloirs extérieurs.",
     "outOfCover": "{team} n'a plus de doublure. {player}, un {pos}, termine la rencontre au poste de {shirt} et les deux camps le savent.",
@@ -10067,6 +10069,8 @@
   },
   "lp": {
     "move": "Combinaison",
+    "quickTap": "Pénalité vite jouée",
+    "notBackTen": "Pas à dix mètres",
     "attack": "{team} attaque",
     "try": "Essai",
     "con": "Transformation",
