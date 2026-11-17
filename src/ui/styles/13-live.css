@@ -940,6 +940,8 @@
        a CSS 3D transform made the browser stretch a low-resolution copy */
     --lp-tilt: 1;
   }
+  /* the label sits on the far stand's roof, clear of the dugouts and tunnel */
+  .live-wrap.full-match .lp-chip { top: 2px; }
   .live-wrap.full-match .now-strip { order: 2; flex: 1 1 0; min-height: 0; }
   .live-wrap.full-match .match-status { display: none; }
   .live-wrap.full-match .speed-controls { order: 3; padding-top: 6px; padding-bottom: calc(8px + var(--safe-area-inset-bottom, 0px)); }
