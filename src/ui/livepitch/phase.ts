@@ -205,7 +205,7 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     let tx = nx != null && (nx - fld) * dir > 5 ? nx : fld + dir * dist
     tx = clamp(tx, pin ? -3 : 2, pin ? 103 : 98)
     const ty = touch ? (prevY < 35 ? -1 : 71) : drift(26, 6, 64)
-    return { ...base, kind: 'kick', y: prevY, to: { x: tx, y: ty }, hang: box || up ? 18 : touch ? 9 : 13,
+    return { ...base, kind: 'kick', y: prevY, to: { x: tx, y: ty }, hang: box || up ? 18 : touch ? 9 : pin ? 2 : 13,
       label: touch ? 'lp.kickTouch' : box ? 'lp.boxKick' : up ? 'lp.upAndUnder' : pin ? 'lp.grubber' : 'lp.kick' }
   }
   if (s.startsWith('kickField') || raw === 'flav5' || raw === 'flav20') {

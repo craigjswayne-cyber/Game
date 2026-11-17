@@ -310,7 +310,8 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       const to = p.to ?? { x: ux(30), y: p.y }
       const landU = (to.x - p.x) * dir
       const landV = (to.y - p.y) * open
-      const how = p.label === 'lp.kickTouch' ? 'touch' : (p.hang ?? 0) >= 14 ? 'contest' : 'long'
+      // (a kick in behind is along the floor and is raced for, like a high ball)
+      const how = p.label === 'lp.kickTouch' ? 'touch' : (p.hang ?? 0) >= 14 || p.label === 'lp.grubber' ? 'contest' : 'long'
       ;({ att, def } = kickChase(landU, landV, how))
       // a restart in the air is chased like any high ball; before it is kicked both sides are set
       if (p.flying) { holder = null; ball = to; ref = { x: ux(landU * 0.5), y: clamp(vy(landV * 0.5 + 8), 2, 68) }; break }
