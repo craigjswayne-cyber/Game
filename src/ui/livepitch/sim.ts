@@ -71,6 +71,9 @@ export class PitchSim {
   private entered = false
   private grounded = false
   private over = new Map<number, Pt>()
+  /** seconds each man is still on the ground for (a tackle: the carrier and
+   *  the man who brought him down) */
+  down = new Float32Array(30)
   private flight: { from: Pt; to: Pt; toIdx: number; T: number; t: number; hang: number } | null = null
   private cut: { t: number; apply: () => void } | null = null
   private started = false
@@ -119,7 +122,8 @@ export class PitchSim {
           { k: 'pass', to: att0 + 8 }, { k: 'wait', t: 0.3 })
         break
       case 'maul': {
-        cut = cut || d > 14; init = att0 + 7
+        // a maul creeps: it is set where it is, it does not walk the field
+        cut = cut || d > 6; init = att0 + 7
         anchor = cut ? { x: E.x - dir * 3, y: E.y } : B
         if (!cut && this.holder !== att0 + 7) steps.push({ k: 'pick', who: att0 + 7 })
         const to = hyp(anchor, E) > 1 ? E : { x: E.x + dir * 2.5, y: E.y }
@@ -176,11 +180,13 @@ export class PitchSim {
         // man runs there. A long-range try is the run it was.
         const sameSide = this.phase != null && this.phase.homeBall === p.homeBall
         const gain = (E.x - B.x) * dir
-        const reach = p.kind === 'try' ? 75 : 45
+        // a try from long range is the last forty metres of it; a held-up
+        // drive is from close in
+        const reach = p.kind === 'try' ? 42 : p.kind === 'heldup' ? 14 : 38
         cut = cut || (d > 16 && !(sameSide && gain > 0 && d <= reach))
         if (cut) {
           mode = 'carry'; cIdx = c; init = att0 + c
-          anchor = { x: E.x - dir * (scoring ? 14 : 6), y: E.y }
+          anchor = { x: E.x - dir * (p.kind === 'try' ? (d > 42 ? 38 : 14) : p.kind === 'heldup' ? 7 : 6), y: E.y }
         } else if (this.holder === att0 + c) {
           mode = 'carry'; cIdx = c; anchor = B
         } else {
@@ -200,7 +206,7 @@ export class PitchSim {
           steps.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true })
         }
         steps.push({ k: 'run', to: E, v })
-        if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: 2.4 })
+        if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 2.4 : 1.6 })
         else steps.push({ k: 'wait', t: 0.2 })
         break
       }
@@ -220,6 +226,7 @@ export class PitchSim {
         begin()
         this.cuts++
         this.flight = null; this.holder = init; this.grounded = init < 0
+        this.down.fill(0)
         const T = this.targets()
         for (let i = 0; i < 30; i++) { this.b[i].x = T.pts[i].x; this.b[i].y = T.pts[i].y; this.b[i].vx = this.b[i].vy = 0 }
         this.ref.x = T.ref.x; this.ref.y = T.ref.y
@@ -272,8 +279,18 @@ export class PitchSim {
           if (s.anchorOn != null) this.anchor = { x: this.b[s.anchorOn].x, y: this.b[s.anchorOn].y }
           if (s.clear) this.over.clear()
           over = true; break
-        case 'ground':
+        case 'ground': {
+          const was = this.holder
+          if (was >= 0 && this.mode === 'ruck') {
+            // he is tackled: he and the nearest defender go to ground
+            this.down[was] = 1.5
+            const d0 = was < 15 ? 15 : 0
+            let best = -1, bd = 1e9
+            for (let k = d0; k < d0 + 15; k++) { const dd = hyp(this.b[k], this.b[was]); if (dd < bd) { bd = dd; best = k } }
+            if (best >= 0 && bd < 9) this.down[best] = 1.1
+          }
           this.holder = -1; this.grounded = true; over = true; break
+        }
         case 'wait':
           this.st += dt; over = this.st >= s.t; break
         case 'pick': {
@@ -307,7 +324,8 @@ export class PitchSim {
           if (dd > 1e-6) { this.anchor.x += (s.to.x - this.anchor.x) / dd * mv; this.anchor.y += (s.to.y - this.anchor.y) / dd * mv }
           runTo = this.anchor
           this.st += dt
-          over = (dd < 0.05 && (this.holder < 0 || hyp(this.b[this.holder], this.anchor) < 1.3)) || this.st > 9
+          const tight = this.mode === 'scrum' || this.mode === 'maul'
+          over = (dd < 0.05 && (tight || this.holder < 0 || hyp(this.b[this.holder], this.anchor) < 1.3)) || this.st > 9
           break
         }
       }
@@ -326,6 +344,7 @@ export class PitchSim {
     const calm = this.mode === 'penalty' || this.mode === 'break' || this.mode === 'con' || this.mode === 'goal'
     for (let i = 0; i < 30; i++) {
       const bd = this.b[i]
+      if (this.down[i] > 0) { this.down[i] -= dt; bd.vx *= 0.8; bd.vy *= 0.8; bd.x += bd.vx * dt; bd.y += bd.vy * dt; continue }
       let tx = T.pts[i].x, ty = T.pts[i].y
       // the man with the ball runs the line being run
       if (runTo && i === this.holder && !tight) { tx = runTo.x; ty = runTo.y }

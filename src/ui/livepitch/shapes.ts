@@ -265,8 +265,9 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
     case 'try': case 'heldup': {
       // over the line: the scorer on the ball, his side arriving, theirs beaten
       const op = openPlay(p, false, far, near)
-      att = op.att.map(([u, v]) => [u * 0.7 - 2, v * 0.6] as UV)
-      def = op.def.map(([u, v]) => [Math.min(u, 3) - 1, v * 0.7] as UV)
+      // his support arriving behind him, the cover that did not get there
+      att = op.att.map(([u, v]) => [u * 0.9 - 4, v * 0.85] as UV)
+      def = op.def.map(([u, v]) => [Math.min(u, 4) - 2.5, v * 0.9] as UV)
       holder = carrierIdx ?? 13
       att[holder] = [0, 0]
       ball = { x: p.x, y: p.y }

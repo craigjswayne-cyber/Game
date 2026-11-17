@@ -323,6 +323,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         const p = S.b[i]
         const x = SX(p.x, p.y), y = SY(p.x, p.y)
         const has = i === S.holder
+        // a man on the ground after a tackle: fainter until he is back up
+        const floor = S.down[i] > 0
+        if (floor) g.globalAlpha = 0.6
         g.beginPath(); g.arc(x + R * 0.14, y + R * 0.24, R, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()
         g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fillStyle = side.kit[0]; g.fill()
         g.lineWidth = has ? Math.max(2.4, R * 0.3) : Math.max(1.3, R * 0.17)
@@ -331,6 +334,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.font = `800 ${Math.round(R * 1.08)}px system-ui, sans-serif`
         g.textAlign = 'center'; g.textBaseline = 'middle'
         g.fillText(String(side.nums[k] ?? k + 1), x, y + 0.5)
+        if (floor) g.globalAlpha = 1
       }
       // the lines being run on to the ball: a dashed arrow to where he will take it
       g.save()
