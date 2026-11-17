@@ -612,7 +612,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         {
           const fl: [number, number][] = []
           for (const x of [-GOAL, 0, 100, 100 + GOAL]) for (const y of [0, 70]) fl.push([x, y])
-          for (const x of [22, 50, 78]) for (const y of [-0.7, 70.7]) fl.push([x, y])
+          for (const x of [22, 50, 78]) fl.push([x, 70.7])   // (near side only: on the far side they stood across the boards)
           const Hf = sc * 2.6
           for (const [x, y] of fl) {
             const px = SX(x, y), py = SY(x, y)
