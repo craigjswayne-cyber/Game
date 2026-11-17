@@ -121,6 +121,9 @@ export class PitchSim {
   private ruckT = 0
   /** how each club plays (home, away), from its own tactics */
   tac: [PitchTac, PitchTac] = [MID_TAC, MID_TAC]
+  /** men off the field (sin bin, sent off, a slot the engine has emptied):
+   *  they walk to the touchline and the fourteen play without them */
+  off: boolean[] = new Array(30).fill(false)
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
@@ -424,7 +427,7 @@ export class PitchSim {
       if (pod) steps.push({ k: 'pass', to: att0 + pod.k, rate }, { k: 'wait', t: 0.3, rate })
     }
     if (wide > 11) {
-      const cand = [9, 11, 12, 14].filter(k => k !== c && this.down[att0 + k] <= 0 && (this.b[att0 + k].x - B.x) * dir < -1)
+      const cand = [9, 11, 12, 14].filter(k => k !== c && this.down[att0 + k] <= 0 && !this.off[att0 + k] && (this.b[att0 + k].x - B.x) * dir < -1)
         .map(k => ({ k, v: (this.b[att0 + k].y - B.y) * sgn })).filter(o => o.v > 3 && o.v < wide - 4).sort((a, b) => a.v - b.v)
       let at = 0
       for (const o of cand) {
@@ -440,7 +443,7 @@ export class PitchSim {
   private nearest(att0: number, at: Pt, skip: number[] = []) {
     let best = att0 + 8, bd = 1e9
     for (let k = 0; k < 15; k++) {
-      if (skip.includes(k) || this.down[att0 + k] > 0) continue
+      if (skip.includes(k) || this.down[att0 + k] > 0 || this.off[att0 + k]) continue
       const d = hyp(this.b[att0 + k], at)
       if (d < bd) { bd = d; best = att0 + k }
     }
@@ -451,7 +454,7 @@ export class PitchSim {
    *  the defence's two for the tackle */
   private mark(at: Pt, att0: number, skip: number) {
     const near = (from: number, pool: number[], n: number) => pool
-      .filter(k => from + k !== skip).map(k => ({ k, d: hyp(this.b[from + k], at) })).sort((a, b) => a.d - b.d).slice(0, n).map(o => o.k)
+      .filter(k => from + k !== skip && !this.off[from + k]).map(k => ({ k, d: hyp(this.b[from + k], at) })).sort((a, b) => a.d - b.d).slice(0, n).map(o => o.k)
     this.ruckers = near(att0, [0, 1, 2, 3, 4, 5, 6, 7], 3)
     this.tacklers = near(15 - att0, [0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 12], 2)
   }
@@ -503,7 +506,7 @@ export class PitchSim {
         out: inRuck && this.grounded ? null : out,
         ruckers: this.ruckers ?? [], tacklers: this.tacklers ?? [],
         carrier: inRuck ? null : (holderAtt ? this.holder - att0 : this.cIdx), downMan: this.downMan,
-        att: this.tac[p.homeBall ? 0 : 1], def: this.tac[p.homeBall ? 1 : 0],
+        att: this.tac[p.homeBall ? 0 : 1], def: this.tac[p.homeBall ? 1 : 0], gone: this.off,
         go: inRuck ? clamp((this.ruckT - 0.35) / 0.7, 0, 1) : 1,
         side: this.side, meet: inRuck ? null : this.meet,
       }).map((q, i) => ({ x: q.x + jit(i, 1) * 0.7, y: q.y + jit(i, 2) * 0.5 }))
@@ -853,6 +856,7 @@ export class PitchSim {
       const bd = this.b[i]
       if (this.down[i] > 0) { this.down[i] -= dt; bd.vx *= 0.8; bd.vy *= 0.8; bd.x += bd.vx * dt; bd.y += bd.vy * dt; continue }
       let tx = T.pts[i].x, ty = T.pts[i].y
+      if (this.off[i] && i !== this.holder) { tx = 50 + (i < 15 ? -9 : 9) - (i % 15) * 0.2; ty = -2.6 }
       // the man with the ball runs the line being run
       if (runTo && i === this.holder && !tight) { tx = runTo.x; ty = runTo.y }
       ty = clamp(ty, -0.5, 70.5)

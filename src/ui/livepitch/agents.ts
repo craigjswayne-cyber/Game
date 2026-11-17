@@ -74,6 +74,9 @@ export interface OpenWorld {
   /** how each side plays: the attack's shape and the defence's system, from the clubs' own tactics */
   att: PitchTac
   def: PitchTac
+  /** men who are off the field (a card): by global index. The shapes close
+   *  up round the hole, as fourteen men do */
+  gone?: boolean[]
   /** 0..1: the attack is on the move. The pods and the backs do not stand
    *  and wait for the ball: as it comes available they start their runs, so
    *  whoever gets it is already going forward when he takes it */
@@ -113,6 +116,7 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   /** 11 is the left wing as his side looks up the field: which index is on the low-y touchline */
   const wingOn = (homeSide: boolean, lowY: boolean) => (homeSide === lowY ? 10 : 13)
   const openHigh = s > 0
+  const gone = (g: number) => w.gone?.[g] === true
 
   // ================= ATTACK =================
   // ONE SHAPE, HUNG OFF THE BALL. It is the same shape while a man carries
@@ -161,14 +165,14 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
     if (near > 15) podSlots.splice(3, 0, [-4, -Math.min(9, near * 0.45)])
     podSlots.push([-5.5, 19], [-7, vB + 7.6])
   }
-  const freeFwd = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !taken.has(k))
+  const freeFwd = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !taken.has(k) && !gone(att0 + k))
   for (const [g, [u, v]] of deal(freeFwd.map(k => att0 + k), vOf, podSlots.slice(0, freeFwd.length))) { out[g] = P(Math.min(-3, u + go * 1.2), v); taken.add(g - att0) }
   // the backs: 10 out the back of the first pod; 12, 13 and the open wing
   // each wider and deeper than the man inside him; 15 between 13 and the
   // wing when there is room for him, else behind the midfield
   const v13 = vB + 8, vW = far - 4
   if (!taken.has(9)) put(9, -8.5 + go * 1.5, 13.4)
-  const centres = [11, 12].filter(k => !taken.has(k))
+  const centres = [11, 12].filter(k => !taken.has(k) && !gone(att0 + k))
   const cSlots: [number, number][] = [[-10, 19.4], [-11.5, v13]]
   for (const [g, [u, v]] of deal(centres.map(k => att0 + k), vOf, cSlots.slice(0, centres.length))) { out[g] = P(u + go * 1.5, v); taken.add(g - att0) }
   const wOpen = wingOn(att0 === 0, !openHigh), wShort = wOpen === 10 ? 13 : 10
@@ -214,7 +218,7 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
     if (t1 != null && w.ruckAge < 0.5 + w.def.contest / 100 * 1.3) dput(t1, D(1.3, 0.6))
   }
   // a post either side of the ruck: the two nearest forwards
-  const posts = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !dTaken.has(k))
+  const posts = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !dTaken.has(k) && !gone(def0 + k))
     .map(k => ({ k, d: Math.hypot(b[def0 + k].x - M.x, b[def0 + k].y - M.y) })).sort((a, c) => a.d - c.d).slice(0, 2).map(o => o.k)
   for (const [g, [u, v]] of deal(posts.map(k => def0 + k), dvOf, [[L, -3.5], [L, 3.5]])) dput(g - def0, D(u, v))
   // the 9 sweeps behind the line on the ball's side; the full-back is deep and follows the ball
@@ -242,7 +246,7 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
     dput(dOpen, coming || dfar < 24 ? D(up(dfar - 5) + 0.6, dfar - 5) : D(L + 5, dfar - 5))
   }
   // everyone else is the line: how many each side goes by how much field there is
-  const lineMen = [0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 12].filter(k => !dTaken.has(k))
+  const lineMen = [0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 12].filter(k => !dTaken.has(k) && !gone(def0 + k))
   const nShort = Math.min(lineMen.length, dnear > 24 ? 2 : dnear > 12 ? 1 : 0)
   const slots: [number, number][] = []
   for (let k = 0; k < nShort; k++) slots.push([0, -(7.4 + k * Math.min(5.5, Math.max(4, (dnear - 14) / 2)))])

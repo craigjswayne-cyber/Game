@@ -42,6 +42,8 @@ describe('the live pitch', () => {
         const p = readLine(events[i], i, homeId, cur, events[i + 1])
         if (!p) continue
         cur = p; plays++
+        // a yellow card each for part of the first match: fourteen against fourteen
+        if (seed === 4242) { S.off[5] = i > 40 && i < 70; S.off[26] = i > 55 && i < 90 }
         expect(lp[p.label.replace(/^lp\./, '')], `words for ${p.label}`).toBeTypeOf('string')
         const side = p.homeBall ? lineups.home : lineups.away
         const ci = p.carrier != null ? side.indexOf(p.carrier) : -1

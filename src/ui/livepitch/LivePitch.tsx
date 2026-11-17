@@ -108,6 +108,23 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
   const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null })
   if (tactics) sim.current.tac = tactics
+  // FOURTEEN MEN: a man shown a card is off the field (ten minutes for a
+  // yellow, the rest of the match for a red), and so is a slot the engine
+  // has left empty. He walks to the touchline and his side plays without him.
+  {
+    const nowMin = events[Math.max(0, Math.min(events.length, cursor) - 1)]?.min ?? 0
+    const off = new Array(30).fill(false)
+    for (let k = 0; k < Math.min(events.length, cursor); k++) {
+      const e = events[k]
+      if ((e.type !== 'YC' && e.type !== 'RC') || e.playerId == null) continue
+      if (e.type === 'YC' && nowMin - e.min >= 10) continue
+      const hi = home.lineup.indexOf(e.playerId), ai = away.lineup.indexOf(e.playerId)
+      if (hi >= 0 && hi < 15) off[hi] = true
+      else if (ai >= 0 && ai < 15) off[15 + ai] = true
+    }
+    for (let k = 0; k < 15; k++) { if (home.lineup[k] == null) off[k] = true; if (away.lineup[k] == null) off[15 + k] = true }
+    sim.current.off = off
+  }
   io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null }
 
   useEffect(() => {
@@ -360,7 +377,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         const has = i === S.holder
         const scorer = has && S.phase?.kind === 'try' && S.landed
         // a man on the ground after a tackle: fainter until he is back up
-        const floor = S.down[i] > 0
+        const floor = S.down[i] > 0 || S.off[i]
         // the men in a ruck are a pile, not six separate discs
         R = S.bound(i) || floor ? R0 * 0.74 : up2[0] === i || up2[1] === i ? R0 * 1.24 : R0
         if (floor) g.globalAlpha = 0.6
