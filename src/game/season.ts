@@ -1,5 +1,6 @@
 import { talkbackWeek } from './talkback'
 import { testConfDelta } from './nattest'
+import { noteWindowResult } from './natwin'
 import { dressingRoomAlerts } from './alerts'
 import { settleStartPledge } from './handshake'
 import type { Fixture, GameState, Player, Pos } from './model'
@@ -1356,6 +1357,8 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       else if (us === them) rec.d += 1
       else rec.l += 1
       mgrMilestones(state, us > them)
+      // and the window's target (1.9.14, natwin.ts)
+      if (mySide === state.natTeam) noteWindowResult(state, us, them)
       // the union keeps score: every Test moves their confidence in you,
       // weighted by where the two sides sit in the world
       if (mySide === state.natTeam && state.natConfidence != null) {

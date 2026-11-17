@@ -9,12 +9,13 @@ import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, homeBased, clubQuotaLeft, c
 import { isMyClub } from '../model'
 import { clamp, type Rng } from '../rng'
 import { tIn } from '../i18n'
+import { openNatWindow, reviewNatWindow } from '../natwin'
 
 // ------------------------------------------------------------------
 // Internationals
 // ------------------------------------------------------------------
 
-export interface Window { start: number; end: number; nations: string[]; size: number }
+export interface Window { start: number; end: number; nations: string[]; size: number; id?: string }
 
 /** Call-up windows for the competitions that actually exist this season.
  *  Exported for the country desk: call-up and drop need the window's squad
@@ -37,13 +38,19 @@ export function activeWindows(state: GameState): Window[] {
     if (!comp) continue
     const span = windowSpan(id, gender)
     if (!span) continue
-    out.push({ start: span[0], end: span[1], nations: (nationsOf[id] ?? (c => c.teamIds))(comp), size: NAT_SQUAD_SIZE })
+    out.push({ id, start: span[0], end: span[1], nations: (nationsOf[id] ?? (c => c.teamIds))(comp), size: NAT_SQUAD_SIZE })
   }
   return out
 }
 
 export function manageInternationals(state: GameState, rng: Rng) {
   for (const w of activeWindows(state)) {
+    // the coach's window as a campaign (1.9.14, natwin.ts): the union's
+    // target when camp opens, its review when the window closes
+    if (state.natTeam && w.nations.includes(state.natTeam)) {
+      if (state.week === w.start) openNatWindow(state, w)
+      if (state.week === w.end + 1) reviewNatWindow(state, w.start)
+    }
     if (state.week === w.start) {
       // call-ups
       const userCalls: Player[] = []

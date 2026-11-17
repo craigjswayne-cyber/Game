@@ -21,7 +21,8 @@ import { natRankOrder } from '../../game/natrank'
 import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
-import { natWindow, weeksToSquad } from '../../game/country'
+import { NAT_SQUAD_FLOOR, natWindow, weeksToSquad } from '../../game/country'
+import { canAnnounce } from '../../game/natwin'
 import { FanFace, Glyph } from '../glyphs'
 import { COMMUNITY_URL } from '../../game/community'
 import { buildDesk, deskText } from '../../game/desk'
@@ -182,7 +183,9 @@ export default function Home() {
                   if (w) {
                     return (
                       <span className="ht-s" style={{ fontWeight: 700, color: 'var(--gold)' }}>
-                        {t('home.campOpen', { n: (game.natSquads[game.natTeam!] ?? []).length, size: w.size })}
+                        {canAnnounce(game, NAT_SQUAD_FLOOR)
+                          ? t('natwin.announce')
+                          : t('home.campOpen', { n: (game.natSquads[game.natTeam!] ?? []).length, size: w.size })}
                       </span>
                     )
                   }

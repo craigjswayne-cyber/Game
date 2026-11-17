@@ -13,6 +13,7 @@ import { posName, t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { rowNavTr } from '../rowNav'
 import { acc } from '../accent'
+import { NatCampaign } from '../NatCampaign'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -90,6 +91,7 @@ export default function Country() {
           where there is no till and where nobody is hurt. */}
       <FullFitness compact />
 
+      <NatCampaign />
       <NatSquad />
 
       <SectionTitle>{t('legacy.coTests')}</SectionTitle>

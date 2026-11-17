@@ -1025,6 +1025,10 @@ function migrateManagerAndNation(s: GameState): void {
   // the last Test's ledger and the era (1.9.14): damaged, they are dropped
   if (s.natLastTest != null && (typeof s.natLastTest !== 'object' || !Array.isArray(s.natLastTest.debuts) || !Array.isArray(s.natLastTest.caps))) delete s.natLastTest
   if (s.natEra != null && (typeof s.natEra !== 'object' || typeof s.natEra.nat !== 'string' || !Array.isArray(s.natEra.debuts) || !Number.isFinite(s.natEra.bestRank))) delete s.natEra
+  // the window campaign (1.9.14): damaged, it is dropped, never a crash
+  if (s.natWin != null && (typeof s.natWin !== 'object' || typeof s.natWin.nat !== 'string' ||
+    ![s.natWin.season, s.natWin.start, s.natWin.end, s.natWin.tests, s.natWin.target, s.natWin.w, s.natWin.d, s.natWin.l].every(n => typeof n === 'number' && Number.isFinite(n)))) delete s.natWin
+  if (s.natPrevSquad != null && !Array.isArray(s.natPrevSquad)) delete s.natPrevSquad
   if (s.natFed != null && (typeof s.natFed !== 'object' || typeof s.natFed.nat !== 'string' || !Array.isArray(s.natFed.ids))) delete s.natFed
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist

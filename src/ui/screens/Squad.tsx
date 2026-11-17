@@ -3,6 +3,7 @@ import { useVisitState } from '../visitState'
 import { useNarrowPhone } from '../tablet'
 import { useStore } from '../../store'
 import { NatSquad } from './Country'
+import { NatCampaign } from '../NatCampaign'
 import { nationName } from '../../game/nations'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
@@ -274,6 +275,7 @@ export default function Squad() {
     return (
       <>
         {sideSwitch}
+        <NatCampaign />
         <NatSquad />
         <div className="spacer" />
       </>
