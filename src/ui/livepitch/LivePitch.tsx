@@ -126,7 +126,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     let grassSeen: Phase | null = null
     let seenCuts = S.cuts, dissolve = 0
     /** 0..1: how much the fast-forward mark is showing */
-    let ffShown = 0
+    let ffShown = 0, rateNow = 1
     /** when the ball went down for a try, for the ring round it */
     let tryAt = -1, tryFor = -99
     // confetti for a try, in screen pixels, in the scorers' colours
@@ -277,7 +277,10 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const dt = Math.min(0.1, (now - last) / 1000)
       last = now
       if (!io.current.paused) {
-        const rate = io.current.realTime ? Math.min(1, S.rate) : S.rate
+        // the speed changes are eased, never snapped: it winds on and winds down
+        const want = io.current.realTime ? Math.min(1, S.rate) : S.rate
+        rateNow += (want - rateNow) * Math.min(1, dt * 3.5)
+        const rate = rateNow
         acc += dt * io.current.speed * rate
         ffShown += ((rate >= 1.6 && !S.done ? 1 : 0) - ffShown) * Math.min(1, dt * 8)
         while (acc >= 1 / 120) { S.step(1 / 120); acc -= 1 / 120 }

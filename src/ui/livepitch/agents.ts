@@ -58,6 +58,10 @@ export interface OpenWorld {
   downMan: number | null
   /** how this defence defends */
   rush: boolean
+  /** 0..1: the attack is on the move. The pods and the backs do not stand
+   *  and wait for the ball: as it comes available they start their runs, so
+   *  whoever gets it is already going forward when he takes it */
+  go: number
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -96,7 +100,7 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
     if (w.downMan != null && !taken.has(w.downMan)) put(w.downMan, -1.7, 0)
     const spots: [number, number][] = [[-0.5, -2], [-0.5, 2], [-3.6, 0]]
     rk.filter(k => !taken.has(k)).forEach((k, j) => put(k, spots[j][0], spots[j][1]))
-    if (!taken.has(8)) put(8, -4.2, 2.6)
+    if (!taken.has(8)) put(8, -2.7, 1.3)
   } else {
     // with the carrier: a man on each shoulder and one behind, the 9 trailing
     const spots: [number, number][] = [[-2.2, -2.6], [-2.4, 2.8], [-4.6, 0.4]]
@@ -110,17 +114,19 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   if (near > 14) podSlots.splice(3, 0, [-4, -Math.min(9, near * 0.5)])
   podSlots.push([-6, vB + 5.6], [-5, vA + 7.2])
   const freeFwd = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !taken.has(k))
-  for (const [g, [u, v]] of deal(freeFwd.map(k => att0 + k), vOf, podSlots.slice(0, freeFwd.length))) { out[g] = P(u, v); taken.add(g - att0) }
+  const go = w.go
+  // (running on to it: the pods come up flat to the gain line, the backs come on from depth)
+  for (const [g, [u, v]] of deal(freeFwd.map(k => att0 + k), vOf, podSlots.slice(0, freeFwd.length))) { out[g] = P(Math.min(-0.9, u + go * 2.8), v); taken.add(g - att0) }
   // the backs: 10 behind the first pod, the centres out and deeper, 15 in behind
-  if (!taken.has(9)) put(9, -8.5, vA + 3)
+  if (!taken.has(9)) put(9, -8.5 + go * 3.4, vA + 3)
   const centres = [11, 12].filter(k => !taken.has(k))
   const cSlots: [number, number][] = [[-11.5, Math.min(21, far * 0.45)], [-14, Math.min(34, far * 0.74)]]
-  for (const [g, [u, v]] of deal(centres.map(k => att0 + k), vOf, cSlots.slice(0, centres.length))) { out[g] = P(u, v); taken.add(g - att0) }
+  for (const [g, [u, v]] of deal(centres.map(k => att0 + k), vOf, cSlots.slice(0, centres.length))) { out[g] = P(u + go * 4, v); taken.add(g - att0) }
   const openHigh = s > 0
   const wOpen = wingOn(att0 === 0, !openHigh), wShort = wOpen === 10 ? 13 : 10
-  if (!taken.has(wOpen)) put(wOpen, -16, far - 5)
-  if (!taken.has(wShort)) put(wShort, -6, -(near - 3.5))
-  if (!taken.has(14)) put(14, -19, Math.min(27, far * 0.58))
+  if (!taken.has(wOpen)) put(wOpen, -16 + go * 4.5, far - 5)
+  if (!taken.has(wShort)) put(wShort, -6 + go * 2.5, -(near - 3.5))
+  if (!taken.has(14)) put(14, -19 + go * 4, Math.min(27, far * 0.58))
 
   // ================= DEFENCE =================
   const dTaken = new Set<number>()
