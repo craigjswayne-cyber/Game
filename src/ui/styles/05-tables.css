@@ -449,7 +449,6 @@
 /* the A League table: rank under "#", the crest and name a step in */
 .a-table td.name { padding-left: 10px; }
 .a-table td.name > :first-child { margin-right: 6px; }
-.gt-mood { white-space: nowrap; font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; }
 /* the game-time headings wrap inside their own column rather than painting
    across the next one (owner, round 2: "NAM HE WAS TOLD"), and the status
    select is as wide as its column, never wider */

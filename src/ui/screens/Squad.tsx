@@ -151,13 +151,6 @@ export default function Squad() {
     if (!r) { r = ledgerRow(game, club, p, played); ledger.set(p.id, r) }
     return r
   }
-  // a coloured light and the word, not a face (owner, 27 Sep 2026: icons, not
-  // emoji); the gap is in the tooltip, and the two columns beside it already
-  // give both its halves
-  const MOOD: Record<string, [string, string]> = {
-    happy: ['squad.moodHappy', 'var(--positive)'], content: ['squad.moodContent', 'var(--positive)'],
-    restless: ['squad.moodRestless', 'var(--gold)'], unhappy: ['squad.moodUnhappy', 'var(--danger)'],
-  }
   const statusKey = (st: string, suffix = '') => `squad.status${st[0].toUpperCase()}${st.slice(1)}${suffix}`
 
   // ---- why this table is told its column widths ----
@@ -216,7 +209,7 @@ export default function Squad() {
     gametime: [
       nameCol,
       {
-        id: 'told', head: t('squad.colToldHim'), width: '29%',
+        id: 'told', head: t('squad.colToldHim'), width: '40%',
         // A LINE OF TEXT, NOT A SELECT (1.9.14, owner: "decrease the space
         // around each player on game time page - make it listed and tighter
         // like the stats page"). The select kept its 44px tap height in every
@@ -230,11 +223,9 @@ export default function Squad() {
       // 50, NOT 34 (owner, 1.9.5): the Afrikaans VERWAG and Italian ATTESE are
       // the words, so the column fits them rather than the words being cut
       { id: 'due', head: t('squad.colDue'), width: 50, align: 'right', td: p => ({ style: { color: ledgerOf(p).gap < -2 ? 'var(--danger)' : undefined } }), cell: p => ledgerOf(p).expected },
-      {
-        id: 'mood', head: t('squad.colMood'), width: '21%', className: 'gt-mood',
-        td: p => { const r = ledgerOf(p); return { title: `${r.gap >= 0 ? `+${r.gap}` : r.gap} · ${t(statusKey(statusOf(game, club, p), 'Desc'))}` } },
-        cell: p => { const [k, col] = MOOD[ledgerOf(p).mood]; return <><span className="status-dot" style={{ background: col }} /> {t(k)}</> },
-      },
+      // no mood column (1.9.14, owner: "mood shouldnt be on game time"):
+      // how he feels is on his page and in the dressing room; this table is
+      // what he was told and what he got
     ],
     contracts: [
       nameCol,

@@ -386,6 +386,16 @@ export function rosterWarnings(state: GameState, clubId: string): string[] {
   return out
 }
 
+/** THE UNITS SHORT NEXT SEASON (1.9.14). The Squad Cover table left the
+ *  screen (owner: "hide this from the user ... worth keeping in background to
+ *  provide inbox messages"); the club writes instead, twice a season, when a
+ *  unit has fewer men under contract for next season than it needs. */
+export function lightNextSeason(state: GameState, clubId: string): { label: string; count: number; need: number }[] {
+  const { rows } = rosterGrid(state, clubId)
+  return rows.filter(r => r.cells[1] && r.cells[1].count < r.cells[1].need)
+    .map(r => ({ label: r.label, count: r.cells[1].count, need: r.cells[1].need }))
+}
+
 /** Used by the probe and by any caller that wants the raw bill for a club. */
 export function billOf(state: GameState, club: Club): number {
   return capBill(state, club)

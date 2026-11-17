@@ -274,6 +274,9 @@ export interface Player {
    *  point of morale every time, so a whole squad could be pumped to 10 in
    *  one week (scripts/qa/exploit.ts: 96 of 96 accepted). */
   renewedSeason?: number
+  /** He told you he is thinking of leaving (1.9.14, leaving.ts): the season,
+   *  the week, and why (the money elsewhere, or the mood here). */
+  leaveWarn?: { s: number; w: number; why: 'money' | 'mood' }
   /** week a formal transfer request landed (17A): the game-time ledger's
    *  escalation when a key or rotation man is badly short-changed. 0 or
    *  absent means no request. Cleared when the team sheets make it right,

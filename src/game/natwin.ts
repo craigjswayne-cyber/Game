@@ -107,6 +107,8 @@ export function announceSquad(state: GameState, eligibleTop: Player[]): NatWin['
   for (const id of omitted) {
     const p = state.players[id]
     if (!p) continue
+    // one of his own club's men: personal, and answered by the club's mood
+    if (clubManLeftOut(state, p)) continue
     p.morale = clamp(p.morale - (p.pers === 'Temperamental' || p.pers === 'Ambitious' ? 0.6 : 0.3), 1, 10)
   }
   const bigOut = omitted.some(id => caps(state.players[id]) >= 30)
@@ -231,4 +233,35 @@ export function reviewNatWindow(state: GameState, start: number): void {
     state.natLastReview = { ...w }
     closeNatTenure(state)
   }
+}
+
+// ---- THE CLUB MAN THE COUNTRY'S COACH LEFT OUT (1.9.14) ----
+//
+// Owner: "If you coach international and you drop a player from your club
+// team it should impact the relationship. Different reactions to different
+// players moods." Being left out by any national coach stings; being left
+// out by the coach you see every Monday at the club is personal. How it lands
+// depends on where his head is (morale) and on the man: a Professional takes
+// it on the chin, a Loyal man is hurt, an Ambitious or Temperamental one can
+// be angry enough to ask to leave.
+export type ClubDropReaction = 'fine' | 'hurt' | 'angry' | 'request'
+const PERS_F: Record<string, number> = { Professional: 0.6, Mercenary: 0.5, Leader: 0.8, Loyal: 1.2, Ambitious: 1.4, Temperamental: 1.6 }
+
+export function clubManLeftOut(state: GameState, p: Player): ClubDropReaction | null {
+  if (!state.natTeam || state.unemployed || p.clubId !== state.userClubId) return null
+  const band = p.morale >= 7 ? 0.3 : p.morale >= 5 ? 0.7 : 1.2
+  const hit = band * (PERS_F[p.pers] ?? 1)
+  p.morale = clamp(p.morale - hit, 1, 10)
+  let r: ClubDropReaction = hit < 0.5 ? 'fine' : hit < 1.1 ? 'hurt' : 'angry'
+  if (r === 'angry' && (p.pers === 'Ambitious' || p.pers === 'Temperamental') && p.morale < 3.5 && !(p.wantsOut ?? 0)) {
+    p.wantsOut = Math.max(1, state.week)
+    r = 'request'
+  }
+  const v = { player: p.name, nat: nationNameIn('en', state.natTeam), nat_n: state.natTeam, react_k: `natwin.react_${r}` }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', 'news.natClubDropSubj', v), body: tIn('en', 'news.natClubDrop', v),
+    k: 'news.natClubDrop', v, playerId: p.id,
+  })
+  return r
 }

@@ -204,3 +204,17 @@
 .nat-era .ne-grid span { font-size: 0.6875rem; color: var(--text-muted); line-height: 1.2; display: block; }
 .nat-era .ne-terms { list-style: none; margin: 4px 0 0; padding: 0; font-size: 0.875rem; line-height: 1.6; color: var(--text-secondary); }
 .nat-era .ne-terms li.done { color: var(--text-positive); font-weight: 700; }
+
+/* the anthems: one line each side of halfway, facing the main stand (1.9.14) */
+.walkout .wo-anthem-line { position: relative; padding: 26px 6px 6px; }
+.walkout .wo-anthem-line .wo-mark { position: absolute; top: 0; bottom: 20px; width: 0; border-left: 2px solid rgba(255,255,255,.4); }
+.walkout .wo-anthem-line .wo-half { left: 50%; }
+.walkout .wo-anthem-line .wo-ten { border-left-style: dashed; border-left-color: rgba(255,255,255,.25); }
+.walkout .wo-anthem-line .wo-ten-l { left: 30%; }
+.walkout .wo-anthem-line .wo-ten-r { left: 70%; }
+.walkout .wo-anthem-line .wo-row { position: relative; display: flex; justify-content: space-between; gap: 6px; }
+.walkout .wo-anthem-line .wo-side { flex: 1 1 0; min-width: 0; }
+.walkout .wo-anthem-line .wo-line { gap: 0; }
+.walkout .wo-anthem-line .wo-fig { width: calc(100% / 15); max-width: 14px; }
+.walkout .wo-stand-label { position: relative; margin-top: 8px; padding-top: 4px; border-top: 2px solid rgba(255,255,255,.4); font-size: 0.6875rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); }
+.cap-chip .muted { margin-left: 6px; }

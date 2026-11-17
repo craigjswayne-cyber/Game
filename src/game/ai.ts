@@ -942,6 +942,10 @@ export function aiPreContractPoach(state: GameState, rng: Rng) {
     c.id !== user.id && c.rep >= user.rep - 10 && rng() < 0.5)
   const to = suitors[0]
   if (!to) return
+  // NOBODY LEAVES WITHOUT A WORD (1.9.14, leaving.ts). A rival only takes a
+  // man who has told you he is thinking of going. Checked after every draw
+  // above, so the world's random stream is consumed exactly as before.
+  if (p.leaveWarn?.s !== state.season) return
   state.preContracts.push({ playerId: p.id, toClubId: to.id, week: state.week })
   p.morale = clamp(p.morale + 0.5, 1, 10)
   state.news.push({

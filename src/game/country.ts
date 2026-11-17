@@ -14,6 +14,7 @@ import { activeWindows } from './season'
 import { NAT_SQUAD_FLOOR, clubQuotaLeft, conflictedClub, federationList, homeBased } from './nations'
 import { t } from './i18n'
 import { CAMP_FOCI, type CampFocus } from './natcamp'
+import { clubManLeftOut } from './natwin'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
 
@@ -120,6 +121,10 @@ export function natDrop(state: GameState, playerId: number): string | null {
   if (p) {
     p.natSquad = false
     p.morale = clamp(p.morale - 0.7, 1, 10) // being sent home from camp stings
+    // and sent home by your own club's coach is personal, on top (1.9.14,
+    // natwin.ts clubManLeftOut). On top, so a recall (which gives back the
+    // 0.7) can never make a drop-and-recall a morale gain.
+    clubManLeftOut(state, p)
     ;(state.natSent ??= []).push(playerId)
   }
   if (state.natLineup?.team === nat) state.natLineup = null

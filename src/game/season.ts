@@ -1,4 +1,5 @@
 import { talkbackWeek } from './talkback'
+import { leavingWeek } from './leaving'
 import { testConfDelta } from './nattest'
 import { noteWindowResult } from './natwin'
 import { dressingRoomAlerts } from './alerts'
@@ -14,7 +15,7 @@ import { insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
 import { aiFreeAgents, aiSummerMarket, aiYouthHunt, rivalPushWeek, settleRivalBids } from './rivalbids'
 import { rivalBeat } from './boss'
-import { auditCaps, refreshCaps } from './cap'
+import { auditCaps, lightNextSeason, refreshCaps } from './cap'
 import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
@@ -1830,6 +1831,23 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
     [SEASON_WEEKS - 4, 'news.cxOne'],
     [SEASON_WEEKS - 2, 'news.cxTwo'],
   ]
+  // LOOKING LIGHT NEXT SEASON (1.9.14, cap.ts lightNextSeason): the Squad
+  // Cover table is gone from Finances, and the club says it in a letter
+  // instead, at the half-way point and again six weeks from the end
+  if (!state.unemployed && (state.week === SEASON_WEEKS - 26 || state.week === SEASON_WEEKS - 6)) {
+    const short = lightNextSeason(state, state.userClubId)
+    if (short.length) {
+      const v = {
+        n: short.length,
+        units_l: JSON.stringify(short.map(x => ({ k: 'news.lightUnit', unit_k: x.label, count: x.count, need: x.need }))),
+      }
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
+        subject: tIn('en', 'news.lightNextSubj', v), body: tIn('en', 'news.lightNext', v),
+        k: 'news.lightNext', v,
+      })
+    }
+  }
   const rung = CONTRACT_LADDER.find(([wk]) => wk === state.week)
   if (rung) {
     const expiring = state.clubs[state.userClubId].players
@@ -2195,6 +2213,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   yield
   aiRenewals(state, rng)
   if (!state.unemployed) aiPreContractPoach(state, rng)
+  // and their own voice: a warning, then the announcement (1.9.14, leaving.ts)
+  leavingWeek(state)
   yield
   refreshVacancies(state, rng)
 

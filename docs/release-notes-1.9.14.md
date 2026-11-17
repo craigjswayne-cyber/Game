@@ -115,6 +115,33 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
     XV panel show only to national coaches (the Isles one only to the four
     unions it picks from).
 
+- **After the screenshots (owner, 17 Nov 2026).**
+  - **No mood on Game Time** ("mood shouldnt be on game time"): the table is
+    what each player was told, appearances and what is due.
+  - **Squad Cover is off Finances** ("hide this from the user ... worth
+    keeping in background to provide inbox messages"). The grid is kept
+    (cap.ts), and the club writes when next season is light, at the
+    half-way point and six weeks from the end, naming each short unit.
+  - **"I'm thinking of leaving"** (leaving.ts). The expiring-contract
+    reminders already ran at six, three, one and half a month out. Now, in
+    the last three months of a deal, a player whose market wage is well
+    above his own (the money) or whose morale is under 4.5 (the mood) writes
+    that he is thinking of leaving, once a season. Three weeks on, still
+    unrenewed, with a club of his level to go to, he announces a move at the
+    end of the season on a pre-contract. A renewal stops it. The rivals'
+    pre-contract raid now only takes a man who has warned first (checked
+    after its draws, so the world's random stream is unchanged).
+  - **The club man the country's coach leaves out** (natwin.ts
+    clubManLeftOut): dropping or omitting one of your own club's players
+    from the national squad is personal. Happy: fine. Middling: hurt. Low:
+    angry, and an Ambitious or Temperamental player at rock bottom hands in
+    a transfer request. Professionals and Mercenaries take it best, Loyal
+    players are hurt more. On top of the usual sting, so a drop and recall is
+    never a morale gain. A letter says how it landed.
+  - **The anthems, where teams stand**: one line each side of halfway,
+    facing the main stand, visitors on one half and hosts on the other.
+  - The captain chips had no space between the name and Leadership.
+
 - **Changing your marquee players.** Player feedback: "Not sure if an issue
   or user error, but I can't change my Marquee Players". It was the game:
   every career starts with both marquee slots filled (your two biggest wages,
@@ -164,6 +191,9 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
 
 ## Tests
 
+- New: `tests/leaving.test.ts` (money and mood reasons, warn then announce,
+  a renewal stops it, the raid needs a warning, the club man's reactions by
+  mood and character, next season's short units).
 - New: `tests/natwin.test.ts` (target, Tests counted, announcement, camp
   event, review met/missed/sacked, era into the history), `tests/natera.test.ts`
   (terms and unveiling, the Test ledger, the reaction rule, a neutral plan

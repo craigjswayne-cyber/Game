@@ -129,6 +129,8 @@ const NEWS_GO: Record<string, [Screen, (string | '@player')?]> = {
   natSquad: ['country'],
   // the Isles XV letter is answered on the Nations screen, which it never named (1.9.14)
   islesOffer: ['nations'],
+  // the club's letter about next season's cover (1.9.14): the market fills it
+  lightNext: ['transfers'],
   crisisCover: ['transfers'],
   mentFailing: ['report', 'mentoring'], mentorSpread: ['report', 'mentoring'],
   dreamRefocus: ['legacy'],

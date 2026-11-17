@@ -813,6 +813,7 @@ function migrateWorldRefs(s: GameState): void {
     p.value = num(p.value, 0, 1_000_000_000_000, 100_000)
     p.bans = int(p.bans, 0, 99, 0)
     if (p.freeUntil !== undefined && !(typeof p.freeUntil === 'number' && Number.isFinite(p.freeUntil))) delete p.freeUntil
+    if (p.leaveWarn != null && (typeof p.leaveWarn !== 'object' || !Number.isFinite(p.leaveWarn.s) || !Number.isFinite(p.leaveWarn.w))) delete p.leaveWarn
     if (p.reqLock !== undefined && typeof p.reqLock !== 'string') delete p.reqLock
     if (typeof p.name !== 'string' || !p.name) p.name = 'Unnamed Player'
     // A POSITION THE GAME HAS (1.9.4 audit). Selection reads his shirt's

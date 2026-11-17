@@ -166,10 +166,19 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
         {beat === 'anthems' && <>
           <h2>{t('walkout.anthemsTitle')}</h2>
           <p>{t('walkout.stand')}</p>
-          <div className="wo-pitch wo-stand">
-            {line(oppKit, false)}
-            <div className="wo-gap" />
-            {line(myKit, !!cap)}
+          {/* WHERE THEY STAND (owner: "Players should lineup on the pitch
+              where they traditionally do"): one line each, either side of
+              halfway, facing the main stand - the visitors on one half, the
+              hosts on the other - not two rows facing each other */}
+          <div className="wo-pitch wo-anthem-line" data-anthem-line>
+            <div className="wo-mark wo-half" aria-hidden="true" />
+            <div className="wo-mark wo-ten wo-ten-l" aria-hidden="true" />
+            <div className="wo-mark wo-ten wo-ten-r" aria-hidden="true" />
+            <div className="wo-row">
+              <div className="wo-side" data-side="away">{line(fx.awayId === nat ? myKit : oppKit, fx.awayId === nat && !!cap)}</div>
+              <div className="wo-side" data-side="home">{line(fx.homeId === nat ? myKit : oppKit, fx.homeId === nat && !!cap)}</div>
+            </div>
+            <div className="wo-stand-label">{t('walkout.mainStand')}</div>
           </div>
           <ol className="wo-anthems">
             <li>{anthemLine(fx.awayId)}</li>
