@@ -241,7 +241,9 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
         // the play stops: the side penalised retreats ten, the other gathers
         const op = openPlay(p, true, far, near)
         att = op.att.map(([u, v]) => [u - 1, v * 0.8] as UV)
-        def = op.def.map(([u, v]) => [Math.max(u, 0) + 9, v * 0.85] as UV)
+        // THE LAW (20): the side penalised goes back ten metres from the mark,
+        // in a line; its backfield stays where it was
+        def = op.def.map(([u, v]) => [u < 9 ? 10.4 : u + 6, v * 0.9] as UV)
         holder = carrierIdx ?? 8
         att[holder] = [0, 0]
         ref = { x: ux(2), y: clamp(vy(-3), 2, 68) }
