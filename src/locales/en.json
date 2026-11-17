@@ -5801,7 +5801,7 @@
   "leaveWhy_money": "the money on offer elsewhere is better.",
   "leaveWhy_mood": "the mood in the camp has turned sour.",
   "leaveAnnounceSubj": "{player} will leave at the end of the season",
-  "leaveAnnounce": "{player} ({pos}) has announced a move to {club} at the end of the season, on a pre-contract. No fee, and no way back.",
+  "leaveAnnounce": "{player} ({pos}) has announced a move to {club} at the end of the season, on a pre-contract. The paperwork is signed, and the club will not see a penny for it.",
   "lightNextSubj": "Squad looking light next season",
   "lightNext": "On the contracts you hold, next season's squad is short: {units_l}. Renew, promote from the academy or sign before the summer.",
   "lightUnit": "{unit_k} ({count} under contract, {need} needed)",

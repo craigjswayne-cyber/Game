@@ -5882,7 +5882,7 @@
   "leaveWhy_money": "el dinero que ofrecen fuera es mejor.",
   "leaveWhy_mood": "el ambiente en el vestuario se ha agriado.",
   "leaveAnnounceSubj": "{player} se irá al final de la temporada",
-  "leaveAnnounce": "{player} ({pos}) ha anunciado su marcha a {club} al final de la temporada, con un precontrato. Sin traspaso y sin vuelta atrás.",
+  "leaveAnnounce": "{player} ({pos}) ha anunciado su marcha a {club} al final de la temporada, con un precontrato. Ya está firmado, y el club no verá ni un céntimo.",
   "lightNextSubj": "Plantilla corta para la próxima temporada",
   "lightNext": "Con los contratos actuales, la plantilla de la próxima temporada se queda corta: {units_l}. Renueva, sube a gente de la cantera o ficha antes del verano.",
   "lightUnit": "{unit_k} ({count} con contrato, {need} necesarios)",

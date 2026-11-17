@@ -5814,7 +5814,7 @@
   "leaveWhy_money": "die geld elders is beter.",
   "leaveWhy_mood": "die stemming in die kamp het versuur.",
   "leaveAnnounceSubj": "{player} vertrek aan die einde van die seisoen",
-  "leaveAnnounce": "{player} ({pos}) het 'n skuif na {club} aan die einde van die seisoen aangekondig, op 'n voorkontrak. Geen oordraggeld nie, en geen terugdraai nie.",
+  "leaveAnnounce": "{player} ({pos}) het 'n skuif na {club} aan die einde van die seisoen aangekondig, op 'n voorkontrak. Die papierwerk is geteken, en die klub sal nie 'n sent daarvoor sien nie.",
   "lightNextSubj": "Groep lyk volgende seisoen dun",
   "lightNext": "Met die kontrakte wat jy het, is volgende seisoen se groep kort: {units_l}. Hernu, bevorder uit die akademie of teken voor die somer.",
   "lightUnit": "{unit_k} ({count} onder kontrak, {need} nodig)",

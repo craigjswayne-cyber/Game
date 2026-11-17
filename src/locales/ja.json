@@ -5619,7 +5619,7 @@
   "leaveWhy_money": "他クラブの提示額の方が良い。",
   "leaveWhy_mood": "チーム内の雰囲気が悪くなっている。",
   "leaveAnnounceSubj": "{player}が今季限りで退団",
-  "leaveAnnounce": "{player}（{pos}）は今季終了後に仮契約で{club}へ移籍すると発表した。移籍金はなく、引き留めることもできない。",
+  "leaveAnnounce": "{player}（{pos}）は今季終了後に仮契約で{club}へ移籍すると発表した。契約書はすでに交わされ、クラブには一銭も入らない。",
   "lightNextSubj": "来季のスコッドが手薄",
   "lightNext": "現在の契約のままでは、来季のスコッドが不足する：{units_l}。夏までに契約延長、アカデミーからの昇格、または補強を。",
   "lightUnit": "{unit_k}（契約中{count}人、必要{need}人）",
