@@ -62,6 +62,13 @@ export interface OpenWorld {
    *  and wait for the ball: as it comes available they start their runs, so
    *  whoever gets it is already going forward when he takes it */
   go: number
+  /** which side of the ruck is the open side (+1: towards high y). Held by
+   *  the sim so the whole shape does not flip as the ball crosses midfield */
+  side: 1 | -1
+  /** where the man with the ball is going to be met (the end of his run),
+   *  if he is running: the defence holds its line there, it does not back
+   *  away in front of him */
+  meet: Pt | null
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -81,8 +88,7 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   const { b, att0, dir } = w
   const def0 = 15 - att0
   const R = w.ref
-  // the open side is the wide side of the ruck
-  const s = R.y <= 35 ? 1 : -1
+  const s = w.side
   const far = s > 0 ? 70 - R.y : R.y, near = 70 - far
   /** u metres up the field (the attack's way), v metres towards the open side */
   const P = (u: number, v: number): Pt => ({ x: clamp(R.x + dir * u, -4, 104), y: clamp(R.y + s * v, 1.5, 68.5) })
@@ -90,45 +96,66 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   const out: Pt[] = b.map(q => ({ x: q.x, y: q.y }))
   /** 11 is the left wing as his side looks up the field: which index is on the low-y touchline */
   const wingOn = (homeSide: boolean, lowY: boolean) => (homeSide === lowY ? 10 : 13)
+  const openHigh = s > 0
 
   // ================= ATTACK =================
+  // ONE SHAPE, HUNG OFF THE BALL. It is the same shape while a man carries
+  // as it is at the ruck, so as the ball goes forward the whole side comes
+  // forward with it, and when he is tackled they are already where the next
+  // phase starts. Depth is the point of it: every man is behind the ball,
+  // and the further out he stands the deeper he stands, so each pass goes
+  // back to a man coming on to it.
   const taken = new Set<number>()
   const put = (i: number, u: number, v: number) => { out[att0 + i] = P(u, v); taken.add(i) }
   if (w.carrier != null && !w.ruck) { out[att0 + w.carrier] = { ...R }; taken.add(w.carrier) }
   const rk = w.ruckers.filter(k => !taken.has(k))
   if (w.ruck) {
-    if (w.downMan != null && !taken.has(w.downMan)) put(w.downMan, -1.7, 0)
-    const spots: [number, number][] = [[-0.5, -2], [-0.5, 2], [-3.6, 0]]
+    // the tackled man on the ball, two over him, one latched on behind; the 9 at the base
+    if (w.downMan != null && !taken.has(w.downMan)) put(w.downMan, -0.3, 0)
+    const spots: [number, number][] = [[0.7, -0.9], [0.7, 0.9], [-1.5, -0.2]]
     rk.filter(k => !taken.has(k)).forEach((k, j) => put(k, spots[j][0], spots[j][1]))
-    if (!taken.has(8)) put(8, -2.7, 1.3)
+    if (!taken.has(8)) put(8, -2.6, 1.1)
   } else {
-    // with the carrier: a man on each shoulder and one behind, the 9 trailing
-    const spots: [number, number][] = [[-2.2, -2.6], [-2.4, 2.8], [-4.6, 0.4]]
+    // with the carrier: a man on each shoulder a stride behind, one further back, the 9 trailing
+    const spots: [number, number][] = [[-2.4, -2.4], [-2.4, 2.4], [-5, 0]]
     rk.forEach((k, j) => put(k, spots[j][0], spots[j][1]))
-    if (!taken.has(8)) put(8, -6, -1.2)
+    if (!taken.has(8)) put(8, -5.5, 1.6)
   }
-  // the pods: three off the 9, two more in midfield, one on a wide short side
-  // (spaced for the size a man is drawn at: a pod is three discs side by side)
-  const vA = Math.min(12, far * 0.27), vB = Math.min(29, far * 0.6)
-  const podSlots: [number, number][] = [[-3.2, vA], [-4, vA - 3.6], [-4, vA + 3.6], [-5.6, vB - 1.9], [-6, vB + 1.9]]
-  if (near > 14) podSlots.splice(3, 0, [-4, -Math.min(9, near * 0.5)])
-  podSlots.push([-6, vB + 5.6], [-5, vA + 7.2])
-  const freeFwd = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !taken.has(k))
   const go = w.go
-  // (running on to it: the pods come up flat to the gain line, the backs come on from depth)
-  for (const [g, [u, v]] of deal(freeFwd.map(k => att0 + k), vOf, podSlots.slice(0, freeFwd.length))) { out[g] = P(Math.min(-0.9, u + go * 2.8), v); taken.add(g - att0) }
-  // the backs: 10 behind the first pod, the centres out and deeper, 15 in behind
-  if (!taken.has(9)) put(9, -8.5 + go * 3.4, vA + 3)
+  // the forwards: a pod of three off the 9, a pair in midfield, one on a wide short side
+  // (spaced for the size a man is drawn at: nothing here stands on the ruck
+  // or on the defence's toes)
+  const vB = clamp(far * 0.5, 23, 32)
+  const podSlots: [number, number][] = [[-4, 11.6], [-4.8, 8], [-4.8, 15.2], [-6.5, vB], [-6.9, vB + 3.8]]
+  if (near > 15) podSlots.splice(3, 0, [-4, -Math.min(9, near * 0.45)])
+  podSlots.push([-5.5, 19], [-7, vB + 7.6])
+  const freeFwd = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !taken.has(k))
+  for (const [g, [u, v]] of deal(freeFwd.map(k => att0 + k), vOf, podSlots.slice(0, freeFwd.length))) { out[g] = P(Math.min(-3, u + go * 1.2), v); taken.add(g - att0) }
+  // the backs: 10 out the back of the first pod; 12, 13 and the open wing
+  // each wider and deeper than the man inside him; 15 between 13 and the
+  // wing when there is room for him, else behind the midfield
+  const v13 = vB + 8, vW = far - 4
+  if (!taken.has(9)) put(9, -8.5 + go * 1.5, 13.4)
   const centres = [11, 12].filter(k => !taken.has(k))
-  const cSlots: [number, number][] = [[-11.5, Math.min(21, far * 0.45)], [-14, Math.min(34, far * 0.74)]]
-  for (const [g, [u, v]] of deal(centres.map(k => att0 + k), vOf, cSlots.slice(0, centres.length))) { out[g] = P(u + go * 4, v); taken.add(g - att0) }
-  const openHigh = s > 0
+  const cSlots: [number, number][] = [[-10, 19.4], [-11.5, v13]]
+  for (const [g, [u, v]] of deal(centres.map(k => att0 + k), vOf, cSlots.slice(0, centres.length))) { out[g] = P(u + go * 1.5, v); taken.add(g - att0) }
   const wOpen = wingOn(att0 === 0, !openHigh), wShort = wOpen === 10 ? 13 : 10
-  if (!taken.has(wOpen)) put(wOpen, -16 + go * 4.5, far - 5)
-  if (!taken.has(wShort)) put(wShort, -6 + go * 2.5, -(near - 3.5))
-  if (!taken.has(14)) put(14, -19 + go * 4, Math.min(27, far * 0.58))
+  if (!taken.has(wOpen)) put(wOpen, -13.5 + go * 1.5, vW)
+  if (!taken.has(wShort)) put(wShort, near > 9 ? -4.5 : -7, -(near - 3.5))
+  if (!taken.has(14)) { if (vW - v13 > 13) put(14, -12.5 + go * 1.5, (v13 + vW) / 2); else put(14, -16, vB - 3) }
 
   // ================= DEFENCE =================
+  // A FLAT LINE ON THE OFFSIDE LINE. At the ruck it stands a stride beyond
+  // the last foot, a post either side of the ruck and then a man every few
+  // metres, shoulder to shoulder across the field. When the ball comes out
+  // the line goes forward together at it and slides with each pass. While a
+  // man is carrying the line is where he will be met: it holds there, it
+  // does not back away in front of him. Behind it the 9 sweeps, the far wing
+  // hangs for the kick and the full-back stays deep and follows the ball.
+  const M = w.ruck ? R : (w.meet ?? R)
+  const D = (u: number, v: number): Pt => ({ x: clamp(M.x + dir * u, -4, 104), y: clamp(M.y + s * v, 1.5, 68.5) })
+  const dvOf = (g: number) => (b[g].y - M.y) * s
+  const dfar = s > 0 ? 70 - M.y : M.y, dnear = 70 - dfar
   const dTaken = new Set<number>()
   const dput = (i: number, p: Pt) => {
     // nobody defends from behind his own try line
@@ -136,57 +163,63 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
     out[def0 + i] = { x: dir > 0 ? Math.min(p.x, own + 0.5) : Math.max(p.x, own - 0.5), y: p.y }
     dTaken.add(i)
   }
-  // where the ball is going to be met: the carrier, or the pass in the air
+  // where the ball is, in the defence's frame
   const C = w.out
-  const Cu = C ? (C.x - R.x) * dir : 0, Cv = C ? (C.y - R.y) * s : 0
+  const Cu = C ? (C.x - M.x) * dir : 0, Cv = C ? (C.y - M.y) * s : 0
+  const L = 2.3
   const [t0, t1] = w.tacklers
   if (!w.ruck) {
-    // the tackle: the two nearest go at the man, one each side of him
+    // the tackle: the two nearest go at the man once he is on them
     const at = C ?? R
-    if (t0 != null) dput(t0, { x: at.x + dir * 0.9, y: at.y - 0.8 })
-    if (t1 != null) dput(t1, { x: at.x + dir * 1.1, y: at.y + 0.9 })
+    const on = Math.hypot(at.x - M.x, at.y - M.y) < 7
+    if (t0 != null) dput(t0, on ? { x: at.x + dir * 0.9, y: at.y - 0.8 } : D(0.9, -0.9))
+    if (t1 != null) dput(t1, on ? { x: at.x + dir * 1.1, y: at.y + 0.9 } : D(1.1, 1))
   } else {
-    // the tackler is on the floor then rolls clear; the second man is over
-    // the ball for a moment, then takes a guard's place
-    if (t0 != null) dput(t0, w.ruckAge < 1.4 ? P(1.0, -0.7) : P(2.4, -5.4))
-    if (t1 != null) dput(t1, w.ruckAge < 1.2 ? P(0.8, 0.5) : P(2.4, 5.6))
+    // the tackler is on the floor and the second man is over the ball for a
+    // moment; then they are out of it and back in the line
+    if (t0 != null && w.ruckAge < 1.3) dput(t0, D(0.9, -0.6))
+    if (t1 != null && w.ruckAge < 1.0) dput(t1, D(1.3, 0.6))
   }
-  // a guard either side of the ruck: the two nearest forwards
-  const guards = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !dTaken.has(k))
-    .map(k => ({ k, d: Math.hypot(b[def0 + k].x - R.x, b[def0 + k].y - R.y) })).sort((a, c) => a.d - c.d).slice(0, 2).map(o => o.k)
-  for (const [g, [u, v]] of deal(guards.map(k => def0 + k), vOf, [[2.0, -2.8], [2.0, 2.8]])) dput(g - def0, P(u, v))
-  // the scrum-half sweeps behind the line, the full-back shadows the ball
-  const ballV = C ? Cv : 0
-  if (!dTaken.has(8)) dput(8, P(8, clamp(ballV * 0.7 + 2, -(near - 4), far - 8)))
+  // a post either side of the ruck: the two nearest forwards
+  const posts = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !dTaken.has(k))
+    .map(k => ({ k, d: Math.hypot(b[def0 + k].x - M.x, b[def0 + k].y - M.y) })).sort((a, c) => a.d - c.d).slice(0, 2).map(o => o.k)
+  for (const [g, [u, v]] of deal(posts.map(k => def0 + k), dvOf, [[L, -3.5], [L, 3.5]])) dput(g - def0, D(u, v))
+  // the 9 sweeps behind the line on the ball's side; the full-back is deep and follows the ball
+  if (!dTaken.has(8)) dput(8, D(7, clamp(Cv * 0.8 + 2, -(dnear - 4), dfar - 8)))
   if (!dTaken.has(14)) {
-    const by = (C ?? R).y
-    dput(14, { x: clamp(R.x + dir * 24, 4, 96), y: 35 + (by - 35) * 0.55 })
+    const by = (C ?? M).y
+    dput(14, { x: clamp(M.x + dir * 23, 4, 96), y: 35 + (by - 35) * 0.6 })
   }
-  // the line comes up at the ball and slides with it
+  // line speed: once the ball is out the line goes up at it, together. The
+  // men in front of the ball lead by a stride, nobody is left behind.
+  const upBy = C ? clamp(L - (Cu + 1.5), 0, 9) * (w.rush ? 1 : 0.7) : 0
   const up = (v: number) => {
-    if (!C) return 1.7
-    const close = clamp(1 - Math.abs(v - Cv) / 16, 0, 1) * (w.rush ? 1 : 0.6)
-    return 1.7 + (Math.min(1.7, Cu + 1.6) - 1.7) * close
+    if (!C) return L
+    const here = v * Cv < 0 ? 0.25 : clamp(1.05 - Math.abs(v - Cv) / 45, 0.6, 1)
+    return L - upBy * here
   }
-  const slide = (v: number) => (C ? v + clamp((Cv - v) * (w.rush ? 0.1 : 0.28), -5, 5) : v)
-  // the wings: the one on the ball's side is up in the line; the far one
-  // hangs back for the kick until the ball comes his way
+  const slide = (v: number) => (C && v * Cv > 0 ? v + clamp((Cv - v) * (w.rush ? 0.1 : 0.25), -4, 4) : v)
+  // the wings: the short-side wing is in the line when there is a short
+  // side to defend; the open wing hangs a few metres back until the ball
+  // comes his way, then he is up
   const dOpen = wingOn(def0 === 0, !openHigh), dShort = dOpen === 10 ? 13 : 10
-  if (!dTaken.has(dShort)) dput(dShort, near > 9 ? P(up(-(near - 4)) + 0.6, -(near - 4)) : P(11, -(near - 3)))
+  if (!dTaken.has(dShort)) dput(dShort, dnear > 9 ? D(up(-(dnear - 4)) + 0.4, -(dnear - 4)) : D(10, -(dnear - 3)))
   if (!dTaken.has(dOpen)) {
-    const coming = C != null && Cv > far - 26
-    dput(dOpen, coming || far < 26 ? P(up(far - 5) + 0.8, far - 5) : P(9.5, far - 6))
+    const coming = C != null && Cv > dfar - 24
+    dput(dOpen, coming || dfar < 24 ? D(up(dfar - 5) + 0.6, dfar - 5) : D(L + 5, dfar - 5))
   }
   // everyone else is the line: how many each side goes by how much field there is
   const lineMen = [0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 12].filter(k => !dTaken.has(k))
-  const nShort = near > 20 ? 2 : near > 10 ? 1 : 0
+  const nShort = Math.min(lineMen.length, dnear > 24 ? 2 : dnear > 12 ? 1 : 0)
   const slots: [number, number][] = []
-  for (let k = 0; k < Math.min(nShort, lineMen.length); k++) slots.push([0, -(5.8 + (Math.max(8, near - 9) - 5.8) * (nShort === 1 ? 0.5 : k))])
+  for (let k = 0; k < nShort; k++) slots.push([0, -(7.4 + k * Math.min(5.5, Math.max(4, (dnear - 14) / 2)))])
   const nOpen = lineMen.length - slots.length
-  for (let k = 0; k < nOpen; k++) slots.push([0, 6 + (Math.max(10, far - 10) - 6) * Math.pow(nOpen === 1 ? 0.4 : k / (nOpen - 1), 1.12)])
-  for (const [g, [, v]] of deal(lineMen.map(k => def0 + k), vOf, slots)) {
+  // close together near the ruck, a little wider each man out, and never stretched thin
+  const W = Math.max(11, Math.min(dfar - 9, 7.4 + (nOpen - 1) * 6.2))
+  for (let k = 0; k < nOpen; k++) slots.push([0, 7.4 + (W - 7.4) * Math.pow(nOpen === 1 ? 0.4 : k / (nOpen - 1), 1.15)])
+  for (const [g, [, v]] of deal(lineMen.map(k => def0 + k), dvOf, slots)) {
     const vv = slide(v)
-    dput(g - def0, P(up(vv), vv))
+    dput(g - def0, D(up(vv), vv))
   }
   return out
 }

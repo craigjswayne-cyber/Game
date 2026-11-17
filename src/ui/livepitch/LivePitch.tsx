@@ -343,7 +343,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.fillText(io.current.attackText.toUpperCase(), 0, 0)
         g.restore()
       }
-      const R = Math.max(8, sc * 1.9)
+      const R0 = Math.max(8, sc * 1.9)
+      let R = R0
       const { home: H, away: A, names: N, carrierId } = io.current
       const flying = S.ball.lift > 0.4
       const dot = (i: number) => {
@@ -354,6 +355,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         const scorer = has && S.phase?.kind === 'try' && S.landed
         // a man on the ground after a tackle: fainter until he is back up
         const floor = S.down[i] > 0
+        // the men in a ruck are a pile, not six separate discs
+        R = S.bound(i) || floor ? R0 * 0.74 : R0
         if (floor) g.globalAlpha = 0.6
         g.beginPath(); g.arc(x + R * 0.14, y + R * 0.24, R, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()
         g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fillStyle = side.kit[0]; g.fill()
@@ -364,6 +367,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.textAlign = 'center'; g.textBaseline = 'middle'
         g.fillText(String(side.nums[k] ?? k + 1), x, y + 0.5)
         if (floor) g.globalAlpha = 1
+        R = R0
       }
       // A CALLED MOVE'S LINES, as the Playbook draws them: each man's run
       // from where he is to where it ends, dashed, with an arrow on it
@@ -418,7 +422,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       g.restore()
       // the side with the ball on top, the man with it last of all
       const top = S.phase?.homeBall === false ? 15 : 0
-      for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder) dot(i)
+      for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder && S.bound(i)) dot(i)
+      for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder && !S.bound(i)) dot(i)
+      R = R0
       // the referee: no number, the colour nobody wears
       g.beginPath(); g.arc(SX(S.ref.x, S.ref.y), SY(S.ref.x, S.ref.y), R * 0.78, 0, Math.PI * 2); g.fillStyle = refKit; g.fill()
       g.lineWidth = 1.4; g.strokeStyle = ink.dark; g.stroke()

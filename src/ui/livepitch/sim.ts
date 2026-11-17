@@ -62,6 +62,16 @@ const hyp = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y)
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
 /** a fixed offset per man, so a line is never a ruler and never reshuffles */
+/**
+ * How long the ball is in a ruck before the 9 can play it. The measured
+ * average from tackle to the ball leaving is about three seconds and more
+ * than half are quicker (docs/match-authenticity-2.0.0.md, section 3); the
+ * tackle and the 9's pick-up are played out either side of this wait.
+ */
+function ruckLen(seed: number): number {
+  const r = jit(seed, 91) + 0.5
+  return r < 0.55 ? 1.0 + r : r < 0.88 ? 1.8 + (r - 0.55) : 2.6 + (r - 0.88) * 3
+}
 function jit(i: number, salt: number): number {
   let h = ((i + 1) * 374761393 + salt * 668265263) >>> 0
   h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0
@@ -112,6 +122,9 @@ export class PitchSim {
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
+  private side: 1 | -1 = 1
+  /** where the running man is going to be met */
+  private meet: Pt | null = null
   private doneT = 0
   private trk: { tr: Track; O: Pt; dir: number; s: number; who: Record<string, number>; t: number; T: number; ev: number; att0: number } | null = null
 
@@ -184,14 +197,14 @@ export class PitchSim {
       }
       case 'ruck':
         cut = cut || d > 16
-        if (cut) steps.push({ k: 'ground' }, { k: 'wait', t: 0.9 })
+        if (cut) steps.push({ k: 'ground' }, { k: 'wait', t: ruckLen(p.at) })
         else if (holderAtt) {
           // he carries it into contact, then it is a ruck
           mode = 'carry'; cIdx = this.holder - att0; anchor = B
-          steps.push({ k: 'run', to: E, v: 6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 0.8 })
+          steps.push({ k: 'run', to: E, v: 6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at) })
         } else {
           anchor = B
-          steps.push({ k: 'ground' }, { k: 'run', to: E, v: 5 }, { k: 'wait', t: 0.8 })
+          steps.push({ k: 'ground' }, { k: 'run', to: E, v: 5 }, { k: 'wait', t: ruckLen(p.at) })
         }
         break
       case 'penalty':
@@ -280,14 +293,10 @@ export class PitchSim {
           const S: Pt = out
             ? { x: dir > 0 ? Math.min(me.x, B.x - 3) : Math.max(me.x, B.x + 3), y: me.y }
             : { x: B.x - dir * 6, y: clamp(B.y + sy, 3, 67) }
-          const wide = S.y - B.y
-          if (Math.abs(wide) > 14 && c !== 9 && c !== 8) {
-            this.over.set(att0 + 9, { x: B.x - dir * 4.5, y: clamp(B.y + Math.sign(wide) * 6, 3, 67) })
-            steps.push({ k: 'wait', t: 0.1 }, { k: 'pass', to: att0 + 9 })
-          }
           if (c !== 8) {
             this.over.set(att0 + c, S)
-            steps.push({ k: 'wait', t: 0.12 }, { k: 'pass', to: att0 + c })
+            steps.push({ k: 'wait', t: 0.12 })
+            this.feed(steps, att0, dir, B, c, S.y)
           }
           steps.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true })
         }
@@ -363,6 +372,27 @@ export class PitchSim {
     } else begin()
   }
 
+  /**
+   * THE BALL GOES THROUGH THE HANDS (owner, 17 Nov 2026: "the way they
+   * pass"). The 9 does not throw it thirty metres to a wing. It goes to the
+   * first receiver and along the line, each man giving it to the next man
+   * out, who is deeper than he is and coming on to it.
+   */
+  private feed(steps: Step[], att0: number, dir: number, B: Pt, c: number, toY: number, rate?: number) {
+    const want = toY - B.y, sgn = Math.sign(want) || 1, wide = Math.abs(want)
+    if (wide > 11) {
+      const cand = [9, 11, 12, 14].filter(k => k !== c && this.down[att0 + k] <= 0 && (this.b[att0 + k].x - B.x) * dir < -1)
+        .map(k => ({ k, v: (this.b[att0 + k].y - B.y) * sgn })).filter(o => o.v > 3 && o.v < wide - 4).sort((a, b) => a.v - b.v)
+      let at = 0
+      for (const o of cand) {
+        if (o.v - at < 5 || wide - at <= 11) continue
+        steps.push({ k: 'pass', to: att0 + o.k, rate }, { k: 'wait', t: 0.2, rate })
+        at = o.v
+      }
+    }
+    steps.push({ k: 'pass', to: att0 + c, rate })
+  }
+
   /** this side's nearest man on his feet to a point */
   private nearest(att0: number, at: Pt, skip: number[] = []) {
     let best = att0 + 8, bd = 1e9
@@ -419,6 +449,8 @@ export class PitchSim {
       const att0 = p.homeBall ? 0 : 15
       const dir = p.homeBall ? 1 : -1
       const inRuck = this.mode === 'ruck'
+      // the open side only changes once the ball is well across the middle
+      if (this.anchor.y < 28) this.side = 1; else if (this.anchor.y > 42) this.side = -1
       const holderAtt = this.holder >= 0 && (this.holder < 15) === p.homeBall
       // the ball is "out" once it has left the base: a pass in the air, or a man running with it
       const out: Pt | null = this.flight && this.flight.toIdx >= 0 ? { x: this.ball.x, y: this.ball.y }
@@ -430,6 +462,7 @@ export class PitchSim {
         carrier: inRuck ? null : (holderAtt ? this.holder - att0 : this.cIdx), downMan: this.downMan,
         rush: this.rush[p.homeBall ? 1 : 0],
         go: inRuck ? clamp((this.ruckT - 0.35) / 0.7, 0, 1) : 1,
+        side: this.side, meet: inRuck ? null : this.meet,
       }).map((q, i) => ({ x: q.x + jit(i, 1) * 0.7, y: q.y + jit(i, 2) * 0.5 }))
       for (const [i, q] of this.over) pts[i] = q
       return { pts, ref: { x: this.anchor.x - dir * 3.5, y: clamp(this.anchor.y + (this.anchor.y < 35 ? 8 : -8), 3, 67) } }
@@ -464,7 +497,7 @@ export class PitchSim {
     if (holderAtt && this.mode === 'carry') {
       // he is tackled where he is
       this.mark(B, att0, this.holder)
-      steps.push({ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 0.8 })
+      steps.push({ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at + this.idleN) })
     } else if (this.mode === 'ruck' && safe) {
       const n = ++this.idleN
       const h = (k: number) => Math.abs(jit(n * 7 + p.at, k)) * 2
@@ -480,10 +513,23 @@ export class PitchSim {
       if (!(holderAtt && this.holder === att0 + 8)) steps.push({ k: 'pick', who: att0 + 8 })
       const me = this.b[att0 + c]
       this.over.set(att0 + c, { x: dir > 0 ? Math.min(me.x + 2, B.x - 2.5) : Math.max(me.x - 2, B.x + 2.5), y: me.y })
-      steps.push({ k: 'wait', t: 0.1 }, { k: 'pass', to: att0 + c }, { k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true },
-        { k: 'run', to: E, v: c < 8 ? 6 : 7.6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 0.8 })
+      steps.push({ k: 'wait', t: 0.1 })
+      this.feed(steps, att0, dir, B, c, me.y)
+      steps.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true },
+        { k: 'run', to: E, v: c < 8 ? 6 : 7.6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at + n) })
     } else return
     this.steps = steps; this.si = 0; this.st = 0; this.entered = false
+  }
+
+  /** is this man bound into the ruck (drawn smaller, as one of a pile) */
+  bound(i: number): boolean {
+    if (this.mode !== 'ruck' || !this.phase || this.holder === i) return false
+    const att0 = this.phase.homeBall ? 0 : 15
+    const k = i % 15, mine = (i < 15) === this.phase.homeBall
+    const inIt = mine ? (k === this.downMan || (this.ruckers ?? []).slice(0, 2).includes(k))
+      : ((this.tacklers ?? []).includes(k) && this.ruckT < 1.3)
+    void att0
+    return inIt && hyp(this.b[i], this.anchor) < 3.2
   }
 
   /** advance by dt seconds (call with small steps) */
@@ -500,6 +546,7 @@ export class PitchSim {
 
     // the script: instant steps fall through, timed ones hold
     let runTo: Pt | null = null
+    this.meet = null
     this.rate = this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
       const s = this.steps[this.si]
@@ -632,11 +679,13 @@ export class PitchSim {
           const mine = this.holder >= 0 && (this.holder < 15) === this.phase.homeBall
           const n = s.n = (s.n ?? 0) + 1
           const sub: Step[] = []
-          const tackle: Step[] = [{ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 0.4 }]
+          const tackle: Step[] = [{ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 0.7 }]
           // how far this carry goes: a few phases, however far it is
-          const len = clamp(rem / 2.2, 14, 34)
-          const P: Pt = rem < 20 || rem - len < 5 ? { ...s.to } : { x: B.x + (s.to.x - B.x) / rem * len, y: clamp(B.y + (s.to.y - B.y) / rem * len, 4, 66) }
-          if (n > 9) { over = true; break }
+          // a forward makes a few metres, a back a few more: nobody runs the length of the field
+          const carrierIsFwd = mine ? this.holder - att0 < 8 : n % 2 === 1
+          const len = carrierIsFwd ? clamp(rem / 4, 5, 9) : clamp(rem / 2.5, 9, 18)
+          const P: Pt = rem - len < 4 ? { ...s.to } : { x: B.x + (s.to.x - B.x) / rem * len, y: clamp(B.y + (s.to.y - B.y) / rem * len, 4, 66) }
+          if (n > 14) { over = true; break }
           // the man this line is about comes with the play: he is on the
           // shoulder of the last ruck when the ball gets there, not sixty
           // metres away waiting for a pass nobody could throw
@@ -646,9 +695,9 @@ export class PitchSim {
             this.over.set(join, { x: clamp(s.to.x - dir * 6, 1, 99), y: clamp(s.to.y + jy * 9, 3, 67) })
           }
           // a long way to go: it is kicked down there and chased
-          if (rem > 46 && !s.kicked && (mine || this.grounded)) {
+          if (rem > 38 && !s.kicked && (mine || this.grounded)) {
             s.kicked = true; s.chase = true
-            const far = Math.min(45, rem - 22)
+            const far = Math.min(45, rem - 14)
             this.steps.splice(this.si, 0, { k: 'kick', to: { x: B.x + (s.to.x - B.x) / rem * far, y: clamp(B.y + (s.to.y - B.y) / rem * far, 6, 64) }, hang: 11, silent: true, rate: s.rate })
             this.entered = false; this.st = 0
             continue
@@ -682,8 +731,9 @@ export class PitchSim {
               sub.push({ k: 'pick', who, max: clamp(hyp(this.b[who], B) / 7.5 + 0.3, 0.9, 5) })
             } else {
               this.over.set(att0 + c, { x: dir > 0 ? Math.min(me.x + 2, B.x - 2.5) : Math.max(me.x - 2, B.x + 2.5), y: me.y })
-              sub.push({ k: 'pick', who: att0 + 8, max: 0.7 }, { k: 'pass', to: att0 + c },
-                { k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c }, { k: 'run', to: P, v: c < 8 ? 6.3 : 8 }, ...tackle)
+              sub.push({ k: 'pick', who: att0 + 8, max: 0.7 })
+              this.feed(sub, att0, dir, B, c, me.y)
+              sub.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c }, { k: 'run', to: P, v: c < 8 ? 6.3 : 8 }, ...tackle)
             }
           }
           this.steps.splice(this.si, 0, ...sub.map(x => ({ ...x, rate: s.rate })))
@@ -696,6 +746,7 @@ export class PitchSim {
           const mv = Math.min(dd, s.v * dt)
           if (dd > 1e-6) { this.anchor.x += (s.to.x - this.anchor.x) / dd * mv; this.anchor.y += (s.to.y - this.anchor.y) / dd * mv }
           runTo = this.anchor
+          this.meet = s.to
           this.st += dt
           const tight = this.mode === 'scrum' || this.mode === 'maul'
           over = (dd < 0.05 && (tight || this.holder < 0 || hyp(this.b[this.holder], this.anchor) < 1.3)) || this.st > 9
