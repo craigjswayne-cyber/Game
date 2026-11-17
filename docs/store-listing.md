@@ -122,23 +122,23 @@ First release.
 
 ### What's new (500 max) - v1.9.14, Play version code 76 (confirm 75 is accepted on the Console first)
 
-**en-GB, Play and App Store** (429)
-New: a Season plan tab on Training & Staff to choose how you play and your pre-season work. Negotiate with free agents: offer a wage and a deal of one to three seasons. Club and country: on a Test week the Test comes first on Home, your national squad is on the Team screen, and each camp gets a focus. Marquee players can be swapped in one tap. Game Time is as tight as Stats. Clearer leadership notes. A new PHASE Discord link.
+**en-GB, Play and App Store** (421)
+New: a Season plan tab on Training & Staff. Negotiate with free agents: a wage and a deal of one to three seasons. The international game is rebuilt: union targets for every window, squad announcements, camp decisions, a Test captain and game plan, the walk-out and anthems, and your era as national coach. On a Test week the Test comes first. Swap marquee players in one tap. Tighter Game Time. A new PHASE Discord link.
 
-**fr-FR, Play and App Store** (414)
-Nouveau : un onglet Plan de saison dans Entraînement et staff. Négociez avec les agents libres : salaire et contrat d'une à trois saisons. Club et sélection : le test passe en premier sur l'Accueil, le groupe national est sur l'écran Équipe et chaque rassemblement a son axe de travail. Joueurs hors plafond échangeables d'un geste. Temps de jeu plus compact. Leadership mieux expliqué. Nouveau lien Discord PHASE.
+**fr-FR, Play and App Store** (428)
+Nouveau : un onglet Plan de saison. Négociez avec les agents libres : salaire et contrat d'une à trois saisons. Le jeu international est repensé : objectifs de la fédération, annonce du groupe, décisions au rassemblement, capitaine et plan de jeu, entrée des équipes et hymnes, et votre ère de sélectionneur. La semaine de test, le test passe en premier. Joueurs hors plafond échangeables d'un geste. Nouveau lien Discord PHASE.
 
-**es-ES, Play and App Store** (423)
-Nuevo: una pestaña Plan de temporada en Entrenamiento y cuerpo técnico. Negocia con agentes libres: salario y contrato de una a tres temporadas. Club y selección: en semana de test, el test va primero en Inicio, la convocatoria está en la pantalla Equipo y cada concentración tiene su enfoque. Jugadores franquicia: cambia uno con un toque. Minutos más compacto. Liderazgo mejor explicado. Nuevo enlace al Discord de PHASE.
+**es-ES, Play and App Store** (435)
+Nuevo: una pestaña Plan de temporada. Negocia con agentes libres: salario y contrato de una a tres temporadas. El juego internacional se renueva: objetivos de la federación, anuncio de la convocatoria, decisiones en la concentración, capitán y plan de juego, salida al campo e himnos, y tu etapa como seleccionador. En semana de test, el test va primero. Jugadores franquicia: cambia uno con un toque. Nuevo enlace al Discord de PHASE.
 
 **it-IT, Play and App Store** (414)
-Novità: una scheda Piano della stagione in Allenamento e staff. Tratta con gli svincolati: ingaggio e contratto da una a tre stagioni. Club e nazionale: nella settimana del test il test è in cima alla Home, il gruppo nazionale è nella schermata Squadra e ogni raduno ha il suo tema. Giocatori marquee: scambiane uno con un tocco. Minutaggio più compatto. Leadership spiegata meglio. Nuovo link al Discord di PHASE.
+Novità: una scheda Piano della stagione. Tratta con gli svincolati: ingaggio e contratto da una a tre stagioni. Il gioco internazionale è rinnovato: obiettivi della federazione, annuncio del gruppo, scelte al raduno, capitano e piano di gioco, ingresso in campo e inni, e la tua era da CT. Nella settimana del test il test viene prima. Giocatori marquee: scambiane uno con un tocco. Nuovo link al Discord di PHASE.
 
-**ja-JP, Play and App Store** (197)
-新機能：トレーニングとスタッフに「シーズンプラン」タブ。フリーエージェントと交渉可能に：週給と1〜3シーズンの契約年数を提示。クラブと代表：テストマッチの週はホームでテストが最優先に表示され、代表スコッドはチーム画面から、合宿ごとにテーマを選べる。マーキー選手はワンタップで入れ替え。出場時間の一覧をコンパクトに。リーダーシップ説明をわかりやすく。PHASEのDiscordへの新しいリンクも。
+**ja-JP, Play and App Store** (194)
+新機能：トレーニングとスタッフに「シーズンプラン」タブ。フリーエージェントと週給・1〜3シーズンの契約で交渉可能に。代表戦を一新：ウィンドウごとの協会の目標、スコッド発表、合宿での決断、テストマッチのキャプテンとゲームプラン、入場と国歌、代表監督としてのあなたの時代。テストの週はホームでテストが最優先に。マーキー選手はワンタップで入れ替え。PHASEのDiscordへの新しいリンクも。
 
-**af, Play and App Store** (386)
-Nuut: 'n Seisoensplan-oortjie by Oefening & Personeel. Onderhandel met vrye agente: bied 'n loon en 'n kontrak van een tot drie seisoene. Klub en land: in 'n toetsweek kom die toets eerste op Tuis, jou nasionale groep is op die Span-skerm en elke kamp kry 'n fokus. Ruil hoofspelers met een tik. Speeltyd is nou kompakter. Duideliker leierskapnotas. 'n Nuwe skakel na die PHASE-Discord.
+**af, Play and App Store** (414)
+Nuut: 'n Seisoensplan-oortjie. Onderhandel met vrye agente: 'n loon en 'n kontrak van een tot drie seisoene. Die internasionale spel is herbou: die unie se doelwitte vir elke venster, groepaankondigings, kampbesluite, 'n toetskaptein en spelplan, die uitloop en volksliedere, en jou era as nasionale afrigter. In 'n toetsweek kom die toets eerste. Ruil hoofspelers met een tik. 'n Nuwe skakel na die PHASE-Discord.
 
 ### What's new (500 max) - v1.9.13, Play version code 75 (confirm 74 is accepted on the Console first)
 

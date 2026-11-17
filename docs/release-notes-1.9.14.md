@@ -66,6 +66,55 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   The handbook's national-job answer says where both now live, in six
   languages.
 
+- **The international game, rebuilt.** Owner, after a review of the
+  national job: it "should be an honour", "more fun to play" and "only appear
+  when coaching"; on the walk-out, "they should stand for the anthems"; and
+  "This should all be fixed in 1.9.14 - do not hold anything back!"
+  - **The unveiling.** Taking a job (offer or store) opens a full-screen
+    unveiling under a band in the nation's colours, with the union's three
+    terms for the tenure: a world ranking (top 3 for a top-five side, a
+    couple of places up for most, world no. 1 to keep for the best), the
+    nation's title (or a win over a top-five side where it has none), and
+    three first caps handed out. The keep-the-club question is asked there.
+  - **Each window is a campaign** (Club & Country and the Team screen's
+    Country side): five steps (camp, squad named, announced, Tests, review)
+    and the union's target, one win for each side on the fixture list ranked
+    below you (one fewer when that would be a clean sweep of three or more,
+    never fewer than one). **Announce the squad** once 23 are named: a
+    reveal of the uncapped, the recalled and the big names left out (who take
+    it badly, more so if Temperamental or Ambitious), with the press's read.
+    **One event in camp**, answered once: a club asking for a player to be
+    rested, a missed curfew, a knock in training, an uncapped player who
+    stands out (a promised debut that never comes costs morale at the
+    review). **The review** when the window closes: met is +4 (+6 beyond it),
+    one short -3, more -7; below 35 a warning; below 20 the union ends the job
+    there and then.
+  - **Test day.** The preview opens under the nation's band with the union
+    analysts' read (both rankings, their edge, ours, their danger player),
+    **a captain** (the XV's leaders, Leadership shown; 12 or more steadies
+    the side, as the club armband does) and **a game plan** (the club's four
+    dials, for the country, also on the touchline at the breaks). In the
+    middle, the plan is the engine as it was (the fingerprint is unchanged).
+  - **The walk-out** before a watched Test: out of the tunnel behind the
+    captain; both sides **standing in a line for the anthems**, visitors'
+    first, each named; the challenge where a side lays one down (haka, Cibi,
+    Siva Tau, Sipi Tau); then kick-off. Skippable. Nations now play in their
+    own colours on the pitch.
+  - **A Test's full time** has its own card: the score, the world ranking
+    move and points, the union's reaction, first caps and milestones (25th,
+    50th, 75th, 100th).
+  - **Your era** on Club & Country: Tests, win %, best ranking, first caps
+    given, titles, and the three terms with ticks; past tenures on the
+    Profile keep their best ranking and first caps.
+  - **Fixes:** a table title (the Championship, a tour) now gets the trophy
+    celebration a final always had; the appointment letter no longer says
+    you coach the country "when the club has no fixture" (the Test comes
+    first); a national coach without a club sees the country tile on Home;
+    the Isles XV letter opens the screen it is answered on; Step down sits at
+    the foot of Club & Country; the Championship tile on Home and the Isles
+    XV panel show only to national coaches (the Isles one only to the four
+    unions it picks from).
+
 - **Changing your marquee players.** Player feedback: "Not sure if an issue
   or user error, but I can't change my Marquee Players". It was the game:
   every career starts with both marquee slots filled (your two biggest wages,
@@ -115,6 +164,13 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
 
 ## Tests
 
+- New: `tests/natwin.test.ts` (target, Tests counted, announcement, camp
+  event, review met/missed/sacked, era into the history), `tests/natera.test.ts`
+  (terms and unveiling, the Test ledger, the reaction rule, a neutral plan
+  is the engine as it was, captain and dials move the units) and
+  `scripts/intlstageui.mjs` (browser: unveiling, campaign, announcement,
+  camp event, Test preview, walk-out and anthems, half-time dials, full-time
+  card, era).
 - New: `tests/natcamp.test.ts` (a focus only inside a window, gone the week
   after it closes, tied to its nation, reaches the Test at kick-off, a
   damaged one dropped on load) and `scripts/dualroleui.mjs` (browser: a
