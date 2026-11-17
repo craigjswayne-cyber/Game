@@ -93,7 +93,10 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     const ink = readInk()
     const refKit = refereeColour([...home.kit, ...away.kit], [ink.refPink, ink.refOrange, ink.refCyan])
     let raf = 0, last = performance.now(), acc = 0
-    let dim = { w: 0, h: 0, dpr: 1, sc: 1, ox: 0, oy: 0 }
+    // upright on a phone held upright; on its side when the box is wider than
+    // it is tall (a phone turned over, a tablet's wide column): the same
+    // picture turned a quarter, the home side then attacking to the right
+    let dim = { w: 0, h: 0, dpr: 1, sc: 1, ox: 0, oy: 0, up: true }
     const field = document.createElement('canvas')
     // the last frame before a cut, dissolved out over the new one
     const ghost = document.createElement('canvas')
@@ -103,15 +106,15 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     const burst = (fx: number, fy: number, isHome: boolean) => {
       const kit = (isHome ? io.current.home : io.current.away).kit
       const cols = [kit[0], kit[1], ink.white, tokenColor('--gold-fill')]
-      const x0 = PX(fy), y0 = PY(Math.max(2, Math.min(98, fx)))
+      const cx = Math.max(2, Math.min(98, fx)), x0 = SX(cx, fy), y0 = SY(cx, fy)
       for (let i = 0; i < 70; i++) {
         const a = Math.random() * Math.PI * 2, v = 40 + Math.random() * 150
         confetti.push({ x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 70, life: 1.6 + Math.random() * 1.4, rot: Math.random() * 6, spin: (Math.random() - 0.5) * 14, c: cols[i % cols.length] })
       }
     }
     // field metres to screen: length up the screen (home attacks up), width across
-    const PX = (y: number) => dim.ox + (y + SIDE) * dim.sc
-    const PY = (x: number) => dim.oy + (100 + GOAL + END - x) * dim.sc
+    const SX = (x: number, y: number) => dim.up ? dim.ox + (y + SIDE) * dim.sc : dim.ox + (x + GOAL + END) * dim.sc
+    const SY = (x: number, y: number) => dim.up ? dim.oy + (100 + GOAL + END - x) * dim.sc : dim.oy + (y + SIDE) * dim.sc
 
     const paintField = () => {
       const { sc, dpr } = dim
@@ -229,8 +232,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const w = cv.clientWidth, h = cv.clientHeight
       const dpr = Math.min(2, window.devicePixelRatio || 1)
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr)
-      const sc = Math.min(w / FIELD_W, h / FIELD_L)
-      dim = { w, h, dpr, sc, ox: (w - FIELD_W * sc) / 2, oy: (h - FIELD_L * sc) / 2 }
+      const up = h >= w
+      const sc = up ? Math.min(w / FIELD_W, h / FIELD_L) : Math.min(w / FIELD_L, h / FIELD_W)
+      dim = { w, h, dpr, sc, up, ox: (w - (up ? FIELD_W : FIELD_L) * sc) / 2, oy: (h - (up ? FIELD_L : FIELD_W) * sc) / 2 }
       if (sc > 0) paintField()
     }
     size()
@@ -275,7 +279,11 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       if (!sc) return
       g.setTransform(dpr, 0, 0, dpr, 0, 0)
       g.fillStyle = '#12181c'; g.fillRect(0, 0, w, h)
-      g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
+      if (dim.up) g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
+      else {
+        g.save(); g.translate(dim.ox + FIELD_L * sc, dim.oy); g.rotate(Math.PI / 2)
+        g.drawImage(field, 0, 0, FIELD_W * sc, FIELD_L * sc); g.restore()
+      }
       // who is attacking, written on the in-goal they are attacking
       {
         const up = S.phase?.homeBall !== false
@@ -283,7 +291,10 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.font = `800 ${Math.round(Math.max(10, sc * 3.1))}px var(--cond, system-ui), system-ui, sans-serif`
         g.textAlign = 'center'; g.textBaseline = 'middle'
         g.fillStyle = 'rgba(255,255,255,.34)'
-        g.fillText(io.current.attackText.toUpperCase(), PX(35), PY(up ? 100 + GOAL / 2 : -GOAL / 2) + 1)
+        const ax = up ? 100 + GOAL / 2 : -GOAL / 2
+        g.translate(SX(ax, 35), SY(ax, 35) + 1)
+        if (!dim.up) g.rotate(up ? Math.PI / 2 : -Math.PI / 2)
+        g.fillText(io.current.attackText.toUpperCase(), 0, 0)
         g.restore()
       }
       const R = Math.max(8, sc * 1.9)
@@ -292,7 +303,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const dot = (i: number) => {
         const side = i < 15 ? H : A, k = i % 15
         const p = S.b[i]
-        const x = PX(p.y), y = PY(p.x)
+        const x = SX(p.x, p.y), y = SY(p.x, p.y)
         const has = i === S.holder
         g.beginPath(); g.arc(x + R * 0.14, y + R * 0.24, R, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()
         g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fillStyle = side.kit[0]; g.fill()
@@ -308,7 +319,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       g.strokeStyle = 'rgba(255,255,255,.8)'; g.fillStyle = 'rgba(255,255,255,.8)'; g.lineWidth = Math.max(1.6, sc * 0.3); g.setLineDash([sc * 1.1, sc * 0.9]); g.lineCap = 'round'
       for (const r of S.runs()) {
         const a = S.b[r.i]
-        const x0 = PX(a.y), y0 = PY(a.x), x1 = PX(r.to.y), y1 = PY(r.to.x)
+        const x0 = SX(a.x, a.y), y0 = SY(a.x, a.y), x1 = SX(r.to.x, r.to.y), y1 = SY(r.to.x, r.to.y)
         const d = Math.hypot(x1 - x0, y1 - y0)
         if (d < R * 1.6) continue
         const ux = (x1 - x0) / d, uy = (y1 - y0) / d
@@ -322,15 +333,15 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const top = S.phase?.homeBall === false ? 15 : 0
       for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder) dot(i)
       // the referee: no number, the colour nobody wears
-      g.beginPath(); g.arc(PX(S.ref.y), PY(S.ref.x), R * 0.78, 0, Math.PI * 2); g.fillStyle = refKit; g.fill()
+      g.beginPath(); g.arc(SX(S.ref.x, S.ref.y), SY(S.ref.x, S.ref.y), R * 0.78, 0, Math.PI * 2); g.fillStyle = refKit; g.fill()
       g.lineWidth = 1.4; g.strokeStyle = ink.dark; g.stroke()
       if (S.holder >= 0) dot(S.holder)
 
       // the ball: on the man's shoulder in hand, off its shadow in the air
       const br = Math.max(3.6, R * 0.5) * (1 + S.ball.lift * 0.03)
       const inHand = S.holder >= 0 && !flying
-      const bx = PX(S.ball.y) + (inHand ? R * 0.7 : 0), by = PY(S.ball.x) - (inHand ? R * 0.6 : 0)
-      if (!inHand) { g.beginPath(); g.ellipse(PX(S.ball.y), PY(S.ball.x) + 1.5, br * 0.9, br * 0.55, 0, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.3)'; g.fill() }
+      const bx = SX(S.ball.x, S.ball.y) + (inHand ? R * 0.7 : 0), by = SY(S.ball.x, S.ball.y) - (inHand ? R * 0.6 : 0)
+      if (!inHand) { g.beginPath(); g.ellipse(SX(S.ball.x, S.ball.y), SY(S.ball.x, S.ball.y) + 1.5, br * 0.9, br * 0.55, 0, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.3)'; g.fill() }
       g.beginPath(); g.ellipse(bx, by - S.ball.lift * sc * 0.45, br * 0.72, br, 0.5, 0, Math.PI * 2)
       g.fillStyle = ink.ball; g.fill(); g.lineWidth = 1; g.strokeStyle = ink.ballEdge; g.stroke()
 
@@ -344,7 +355,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
             const label = nm.split(' ').slice(-1)[0]
             g.font = `700 11px system-ui, sans-serif`
             const tw = g.measureText(label).width + 10
-            const lx = Math.max(tw / 2 + 2, Math.min(w - tw / 2 - 2, PX(p.y))), ly = PY(p.x) - R - 11
+            const lx = Math.max(tw / 2 + 2, Math.min(w - tw / 2 - 2, SX(p.x, p.y))), ly = SY(p.x, p.y) - R - 11
             g.fillStyle = 'rgba(10,14,20,.8)'
             g.beginPath(); g.roundRect(lx - tw / 2, ly - 8, tw, 16, 8); g.fill()
             g.fillStyle = ink.white; g.textAlign = 'center'; g.textBaseline = 'middle'

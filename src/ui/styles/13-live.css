@@ -923,3 +923,33 @@
   .live-wrap.full-match .comm-line .txt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.8125rem; line-height: 1.32; }
   .live-wrap.full-match .speed-controls { order: 3; padding-top: 6px; padding-bottom: calc(8px + var(--safe-area-inset-bottom, 0px)); }
 }
+
+/* the full match with the phone on its side, and on a tablet: the pitch box
+   fills what it is given and the canvas turns the pitch to fit it */
+@media (orientation: landscape) {
+  .live-wrap.full-match .last10, .live-wrap.full-match .press-row, .live-wrap.full-match .tense-band,
+  .live-wrap.full-match .match-status, .live-wrap.full-match .comm-line.old { display: none; }
+  .live-wrap.full-match .comm-feed { height: 46px; -webkit-mask-image: none; mask-image: none; }
+  .live-wrap.full-match .comm-list { transform: none !important; }
+  .live-wrap.full-match .comm-line.cur { min-height: 46px; }
+  .live-wrap.full-match .live-pitch {
+    aspect-ratio: auto; align-self: stretch; justify-self: stretch;
+    width: auto; height: auto; min-height: 0; margin: 6px 10px 0;
+  }
+}
+@media (orientation: portrait) {
+  /* a tablet held upright: the pitch down the left at full height, the feed
+     and the live stats in a column beside it */
+  .app.tablet .live-wrap.full-match {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'score score' 'pitch deck' 'ctrl ctrl';
+  }
+  .app.tablet .live-wrap.full-match .scoreboard { grid-area: score; }
+  .app.tablet .live-wrap.full-match .live-pitch {
+    grid-area: pitch; height: calc(100% - 8px); width: auto; aspect-ratio: 81.2 / 139; max-width: 57vw; align-self: start; margin: 8px 0 0 10px;
+  }
+  .app.tablet .live-wrap.full-match .tab-deck { grid-area: deck; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .app.tablet .live-wrap.full-match .tab-deck .tab-feed { flex: 1 1 0; min-height: 0; }
+  .app.tablet .live-wrap.full-match .now-strip { display: none; }
+  .app.tablet .live-wrap.full-match .speed-controls { grid-area: ctrl; justify-content: center; }
+}
