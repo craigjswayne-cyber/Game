@@ -193,14 +193,23 @@ export class PitchSim {
           // out from the ruck: to the fly-half first when it is going wide
           mode = this.mode; cIdx = this.cIdx; anchor = this.anchor
           need9()
+          // where he takes the pass: just behind the ruck when he is close;
+          // where he already is when he is a long way out (a wing does not
+          // run thirty metres infield to be handed it, the ball goes to him)
+          const me = this.b[att0 + c]
           const dy = E.y - B.y
           const sy = Math.abs(dy) < 4 ? open(B.y) * 5 : clamp(dy, -15, 15)
-          if (Math.abs(dy) > 14 && c !== 9 && c !== 8) {
-            this.over.set(att0 + 9, { x: B.x - dir * 4.5, y: clamp(B.y + Math.sign(dy) * 6, 3, 67) })
+          const out = hyp(me, B) > 14
+          const S: Pt = out
+            ? { x: dir > 0 ? Math.min(me.x, B.x - 3) : Math.max(me.x, B.x + 3), y: me.y }
+            : { x: B.x - dir * 6, y: clamp(B.y + sy, 3, 67) }
+          const wide = S.y - B.y
+          if (Math.abs(wide) > 14 && c !== 9 && c !== 8) {
+            this.over.set(att0 + 9, { x: B.x - dir * 4.5, y: clamp(B.y + Math.sign(wide) * 6, 3, 67) })
             steps.push({ k: 'wait', t: 0.35 }, { k: 'pass', to: att0 + 9 })
           }
           if (c !== 8) {
-            this.over.set(att0 + c, { x: B.x - dir * 6, y: clamp(B.y + sy, 3, 67) })
+            this.over.set(att0 + c, S)
             steps.push({ k: 'wait', t: 0.35 }, { k: 'pass', to: att0 + c })
           }
           steps.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true })
