@@ -94,6 +94,11 @@ export function readLine(e: MatchEvent, i: number, homeId: string, prev: Phase |
   const p = readLine0(e, i, homeId, prev, next)
   const mk = e.v?.move_k
   if (p && typeof mk === 'string') p.move = mk
+  // A TURNOVER IS NAMED: when the ball changes hands in open play, with no
+  // kick and no whistle between, the pitch says so while it shows it (the
+  // strip, the steal at the ruck or the intercept: sim.ts)
+  const open = (k: PhaseKind) => k === 'ruck' || k === 'carry'
+  if (p && prev && prev.homeBall !== p.homeBall && open(prev.kind) && open(p.kind) && (p.label === 'lp.ruck' || p.label === 'lp.carry' || p.label === 'lp.tackle')) p.label = 'lp.turnover'
   return p
 }
 
