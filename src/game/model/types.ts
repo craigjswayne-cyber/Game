@@ -274,6 +274,9 @@ export interface Player {
    *  point of morale every time, so a whole squad could be pumped to 10 in
    *  one week (scripts/qa/exploit.ts: 96 of 96 accepted). */
   renewedSeason?: number
+  /** He told you he is thinking of leaving (1.9.14, leaving.ts): the season,
+   *  the week, and why (the money elsewhere, or the mood here). */
+  leaveWarn?: { s: number; w: number; why: 'money' | 'mood' }
   /** week a formal transfer request landed (17A): the game-time ledger's
    *  escalation when a key or rotation man is badly short-changed. 0 or
    *  absent means no request. Cleared when the team sheets make it right,
@@ -1351,7 +1354,6 @@ export interface GameState {
    *  praises everybody praises nobody. */
   chatWk?: number
   chatsUsed?: number
-  /** national side the manager also coaches (FM-style dual role) */
   /** Which multiplier this save's absolute-week stamps were written on. Absent
    *  or 45 means a save from before the season grew to 48 weeks, and save.ts
    *  rebases it once, on load, to WEEK_BASIS. */
@@ -1890,7 +1892,7 @@ export interface GameState {
   /** finished national tenures, oldest first - the profile's international
    *  record survives the job (user: "your international record still stays
    *  on your profile") */
-  natHistory?: { nat: string; m: number; w: number; d: number; l: number }[]
+  natHistory?: { nat: string; m: number; w: number; d: number; l: number; best?: number; debuts?: number }[]
   /** season index when the user took charge of the current club */
   tenureStart?: number
   /** weeks in a row the board has sat at its floor (confidence 3 or under);
@@ -1959,6 +1961,44 @@ export interface GameState {
    *  call-up and drop cannot be cycled to grind another club's player's
    *  morale down (9.10). Absent in older saves, cleared with the window. */
   natSent?: number[]
+  /** THE CAMP'S FOCUS (1.9.14, natcamp.ts): what the national side works on
+   *  in the window it was chosen for, which the window's own weeks bound. */
+  natCamp?: { nat: string; season: number; start: number; end: number; focus: 'fitness' | 'setpiece' | 'attack' } | null
+  /** THE TEST GAME PLAN (1.9.14, natcamp.ts): the national side's four dials
+   *  and its captain, set on the Test preview and from the touchline. Every
+   *  dial at 50 and no captain is exactly the engine before it existed. */
+  natPlan?: { nat: string; style: number; tempo: number; kicking: number; aggression: number; captain: number | null } | null
+  /** THE LAST TEST THE COACH'S NATION PLAYED (1.9.14, nattest.ts): what the
+   *  full-time card reads - the ranking either side of it, the union's
+   *  reaction, and the caps it handed out. */
+  natLastTest?: {
+    fxId: number; season: number; week: number; nat: string; opp: string; us: number; them: number
+    rankBefore: number; rankAfter: number; ptsBefore: number; ptsAfter: number
+    conf?: number; confDelta?: number; debuts: number[]; caps: { id: number; n: number }[]
+  } | null
+  /** THE COACH'S ERA (1.9.14, nattest.ts): this tenure's best world ranking
+   *  and the players handed a first cap, for Club & Country and the Profile.
+   *  natRecord keeps the results; this keeps what they add up to. */
+  natEra?: { nat: string; bestRank: number; debuts: number[]; topWin?: boolean } | null
+  /** the union's terms for the tenure (1.9.14, natera.ts) */
+  natTerm?: { nat: string; since: number; rank: number; comp: string | null } | null
+  /** the unveiling still to be shown (1.9.14, natera.ts) */
+  natUnveil?: { nat: string; season: number; week: number } | null
+  /** THE WINDOW AS A CAMPAIGN (1.9.14, natwin.ts): the union's target, the
+   *  announcement, the camp's one event and the review, for the window the
+   *  coach's nation is in (or last was). */
+  natWin?: {
+    nat: string; season: number; start: number; end: number; comp: string
+    tests: number; target: number; w: number; d: number; l: number
+    announced: boolean
+    reveal?: { debuts: number[]; recalls: number[]; omitted: number[]; tone: 'bold' | 'experience' | 'shock' | 'settled'; seen: boolean }
+    event?: { kind: 'rest' | 'curfew' | 'scare' | 'bolter'; playerId: number; caps: number; answer?: 'a' | 'b' | 'c' }
+    review?: { met: boolean; delta: number; conf: number; warned: boolean; sacked: boolean; broken: boolean; seen: boolean }
+  } | null
+  /** the squad the last window ended with: who is a recall, who was left out */
+  natPrevSquad?: number[]
+  /** a window whose review ended the tenure, kept so the screen can say so */
+  natLastReview?: GameState['natWin']
   /** the federation's own list for the user's nation, snapshotted when the
    *  window opened: the yardstick for the two-jobs rule (9.10). Absent in
    *  older saves and between windows. */

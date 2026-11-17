@@ -1,5 +1,7 @@
 // The match as it is played: the ticker, the pitch, the controls and the sheets.
 
+import { TestVerdict } from '../../TestVerdict'
+import { natKit } from '../../../data/natcolours'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../../store'
 import { teamShort, refFor, MAX_SUBS, shirtNumber } from '../../../game/matchEngine'
@@ -348,8 +350,8 @@ export function Live() {
     // the canvas needs real colours: a club with no kit on file gets the
     // token kit, read off the page
     const white = tokenColor('--prop-ink')
-    const onGrass = kitColours(pageSpares(tokenColor), game.clubs[fixture.homeId]?.colors ?? [tokenColor('--kit-home'), white],
-      game.clubs[fixture.awayId]?.colors ?? [tokenColor('--kit-away'), white], false)
+    const onGrass = kitColours(pageSpares(tokenColor), game.clubs[fixture.homeId]?.colors ?? natKit(fixture.homeId) ?? [tokenColor('--kit-home'), white],
+      game.clubs[fixture.awayId]?.colors ?? natKit(fixture.awayId) ?? [tokenColor('--kit-away'), white], false)
     const hc = onGrass.home, ac = onGrass.away
     const spec = buildClip(events, nx.at, nx.kind, fixture.homeId, shirtOf,
       { home: [hc[0], hc[1] ?? white], away: [ac[0], ac[1] ?? white] },
@@ -405,7 +407,8 @@ export function Live() {
   // points from commentary, make it super clean"). The line is the words;
   // its kind is carried by cls(): gold for a score, the card colours, the TMO.
 
-  const kits = kitColours(pageSpares(tokenColor), game.clubs[fixture.homeId]?.colors, game.clubs[fixture.awayId]?.colors)
+  // a Test in its nations' colours (1.9.14, natcolours.ts)
+  const kits = kitColours(pageSpares(tokenColor), game.clubs[fixture.homeId]?.colors ?? natKit(fixture.homeId) ?? undefined, game.clubs[fixture.awayId]?.colors ?? natKit(fixture.awayId) ?? undefined)
   // Half-time and the 60' break are the two states where the match is stopped
   // waiting for the manager rather than paused. The control row treats them as
   // one thing: Play means "get back out there".
@@ -911,6 +914,7 @@ export function Live() {
             </button>
             <div className="review-grid">
               <div>
+                <TestVerdict fxId={live.fixture.id} />
                 <MatchVerdict />
                 <MatchFindings />
               </div>

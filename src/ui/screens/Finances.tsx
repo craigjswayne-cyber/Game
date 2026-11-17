@@ -11,7 +11,7 @@ import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { demandedFinish } from '../../game/chairman'
-import { MARQUEE_SLOTS, capPosition, capWord, marqueeOpen, rosterGrid, rosterWarnings } from '../../game/cap'
+import { MARQUEE_SLOTS, capPosition, capWord, marqueeOpen } from '../../game/cap'
 import { SectionTitle, RewardedButton, spotNote } from '../components'
 import { AdSlot } from '../AdSlot'
 import { IcoClock, IcoOpen, IcoTick } from '../icons'
@@ -589,8 +589,6 @@ export default function Finances() {
 
       {ftab === 'cap' && (() => {
         const pos = capPosition(game, club.id)
-        const grid = rosterGrid(game, club.id)
-        const warn = rosterWarnings(game, club.id)
         const marquee = pos.marquee.map(id => game.players[id]).filter(Boolean)
         return (
           <>
@@ -637,37 +635,10 @@ export default function Finances() {
                 ))}
               <div className="meta muted" style={{ marginTop: 6 }}>{t(marqueeOpen(game) ? 'finances.marqueeHow' : 'player.marqueeLocked')}</div>
             </div>
-            <SectionTitle sub={t('finances.squadCoverSub')}>
-              {t('finances.squadCover')}
-            </SectionTitle>
-            <div className="tblwrap fitwrap"><table className="dtable fit">
-              <colgroup><col style={{ width: '34%' }} />{grid.seasons.map(sn => <col key={sn} />)}</colgroup>
-              {/* two-digit years: four full ones jammed the last column against
-                  the screen edge in portrait (user: "squad cover needs to be
-                  better fitted") */}
-              <thead><tr><th>{t('finances.colUnit')}</th>{grid.seasons.map(sn => <th key={sn} className="num">{`'${String(26 + sn).padStart(2, '0')}`}</th>)}</tr></thead>
-              <tbody>
-                {grid.rows.map(row => (
-                  <tr key={row.label}>
-                    <td className="name">{t(row.label)}</td>
-                    {row.cells.map((cell, i) => (
-                      <td key={i} className="num" style={{
-                        fontWeight: cell.count < cell.need ? 700 : 400,
-                        color: cell.count < cell.need ? 'var(--danger)' : cell.count === cell.need ? 'var(--gold)' : undefined,
-                      }}>{cell.count}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table></div>
-            <div className="card">
-              {warn.length === 0
-                ? <div className="meta">{t('finances.allCovered')}</div>
-                : <>
-                  <div className="meta" style={{ fontWeight: 700, marginBottom: 4 }}>{t('finances.holesToFill')}</div>
-                  {warn.map(w => <div key={w} className="meta">{w}</div>)}
-                </>}
-            </div>
+            {/* NO SQUAD COVER TABLE (1.9.14, owner: "hide this from the user, not
+                sure its needed. But worth keeping in background to provide inbox
+                messages"). The grid still exists (cap.ts rosterGrid) and the club
+                writes to you when next season looks light (season.ts, lightNext). */}
           </>
         )
       })()}

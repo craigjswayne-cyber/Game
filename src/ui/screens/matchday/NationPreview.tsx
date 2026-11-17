@@ -15,6 +15,8 @@ import { rowNavTr } from '../../rowNav'
 import { SPEECHES, type SpeechId, ViewPicker } from './prematch'
 import { Veil } from '../../Veil'
 import { acc } from '../../accent'
+import { AnalystReport, NatCaptain, NatPlanDials, WalkOut } from './TestDay'
+import { NatBand } from '../../NatOccasion'
 
 /** Test-match preview: you're coaching your COUNTRY this week. */
 export function NationPreview({ fxId }: { fxId: number }) {
@@ -23,6 +25,8 @@ export function NationPreview({ fxId }: { fxId: number }) {
   const { kickOff, instantResult, back } = useStore.getState()
   const [speech, setSpeech] = useState<SpeechId | null>(null)
   const [confirm, setConfirm] = useState(false)
+  // the walk-out before a watched Test (1.9.14, TestDay.tsx)
+  const [walk, setWalk] = useState(false)
 
   const fx = game.fixtures.find(f => f.id === fxId)!
   const comp = game.comps[fx.compId]
@@ -105,6 +109,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
         </div>
       </header>
       <main className="content">
+        <NatBand nat={nat} sub={t('natera.testDay')} />
         <div className="card center">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={40} />
@@ -138,6 +143,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
         {bar(t('matchday.h2hBreakdown'), myUnits.breakdown, oppUnits.breakdown)}
         {bar(t('matchday.h2hAttack'), myUnits.attack, oppUnits.attack)}
         {bar(t('matchday.h2hDefence'), myUnits.defence, oppUnits.defence)}
+        <AnalystReport nat={nat} opp={opp} mine={myUnits} theirs={oppUnits} oppLineup={oppLineup} />
 
         <SectionTitle sub={sel != null
           ? t('matchday.moving', { player: game.players[myLineup[sel] ?? -1]?.name ?? t('matchday.emptySlot') })
@@ -172,6 +178,10 @@ export function NationPreview({ fxId }: { fxId: number }) {
             )
           })}
         </tbody></table></div>
+        {/* the armband and the plan (1.9.14): a Test is not the club's
+            match with flags, it has decisions of its own */}
+        <NatCaptain lineup={myLineup} />
+        <NatPlanDials />
         {pickSlot != null && (
           <Veil onClose={() => setPickSlot(null)}>
             <div className="grab" />
@@ -247,12 +257,17 @@ export function NationPreview({ fxId }: { fxId: number }) {
               onClick={() => {
                 setConfirm(false)
                 if (view === 'instant') instantResult(speech ?? undefined, true)
-                else kickOff(speech ?? undefined, view)
+                else setWalk(true)
               }}>
               {t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
             </button>
           </div>
         </Veil>
+      )}
+      {walk && (
+        <WalkOut fx={fx} nat={nat} lineup={myLineup}
+          onCancel={() => setWalk(false)}
+          onDone={() => { setWalk(false); kickOff(speech ?? undefined, view === 'instant' ? undefined : view) }} />
       )}
     </>
   )

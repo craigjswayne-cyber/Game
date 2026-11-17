@@ -108,3 +108,113 @@
 
 /* the Player of the Match under each result (1.9.13, WeekResults) */
 .rs-motm td { text-align: center; font-size: 0.75rem; padding-top: 0; padding-bottom: 6px; cursor: pointer; }
+
+/* ---- THE TEST DAY (1.9.14, matchday/TestDay.tsx) ----
+   The analysts' read, the armband, and the walk-out: out of the tunnel, both
+   sides standing in a line for the anthems, then the kick-off. The walk-out
+   covers the screen in the page's own surface with the two nations' shirt
+   colours as a band, so the words keep the page's contrast whatever the kit. */
+.test-reads { margin: 6px 0 0; padding-left: 18px; font-size: 0.8125rem; line-height: 1.45; color: var(--text-secondary); }
+.test-reads li + li { margin-top: 2px; }
+.cap-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cap-chip { min-height: 44px; padding: 6px 10px; font-weight: 600; }
+.cap-chip.sel { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); font-weight: 800; }
+
+.walkout {
+  position: fixed; inset: 0; z-index: 90;
+  display: flex; flex-direction: column;
+  background: var(--canvas);
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  overflow-y: auto;
+}
+.walkout .wo-band {
+  height: 6px; border-radius: 3px; margin-bottom: 10px;
+  background: linear-gradient(90deg, var(--wo-a) 0 50%, var(--wo-b) 50% 100%);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.walkout .wo-head { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--cond); font-size: 1rem; flex-wrap: wrap; }
+.walkout .wo-body { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; gap: 6px; }
+.walkout h2 { font-family: var(--cond); font-size: 1.75rem; letter-spacing: .5px; margin: 0; color: var(--text-primary); }
+.walkout p { margin: 0; font-size: 0.9375rem; line-height: 1.45; color: var(--text-secondary); }
+.walkout .wo-pitch {
+  margin: 14px auto 4px; padding: 14px 6px; width: 100%; max-width: 460px;
+  border-radius: 12px; background: var(--pitch-a);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.walkout .wo-line { display: flex; justify-content: center; gap: 1px; }
+.walkout .wo-fig { width: 6%; max-width: 22px; height: auto; }
+.walkout .wo-gap { height: 18px; border-bottom: 2px dashed rgba(255,255,255,.35); margin: 0 12px 18px; }
+.walkout .wo-anthems { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; font-size: 0.9375rem; color: var(--text-primary); }
+.walkout .wo-anthems li { padding: 8px 10px; border-radius: 8px; background: var(--surface-1); border: 1px solid var(--border); }
+.walkout .wo-actions { padding-top: 10px; }
+.walkout .wo-actions .btn.block { width: 100%; min-height: 52px; font-size: 1.0625rem; margin: 0; }
+.walkout .wo-links { display: flex; justify-content: space-between; margin-top: 6px; }
+.walkout .wo-links .btn { min-height: 44px; }
+@media (prefers-reduced-motion: no-preference) {
+  .walkout .wo-body { animation: wo-in .45s ease-out both; }
+  .walkout .wo-walk .wo-fig { animation: wo-walk .9s ease-out both; }
+}
+@keyframes wo-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes wo-walk { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* a Test's full time (1.9.14, TestVerdict.tsx) */
+.test-verdict .tv-score { font-family: var(--cond); font-size: 1.125rem; margin: 4px 0 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.test-verdict .tv-rows { display: grid; gap: 3px; font-size: 0.875rem; }
+.test-verdict .up { color: var(--text-positive); font-weight: 700; }
+.test-verdict .down { color: var(--text-negative); font-weight: 700; }
+
+/* the window as a campaign (1.9.14, NatCampaign.tsx) */
+.nc-steps { list-style: none; margin: 8px 0 4px; padding: 0; display: flex; gap: 4px; }
+.nc-steps li { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.6875rem; text-align: center; color: var(--text-muted); line-height: 1.2; }
+.nc-steps .nc-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-strong); display: grid; place-items: center; font-size: 0.6875rem; font-weight: 800; }
+.nc-steps li.done { color: var(--text-secondary); }
+.nc-steps li.done .nc-dot { background: var(--text-positive); border-color: var(--text-positive); color: var(--canvas); }
+.nc-steps li.now { color: var(--text-primary); font-weight: 700; }
+.nc-steps li.now .nc-dot { border-color: var(--gold); }
+.nc-target { margin-top: 6px; font-size: 0.875rem; }
+.nc-answers { display: grid; gap: 6px; }
+.nc-answers .btn { width: 100%; margin: 0; min-height: 44px; text-align: left; justify-content: flex-start; }
+.nc-reveal { padding: 0 4px 6px; }
+.nc-reveal-row { padding: 6px 12px; }
+
+/* ---- the nation's colours, the unveiling, the era (1.9.14, NatOccasion.tsx) ---- */
+.nat-band { margin: 10px 14px 6px; }
+.nat-band .nb-stripe {
+  height: 8px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--nb-a) 0 50%, var(--nb-b) 50% 100%);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.nat-band .nb-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px 0; }
+.nat-band .nb-row b { font-family: var(--cond); font-size: 1.25rem; letter-spacing: .5px; color: var(--text-primary); }
+.nat-unveil {
+  position: fixed; inset: 0; z-index: 95; background: var(--canvas); overflow-y: auto;
+  display: flex; flex-direction: column;
+  padding: calc(env(safe-area-inset-top, 0px) + 6px) 0 calc(env(safe-area-inset-bottom, 0px) + 14px);
+}
+.nat-unveil .nu-body { flex: 1; padding: 6px 16px; }
+.nat-unveil h1 { font-family: var(--cond); font-size: 1.75rem; line-height: 1.15; margin: 4px 0 8px; color: var(--text-primary); }
+.nat-unveil p { color: var(--text-secondary); line-height: 1.5; margin: 0 0 10px; }
+.nat-unveil .nu-terms ol { margin: 6px 0; padding-left: 20px; line-height: 1.5; }
+.nat-unveil .nu-go { margin: 8px 16px 0; width: auto; min-height: 52px; font-size: 1.0625rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .nat-unveil .nu-body { animation: wo-in .5s ease-out both; }
+}
+.nat-era .ne-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px; text-align: center; }
+.nat-era .ne-grid b { display: block; font-family: var(--cond); font-size: 1.25rem; color: var(--text-primary); }
+.nat-era .ne-grid span { font-size: 0.6875rem; color: var(--text-muted); line-height: 1.2; display: block; }
+.nat-era .ne-terms { list-style: none; margin: 4px 0 0; padding: 0; font-size: 0.875rem; line-height: 1.6; color: var(--text-secondary); }
+.nat-era .ne-terms li.done { color: var(--text-positive); font-weight: 700; }
+
+/* the anthems: one line each side of halfway, facing the main stand (1.9.14) */
+.walkout .wo-anthem-line { position: relative; padding: 26px 6px 6px; }
+.walkout .wo-anthem-line .wo-mark { position: absolute; top: 0; bottom: 20px; width: 0; border-left: 2px solid rgba(255,255,255,.4); }
+.walkout .wo-anthem-line .wo-half { left: 50%; }
+.walkout .wo-anthem-line .wo-ten { border-left-style: dashed; border-left-color: rgba(255,255,255,.25); }
+.walkout .wo-anthem-line .wo-ten-l { left: 30%; }
+.walkout .wo-anthem-line .wo-ten-r { left: 70%; }
+.walkout .wo-anthem-line .wo-row { position: relative; display: flex; justify-content: space-between; gap: 6px; }
+.walkout .wo-anthem-line .wo-side { flex: 1 1 0; min-width: 0; }
+.walkout .wo-anthem-line .wo-line { gap: 0; }
+.walkout .wo-anthem-line .wo-fig { width: calc(100% / 15); max-width: 14px; }
+.walkout .wo-stand-label { position: relative; margin-top: 8px; padding-top: 4px; border-top: 2px solid rgba(255,255,255,.4); font-size: 0.6875rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); }
+.cap-chip .muted { margin-left: 6px; }

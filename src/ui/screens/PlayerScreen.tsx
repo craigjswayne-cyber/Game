@@ -4,7 +4,7 @@ import { scrollContentTo } from '../pageReset'
 import AttrGrid, { bestInShirt } from '../AttrGrid'
 import { POS_ORDER, SEASON_WEEKS, careerRows, kickRecord, fmtMoney, fmtWage, shownMoney, injuryDesc, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
-import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
+import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, offerFreeAgent, freeAgentDemand, freeAgentTerm, FREE_TERMS, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
 import { FormPill, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton, spotNote } from '../components'
 import { nationName } from '../../game/nations'
@@ -101,6 +101,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [wageText, setWageText] = useState('0')
   const wageOffer = Math.max(0, Math.round(Number(wageText) || 0))
   const [wageCounter, setWageCounter] = useState<number | null>(null)
+  /** the length on the table in free-agent talks (1.9.14) */
+  const [faYears, setFaYears] = useState(2)
   const [compare, setCompare] = useState(false)
   // another club's man: his development card is folded (1.8.2 trim, see below)
   const [devOpen, setDevOpen] = useState(false)
@@ -1132,12 +1134,71 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 else setMsg(spotNote(out))
               }} />
           )}
-          <button className="btn gold block" onClick={() => {
-            // one path with the engine's guards (cap, embargo, wage budget) -
-            // the old inline version skipped the first two
-            setMsg(signFreeAgent(game, p.id).msg)
-            touch()
-          }}>{t('player.signFreeAgent')}</button>
+          {/* FREE-AGENT TALKS (1.9.14, player feedback: "You currently can't
+              negotiate with free agents on wages. Be good to add in!"). The
+              button used to sign him at his asking wage for two years. It now
+              opens talks: pick a length (each shows what he asks for it), offer
+              a wage, or sign at his asking in one tap. Every guard is the
+              engine's (offerFreeAgent). */}
+          {!negotiating ? (
+            <button className="btn gold block" data-fa-open onClick={() => {
+              const y = freeAgentTerm(p)
+              setFaYears(y); setNegotiating(true)
+              setWageText(String(Math.round(freeAgentDemand(p, y) * 0.9 / 50) * 50))
+              setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
+              // the talks open below the thumb: bring them up to it
+              window.setTimeout(() => document.querySelector('[data-fa-talks]')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60)
+            }}>{t('player.signFreeAgent')}</button>
+          ) : (() => {
+            const asking = freeAgentDemand(p, faYears)
+            const offer = (wage: number) => {
+              const r = offerFreeAgent(game, p.id, wage, faYears)
+              noteUse('bid') // a signing, as a transfer bid is
+              if (r.ok) { setNegotiating(false); setTalkOutcome(null); setWageCounter(null); setMsg(r.msg) }
+              else { setTalkOutcome(r.msg); setWageCounter(r.counter ?? null) }
+              touch()
+            }
+            return (
+              <div className="card fa-talks" data-fa-talks>
+                <h3>{t('player.contractTalks', { name: p.name.split(' ').slice(-1)[0] })}</h3>
+                {talkOutcome ? (
+                  <>
+                    <div className="sheet-casualty" data-fa-outcome style={{ borderLeftColor: 'var(--text-negative)' }}>
+                      <Glyph name="talk" /> {talkOutcome}
+                    </div>
+                    <div className="btn-row" style={{ margin: '10px 0 0' }}>
+                      <button className="btn" onClick={() => setTalkOutcome(null)}>{t('player.keepTalking')}</button>
+                      <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null); setTalkOutcome(null) }}>{t('player.leaveItThere')}</button>
+                    </div>
+                    {wageCounter != null && (
+                      <button className="btn gold" data-fa-meet style={{ marginTop: 8, width: '100%' }} onClick={() => offer(wageCounter)}>
+                        {t('player.meetTheirNumber', { wage: fmtWage(wageCounter) })}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="fact-label">{t('player.faLength')}</div>
+                    <div className="pp-opts" role="radiogroup" aria-label={t('player.faLength')}>
+                      {FREE_TERMS.map(y => (
+                        <button key={y} type="button" className={`pp-opt${faYears === y ? ' sel' : ''}`} role="radio" aria-checked={faYears === y} data-fa-term={y}
+                          onClick={() => { setFaYears(y); setWageText(String(Math.round(freeAgentDemand(p, y) * 0.9 / 50) * 50)) }}>
+                          <b>{t('player.faYears', { n: y })}</b><small>{t('player.faAsks', { wage: fmtWage(freeAgentDemand(p, y)) })}</small>
+                        </button>
+                      ))}
+                    </div>
+                    <input className="inline-input" type="text" inputMode="numeric" value={wageText} aria-label={t('player.yourOfferWage')} data-fa-wage
+                      onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
+                    <div className="btn-row" style={{ margin: '10px 0 0' }}>
+                      <button className="btn gold" data-fa-offer onClick={() => offer(wageOffer)}>{t('player.offerWage', { amount: wageOffer.toLocaleString(localeTag()) })}</button>
+                      <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null) }}>{t('player.walkAwayCaps')}</button>
+                    </div>
+                    <button className="btn fa-asking" data-fa-asking onClick={() => offer(asking)}>{t('player.faSignAsking', { wage: fmtWage(asking) })}</button>
+                  </>
+                )}
+              </div>
+            )
+          })()}
         </>
       )}
       <div className="spacer" />

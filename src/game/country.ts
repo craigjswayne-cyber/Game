@@ -13,6 +13,8 @@ import { clamp } from './rng'
 import { activeWindows } from './season'
 import { NAT_SQUAD_FLOOR, clubQuotaLeft, conflictedClub, federationList, homeBased } from './nations'
 import { t } from './i18n'
+import { CAMP_FOCI, type CampFocus } from './natcamp'
+import { clubManLeftOut } from './natwin'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
 
@@ -119,6 +121,10 @@ export function natDrop(state: GameState, playerId: number): string | null {
   if (p) {
     p.natSquad = false
     p.morale = clamp(p.morale - 0.7, 1, 10) // being sent home from camp stings
+    // and sent home by your own club's coach is personal, on top (1.9.14,
+    // natwin.ts clubManLeftOut). On top, so a recall (which gives back the
+    // 0.7) can never make a drop-and-recall a morale gain.
+    clubManLeftOut(state, p)
     ;(state.natSent ??= []).push(playerId)
   }
   if (state.natLineup?.team === nat) state.natLineup = null
@@ -168,4 +174,21 @@ export function natSquadHold(state: GameState): { n: number } | null {
   // only a hold that can be cleared is a hold - see days.ts squadBlock
   if (named + natEligible(state).length < NAT_SQUAD_FLOOR) return null
   return { n: short }
+}
+
+/** The open window for the user's nation, with its weeks, or null: the same
+ *  test natWindow makes (natcamp.ts, 1.9.14). */
+export function campWindow(state: GameState): { start: number; end: number } | null {
+  const nat = state.natTeam
+  if (!nat || !state.natSquads[nat]) return null
+  const w = activeWindows(state).find(w => w.nations.includes(nat) && state.week >= w.start && state.week <= w.end)
+  return w ? { start: w.start, end: w.end } : null
+}
+
+/** Choose the camp's focus for this window. False outside one: no camp. */
+export function setCampFocus(state: GameState, focus: CampFocus): boolean {
+  const w = campWindow(state)
+  if (!w || !CAMP_FOCI.includes(focus)) return false
+  state.natCamp = { nat: state.natTeam!, season: state.season, start: w.start, end: w.end, focus }
+  return true
 }

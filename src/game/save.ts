@@ -813,6 +813,7 @@ function migrateWorldRefs(s: GameState): void {
     p.value = num(p.value, 0, 1_000_000_000_000, 100_000)
     p.bans = int(p.bans, 0, 99, 0)
     if (p.freeUntil !== undefined && !(typeof p.freeUntil === 'number' && Number.isFinite(p.freeUntil))) delete p.freeUntil
+    if (p.leaveWarn != null && (typeof p.leaveWarn !== 'object' || !Number.isFinite(p.leaveWarn.s) || !Number.isFinite(p.leaveWarn.w))) delete p.leaveWarn
     if (p.reqLock !== undefined && typeof p.reqLock !== 'string') delete p.reqLock
     if (typeof p.name !== 'string' || !p.name) p.name = 'Unnamed Player'
     // A POSITION THE GAME HAS (1.9.4 audit). Selection reads his shirt's
@@ -1007,6 +1008,30 @@ function migrateManagerAndNation(s: GameState): void {
   s.natLineup ??= null
   // 9.10's sent-home list: absent before it existed, and a damaged one is just dropped
   if (s.natSent != null && !Array.isArray(s.natSent)) delete s.natSent
+  // the camp's focus (1.9.14): a malformed one is no focus, never a crash
+  if (s.natCamp != null && (typeof s.natCamp !== 'object' || !['fitness', 'setpiece', 'attack'].includes(s.natCamp.focus) ||
+    ![s.natCamp.season, s.natCamp.start, s.natCamp.end].every(n => typeof n === 'number' && Number.isFinite(n)) || typeof s.natCamp.nat !== 'string')) delete s.natCamp
+  // the Test game plan (1.9.14): a dial that is not a number reads as the
+  // middle, a captain who is not a player is no captain
+  if (s.natPlan != null) {
+    if (typeof s.natPlan !== 'object' || typeof s.natPlan.nat !== 'string') delete s.natPlan
+    else {
+      for (const k of ['style', 'tempo', 'kicking', 'aggression'] as const) {
+        const v = s.natPlan[k]
+        s.natPlan[k] = typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 50
+      }
+      if (s.natPlan.captain != null && !s.players?.[s.natPlan.captain]) s.natPlan.captain = null
+    }
+  }
+  // the last Test's ledger and the era (1.9.14): damaged, they are dropped
+  if (s.natLastTest != null && (typeof s.natLastTest !== 'object' || !Array.isArray(s.natLastTest.debuts) || !Array.isArray(s.natLastTest.caps))) delete s.natLastTest
+  if (s.natEra != null && (typeof s.natEra !== 'object' || typeof s.natEra.nat !== 'string' || !Array.isArray(s.natEra.debuts) || !Number.isFinite(s.natEra.bestRank))) delete s.natEra
+  // the window campaign (1.9.14): damaged, it is dropped, never a crash
+  if (s.natWin != null && (typeof s.natWin !== 'object' || typeof s.natWin.nat !== 'string' ||
+    ![s.natWin.season, s.natWin.start, s.natWin.end, s.natWin.tests, s.natWin.target, s.natWin.w, s.natWin.d, s.natWin.l].every(n => typeof n === 'number' && Number.isFinite(n)))) delete s.natWin
+  if (s.natPrevSquad != null && !Array.isArray(s.natPrevSquad)) delete s.natPrevSquad
+  if (s.natTerm != null && (typeof s.natTerm !== 'object' || typeof s.natTerm.nat !== 'string' || !Number.isFinite(s.natTerm.rank) || !Number.isFinite(s.natTerm.since))) delete s.natTerm
+  if (s.natUnveil != null && (typeof s.natUnveil !== 'object' || typeof s.natUnveil.nat !== 'string')) delete s.natUnveil
   if (s.natFed != null && (typeof s.natFed !== 'object' || typeof s.natFed.nat !== 'string' || !Array.isArray(s.natFed.ids))) delete s.natFed
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist

@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react'
+import { TestVerdict } from '../TestVerdict'
 import { useStore } from '../../store'
 import { leaguePos, parseResultsParam, sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
@@ -34,6 +35,10 @@ export default function WeekResults({ param }: { param: string }) {
         )}
       </div>
       {tab === 'results' && (<>
+      {/* the coach's own Test, first (1.9.14): what it did beyond the score */}
+      {game.natLastTest && game.natLastTest.season === game.season && results.some(f => f.id === game.natLastTest!.fxId) && (
+        <TestVerdict fxId={game.natLastTest.fxId} />
+      )}
       <SectionTitle sub={compLabel(comp?.name) ?? (compId === 'fr' ? t('week.wrFriendlies') : undefined)}>{t('week.wrThisWeek')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {results.map(f => {

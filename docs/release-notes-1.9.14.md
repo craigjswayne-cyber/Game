@@ -2,7 +2,9 @@
 
 **READY (owner, 16 Nov 2026: "Ok we need to merge and upload this").**
 Started 15 Nov from player feedback ("Work on it now but dont merge and ill
-keep adding to it"). The store "What's new" text is in `docs/store-listing.md`.
+keep adding to it"). Free-agent talks added 16 Nov after the merge, before
+upload (owner: "Add it into 1.9.14 as I haven't uploaded that"), then the
+club-and-country fixes the same night (owner: add to 1.9.14). The store "What's new" text is in `docs/store-listing.md`.
 
 Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
 
@@ -24,6 +26,121 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   the set-piece calls alone (a call the pack has not drilled misfires). The
   first version was a Home card with 27 choices; owner: "I think the season
   plan is too confusing".
+
+- **Negotiating with free agents.** Player feedback (Instagram, 16 Nov
+  2026): "You currently can't negotiate with free agents on wages. Be good to
+  add in!" Sign Free Agent signed at a fixed wage on a two-year deal. It now
+  opens contract talks: choose one, two or three seasons (each shows what the
+  player asks for it, and the length they would choose is the cheapest: one
+  season at 23 or under, three at 29 or over, otherwise two), offer a wage,
+  or sign at the asking in one tap. From 95% of the asking signs; under 80%
+  is turned down; in between, character decides, and a counter is always
+  honoured when you meet it. The same offer in the same week gets the same
+  answer. Free agents are easier to talk down than your own players at
+  renewal (97% and 85% there), since they have no club. Never under the wage
+  they last earned. Every guard stays: squad limit, embargo, salary cap, wage
+  budget. A one-season deal still counts as two seasons for the resale rule,
+  so signing free and selling on stays as hard as before. The two-season
+  asking wage is exactly what the old button charged.
+
+- **One manager, two jobs: club and country, kept apart.** Player feedback
+  (Instagram, 16 Nov 2026), from a manager holding a club and a country:
+  "Couldn't see training for my international team, couldn't edit the squad,
+  match week for club got muddled with international". Three fixes:
+  - **The Test comes first on Home.** On a week with both, the hero card was
+    still the club match (labelled "Assistant's match", from an earlier
+    report) with the Test a tile further down. Now the hero is the Test,
+    with the club match one line under it: "Your assistant takes Leicester v
+    Sarries and reports back." Tapping it opens Club & Country.
+  - **The national squad is on the Team screen.** A **Club | Country**
+    switch at the top while you hold a national job. Country is the same
+    window squad as on Club & Country (call up and drop while camp is open,
+    the countdown and the coaches' picks between windows), not a copy.
+  - **National training: the camp focus.** A **Country** tab on Training &
+    Staff (with a dot while camp is open and nothing is chosen). Fitness, Set
+    pieces or Attack, the club's match prep with the same sizes and trade,
+    minus the briefing room: fitness tires about 8% slower; set pieces +4% on
+    scrum and lineout and -1% attack; attack +3.5% and -1% defence. It lasts
+    the window it was chosen in. Between windows the tab says when the next
+    camp opens.
+  The handbook's national-job answer says where both now live, in six
+  languages.
+
+- **The international game, rebuilt.** Owner, after a review of the
+  national job: it "should be an honour", "more fun to play" and "only appear
+  when coaching"; on the walk-out, "they should stand for the anthems"; and
+  "This should all be fixed in 1.9.14 - do not hold anything back!"
+  - **The unveiling.** Taking a job (offer or store) opens a full-screen
+    unveiling under a band in the nation's colours, with the union's three
+    terms for the tenure: a world ranking (top 3 for a top-five side, a
+    couple of places up for most, world no. 1 to keep for the best), the
+    nation's title (or a win over a top-five side where it has none), and
+    three first caps handed out. The keep-the-club question is asked there.
+  - **Each window is a campaign** (Club & Country and the Team screen's
+    Country side): five steps (camp, squad named, announced, Tests, review)
+    and the union's target, one win for each side on the fixture list ranked
+    below you (one fewer when that would be a clean sweep of three or more,
+    never fewer than one). **Announce the squad** once 23 are named: a
+    reveal of the uncapped, the recalled and the big names left out (who take
+    it badly, more so if Temperamental or Ambitious), with the press's read.
+    **One event in camp**, answered once: a club asking for a player to be
+    rested, a missed curfew, a knock in training, an uncapped player who
+    stands out (a promised debut that never comes costs morale at the
+    review). **The review** when the window closes: met is +4 (+6 beyond it),
+    one short -3, more -7; below 35 a warning; below 20 the union ends the job
+    there and then.
+  - **Test day.** The preview opens under the nation's band with the union
+    analysts' read (both rankings, their edge, ours, their danger player),
+    **a captain** (the XV's leaders, Leadership shown; 12 or more steadies
+    the side, as the club armband does) and **a game plan** (the club's four
+    dials, for the country, also on the touchline at the breaks). In the
+    middle, the plan is the engine as it was (the fingerprint is unchanged).
+  - **The walk-out** before a watched Test: out of the tunnel behind the
+    captain; both sides **standing in a line for the anthems**, visitors'
+    first, each named; the challenge where a side lays one down (haka, Cibi,
+    Siva Tau, Sipi Tau); then kick-off. Skippable. Nations now play in their
+    own colours on the pitch.
+  - **A Test's full time** has its own card: the score, the world ranking
+    move and points, the union's reaction, first caps and milestones (25th,
+    50th, 75th, 100th).
+  - **Your era** on Club & Country: Tests, win %, best ranking, first caps
+    given, titles, and the three terms with ticks; past tenures on the
+    Profile keep their best ranking and first caps.
+  - **Fixes:** a table title (the Championship, a tour) now gets the trophy
+    celebration a final always had; the appointment letter no longer says
+    you coach the country "when the club has no fixture" (the Test comes
+    first); a national coach without a club sees the country tile on Home;
+    the Isles XV letter opens the screen it is answered on; Step down sits at
+    the foot of Club & Country; the Championship tile on Home and the Isles
+    XV panel show only to national coaches (the Isles one only to the four
+    unions it picks from).
+
+- **After the screenshots (owner, 17 Nov 2026).**
+  - **No mood on Game Time** ("mood shouldnt be on game time"): the table is
+    what each player was told, appearances and what is due.
+  - **Squad Cover is off Finances** ("hide this from the user ... worth
+    keeping in background to provide inbox messages"). The grid is kept
+    (cap.ts), and the club writes when next season is light, at the
+    half-way point and six weeks from the end, naming each short unit.
+  - **"I'm thinking of leaving"** (leaving.ts). The expiring-contract
+    reminders already ran at six, three, one and half a month out. Now, in
+    the last three months of a deal, a player whose market wage is well
+    above his own (the money) or whose morale is under 4.5 (the mood) writes
+    that he is thinking of leaving, once a season. Three weeks on, still
+    unrenewed, with a club of his level to go to, he announces a move at the
+    end of the season on a pre-contract. A renewal stops it. The rivals'
+    pre-contract raid now only takes a man who has warned first (checked
+    after its draws, so the world's random stream is unchanged).
+  - **The club man the country's coach leaves out** (natwin.ts
+    clubManLeftOut): dropping or omitting one of your own club's players
+    from the national squad is personal. Happy: fine. Middling: hurt. Low:
+    angry, and an Ambitious or Temperamental player at rock bottom hands in
+    a transfer request. Professionals and Mercenaries take it best, Loyal
+    players are hurt more. On top of the usual sting, so a drop and recall is
+    never a morale gain. A letter says how it landed.
+  - **The anthems, where teams stand**: one line each side of halfway,
+    facing the main stand, visitors on one half and hosts on the other.
+  - The captain chips had no space between the name and Leadership.
 
 - **Changing your marquee players.** Player feedback: "Not sure if an issue
   or user error, but I can't change my Marquee Players". It was the game:
@@ -74,6 +191,28 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
 
 ## Tests
 
+- New: `tests/leaving.test.ts` (money and mood reasons, warn then announce,
+  a renewal stops it, the raid needs a warning, the club man's reactions by
+  mood and character, next season's short units).
+- New: `tests/natwin.test.ts` (target, Tests counted, announcement, camp
+  event, review met/missed/sacked, era into the history), `tests/natera.test.ts`
+  (terms and unveiling, the Test ledger, the reaction rule, a neutral plan
+  is the engine as it was, captain and dials move the units) and
+  `scripts/intlstageui.mjs` (browser: unveiling, campaign, announcement,
+  camp event, Test preview, walk-out and anthems, half-time dials, full-time
+  card, era).
+- New: `tests/natcamp.test.ts` (a focus only inside a window, gone the week
+  after it closes, tied to its nation, reaches the Test at kick-off, a
+  damaged one dropped on load) and `scripts/dualroleui.mjs` (browser: a
+  Leicester career with the England job walked to a week with both; the
+  Home hero is the Test with the assistant's line, the Team screen's
+  Country side has Drop and Call up, the Country tab stores a focus).
+- New: `tests/freeagenttalks.test.ts` (the old door unchanged, each length's
+  asking, 95% signs, a lowball refused, a counter always honoured and the same
+  week repeats it, never under the last wage, the guards, the two-season
+  resale term) and `scripts/freeagentui.mjs` (browser: three lengths with
+  their own asking, the card scrolls up to the thumb, a lowball answered in
+  the card, signing at the asking on three seasons).
 - New: `tests/marqueeswap.test.ts`, `scripts/marqueeui.mjs` (browser: a full
   list offers the swap, the swap moves the slot, Finances opens the player,
   and the locked page says why).

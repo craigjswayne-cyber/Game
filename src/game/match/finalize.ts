@@ -4,6 +4,7 @@
 import type { Fixture, GameState, MatchEvent, Player } from '../model'
 import { addGrudge, fmtMoney } from '../model'
 import { updateNatRank } from '../natrank'
+import { closeTestLedger, noteTestCap, openTestLedger } from '../nattest'
 import { talkMorale } from '../teamtalk'
 import { nationNameIn, nationVars } from '../nations'
 import { isDerby } from '../rivalries'
@@ -96,7 +97,12 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   if (detail) fx.events = ctx.events
 
   // Test rugby keeps score beyond the scoreboard: the world rankings move
-  if (!state.clubs[fx.homeId] && !state.clubs[fx.awayId]) updateNatRank(state, fx)
+  // (1.9.14, nattest.ts) and the coach's own Test keeps a ledger of it
+  if (!state.clubs[fx.homeId] && !state.clubs[fx.awayId]) {
+    openTestLedger(state, fx)
+    updateNatRank(state, fx)
+    closeTestLedger(state, fx)
+  }
 
   // an ill-tempered afternoon starts a feud of its own
   const totalCards = home.yellowUntil.size + home.sent + away.yellowUntil.size + away.sent
@@ -199,6 +205,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       if (isNation) {
         // a Test match: another cap, and the milestones are forever
         p.caps = (p.caps ?? 0) + 1
+        noteTestCap(state, ctx.fx.id, side.teamId, p.id, p.caps)
         // (not while he is out of work: userClubId still names the club that
         // sacked him, and its players' caps are not his news - exileprobe)
         if (!state.unemployed && p.clubId === state.userClubId && (p.caps === 1 || p.caps === 50 || p.caps === 100)) {

@@ -103,8 +103,21 @@ export function trustKey(v: number): string {
  *  profile"). */
 export function closeNatTenure(state: GameState) {
   if (state.natTeam && state.natRecord && state.natRecord.m > 0) {
-    ;(state.natHistory ??= []).push({ nat: state.natTeam, ...state.natRecord })
+    // the era goes with the record (1.9.14): best ranking, first caps given
+    const era = state.natEra?.nat === state.natTeam ? state.natEra : null
+    ;(state.natHistory ??= []).push({
+      nat: state.natTeam, ...state.natRecord,
+      ...(era ? { best: era.bestRank, debuts: era.debuts.length } : {}),
+    })
   }
+  // the tenure's own working papers go with it (1.9.14)
+  state.natWin = null
+  state.natPlan = null
+  state.natCamp = null
+  state.natEra = null
+  state.natTerm = null
+  state.natUnveil = null
+  state.natPrevSquad = []
   state.natTeam = null
   state.natConfidence = null
   state.natRecord = null

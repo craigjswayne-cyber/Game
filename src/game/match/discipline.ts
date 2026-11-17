@@ -8,13 +8,15 @@ import { colour, onField, upOf } from './commentary'
 import { checkFrontRow } from './subs'
 import { fieldChanged } from './field'
 import type { SideCtx } from './side'
+import { natCaptain } from '../natcamp'
 import { type LiveCtx, binUntil, pushLine } from './live'
 
 /** the man leading this side on the pitch: the captain, the vice, or the
  *  most natural leader out there */
 function captainOf(state: GameState, side: SideCtx): Player | null {
   const club = state.clubs[side.teamId]
-  for (const id of [club?.captain, club?.vice]) {
+  // a Test side's captain is the one the national coach named (1.9.14)
+  for (const id of [club ? null : natCaptain(state, side.teamId), club?.captain, club?.vice]) {
     if (id != null && side.onPitch.has(id)) return state.players[id] ?? null
   }
   const ps = onField(state, side)

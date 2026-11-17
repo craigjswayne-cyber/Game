@@ -1,4 +1,7 @@
 import { talkbackWeek } from './talkback'
+import { leavingWeek } from './leaving'
+import { testConfDelta } from './nattest'
+import { noteWindowResult } from './natwin'
 import { dressingRoomAlerts } from './alerts'
 import { settleStartPledge } from './handshake'
 import type { Fixture, GameState, Player, Pos } from './model'
@@ -12,7 +15,7 @@ import { insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
 import { aiFreeAgents, aiSummerMarket, aiYouthHunt, rivalPushWeek, settleRivalBids } from './rivalbids'
 import { rivalBeat } from './boss'
-import { auditCaps, refreshCaps } from './cap'
+import { auditCaps, lightNextSeason, refreshCaps } from './cap'
 import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
@@ -1355,13 +1358,16 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       else if (us === them) rec.d += 1
       else rec.l += 1
       mgrMilestones(state, us > them)
+      // and the window's target (1.9.14, natwin.ts)
+      if (mySide === state.natTeam) noteWindowResult(state, us, them)
       // the union keeps score: every Test moves their confidence in you,
       // weighted by where the two sides sit in the world
       if (mySide === state.natTeam && state.natConfidence != null) {
         const oppId = userFx.homeId === mySide ? userFx.awayId : userFx.homeId
-        const better = (state.natRank?.[oppId] ?? 70) > (state.natRank?.[mySide] ?? 70)
-        const delta = us > them ? (better ? 4 : 2.5) : us < them ? (better ? -3.5 : -5.5) : 0.5
+        const delta = testConfDelta(state, mySide, oppId, us, them)
         state.natConfidence = clamp(state.natConfidence + delta, 0, 100)
+        // the full-time card reads what the union did (1.9.14, nattest.ts)
+        if (state.natLastTest?.fxId === userFx.id) { state.natLastTest.conf = state.natConfidence; state.natLastTest.confDelta = delta }
       }
       matchReport(state, userFx)
     }
@@ -1644,6 +1650,20 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           state.natTeam != null && ['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)
         if ((state.natTeam != null && comp.champion === state.natTeam) || lionsWin) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
+          // A TABLE WON IS A TROPHY LIFTED (1.9.14). A knockout title (a World
+          // Championship final) set the celebration and a table title (the
+          // Championship, the Rugby Championship, a tour) only filed a letter:
+          // the biggest day of a national coach's year passed as an inbox line.
+          {
+            const hv: Vars = { comp: comp.name.toUpperCase() }
+            const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
+            state.celebration = {
+              headline: tIn('en', 'cel.championsOf', hv),
+              sub: tIn('en', 'cel.championsSub', sv),
+              icon: 'trophy',
+              hk: 'cel.championsOf', hv, sk: 'cel.championsSub', sv,
+            }
+          }
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
@@ -1811,6 +1831,23 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
     [SEASON_WEEKS - 4, 'news.cxOne'],
     [SEASON_WEEKS - 2, 'news.cxTwo'],
   ]
+  // LOOKING LIGHT NEXT SEASON (1.9.14, cap.ts lightNextSeason): the Squad
+  // Cover table is gone from Finances, and the club says it in a letter
+  // instead, at the half-way point and again six weeks from the end
+  if (!state.unemployed && (state.week === SEASON_WEEKS - 26 || state.week === SEASON_WEEKS - 6)) {
+    const short = lightNextSeason(state, state.userClubId)
+    if (short.length) {
+      const v = {
+        n: short.length,
+        units_l: JSON.stringify(short.map(x => ({ k: 'news.lightUnit', unit_k: x.label, count: x.count, need: x.need }))),
+      }
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
+        subject: tIn('en', 'news.lightNextSubj', v), body: tIn('en', 'news.lightNext', v),
+        k: 'news.lightNext', v,
+      })
+    }
+  }
   const rung = CONTRACT_LADDER.find(([wk]) => wk === state.week)
   if (rung) {
     const expiring = state.clubs[state.userClubId].players
@@ -2176,6 +2213,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   yield
   aiRenewals(state, rng)
   if (!state.unemployed) aiPreContractPoach(state, rng)
+  // and their own voice: a warning, then the announcement (1.9.14, leaving.ts)
+  leavingWeek(state)
   yield
   refreshVacancies(state, rng)
 

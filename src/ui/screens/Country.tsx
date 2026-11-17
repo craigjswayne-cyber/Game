@@ -13,6 +13,9 @@ import { posName, t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { rowNavTr } from '../rowNav'
 import { acc } from '../accent'
+import { NatCampaign } from '../NatCampaign'
+import { NatBand, NatEraCard } from '../NatOccasion'
+import { natKit } from '../../data/natcolours'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -24,20 +27,11 @@ const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 export default function Country() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const { resign, resignNat, persist } = useStore.getState()
+  const { resign, resignNat } = useStore.getState()
   const bump = useStore(s => s.tick)
   void bump
-  const [msg, setMsg] = useState<{ key: number | string; text: string } | null>(null)
   const [confirmClub, setConfirmClub] = useState(false)
   const [confirmNat, setConfirmNat] = useState(false)
-  const [, redraw] = useState(0)
-  // FM'S ONE AFFORDANCE (owner: "simplify/work on the call up/drop stage - see
-  // how fm do it"): you never scroll a national pool, you filter it to the
-  // shirt you are short of. England's qualified population is two thousand
-  // names, so an unfiltered "next men in" list was not a shortlist, it was a
-  // census.
-  const [posFilter, setPosFilter] = useState<Pos | 'ALL'>('ALL')
-
   const natId = game.natTeam
   if (!natId) {
     // stepped down (or sacked) with the screen open - nothing to run here
@@ -53,6 +47,144 @@ export default function Country() {
   const rank = order.indexOf(natId) + 1
   const conf = game.natConfidence != null ? Math.round(game.natConfidence) : null
   const rec = game.natRecord
+  const club = game.unemployed ? null : game.clubs[game.userClubId]
+  const testFx = natFixtureThisWeek(game)
+  const upcoming = game.fixtures
+    .filter(f => !f.played && (f.homeId === natId || f.awayId === natId))
+    .sort((a, b) => a.week - b.week).slice(0, 4)
+  const results = game.fixtures
+    .filter(f => f.played && (f.homeId === natId || f.awayId === natId) &&
+      !game.clubs[f.homeId] && !game.clubs[f.awayId])
+    .sort((a, b) => b.week - a.week).slice(0, 5)
+
+  return (
+    <>
+      <NatBand nat={natId} sub={t('natera.headCoach', { g: game.mgrGender ?? 'm' })} />
+      <div className="card" style={{ ...acc(natKit(natId)?.[0] ?? 'var(--text-positive)') }}>
+        <h3 style={{ fontSize: '1.125rem' }}><Flag code={natId} /> {nationName(natId)}</h3>
+        <div className="meta" style={{ marginTop: 2 }}>
+          {t('legacy.coRankLine', {
+            rank: rank > 0 ? t('legacy.coWorldNo', { n: rank }) : t('legacy.coUnranked'),
+            pts: (game.natRank?.[natId] ?? 0).toFixed(2),
+            rec: rec ? t('legacy.coTestsUnder', { w: rec.w, d: rec.d, l: rec.l }) : '',
+          })}
+        </div>
+        {conf != null && (
+          <div style={{ margin: '8px 2px 2px' }}>
+            <div style={{ height: 8, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden' }}>
+              <div style={{ width: `${conf}%`, height: '100%', background: conf >= 60 ? 'var(--text-positive)' : conf >= 40 ? 'var(--gold)' : 'var(--danger)' }} />
+            </div>
+            <div className="meta" style={{ marginTop: 4 }}>
+              {t('legacy.coUnionConf', { n: conf })}
+            </div>
+          </div>
+        )}
+        {testFx && (
+          <div className="muted" style={{ marginTop: 8, fontWeight: 700 }}>
+            {t('legacy.coTestWeek', {
+              home: nationName(testFx.homeId),
+              away: nationName(testFx.awayId),
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* The Thursday of a Test week is the other moment a manager wants a fit
+          squad and cannot get to the shop. Same card, same rules - silent
+          where there is no till and where nobody is hurt. */}
+      <FullFitness compact />
+
+      <NatCampaign />
+      <NatSquad />
+      <NatEraCard />
+
+      <SectionTitle>{t('legacy.coTests')}</SectionTitle>
+      <div className="tblwrap"><table className="dtable"><tbody>
+        {upcoming.map(f => (
+          <tr key={f.id}>
+            <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
+            <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
+            <td className="num muted">-</td>
+          </tr>
+        ))}
+        {results.map(f => {
+          const us = f.homeId === natId ? f.homeScore : f.awayScore
+          const them = f.homeId === natId ? f.awayScore : f.homeScore
+          return (
+            <tr key={f.id}>
+              <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
+              <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
+              <td className="num" style={{ fontWeight: 700, color: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }}>
+                {f.homeScore}-{f.awayScore}
+              </td>
+            </tr>
+          )
+        })}
+        {!upcoming.length && !results.length && (
+          <tr><td className="meta">{t('legacy.coNoTests')}</td></tr>
+        )}
+      </tbody></table></div>
+      <div className="meta" style={{ padding: '4px 16px', fontSize: '0.75rem' }}>
+        {t('legacy.coFullTables')}
+      </div>
+      {/* both hats, and the way out of either - in the open, not buried
+          (user: "OR you can step down from your club role"), and at the foot
+          of the page since 1.9.14: the work first, the exit after it */}
+      <div className="card">
+        <SectionTitle sub={t('legacy.coAppointmentsSub')}>{t('legacy.coAppointments')}</SectionTitle>
+        {club && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+            <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name="stadium" /></span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{club.name}</div>
+              <div className="meta">{t('legacy.coDirectorBoard', { n: Math.round(club.boardConfidence) })}</div>
+            </div>
+            {confirmClub
+              ? <button className="btn danger" style={{ fontSize: '0.75rem' }} onClick={() => { resign(); setConfirmClub(false) }}>{t('legacy.coConfirm')}</button>
+              : <button className="btn ghost" style={{ fontSize: '0.75rem', color: 'var(--text-negative)' }} onClick={() => { setConfirmClub(true); setConfirmNat(false) }}>{t('legacy.coStepDown')}</button>}
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+          <Flag code={natId} size={16} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{nationName(natId)}</div>
+            <div className="meta">{t('legacy.coNatCoach')}{conf != null ? t('legacy.coNatUnion', { n: conf }) : ''}</div>
+          </div>
+          {confirmNat
+            ? <button className="btn danger" style={{ fontSize: '0.75rem' }} onClick={() => { resignNat(); setConfirmNat(false); go('home') }}>{t('legacy.coConfirm')}</button>
+            : <button className="btn ghost" style={{ fontSize: '0.75rem', color: 'var(--text-negative)' }} onClick={() => { setConfirmNat(true); setConfirmClub(false) }}>{t('legacy.coStepDown')}</button>}
+        </div>
+        {!club && <div className="meta">{t('legacy.coNoClubPost')}</div>}
+      </div>
+
+      <div className="spacer" />
+    </>
+  )
+}
+
+/**
+ * THE WINDOW SQUAD, ON ITS OWN (1.9.14). The same list on Club & Country and
+ * behind the Squad screen's Country switch (player feedback, from a manager
+ * with both jobs: "couldn't edit the squad" - he looked for it where the club
+ * squad is). Call up and drop while the camp is open; between windows, the
+ * countdown and the men the coaches rate.
+ */
+export function NatSquad() {
+  const game = useStore(s => s.game)!
+  const go = useStore(s => s.go)
+  const { persist } = useStore.getState()
+  useStore(s => s.tick)
+  const [msg, setMsg] = useState<{ key: number | string; text: string } | null>(null)
+  const [, redraw] = useState(0)
+  // FILTER, DON'T SCROLL (owner: "simplify/work on the call up/drop stage"):
+  // you never scroll a national pool, you filter it to the
+  // shirt you are short of. England's qualified population is two thousand
+  // names, so an unfiltered "next men in" list was not a shortlist, it was a
+  // census.
+  const [posFilter, setPosFilter] = useState<Pos | 'ALL'>('ALL')
+
+  const natId = game.natTeam
+  if (!natId) return null
   const club = game.unemployed ? null : game.clubs[game.userClubId]
   const w = natWindow(game)
   const squad = (game.natSquads[natId] ?? []).map(id => game.players[id]).filter(Boolean)
@@ -72,15 +204,6 @@ export default function Country() {
   // IN FORM is a fact about the man, not about the sort: it is called out on
   // the row so the reason he has climbed is visible rather than implied.
   const inForm = (p: { form: number }) => p.form >= 7
-  const testFx = natFixtureThisWeek(game)
-  const upcoming = game.fixtures
-    .filter(f => !f.played && (f.homeId === natId || f.awayId === natId))
-    .sort((a, b) => a.week - b.week).slice(0, 4)
-  const results = game.fixtures
-    .filter(f => f.played && (f.homeId === natId || f.awayId === natId) &&
-      !game.clubs[f.homeId] && !game.clubs[f.awayId])
-    .sort((a, b) => b.week - a.week).slice(0, 5)
-
   const act = (p: { id: number; name: string }, fn: (g: typeof game, id: number) => string | null) => {
     const refusal = fn(game, p.id)
     setMsg({ key: p.id, text: refusal ?? '' })
@@ -124,69 +247,6 @@ export default function Country() {
 
   return (
     <>
-      <div className="card" style={{ ...acc('var(--text-positive)') }}>
-        <h3 style={{ fontSize: '1.125rem' }}><Flag code={natId} /> {nationName(natId)}</h3>
-        <div className="meta" style={{ marginTop: 2 }}>
-          {t('legacy.coRankLine', {
-            rank: rank > 0 ? t('legacy.coWorldNo', { n: rank }) : t('legacy.coUnranked'),
-            pts: (game.natRank?.[natId] ?? 0).toFixed(2),
-            rec: rec ? t('legacy.coTestsUnder', { w: rec.w, d: rec.d, l: rec.l }) : '',
-          })}
-        </div>
-        {conf != null && (
-          <div style={{ margin: '8px 2px 2px' }}>
-            <div style={{ height: 8, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: `${conf}%`, height: '100%', background: conf >= 60 ? 'var(--text-positive)' : conf >= 40 ? 'var(--gold)' : 'var(--danger)' }} />
-            </div>
-            <div className="meta" style={{ marginTop: 4 }}>
-              {t('legacy.coUnionConf', { n: conf })}
-            </div>
-          </div>
-        )}
-        {testFx && (
-          <div className="muted" style={{ marginTop: 8, fontWeight: 700 }}>
-            {t('legacy.coTestWeek', {
-              home: nationName(testFx.homeId),
-              away: nationName(testFx.awayId),
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* both hats, and the way out of either - in the open, not buried
-          (user: "OR you can step down from your club role") */}
-      <div className="card">
-        <SectionTitle sub={t('legacy.coAppointmentsSub')}>{t('legacy.coAppointments')}</SectionTitle>
-        {club && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-            <span className="row-ico" style={{ fontSize: '1.25rem' }}><Glyph name="stadium" /></span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{club.name}</div>
-              <div className="meta">{t('legacy.coDirectorBoard', { n: Math.round(club.boardConfidence) })}</div>
-            </div>
-            {confirmClub
-              ? <button className="btn danger" style={{ fontSize: '0.75rem' }} onClick={() => { resign(); setConfirmClub(false) }}>{t('legacy.coConfirm')}</button>
-              : <button className="btn ghost" style={{ fontSize: '0.75rem', color: 'var(--text-negative)' }} onClick={() => { setConfirmClub(true); setConfirmNat(false) }}>{t('legacy.coStepDown')}</button>}
-          </div>
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-          <Flag code={natId} size={16} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{nationName(natId)}</div>
-            <div className="meta">{t('legacy.coNatCoach')}{conf != null ? t('legacy.coNatUnion', { n: conf }) : ''}</div>
-          </div>
-          {confirmNat
-            ? <button className="btn danger" style={{ fontSize: '0.75rem' }} onClick={() => { resignNat(); setConfirmNat(false); go('home') }}>{t('legacy.coConfirm')}</button>
-            : <button className="btn ghost" style={{ fontSize: '0.75rem', color: 'var(--text-negative)' }} onClick={() => { setConfirmNat(true); setConfirmClub(false) }}>{t('legacy.coStepDown')}</button>}
-        </div>
-        {!club && <div className="meta">{t('legacy.coNoClubPost')}</div>}
-      </div>
-
-      {/* The Thursday of a Test week is the other moment a manager wants a fit
-          squad and cannot get to the shop. Same card, same rules - silent
-          where there is no till and where nobody is hurt. */}
-      <FullFitness compact />
-
       {w ? (
         <>
           <SectionTitle sub={t('legacy.coSquadSub', { max: w.size, floor: NAT_SQUAD_FLOOR })}>
@@ -301,36 +361,6 @@ export default function Country() {
         </>
       )}
 
-      <SectionTitle>{t('legacy.coTests')}</SectionTitle>
-      <div className="tblwrap"><table className="dtable"><tbody>
-        {upcoming.map(f => (
-          <tr key={f.id}>
-            <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-            <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
-            <td className="num muted">-</td>
-          </tr>
-        ))}
-        {results.map(f => {
-          const us = f.homeId === natId ? f.homeScore : f.awayScore
-          const them = f.homeId === natId ? f.awayScore : f.homeScore
-          return (
-            <tr key={f.id}>
-              <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-              <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
-              <td className="num" style={{ fontWeight: 700, color: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }}>
-                {f.homeScore}-{f.awayScore}
-              </td>
-            </tr>
-          )
-        })}
-        {!upcoming.length && !results.length && (
-          <tr><td className="meta">{t('legacy.coNoTests')}</td></tr>
-        )}
-      </tbody></table></div>
-      <div className="meta" style={{ padding: '4px 16px', fontSize: '0.75rem' }}>
-        {t('legacy.coFullTables')}
-      </div>
-      <div className="spacer" />
     </>
   )
 }
