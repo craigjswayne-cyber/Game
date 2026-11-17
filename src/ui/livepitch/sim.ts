@@ -131,6 +131,8 @@ export class PitchSim {
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
+  /** seconds since the mode last changed */
+  private modeT = 0
   /** where the ball lies on the floor, in metres up the field from the anchor:
    *  at the back of a ruck, at the number 8's feet in a scrum */
   private spotOff = 0
@@ -258,7 +260,8 @@ export class PitchSim {
         const c = carrierIdx ?? 14
         cut = cut || d > 16; cIdx = c; init = att0 + c
         if (!cut) steps.push({ k: 'pick', who: att0 + c })
-        steps.push({ k: 'run', to: { x: clamp(E.x + dir * 4, 1, 99), y: E.y }, v: 6 })
+        // he has caught it with the chase still coming: he runs it back, infield, away from the touchline
+        steps.push({ k: 'run', to: { x: clamp(E.x + dir * 9, 1, 99), y: clamp(E.y + (E.y < 35 ? 5 : -5), 4, 66) }, v: 7.6 })
         break
       }
       case 'kick': {
@@ -358,6 +361,7 @@ export class PitchSim {
     const begin = () => {
       this.landed = !(p.kind === 'try' || p.kind === 'heldup' || p.kind === 'con' || p.kind === 'goal')
       this.phase = p; this.steps = steps; this.si = 0; this.st = 0; this.entered = false; this.done = false
+      if (this.mode !== mode) this.modeT = 0
       this.mode = mode; this.anchor = { ...anchor }; this.cIdx = cIdx
     }
     if (cut && !this.started) {
@@ -538,6 +542,14 @@ export class PitchSim {
     // open play is ragged; a set piece and a kick-off line are not
     const loose = this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
     const pts = [...S.home, ...S.away].map((q, i) => ({ x: q.x + jit(i, 1) * (loose ? 2.4 : 0.7), y: q.y + jit(i, 2) * (loose ? 1.6 : 0.5) }))
+    // A MAUL IS BUILT, NOT DROPPED IN: the catcher and his lifters first,
+    // then the rest of the pack binding on one by one; the defence the same,
+    // a moment behind
+    if (this.mode === 'maul') {
+      const a0 = p.homeBall ? 0 : 15, d0 = 15 - a0, dr = p.homeBall ? 1 : -1
+      ;[3, 0, 2, 1, 4, 5, 6, 7].forEach((k, j) => { if (this.modeT < (j - 2) * 0.45) pts[a0 + k] = { x: pts[a0 + k].x - dr * 4.5, y: pts[a0 + k].y + (j % 2 ? 3 : -3) } })
+      ;[3, 0, 2, 1, 4, 5, 6, 7].forEach((k, j) => { if (this.modeT < 0.4 + (j - 1) * 0.5) pts[d0 + k] = { x: pts[d0 + k].x + dr * 4.5, y: pts[d0 + k].y + (j % 2 ? -3 : 3) } })
+    }
     // the lift: the men either side of the jumper step in under him
     if (this.mode === 'lineout' && this.jumper >= 0 && (this.flight?.toIdx === this.jumper || this.holder === this.jumper)) {
       const order = [0, 5, 3, 4, 7, 2, 6]
@@ -646,6 +658,7 @@ export class PitchSim {
       let over = false
       switch (s.k) {
         case 'mode':
+          if (this.mode !== s.mode) this.modeT = 0
           this.mode = s.mode
           if (s.mode === this.phase.kind) this.landed = true
           if (s.cIdx !== undefined) this.cIdx = s.cIdx
@@ -903,6 +916,7 @@ export class PitchSim {
     }
     if (this.si >= this.steps.length) { this.done = true; this.rate = 1 }
     this.ruckT += dt
+    this.modeT += dt
     this.clock += dt
     this.move(dt, runTo)
   }

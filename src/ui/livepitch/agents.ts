@@ -254,7 +254,24 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   // close together near the ruck, a little wider each man out, and never stretched thin
   const W = Math.max(11, Math.min(dfar - 9, 7.4 + (nOpen - 1) * (5 + 2.6 * w.def.defWidth / 100)))
   for (let k = 0; k < nOpen; k++) slots.push([0, 7.4 + (W - 7.4) * Math.pow(nOpen === 1 ? 0.4 : k / (nOpen - 1), 1.15)])
-  for (const [g, [, v]] of deal(lineMen.map(k => def0 + k), dvOf, slots)) {
+  // NUMBERING UP: each man in the line steps on to the attacker in front of
+  // him, so the two lines face each other man for man where they can
+  const theirs: number[] = []
+  for (let k = 0; k < 15; k++) {
+    if (k === 8 || gone(att0 + k)) continue
+    const a = out[att0 + k], au = (a.x - M.x) * dir, av = (a.y - M.y) * s
+    if (au < -2 && Math.abs(av) > 5) theirs.push(av)
+  }
+  const onMan = (v: number) => {
+    let best = 9, at = -1
+    theirs.forEach((av, j) => { const d = Math.abs(av - v); if (d < best) { best = d; at = j } })
+    if (best >= 3 || at < 0) return v
+    // one defender to a man: he is taken
+    const to = theirs.splice(at, 1)[0]
+    return v + (to - v) * 0.7
+  }
+  for (const [g, [, v0]] of deal(lineMen.map(k => def0 + k), dvOf, slots)) {
+    const v = onMan(v0)
     const vv = slide(v)
     dput(g - def0, D(up(vv), vv))
   }
