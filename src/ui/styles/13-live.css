@@ -919,19 +919,25 @@
   .live-wrap.full-match .scoreboard .tname .clubbar { display: none; }
   .live-wrap.full-match .scoreboard .minute { margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .live-wrap.full-match .last10, .live-wrap.full-match .press-row, .live-wrap.full-match .tense-band { display: none; }
+  /* A LANDSCAPE GAME IN AN UPRIGHT SCREEN (owner, 17 Nov 2026: "The screen
+     should be vertical", "the game in the screen should be landscape like
+     the shared", "a like for like version of the shared example"). The pitch
+     is a wide panel across the top of the phone, seen from behind and above
+     the near touchline: tilted away, so the far stand rises behind it. The
+     commentary has the rest of the screen. */
   .live-wrap.full-match .live-pitch {
-    order: 1; flex: 1 1 0; min-height: 0; align-self: center;
-    height: auto; width: auto; max-width: calc(100% - 12px); margin: 6px 6px 0;
+    order: 1; flex: none; align-self: stretch; min-height: 0;
+    height: auto; width: auto; max-width: none; margin: 6px 0 0; border-radius: 0;
+    aspect-ratio: 16 / 10.4; perspective: 620px; perspective-origin: 50% 40%;
   }
-  .live-wrap.full-match .now-strip { order: 2; flex: none; }
+  /* the canvas is taller than the panel, so there is a deep stand on the far
+     side and one on the near side; tilted, the whole pitch still fits across */
+  .live-wrap.full-match .lp-canvas {
+    position: absolute; left: 0; top: -17%; width: 100%; height: 134%;
+    transform: rotateX(27deg) scale(.985); transform-origin: 50% 58%; will-change: transform;
+  }
+  .live-wrap.full-match .now-strip { order: 2; flex: 1 1 0; min-height: 0; }
   .live-wrap.full-match .match-status { display: none; }
-  .live-wrap.full-match .comm-line.old { display: none; }
-  .live-wrap.full-match .comm-feed { height: 62px; -webkit-mask-image: none; mask-image: none; margin: 6px 8px 0; }
-  .live-wrap.full-match .comm-list { transform: none !important; }
-  .live-wrap.full-match .comm-line.cur { min-height: 62px; max-height: 62px; overflow: hidden; }
-  /* every line fits its slot, the big scoring line included */
-  .live-wrap.full-match .comm-line .txt, .live-wrap.full-match.big-text .comm-line .txt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.8125rem !important; line-height: 1.3 !important; }
-  .live-wrap.full-match .comm-line { align-items: center; }
   .live-wrap.full-match .speed-controls { order: 3; padding-top: 6px; padding-bottom: calc(8px + var(--safe-area-inset-bottom, 0px)); }
 }
 
