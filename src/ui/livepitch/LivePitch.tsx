@@ -21,11 +21,20 @@ export interface PitchSide {
   kit: [string, string]
 }
 
-/** in-goal metres drawn each end, and the run-off round the outside */
-const GOAL = 8, MARGIN = 3
-const FIELD_L = 100 + GOAL * 2 + MARGIN * 2, FIELD_W = 70 + MARGIN * 2
+/** in-goal metres drawn each end; the ground round the pitch: SIDE metres
+ *  along each touchline (run-off, boards, a strip of crowd) and END metres
+ *  behind each dead-ball line (boards and a stand) */
+const GOAL = 8, SIDE = 5.6, END = 11.5
+const FIELD_L = 100 + GOAL * 2 + END * 2, FIELD_W = 70 + SIDE * 2
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams }: {
+/** a stable 0..1 from two integers: the crowd is the same crowd every frame */
+function h2(a: number, b: number): number {
+  let h = (a * 374761393 + b * 668265263 + 1013904223) >>> 0
+  h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0
+  return ((h ^ (h >>> 16)) % 10000) / 10000
+}
+
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards }: {
   events: MatchEvent[]
   cursor: number
   homeId: string
@@ -40,6 +49,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   tr: (key: string, vars?: Record<string, string | number>) => string
   /** the two sides' short names */
   teams: { home: string; away: string }
+  /** the names on the advertising boards (the game's invented sponsors) */
+  boards?: string[]
 }) {
   /** the banner on screen, once its moment has landed */
   const [banner, setBanner] = useState<Banner | null>(null)
@@ -68,8 +79,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     seen.current.told = false
   }
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
-  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText })
-  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText }
+  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText, boards })
+  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText, boards }
 
   useEffect(() => {
     const cv = canvas.current
@@ -96,26 +107,98 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
     }
     // field metres to screen: length up the screen (home attacks up), width across
-    const PX = (y: number) => dim.ox + (y + MARGIN) * dim.sc
-    const PY = (x: number) => dim.oy + (100 + GOAL + MARGIN - x) * dim.sc
+    const PX = (y: number) => dim.ox + (y + SIDE) * dim.sc
+    const PY = (x: number) => dim.oy + (100 + GOAL + END - x) * dim.sc
 
     const paintField = () => {
       const { sc, dpr } = dim
       field.width = Math.round(FIELD_W * sc * dpr); field.height = Math.round(FIELD_L * sc * dpr)
       const g = field.getContext('2d')!
       g.setTransform(dpr, 0, 0, dpr, 0, 0)
-      const fx = (y: number) => (y + MARGIN) * sc, fy = (x: number) => (100 + GOAL + MARGIN - x) * sc
-      g.fillStyle = ink.surround; g.fillRect(0, 0, FIELD_W * sc, FIELD_L * sc)
-      // mown stripes every ten metres up the pitch
+      const fx = (y: number) => (y + SIDE) * sc, fy = (x: number) => (100 + GOAL + END - x) * sc
+      const W = FIELD_W * sc, L = FIELD_L * sc
+      const hk = io.current.home.kit, ak = io.current.away.kit
+      const names = (io.current.boards?.length ? io.current.boards : ['PHASE'])
+
+      // ---- the ground: concrete, then the stands, then the grass on top
+      g.fillStyle = '#12181c'; g.fillRect(0, 0, W, L)
+      // the two end stands: rows of seats in the home colour, a crowd in them
+      const stand = (top: boolean) => {
+        const y0 = top ? 0 : fy(-GOAL - 4.6), hgt = (END - 4.6) * sc
+        g.fillStyle = '#1b2329'; g.fillRect(0, y0, W, hgt)
+        const rows = 5, rh = hgt / rows
+        for (let r = 0; r < rows; r++) {
+          g.fillStyle = hk[0]; g.globalAlpha = 0.5 + 0.08 * r
+          g.fillRect(sc * 0.6, y0 + r * rh + rh * 0.18, W - sc * 1.2, rh * 0.64)
+          g.globalAlpha = 1
+          const n = Math.floor((W - sc * 1.2) / (sc * 0.95))
+          for (let c = 0; c < n; c++) {
+            const k = h2(c + (top ? 0 : 500), r)
+            if (k < 0.2) continue
+            g.fillStyle = k < 0.62 ? hk[0] : k < 0.8 ? ink.white : k < 0.9 ? ak[0] : hk[1]
+            g.beginPath(); g.arc(sc * 0.6 + (c + 0.5) * sc * 0.95, y0 + r * rh + rh * 0.5, Math.max(1, sc * 0.3), 0, Math.PI * 2); g.fill()
+          }
+        }
+        // the aisles
+        g.fillStyle = '#1b2329'
+        for (const a of [0.25, 0.5, 0.75]) g.fillRect(W * a - sc * 0.5, y0, sc, hgt)
+      }
+      stand(true); stand(false)
+      // a strip of crowd down each touchline
+      for (const left of [true, false]) {
+        const x0 = left ? 0 : fx(70 + SIDE - 1.7)
+        g.fillStyle = '#1b2329'; g.fillRect(x0, fy(100 + GOAL + 4.6), 1.7 * sc, (116 + 9.2) * sc)
+        const n = Math.floor((116 + 9.2) / 1.0)
+        for (let c = 0; c < n; c++) {
+          const k = h2(c, left ? 77 : 99)
+          if (k < 0.25) continue
+          g.fillStyle = k < 0.65 ? hk[0] : k < 0.82 ? ink.white : k < 0.92 ? ak[0] : hk[1]
+          g.beginPath(); g.arc(x0 + 0.85 * sc, fy(100 + GOAL + 4.6) + (c + 0.5) * sc, Math.max(1, sc * 0.32), 0, Math.PI * 2); g.fill()
+        }
+      }
+      // the boards: along both touchlines (the names up the pitch) and both ends
+      const boardFills = [hk[0], '#f4f1e6', '#16202a', hk[1]]
+      const text = (label: string, cx: number, cy: number, size: number, fill: string, rot: number, maxW: number) => {
+        g.save(); g.translate(cx, cy); g.rotate(rot)
+        g.font = `800 ${size}px var(--cond, system-ui), system-ui, sans-serif`
+        g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = isLight(fill) ? '#141a1f' : '#f4f1e6'
+        g.fillText(label.toUpperCase(), 0, 0.5, maxW); g.restore()
+      }
+      const panels = 6, pl = (116 + 3) / panels
+      for (const left of [true, false]) {
+        const bx = left ? fx(-1.4 - 2.4) : fx(71.4)
+        for (let i = 0; i < panels; i++) {
+          const fill = boardFills[(i + (left ? 0 : 2)) % boardFills.length]
+          const y1 = fy(100 + GOAL + 1.5 - i * pl)
+          g.fillStyle = fill; g.fillRect(bx, y1 + 0.5, 2.4 * sc, pl * sc - 1)
+          text(names[(i * 2 + (left ? 0 : 1)) % names.length], bx + 1.2 * sc, y1 + pl * sc / 2, Math.max(6.5, sc * 1.55), fill, left ? -Math.PI / 2 : Math.PI / 2, pl * sc - 6)
+        }
+      }
+      const ep = 3, ew = (70 + 2.8) / ep
+      for (const top of [true, false]) {
+        const by = top ? fy(100 + GOAL + 1.4 + 2.6) : fy(-GOAL - 1.4)
+        for (let i = 0; i < ep; i++) {
+          const fill = boardFills[(i + (top ? 1 : 3)) % boardFills.length]
+          const x1 = fx(-1.4 + i * ew)
+          g.fillStyle = fill; g.fillRect(x1 + 0.5, by, ew * sc - 1, 2.6 * sc)
+          text(names[(i + (top ? 3 : 6)) % names.length], x1 + ew * sc / 2, by + 1.3 * sc, Math.max(7, sc * 1.7), fill, 0, ew * sc - 8)
+        }
+      }
+
+      // ---- the grass: a run-off, then mown stripes every ten metres
+      g.fillStyle = ink.grassB; g.fillRect(fx(-1.4), fy(100 + GOAL + 1.4), 72.8 * sc, (116 + 2.8) * sc)
       for (let i = 0; i < 10; i++) {
         g.fillStyle = i % 2 ? ink.grassB : ink.grassA
         g.fillRect(fx(0), fy(i * 10 + 10), 70 * sc, 10 * sc + 0.5)
       }
-      g.fillStyle = ink.grassB
+      g.fillStyle = 'rgba(0,0,0,.15)'
       g.fillRect(fx(0), fy(100 + GOAL), 70 * sc, GOAL * sc); g.fillRect(fx(0), fy(0), 70 * sc, GOAL * sc)
-      g.fillStyle = 'rgba(0,0,0,.16)'
-      g.fillRect(fx(0), fy(100 + GOAL), 70 * sc, GOAL * sc); g.fillRect(fx(0), fy(0), 70 * sc, GOAL * sc)
-      g.strokeStyle = 'rgba(255,255,255,.86)'; g.lineWidth = Math.max(1.2, sc * 0.22)
+      // the floodlights: brighter in the middle, falling off to the corners
+      const lg = g.createRadialGradient(W / 2, L / 2, L * 0.12, W / 2, L / 2, L * 0.62)
+      lg.addColorStop(0, 'rgba(255,255,235,.07)'); lg.addColorStop(1, 'rgba(0,0,0,.2)')
+      g.fillStyle = lg; g.fillRect(fx(-1.4), fy(100 + GOAL + 1.4), 72.8 * sc, (116 + 2.8) * sc)
+
+      g.strokeStyle = 'rgba(255,255,255,.88)'; g.lineWidth = Math.max(1.2, sc * 0.22)
       const across = (x: number, dash: number[] = [], y0 = 0, y1 = 70) => { g.setLineDash(dash); g.beginPath(); g.moveTo(fx(y0), fy(x)); g.lineTo(fx(y1), fy(x)); g.stroke() }
       across(0); across(100); across(22); across(78); across(50); across(-GOAL); across(100 + GOAL)
       across(40, [sc * 1.4, sc * 1.4]); across(60, [sc * 1.4, sc * 1.4])
@@ -125,11 +208,18 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       for (const x of [5, 95]) across(x, [sc * 1.2, sc * 2.2], 5, 65)
       g.setLineDash([])
       g.beginPath(); g.moveTo(fx(0), fy(-GOAL)); g.lineTo(fx(0), fy(100 + GOAL)); g.moveTo(fx(70), fy(-GOAL)); g.lineTo(fx(70), fy(100 + GOAL)); g.stroke()
-      // the posts: the bar on the try line, the pads either end of it
+      // the posts, with their height: the uprights lean away from the eye and
+      // throw a shadow, the bar hangs between them, the pads sit on the line
       for (const x of [0, 100]) {
-        g.strokeStyle = ink.white; g.lineWidth = Math.max(2.5, sc * 0.5)
-        g.beginPath(); g.moveTo(fx(32.2), fy(x)); g.lineTo(fx(37.8), fy(x)); g.stroke()
-        for (const y of [32.2, 37.8]) { g.beginPath(); g.arc(fx(y), fy(x), Math.max(2.5, sc * 0.55), 0, Math.PI * 2); g.fillStyle = ink.white; g.fill() }
+        const lean = { dx: sc * 1.5, dy: -sc * 5.2 }
+        g.lineCap = 'round'
+        g.strokeStyle = 'rgba(0,0,0,.28)'; g.lineWidth = Math.max(2, sc * 0.45)
+        for (const y of [32.2, 37.8]) { g.beginPath(); g.moveTo(fx(y), fy(x)); g.lineTo(fx(y) + sc * 4.2, fy(x) + sc * 1.6); g.stroke() }
+        g.strokeStyle = ink.white; g.lineWidth = Math.max(2, sc * 0.42)
+        for (const y of [32.2, 37.8]) { g.beginPath(); g.moveTo(fx(y), fy(x)); g.lineTo(fx(y) + lean.dx, fy(x) + lean.dy); g.stroke() }
+        g.beginPath(); g.moveTo(fx(32.2) + lean.dx * 0.3, fy(x) + lean.dy * 0.3); g.lineTo(fx(37.8) + lean.dx * 0.3, fy(x) + lean.dy * 0.3); g.stroke()
+        for (const y of [32.2, 37.8]) { g.beginPath(); g.arc(fx(y), fy(x), Math.max(2.6, sc * 0.6), 0, Math.PI * 2); g.fillStyle = hk[0]; g.fill(); g.lineWidth = 1; g.strokeStyle = ink.white; g.stroke() }
+        g.lineCap = 'butt'
       }
     }
     const size = () => {
@@ -168,7 +258,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         bw.shownAt = bw.want.at
         setBanner(bw.want)
         if ((bw.want.kind === 'try' || bw.want.kind === 'pentry') && !reduce) burst(S.ball.x, S.ball.y, bw.want.teamId === homeId)
-      } else if (!bw.want && bw.shownAt !== -1) { bw.shownAt = -1; setBanner(null) }
+      } else if (bw.shownAt !== -1 && (!bw.want || bw.want.at !== bw.shownAt) && !(bw.want && S.landed && S.phase?.at === bw.want.at)) { bw.shownAt = -1; setBanner(null) }
       for (const c of confetti) { c.vy += 26 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.life -= dt; c.rot += c.spin * dt }
       confetti = confetti.filter(c => c.life > 0)
       if (S.done && !seen.current.told) { seen.current.told = true; io.current.onPlayed?.() }
@@ -181,7 +271,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const { w, h, dpr, sc } = dim
       if (!sc) return
       g.setTransform(dpr, 0, 0, dpr, 0, 0)
-      g.fillStyle = ink.surround; g.fillRect(0, 0, w, h)
+      g.fillStyle = '#12181c'; g.fillRect(0, 0, w, h)
       g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
       // who is attacking, written on the in-goal they are attacking
       {

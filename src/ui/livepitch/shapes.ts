@@ -276,12 +276,16 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
     case 'con': case 'goal': {
       // the kicker on his spot, his side behind him, theirs behind the posts
       const k = carrierIdx ?? 9
+      const goalU = ((p.homeBall ? 100 : 0) - p.x) * dir
+      const gu = goalU
+      // absolute places across the field, written back into this frame
+      const vAt = (y: number) => (y - p.y) * open
       att = []
-      for (let j = 0; j < 15; j++) att.push(j === k ? [0, 0] : [-10 - (j % 3) * 2, -14 + j * 2])
-      const goalU = (p.homeBall ? 100 : 0) - p.x
-      const gu = goalU * dir
+      // his side wait well behind him, spread across the field
+      for (let j = 0; j < 15; j++) att.push(j === k ? [0, 0] : [-13 - (j % 3) * 3.2, vAt(9 + j * 3.7)])
       def = []
-      for (let j = 0; j < 15; j++) def.push(p.kind === 'con' ? [gu + 2.5 + (j % 2), (35 - p.y) * open - 9 + j * 1.3] : [gu - 6 - (j % 4) * 3, (35 - p.y) * open - 18 + j * 2.5])
+      // theirs under the posts for a conversion, back ten for a penalty
+      for (let j = 0; j < 15; j++) def.push(p.kind === 'con' ? [gu + 2 + (j % 2) * 3, vAt(12 + j * 3.3)] : [Math.max(10, gu - 4 - (j % 3) * 4), vAt(8 + j * 3.9)])
       holder = k
       ball = { x: p.x, y: p.y }
       ref = { x: ux(gu + 1), y: 33 }
