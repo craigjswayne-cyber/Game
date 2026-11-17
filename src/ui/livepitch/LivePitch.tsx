@@ -146,8 +146,14 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // upright on a phone held upright; on its side when the box is wider than
     // it is tall (a phone turned over, a tablet's wide column): the same
     // picture turned a quarter, the home side then attacking to the right
-    let dim = { w: 0, h: 0, dpr: 1, sc: 1, ox: 0, oy: 0, up: true }
+    let dim = { w: 0, h: 0, dpr: 1, sc: 1, ox: 0, oy: 0, up: true, tilt: false }
     const field = document.createElement('canvas')
+    // THE TILT IS DRAWN, NOT STYLED (17 Nov 2026, owner: "need to make it
+    // hi-res so its really vissible"). Tilting the canvas with a CSS 3D
+    // transform made the browser redraw it at one dot per point and stretch
+    // that: blocky on a phone. The picture is now drawn flat here at full
+    // resolution and laid on to the screen row by row in perspective.
+    const flat = document.createElement('canvas')
     // the last frame before a cut, dissolved out over the new one
     const ghost = document.createElement('canvas')
     let grassSeen: Phase | null = null
@@ -274,20 +280,23 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // On its side the camera is behind the near stand: that one is mostly
       // roof, seen from behind, with only its front rows showing.
       seating(0, pitchT, pitchL - off - boardW - sc * 0.5, pitchB - pitchT, 'l', 1, 0.42)
-      seating(pitchR + off + boardW + sc * 0.5, pitchT, W - (pitchR + off + boardW + sc * 0.5), pitchB - pitchT, 'r', 2, dim.up ? 0.42 : 0.8)
+      seating(pitchR + off + boardW + sc * 0.5, pitchT, W - (pitchR + off + boardW + sc * 0.5), pitchB - pitchT, 'r', 2, dim.up ? 0.42 : 0.62)
       // BEHIND EACH GOAL, A STAND THAT RISES (owner, 17 Nov 2026, of the
       // reference: "All of those on stadium", stands "at the left and right
       // ends"). Seen at the tilt its back rows are higher up the screen than
       // its front ones, so it leans, and the end wall nearest the camera shows.
       {
-        const rise = dim.up ? 0 : 0.45
+        // (owner, 17 Nov 2026: "fix the roofs": the lean left a thin crooked
+        // roof and a grey wedge at each end. The end stands are now built as
+        // the far stand is, square, with a full roof over the back rows.)
+        const rise = 0
         const wall = 'rgba(62,70,84,1)'
         const eT = pitchT - sc * 2.4, eB = pitchB + sc * 2.4
         g.save(); g.transform(1, 0, rise, 1, -rise * eT, 0)
-        seating(pitchL, 0, pitchR - pitchL, eT, 'u', 3, 0.34)
+        seating(pitchL, 0, pitchR - pitchL, eT, 'u', 3, 0.42)
         g.restore()
         g.save(); g.transform(1, 0, -rise, 1, rise * eB, 0)
-        seating(pitchL, eB, pitchR - pitchL, L - eB, 'd', 4, 0.34)
+        seating(pitchL, eB, pitchR - pitchL, L - eB, 'd', 4, 0.42)
         g.restore()
         if (rise > 0) {
           g.fillStyle = wall
@@ -318,7 +327,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.globalCompositeOperation = 'screen'; g.fillStyle = 'rgba(120,135,150,.22)'; g.fillRect(0, 0, W, L); g.restore()
       }
       // a floodlight in each corner: the lamp head and the light it throws
-      for (const [cx, cy] of [[pitchL - off, pitchT - sc * 1.5], [pitchR + off, pitchT - sc * 1.5], [pitchL - off, pitchB + sc * 1.5], [pitchR + off, pitchB + sc * 1.5]] as [number, number][]) {
+      if (dim.up) for (const [cx, cy] of [[pitchL - off, pitchT - sc * 1.5], [pitchR + off, pitchT - sc * 1.5], [pitchL - off, pitchB + sc * 1.5], [pitchR + off, pitchB + sc * 1.5]] as [number, number][]) {
         if (night) {
           const glow = g.createRadialGradient(cx, cy, 0, cx, cy, sc * 16)
           glow.addColorStop(0, 'rgba(255,252,225,.42)'); glow.addColorStop(1, 'rgba(255,252,225,0)')
@@ -328,34 +337,36 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       // the boards: down both touchlines, and nowhere else
       const boardFills = [hk[0], lp.light, lp.dark, hk[1]]
-      const text = (label: string, cx: number, cy: number, size: number, fill: string, rot: number, maxW: number) => {
-        g.save(); g.translate(cx, cy); g.rotate(rot)
-        // (owner, 17 Nov 2026: "the text should be smaller so its not cropped":
-        // the name is shrunk until the whole of it fits inside its board)
-        let px = size
-        const fam = getComputedStyle(cv).getPropertyValue('--cond').trim() || 'system-ui'
-        for (let n = 0; n < 12; n++) {
-          g.font = `800 ${px}px ${fam}, system-ui, sans-serif`
-          if (g.measureText(label.toUpperCase()).width <= maxW || px <= 4) break
-          px *= 0.9
-        }
-        g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = isLight(fill) ? lp.boardInk : lp.light
-        g.fillText(label.toUpperCase(), 0, 0.5); g.restore()
-      }
-      // the far side's boards stop either side of each dugout, which stands on
-      // the touchline itself; the near side runs unbroken
+      // (owner, 17 Nov 2026: "Tidy the advertising boards": every board the
+      // same length on its side of the ground, every name in the same size of
+      // lettering, and that size the largest at which the longest name still
+      // fits whole inside its board)
+      const fam = getComputedStyle(cv).getPropertyValue('--cond').trim() || 'system-ui'
       const runs: [boolean, [number, number][]][] = [
-        [true, [[-GOAL, 9.5], [9.5, 27.5], [46.5, 53.5], [72.5, 90.5], [90.5, 100 + GOAL]]],
+        [true, [[-GOAL, 9.75], [9.75, 27.5], [72.5, 90.25], [90.25, 100 + GOAL]]],
         [false, [0, 1, 2, 3, 4, 5].map(i => [-GOAL + i * 116 / 6, -GOAL + (i + 1) * 116 / 6] as [number, number])],
       ]
+      const nameAt = (left: boolean, i: number) => names[(i * 2 + (left ? 0 : 1)) % names.length].toUpperCase()
+      let px = Math.min(boardW * 0.62, Math.max(6, sc * 1.5))
+      for (let n = 0; n < 14; n++) {
+        g.font = `800 ${px}px ${fam}, system-ui, sans-serif`
+        let fits = true
+        for (const [left, segs] of runs) segs.forEach(([m0, m1], i) => { if (g.measureText(nameAt(left, i)).width > (m1 - m0) * sc - sc * 4.5) fits = false })
+        if (fits || px <= 4) break
+        px *= 0.92
+      }
       for (const [left, segs] of runs) {
         const bx = left ? pitchL - off - boardW : pitchR + off
         segs.forEach(([m0, m1], i) => {
           const fill = boardFills[(i + (left ? 0 : 2)) % boardFills.length]
           const y1 = fy(m1), ln = (m1 - m0) * sc
-          g.fillStyle = fill; g.fillRect(bx, y1 + 0.5, boardW, ln - 1)
-          // (the short board between the dugouts is left plain: no name fits it)
-          if (m1 - m0 >= 10) text(names[(i * 2 + (left ? 0 : 1)) % names.length], bx + boardW / 2, y1 + ln / 2, Math.max(6, sc * 1.45), fill, left || !dim.up ? -Math.PI / 2 : Math.PI / 2, ln - sc * 2.4)
+          g.fillStyle = fill; g.fillRect(bx, y1 + sc * 0.2, boardW, ln - sc * 0.4)
+          // a thin frame, so each board reads as its own panel
+          g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = Math.max(0.6, sc * 0.12); g.strokeRect(bx, y1 + sc * 0.2, boardW, ln - sc * 0.4)
+          g.save(); g.translate(bx + boardW / 2, y1 + ln / 2); g.rotate(left || !dim.up ? -Math.PI / 2 : Math.PI / 2)
+          g.font = `800 ${px}px ${fam}, system-ui, sans-serif`
+          g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = isLight(fill) ? lp.boardInk : lp.light
+          g.fillText(nameAt(left, i), 0, 0.5); g.restore()
         })
       }
 
@@ -407,6 +418,20 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       for (const x of [5, 95]) across(x, [sc * 1.2, sc * 2.2], 5, 65)
       g.setLineDash([])
       g.beginPath(); g.moveTo(fx(0), fy(-GOAL)); g.lineTo(fx(0), fy(100 + GOAL)); g.moveTo(fx(70), fy(-GOAL)); g.lineTo(fx(70), fy(100 + GOAL)); g.stroke()
+      // THE TUNNEL (owner, 17 Nov 2026: "Add tunnel in red circle"): on halfway
+      // between the two dugouts, a dark mouth cut back into the stand under a
+      // canopy in the club's colour, and a path from it to the touchline
+      {
+        const ta = off + boardW, y0 = fy(53.2), len = 6.4 * sc, deep = sc * 6.5
+        g.fillStyle = ink.grassB; g.fillRect(pitchL - ta, fy(54.5), ta - sc * 0.3, 9 * sc)
+        g.fillStyle = 'rgba(214,218,224,1)'; g.fillRect(pitchL - ta, y0 + len * 0.18, ta - sc * 0.3, len * 0.64)
+        g.fillStyle = 'rgba(232,236,242,1)'; g.fillRect(pitchL - ta - deep, y0 - sc * 0.5, deep, len + sc)
+        const tg2 = g.createLinearGradient(pitchL - ta - deep, 0, pitchL - ta, 0)
+        tg2.addColorStop(0, 'rgba(0,0,0,1)'); tg2.addColorStop(1, 'rgba(34,40,52,1)')
+        g.fillStyle = tg2; g.fillRect(pitchL - ta - deep, y0, deep, len)
+        g.fillStyle = lum(hk[0]) > 0.17 ? hk[0] : hk[1]; g.fillRect(pitchL - ta - deep, y0 - sc * 0.5, deep * 0.45, len + sc)
+        g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(pitchL - ta - deep * 0.55 - 1, y0 - sc * 0.5, 1.2, len + sc)
+      }
       // THE BENCHES (owner: "Benches for home and away teams"): a dugout each
       // side of halfway ON the far touchline (owner, 17 Nov 2026: "they need to be
       // connected to the pitch"), opening straight on to the grass, the
@@ -476,8 +501,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     }
     const size = () => {
       const w = cv.clientWidth, h = cv.clientHeight
-      const dpr = Math.min(2, window.devicePixelRatio || 1)
+      // (owner, 17 Nov 2026: "need to make it hi-res so its really vissible":
+      // drawn at up to three times the screen's dots, never fewer than two,
+      // because the tilt stretches the picture and softens it)
+      const dpr = Math.min(3, Math.max(2, window.devicePixelRatio || 1))
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr)
+      flat.width = cv.width; flat.height = cv.height
+      const tilt = getComputedStyle(cv).getPropertyValue('--lp-tilt').trim() === '1'
       // upright only in a box that is clearly taller than it is wide: a squarish
       // panel (the landscape game in an upright screen) is the pitch on its side
       const up = h > w * 1.25
@@ -490,7 +520,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const endMin = up ? END_MIN : 13
       const sc = Math.min(across / (70 + sideMin * 2), along / (100 + GOAL * 2 + endMin * 2))
       if (sc > 0) { SIDE = (across / sc - 70) / 2; END = (along / sc - 100 - GOAL * 2) / 2; FIELD_L = 100 + GOAL * 2 + END * 2; FIELD_W = 70 + SIDE * 2 }
-      dim = { w, h, dpr, sc, up, ox: (w - (up ? FIELD_W : FIELD_L) * sc) / 2, oy: (h - (up ? FIELD_L : FIELD_W) * sc) / 2 }
+      dim = { w, h, dpr, sc, up, tilt, ox: (w - (up ? FIELD_W : FIELD_L) * sc) / 2, oy: (h - (up ? FIELD_L : FIELD_W) * sc) / 2 }
       if (sc > 0) paintField()
     }
     size()
@@ -544,7 +574,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     }
 
     const draw = () => {
-      const g = cv.getContext('2d')!
+      const g = (dim.tilt ? flat : cv).getContext('2d')!
       const { w, h, dpr, sc } = dim
       if (!sc) return
       g.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -582,7 +612,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         {
           const fl: [number, number][] = []
           for (const x of [-GOAL, 0, 100, 100 + GOAL]) for (const y of [0, 70]) fl.push([x, y])
-          for (const x of [22, 50, 78]) for (const y of [-1.6, 71.6]) fl.push([x, y])
+          for (const x of [22, 50, 78]) for (const y of [-0.7, 70.7]) fl.push([x, y])
           const Hf = sc * 2.6
           for (const [x, y] of fl) {
             const px = SX(x, y), py = SY(x, y)
@@ -594,6 +624,33 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
             g.beginPath(); g.moveTo(px, py - Hf); g.lineTo(px + sc * 1.2, py - Hf * 0.82); g.lineTo(px, py - Hf * 0.62); g.closePath(); g.fill()
           }
         }
+      }
+      // THE FLOODLIGHTS (owner, 17 Nov 2026: "put flood lights in each
+      // corner"): a pylon standing in each corner of the ground, a bank of
+      // lamps at its head turned in to the pitch, lit at night
+      if (!dim.up) for (const [x, y] of [[-GOAL - END * 0.55, -SIDE * 0.3], [100 + GOAL + END * 0.55, -SIDE * 0.3], [-GOAL - END * 0.55, 70 + SIDE * 0.45], [100 + GOAL + END * 0.55, 70 + SIDE * 0.45]] as [number, number][]) {
+        const px = SX(x, y), py = SY(x, y), H = sc * (y < 0 ? 9 : 17), inx = x < 50 ? 1 : -1
+        const hx = px + inx * sc * 1.2, hy = py - H
+        g.lineCap = 'round'
+        g.strokeStyle = 'rgba(0,0,0,.3)'; g.lineWidth = Math.max(1.5, sc * 0.6)
+        g.beginPath(); g.moveTo(px, py); g.lineTo(px - inx * H * 0.4, py + sc * 0.8); g.stroke()
+        g.strokeStyle = 'rgba(150,158,170,1)'; g.lineWidth = Math.max(2, sc * 0.75)
+        g.beginPath(); g.moveTo(px, py); g.lineTo(hx, hy); g.stroke()
+        g.strokeStyle = 'rgba(235,238,244,.9)'; g.lineWidth = Math.max(0.8, sc * 0.2)
+        g.beginPath(); g.moveTo(px - sc * 0.2, py); g.lineTo(hx - sc * 0.2, hy); g.stroke()
+        g.lineCap = 'butt'
+        if (night) {
+          const glow = g.createRadialGradient(hx, hy, 0, hx, hy, sc * 15)
+          glow.addColorStop(0, 'rgba(255,252,225,.5)'); glow.addColorStop(1, 'rgba(255,252,225,0)')
+          g.fillStyle = glow; g.fillRect(hx - sc * 15, hy - sc * 15, sc * 30, sc * 30)
+        }
+        g.save(); g.translate(hx, hy); g.rotate(inx * 0.22)
+        const bw2 = sc * 5.2, bh2 = sc * 3.2
+        g.fillStyle = 'rgba(40,46,58,1)'; g.fillRect(-bw2 / 2, -bh2 / 2, bw2, bh2)
+        g.strokeStyle = 'rgba(200,206,216,1)'; g.lineWidth = Math.max(0.8, sc * 0.2); g.strokeRect(-bw2 / 2, -bh2 / 2, bw2, bh2)
+        g.fillStyle = night ? 'rgba(255,253,230,1)' : 'rgba(210,216,224,1)'
+        for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) { g.beginPath(); g.arc(-bw2 / 2 + (c + 0.5) * bw2 / 4, -bh2 / 2 + (r + 0.5) * bh2 / 2, Math.max(1, sc * 0.48), 0, Math.PI * 2); g.fill() }
+        g.restore()
       }
       // (the side attacking each end used to be written across its in-goal; the
       // owner did not like it, 17 Nov 2026, and the pitch is cleaner without)
@@ -753,14 +810,31 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.fillRect(-3, -1.6, 6, 3.2); g.restore()
       }
       // the dissolve of a cut: the old frame fading off the new one
+      const o = cv.getContext('2d')!
+      o.setTransform(1, 0, 0, 1, 0, 0)
+      if (dim.tilt) {
+        // the same view the styled tilt gave: leaning back 27 degrees about a
+        // line a little below the middle, the eye 620 points away
+        const th = 27 * Math.PI / 180, d = 620, k = 0.985, pv = h * 0.58, oy = h * 0.425
+        const ys = (v: number) => { const s2 = d / (d - (v - pv) * k * Math.sin(th)); return [oy + (pv + (v - pv) * k * Math.cos(th) - oy) * s2, s2] }
+        o.clearRect(0, 0, cv.width, cv.height)
+        o.imageSmoothingEnabled = true; o.imageSmoothingQuality = 'high'
+        const dv = 1 / dpr * 2
+        for (let v = 0; v < h; v += dv) {
+          const [y0, s0] = ys(v), [y1] = ys(v + dv)
+          const ww = w * k * s0
+          o.drawImage(flat, 0, v * dpr, flat.width, dv * dpr, (w / 2 - ww / 2) * dpr, y0 * dpr, ww * dpr, (y1 - y0) * dpr + 0.75)
+        }
+      }
       if (dissolve > 0 && ghost.width) {
-        g.setTransform(1, 0, 0, 1, 0, 0)
-        g.globalAlpha = dissolve * dissolve * (3 - 2 * dissolve)
-        g.drawImage(ghost, 0, 0)
-        g.globalAlpha = 1
+        o.globalAlpha = dissolve * dissolve * (3 - 2 * dissolve)
+        o.drawImage(ghost, 0, 0)
+        o.globalAlpha = 1
       }
     }
 
+    // the boards are lettered in the condensed face: letter them again once it has loaded
+    void document.fonts?.ready.then(() => { if (cv.isConnected) size() })
     raf = requestAnimationFrame(frame)
     return () => { cancelAnimationFrame(raf); ro.disconnect() }
   }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], night])
