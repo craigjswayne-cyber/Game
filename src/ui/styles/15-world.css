@@ -153,7 +153,6 @@
 @media (prefers-reduced-motion: no-preference) {
   .walkout .wo-body { animation: wo-in .45s ease-out both; }
   .walkout .wo-walk .wo-fig { animation: wo-walk .9s ease-out both; }
-  .walkout .wo-walk .wo-fig:nth-child(n+2) { animation-delay: calc(.05s * var(--i, 1)); }
 }
 @keyframes wo-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes wo-walk { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
