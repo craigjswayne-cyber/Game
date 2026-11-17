@@ -259,7 +259,8 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       // v from the touchline the throw is taken on, so the line runs infield
       const side = p.y <= 35 ? 1 : -1
       const edge = p.y <= 35 ? 0 : 70
-      const lt = ([u, v]: UV): Pt => ({ x: clamp(ux(u), -6, 106), y: clamp(edge + side * v, -0.5, 70.5) })
+      // (ten metres back, or on the goal line when that is nearer: Law 18)
+      const lt = ([u, v]: UV): Pt => ({ x: clamp(ux(u), -0.4, 100.4), y: clamp(edge + side * v, -0.5, 70.5) })
       {
         const lowOpenL = side < 0
         for (const [arr, homeSide] of [[att, p.homeBall], [def, !p.homeBall]] as [UV[], boolean][]) {
