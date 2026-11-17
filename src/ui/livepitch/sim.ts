@@ -43,7 +43,7 @@ type Step = ({ rate?: number }) & (
   | { k: 'kick'; to: Pt; hang: number; silent?: boolean }
   /** open play nobody wrote a line for: the side with the ball plays it up
    *  the field through phases until there is a ruck at `to` */
-  | { k: 'advance'; to: Pt; n?: number; join?: number; kicked?: boolean; chase?: boolean }
+  | { k: 'advance'; to: Pt; n?: number; join?: number; kicked?: boolean; chase?: boolean; t0?: number }
   /** the ball goes to ground at the anchor */
   | { k: 'ground' }
   | { k: 'mode'; mode: PhaseKind; cIdx?: number | null; anchorOn?: number; at?: Pt; clear?: boolean }
@@ -124,6 +124,8 @@ export class PitchSim {
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
+  /** seconds of play since the match started */
+  private clock = 0
   /** the man the lineout throw is going to */
   private jumper = -1
   private side: 1 | -1 = 1
@@ -749,8 +751,11 @@ export class PitchSim {
           // how far this carry goes: a few phases, however far it is
           // a forward makes a few metres, a back a few more: nobody runs the length of the field
           const carrierIsFwd = mine ? this.holder - att0 < 8 : true
-          const len = carrierIsFwd ? clamp(rem / 4, 5, 9) : clamp(rem / 2.5, 9, 18)
-          const P: Pt = rem - len < 4 ? { ...s.to } : { x: B.x + (s.to.x - B.x) / rem * len, y: clamp(B.y + (s.to.y - B.y) / rem * len, 4, 66) }
+          const len = carrierIsFwd ? clamp(rem / 3, 7, 10) : clamp(rem / 2.5, 9, 18)
+          // it has gone on long enough: the next man goes all the way
+          s.t0 ??= this.clock
+          const late = this.clock - s.t0 > 12
+          const P: Pt = late || rem - len < 4 ? { ...s.to } : { x: B.x + (s.to.x - B.x) / rem * len, y: clamp(B.y + (s.to.y - B.y) / rem * len, 4, 66) }
           if (n > 14) { over = true; break }
           // the man this line is about comes with the play: he is on the
           // shoulder of the last ruck when the ball gets there, not sixty
@@ -763,7 +768,7 @@ export class PitchSim {
           // a long way to go: it is kicked down there and chased
           if (rem > 38 && !s.kicked && (mine || this.grounded)) {
             s.kicked = true; s.chase = true
-            const far = Math.min(45, rem - 14)
+            const far = Math.min(45, rem - 9)
             this.steps.splice(this.si, 0, { k: 'kick', to: { x: B.x + (s.to.x - B.x) / rem * far, y: clamp(B.y + (s.to.y - B.y) / rem * far, 6, 64) }, hang: 11, silent: true, rate: s.rate })
             this.entered = false; this.st = 0
             continue
@@ -777,7 +782,7 @@ export class PitchSim {
             // loose: the nearest man is on to it
             if (this.holder >= 0) this.holder = -1
             const who = this.nearest(att0, B)
-            sub.push({ k: 'pick', who, max: clamp(hyp(this.b[who], B) / 7.5 + 0.3, 1, 6) }); s.chase = false
+            sub.push({ k: 'pick', who, max: clamp(hyp(this.b[who], B) / 7.5 + 0.3, 1, 4.5) }); s.chase = false
           } else {
             // quick ball: the 9 to a man coming on to it, forwards and backs in turn
             const side = Math.abs(s.to.y - B.y) > 4 ? Math.sign(s.to.y - B.y) : (B.y <= 35 ? 1 : -1)
@@ -795,7 +800,7 @@ export class PitchSim {
             if (hyp(me, B) > 16) {
               // nobody up with it yet: the first man there picks and goes
               const who = this.nearest(att0, B, this.downMan != null ? [this.downMan] : [])
-              sub.push({ k: 'pick', who, max: clamp(hyp(this.b[who], B) / 7.5 + 0.3, 0.9, 5) })
+              sub.push({ k: 'pick', who, max: clamp(hyp(this.b[who], B) / 7.5 + 0.3, 0.9, 3) })
             } else {
               this.over.set(att0 + c, { x: dir > 0 ? Math.min(me.x + 2, B.x - 2.5) : Math.max(me.x - 2, B.x + 2.5), y: me.y })
               sub.push({ k: 'pick', who: att0 + 8, max: 0.7 })
@@ -833,6 +838,7 @@ export class PitchSim {
     }
     if (this.si >= this.steps.length) { this.done = true; this.rate = 1 }
     this.ruckT += dt
+    this.clock += dt
     this.move(dt, runTo)
   }
 
