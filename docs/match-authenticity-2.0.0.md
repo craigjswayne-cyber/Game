@@ -292,3 +292,37 @@ rate and defence system, so two clubs look different on the pitch.
 - Rugby World on kick-offs: https://www.rugbyworld.com/?p=120112
 - The Rugby Site on lineout defence: https://therugbysite.com/blog/defence/what-is-the-best-defence-at-lineouts
 - Sportplan on counter-attack: https://www.sportplan.net/drills/Rugby/trends/counter-attack-from-kicks-transition-2025-05.jsp
+
+## Status (17 Nov 2026, afternoon)
+
+Built and on the branch:
+- Attack: one shape hung off the ball with depth; 1-3-3-1, tight, and balanced
+  pod shapes chosen from the club's style dial.
+- Defence: flat line on the offside line, posts at the ruck, sweeper, deep
+  full-back, far wing hanging; it holds where the tackle is made; line speed
+  and slide from the defensive line dial, spacing from the width dial.
+- Passing: through the hands, tip on, out the back, offloads, link men for
+  long passes. No forward passes (tested).
+- Rucks: measured lengths scaled by the tempo dial; two or three committed by
+  the ruck commit dial; the jackal stays over the ball by the contest dial;
+  ball presented at the back; drawn as a pile.
+- Open play between engine lines is played as phases, with a kick and chase
+  for long gaps. Set pieces, restarts and end-to-end jumps are the only resets.
+- Kicking: box kick off the base, contestable kicks chased from the outside
+  with two in support, long kicks met by a line, back three under the ball.
+- Scrum and lineout offside lines from the Laws; ball heeled to the 8;
+  front, middle and tail throws with a lift and a contest.
+- Restarts chased and contested. Penalty: offenders ten metres back.
+- Turnovers: strip, steal at the ruck, intercept.
+- Cards: fourteen men, shapes close round the gap.
+
+Not built yet:
+- The fold shown as its own movement; defenders numbering up on a man.
+- Counter-ruck, ruck penalties shown with a cause.
+- Maul with men joining, the peel, shortened lineouts, quick throws.
+- Scrum resets, the 8 pick, back-row moves off the scrum.
+- Advantage, quick taps, the captain's choice shown.
+- 50:22, the mark, grubbers and cross-kicks as their own shapes, counter-attack
+  from the back three.
+- Fatigue, weather, substitutions shown, the TMO wait.
+- Pacing: a match is still about 6.5 minutes at Normal.
