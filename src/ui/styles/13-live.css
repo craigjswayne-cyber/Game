@@ -930,15 +930,15 @@
   .live-wrap.full-match .live-pitch {
     order: 1; flex: none; align-self: stretch; min-height: 0;
     height: auto; width: auto; max-width: none; margin: 6px 0 0; border-radius: 0;
-    aspect-ratio: 16 / 12; perspective: 620px; perspective-origin: 50% 40%;
+    aspect-ratio: 4 / 3;
   }
   /* the canvas is taller than the panel, so there is a deep stand on the far
      side and one on the near side; tilted, the whole pitch still fits across */
   .live-wrap.full-match .lp-canvas {
-    position: absolute; left: 0; top: -17%; width: 100%; height: 134%;
+    position: absolute; left: 0; top: 0; width: 100%; height: 100%;
     /* the tilt itself is drawn inside the canvas (LivePitch reads this flag):
        a CSS 3D transform made the browser stretch a low-resolution copy */
-    --lp-tilt: 1;
+    /* (the ground is now a painted picture that fills the panel: no tilt) */
   }
   /* the label sits on the far stand's roof, clear of the dugouts and tunnel */
   .live-wrap.full-match .lp-chip { top: 2px; }

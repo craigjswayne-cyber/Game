@@ -7,6 +7,7 @@
 // from sim.ts, which plays each line out in real time.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import stadiumUrl from './stadium.webp'
 import type { MatchEvent } from '../../game/model'
 import { readInk, isLight, refereeColour, tokenColor } from '../highlight/draw'
 import { phaseAt, readLine, type Banner, type Phase } from './phase'
@@ -26,6 +27,16 @@ export interface PitchSide {
  *  along each touchline (run-off, boards, a strip of crowd) and END metres
  *  behind each dead-ball line (boards and a stand) */
 const GOAL = 8
+/** THE GROUND IS A PICTURE (owner, 17 Nov 2026, sent a painted stadium to use).
+ *  When the pitch is on its side the stadium is this picture and only the
+ *  men, the ball and the lettering are drawn over it. These are where the
+ *  field sits in the picture, in its own pixels: the left try line and the
+ *  far touchline, and how many pixels a metre is along and across (it is
+ *  painted a little foreshortened, so across is fewer). The lamp heads are
+ *  for the glow of a night match. */
+const STADIUM = { w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.17, lamps: [[85, 80], [1362, 80], [85, 905], [1362, 905]] as [number, number][] }
+const stadiumArt = typeof Image !== 'undefined' ? new Image() : null
+if (stadiumArt) stadiumArt.src = stadiumUrl
 /** the least ground drawn round the pitch; the rest of the box is filled with
  *  more stand, so the ground runs off the edge of the screen as a real one does */
 const SIDE_MIN = 6.6, END_MIN = 5.5
@@ -146,7 +157,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // upright on a phone held upright; on its side when the box is wider than
     // it is tall (a phone turned over, a tablet's wide column): the same
     // picture turned a quarter, the home side then attacking to the right
-    let dim = { w: 0, h: 0, dpr: 1, sc: 1, ox: 0, oy: 0, up: true, tilt: false }
+    let dim = { w: 0, h: 0, dpr: 1, sc: 1, ox: 0, oy: 0, up: true, tilt: false, art: 0 }
     const field = document.createElement('canvas')
     // THE TILT IS DRAWN, NOT STYLED (17 Nov 2026, owner: "need to make it
     // hi-res so its really vissible"). Tilting the canvas with a CSS 3D
@@ -176,8 +187,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
     }
     // field metres to screen: length up the screen (home attacks up), width across
-    const SX = (x: number, y: number) => dim.up ? dim.ox + (y + SIDE) * dim.sc : dim.ox + (x + GOAL + END) * dim.sc
-    const SY = (x: number, y: number) => dim.up ? dim.oy + (100 + GOAL + END - x) * dim.sc : dim.oy + (y + SIDE) * dim.sc
+    const SX = (x: number, y: number) => dim.art ? dim.ox + (STADIUM.x0 + x * STADIUM.mx) * dim.art : dim.up ? dim.ox + (y + SIDE) * dim.sc : dim.ox + (x + GOAL + END) * dim.sc
+    const SY = (x: number, y: number) => dim.art ? dim.oy + (STADIUM.y0 + y * STADIUM.my) * dim.art : dim.up ? dim.oy + (100 + GOAL + END - x) * dim.sc : dim.oy + (y + SIDE) * dim.sc
 
     const paintField = () => {
       const { sc, dpr } = dim
@@ -580,10 +591,15 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const endMin = up ? END_MIN : 13
       const sc = Math.min(across / (70 + sideMin * 2), along / (100 + GOAL * 2 + endMin * 2))
       if (sc > 0) { SIDE = (across / sc - 70) / 2; END = (along / sc - 100 - GOAL * 2) / 2; FIELD_L = 100 + GOAL * 2 + END * 2; FIELD_W = 70 + SIDE * 2 }
-      dim = { w, h, dpr, sc, up, tilt, ox: (w - (up ? FIELD_W : FIELD_L) * sc) / 2, oy: (h - (up ? FIELD_L : FIELD_W) * sc) / 2 }
-      if (sc > 0) paintField()
+      dim = { w, h, dpr, sc, up, tilt, art: 0, ox: (w - (up ? FIELD_W : FIELD_L) * sc) / 2, oy: (h - (up ? FIELD_L : FIELD_W) * sc) / 2 }
+      // on its side, and the picture has arrived: the picture is the ground
+      if (!up && stadiumArt?.complete && stadiumArt.naturalWidth > 0 && w > 0) {
+        const k = Math.min(w / STADIUM.w, h / STADIUM.h)
+        dim = { w, h, dpr, sc: STADIUM.mx * k, up, tilt: false, art: k, ox: (w - STADIUM.w * k) / 2, oy: (h - STADIUM.h * k) / 2 }
+      } else if (sc > 0) paintField()
     }
     size()
+    if (stadiumArt && !stadiumArt.complete) stadiumArt.addEventListener('load', () => { if (cv.isConnected) size() }, { once: true })
     const ro = new ResizeObserver(size)
     ro.observe(cv)
 
@@ -639,7 +655,25 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       if (!sc) return
       g.setTransform(dpr, 0, 0, dpr, 0, 0)
       g.fillStyle = lp.ground; g.fillRect(0, 0, w, h)
-      if (dim.up) g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
+      if (dim.art && stadiumArt) {
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'
+        g.drawImage(stadiumArt, dim.ox, dim.oy, STADIUM.w * dim.art, STADIUM.h * dim.art)
+        if (night) {
+          // the same ground after dark: everything dimmed, the pitch lit from
+          // its four corners, a glow at each lamp head
+          g.fillStyle = 'rgba(0,6,26,.5)'; g.fillRect(0, 0, w, h)
+          const cx = SX(50, 35), cy = SY(50, 35), rr = STADIUM.mx * dim.art * 62
+          const pool = g.createRadialGradient(cx, cy, rr * 0.1, cx, cy, rr)
+          pool.addColorStop(0, 'rgba(255,255,225,.2)'); pool.addColorStop(1, 'rgba(255,255,225,0)')
+          g.fillStyle = pool; g.fillRect(0, 0, w, h)
+          for (const [lx, ly] of STADIUM.lamps) {
+            const px = dim.ox + lx * dim.art, py = dim.oy + ly * dim.art, gr = 150 * dim.art
+            const glow = g.createRadialGradient(px, py, 0, px, py, gr)
+            glow.addColorStop(0, 'rgba(255,252,225,.75)'); glow.addColorStop(1, 'rgba(255,252,225,0)')
+            g.fillStyle = glow; g.fillRect(px - gr, py - gr, gr * 2, gr * 2)
+          }
+        }
+      } else if (dim.up) g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
       else {
         g.save(); g.translate(dim.ox + FIELD_L * sc, dim.oy); g.rotate(Math.PI / 2)
         g.drawImage(field, 0, 0, FIELD_W * sc, FIELD_L * sc); g.restore()
@@ -699,7 +733,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // (owner, 17 Nov 2026: "floodlights look awful", "Use the reference
       // video": there a floodlight is a slim pale pole in the corner with a
       // small lamp head and a soft pool of light, nothing more)
-      if (!dim.up) for (const [x, y] of [[-GOAL - 5, -6.5], [100 + GOAL + 5, -6.5], [-GOAL - 5, 76.5], [100 + GOAL + 5, 76.5]] as [number, number][]) {
+      if (!dim.up && !dim.art) for (const [x, y] of [[-GOAL - 5, -6.5], [100 + GOAL + 5, -6.5], [-GOAL - 5, 76.5], [100 + GOAL + 5, 76.5]] as [number, number][]) {
         // (own review: they read as stray slanted lines. Now a straight
         // mast with a dark edge so it shows by day, a foot, and a lamp box)
         const px = SX(x, y), py = SY(x, y), H = sc * 11, inx = x < 50 ? 1 : -1
@@ -720,7 +754,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // owner did not like it, 17 Nov 2026, and the pitch is cleaner without)
       // (smaller than they were: the reference draws a man about a metre and a
       // half across and lets a pack overlap)
-      const R0 = Math.max(6.5, sc * 1.45)
+      // (in the painted ground the pitch is a smaller share of the panel, so the men are a touch smaller)
+      const R0 = Math.max(dim.art ? 5.8 : 6.5, sc * 1.45)
       let R = R0
       const { home: H, away: A, names: N, carrierId } = io.current
       const flying = S.ball.lift > 0.4
