@@ -208,8 +208,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           g.globalAlpha = 1
           for (let c = 0; c < n; c++) {
             const k = h2(c + seed * 131, r + seed * 17)
-            if (k < 0.3) continue
-            g.fillStyle = k < 0.62 ? hk[1] : k < 0.82 ? ink.white : k < 0.92 ? ak[0] : hk[0]
+            if (k < 0.16) continue
+            g.fillStyle = k < 0.55 ? hk[1] : k < 0.8 ? ink.white : k < 0.92 ? ak[0] : hk[0]
             const cx = alongX ? x + (c + 0.5) * seat : rx + rowPx * 0.5, cy = alongX ? ry + rowPx * 0.5 : y + (c + 0.5) * seat
             g.beginPath(); g.arc(cx, cy, Math.max(0.9, sc * 0.27), 0, Math.PI * 2); g.fill()
           }
@@ -222,12 +222,17 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         if (rows >= 5) {
           const rd = depth * 0.42
           const ox = out === 'l' ? x : out === 'r' ? x + w - rd : x, oy = out === 'u' ? y : out === 'd' ? y + h - rd : y
-          g.fillStyle = 'rgba(8,12,18,.72)'
+          // a solid roof, seen from above: grey sheeting, a fascia in the club colour along its front
+          g.fillStyle = 'rgba(46,54,66,.97)'
           if (alongX) g.fillRect(ox, oy, w, rd); else g.fillRect(ox, oy, rd, h)
-          g.fillStyle = 'rgba(255,255,255,.28)'
+          g.fillStyle = hk[0]
+          const fw = Math.max(2, sc * 0.7)
+          if (out === 'u') g.fillRect(x, y + rd - fw, w, fw); else if (out === 'd') g.fillRect(x, y + h - rd, w, fw)
+          else if (out === 'l') g.fillRect(x + rd - fw, y, fw, h); else g.fillRect(x + w - rd, y, fw, h)
+          g.fillStyle = 'rgba(255,255,255,.5)'
           if (out === 'u') g.fillRect(x, y + rd - 1, w, 1.2); else if (out === 'd') g.fillRect(x, y + h - rd, w, 1.2)
           else if (out === 'l') g.fillRect(x + rd - 1, y, 1.2, h); else g.fillRect(x + w - rd, y, 1.2, h)
-          g.fillStyle = 'rgba(255,255,255,.07)'
+          g.fillStyle = 'rgba(255,255,255,.13)'
           const truss = Math.max(14, sc * 9)
           for (let a = truss * 0.5; a < len; a += truss) { if (alongX) g.fillRect(x + a, oy, 1, rd); else g.fillRect(ox, y + a, rd, 1) }
         }
@@ -250,6 +255,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           g.fillStyle = ink.grassB; g.beginPath(); g.arc(Math.abs(tx - cx) * (cx === 0 ? 1 : -1) + cx, Math.abs(ty - cy) * (cy === 0 ? 1 : -1) + cy, rad, 0, Math.PI * 2); g.fill()
           g.fillStyle = `rgba(0,0,0,${(0.28 + h2(t, sd + 3) * 0.3).toFixed(2)})`; g.fill()
         }
+      }
+      // a floodlight in each corner: the lamp head and the light it throws
+      for (const [cx, cy] of [[pitchL - off, pitchT - sc * 1.5], [pitchR + off, pitchT - sc * 1.5], [pitchL - off, pitchB + sc * 1.5], [pitchR + off, pitchB + sc * 1.5]] as [number, number][]) {
+        const glow = g.createRadialGradient(cx, cy, 0, cx, cy, sc * 16)
+        glow.addColorStop(0, 'rgba(255,252,225,.42)'); glow.addColorStop(1, 'rgba(255,252,225,0)')
+        g.fillStyle = glow; g.fillRect(cx - sc * 16, cy - sc * 16, sc * 32, sc * 32)
+        g.fillStyle = ink.white; g.beginPath(); g.arc(cx, cy, Math.max(2, sc * 0.8), 0, Math.PI * 2); g.fill()
       }
       // the boards: down both touchlines, and nowhere else
       const boardFills = [hk[0], lp.light, lp.dark, hk[1]]
@@ -297,7 +309,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // Seen from above with the pitch upright: the bar along the try line,
       // a pad at each foot, and each upright standing straight back from the
       // field into the in-goal, the same at both ends, with a soft shadow.
-      for (const x of [0, 100]) {
+      // (on its side the pitch is seen at a tilt and the posts stand up out of
+      // it: those are drawn each frame, over the grass, not here)
+      if (dim.up) for (const x of [0, 100]) {
         const away = x === 0 ? 1 : -1   // towards the dead-ball line, in screen y
         const up = sc * 4.2
         g.lineCap = 'round'
@@ -322,7 +336,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // (turned on its side there is room behind the goals to spare, so the
       // touchline stands get more of it)
       const sideMin = up ? SIDE_MIN : 9
-      const sc = Math.min(across / (70 + sideMin * 2), along / (100 + GOAL * 2 + END_MIN * 2))
+      const endMin = up ? END_MIN : 9
+      const sc = Math.min(across / (70 + sideMin * 2), along / (100 + GOAL * 2 + endMin * 2))
       if (sc > 0) { SIDE = (across / sc - 70) / 2; END = (along / sc - 100 - GOAL * 2) / 2; FIELD_L = 100 + GOAL * 2 + END * 2; FIELD_W = 70 + SIDE * 2 }
       dim = { w, h, dpr, sc, up, ox: (w - (up ? FIELD_W : FIELD_L) * sc) / 2, oy: (h - (up ? FIELD_L : FIELD_W) * sc) / 2 }
       if (sc > 0) paintField()
@@ -387,6 +402,24 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       else {
         g.save(); g.translate(dim.ox + FIELD_L * sc, dim.oy); g.rotate(Math.PI / 2)
         g.drawImage(field, 0, 0, FIELD_W * sc, FIELD_L * sc); g.restore()
+        // THE POSTS STAND UP (owner, 17 Nov 2026: "Posts look odd"). Seen at a
+        // tilt from the near touchline a post rises up the screen and leans
+        // a little away from the field: two tall uprights, the bar a third of
+        // the way up, a pad at each foot, a shadow on the grass behind.
+        for (const x of [0, 100]) {
+          const out = x === 0 ? -1 : 1
+          const H = sc * 11, lean = out * 0.2
+          const foot = [32.2, 37.8].map(y => ({ x: SX(x, y), y: SY(x, y) }))
+          g.lineCap = 'round'
+          g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = Math.max(1.5, sc * 0.5)
+          for (const f of foot) { g.beginPath(); g.moveTo(f.x, f.y); g.lineTo(f.x + out * H * 0.55, f.y + sc * 0.6); g.stroke() }
+          g.strokeStyle = ink.white; g.lineWidth = Math.max(1.6, sc * 0.5)
+          for (const f of foot) { g.beginPath(); g.moveTo(f.x, f.y); g.lineTo(f.x + lean * H, f.y - H); g.stroke() }
+          g.beginPath(); g.moveTo(foot[0].x + lean * H * 0.3, foot[0].y - H * 0.3); g.lineTo(foot[1].x + lean * H * 0.3, foot[1].y - H * 0.3); g.stroke()
+          const kit = io.current.home.kit
+          for (const f of foot) { g.strokeStyle = kit[0]; g.lineWidth = Math.max(3, sc * 1.1); g.beginPath(); g.moveTo(f.x, f.y); g.lineTo(f.x + lean * H * 0.16, f.y - H * 0.16); g.stroke() }
+          g.lineCap = 'butt'
+        }
       }
       // who is attacking, written on the in-goal they are attacking
       {
