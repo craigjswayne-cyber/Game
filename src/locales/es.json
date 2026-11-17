@@ -9027,7 +9027,7 @@
   "hlKey": "Clave",
   "hlExtended": "Ampliadas",
   "hlKeySub": "El campo muestra los ensayos, y las patadas y los ataques al final de un partido igualado.",
-  "hlExtendedSub": "El campo muestra ensayos, patadas a palos y entradas en el 22."
+  "hlExtendedSub": "Todo el partido sobre el campo, jugado en tiempo real."
  },
  "mem": {
   "howReleased": "Liberaste a {player} en {season}.",
@@ -9824,5 +9824,49 @@
   "hia": "HIA",
   "hiaTitle": "Fuera para una evaluación de lesión en la cabeza",
   "injured": "Retirado por lesión"
+ },
+ "lp": {
+  "attack": "{team} ataca",
+  "try": "Ensayo",
+  "con": "Transformación",
+  "goalKick": "Patada a palos",
+  "drop": "Intento de drop",
+  "penalty": "Golpe de castigo",
+  "tmo": "Revisión TMO",
+  "kickoff": "Saque de centro",
+  "restart": "Saque de reanudación",
+  "fullTime": "Final",
+  "halfTime": "Descanso",
+  "break": "Pausa",
+  "scrum": "Melé",
+  "lineout": "Touche",
+  "maul": "Maul",
+  "kickTouch": "Patada a touche",
+  "dropout": "Saque de la línea de marca",
+  "chargeDown": "Patada bloqueada",
+  "boxKick": "Box kick",
+  "upAndUnder": "Bombazo",
+  "grubber": "Patada rasa",
+  "kick": "Patada larga",
+  "catch": "Recepción",
+  "phases": "Fase {n}",
+  "turnover": "Recuperación",
+  "ruck": "Ruck",
+  "heldUp": "Retenido",
+  "tackle": "Placaje",
+  "carry": "Percusión",
+  "b": {
+   "try": "ENSAYO",
+   "pentry": "ENSAYO DE CASTIGO",
+   "con": "TRANSFORMADO",
+   "conMiss": "FUERA",
+   "pen": "GOLPE DE CASTIGO",
+   "penMiss": "FUERA",
+   "dg": "DROP",
+   "dgMiss": "FUERA",
+   "yc": "TARJETA AMARILLA",
+   "rc": "TARJETA ROJA",
+   "notry": "NO ES ENSAYO"
+  }
  }
 }

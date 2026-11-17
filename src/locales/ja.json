@@ -8655,7 +8655,7 @@
   "hlKey": "主要",
   "hlExtended": "拡張",
   "hlKeySub": "トライの場面と、僅差の終盤のキックと攻撃をピッチで表示する。",
-  "hlExtendedSub": "トライ、ゴールキック、22m侵入をピッチで表示する。"
+  "hlExtendedSub": "試合全体をピッチ上でリアルタイムに再現する。"
  },
  "mem": {
   "howReleased": "君は{season}シーズンに{player}を放出した。",
@@ -9389,5 +9389,49 @@
   "hia": "HIA",
   "hiaTitle": "頭部外傷評価のため一時退場",
   "injured": "負傷退場"
+ },
+ "lp": {
+  "attack": "{team}の攻撃",
+  "try": "トライ",
+  "con": "コンバージョン",
+  "goalKick": "ゴールキック",
+  "drop": "ドロップゴール狙い",
+  "penalty": "ペナルティ",
+  "tmo": "TMO確認",
+  "kickoff": "キックオフ",
+  "restart": "リスタート",
+  "fullTime": "試合終了",
+  "halfTime": "ハーフタイム",
+  "break": "中断",
+  "scrum": "スクラム",
+  "lineout": "ラインアウト",
+  "maul": "モール",
+  "kickTouch": "タッチキック",
+  "dropout": "ゴールラインドロップアウト",
+  "chargeDown": "チャージダウン",
+  "boxKick": "ボックスキック",
+  "upAndUnder": "ハイボール",
+  "grubber": "グラバーキック",
+  "kick": "ロングキック",
+  "catch": "キャッチ",
+  "phases": "フェーズ{n}",
+  "turnover": "ターンオーバー",
+  "ruck": "ラック",
+  "heldUp": "ヘルドアップ",
+  "tackle": "タックル",
+  "carry": "ボールキャリー",
+  "b": {
+   "try": "トライ",
+   "pentry": "ペナルティトライ",
+   "con": "成功",
+   "conMiss": "失敗",
+   "pen": "ペナルティゴール",
+   "penMiss": "失敗",
+   "dg": "ドロップゴール",
+   "dgMiss": "失敗",
+   "yc": "イエローカード",
+   "rc": "レッドカード",
+   "notry": "ノートライ"
+  }
  }
 }

@@ -236,7 +236,7 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       } else {
         ball = { x: ux(0), y: p.y }
       }
-      ref = { x: ux(1.5), y: clamp(vy(-4), 2, 68) }
+      ref = { x: ux(-3), y: clamp(vy(near > 9 ? -7.5 : 8), 2, 68) }
       break
     }
     case 'kick': case 'dropout': case 'kickoff': {

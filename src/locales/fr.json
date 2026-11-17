@@ -9263,7 +9263,7 @@
     "hlKey": "Essentiels",
     "hlExtended": "Étendus",
     "hlKeySub": "Le terrain montre les essais, et les coups de pied et les attaques en fin de match serré.",
-    "hlExtendedSub": "Le terrain montre les essais, les coups de pied au but et les percées dans les 22."
+    "hlExtendedSub": "Tout le match sur le terrain, joué en temps réel."
   },
   "mem": {
     "howReleased": "Vous avez libéré {player} en {season}.",
@@ -10064,5 +10064,49 @@
     "hia": "PC",
     "hiaTitle": "Sorti pour le protocole commotion",
     "injured": "Sorti sur blessure"
+  },
+  "lp": {
+    "attack": "{team} attaque",
+    "try": "Essai",
+    "con": "Transformation",
+    "goalKick": "Tir au but",
+    "drop": "Tentative de drop",
+    "penalty": "Pénalité",
+    "tmo": "Arbitrage vidéo",
+    "kickoff": "Coup d'envoi",
+    "restart": "Renvoi",
+    "fullTime": "Fin du match",
+    "halfTime": "Mi-temps",
+    "break": "Arrêt de jeu",
+    "scrum": "Mêlée",
+    "lineout": "Touche",
+    "maul": "Maul",
+    "kickTouch": "Coup de pied en touche",
+    "dropout": "Renvoi aux 5 mètres",
+    "chargeDown": "Contré",
+    "boxKick": "Chandelle du demi de mêlée",
+    "upAndUnder": "Chandelle",
+    "grubber": "Coup de pied à suivre",
+    "kick": "Jeu au pied",
+    "catch": "Réception",
+    "phases": "Phase {n}",
+    "turnover": "Ballon récupéré",
+    "ruck": "Ruck",
+    "heldUp": "Ballon tenu",
+    "tackle": "Plaquage",
+    "carry": "Percussion",
+    "b": {
+      "try": "ESSAI",
+      "pentry": "ESSAI DE PÉNALITÉ",
+      "con": "TRANSFORMÉ",
+      "conMiss": "MANQUÉ",
+      "pen": "PÉNALITÉ RÉUSSIE",
+      "penMiss": "MANQUÉ",
+      "dg": "DROP",
+      "dgMiss": "MANQUÉ",
+      "yc": "CARTON JAUNE",
+      "rc": "CARTON ROUGE",
+      "notry": "PAS D'ESSAI"
+    }
   }
 }

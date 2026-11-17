@@ -9173,7 +9173,7 @@
   "hlKey": "Kern",
   "hlExtended": "Uitgebrei",
   "hlKeySub": "Die veld wys drieë, en die skoppe en aanvalle laat in 'n kop-aan-kop-wedstryd.",
-  "hlExtendedSub": "Die veld wys drieë, doelskoppe en deurbrake in die 22."
+  "hlExtendedSub": "Die hele wedstryd op die veld, in regte tyd gespeel."
  },
  "mem": {
   "howReleased": "Jy het {player} in {season} vrygestel.",
@@ -9911,5 +9911,49 @@
   "hia": "HIA",
   "hiaTitle": "Af vir 'n kopbeseringsondersoek",
   "injured": "Beseer af"
+ },
+ "lp": {
+  "attack": "{team} val aan",
+  "try": "Drie",
+  "con": "Doelskop",
+  "goalKick": "Skop pale toe",
+  "drop": "Skepdoelpoging",
+  "penalty": "Strafskop",
+  "tmo": "TMO-kontrole",
+  "kickoff": "Afskop",
+  "restart": "Hervatting",
+  "fullTime": "Eindfluitjie",
+  "halfTime": "Rustyd",
+  "break": "Onderbreking",
+  "scrum": "Skrum",
+  "lineout": "Lynstaan",
+  "maul": "Losgemaal",
+  "kickTouch": "Skop vir kantlyn",
+  "dropout": "Doellyn-uitskop",
+  "chargeDown": "Skop gestuit",
+  "boxKick": "Bokskop",
+  "upAndUnder": "Hoogskop",
+  "grubber": "Steekskop",
+  "kick": "Lang skop",
+  "catch": "Gevang",
+  "phases": "Fase {n}",
+  "turnover": "Omkeerbal",
+  "ruck": "Losskrum",
+  "heldUp": "Opgehou",
+  "tackle": "Laagvat",
+  "carry": "Dra",
+  "b": {
+   "try": "DRIE",
+   "pentry": "STRAFDRIE",
+   "con": "OOR",
+   "conMiss": "MIS",
+   "pen": "STRAFDOEL",
+   "penMiss": "MIS",
+   "dg": "SKEPDOEL",
+   "dgMiss": "MIS",
+   "yc": "GEEL KAART",
+   "rc": "ROOI KAART",
+   "notry": "GEEN DRIE"
+  }
  }
 }

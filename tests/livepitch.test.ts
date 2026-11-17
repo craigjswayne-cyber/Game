@@ -1,0 +1,64 @@
+// THE LIVE PITCH (2.0.0): smooth by construction, and it always finishes.
+//
+// Owner, 16 Nov 2026, on the first pass: "The animation is incredibly jumpy".
+// The second pass plays every line in real time with bodies that have a top
+// speed (ui/livepitch/sim.ts). This holds that promise on a whole match: no
+// man ever moves faster than a sprint between two frames except across a
+// cut, no line's play hangs, a full match stays a watchable length, and
+// every label the pitch can show has words.
+import { describe, expect, it } from 'vitest'
+import { newGame } from '../src/game/newgame'
+import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
+import { beginMatch, simMatch } from '../src/game/matchEngine'
+import type { Fixture, MatchEvent } from '../src/game/model'
+import { readLine, type Phase } from '../src/ui/livepitch/phase'
+import { PitchSim } from '../src/ui/livepitch/sim'
+import en from '../src/locales/en.json'
+
+function match(seed: number) {
+  const g = newGame('leicester', 'T', seed)
+  let fx: Fixture | null | undefined = null
+  for (let i = 0; i < 12 && !fx; i++) { fx = userFixtureThisWeek(g); if (!fx) processWeekAndAdvance(g) }
+  const peek = beginMatch(newGame('leicester', 'T', seed), fx!, weekRng(g), true)
+  const lineups = { home: peek.home.lineup.slice(0, 15), away: peek.away.lineup.slice(0, 15) }
+  const r = simMatch(g, fx!, weekRng(g), true) as unknown as { events?: MatchEvent[] }
+  return { events: (fx!.events ?? r.events ?? []) as MatchEvent[], homeId: fx!.homeId, lineups }
+}
+
+describe('the live pitch', () => {
+  for (const seed of [4242, 777]) {
+    it(`plays a whole match smoothly (seed ${seed})`, () => {
+      const { events, homeId, lineups } = match(seed)
+      expect(events.length).toBeGreaterThan(60)
+      const S = new PitchSim()
+      const lp = (en as unknown as { lp: Record<string, unknown> }).lp
+      let cur: Phase | null = null, total = 0, top = 0, plays = 0
+      for (let i = 0; i < events.length; i++) {
+        const p = readLine(events[i], i, homeId, cur, events[i + 1])
+        if (!p) continue
+        cur = p; plays++
+        expect(lp[p.label.replace(/^lp\./, '')], `words for ${p.label}`).toBeTypeOf('string')
+        const side = p.homeBall ? lineups.home : lineups.away
+        const ci = p.carrier != null ? side.indexOf(p.carrier) : -1
+        S.start(p, ci >= 0 ? ci : null)
+        let t = 0, prev = S.b.map(b => ({ x: b.x, y: b.y }))
+        while (!S.done && t < 20) {
+          const cutsBefore = S.cuts
+          S.step(1 / 120); t += 1 / 120
+          for (let k = 0; k < 30; k++) {
+            if (S.cuts === cutsBefore) top = Math.max(top, Math.hypot(S.b[k].x - prev[k].x, S.b[k].y - prev[k].y) * 120)
+            prev[k].x = S.b[k].x; prev[k].y = S.b[k].y
+          }
+        }
+        expect(t, `line ${i} (${events[i].k}) finishes`).toBeLessThan(20)
+        total += t
+      }
+      expect(plays).toBeGreaterThan(50)
+      // a sprint is 8.2 m/s, the man with the ball a touch more
+      expect(top).toBeLessThan(9.5)
+      // a full match at Normal: long enough to watch, short enough to finish
+      expect(total).toBeGreaterThan(240)
+      expect(total).toBeLessThan(720)
+    })
+  }
+})

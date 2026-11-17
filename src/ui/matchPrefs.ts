@@ -4,10 +4,12 @@
  * The choices in Match Settings, in the FM26 layout the owner picked out.
  * Remembered on this device like the sound.
  *
- *   highlights  which moments bring the pitch on screen (owner, 28 Sep 2026:
- *               "show tries properly, then just commentary only"). 'key' is
- *               tries and tries under review; 'extended' adds kicks at goal
- *               and breaks into the opposition 22.
+ *   highlights  how the match is watched. 'key' is the commentary and the
+ *               live stats, with the pitch coming on for tries (owner, 28 Sep
+ *               2026: "show tries properly, then just commentary only").
+ *               'extended' is the whole match on the live pitch, in real
+ *               time (owner, 16 Nov 2026, 2.0.0: "Extended should be where
+ *               you watch full match").
  *   bigText     the commentary at the size FM Mobile sets it (owner: "The size
  *               of the text in fm stands out")
  *   speed       the commentary pace, 0 Slow, 1 Normal, 2 Fast (owner, 1.8.8:

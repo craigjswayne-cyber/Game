@@ -9073,7 +9073,7 @@
   "hlKey": "Principali",
   "hlExtended": "Estesi",
   "hlKeySub": "Il campo mostra le mete, e i calci e gli attacchi nel finale di una partita equilibrata.",
-  "hlExtendedSub": "Il campo mostra mete, calci piazzati e ingressi nei 22."
+  "hlExtendedSub": "Tutta la partita sul campo, giocata in tempo reale."
  },
  "mem": {
   "howReleased": "Hai svincolato {player} nella stagione {season}.",
@@ -9868,5 +9868,49 @@
   "hia": "HIA",
   "hiaTitle": "Fuori per la valutazione di un trauma cranico",
   "injured": "Uscito per infortunio"
+ },
+ "lp": {
+  "attack": "{team} attacca",
+  "try": "Meta",
+  "con": "Trasformazione",
+  "goalKick": "Calcio piazzato",
+  "drop": "Tentativo di drop",
+  "penalty": "Punizione",
+  "tmo": "Controllo TMO",
+  "kickoff": "Calcio d'inizio",
+  "restart": "Ripresa del gioco",
+  "fullTime": "Fine partita",
+  "halfTime": "Intervallo",
+  "break": "Pausa",
+  "scrum": "Mischia",
+  "lineout": "Touche",
+  "maul": "Maul",
+  "kickTouch": "Calcio in touche",
+  "dropout": "Drop dalla linea di meta",
+  "chargeDown": "Calcio stoppato",
+  "boxKick": "Box kick",
+  "upAndUnder": "Campanile",
+  "grubber": "Calcio rasoterra",
+  "kick": "Calcio lungo",
+  "catch": "Presa al volo",
+  "phases": "Fase {n}",
+  "turnover": "Turnover",
+  "ruck": "Ruck",
+  "heldUp": "Pallone tenuto",
+  "tackle": "Placcaggio",
+  "carry": "Percussione",
+  "b": {
+   "try": "META",
+   "pentry": "META TECNICA",
+   "con": "TRASFORMATA",
+   "conMiss": "FUORI",
+   "pen": "PIAZZATO A SEGNO",
+   "penMiss": "FUORI",
+   "dg": "DROP",
+   "dgMiss": "FUORI",
+   "yc": "CARTELLINO GIALLO",
+   "rc": "CARTELLINO ROSSO",
+   "notry": "META NON VALIDA"
+  }
  }
 }
