@@ -187,10 +187,10 @@ export class PitchSim {
     const in22 = p.homeBall ? p.x > 76 : p.x < 24
     this.baseRate = p.move ? 1
       : p.kind === 'try' || p.kind === 'heldup' ? 1
-      : p.kind === 'con' || p.kind === 'goal' ? 1.4
-      : p.kind === 'kick' || p.kind === 'catch' || p.kind === 'kickoff' || p.kind === 'dropout' ? 1.8
-      : p.kind === 'scrum' || p.kind === 'lineout' || p.kind === 'maul' ? (in22 ? 1.4 : 2.6)
-      : p.kind === 'penalty' || p.kind === 'break' ? 3.6
+      : p.kind === 'con' || p.kind === 'goal' ? 2.1
+      : p.kind === 'kick' || p.kind === 'catch' || p.kind === 'kickoff' || p.kind === 'dropout' ? 2.2
+      : p.kind === 'scrum' || p.kind === 'lineout' || p.kind === 'maul' ? (in22 ? 1.5 : 3)
+      : p.kind === 'penalty' || p.kind === 'break' ? 4.5
       : in22 ? 1.25 : 3.2
     const open = (y: number) => (y < 35 ? 1 : -1)
 
