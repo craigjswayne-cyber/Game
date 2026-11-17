@@ -794,6 +794,16 @@
   --hl-ball: #f4ead2;
   --hl-ball-edge: #6b5a3a;
   --hl-miss: #ffb3a8;
+  /* the live pitch's ground (2.0.0, livepitch/LivePitch.tsx): the concrete
+     round the pitch, the stands on it, the two neutral board colours and the
+     ink on a light board, and the green of the points a score is worth. Read
+     by the canvas at draw time like the grass. */
+  --lp-ground: #12181c;
+  --lp-stand: #1b2329;
+  --lp-board-light: #f4f1e6;
+  --lp-board-dark: #16202a;
+  --lp-board-ink: #141a1f;
+  --lp-plus: #4ade80;
   /* the referee on the highlight pitch (owner, 1.8.0): pink, orange when a
      kit is pink, cyan when the kits are pink and orange (HighlightClip,
      refereeColour) */

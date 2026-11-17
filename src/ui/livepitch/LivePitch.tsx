@@ -101,6 +101,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     const S = sim.current!
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     const ink = readInk()
+    const lp = { ground: tokenColor('--lp-ground'), stand: tokenColor('--lp-stand'), light: tokenColor('--lp-board-light'), dark: tokenColor('--lp-board-dark'), boardInk: tokenColor('--lp-board-ink') }
     const refKit = refereeColour([...home.kit, ...away.kit], [ink.refPink, ink.refOrange, ink.refCyan])
     let raf = 0, last = performance.now(), acc = 0
     // upright on a phone held upright; on its side when the box is wider than
@@ -137,11 +138,11 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const names = (io.current.boards?.length ? io.current.boards : ['PHASE'])
 
       // ---- the ground: concrete, then the stands, then the grass on top
-      g.fillStyle = '#12181c'; g.fillRect(0, 0, W, L)
+      g.fillStyle = lp.ground; g.fillRect(0, 0, W, L)
       // the two end stands: rows of seats in the home colour, a crowd in them
       const stand = (top: boolean) => {
         const y0 = top ? 0 : fy(-GOAL - 4.6), hgt = (END - 4.6) * sc
-        g.fillStyle = '#1b2329'; g.fillRect(0, y0, W, hgt)
+        g.fillStyle = lp.stand; g.fillRect(0, y0, W, hgt)
         const rows = 5, rh = hgt / rows
         for (let r = 0; r < rows; r++) {
           g.fillStyle = hk[0]; g.globalAlpha = 0.5 + 0.08 * r
@@ -156,14 +157,14 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           }
         }
         // the aisles
-        g.fillStyle = '#1b2329'
+        g.fillStyle = lp.stand
         for (const a of [0.25, 0.5, 0.75]) g.fillRect(W * a - sc * 0.5, y0, sc, hgt)
       }
       stand(true); stand(false)
       // a strip of crowd down each touchline
       for (const left of [true, false]) {
         const x0 = left ? 0 : fx(70 + SIDE - 1.7)
-        g.fillStyle = '#1b2329'; g.fillRect(x0, fy(100 + GOAL + 4.6), 1.7 * sc, (116 + 9.2) * sc)
+        g.fillStyle = lp.stand; g.fillRect(x0, fy(100 + GOAL + 4.6), 1.7 * sc, (116 + 9.2) * sc)
         const n = Math.floor((116 + 9.2) / 1.0)
         for (let c = 0; c < n; c++) {
           const k = h2(c, left ? 77 : 99)
@@ -173,11 +174,11 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         }
       }
       // the boards: along both touchlines (the names up the pitch) and both ends
-      const boardFills = [hk[0], '#f4f1e6', '#16202a', hk[1]]
+      const boardFills = [hk[0], lp.light, lp.dark, hk[1]]
       const text = (label: string, cx: number, cy: number, size: number, fill: string, rot: number, maxW: number) => {
         g.save(); g.translate(cx, cy); g.rotate(rot)
         g.font = `800 ${size}px var(--cond, system-ui), system-ui, sans-serif`
-        g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = isLight(fill) ? '#141a1f' : '#f4f1e6'
+        g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = isLight(fill) ? lp.boardInk : lp.light
         g.fillText(label.toUpperCase(), 0, 0.5, maxW); g.restore()
       }
       const panels = 6, pl = (116 + 3) / panels
@@ -296,7 +297,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const { w, h, dpr, sc } = dim
       if (!sc) return
       g.setTransform(dpr, 0, 0, dpr, 0, 0)
-      g.fillStyle = '#12181c'; g.fillRect(0, 0, w, h)
+      g.fillStyle = lp.ground; g.fillRect(0, 0, w, h)
       if (dim.up) g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
       else {
         g.save(); g.translate(dim.ox + FIELD_L * sc, dim.oy); g.rotate(Math.PI / 2)
@@ -338,7 +339,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       // the lines being run on to the ball: a dashed arrow to where he will take it
       g.save()
-      g.strokeStyle = 'rgba(255,255,255,.8)'; g.fillStyle = 'rgba(255,255,255,.8)'; g.lineWidth = Math.max(1.6, sc * 0.3); g.setLineDash([sc * 1.1, sc * 0.9]); g.lineCap = 'round'
+      g.strokeStyle = 'rgba(255,255,255,.6)'; g.fillStyle = 'rgba(255,255,255,.6)'; g.lineWidth = Math.max(1.4, sc * 0.26); g.setLineDash([sc * 1.1, sc * 0.9]); g.lineCap = 'round'
       for (const r of S.runs()) {
         const a = S.b[r.i]
         const x0 = SX(a.x, a.y), y0 = SY(a.x, a.y), x1 = SX(r.to.x, r.to.y), y1 = SY(r.to.x, r.to.y)
