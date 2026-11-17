@@ -366,7 +366,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.fillText(io.current.attackText.toUpperCase(), 0, 0)
         g.restore()
       }
-      const R0 = Math.max(8, sc * 1.9)
+      // (smaller than they were: the reference draws a man about a metre and a
+      // half across and lets a pack overlap)
+      const R0 = Math.max(6.5, sc * 1.45)
       let R = R0
       const { home: H, away: A, names: N, carrierId } = io.current
       const flying = S.ball.lift > 0.4

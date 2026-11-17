@@ -231,7 +231,7 @@ export class PitchSim {
         cut = cut || d > 10
         // the put-in, the hook, the ball worked back to the number 8's feet
         // while the pack goes forward, and the 9 away from the base
-        steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'heel', by: -dir * 8.8 }, { k: 'run', to: { x: E.x + dir * 2.5, y: E.y }, v: 0.9 },
+        steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'heel', by: -dir * 4.2 }, { k: 'run', to: { x: E.x + dir * 1.5, y: E.y }, v: 0.6 },
           { k: 'pick', who: att0 + 8 }, { k: 'wait', t: 0.3 })
         // one scrum in four the number 8 picks up from the base himself and feeds his 9 (the 8-9)
         if (p.at % 4 === 0) steps.splice(steps.length - 2, 2, { k: 'pick', who: att0 + 7 }, { k: 'wait', t: 0.5 }, { k: 'pass', to: att0 + 8, hang: 0.2 }, { k: 'wait', t: 0.2 })
@@ -588,7 +588,7 @@ export class PitchSim {
         for (const [n, sgn] of [[order[at - 1], -1], [order[at + 1], 1]] as [number | undefined, number][]) {
           if (n == null) continue
           const side = Math.sign(pts[base + n].y - J.y) || sgn
-          pts[base + n] = { x: J.x, y: J.y + side * 2.3 }
+          pts[base + n] = { x: J.x, y: J.y + side * 1.2 }
         }
       }
     }

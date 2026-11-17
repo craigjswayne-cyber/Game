@@ -175,7 +175,7 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     // (a scrum is never set within five metres of a goal line or a touchline:
     // Law 19. The packs are drawn larger than life, so the mark is kept far
     // enough out for both of them to be on the field.)
-    return { ...base, x: pen ? base.x : clamp(base.x, 13, 87), kind: pen ? 'penalty' : 'scrum', y: clamp(drift(12), 15, 55), label: pen ? 'lp.penalty' : 'lp.scrum' }
+    return { ...base, x: pen ? base.x : clamp(base.x, 8, 92), kind: pen ? 'penalty' : 'scrum', y: clamp(drift(12), 15, 55), label: pen ? 'lp.penalty' : 'lp.scrum' }
   }
   if (e.fx === 'LINEOUT' || s.startsWith('lineout') || s.startsWith('moveCallLo') || s.startsWith('fk_lineout') || s.startsWith('off_lineout') || s.startsWith('off_lifter') || s.startsWith('chargeLineout') || raw === 'flav9' || raw === 'flav18' || raw === 'flav13') {
     const pen = s.startsWith('off_') || s.startsWith('fk_')

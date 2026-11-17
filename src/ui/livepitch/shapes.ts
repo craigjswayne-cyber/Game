@@ -104,47 +104,54 @@ function openPlay(p: Phase, ruck: boolean, far: number, near: number): { att: UV
 // across on a phone so his number reads; a scrum drawn to scale would be one
 // blob. So the set pieces are spaced for the discs: rows a disc apart, the
 // two packs just touching, as the reference clips draw them.
+/*
+ * TRUE SIZE (owner, 17 Nov 2026, with the reference clips: "This is what I
+ * want"). The set pieces used to be drawn two or three times life size so no
+ * two discs touched: a scrum nine metres deep, a lineout out to the 27. That
+ * pushed every back out of place and is most of why none of it looked like
+ * rugby. They are now the size they are. A scrum is a knot of sixteen men
+ * about seven metres long, a lineout is two files a metre apart between the
+ * 5 and the 15, and the discs overlap, which is what a pack looks like from
+ * above.
+ */
 function scrum(): { att: UV[]; def: UV[] } {
   const att: UV[] = [
-    [-1.7, -3.3], [-1.7, 0], [-1.7, 3.3], [-4.9, -1.7], [-4.9, 1.7], [-4.4, -5.6], [-4.4, 5.6], [-8, 0],
-    // THE LAW (10, scrum offside): every back but the 9 is five metres behind
+    [-0.8, -1.3], [-0.8, 0], [-0.8, 1.3], [-2.3, -0.7], [-2.3, 0.7], [-2.0, -2.4], [-2.0, 2.4], [-3.7, 0],
+    // THE LAW (19, scrum offside): every back but the 9 is five metres behind
     // the last foot of his own scrum. The attack's line is staggered deeper
     // from there; the defence's is flat on it, the full-back deep, and the
     // far wing hangs back for the kick (the pendulum).
-    [-1, 6.6], [-13.2, 12], [-13.5, -13], [-14.8, 18.5], [-16.4, 25], [-18, 33], [-21, 15],
+    [-0.4, 3.2], [-9, 9], [-9.5, -11], [-10.5, 15], [-12, 21.5], [-13.5, 31], [-17, 13],
   ]
   const def: UV[] = [
-    [1.7, 3.3], [1.7, 0], [1.7, -3.3], [4.9, 1.7], [4.9, -1.7], [4.4, 5.6], [4.4, -5.6], [8, 0],
-    [2.2, 7.4], [13.2, 11], [13.4, -12], [13.2, 17], [13.2, 23.5], [18, 33], [27, 12],
+    [0.8, 1.3], [0.8, 0], [0.8, -1.3], [2.3, 0.7], [2.3, -0.7], [2.0, 2.4], [2.0, -2.4], [3.7, 0],
+    [1.2, 3.6], [8.8, 8], [9, -10], [8.8, 14], [8.8, 20.5], [13, 31], [23, 11],
   ]
   return { att, def }
 }
-
-/** v here is metres in from the touchline the throw is taken on */
 function lineout(): { att: UV[]; def: UV[] } {
   const att: UV[] = [
-    [-1.8, 5.5], [0, -1], [-1.8, 23.5], [-1.8, 12.7], [-1.8, 16.3], [-1.8, 9.1], [-1.8, 27.1], [-1.8, 19.9],
+    [-0.8, 5.5], [0, -1], [-0.8, 13], [-0.8, 8.5], [-0.8, 10], [-0.8, 7], [-0.8, 14.5], [-0.8, 11.5],
     // THE LAW (18): the line stands between the 5 and 15 metre lines, the
     // receiver two metres off it, and everyone else ten metres back until
     // the ball is caught. The other hooker is in the five-metre channel; the
     // defending 9 is often the one in the tramlines with the hooker at the tail.
-    [-4, 17], [-13, 36], [-10.5, 3], [-14.5, 42], [-16, 48], [-17.5, 57], [-22, 40],
+    [-3, 10], [-11, 21], [-10.5, 3], [-12.5, 28], [-14, 35], [-16, 48], [-20, 30],
   ]
   const def: UV[] = [
-    [1.8, 5.5], [3.6, 30.5], [1.8, 23.5], [1.8, 12.7], [1.8, 16.3], [1.8, 9.1], [1.8, 27.1], [1.8, 19.9],
-    [2.6, 2.6], [11, 36], [11, 5], [11, 42], [11, 48], [14, 57], [26, 38],
+    [0.8, 5.5], [2.6, 17], [0.8, 13], [0.8, 8.5], [0.8, 10], [0.8, 7], [0.8, 14.5], [0.8, 11.5],
+    [2.4, 2.4], [10.5, 21], [10.5, 5], [10.5, 28], [10.5, 35], [13, 48], [24, 32],
   ]
   return { att, def }
 }
-
 function maul(): { att: UV[]; def: UV[] } {
   const att: UV[] = [
-    [-1.7, -3.2], [-5, 0], [-1.7, 3.2], [-1.7, 0], [-5, -3.2], [-5, 3.2], [-8, -1.6], [-8, 1.8],
-    [-10.5, 4.5], [-12, 12], [-11, -11], [-13, 18], [-14.5, 24], [-15, 32], [-18, 14],
+    [-0.8, -1.4], [-2.2, 0], [-0.8, 1.4], [-0.8, 0], [-2.2, -1.4], [-2.2, 1.4], [-3.6, -0.7], [-3.6, 0.8],
+    [-5.5, 2.5], [-11, 10], [-10, -10], [-12.5, 16], [-14, 22], [-15, 31], [-18, 13],
   ]
   const def: UV[] = [
-    [1.7, -1.7], [1.7, 1.7], [1.7, -5], [4.9, 0], [1.7, 5], [4.9, -3.4], [4.9, 3.4], [6.5, 7],
-    [7, 10], [7, 14], [12, -10], [7, 20], [7.5, 26], [10, 33], [20, 14],
+    [0.8, -0.7], [0.8, 0.7], [0.8, -2.1], [2.2, 0], [0.8, 2.1], [2.2, -1.4], [2.2, 1.4], [3.4, 3.4],
+    [4.5, 6], [6.5, 11], [11, -10], [6.5, 17], [7, 23.5], [10, 32], [20, 13],
   ]
   return { att, def }
 }
@@ -268,7 +275,7 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
         }
       }
       const a = att.map(lt), d = def.map(lt)
-      ball = { x: ux(-0.4), y: edge + side * 12.7 }
+      ball = { x: ux(-0.4), y: edge + side * 10 }
       ref = { x: ux(0), y: edge + side * 2.5 }
       holder = 3
       return { home: p.homeBall ? a : d, away: p.homeBall ? d : a, ball, ref, runs: [], holder: { home: p.homeBall, i: 3 } }
@@ -276,7 +283,7 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
     case 'maul': {
       ;({ att, def } = maul())
       holder = 7
-      ball = { x: ux(-8), y: vy(1.8) }
+      ball = { x: ux(-3.6), y: vy(0.8) }
       break
     }
     case 'ruck': case 'carry': case 'catch': {
