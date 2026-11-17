@@ -131,6 +131,23 @@ export class PitchSim {
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
+  /**
+   * A CALLED MOVE, PLAYED THE WAY THE OWNER'S REFERENCE PLAYS ONE (17 Nov
+   * 2026: "All players move in this, this is an attack off a lineout. This
+   * is what I want"). From the moment the ball is out every man has ONE job
+   * and keeps it until the passage is over:
+   *   the men in the move   run the lines the Playbook draws for them
+   *   the other backs       come up in support behind the ball
+   *   the pack              breaks from the set piece and follows the ball
+   *   each defending back   has a man (fixed when the ball comes out) and
+   *                         stays goal-side of him, closing; once beaten he
+   *                         chases
+   *   the full-back         shadows the ball and comes up as it comes to him
+   *   the defending pack    breaks and gets across, goal-side of the ball
+   * Nobody is re-dealt a place while it is running, which is what made the
+   * old picture twitch.
+   */
+  private strike: { marks: Map<number, number>; S: Pt[]; movers: Set<number>; gain: number; t: number } | null = null
   /** where each man is heading, eased: when the play changes his mind is
    *  changed over a fifth of a second, not between two frames (owner, 17 Nov
    *  2026: "Looks glitchy again") */
@@ -199,6 +216,7 @@ export class PitchSim {
     // the men nearest this breakdown are the men at it
     this.mark(E, att0, this.holder)
     this.downMan = null
+    this.strike = null
     this.heeled = false
     this.kicked = false
     this.idleN = 0
@@ -323,7 +341,10 @@ export class PitchSim {
         if (tr) {
           // run from within reach of where the line ends: a move is twenty
           // metres of rugby, not sixty
-          if (!cut && d > 26) { cut = true }
+          // (but a move called off a scrum or a lineout is run off that scrum
+          // or lineout, however far out it is: that is what it was called for)
+          const fromSet = sameSide && (this.mode === 'lineout' || this.mode === 'scrum')
+          if (!cut && d > 26 && !fromSet) { cut = true }
           if (cut) { mode = 'ruck'; cIdx = null; init = -1; anchor = { x: clamp(E.x - dir * 20, 4, 96), y: clamp(E.y, 12, 58) }; steps.push({ k: 'ground' }) }
           else { mode = this.mode; cIdx = this.cIdx; anchor = this.anchor }
           const strike = tr.strike
@@ -480,6 +501,79 @@ export class PitchSim {
     steps.push({ k: 'pass', to: att0 + c, rate })
   }
 
+  private beginStrike(att0: number, movers: Set<number>) {
+    const d0 = 15 - att0
+    const marks = new Map<number, number>()
+    // man for man: 10 on 10, 12 on 12, 13 on 13; each wing takes the wing nearer him
+    for (const k of [9, 11, 12]) if (!this.off[d0 + k] && !this.off[att0 + k]) marks.set(d0 + k, att0 + k)
+    const aw = [10, 13].filter(k => !this.off[att0 + k])
+    for (const k of [10, 13]) {
+      if (this.off[d0 + k] || !aw.length) continue
+      aw.sort((a, b) => Math.abs(this.b[att0 + a].y - this.b[d0 + k].y) - Math.abs(this.b[att0 + b].y - this.b[d0 + k].y))
+      marks.set(d0 + k, att0 + aw.shift()!)
+    }
+    this.strike = { marks, S: this.b.map(q => ({ x: q.x, y: q.y })), movers, gain: this.anchor.x, t: 0 }
+  }
+
+  /** where every man goes while a called move is being played: one job each, held */
+  private strikeTargets(): Pt[] {
+    const k = this.strike!, p = this.phase!
+    const att0 = p.homeBall ? 0 : 15, d0 = 15 - att0, dir = p.homeBall ? 1 : -1
+    const B: Pt = { x: this.ball.x, y: this.ball.y }
+    // (once the last pass of the move is given, the men who ran it are support like the rest)
+    const mv = this.trk ? k.movers : new Set<number>()
+    const pts: Pt[] = this.b.map(q => ({ x: q.x, y: q.y }))
+    const byBall = (base: number) => [0, 1, 2, 3, 4, 5, 6, 7].filter(i => !this.off[base + i] && base + i !== this.holder && !mv.has(base + i))
+      .sort((a, b) => hyp(k.S[base + a], B) - hyp(k.S[base + b], B))
+    // ---- the side with the ball
+    // THE PACK FOLLOWS IN A CHAIN, as in the reference: the first men off the
+    // set piece are up with the ball, the rest are strung out all the way
+    // back to where it was, each on the line from there to the ball. They do
+    // not all arrive in a heap.
+    const chain = (base: number, side: number) => {
+      const fw = byBall(base)
+      fw.forEach((i, j) => {
+        const S = k.S[base + i]
+        const f = 0.1 + 0.8 * (fw.length > 1 ? j / (fw.length - 1) : 0)
+        const hx = B.x + side * dir * 2.4, hy = B.y
+        pts[base + i] = { x: clamp(hx + (S.x - hx) * f, 0.5, 99.5), y: clamp(hy + (S.y - hy) * f + (j % 2 ? 1.1 : -1.1) * (1 - f), 1.5, 68.5) }
+      })
+    }
+    chain(att0, -1)
+    for (const i of [8, 9, 10, 11, 12, 13, 14]) {
+      const g = att0 + i
+      if (mv.has(g) || g === this.holder || this.off[g]) continue
+      const S = k.S[g]
+      if (i === 8) { pts[g] = { x: B.x - dir * 4, y: clamp(B.y + (S.y - B.y) * 0.3, 2, 68) }; continue }
+      // in support: behind the ball, deeper the further out he is, holding his width
+      const back = 4 + Math.abs(S.y - B.y) * 0.2
+      const x = dir > 0 ? Math.max(S.x, B.x - back) : Math.min(S.x, B.x + back)
+      pts[g] = { x: clamp(x, 0.5, 99.5), y: S.y + (B.y - S.y) * 0.15 }
+    }
+    // ---- the side without it
+    for (const [d, m] of k.marks) {
+      const man = this.b[m], me = this.b[d]
+      const goalSide = (me.x - man.x) * dir
+      // beaten, or his man is past him: he turns and chases
+      if (goalSide < 0.6) { pts[d] = { x: man.x, y: man.y }; continue }
+      pts[d] = { x: man.x + dir * Math.max(1, goalSide * 0.55), y: man.y + (me.y - man.y) * 0.12 }
+    }
+    {
+      // the full-back: deep, on the ball's line, coming up as it comes to him
+      const g = d0 + 14
+      if (!this.off[g]) {
+        const through = (B.x - k.gain) * dir > 3
+        const depth = through ? 0 : clamp(15 - k.t * 2.5, 6, 15)
+        const me = this.b[g]
+        pts[g] = (me.x - B.x) * dir < 0.6 ? { ...B } : { x: clamp(B.x + dir * depth, 0.5, 99.5), y: B.y + (35 - B.y) * 0.08 }
+      }
+    }
+    chain(d0, 1)
+    if (!this.off[d0 + 8]) pts[d0 + 8] = { x: clamp(B.x + dir * 4.5, 0.5, 99.5), y: clamp(B.y + (k.S[d0 + 8].y - B.y) * 0.2, 2, 68) }
+    for (const [i, q] of this.over) pts[i] = q
+    return pts
+  }
+
   /** this side's nearest man on his feet to a point */
   private nearest(att0: number, at: Pt, skip: number[] = []) {
     let best = att0 + 8, bd = 1e9
@@ -532,6 +626,10 @@ export class PitchSim {
 
   private targets(): { pts: Pt[]; ref: Pt } {
     const p = this.phase!
+    if (this.strike) {
+      const dir = p.homeBall ? 1 : -1
+      return { pts: this.strikeTargets(), ref: { x: this.ball.x - dir * 4, y: clamp(this.ball.y + (this.ball.y < 35 ? 7 : -7), 3, 67) } }
+    }
     // OPEN PLAY: every man works out his own place (agents.ts)
     if (this.mode === 'ruck' || this.mode === 'carry') {
       const att0 = p.homeBall ? 0 : 15
@@ -783,6 +881,7 @@ export class PitchSim {
         case 'track': {
           const k = this.trk
           if (!k) { over = true; break }
+          if (first) this.beginStrike(k.att0, new Set(Object.values(k.who)))
           k.t += dt
           for (const [role, ks] of Object.entries(k.tr.runs)) this.over.set(k.who[role], this.trackPt(ks, k.t))
           // the passes, when the move says, to the man it says
@@ -946,6 +1045,7 @@ export class PitchSim {
     }
     if (this.si >= this.steps.length) { this.done = true; this.rate = 1 }
     this.ruckT += dt
+    if (this.strike) this.strike.t += dt
     this.modeT += dt
     this.clock += dt
     this.move(dt, runTo)
