@@ -149,7 +149,29 @@ export class PitchSim {
     let mode: PhaseKind = p.kind, anchor: Pt = E, cIdx: number | null = carrierIdx
     /** set by a cut: who starts with the ball (-1: on the ground at the anchor) */
     let init = -1
-    const need9 = () => { if (!holderAtt) steps.push({ k: 'pick', who: att0 + 8, max: 1.6 }) }
+    /**
+     * THE BALL HAS TO BE IN THIS SIDE'S HANDS. When it already was theirs it
+     * is the 9 at the base. When it was the other side's, this is a
+     * TURNOVER and it is shown as one (docs/match-authenticity-2.0.0.md,
+     * section 10): the man carrying is brought down and it is ripped from
+     * him, or it is stolen off the floor at the ruck by the man over it, or
+     * a pass is picked off in the air. Whoever wins it is the nearest man,
+     * and his side plays from there at once.
+     */
+    const turned = this.phase != null && this.phase.homeBall !== p.homeBall && (this.mode === 'ruck' || this.mode === 'carry')
+    const need9 = () => {
+      if (holderAtt) return
+      if (!turned) { steps.push({ k: 'pick', who: att0 + 8, max: 1.6 }); return }
+      if (this.flight && this.flight.toIdx >= 0) {
+        // an intercept: the nearest man steps into the pass
+        const thief = this.nearest(att0, this.flight.to)
+        this.flight.to = this.b[thief]; this.flight.toIdx = thief
+        steps.push({ k: 'wait', t: 0.25 })
+        return
+      }
+      if (this.holder >= 0) steps.push({ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 0.5 })
+      steps.push({ k: 'pick', who: this.nearest(att0, B), max: 1.2 }, { k: 'wait', t: 0.15 })
+    }
     // the men nearest this breakdown are the men at it
     this.mark(E, att0, this.holder)
     this.downMan = null
@@ -307,7 +329,7 @@ export class PitchSim {
           if (c !== 8) {
             this.over.set(att0 + c, S)
             steps.push({ k: 'wait', t: 0.12 })
-            this.feed(steps, att0, dir, B, c, S.y)
+            this.feed(steps, att0, dir, B, c, S.y, undefined, p.at)
           }
           steps.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true })
         }
@@ -389,8 +411,16 @@ export class PitchSim {
    * first receiver and along the line, each man giving it to the next man
    * out, who is deeper than he is and coming on to it.
    */
-  private feed(steps: Step[], att0: number, dir: number, B: Pt, c: number, toY: number, rate?: number) {
+  private feed(steps: Step[], att0: number, dir: number, B: Pt, c: number, toY: number, rate?: number, seed = 0) {
     const want = toY - B.y, sgn = Math.sign(want) || 1, wide = Math.abs(want)
+    // OUT THE BACK: when it is going wide it often goes to the middle man of
+    // the first pod, who draws the defence and plays it behind him to the 10
+    if (wide > 16 && c >= 8 && seed % 2 === 0) {
+      const pod = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => this.down[att0 + k] <= 0 && !(this.ruckers ?? []).includes(k) && k !== this.downMan)
+        .map(k => ({ k, v: (this.b[att0 + k].y - B.y) * sgn, u: (this.b[att0 + k].x - B.x) * dir })).filter(o => o.v > 5 && o.v < 14 && o.u < -1 && o.u > -8)
+        .sort((a, b) => Math.abs(a.v - 9.5) - Math.abs(b.v - 9.5))[0]
+      if (pod) steps.push({ k: 'pass', to: att0 + pod.k, rate }, { k: 'wait', t: 0.3, rate })
+    }
     if (wide > 11) {
       const cand = [9, 11, 12, 14].filter(k => k !== c && this.down[att0 + k] <= 0 && (this.b[att0 + k].x - B.x) * dir < -1)
         .map(k => ({ k, v: (this.b[att0 + k].y - B.y) * sgn })).filter(o => o.v > 3 && o.v < wide - 4).sort((a, b) => a.v - b.v)
@@ -769,8 +799,16 @@ export class PitchSim {
             } else {
               this.over.set(att0 + c, { x: dir > 0 ? Math.min(me.x + 2, B.x - 2.5) : Math.max(me.x - 2, B.x + 2.5), y: me.y })
               sub.push({ k: 'pick', who: att0 + 8, max: 0.7 })
-              this.feed(sub, att0, dir, B, c, me.y)
-              sub.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c }, { k: 'run', to: P, v: c < 8 ? 6.3 : 8 }, ...tackle)
+              this.feed(sub, att0, dir, B, c, me.y, undefined, n)
+              // POD PLAY: the man who gets it from the 9 carries, or tips it
+              // on to the man beside him, who hits the gap the first one made
+              let run = c
+              if (c < 8 && n % 3 === 1) {
+                const mate = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => k !== c && !busy.includes(k) && this.down[att0 + k] <= 0)
+                  .map(k => ({ k, d: hyp(this.b[att0 + k], me) })).filter(o => o.d < 6.5).sort((a, b) => a.d - b.d)[0]
+                if (mate) { run = mate.k; sub.push({ k: 'wait', t: 0.18 }, { k: 'pass', to: att0 + run, hang: 0.2 }) }
+              }
+              sub.push({ k: 'mode', mode: 'carry', cIdx: run, anchorOn: att0 + run }, { k: 'run', to: P, v: run < 8 ? 6.3 : 8 }, ...tackle)
             }
           }
           this.steps.splice(this.si, 0, ...sub.map(x => ({ ...x, rate: s.rate })))
