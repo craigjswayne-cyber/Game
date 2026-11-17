@@ -191,7 +191,10 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // two touchlines only.
       /** a block of seating: rows parallel to the pitch edge it faces. (x, y, w, h)
        *  in pixels; `out` is which way is away from the pitch */
-      const seating = (x: number, y: number, w: number, h: number, out: 'l' | 'r' | 'u' | 'd', seed: number) => {
+      // (a club in black or navy would have a stand you cannot see: its seats take the other kit colour)
+      const lum = (c: string) => { const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(c); return m ? (parseInt(m[1], 16) * 0.299 + parseInt(m[2], 16) * 0.587 + parseInt(m[3], 16) * 0.114) / 255 : 0.5 }
+      const seatCol = lum(hk[0]) > 0.17 ? hk[0] : lum(hk[1]) > 0.17 ? hk[1] : lp.light
+      const seating = (x: number, y: number, w: number, h: number, out: 'l' | 'r' | 'u' | 'd', seed: number, roofFrac = 0.42) => {
         if (w < 2 || h < 2) return
         const alongX = out === 'u' || out === 'd'
         const depth = alongX ? h : w, len = alongX ? w : h
@@ -203,7 +206,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           const d0 = r * rowPx
           const rx = out === 'l' ? x + w - d0 - rowPx : out === 'r' ? x + d0 : x
           const ry = out === 'u' ? y + h - d0 - rowPx : out === 'd' ? y + d0 : y
-          g.fillStyle = hk[0]; g.globalAlpha = 0.42 + 0.3 * (r / Math.max(1, rows - 1))
+          g.fillStyle = seatCol; g.globalAlpha = 0.5 + 0.34 * (r / Math.max(1, rows - 1))
           if (alongX) g.fillRect(rx, ry + rowPx * 0.14, w, rowPx * 0.72); else g.fillRect(rx + rowPx * 0.14, ry, rowPx * 0.72, h)
           g.globalAlpha = 1
           for (let c = 0; c < n; c++) {
@@ -219,8 +222,18 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         const gap = Math.max(18, sc * 13)
         for (let a = gap; a < len - gap * 0.4; a += gap) { if (alongX) g.fillRect(x + a - sc * 0.45, y, sc * 0.9, h); else g.fillRect(x, y + a - sc * 0.45, w, sc * 0.9) }
         // the roof over the back rows, with its front edge catching the light
-        if (rows >= 5) {
-          const rd = depth * 0.42
+        // the wall at the front of the stand, where it meets the ground
+        g.fillStyle = 'rgba(196,202,210,.92)'
+        const wl = Math.max(1.5, sc * 0.55)
+        if (out === 'u') g.fillRect(x, y + h - wl, w, wl); else if (out === 'd') g.fillRect(x, y, w, wl)
+        else if (out === 'l') g.fillRect(x + w - wl, y, wl, h); else g.fillRect(x, y, wl, h)
+        if (rows >= 4) {
+          const rd = depth * roofFrac
+          // the dark under the roof, where the back rows are in its shadow
+          g.fillStyle = 'rgba(0,0,0,.42)'
+          const sh = Math.min(depth - rd, sc * 2.2)
+          if (out === 'u') g.fillRect(x, y + rd, w, sh); else if (out === 'd') g.fillRect(x, y + h - rd - sh, w, sh)
+          else if (out === 'l') g.fillRect(x + rd, y, sh, h); else g.fillRect(x + w - rd - sh, y, sh, h)
           const ox = out === 'l' ? x : out === 'r' ? x + w - rd : x, oy = out === 'u' ? y : out === 'd' ? y + h - rd : y
           // a solid roof, seen from above: grey sheeting, a fascia in the club colour along its front
           g.fillStyle = 'rgba(46,54,66,.97)'
@@ -239,12 +252,49 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       const pitchT = fy(100 + GOAL), pitchB = fy(-GOAL), pitchL = fx(0), pitchR = fx(70)
       const boardW = 2.3 * sc, off = 1.5 * sc
-      // down each touchline: run-off, boards, then the stand out to the edge
-      seating(0, pitchT, pitchL - off - boardW - sc * 0.5, pitchB - pitchT, 'l', 1)
-      seating(pitchR + off + boardW + sc * 0.5, pitchT, W - (pitchR + off + boardW + sc * 0.5), pitchB - pitchT, 'r', 2)
-      // behind each goal
-      seating(pitchL, 0, pitchR - pitchL, pitchT - sc * 2.4, 'u', 3)
-      seating(pitchL, pitchB + sc * 2.4, pitchR - pitchL, L - pitchB - sc * 2.4, 'd', 4)
+      // down each touchline: run-off, boards, then the stand out to the edge.
+      // On its side the camera is behind the near stand: that one is mostly
+      // roof, seen from behind, with only its front rows showing.
+      seating(0, pitchT, pitchL - off - boardW - sc * 0.5, pitchB - pitchT, 'l', 1, 0.42)
+      seating(pitchR + off + boardW + sc * 0.5, pitchT, W - (pitchR + off + boardW + sc * 0.5), pitchB - pitchT, 'r', 2, dim.up ? 0.42 : 0.8)
+      // BEHIND EACH GOAL, A STAND THAT RISES (owner, 17 Nov 2026, of the
+      // reference: "All of those on stadium", stands "at the left and right
+      // ends"). Seen at the tilt its back rows are higher up the screen than
+      // its front ones, so it leans, and the end wall nearest the camera shows.
+      {
+        const rise = dim.up ? 0 : 0.45
+        const wall = 'rgba(62,70,84,1)'
+        const eT = pitchT - sc * 2.4, eB = pitchB + sc * 2.4
+        g.save(); g.transform(1, 0, rise, 1, -rise * eT, 0)
+        seating(pitchL, 0, pitchR - pitchL, eT, 'u', 3, 0.34)
+        g.restore()
+        g.save(); g.transform(1, 0, -rise, 1, rise * eB, 0)
+        seating(pitchL, eB, pitchR - pitchL, L - eB, 'd', 4, 0.34)
+        g.restore()
+        if (rise > 0) {
+          g.fillStyle = wall
+          g.beginPath(); g.moveTo(pitchR, eT); g.lineTo(pitchR, 0); g.lineTo(pitchR - rise * eT, 0); g.closePath(); g.fill()
+          g.beginPath(); g.moveTo(pitchR, eB); g.lineTo(pitchR, L); g.lineTo(pitchR - rise * (L - eB), L); g.closePath(); g.fill()
+        }
+      }
+      // THE BENCHES (owner: "Benches for home and away teams"): a dugout each
+      // side of halfway on the far touchline, in front of the stand, the
+      // replacements sitting in it in their own colours, and the technical
+      // area marked on the run-off in front
+      for (const [mid, kit] of [[39, hk], [61, ak]] as [number, [string, string]][]) {
+        const y0 = fy(mid + 6), len = 12 * sc
+        const bx = pitchL - off - boardW - sc * 3.1, bw = sc * 2.6
+        g.fillStyle = 'rgba(18,22,28,.96)'; g.fillRect(bx, y0, bw, len)
+        for (let i = 0; i < 8; i++) {
+          g.fillStyle = kit[0]; g.beginPath(); g.arc(bx + bw * 0.62, y0 + (i + 0.5) * len / 8, Math.max(1.3, sc * 0.42), 0, Math.PI * 2); g.fill()
+          g.strokeStyle = kit[1]; g.lineWidth = Math.max(0.6, sc * 0.14); g.stroke()
+        }
+        // the dugout roof: clear, with a rim in the team's colour
+        g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(bx, y0, bw * 0.5, len)
+        g.fillStyle = lum(kit[0]) > 0.17 ? kit[0] : kit[1]; g.fillRect(bx + bw - Math.max(1.2, sc * 0.3), y0, Math.max(1.2, sc * 0.3), len)
+        g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = Math.max(0.8, sc * 0.16); g.setLineDash([sc * 0.9, sc * 0.9])
+        g.strokeRect(pitchL - off + sc * 0.15, y0, off - sc * 0.4, len); g.setLineDash([])
+      }
       // trees in the four corners, overhanging the ends of the stands
       for (const [cx, cy, sd] of [[0, 0, 11], [W, 0, 23], [0, L, 37], [W, L, 51]] as [number, number, number][]) {
         const reach = Math.min(Math.max(pitchL - off - boardW, sc * 5), Math.max(pitchT, sc * 5)) * 1.3
@@ -256,6 +306,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           g.fillStyle = `rgba(0,0,0,${(0.28 + h2(t, sd + 3) * 0.3).toFixed(2)})`; g.fill()
         }
       }
+      // night: the stands sit back in the dark, lit by what spills off the pitch
+      g.fillStyle = 'rgba(0,6,20,.38)'; g.fillRect(0, 0, W, L)
       // a floodlight in each corner: the lamp head and the light it throws
       for (const [cx, cy] of [[pitchL - off, pitchT - sc * 1.5], [pitchR + off, pitchT - sc * 1.5], [pitchL - off, pitchB + sc * 1.5], [pitchR + off, pitchB + sc * 1.5]] as [number, number][]) {
         const glow = g.createRadialGradient(cx, cy, 0, cx, cy, sc * 16)
@@ -292,7 +344,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       g.fillRect(fx(0), fy(100 + GOAL), 70 * sc, GOAL * sc); g.fillRect(fx(0), fy(0), 70 * sc, GOAL * sc)
       // the floodlights: brighter in the middle, falling off to the corners
       const lg = g.createRadialGradient(W / 2, L / 2, L * 0.12, W / 2, L / 2, L * 0.62)
-      lg.addColorStop(0, 'rgba(255,255,235,.07)'); lg.addColorStop(1, 'rgba(0,0,0,.2)')
+      // (a night match under lights, as the reference is: bright in the middle, the corners falling away)
+      lg.addColorStop(0, 'rgba(255,255,235,.1)'); lg.addColorStop(0.55, 'rgba(0,8,24,.12)'); lg.addColorStop(1, 'rgba(0,6,22,.5)')
       g.fillStyle = lg; g.fillRect(fx(-1.4), fy(100 + GOAL + 1.4), 72.8 * sc, (116 + 2.8) * sc)
 
       g.strokeStyle = 'rgba(255,255,255,.88)'; g.lineWidth = Math.max(1.2, sc * 0.22)
@@ -329,14 +382,16 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const w = cv.clientWidth, h = cv.clientHeight
       const dpr = Math.min(2, window.devicePixelRatio || 1)
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr)
-      const up = h >= w
+      // upright only in a box that is clearly taller than it is wide: a squarish
+      // panel (the landscape game in an upright screen) is the pitch on its side
+      const up = h > w * 1.25
       // the pitch as large as the box allows with the least ground round it,
       // then the ground stretched to fill what is left
       const across = up ? w : h, along = up ? h : w
       // (turned on its side there is room behind the goals to spare, so the
       // touchline stands get more of it)
       const sideMin = up ? SIDE_MIN : 9
-      const endMin = up ? END_MIN : 9
+      const endMin = up ? END_MIN : 13
       const sc = Math.min(across / (70 + sideMin * 2), along / (100 + GOAL * 2 + endMin * 2))
       if (sc > 0) { SIDE = (across / sc - 70) / 2; END = (along / sc - 100 - GOAL * 2) / 2; FIELD_L = 100 + GOAL * 2 + END * 2; FIELD_W = 70 + SIDE * 2 }
       dim = { w, h, dpr, sc, up, ox: (w - (up ? FIELD_W : FIELD_L) * sc) / 2, oy: (h - (up ? FIELD_L : FIELD_W) * sc) / 2 }

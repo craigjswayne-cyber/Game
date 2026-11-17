@@ -928,7 +928,7 @@
   .live-wrap.full-match .live-pitch {
     order: 1; flex: none; align-self: stretch; min-height: 0;
     height: auto; width: auto; max-width: none; margin: 6px 0 0; border-radius: 0;
-    aspect-ratio: 16 / 10.4; perspective: 620px; perspective-origin: 50% 40%;
+    aspect-ratio: 16 / 12; perspective: 620px; perspective-origin: 50% 40%;
   }
   /* the canvas is taller than the panel, so there is a deep stand on the far
      side and one on the near side; tilted, the whole pitch still fits across */
