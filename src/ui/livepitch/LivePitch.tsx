@@ -177,7 +177,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           const fill = boardFills[(i + (left ? 0 : 2)) % boardFills.length]
           const y1 = fy(100 + GOAL + 1.5 - i * pl)
           g.fillStyle = fill; g.fillRect(bx, y1 + 0.5, 2.4 * sc, pl * sc - 1)
-          text(names[(i * 2 + (left ? 0 : 1)) % names.length], bx + 1.2 * sc, y1 + pl * sc / 2, Math.max(6.5, sc * 1.55), fill, left ? -Math.PI / 2 : Math.PI / 2, pl * sc - 6)
+          text(names[(i * 2 + (left ? 0 : 1)) % names.length], bx + 1.2 * sc, y1 + pl * sc / 2, Math.max(6.5, sc * 1.55), fill, left || !dim.up ? -Math.PI / 2 : Math.PI / 2, pl * sc - 6)
         }
       }
       const ep = 3, ew = (70 + 2.8) / ep
