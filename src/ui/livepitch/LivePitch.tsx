@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MatchEvent } from '../../game/model'
 import { readInk, isLight, refereeColour, tokenColor } from '../highlight/draw'
-import { phaseAt, type Banner } from './phase'
+import { phaseAt, readLine, type Banner, type Phase } from './phase'
 import { PitchSim } from './sim'
 
 export interface PitchSide {
@@ -60,30 +60,40 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const canvas = useRef<HTMLCanvasElement>(null)
   const phase = useMemo(() => phaseAt(events, cursor, homeId), [events, cursor, homeId])
   bannerRef.current.want = phase.banner ?? null
-  const carrier = useMemo(() => {
-    if (phase.carrier == null) return null
-    const hi = home.lineup.indexOf(phase.carrier), ai = away.lineup.indexOf(phase.carrier)
-    if (hi >= 0 && hi < 15) return { home: true, i: hi }
-    if (ai >= 0 && ai < 15) return { home: false, i: ai }
-    return null
-  }, [phase, home.lineup, away.lineup])
-
+  /** the shirt index of the man a phase names, if he plays for the side with the ball */
+  const carrierOf = (p: Phase): number | null => {
+    if (p.carrier == null) return null
+    const i = (p.homeBall ? home : away).lineup.indexOf(p.carrier)
+    return i >= 0 && i < 15 ? i : null
+  }
+  // THE SCORE IS SEEN BEFORE IT IS READ. A try's line, and the scoreboard
+  // with it, used to arrive and then the try was played: the result first,
+  // the run after. So the next line is looked at before it is revealed, and
+  // when it is a score (or a miss, or a try ruled out) the pitch plays it
+  // first and asks for the line as the ball goes down.
+  const ahead = useMemo(() => {
+    const e = events[cursor]
+    if (!e) return null
+    const p = readLine(e, cursor, homeId, phase, events[cursor + 1])
+    return p?.banner && p.banner.kind !== 'yc' && p.banner.kind !== 'rc' ? p : null
+  }, [events, cursor, homeId, phase])
   const sim = useRef<PitchSim>()
   if (!sim.current) sim.current = new PitchSim()
-  const seen = useRef<{ at: number; cursor: number; told: boolean; moved: boolean }>({ at: -99, cursor: -1, told: true, moved: false })
+  const seen = useRef<{ at: number; cursor: number; told: boolean; moved: boolean; pre: boolean }>({ at: -99, cursor: -1, told: true, moved: false, pre: false })
   // a new line: a new play if it moves the picture, else it is already played
   if (seen.current.cursor !== cursor) {
     seen.current.cursor = cursor
     seen.current.moved = phase.at !== seen.current.at
     if (phase.at !== seen.current.at) {
       seen.current.at = phase.at
-      sim.current.start(phase, carrier && carrier.home === phase.homeBall ? carrier.i : null)
+      sim.current.start(phase, carrierOf(phase))
     }
     seen.current.told = false
+    seen.current.pre = false
   }
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
-  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText, boards, speed })
-  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText, boards, speed }
+  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, ahead, aheadIdx: ahead ? carrierOf(ahead) : null })
+  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, ahead, aheadIdx: ahead ? carrierOf(ahead) : null }
 
   useEffect(() => {
     const cv = canvas.current
@@ -265,10 +275,18 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         bw.shownAt = bw.want.at
         setBanner(bw.want)
         if ((bw.want.kind === 'try' || bw.want.kind === 'pentry') && !reduce) burst(S.ball.x, S.ball.y, bw.want.teamId === homeId)
-      } else if (bw.shownAt !== -1 && (!bw.want || bw.want.at !== bw.shownAt) && !(bw.want && S.landed && S.phase?.at === bw.want.at)) { bw.shownAt = -1; setBanner(null) }
+      } else if (bw.shownAt !== -1 && (!bw.want || S.phase?.at !== bw.shownAt)) { bw.shownAt = -1; setBanner(null) }
       for (const c of confetti) { c.vy += 26 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.life -= dt; c.rot += c.spin * dt }
       confetti = confetti.filter(c => c.life > 0)
-      if (S.done && !seen.current.told) { seen.current.told = true; io.current.onPlayed?.(seen.current.moved) }
+      const sn = seen.current
+      if (S.done && !sn.told) {
+        const nx = io.current.ahead
+        if (nx && nx.at !== sn.at) {
+          // a score is next: play it now, and tell them when it lands
+          sn.at = nx.at; sn.pre = true
+          S.start(nx, io.current.aheadIdx)
+        } else { sn.told = true; io.current.onPlayed?.(sn.moved) }
+      } else if (sn.pre && !sn.told && S.landed && !S.done) { sn.told = true; io.current.onPlayed?.(true) }
       draw()
       raf = requestAnimationFrame(frame)
     }
