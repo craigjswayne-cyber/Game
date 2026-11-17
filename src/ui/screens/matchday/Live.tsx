@@ -494,6 +494,14 @@ export function Live() {
     return [...new Set([...own, ...SPONSOR_NAMES.shirt, ...SPONSOR_NAMES.sleeve])].slice(0, 12)
   }, [fixture.homeId])
   // each club plays its own way on the pitch: its own dials (model Tactic)
+  // DAY OR NIGHT (owner, 17 Nov 2026: "Make day matches too"). The game has no
+  // kick-off times, so the fixture decides and always decides the same way:
+  // two in three are afternoon kick-offs, the rest are under the lights.
+  const pitchNight = useMemo(() => {
+    let h = 0
+    for (const ch of String(fixture.id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+    return h % 3 === 0
+  }, [fixture.id])
   const pitchTactics = useMemo(() => [fixture.homeId, fixture.awayId].map(id => {
     const tc = game.clubs[id]?.tactic
     return { style: tc?.style ?? 50, tempo: tc?.tempo ?? 50, commit: tc?.ruckCommit ?? 50, defLine: tc?.defLine ?? 50, defWidth: tc?.defWidth ?? 50, contest: tc?.ruckContest ?? 50 }
@@ -785,7 +793,7 @@ export function Live() {
         <LivePitch events={events} cursor={cursor} homeId={fixture.homeId}
           home={pitchSide(true)} away={pitchSide(false)}
           paused={!playing} speed={[0.85, 1, 1.6][speedIdx] ?? 1}
-          boards={pitchBoards} tactics={pitchTactics}
+          boards={pitchBoards} tactics={pitchTactics} night={pitchNight}
           onPlayed={moved => setPitchPlayed({ at: useStore.getState().liveMatch?.cursor ?? cursor, moved })}
           tr={(k, v) => t(k, v)} teams={{ home: teamShort(game, fixture.homeId), away: teamShort(game, fixture.awayId) }}
           names={pid => game.players[pid]?.name} />

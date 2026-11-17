@@ -45,7 +45,9 @@ function h2(a: number, b: number): number {
   return ((h ^ (h >>> 16)) % 10000) / 10000
 }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true }: {
+  /** under the lights, or an afternoon kick-off (owner, 17 Nov 2026: "Make day matches too") */
+  night?: boolean
   /** how each club plays (home, away): its own dials, so the two sides look different */
   tactics?: [PitchTac, PitchTac]
   events: MatchEvent[]
@@ -304,15 +306,25 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           const rad = Math.max(5, sc * (2.2 + h2(t, sd + 2) * 2.4))
           g.fillStyle = ink.grassB; g.beginPath(); g.arc(Math.abs(tx - cx) * (cx === 0 ? 1 : -1) + cx, Math.abs(ty - cy) * (cy === 0 ? 1 : -1) + cy, rad, 0, Math.PI * 2); g.fill()
           g.fillStyle = `rgba(0,0,0,${(0.28 + h2(t, sd + 3) * 0.3).toFixed(2)})`; g.fill()
+          // the light catching the top of the crown
+          g.fillStyle = 'rgba(190,255,190,.13)'; g.beginPath(); g.arc(Math.abs(tx - cx) * (cx === 0 ? 1 : -1) + cx - rad * 0.3, Math.abs(ty - cy) * (cy === 0 ? 1 : -1) + cy - rad * 0.1, rad * 0.55, 0, Math.PI * 2); g.fill()
         }
       }
       // night: the stands sit back in the dark, lit by what spills off the pitch
-      g.fillStyle = 'rgba(0,6,20,.38)'; g.fillRect(0, 0, W, L)
+      if (night) { g.fillStyle = 'rgba(0,6,20,.38)'; g.fillRect(0, 0, W, L) }
+      // by day the sun is on the far stand and the near one is in its own shade
+      else {
+        g.save(); g.globalCompositeOperation = 'screen'
+        const dg = g.createLinearGradient(0, 0, W, 0); dg.addColorStop(0, 'rgba(205,215,215,.62)'); dg.addColorStop(1, 'rgba(150,170,190,.4)')
+        g.fillStyle = dg; g.fillRect(0, 0, W, L); g.restore()
+      }
       // a floodlight in each corner: the lamp head and the light it throws
       for (const [cx, cy] of [[pitchL - off, pitchT - sc * 1.5], [pitchR + off, pitchT - sc * 1.5], [pitchL - off, pitchB + sc * 1.5], [pitchR + off, pitchB + sc * 1.5]] as [number, number][]) {
-        const glow = g.createRadialGradient(cx, cy, 0, cx, cy, sc * 16)
-        glow.addColorStop(0, 'rgba(255,252,225,.42)'); glow.addColorStop(1, 'rgba(255,252,225,0)')
-        g.fillStyle = glow; g.fillRect(cx - sc * 16, cy - sc * 16, sc * 32, sc * 32)
+        if (night) {
+          const glow = g.createRadialGradient(cx, cy, 0, cx, cy, sc * 16)
+          glow.addColorStop(0, 'rgba(255,252,225,.42)'); glow.addColorStop(1, 'rgba(255,252,225,0)')
+          g.fillStyle = glow; g.fillRect(cx - sc * 16, cy - sc * 16, sc * 32, sc * 32)
+        }
         g.fillStyle = ink.white; g.beginPath(); g.arc(cx, cy, Math.max(2, sc * 0.8), 0, Math.PI * 2); g.fill()
       }
       // the boards: down both touchlines, and nowhere else
@@ -345,8 +357,32 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // the floodlights: brighter in the middle, falling off to the corners
       const lg = g.createRadialGradient(W / 2, L / 2, L * 0.12, W / 2, L / 2, L * 0.62)
       // (a night match under lights, as the reference is: bright in the middle, the corners falling away)
-      lg.addColorStop(0, 'rgba(255,255,235,.1)'); lg.addColorStop(0.55, 'rgba(0,8,24,.12)'); lg.addColorStop(1, 'rgba(0,6,22,.5)')
+      if (night) { lg.addColorStop(0, 'rgba(255,255,235,.1)'); lg.addColorStop(0.55, 'rgba(0,8,24,.12)'); lg.addColorStop(1, 'rgba(0,6,22,.5)') }
+      // daylight: even and a touch warm, only a little darker at the edges
+      else { lg.addColorStop(0, 'rgba(235,255,150,.3)'); lg.addColorStop(0.6, 'rgba(235,255,150,.22)'); lg.addColorStop(1, 'rgba(235,255,150,.12)') }
       g.fillStyle = lg; g.fillRect(fx(-1.4), fy(100 + GOAL + 1.4), 72.8 * sc, (116 + 2.8) * sc)
+      // DEPTH ON THE GRASS: it is mown both ways, the stands throw their
+      // shadows on to it, and the light is uneven across it
+      g.save()
+      g.beginPath(); g.rect(fx(-1.4), fy(100 + GOAL + 1.4), 72.8 * sc, (116 + 2.8) * sc); g.clip()
+      for (let i = 0; i < 10; i++) if (i % 2) { g.fillStyle = 'rgba(0,0,0,.05)'; g.fillRect(fx(i * 7), fy(100 + GOAL), 7 * sc, 116 * sc) }
+      for (const [bx, by, br, a] of [[20, 30, 30, 0.2], [52, 78, 26, 0.16], [8, 96, 22, 0.14], [60, 12, 24, 0.15]] as [number, number, number, number][]) {
+        const sg = g.createRadialGradient(fx(bx), fy(by), 0, fx(bx), fy(by), br * sc)
+        sg.addColorStop(0, `rgba(0,14,8,${a})`); sg.addColorStop(1, 'rgba(0,14,8,0)')
+        g.fillStyle = sg; g.fillRect(fx(bx) - br * sc, fy(by) - br * sc, br * sc * 2, br * sc * 2)
+      }
+      // the stands' shadows: long from the near side, short from the far and the ends
+      for (const [x0, x1] of [[fx(71.4), fx(71.4 - 9)], [fx(-1.4), fx(-1.4 + 4)]] as [number, number][]) {
+        const sd = g.createLinearGradient(x0, 0, x1, 0)
+        sd.addColorStop(0, 'rgba(0,8,16,.42)'); sd.addColorStop(1, 'rgba(0,8,16,0)')
+        g.fillStyle = sd; g.fillRect(Math.min(x0, x1), fy(100 + GOAL + 1.4), Math.abs(x1 - x0), (116 + 2.8) * sc)
+      }
+      for (const [y0, y1] of [[fy(100 + GOAL + 1.4), fy(100 + GOAL - 4)], [fy(-GOAL - 1.4), fy(-GOAL + 4)]] as [number, number][]) {
+        const sd = g.createLinearGradient(0, y0, 0, y1)
+        sd.addColorStop(0, 'rgba(0,8,16,.34)'); sd.addColorStop(1, 'rgba(0,8,16,0)')
+        g.fillStyle = sd; g.fillRect(fx(-1.4), Math.min(y0, y1), 72.8 * sc, Math.abs(y1 - y0))
+      }
+      g.restore()
 
       g.strokeStyle = 'rgba(255,255,255,.88)'; g.lineWidth = Math.max(1.2, sc * 0.22)
       const across = (x: number, dash: number[] = [], y0 = 0, y1 = 70) => { g.setLineDash(dash); g.beginPath(); g.moveTo(fx(y0), fy(x)); g.lineTo(fx(y1), fy(x)); g.stroke() }
@@ -475,20 +511,26 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           for (const f of foot) { g.strokeStyle = kit[0]; g.lineWidth = Math.max(3, sc * 1.1); g.beginPath(); g.moveTo(f.x, f.y); g.lineTo(f.x + lean * H * 0.16, f.y - H * 0.16); g.stroke() }
           g.lineCap = 'butt'
         }
+        // THE FLAGS: one at every corner, and at each 22 and halfway a couple
+        // of metres outside the touchline, standing up with a shadow
+        {
+          const fl: [number, number][] = []
+          for (const x of [-GOAL, 0, 100, 100 + GOAL]) for (const y of [0, 70]) fl.push([x, y])
+          for (const x of [22, 50, 78]) for (const y of [-1.6, 71.6]) fl.push([x, y])
+          const Hf = sc * 2.6
+          for (const [x, y] of fl) {
+            const px = SX(x, y), py = SY(x, y)
+            g.strokeStyle = 'rgba(0,0,0,.3)'; g.lineWidth = Math.max(1, sc * 0.3)
+            g.beginPath(); g.moveTo(px, py); g.lineTo(px + Hf * 0.5, py + sc * 0.35); g.stroke()
+            g.strokeStyle = ink.white; g.lineWidth = Math.max(1, sc * 0.26)
+            g.beginPath(); g.moveTo(px, py); g.lineTo(px, py - Hf); g.stroke()
+            g.fillStyle = io.current.home.kit[1]
+            g.beginPath(); g.moveTo(px, py - Hf); g.lineTo(px + sc * 1.2, py - Hf * 0.82); g.lineTo(px, py - Hf * 0.62); g.closePath(); g.fill()
+          }
+        }
       }
-      // who is attacking, written on the in-goal they are attacking
-      {
-        const up = S.phase?.homeBall !== false
-        g.save()
-        g.font = `800 ${Math.round(Math.max(10, sc * 3.1))}px var(--cond, system-ui), system-ui, sans-serif`
-        g.textAlign = 'center'; g.textBaseline = 'middle'
-        g.fillStyle = 'rgba(255,255,255,.34)'
-        const ax = up ? 100 + GOAL / 2 : -GOAL / 2
-        g.translate(SX(ax, 35), SY(ax, 35) + 1)
-        if (!dim.up) g.rotate(up ? Math.PI / 2 : -Math.PI / 2)
-        g.fillText(io.current.attackText.toUpperCase(), 0, 0)
-        g.restore()
-      }
+      // (the side attacking each end used to be written across its in-goal; the
+      // owner did not like it, 17 Nov 2026, and the pitch is cleaner without)
       // (smaller than they were: the reference draws a man about a metre and a
       // half across and lets a pack overlap)
       const R0 = Math.max(6.5, sc * 1.45)
@@ -509,8 +551,16 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         sz[i] += ((S.bound(i) || floor ? 0.74 : up2[0] === i || up2[1] === i ? 1.24 : 1) - sz[i]) * 0.18
         R = R0 * sz[i]
         if (floor) g.globalAlpha = 0.6
-        g.beginPath(); g.arc(x + R * 0.14, y + R * 0.24, R, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()
+        // DEPTH (owner, 17 Nov 2026: "Add more depth"): a man stands on the
+        // grass, he is not printed on it. A soft shadow thrown down and to
+        // one side, and a light from above on the disc itself.
+        g.beginPath(); g.ellipse(x + R * 0.3, y + R * 0.62, R * 1.02, R * 0.78, 0, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.36)'; g.fill()
         g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fillStyle = side.kit[0]; g.fill()
+        {
+          const sh = g.createRadialGradient(x - R * 0.35, y - R * 0.45, R * 0.1, x, y, R * 1.05)
+          sh.addColorStop(0, 'rgba(255,255,255,.3)'); sh.addColorStop(0.55, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(0,0,0,.3)')
+          g.fillStyle = sh; g.fill()
+        }
         g.lineWidth = has ? Math.max(2.4, R * 0.3) : Math.max(1.3, R * 0.17)
         g.strokeStyle = scorer ? gold : has ? ink.white : side.kit[1]; g.stroke()
         g.fillStyle = isLight(side.kit[0]) ? ink.dark : ink.white
@@ -632,7 +682,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
 
     raf = requestAnimationFrame(frame)
     return () => { cancelAnimationFrame(raf); ro.disconnect() }
-  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1]])
+  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], night])
 
   // the chip says what the play is; a plain carry or tackle says nothing.
   // A called move is named, and named large, for as long as it is being run
@@ -646,7 +696,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const good = banner && (banner.kind === 'try' || banner.kind === 'pentry' || banner.kind === 'con' || banner.kind === 'pen' || banner.kind === 'dg')
   const pts = banner ? ({ try: 5, pentry: 7, con: 2, pen: 3, dg: 3 } as Record<string, number>)[banner.kind] : undefined
   return (
-    <div className="live-pitch" data-testid="live-pitch" data-phase={phase.kind}>
+    <div className={`live-pitch${night ? '' : ' day'}`} data-testid="live-pitch" data-phase={phase.kind}>
       <canvas ref={canvas} className="lp-canvas" />
       {chip && <div className={`lp-chip${isMove ? ' move' : ''}`} key={`c${now.at}`}><i style={{ background: (now.homeBall ? home : away).kit[0] }} />{isMove && <small>{tr('lp.move')}</small>}{chip}</div>}
       {banner && bSide && (

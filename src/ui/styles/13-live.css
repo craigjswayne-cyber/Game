@@ -774,6 +774,8 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .08);
 }
 .lp-canvas { display: block; width: 100%; height: 100%; }
+/* an afternoon kick-off: the ground outside the stands is in daylight too */
+.live-pitch.day { background: color-mix(in srgb, var(--lp-ground) 45%, white); }
 .lp-chip {
   position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
   display: flex; align-items: center; gap: 6px; padding: 4px 11px 4px 9px; border-radius: 999px;
