@@ -12,7 +12,7 @@ import { posName, t } from '../../../game/i18n'
 import { nationName } from '../../../game/nations'
 import { natRankOrder } from '../../../game/natrank'
 import { NAT_DIALS, natPlanOf } from '../../../game/natcamp'
-import { natAnthem, natChallenge, natKit } from '../../../game/natcolours'
+import { NAT_KIT_FALLBACK, NAT_KIT_FALLBACK_OPP, natAnthem, natChallenge, natKit } from '../../../data/natcolours'
 import { SLIDER_INFO, sliderReadout } from '../../../game/tactics'
 import { effAt } from '../../../game/attributes'
 import { XV_SLOTS, type Fixture } from '../../../game/model'
@@ -109,7 +109,7 @@ export function NatCaptain({ lineup }: { lineup: (number | null)[] }) {
 function Figure({ kit, n, cap }: { kit: [string, string]; n: number; cap?: boolean }) {
   return (
     <svg className="wo-fig" viewBox="0 0 20 44" aria-hidden="true">
-      <circle cx="10" cy="6" r="4.2" fill="var(--wo-skin, #c9a27e)" />
+      <circle cx="10" cy="6" r="4.2" fill="var(--figure-head)" />
       <rect x="3" y="11" width="14" height="16" rx="4" fill={kit[0]} stroke={kit[1]} strokeWidth="1.2" />
       <text x="10" y="22" textAnchor="middle" fontSize="7" fontWeight="700" fill={kit[1]}>{n}</text>
       <rect x="4.5" y="27" width="11" height="6" rx="1.5" fill={kit[1]} />
@@ -138,8 +138,8 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
   const beats: ('out' | 'anthems' | 'challenge' | 'ko')[] = ['out', 'anthems', ...(challenger ? ['challenge' as const] : []), 'ko']
   const [i, setI] = useState(0)
   const beat = beats[i]
-  const myKit = natKit(nat) ?? ['#ffffff', '#1d2a5d']
-  const oppKit = natKit(opp) ?? ['#333333', '#ffffff']
+  const myKit = natKit(nat) ?? NAT_KIT_FALLBACK
+  const oppKit = natKit(opp) ?? NAT_KIT_FALLBACK_OPP
   const line = (kit: [string, string], c: boolean) => (
     <div className="wo-line" aria-hidden="true">
       {Array.from({ length: 15 }, (_, k) => <Figure key={k} kit={kit} n={k + 1} cap={c && k === 0} />)}

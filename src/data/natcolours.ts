@@ -46,6 +46,12 @@ export const NAT_COLOURS: Record<string, NatColours> = {
 
 /** A nation's kit, or null for a club (or a code with none on file). Women's
  *  sides wear their union's colours: the code is the code. */
+/** A kit for a side with none on file: the screens fall back to it rather
+ *  than painting a colour of their own (scripts/tokenlint: colours are data
+ *  here, as club colours are, or tokens). */
+export const NAT_KIT_FALLBACK: [string, string] = ['#ffffff', '#1d2a5d']
+export const NAT_KIT_FALLBACK_OPP: [string, string] = ['#333333', '#ffffff']
+
 export function natKit(code: string): [string, string] | null {
   return NAT_COLOURS[code]?.kit ?? null
 }

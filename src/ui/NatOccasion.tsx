@@ -1,7 +1,7 @@
 import { useStore } from '../store'
 import { t } from '../game/i18n'
 import { nationName } from '../game/nations'
-import { natKit } from '../game/natcolours'
+import { NAT_KIT_FALLBACK, natKit } from '../data/natcolours'
 import { natRankOrder } from '../game/natrank'
 import { eraOf } from '../game/nattest'
 import { termLines } from '../game/natera'
@@ -15,7 +15,7 @@ import { acc } from './accent'
  * decoration over the page's own surface, so the words keep its contrast.
  */
 export function NatBand({ nat, sub }: { nat: string; sub?: string }) {
-  const kit = natKit(nat) ?? ['#ffffff', '#1d2a5d']
+  const kit = natKit(nat) ?? NAT_KIT_FALLBACK
   return (
     <div className="nat-band" data-nat-band={nat} style={{ ['--nb-a' as string]: kit[0], ['--nb-b' as string]: kit[1] }}>
       <div className="nb-stripe" aria-hidden="true" />

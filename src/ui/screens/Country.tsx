@@ -15,7 +15,7 @@ import { rowNavTr } from '../rowNav'
 import { acc } from '../accent'
 import { NatCampaign } from '../NatCampaign'
 import { NatBand, NatEraCard } from '../NatOccasion'
-import { natKit } from '../../game/natcolours'
+import { natKit } from '../../data/natcolours'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 

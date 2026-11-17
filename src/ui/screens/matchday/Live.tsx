@@ -1,7 +1,7 @@
 // The match as it is played: the ticker, the pitch, the controls and the sheets.
 
 import { TestVerdict } from '../../TestVerdict'
-import { natKit } from '../../../game/natcolours'
+import { natKit } from '../../../data/natcolours'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../../store'
 import { teamShort, refFor, MAX_SUBS, shirtNumber } from '../../../game/matchEngine'
