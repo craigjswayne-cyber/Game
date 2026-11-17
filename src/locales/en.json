@@ -9870,6 +9870,7 @@
   "injured": "Off injured"
  },
  "lp":{
+  "move": "Move",
   "attack": "{team} attack",
   "try": "Try",
   "con": "Conversion",

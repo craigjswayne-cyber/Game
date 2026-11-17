@@ -44,9 +44,10 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
 function openPlay(p: Phase, ruck: boolean, far: number, near: number): { att: UV[]; def: UV[] } {
   const att: UV[] = new Array(15)
   const F = Math.max(14, far), N = Math.max(4, near)
-  // which forwards are at this breakdown turns over phase by phase
+  // the forwards at this breakdown are the ones who were nearest it (the sim
+  // says who); without a sim, a fixed three
   const sets = [[5, 6, 7], [3, 4, 1], [0, 2, 6], [7, 4, 5]]
-  const here = sets[Math.abs(p.at) % sets.length]
+  const here = p.ruckers?.length === 3 ? p.ruckers : sets[Math.abs(p.at) % sets.length]
   const others = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !here.includes(k))
   if (ruck) {
     att[here[0]] = [-0.6, -1.9]; att[here[1]] = [-0.6, 1.9]; att[here[2]] = [-3.6, 0]
@@ -60,7 +61,8 @@ function openPlay(p: Phase, ruck: boolean, far: number, near: number): { att: UV
   const podA = Math.min(9, F * 0.22), podB = Math.min(26, F * 0.55)
   att[others[0]] = [-3.2, podA - 2.2]; att[others[1]] = [-2.6, podA]; att[others[2]] = [-3.2, podA + 2.2]
   att[others[3]] = [-5.2, podB - 2]; att[others[4]] = [-4.6, podB + 0.4]
-  // the backs, deeper the wider they are
+  // the backs, deeper the wider they are: 10, 12, 13, then the open-side
+  // wing on his touchline; the other wing holds the short side; 15 behind
   att[9] = [-7.5, Math.min(13, F * 0.3)]
   att[11] = [-9.5, Math.min(21, F * 0.44)]
   att[12] = [-11.5, Math.min(30, F * 0.66)]
@@ -68,26 +70,33 @@ function openPlay(p: Phase, ruck: boolean, far: number, near: number): { att: UV
   att[10] = [-6, -(N - 3.5)]
   att[14] = [-17, Math.min(18, F * 0.4)]
   if (N > 12) att[others[4]] = [-4, -Math.min(9, N * 0.5)]
+  // the man just tackled is on the floor under the ruck, whoever he is
+  if (ruck && p.downMan != null && p.downMan !== 8) att[p.downMan] = [-1.9, 0]
 
+  // ---- the defence: FORWARDS CLOSE, BACKS WIDE. Two in the tackle, a
+  // guard either side of the ruck, the rest of the pack next to them; then
+  // 10, 12 and 13 across the midfield, a wing on each edge, the scrum-half
+  // sweeping behind the ruck and the full-back deep.
   const def: UV[] = new Array(15)
-  def[6] = ruck ? [2.4, -1.4] : [2.6, -2.2]
-  def[5] = ruck ? [2.6, 2.2] : [2.6, 2.4]
-  // the line: short side first, then across the open side
-  const short = N > 14 ? 3 : N > 7 ? 2 : 1
-  const order = [0, 2, 1, 3, 4, 7, 9, 11, 12, 13]
-  const vs: number[] = []
-  for (let k = 0; k < short; k++) vs.push(-(N - 3) * (short - k) / short)
-  const wide = order.length - short
-  for (let k = 0; k < wide; k++) vs.push(5 + (F - 8.5) * Math.pow(k / (wide - 1), 1.15))
-  order.forEach((k, j) => {
-    const v = vs[j]
-    // up fast near the ball, hanging off towards the edge
-    const edge = Math.min(1, Math.abs(v) / Math.max(F, N))
-    def[k] = [(ruck ? 5 : 4.5) + 2.6 * Math.pow(edge, 1.6), v]
-  })
-  def[8] = [7, 3]
-  def[10] = [13, -(N - 5)]
+  const tk = p.tacklers?.length === 2 ? p.tacklers : [6, 5]
+  def[tk[0]] = ruck ? [2.4, -1.4] : [2.6, -2.2]
+  def[tk[1]] = ruck ? [2.6, 2.2] : [2.6, 2.4]
+  const fw = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !tk.includes(k))
+  const bk = [9, 11, 12].filter(k => !tk.includes(k))
+  const depth = (v: number) => (ruck ? 5 : 4.5) + 2.6 * Math.pow(Math.min(1, Math.abs(v) / Math.max(F, N)), 1.6)
+  def[fw[0]] = [4, -3.2]; def[fw[1]] = [4, 3.4]
+  const rest = fw.slice(2)
+  if (N > 12 && rest.length) { const k = rest.shift()!; def[k] = [depth(7), -Math.min(8, N * 0.5)] }
+  const packTo = Math.min(F * 0.42, 7 + rest.length * 3.6)
+  rest.forEach((k, j) => { const v = 7 + (packTo - 7) * (rest.length === 1 ? 0 : j / (rest.length - 1)); def[k] = [depth(v), v] })
+  const b0 = packTo + 4.5, b1 = Math.max(b0 + 2, F - 13)
+  bk.forEach((k, j) => { const v = b0 + (b1 - b0) * (bk.length === 1 ? 0.5 : j / (bk.length - 1)); def[k] = [depth(v), v] })
+  def[13] = [depth(F) + 1, F - 5]
+  def[10] = N > 9 ? [5.5, -(N - 4)] : [13, -(N - 3)]
+  if (!tk.includes(8)) def[8] = [8.5, 2]
   def[14] = [24, Math.min(16, F * 0.35)]
+  for (let k = 0; k < 15; k++) if (!def[k]) def[k] = [6, 3 + k]
+  for (let k = 0; k < 15; k++) if (!att[k]) att[k] = [-6, 3 + k]
   return { att, def }
 }
 
@@ -200,6 +209,12 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       const side = p.y <= 35 ? 1 : -1
       const edge = p.y <= 35 ? 0 : 70
       const lt = ([u, v]: UV): Pt => ({ x: clamp(ux(u), -6, 106), y: clamp(edge + side * v, -0.5, 70.5) })
+      {
+        const lowOpenL = side < 0
+        for (const [arr, homeSide] of [[att, p.homeBall], [def, !p.homeBall]] as [UV[], boolean][]) {
+          if (((homeSide === lowOpenL) ? 10 : 13) !== 13) { const t = arr[10]; arr[10] = arr[13]; arr[13] = t }
+        }
+      }
       const a = att.map(lt), d = def.map(lt)
       ball = { x: ux(-0.4), y: edge + side * 12.7 }
       ref = { x: ux(0), y: edge + side * 2.5 }
@@ -247,11 +262,18 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       if (p.kind === 'kickoff' || p.kind === 'dropout') {
         // the kicking side level along the line, the others waiting in pods
         // v is measured from the ball, which sits mid-field for a kick-off
-        att = att.map((_, k) => [k === 9 ? -1.5 : 0, -31 + k * 4.4] as UV)
-        const recv: UV[] = [
-          [12, -14], [12, -11], [13, -8], [15, 6], [15, 9], [13, 12], [17, -4], [18, 2],
-          [21, 0], [27, 4], [36, -22], [30, 12], [32, 20], [36, 26], [42, 0],
+        // the pack lines up on the side it is going to, the backs the other
+        // side of the kicker, a wing on each touchline, the full-back behind
+        const sv = landV >= 0 ? 1 : -1
+        const ko: UV[] = [
+          [0, 7], [0, 10.5], [0, 14], [0, 17.5], [0, 21], [0, 24.5], [0, 28], [0, 4],
+          [-3, -4], [-1.5, 0], [0, -30], [0, -9], [0, -16], [0, 32], [-14, -6],
         ]
+        att = ko.map(([u, v]) => [u, v * sv] as UV)
+        const recv: UV[] = [
+          [12, 14], [12, 11], [13, 8], [15, -6], [15, -9], [13, -12], [17, 4], [18, -2],
+          [21, 0], [27, -4], [34, -26], [30, -12], [32, -20], [34, 28], [42, 0],
+        ].map(([u, v]) => [u, v * sv] as UV)
         def = recv
         if (p.kind === 'dropout') def = recv.map(([u, v]) => [u + 8, v] as UV)
       } else {
@@ -266,8 +288,10 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       // over the line: the scorer on the ball, his side arriving, theirs beaten
       const op = openPlay(p, false, far, near)
       // his support arriving behind him, the cover that did not get there
-      att = op.att.map(([u, v]) => [u * 0.9 - 4, v * 0.85] as UV)
-      def = op.def.map(([u, v]) => [Math.min(u, 4) - 2.5, v * 0.9] as UV)
+      att = op.att.map(([u, v]) => [u * 0.9 - 7, v * 0.9] as UV)
+      // THE SCORER IS ON HIS OWN. The cover is behind him, beaten, not in
+      // a heap on top of him: the try has to be seen
+      def = op.def.map(([, v], k) => [-4.5 - (k % 4) * 2.2, v * 0.9 + (v >= 0 ? 3 : -3)] as UV)
       holder = carrierIdx ?? 13
       att[holder] = [0, 0]
       ball = { x: p.x, y: p.y }
@@ -300,6 +324,15 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       ref = { x: 50, y: 35 }
     }
   }
+  // THE WINGS STAY ON THEIR OWN WINGS. Every shape above puts "the wing on
+  // the open side" in slot 13 and "the wing on the short side" in slot 10;
+  // which of 11 and 14 that is depends on which way the side is playing and
+  // which touchline is the open one. 11 is the left wing as his side looks
+  // up the field, always.
+  const lowOpen = open < 0
+  const swapFor = (homeSide: boolean) => ((homeSide === lowOpen) ? 10 : 13) !== 13
+  const fix = (a: UV[], homeSide: boolean) => { if (swapFor(homeSide)) { const t = a[10]; a[10] = a[13]; a[13] = t } }
+  fix(att, p.homeBall); fix(def, !p.homeBall)
   // a side defending its own line stands on it, not behind it
   const own = p.homeBall ? 100 : 0
   const onLine = (q: Pt): Pt => ({ x: p.homeBall ? Math.min(q.x, own + 0.6) : Math.max(q.x, own - 0.6), y: q.y })

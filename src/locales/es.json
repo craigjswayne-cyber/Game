@@ -9826,6 +9826,7 @@
   "injured": "Retirado por lesión"
  },
  "lp": {
+  "move": "Jugada",
   "attack": "{team} ataca",
   "try": "Ensayo",
   "con": "Transformación",

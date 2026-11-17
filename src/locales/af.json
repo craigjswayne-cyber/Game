@@ -9913,6 +9913,7 @@
   "injured": "Beseer af"
  },
  "lp": {
+  "move": "Beweging",
   "attack": "{team} val aan",
   "try": "Drie",
   "con": "Doelskop",

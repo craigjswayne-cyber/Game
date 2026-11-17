@@ -22,11 +22,26 @@ not bumped yet: that is the owner's call when it ships.
   you see the full pitch" and "stay vertical - its key for the phone". Try
   line to try line up the screen, the home side attacking upwards. With the
   phone on its side the pitch turns with it.
-- **Smooth.** Owner, on the first pass: "The animation is incredibly jumpy".
-  Every player now has a top speed and has to run to where he is going; only
-  the action sprints, everyone else jogs into shape. When the match itself
-  jumps on (four minutes later, the other end of the field) the picture
-  dissolves to the new play, as a broadcast cuts.
+- **Smooth, and it never cuts.** Owner, on the first pass: "The animation is
+  incredibly jumpy"; on the second: "Its quite glitchy" and "The whole 80
+  mins should be played but sped up when there's nothing really happening".
+  Every player has a top speed and has to run to where he is going. When the
+  match moves on, the players run there in fast forward (two chevrons show in
+  the corner); nothing is ever teleported after kick-off. Quiet play in
+  midfield is wound on at about three times real time; a called move, a try,
+  a kick at goal and anything in the 22 are played at real time.
+- **Your moves, run as drawn.** Owner: "I didnt see any of the moves". When a
+  called move is run the pitch plays the Playbook's own lines for it (the
+  same keyframes the Playbook preview uses), with each runner's line dashed
+  ahead of him and the move's name on screen.
+- **Everyone in his place.** Owner: "players look out of [position]". The
+  wings stay on their own wings, a defence has its forwards close to the
+  ruck and its backs wide, the men at a breakdown are the men who were
+  nearest it, and a kick-off has the pack on the side it is kicked to.
+- **A try you can see.** Owner: "tries seem a bit unclear". The scorer is on
+  his own over the line with a gold ring, rings spread from the ball, and the
+  banner sits in the other half of the pitch.
+- **Square posts.** Owner: "The posts look wonky".
 - **The moment, called.** A try lands with TRY, +5, the scorer, his club and
   the minute, and confetti in his colours. Conversions, penalty goals, drop
   goals, cards and a try ruled out get their own. A label names the play
@@ -38,8 +53,8 @@ not bumped yet: that is the owner's call when it ships.
   advertising boards carrying your club's own sponsors and the game's other
   invented brands. Nothing real is on them.
 - **Speed.** Slow, Normal and Fast still work: they play the pitch at 0.85,
-  1 and 1.6 times real time. A full match is about eight minutes at Normal
-  and under six at Fast. Skip and Key Moments are as before.
+  1 and 1.6 times that. A full match is about six and a half minutes at Normal
+  and about four at Fast. Skip and Key Moments are as before.
 - **Key is unchanged.** Commentary, live stats, and the highlight clip for
   tries. It is still the default (see Decisions).
 - **Six languages.** Every word on the pitch is in English, French, Spanish,

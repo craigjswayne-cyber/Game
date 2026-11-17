@@ -32,7 +32,7 @@ describe('the live pitch', () => {
       expect(events.length).toBeGreaterThan(60)
       const S = new PitchSim()
       const lp = (en as unknown as { lp: Record<string, unknown> }).lp
-      let cur: Phase | null = null, total = 0, top = 0, plays = 0
+      let cur: Phase | null = null, total = 0, top = 0, plays = 0, wall = 0
       for (let i = 0; i < events.length; i++) {
         const p = readLine(events[i], i, homeId, cur, events[i + 1])
         if (!p) continue
@@ -42,23 +42,27 @@ describe('the live pitch', () => {
         const ci = p.carrier != null ? side.indexOf(p.carrier) : -1
         S.start(p, ci >= 0 ? ci : null)
         let t = 0, prev = S.b.map(b => ({ x: b.x, y: b.y }))
-        while (!S.done && t < 20) {
+        while (!S.done && t < 30) {
           const cutsBefore = S.cuts
-          S.step(1 / 120); t += 1 / 120
+          S.step(1 / 120); t += 1 / 120; wall += 1 / 120 / Math.max(0.5, S.rate)
           for (let k = 0; k < 30; k++) {
             if (S.cuts === cutsBefore) top = Math.max(top, Math.hypot(S.b[k].x - prev[k].x, S.b[k].y - prev[k].y) * 120)
             prev[k].x = S.b[k].x; prev[k].y = S.b[k].y
           }
         }
-        expect(t, `line ${i} (${events[i].k}) finishes`).toBeLessThan(20)
+        expect(t, `line ${i} (${events[i].k}) finishes`).toBeLessThan(30)
         total += t
       }
       expect(plays).toBeGreaterThan(50)
       // a sprint is 8.2 m/s, the man with the ball a touch more
       expect(top).toBeLessThan(9.5)
-      // a full match at Normal: long enough to watch, short enough to finish
-      expect(total).toBeGreaterThan(240)
-      expect(total).toBeLessThan(720)
+      // nothing is teleported after the first picture: the match never cuts
+      expect(S.cuts).toBe(1)
+      // a full match at Normal, on the screen's clock (quiet play is wound
+      // on): long enough to watch, short enough to finish
+      void total
+      expect(wall).toBeGreaterThan(150)
+      expect(wall).toBeLessThan(600)
     })
   }
 })

@@ -9870,6 +9870,7 @@
   "injured": "Uscito per infortunio"
  },
  "lp": {
+  "move": "Schema",
   "attack": "{team} attacca",
   "try": "Meta",
   "con": "Trasformazione",

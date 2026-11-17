@@ -9,28 +9,44 @@
 // runs, so the picture is smooth by construction (the highlight clips' rule,
 // highlight/bake.ts).
 //
-// When the match itself jumps (four minutes on, thirty metres away) the
-// picture CUTS, a short dip like a broadcast, with everybody already set. It
-// never slides across the gap.
+// THE WHOLE EIGHTY IS PLAYED, AND IT NEVER CUTS (third pass). Owner, 17 Nov
+// 2026, on the second: "Its quite glitchy" and "The whole 80 mins should be
+// played but sped up when there's nothing really happening". The second pass
+// dissolved to a new picture some seventy times a match, wherever the engine
+// had moved on. Now when the match jumps the men RUN there, in fast forward,
+// and every play carries a rate: a ruck in midfield goes by at over twice
+// real time, a move, a kick at goal or anything in the 22 at real time. The
+// screen multiplies time by `rate`; the men's speeds in the model never
+// change, so it is the same smooth picture, wound on.
 //
 // Reads phases only; no rng, nothing written back.
 
 import type { Phase, PhaseKind } from './phase'
 import { shapeOf, type Pt } from './shapes'
+import { FLIGHT, TRACKS, trackAt, type Track } from '../clipPlays'
 
 export interface Body { x: number; y: number; vx: number; vy: number }
 
-type Step =
+type Step = ({ rate?: number }) & (
   | { k: 'wait'; t: number }
   /** the man goes to the ball and picks it up */
-  | { k: 'pick'; who: number }
+  | { k: 'pick'; who: number; max?: number }
+  /** everybody gets to his place (most of them), or `max` seconds pass */
+  | { k: 'settle'; max: number }
+  /** a called move: its men to their marks, then the move as it is drawn */
+  | { k: 'trackset' }
+  | { k: 'track' }
   | { k: 'pass'; to: number; hang?: number }
   /** the anchor (and the man with the ball) moves to a point at v m/s */
-  | { k: 'run'; to: Pt; v: number }
+  | { k: 'run'; to: Pt; v: number; straight?: boolean }
   | { k: 'kick'; to: Pt; hang: number }
   /** the ball goes to ground at the anchor */
   | { k: 'ground' }
   | { k: 'mode'; mode: PhaseKind; cIdx?: number | null; anchorOn?: number; clear?: boolean }
+)
+
+/** fast forward across a gap in the match */
+const FF = 7
 
 const V_FWD = 6.3, V_BACK = 8.2, ACC = 15, V_PASS = 17
 /** off the ball a man jogs into shape; only the action, and a man a long
@@ -77,6 +93,14 @@ export class PitchSim {
   private flight: { from: Pt; to: Pt; toIdx: number; T: number; t: number; hang: number } | null = null
   private cut: { t: number; apply: () => void } | null = null
   private started = false
+  /** how fast the screen should run this moment: 1 is real time */
+  rate = 1
+  private baseRate = 1
+  private ruckers: number[] | undefined
+  private tacklers: number[] | undefined
+  private downMan: number | null = null
+  /** a called move being run: the track, where it is laid, and who is who */
+  private trk: { tr: Track; O: Pt; dir: number; s: number; who: Record<string, number>; t: number; T: number; ev: number; att0: number } | null = null
 
   constructor() {
     for (let i = 0; i < 30; i++) this.b.push({ x: 50 + (i < 15 ? -8 : 8), y: 6 + (i % 15) * 4, vx: 0, vy: 0 })
@@ -96,6 +120,23 @@ export class PitchSim {
     /** set by a cut: who starts with the ball (-1: on the ground at the anchor) */
     let init = -1
     const need9 = () => { if (!holderAtt) steps.push({ k: 'pick', who: att0 + 8 }) }
+    // the men nearest this breakdown are the men at it
+    const nearest = (from: number, pool: number[], n: number, skip = -1) => pool
+      .filter(k => from + k !== skip).map(k => ({ k, d: hyp(this.b[from + k], E) })).sort((a, b) => a.d - b.d).slice(0, n).map(o => o.k)
+    this.ruckers = nearest(att0, [0, 1, 2, 3, 4, 5, 6, 7], 3, this.holder)
+    this.tacklers = nearest(15 - att0, [0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 12], 2)
+    this.downMan = null
+    this.trk = null
+    // how fast it is worth watching: real time where it matters, wound on
+    // where nothing much is happening
+    const in22 = p.homeBall ? p.x > 76 : p.x < 24
+    this.baseRate = p.move ? 1
+      : p.kind === 'try' || p.kind === 'heldup' ? 1
+      : p.kind === 'con' || p.kind === 'goal' ? 1.4
+      : p.kind === 'kick' || p.kind === 'catch' || p.kind === 'kickoff' || p.kind === 'dropout' ? 1.8
+      : p.kind === 'scrum' || p.kind === 'lineout' || p.kind === 'maul' ? (in22 ? 1.4 : 2.6)
+      : p.kind === 'penalty' || p.kind === 'break' ? 3.6
+      : in22 ? 1.25 : 3.2
     const open = (y: number) => (y < 35 ? 1 : -1)
 
     switch (p.kind) {
@@ -184,6 +225,31 @@ export class PitchSim {
         // drive is from close in
         const reach = p.kind === 'try' ? 42 : p.kind === 'heldup' ? 14 : 38
         cut = cut || (d > 16 && !(sameSide && gain > 0 && d <= reach))
+        // A CALLED MOVE IS RUN AS IT IS DRAWN (owner: "I didnt see any of the
+        // moves"). The line names the move; the Playbook's own keyframes
+        // (clipPlays TRACKS) are laid on the pitch from where the ball is.
+        const mvId = p.move?.split('.').pop()
+        const tr = mvId ? TRACKS[mvId]?.[0] : undefined
+        if (tr) {
+          // run from within reach of where the line ends: a move is twenty
+          // metres of rugby, not sixty
+          if (!cut && d > 26) { cut = true }
+          if (cut) { mode = 'ruck'; cIdx = null; init = -1; anchor = { x: clamp(E.x - dir * 20, 4, 96), y: clamp(E.y, 12, 58) }; steps.push({ k: 'ground' }) }
+          else { mode = this.mode; cIdx = this.cIdx; anchor = this.anchor }
+          const strike = tr.strike
+          // the scrum-half has it: handed to him if one of his own is carrying
+          if (!cut && holderAtt && this.holder !== att0 + 8) steps.push({ k: 'pass', to: att0 + 8, rate: 2.5 })
+          else steps.push({ k: 'pick', who: att0 + 8, rate: 2.5 })
+          steps.push({ k: 'trackset', rate: 3 }, { k: 'track', rate: 0.95 },
+            { k: 'mode', mode: 'carry', anchorOn: -1, clear: true })
+          this.trk = { tr, O: { x: 0, y: 0 }, dir, s: 1, who: {}, t: 0, T: 0, ev: 0, att0 }
+          void strike
+          // he goes for the line from where the move put him, not across the field
+          steps.push({ k: 'run', to: { ...E }, v, straight: true })
+          if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 2.6 : 1.2 })
+          else steps.push({ k: 'wait', t: 0.2 })
+          break
+        }
         if (cut) {
           mode = 'carry'; cIdx = c; init = att0 + c
           anchor = { x: E.x - dir * (p.kind === 'try' ? (d > 42 ? 38 : 14) : p.kind === 'heldup' ? 7 : 6), y: E.y }
@@ -215,7 +281,7 @@ export class PitchSim {
           steps.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true })
         }
         steps.push({ k: 'run', to: E, v })
-        if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 2.4 : 1.6 })
+        if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 2.8 : 1.6 })
         else steps.push({ k: 'wait', t: 0.2 })
         break
       }
@@ -228,7 +294,8 @@ export class PitchSim {
       this.phase = p; this.steps = steps; this.si = 0; this.st = 0; this.entered = false; this.done = false
       this.mode = mode; this.anchor = { ...anchor }; this.cIdx = cIdx
     }
-    if (cut) {
+    if (cut && !this.started) {
+      // the very first picture is simply there
       this.over.clear()
       this.done = false
       this.cut = { t: 0, apply: () => {
@@ -241,22 +308,52 @@ export class PitchSim {
         this.ref.x = T.ref.x; this.ref.y = T.ref.y
         const at = init >= 0 ? this.b[init] : this.anchor
         this.ball.x = at.x; this.ball.y = at.y; this.ball.lift = 0
-        this.fade = 1
       } }
       this.started = true
+    } else if (cut) {
+      // THE MATCH HAS MOVED ON: nobody is teleported. The ball is picked up,
+      // everyone runs to where the play now is, and the screen winds it on.
+      this.over.clear()
+      this.flight = null; this.ball.lift = 0
+      this.holder = -1; this.grounded = false
+      this.down.fill(0)
+      steps.unshift({ k: 'pick', who: init >= 0 ? init : att0 + 8, max: 9, rate: FF }, { k: 'settle', max: 6.5, rate: FF })
+      begin()
     } else begin()
   }
 
   /** the lines being run on to the ball right now: who, and to where */
   runs(): { i: number; to: Pt }[] {
     const out: { i: number; to: Pt }[] = []
+    if (this.trk && this.trk.T > 0) return out
     for (const [i, to] of this.over) if (i !== this.holder && Math.hypot(this.b[i].x - to.x, this.b[i].y - to.y) > 2) out.push({ i, to })
     return out
   }
 
+  /** a called move's lines from now to their ends, for the screen to draw */
+  trails(): Pt[][] {
+    const k = this.trk
+    if (!k || k.T <= 0) return []
+    const out: Pt[][] = []
+    for (const [role, ks] of Object.entries(k.tr.runs)) {
+      const end = ks[ks.length - 1][0]
+      if (k.t >= end - 0.05 || k.who[role] == null) continue
+      const line: Pt[] = []
+      for (let t = Math.max(k.t, 0); t <= end + 1e-6; t += 0.12) line.push(this.trackPt(ks, t))
+      if (line.length > 1) out.push(line)
+    }
+    return out
+  }
+
+  private trackPt(ks: [number, number, number][], t: number): Pt {
+    const k = this.trk!
+    const [tx, ty] = trackAt(ks, t)
+    return { x: clamp(k.O.x + k.dir * tx, -4, 104), y: clamp(k.O.y + k.s * ty, 1.5, 68.5) }
+  }
+
   private targets(): { pts: Pt[]; ref: Pt } {
     const p = this.phase!
-    const S = shapeOf({ ...p, kind: this.mode, x: this.anchor.x, y: this.anchor.y }, this.cIdx)
+    const S = shapeOf({ ...p, kind: this.mode, x: this.anchor.x, y: this.anchor.y, ruckers: this.ruckers, tacklers: this.tacklers, downMan: this.downMan }, this.cIdx)
     // open play is ragged; a set piece and a kick-off line are not
     const loose = this.mode === 'ruck' || this.mode === 'carry' || this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
     const pts = [...S.home, ...S.away].map((q, i) => ({ x: q.x + jit(i, 1) * (loose ? 2.4 : 0.7), y: q.y + jit(i, 2) * (loose ? 1.6 : 0.5) }))
@@ -275,6 +372,7 @@ export class PitchSim {
 
     // the script: instant steps fall through, timed ones hold
     let runTo: Pt | null = null
+    this.rate = this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
       const s = this.steps[this.si]
       const first = !this.entered
@@ -285,7 +383,12 @@ export class PitchSim {
           this.mode = s.mode
           if (s.mode === this.phase.kind) this.landed = true
           if (s.cIdx !== undefined) this.cIdx = s.cIdx
-          if (s.anchorOn != null) this.anchor = { x: this.b[s.anchorOn].x, y: this.b[s.anchorOn].y }
+          if (s.anchorOn != null) {
+            // -1: on whoever has the ball now (the man a move put through)
+            const on = s.anchorOn >= 0 ? s.anchorOn : this.holder
+            if (on >= 0) { this.anchor = { x: this.b[on].x, y: this.b[on].y }; if (s.anchorOn < 0) this.cIdx = on % 15 }
+          }
+          if (s.mode === 'carry' && this.trk) this.trk = null
           if (s.clear) this.over.clear()
           over = true; break
         case 'ground': {
@@ -293,6 +396,7 @@ export class PitchSim {
           if (was >= 0 && this.mode === 'ruck') {
             // he is tackled: he and the nearest defender go to ground
             this.down[was] = 1.5
+            this.downMan = was % 15
             const d0 = was < 15 ? 15 : 0
             let best = -1, bd = 1e9
             for (let k = d0; k < d0 + 15; k++) { const dd = hyp(this.b[k], this.b[was]); if (dd < bd) { bd = dd; best = k } }
@@ -306,9 +410,61 @@ export class PitchSim {
           if (this.holder === s.who) { over = true; break }
           this.over.set(s.who, { x: this.ball.x, y: this.ball.y })
           this.st += dt
-          if ((hyp(this.b[s.who], this.ball) < 1.6 && this.ball.lift < 0.5 && !this.flight) || this.st > 3) {
+          if ((hyp(this.b[s.who], this.ball) < 1.6 && this.ball.lift < 0.5 && !this.flight) || this.st > (s.max ?? 3)) {
             this.over.delete(s.who); this.holder = s.who; this.grounded = false; this.flight = null; over = true
           }
+          break
+        }
+        case 'settle': {
+          this.st += dt
+          const T = this.targets()
+          let there = 0
+          for (let i = 0; i < 30; i++) if (hyp(this.b[i], T.pts[i]) < 5) there++
+          over = there >= 25 || this.st >= s.max
+          break
+        }
+        case 'trackset': {
+          const k = this.trk
+          if (!k) { over = true; break }
+          if (first) {
+            // laid from the gain line and the scrum-half, going to the wide side
+            const nine = this.b[k.att0 + 8]
+            k.O = { x: this.anchor.x, y: nine.y }
+            k.s = nine.y <= 35 ? 1 : -1
+            const home = k.att0 === 0
+            const wingOn = (lowY: boolean) => k.att0 + ((home === lowY) ? 10 : 13)
+            for (const role of Object.keys(k.tr.runs)) {
+              k.who[role] = role === 'W' ? wingOn(k.s < 0) : role === 'FW' ? wingOn(k.s > 0) : k.att0 + clamp(parseInt(role, 10) - 1, 0, 14)
+            }
+            // the move is over when the man it is for has the ball in his hands
+            k.T = Math.max(1.2, ...k.tr.ball.map(b => b[0] + 0.7))
+            k.t = 0; k.ev = 0
+          }
+          let far = 0
+          for (const [role, ks] of Object.entries(k.tr.runs)) {
+            const q = this.trackPt(ks, 0)
+            this.over.set(k.who[role], q)
+            far = Math.max(far, hyp(this.b[k.who[role]], q))
+          }
+          this.st += dt
+          over = far < 1.5 || this.st > 4
+          break
+        }
+        case 'track': {
+          const k = this.trk
+          if (!k) { over = true; break }
+          k.t += dt
+          for (const [role, ks] of Object.entries(k.tr.runs)) this.over.set(k.who[role], this.trackPt(ks, k.t))
+          // the passes, when the move says, to the man it says
+          while (k.ev < k.tr.ball.length && k.t >= k.tr.ball[k.ev][0]) {
+            const [, to, kind] = k.tr.ball[k.ev++]
+            const idx = k.who[to] ?? k.att0 + clamp(parseInt(to, 10) - 1, 0, 14)
+            const from = { x: this.ball.x, y: this.ball.y }
+            const T = Math.max(FLIGHT[kind ?? 'pass'], hyp(from, this.b[idx]) / 20)
+            this.flight = { from, to: this.b[idx], toIdx: idx, T, t: 0, hang: kind === 'miss' ? 1.2 : 0.4 }
+            this.holder = -1; this.grounded = false
+          }
+          over = k.t >= k.T && !this.flight
           break
         }
         case 'pass':
@@ -328,6 +484,7 @@ export class PitchSim {
           }
           over = !this.flight; break
         case 'run': {
+          if (first && s.straight) s.to.y = clamp(this.anchor.y, 4, 66)
           const dd = hyp(this.anchor, s.to)
           const mv = Math.min(dd, s.v * dt)
           if (dd > 1e-6) { this.anchor.x += (s.to.x - this.anchor.x) / dd * mv; this.anchor.y += (s.to.y - this.anchor.y) / dd * mv }
@@ -341,7 +498,7 @@ export class PitchSim {
       if (!over) break
       this.si++; this.st = 0; this.entered = false
     }
-    if (this.si >= this.steps.length) this.done = true
+    if (this.si >= this.steps.length) { this.done = true; this.rate = 1 }
     this.move(dt, runTo)
   }
 
@@ -361,7 +518,7 @@ export class PitchSim {
       const dx = tx - bd.x, dy = ty - bd.y
       const dist = Math.hypot(dx, dy)
       const fwd = i % 15 < 8
-      const urgent = i === this.holder || this.over.has(i) || chase || dist > 9
+      const urgent = i === this.holder || this.over.has(i) || chase || dist > 9 || this.rate >= FF
       const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
       const want = Math.min(vmax, dist * 2.6)
       const wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0

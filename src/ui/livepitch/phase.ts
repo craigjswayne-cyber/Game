@@ -54,6 +54,12 @@ export interface Phase {
   banner?: Banner
   /** a called move's name, as an i18n key (the line's move_k) */
   move?: string
+  /** set by the sim, not the reader: the three forwards nearest this
+   *  breakdown, the two defenders nearest it, and the man just tackled, so
+   *  the men who are there are the ones drawn there */
+  ruckers?: number[]
+  tacklers?: number[]
+  downMan?: number | null
 }
 
 /** the key without its variant number or the women's-game suffix: 'comm.scrum3_f' is 'scrum' */

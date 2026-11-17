@@ -10066,6 +10066,7 @@
     "injured": "Sorti sur blessure"
   },
   "lp": {
+    "move": "Combinaison",
     "attack": "{team} attaque",
     "try": "Essai",
     "con": "Transformation",

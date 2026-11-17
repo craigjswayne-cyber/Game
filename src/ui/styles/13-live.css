@@ -781,6 +781,8 @@
   font-size: 0.75rem; font-weight: 700; letter-spacing: .2px;
   animation: lp-chip .28s ease-out both; pointer-events: none;
 }
+.lp-chip.move { font-size: 0.9375rem; padding: 6px 14px 6px 11px; box-shadow: 0 0 0 1.5px var(--gold-fill); }
+.lp-chip.move small { font-size: 0.625rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold-fill); }
 .lp-chip i { width: 7px; height: 7px; border-radius: 50%; display: block; }
 @keyframes lp-chip { from { opacity: 0; transform: translate(-50%, -4px); } }
 .lp-banner {
@@ -795,6 +797,12 @@
 .lp-banner { max-width: 94%; }
 .lp-banner span { max-width: 100%; overflow: hidden; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
 .lp-banner span i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid; display: block; }
+/* a score is made at one end: its banner sits in the other half, so the
+   try itself is never under the word (home attacks up the screen) */
+@media (orientation: portrait) {
+  .lp-banner.low { top: 66%; }
+  .lp-banner.high { top: 32%; }
+}
 .lp-banner:not(.good) b { font-size: 2.2rem; color: var(--gold-fill); }
 .lp-banner.rc b { color: var(--danger-fill); }
 @keyframes lp-banner { from { opacity: 0; transform: translate(-50%, -42%) scale(.86); } }
@@ -921,7 +929,9 @@
   .live-wrap.full-match .comm-feed { height: 62px; -webkit-mask-image: none; mask-image: none; margin: 6px 8px 0; }
   .live-wrap.full-match .comm-list { transform: none !important; }
   .live-wrap.full-match .comm-line.cur { min-height: 62px; max-height: 62px; overflow: hidden; }
-  .live-wrap.full-match .comm-line .txt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.8125rem; line-height: 1.32; }
+  /* every line fits its slot, the big scoring line included */
+  .live-wrap.full-match .comm-line .txt, .live-wrap.full-match.big-text .comm-line .txt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.8125rem !important; line-height: 1.3 !important; }
+  .live-wrap.full-match .comm-line { align-items: center; }
   .live-wrap.full-match .speed-controls { order: 3; padding-top: 6px; padding-bottom: calc(8px + var(--safe-area-inset-bottom, 0px)); }
 }
 
