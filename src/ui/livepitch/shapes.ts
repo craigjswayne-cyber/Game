@@ -282,7 +282,7 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       const vAt = (y: number) => (y - p.y) * open
       att = []
       // his side wait well behind him, spread across the field
-      for (let j = 0; j < 15; j++) att.push(j === k ? [0, 0] : [-13 - (j % 3) * 3.2, vAt(9 + j * 3.7)])
+      for (let j = 0; j < 15; j++) att.push(j === k ? [0, 0] : [-15 - ((j * 7) % 5) * 2.6, vAt(10 + ((j * 4) % 15) * 3.5)])
       def = []
       // theirs under the posts for a conversion, back ten for a penalty
       for (let j = 0; j < 15; j++) def.push(p.kind === 'con' ? [gu + 2 + (j % 2) * 3, vAt(12 + j * 3.3)] : [Math.max(10, gu - 4 - (j % 3) * 4), vAt(8 + j * 3.9)])

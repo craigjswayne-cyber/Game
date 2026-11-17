@@ -919,6 +919,7 @@
   .live-wrap.full-match .comm-line.old { display: none; }
   .live-wrap.full-match .comm-feed { height: 62px; -webkit-mask-image: none; mask-image: none; margin: 6px 8px 0; }
   .live-wrap.full-match .comm-list { transform: none !important; }
-  .live-wrap.full-match .comm-line.cur { min-height: 62px; }
+  .live-wrap.full-match .comm-line.cur { min-height: 62px; max-height: 62px; overflow: hidden; }
+  .live-wrap.full-match .comm-line .txt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.8125rem; line-height: 1.32; }
   .live-wrap.full-match .speed-controls { order: 3; padding-top: 6px; padding-bottom: calc(8px + var(--safe-area-inset-bottom, 0px)); }
 }

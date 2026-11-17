@@ -231,10 +231,19 @@ export class PitchSim {
     } else begin()
   }
 
+  /** the lines being run on to the ball right now: who, and to where */
+  runs(): { i: number; to: Pt }[] {
+    const out: { i: number; to: Pt }[] = []
+    for (const [i, to] of this.over) if (i !== this.holder && Math.hypot(this.b[i].x - to.x, this.b[i].y - to.y) > 2) out.push({ i, to })
+    return out
+  }
+
   private targets(): { pts: Pt[]; ref: Pt } {
     const p = this.phase!
     const S = shapeOf({ ...p, kind: this.mode, x: this.anchor.x, y: this.anchor.y }, this.cIdx)
-    const pts = [...S.home, ...S.away].map((q, i) => ({ x: q.x + jit(i, 1) * 1.1, y: q.y + jit(i, 2) * 1.1 }))
+    // open play is ragged; a set piece and a kick-off line are not
+    const loose = this.mode === 'ruck' || this.mode === 'carry' || this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
+    const pts = [...S.home, ...S.away].map((q, i) => ({ x: q.x + jit(i, 1) * (loose ? 2.4 : 0.7), y: q.y + jit(i, 2) * (loose ? 1.6 : 0.5) }))
     for (const [i, q] of this.over) pts[i] = q
     return { pts, ref: S.ref }
   }

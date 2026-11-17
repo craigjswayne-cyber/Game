@@ -52,6 +52,8 @@ export interface Phase {
   /** the line this phase is drawn from */
   at: number
   banner?: Banner
+  /** a called move's name, as an i18n key (the line's move_k) */
+  move?: string
 }
 
 /** the key without its variant number or the women's-game suffix: 'comm.scrum3_f' is 'scrum' */
@@ -81,6 +83,13 @@ const DEFENDING = /^(defSet|defHit|off_|heldUp|flav(8|12|15|23)$|ycRepeated|yc|r
  * a coach's note, a substitution): the pitch holds the shape it had.
  */
 export function readLine(e: MatchEvent, i: number, homeId: string, prev: Phase | null, next?: MatchEvent): Phase | null {
+  const p = readLine0(e, i, homeId, prev, next)
+  const mk = e.v?.move_k
+  if (p && typeof mk === 'string') p.move = mk
+  return p
+}
+
+function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null, next?: MatchEvent): Phase | null {
   const s = stem(e.k)
   /** the key with its number: 'flav9' and 'flav3' are different moments */
   const raw = (e.k ?? '').replace(/^comm\./, '').replace(/_f$/, '')

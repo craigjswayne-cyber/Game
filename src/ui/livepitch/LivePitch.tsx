@@ -303,6 +303,21 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.textAlign = 'center'; g.textBaseline = 'middle'
         g.fillText(String(side.nums[k] ?? k + 1), x, y + 0.5)
       }
+      // the lines being run on to the ball: a dashed arrow to where he will take it
+      g.save()
+      g.strokeStyle = 'rgba(255,255,255,.8)'; g.fillStyle = 'rgba(255,255,255,.8)'; g.lineWidth = Math.max(1.6, sc * 0.3); g.setLineDash([sc * 1.1, sc * 0.9]); g.lineCap = 'round'
+      for (const r of S.runs()) {
+        const a = S.b[r.i]
+        const x0 = PX(a.y), y0 = PY(a.x), x1 = PX(r.to.y), y1 = PY(r.to.x)
+        const d = Math.hypot(x1 - x0, y1 - y0)
+        if (d < R * 1.6) continue
+        const ux = (x1 - x0) / d, uy = (y1 - y0) / d
+        g.beginPath(); g.moveTo(x0 + ux * R * 1.15, y0 + uy * R * 1.15); g.lineTo(x1 - ux * 3, y1 - uy * 3); g.stroke()
+        g.setLineDash([])
+        g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 - ux * 6 - uy * 3.4, y1 - uy * 6 + ux * 3.4); g.lineTo(x1 - ux * 6 + uy * 3.4, y1 - uy * 6 - ux * 3.4); g.closePath(); g.fill()
+        g.setLineDash([sc * 1.1, sc * 0.9])
+      }
+      g.restore()
       // the side with the ball on top, the man with it last of all
       const top = S.phase?.homeBall === false ? 15 : 0
       for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder) dot(i)
@@ -357,16 +372,18 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
 
   // the chip says what the play is; a plain carry or tackle says nothing
   const quiet = phase.kind === 'carry' || phase.label === 'lp.tackle' || phase.label === 'lp.ruck' || phase.kind === 'try' || phase.kind === 'con' || phase.kind === 'goal'
-  const chip = quiet ? '' : tr(phase.label, phase.n != null ? { n: phase.n } : undefined)
+  // a called move is named, whatever the play (the reference names its moves)
+  const cap = (x: string) => x.charAt(0).toLocaleUpperCase() + x.slice(1)
+  const chip = phase.move && phase.kind !== 'try' ? cap(tr(phase.move)) : quiet ? '' : tr(phase.label, phase.n != null ? { n: phase.n } : undefined)
   const bSide = banner ? (banner.teamId === homeId ? home : away) : null
   const good = banner && (banner.kind === 'try' || banner.kind === 'pentry' || banner.kind === 'con' || banner.kind === 'pen' || banner.kind === 'dg')
   const pts = banner ? ({ try: 5, pentry: 7, con: 2, pen: 3, dg: 3 } as Record<string, number>)[banner.kind] : undefined
   return (
     <div className="live-pitch" data-testid="live-pitch" data-phase={phase.kind}>
       <canvas ref={canvas} className="lp-canvas" />
-      {chip && <div className="lp-chip" key={phase.at}><i style={{ background: (phase.homeBall ? home : away).kit[0] }} />{chip}</div>}
+      {chip && <div className="lp-chip" key={`c${phase.at}`}><i style={{ background: (phase.homeBall ? home : away).kit[0] }} />{chip}</div>}
       {banner && bSide && (
-        <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}`} key={banner.at} data-testid="lp-banner">
+        <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}`} key={`b${banner.at}`} data-testid="lp-banner">
           {pts != null && <em>+{pts}</em>}
           <b>{tr(`lp.b.${banner.kind}`)}</b>
           <span><i style={{ background: bSide.kit[0], borderColor: bSide.kit[1] }} />
