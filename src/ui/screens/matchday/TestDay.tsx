@@ -17,6 +17,7 @@ import { SLIDER_INFO, sliderReadout } from '../../../game/tactics'
 import { effAt } from '../../../game/attributes'
 import { XV_SLOTS, type Fixture } from '../../../game/model'
 import { Flag } from '../../flags'
+import { isLight } from '../../highlight/draw'
 
 type Units = { scrum: number; lineout: number; breakdown: number; attack: number; defence: number }
 const UNIT_KEYS: (keyof Units)[] = ['scrum', 'lineout', 'breakdown', 'attack', 'defence']
@@ -105,17 +106,16 @@ export function NatCaptain({ lineup }: { lineup: (number | null)[] }) {
   )
 }
 
-/** One standing player, in kit, with a shirt number. */
+/** One player as the match draws him: a disc in the shirt colour, the edge
+ *  in the second colour, the number on top, the captain ringed in white
+ *  (owner, 1.9.14: "it should stay as the circles for in game"). */
 function Figure({ kit, n, cap }: { kit: [string, string]; n: number; cap?: boolean }) {
   return (
-    <svg className="wo-fig" viewBox="0 0 20 44" aria-hidden="true">
-      <circle cx="10" cy="6" r="4.2" fill="var(--figure-head)" />
-      <rect x="3" y="11" width="14" height="16" rx="4" fill={kit[0]} stroke={kit[1]} strokeWidth="1.2" />
-      <text x="10" y="22" textAnchor="middle" fontSize="7" fontWeight="700" fill={kit[1]}>{n}</text>
-      <rect x="4.5" y="27" width="11" height="6" rx="1.5" fill={kit[1]} />
-      <rect x="5" y="33" width="3.6" height="10" rx="1.5" fill={kit[0]} />
-      <rect x="11.4" y="33" width="3.6" height="10" rx="1.5" fill={kit[0]} />
-      {cap && <rect x="2" y="13" width="3" height="5" rx="1" fill="var(--gold)" />}
+    <svg className="wo-fig" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10.8" r="8.4" fill="black" fillOpacity=".28" />
+      <circle cx="10" cy="10" r="8.4" fill={kit[0]} stroke={cap ? 'var(--prop-ink)' : kit[1]} strokeWidth={cap ? 2 : 1.2} />
+      <text x="10" y="10.5" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800"
+        fill={isLight(kit[0]) ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'}>{n}</text>
     </svg>
   )
 }
