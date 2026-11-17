@@ -753,6 +753,7 @@ export function Live() {
         <LivePitch events={events} cursor={cursor} homeId={fixture.homeId}
           home={pitchSide(true)} away={pitchSide(false)}
           paused={!playing}
+          tr={(k, v) => t(k, v)} teams={{ home: teamShort(game, fixture.homeId), away: teamShort(game, fixture.awayId) }}
           names={pid => game.players[pid]?.name} />
       )}
 

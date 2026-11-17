@@ -6,10 +6,10 @@
 // attacking upwards, drawn once and left alone. The men and the ball come
 // from sim.ts, which plays each line out in real time.
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MatchEvent } from '../../game/model'
-import { readInk, isLight, refereeColour } from '../highlight/draw'
-import { phaseAt } from './phase'
+import { readInk, isLight, refereeColour, tokenColor } from '../highlight/draw'
+import { phaseAt, type Banner } from './phase'
 import { PitchSim } from './sim'
 
 export interface PitchSide {
@@ -25,7 +25,7 @@ export interface PitchSide {
 const GOAL = 8, MARGIN = 3
 const FIELD_L = 100 + GOAL * 2 + MARGIN * 2, FIELD_W = 70 + MARGIN * 2
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams }: {
   events: MatchEvent[]
   cursor: number
   homeId: string
@@ -36,9 +36,17 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   names: (playerId: number) => string | undefined
   /** the newest line has been played out on the grass */
   onPlayed?: () => void
+  /** the words: an lp.* key and its values */
+  tr: (key: string, vars?: Record<string, string | number>) => string
+  /** the two sides' short names */
+  teams: { home: string; away: string }
 }) {
+  /** the banner on screen, once its moment has landed */
+  const [banner, setBanner] = useState<Banner | null>(null)
+  const bannerRef = useRef<{ want: Banner | null; shownAt: number }>({ want: null, shownAt: -1 })
   const canvas = useRef<HTMLCanvasElement>(null)
   const phase = useMemo(() => phaseAt(events, cursor, homeId), [events, cursor, homeId])
+  bannerRef.current.want = phase.banner ?? null
   const carrier = useMemo(() => {
     if (phase.carrier == null) return null
     const hi = home.lineup.indexOf(phase.carrier), ai = away.lineup.indexOf(phase.carrier)
@@ -59,8 +67,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     }
     seen.current.told = false
   }
-  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier })
-  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier }
+  const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
+  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText })
+  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText }
 
   useEffect(() => {
     const cv = canvas.current
@@ -75,6 +84,17 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // the last frame before a cut, dissolved out over the new one
     const ghost = document.createElement('canvas')
     let seenCuts = S.cuts, dissolve = 0
+    // confetti for a try, in screen pixels, in the scorers' colours
+    let confetti: { x: number; y: number; vx: number; vy: number; life: number; rot: number; spin: number; c: string }[] = []
+    const burst = (fx: number, fy: number, isHome: boolean) => {
+      const kit = (isHome ? io.current.home : io.current.away).kit
+      const cols = [kit[0], kit[1], ink.white, tokenColor('--gold-fill')]
+      const x0 = PX(fy), y0 = PY(Math.max(2, Math.min(98, fx)))
+      for (let i = 0; i < 70; i++) {
+        const a = Math.random() * Math.PI * 2, v = 40 + Math.random() * 150
+        confetti.push({ x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 70, life: 1.6 + Math.random() * 1.4, rot: Math.random() * 6, spin: (Math.random() - 0.5) * 14, c: cols[i % cols.length] })
+      }
+    }
     // field metres to screen: length up the screen (home attacks up), width across
     const PX = (y: number) => dim.ox + (y + MARGIN) * dim.sc
     const PY = (x: number) => dim.oy + (100 + GOAL + MARGIN - x) * dim.sc
@@ -142,6 +162,15 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         }
       }
       if (dissolve > 0) dissolve = Math.max(0, dissolve - dt / 0.45)
+      // the banner lands with the moment, not with the line
+      const bw = bannerRef.current
+      if (bw.want && S.landed && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at) {
+        bw.shownAt = bw.want.at
+        setBanner(bw.want)
+        if ((bw.want.kind === 'try' || bw.want.kind === 'pentry') && !reduce) burst(S.ball.x, S.ball.y, bw.want.teamId === homeId)
+      } else if (!bw.want && bw.shownAt !== -1) { bw.shownAt = -1; setBanner(null) }
+      for (const c of confetti) { c.vy += 26 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.life -= dt; c.rot += c.spin * dt }
+      confetti = confetti.filter(c => c.life > 0)
       if (S.done && !seen.current.told) { seen.current.told = true; io.current.onPlayed?.() }
       draw()
       raf = requestAnimationFrame(frame)
@@ -154,7 +183,17 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       g.setTransform(dpr, 0, 0, dpr, 0, 0)
       g.fillStyle = ink.surround; g.fillRect(0, 0, w, h)
       g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
-      const R = Math.max(7.5, sc * 1.7)
+      // who is attacking, written on the in-goal they are attacking
+      {
+        const up = S.phase?.homeBall !== false
+        g.save()
+        g.font = `800 ${Math.round(Math.max(10, sc * 3.1))}px var(--cond, system-ui), system-ui, sans-serif`
+        g.textAlign = 'center'; g.textBaseline = 'middle'
+        g.fillStyle = 'rgba(255,255,255,.34)'
+        g.fillText(io.current.attackText.toUpperCase(), PX(35), PY(up ? 100 + GOAL / 2 : -GOAL / 2) + 1)
+        g.restore()
+      }
+      const R = Math.max(8, sc * 1.9)
       const { home: H, away: A, names: N, carrierId } = io.current
       const flying = S.ball.lift > 0.4
       const dot = (i: number) => {
@@ -205,6 +244,11 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           }
         }
       }
+      for (const c of confetti) {
+        g.save(); g.translate(c.x, c.y); g.rotate(c.rot)
+        g.globalAlpha = Math.min(1, c.life); g.fillStyle = c.c
+        g.fillRect(-3, -1.6, 6, 3.2); g.restore()
+      }
       // the dissolve of a cut: the old frame fading off the new one
       if (dissolve > 0 && ghost.width) {
         g.setTransform(1, 0, 0, 1, 0, 0)
@@ -218,9 +262,24 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     return () => { cancelAnimationFrame(raf); ro.disconnect() }
   }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1]])
 
+  // the chip says what the play is; a plain carry or tackle says nothing
+  const quiet = phase.kind === 'carry' || phase.label === 'lp.tackle' || phase.label === 'lp.ruck' || phase.kind === 'try' || phase.kind === 'con' || phase.kind === 'goal'
+  const chip = quiet ? '' : tr(phase.label, phase.n != null ? { n: phase.n } : undefined)
+  const bSide = banner ? (banner.teamId === homeId ? home : away) : null
+  const good = banner && (banner.kind === 'try' || banner.kind === 'pentry' || banner.kind === 'con' || banner.kind === 'pen' || banner.kind === 'dg')
+  const pts = banner ? ({ try: 5, pentry: 7, con: 2, pen: 3, dg: 3 } as Record<string, number>)[banner.kind] : undefined
   return (
     <div className="live-pitch" data-testid="live-pitch" data-phase={phase.kind}>
       <canvas ref={canvas} className="lp-canvas" />
+      {chip && <div className="lp-chip" key={phase.at}><i style={{ background: (phase.homeBall ? home : away).kit[0] }} />{chip}</div>}
+      {banner && bSide && (
+        <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}`} key={banner.at} data-testid="lp-banner">
+          {pts != null && <em>+{pts}</em>}
+          <b>{tr(`lp.b.${banner.kind}`)}</b>
+          <span><i style={{ background: bSide.kit[0], borderColor: bSide.kit[1] }} />
+            {banner.teamId === homeId ? teams.home : teams.away}{banner.name ? ` · ${banner.name}` : ''} · {Math.min(80, banner.min)}'</span>
+        </div>
+      )}
     </div>
   )
 }

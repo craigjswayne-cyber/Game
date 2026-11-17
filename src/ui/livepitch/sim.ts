@@ -33,6 +33,9 @@ type Step =
   | { k: 'mode'; mode: PhaseKind; cIdx?: number | null; anchorOn?: number; clear?: boolean }
 
 const V_FWD = 6.3, V_BACK = 8.2, ACC = 15, V_PASS = 17
+/** off the ball a man jogs into shape; only the action, and a man a long
+ *  way out of place, runs flat out (the reference clips' calm) */
+const JOG_FWD = 3.9, JOG_BACK = 4.8
 const hyp = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y)
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
@@ -55,6 +58,9 @@ export class PitchSim {
   /** the line's play has been acted out */
   done = true
   phase: Phase | null = null
+  /** the moment the line is about has happened: the ball is down, the kick
+   *  is over or wide. The banner waits for it. */
+  landed = true
 
   private anchor: Pt = { x: 50, y: 35 }
   private mode: PhaseKind = 'break'
@@ -103,13 +109,13 @@ export class PitchSim {
         break
       case 'scrum':
         cut = cut || d > 10
-        steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'run', to: { x: E.x + dir * 1.5, y: E.y }, v: 0.7 },
+        steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'run', to: { x: E.x + dir * 2.5, y: E.y }, v: 0.9 },
           { k: 'pick', who: att0 + 8 }, { k: 'wait', t: 0.3 })
         break
       case 'lineout':
         cut = cut || d > 10; init = att0 + 1
         if (!cut) steps.push({ k: 'pick', who: att0 + 1 })
-        steps.push({ k: 'wait', t: cut ? 1.3 : 2.4 }, { k: 'pass', to: att0 + 3, hang: 3 }, { k: 'wait', t: 0.5 },
+        steps.push({ k: 'wait', t: cut ? 1.3 : 2.4 }, { k: 'pass', to: att0 + 3, hang: 4 }, { k: 'wait', t: 0.5 },
           { k: 'pass', to: att0 + 8 }, { k: 'wait', t: 0.3 })
         break
       case 'maul': {
@@ -203,6 +209,7 @@ export class PitchSim {
     }
 
     const begin = () => {
+      this.landed = !(p.kind === 'try' || p.kind === 'heldup' || p.kind === 'con' || p.kind === 'goal')
       this.phase = p; this.steps = steps; this.si = 0; this.st = 0; this.entered = false; this.done = false
       this.mode = mode; this.anchor = { ...anchor }; this.cIdx = cIdx
     }
@@ -251,6 +258,7 @@ export class PitchSim {
       switch (s.k) {
         case 'mode':
           this.mode = s.mode
+          if (s.mode === this.phase.kind) this.landed = true
           if (s.cIdx !== undefined) this.cIdx = s.cIdx
           if (s.anchorOn != null) this.anchor = { x: this.b[s.anchorOn].x, y: this.b[s.anchorOn].y }
           if (s.clear) this.over.clear()
@@ -305,6 +313,7 @@ export class PitchSim {
     if (!this.phase) return
     const T = this.targets()
     const tight = this.mode === 'scrum' || this.mode === 'maul'
+    const chase = this.mode === 'kick' || this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'try'
     const calm = this.mode === 'penalty' || this.mode === 'break' || this.mode === 'con' || this.mode === 'goal'
     for (let i = 0; i < 30; i++) {
       const bd = this.b[i]
@@ -314,8 +323,10 @@ export class PitchSim {
       ty = clamp(ty, -0.5, 70.5)
       const dx = tx - bd.x, dy = ty - bd.y
       const dist = Math.hypot(dx, dy)
-      const vmax = (i % 15 < 8 ? V_FWD : V_BACK) * (calm ? 0.55 : 1) * (i === this.holder ? 1.08 : 1)
-      const want = Math.min(vmax, dist * 3.2)
+      const fwd = i % 15 < 8
+      const urgent = i === this.holder || this.over.has(i) || chase || dist > 9
+      const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
+      const want = Math.min(vmax, dist * 2.6)
       const wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0
       const ax = wx - bd.vx, ay = wy - bd.vy
       const a = Math.hypot(ax, ay), lim = ACC * dt
@@ -339,7 +350,7 @@ export class PitchSim {
       this.ball.x = f.from.x + (f.to.x - f.from.x) * u
       this.ball.y = f.from.y + (f.to.y - f.from.y) * u
       this.ball.lift = Math.sin(Math.PI * u) * f.hang
-      if (u >= 1) { this.flight = null; this.ball.lift = 0; this.holder = f.toIdx; this.grounded = false }
+      if (u >= 1) { if (f.toIdx < 0) this.landed = true; this.flight = null; this.ball.lift = 0; this.holder = f.toIdx; this.grounded = false }
     } else if (this.holder >= 0) {
       this.ball.x = this.b[this.holder].x; this.ball.y = this.b[this.holder].y; this.ball.lift = 0
     } else if (this.grounded) {
