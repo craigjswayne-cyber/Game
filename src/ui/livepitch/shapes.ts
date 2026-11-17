@@ -307,17 +307,23 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       const to = p.to ?? { x: ux(30), y: p.y }
       const landU = (to.x - p.x) * dir
       const landV = (to.y - p.y) * open
-      const how = p.label === 'lp.kickTouch' ? 'touch' : (p.hang ?? 0) >= 15 ? 'contest' : 'long'
-      ;({ att, def } = kickChase(landU, landV, p.kind === 'kick' ? how : 'long'))
+      const how = p.label === 'lp.kickTouch' ? 'touch' : (p.hang ?? 0) >= 14 ? 'contest' : 'long'
+      ;({ att, def } = kickChase(landU, landV, how))
+      // a restart in the air is chased like any high ball; before it is kicked both sides are set
+      if (p.flying) { holder = null; ball = to; ref = { x: ux(landU * 0.5), y: clamp(vy(landV * 0.5 + 8), 2, 68) }; break }
       if (p.kind === 'kickoff' || p.kind === 'dropout') {
         // the kicking side level along the line, the others waiting in pods
         // v is measured from the ball, which sits mid-field for a kick-off
         // the pack lines up on the side it is going to, the backs the other
         // side of the kicker, a wing on each touchline, the full-back behind
         const sv = landV >= 0 ? 1 : -1
+        // (docs/match-authenticity-2.0.0.md, section 8: seven forwards are the
+        // chase, most of them on the side it is going to; a centre and a wing
+        // outside them; the number 8 and the full-back stay back for the
+        // kick that comes back)
         const ko: UV[] = [
-          [0, 7], [0, 10.5], [0, 14], [0, 17.5], [0, 21], [0, 24.5], [0, 28], [0, 4],
-          [-3, -4], [-1.5, 0], [0, -30], [0, -9], [0, -16], [0, 32], [-14, -6],
+          [0, -5], [0, 5], [0, -9], [0, 9], [0, 13], [0, 17], [0, 21], [-13, 3],
+          [-4, -3], [-1.5, 0], [0, -31], [0, 25], [0, -15], [0, 31], [-18, -12],
         ]
         att = ko.map(([u, v]) => [u, v * sv] as UV)
         const recv: UV[] = [

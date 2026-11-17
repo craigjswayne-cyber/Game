@@ -41,6 +41,8 @@ export interface Phase {
   y: number
   /** the man on the ball, when the line names him */
   carrier?: number
+  /** set by the pitch once a restart has been kicked: the chase is on */
+  flying?: boolean
   /** where a kick comes down, and how high it goes (metres) */
   to?: { x: number; y: number }
   hang?: number

@@ -510,7 +510,8 @@ export class PitchSim {
       for (const [i, q] of this.over) pts[i] = q
       return { pts, ref: { x: this.anchor.x - dir * 3.5, y: clamp(this.anchor.y + (this.anchor.y < 35 ? 8 : -8), 3, 67) } }
     }
-    const S = shapeOf({ ...p, kind: this.mode, x: this.anchor.x, y: this.anchor.y, ruckers: this.ruckers, tacklers: this.tacklers, downMan: this.downMan }, this.cIdx)
+    const restartUp = (this.mode === 'kickoff' || this.mode === 'dropout') && (this.flight != null || (this.holder < 0 && !this.grounded && this.si > 0))
+    const S = shapeOf({ ...p, flying: restartUp, kind: this.mode, x: this.anchor.x, y: this.anchor.y, ruckers: this.ruckers, tacklers: this.tacklers, downMan: this.downMan }, this.cIdx)
     // open play is ragged; a set piece and a kick-off line are not
     const loose = this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
     const pts = [...S.home, ...S.away].map((q, i) => ({ x: q.x + jit(i, 1) * (loose ? 2.4 : 0.7), y: q.y + jit(i, 2) * (loose ? 1.6 : 0.5) }))
@@ -735,7 +736,7 @@ export class PitchSim {
           if (first) {
             const from = { x: this.ball.x, y: this.ball.y }
             // a high ball hangs: that is what lets the chase get under it
-            const T = clamp(Math.max(hyp(from, s.to) / 16, s.hang >= 15 && !s.silent ? 3.5 : 0), 1.1, 4)
+            const T = clamp(Math.max(hyp(from, s.to) / 16, s.hang >= 14 && !s.silent ? 3.5 : 0), 1.1, 4)
             this.flight = { from, to: s.to, toIdx: -1, T, t: 0, hang: s.hang, silent: s.silent }
             this.holder = -1; this.grounded = false
           }
