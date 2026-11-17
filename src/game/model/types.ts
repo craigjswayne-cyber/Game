@@ -1965,6 +1965,18 @@ export interface GameState {
    *  and its captain, set on the Test preview and from the touchline. Every
    *  dial at 50 and no captain is exactly the engine before it existed. */
   natPlan?: { nat: string; style: number; tempo: number; kicking: number; aggression: number; captain: number | null } | null
+  /** THE LAST TEST THE COACH'S NATION PLAYED (1.9.14, nattest.ts): what the
+   *  full-time card reads - the ranking either side of it, the union's
+   *  reaction, and the caps it handed out. */
+  natLastTest?: {
+    fxId: number; season: number; week: number; nat: string; opp: string; us: number; them: number
+    rankBefore: number; rankAfter: number; ptsBefore: number; ptsAfter: number
+    conf?: number; confDelta?: number; debuts: number[]; caps: { id: number; n: number }[]
+  } | null
+  /** THE COACH'S ERA (1.9.14, nattest.ts): this tenure's best world ranking
+   *  and the players handed a first cap, for Club & Country and the Profile.
+   *  natRecord keeps the results; this keeps what they add up to. */
+  natEra?: { nat: string; bestRank: number; debuts: number[] } | null
   /** the federation's own list for the user's nation, snapshotted when the
    *  window opened: the yardstick for the two-jobs rule (9.10). Absent in
    *  older saves and between windows. */

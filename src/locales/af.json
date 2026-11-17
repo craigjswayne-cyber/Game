@@ -1848,6 +1848,18 @@
   "back": "Terug",
   "skip": "Gaan na die afskop"
  },
+ "testft": {
+  "title": "Die toets, verby die telling",
+  "ranking": "Wêreldranglys",
+  "rankNo": "Nr. {n}",
+  "rankUp": {"one": "{n} plek op", "other": "{n} plekke op"},
+  "rankDown": {"one": "{n} plek af", "other": "{n} plekke af"},
+  "rankSame": "geen verandering",
+  "pts": "{pts} pte",
+  "union": "Unie se vertroue",
+  "debuts": {"one": "Toetsdebuut: {names}.", "other": "Toetsdebute: {names}."},
+  "capMilestone": "{name}: {n} toetse."
+ },
  "preplan": {
   "title": "Seisoensplan",
   "sub": "Twee vinnige keuses vir die seisoen. Verfyn dit enige tyd in Taktiek en Oefening.",

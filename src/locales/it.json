@@ -1882,6 +1882,18 @@
   "back": "Indietro",
   "skip": "Vai al calcio d'inizio"
  },
+ "testft": {
+  "title": "Il test, oltre il risultato",
+  "ranking": "Ranking mondiale",
+  "rankNo": "N. {n}",
+  "rankUp": {"one": "sale di {n} posizione", "other": "sale di {n} posizioni"},
+  "rankDown": {"one": "scende di {n} posizione", "other": "scende di {n} posizioni"},
+  "rankSame": "invariato",
+  "pts": "{pts} pt",
+  "union": "Fiducia della federazione",
+  "debuts": {"one": "Esordio in nazionale: {names}.", "other": "Esordi in nazionale: {names}."},
+  "capMilestone": "{name} tocca quota {n} presenze in nazionale."
+ },
  "preplan": {
   "title": "Piano della stagione",
   "sub": "Due scelte rapide per la stagione. Rifiniscile quando vuoi in Tattica e Allenamento.",

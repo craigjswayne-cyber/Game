@@ -1850,6 +1850,18 @@
   "back": "Back",
   "skip": "Skip to kick-off"
  },
+ "testft": {
+  "title": "The Test, beyond the score",
+  "ranking": "World ranking",
+  "rankNo": "No. {n}",
+  "rankUp": {"one": "up {n} place", "other": "up {n} places"},
+  "rankDown": {"one": "down {n} place", "other": "down {n} places"},
+  "rankSame": "no change",
+  "pts": "{pts} pts",
+  "union": "Union confidence",
+  "debuts": {"one": "First cap: {names}.", "other": "First caps: {names}."},
+  "capMilestone": "{name} won a {n}th cap."
+ },
  "preplan": {
   "title": "Season plan",
   "sub": "Two quick choices for the season. Fine-tune them any time in Tactics and Training.",

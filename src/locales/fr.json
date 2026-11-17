@@ -1891,6 +1891,18 @@
     "back": "Retour",
     "skip": "Aller au coup d'envoi"
   },
+  "testft": {
+    "title": "Le test, au-delà du score",
+    "ranking": "Classement mondial",
+    "rankNo": "{n}e",
+    "rankUp": {"one": "gagne {n} place", "other": "gagne {n} places"},
+    "rankDown": {"one": "perd {n} place", "other": "perd {n} places"},
+    "rankSame": "sans changement",
+    "pts": "{pts} pts",
+    "union": "Confiance de la fédération",
+    "debuts": {"one": "Première sélection : {names}.", "other": "Premières sélections : {names}."},
+    "capMilestone": "{name} fête sa {n}e sélection."
+  },
   "preplan": {
     "title": "Plan de saison",
     "sub": "Deux choix rapides pour la saison. Affinez-les quand vous voulez dans Tactique et Entraînement.",

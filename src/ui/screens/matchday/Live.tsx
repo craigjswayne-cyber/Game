@@ -1,5 +1,6 @@
 // The match as it is played: the ticker, the pitch, the controls and the sheets.
 
+import { TestVerdict } from '../../TestVerdict'
 import { natKit } from '../../../game/natcolours'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../../store'
@@ -913,6 +914,7 @@ export function Live() {
             </button>
             <div className="review-grid">
               <div>
+                <TestVerdict fxId={live.fixture.id} />
                 <MatchVerdict />
                 <MatchFindings />
               </div>

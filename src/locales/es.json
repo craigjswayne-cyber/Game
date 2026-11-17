@@ -1881,6 +1881,18 @@
   "back": "Atrás",
   "skip": "Ir al saque inicial"
  },
+ "testft": {
+  "title": "El test, más allá del marcador",
+  "ranking": "Ranking mundial",
+  "rankNo": "N.º {n}",
+  "rankUp": {"one": "sube {n} puesto", "other": "sube {n} puestos"},
+  "rankDown": {"one": "baja {n} puesto", "other": "baja {n} puestos"},
+  "rankSame": "sin cambios",
+  "pts": "{pts} pts",
+  "union": "Confianza de la federación",
+  "debuts": {"one": "Debut internacional: {names}.", "other": "Debuts internacionales: {names}."},
+  "capMilestone": "{name} alcanza los {n} partidos internacionales."
+ },
  "preplan": {
   "title": "Plan de temporada",
   "sub": "Dos decisiones rápidas para la temporada. Ajústalas cuando quieras en Táctica y Entrenamiento.",

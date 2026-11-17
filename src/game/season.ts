@@ -1,4 +1,5 @@
 import { talkbackWeek } from './talkback'
+import { testConfDelta } from './nattest'
 import { dressingRoomAlerts } from './alerts'
 import { settleStartPledge } from './handshake'
 import type { Fixture, GameState, Player, Pos } from './model'
@@ -1359,9 +1360,10 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       // weighted by where the two sides sit in the world
       if (mySide === state.natTeam && state.natConfidence != null) {
         const oppId = userFx.homeId === mySide ? userFx.awayId : userFx.homeId
-        const better = (state.natRank?.[oppId] ?? 70) > (state.natRank?.[mySide] ?? 70)
-        const delta = us > them ? (better ? 4 : 2.5) : us < them ? (better ? -3.5 : -5.5) : 0.5
+        const delta = testConfDelta(state, mySide, oppId, us, them)
         state.natConfidence = clamp(state.natConfidence + delta, 0, 100)
+        // the full-time card reads what the union did (1.9.14, nattest.ts)
+        if (state.natLastTest?.fxId === userFx.id) { state.natLastTest.conf = state.natConfidence; state.natLastTest.confDelta = delta }
       }
       matchReport(state, userFx)
     }

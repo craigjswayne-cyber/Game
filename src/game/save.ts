@@ -1022,6 +1022,9 @@ function migrateManagerAndNation(s: GameState): void {
       if (s.natPlan.captain != null && !s.players?.[s.natPlan.captain]) s.natPlan.captain = null
     }
   }
+  // the last Test's ledger and the era (1.9.14): damaged, they are dropped
+  if (s.natLastTest != null && (typeof s.natLastTest !== 'object' || !Array.isArray(s.natLastTest.debuts) || !Array.isArray(s.natLastTest.caps))) delete s.natLastTest
+  if (s.natEra != null && (typeof s.natEra !== 'object' || typeof s.natEra.nat !== 'string' || !Array.isArray(s.natEra.debuts) || !Number.isFinite(s.natEra.bestRank))) delete s.natEra
   if (s.natFed != null && (typeof s.natFed !== 'object' || typeof s.natFed.nat !== 'string' || !Array.isArray(s.natFed.ids))) delete s.natFed
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist

@@ -1811,6 +1811,18 @@
   "back": "戻る",
   "skip": "キックオフへ"
  },
+ "testft": {
+  "title": "スコアの先にあるもの",
+  "ranking": "世界ランキング",
+  "rankNo": "{n}位",
+  "rankUp": {"one": "{n}つ上昇", "other": "{n}つ上昇"},
+  "rankDown": {"one": "{n}つ下降", "other": "{n}つ下降"},
+  "rankSame": "変動なし",
+  "pts": "{pts}pt",
+  "union": "協会の信頼度",
+  "debuts": {"one": "初キャップ：{names}。", "other": "初キャップ：{names}。"},
+  "capMilestone": "{name}が{n}キャップに到達。"
+ },
  "preplan": {
   "title": "シーズンプラン",
   "sub": "シーズンに向けた2つの選択。戦術と練習でいつでも細かく調整できる。",
