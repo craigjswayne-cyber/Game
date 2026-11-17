@@ -68,6 +68,8 @@ export interface OpenWorld {
   /** side-relative shirt indices: the attack's three at the breakdown, the defence's two in the tackle */
   ruckers: number[]
   tacklers: number[]
+  /** the defence's two men standing post at this ruck, picked when it formed (not re-picked every frame) */
+  posts?: number[]
   /** the attacker with the ball or just tackled (side-relative), if any */
   carrier: number | null
   downMan: number | null
@@ -218,8 +220,8 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
     if (t1 != null && w.ruckAge < 0.5 + w.def.contest / 100 * 1.3) dput(t1, D(1.3, 0.6))
   }
   // a post either side of the ruck: the two nearest forwards
-  const posts = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !dTaken.has(k) && !gone(def0 + k))
-    .map(k => ({ k, d: Math.hypot(b[def0 + k].x - M.x, b[def0 + k].y - M.y) })).sort((a, c) => a.d - c.d).slice(0, 2).map(o => o.k)
+  const posts = (w.posts && w.posts.length === 2 ? w.posts.filter(k => !dTaken.has(k) && !gone(def0 + k)) : [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !dTaken.has(k) && !gone(def0 + k))
+    .map(k => ({ k, d: Math.hypot(b[def0 + k].x - M.x, b[def0 + k].y - M.y) })).sort((a, c) => a.d - c.d).slice(0, 2).map(o => o.k))
   for (const [g, [u, v]] of deal(posts.map(k => def0 + k), dvOf, [[L, -3.5], [L, 3.5]])) dput(g - def0, D(u, v))
   // the 9 sweeps behind the line on the ball's side; the full-back is deep and follows the ball
   if (!dTaken.has(8)) dput(8, D(7, clamp(Cv * 0.8 + 2, -(dnear - 4), dfar - 8)))
@@ -229,7 +231,9 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   }
   // line speed: once the ball is out the line goes up at it, together. The
   // men in front of the ball lead by a stride, nobody is left behind.
-  const upBy = C ? clamp(L - (Cu + 1.5), 0, 9) * (0.55 + 0.55 * w.def.defLine / 100) : 0
+  // (a few metres, together: the line does not charge ten metres and then
+  // run back again every phase)
+  const upBy = C ? clamp(L - (Cu + 1.5), 0, 3) * (0.55 + 0.55 * w.def.defLine / 100) : 0
   const up = (v: number) => {
     if (!C) return L
     const here = v * Cv < 0 ? 0.25 : clamp(1.05 - Math.abs(v - Cv) / 45, 0.6, 1)
@@ -266,9 +270,10 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
     let best = 9, at = -1
     theirs.forEach((av, j) => { const d = Math.abs(av - v); if (d < best) { best = d; at = j } })
     if (best >= 3 || at < 0) return v
-    // one defender to a man: he is taken
+    // one defender to a man: he is taken. (Eased in with distance, so a man
+    // is never snapped across when an attacker drifts into range.)
     const to = theirs.splice(at, 1)[0]
-    return v + (to - v) * 0.7
+    return v + (to - v) * 0.7 * (1 - best / 3)
   }
   for (const [g, [, v0]] of deal(lineMen.map(k => def0 + k), dvOf, slots)) {
     const v = onMan(v0)

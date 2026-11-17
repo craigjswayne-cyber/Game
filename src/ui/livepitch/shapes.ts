@@ -397,5 +397,10 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
   const own = p.homeBall ? 100 : 0
   const onLine = (q: Pt): Pt => ({ x: p.homeBall ? Math.min(q.x, own + 0.6) : Math.max(q.x, own - 0.6), y: q.y })
   const scored = p.kind === 'try' || p.kind === 'heldup' || p.kind === 'con' || p.kind === 'goal'
-  return finish(att.map(toPt), scored ? def.map(toPt) : def.map(toPt).map(onLine))
+  // at a set piece near their own line the side with the ball stand on the
+  // field too: its backs are on the goal line at the deepest, not in a row
+  // six metres behind it
+  const setPiece = p.kind === 'scrum' || p.kind === 'maul' || p.kind === 'penalty'
+  const inField = (q: Pt): Pt => ({ x: clamp(q.x, 0.4, 99.6), y: q.y })
+  return finish(setPiece ? att.map(toPt).map(inField) : att.map(toPt), scored ? def.map(toPt) : def.map(toPt).map(onLine))
 }

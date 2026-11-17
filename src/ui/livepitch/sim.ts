@@ -131,6 +131,16 @@ export class PitchSim {
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
+  /** where each man is heading, eased: when the play changes his mind is
+   *  changed over a fifth of a second, not between two frames (owner, 17 Nov
+   *  2026: "Looks glitchy again") */
+  private tg: Pt[] = []
+  /** the scrum ball has been hooked in this line's play */
+  private heeled = false
+  /** a kick has been struck in this line's play (latched: the chase does not un-happen) */
+  private kicked = false
+  /** the two defenders standing post at this ruck (side-relative), fixed when the ruck forms */
+  private posts: number[] = []
   /** seconds since the mode last changed */
   private modeT = 0
   /** where the ball lies on the floor, in metres up the field from the anchor:
@@ -189,6 +199,8 @@ export class PitchSim {
     // the men nearest this breakdown are the men at it
     this.mark(E, att0, this.holder)
     this.downMan = null
+    this.heeled = false
+    this.kicked = false
     this.idleN = 0
     this.trk = null
     // how fast it is worth watching: real time where it matters, wound on
@@ -375,6 +387,7 @@ export class PitchSim {
       this.cut = { t: 0, apply: () => {
         begin()
         this.cuts++
+        this.tg = []
         this.flight = null; this.holder = init; this.grounded = init < 0
         this.down.fill(0)
         const T = this.targets()
@@ -485,6 +498,7 @@ export class PitchSim {
       .filter(k => from + k !== skip && !this.off[from + k]).map(k => ({ k, d: hyp(this.b[from + k], at) })).sort((a, b) => a.d - b.d).slice(0, n).map(o => o.k)
     this.ruckers = near(att0, [0, 1, 2, 3, 4, 5, 6, 7], 3)
     this.tacklers = near(15 - att0, [0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 12], 2)
+    this.posts = near(15 - att0, [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !this.tacklers!.includes(k)), 2)
   }
 
   /** the lines being run on to the ball right now: who, and to where */
@@ -530,9 +544,10 @@ export class PitchSim {
       const out: Pt | null = this.flight && this.flight.toIdx >= 0 ? { x: this.ball.x, y: this.ball.y }
         : holderAtt && !(inRuck && this.holder === att0 + 8) ? this.b[this.holder] : null
       const pts = openPlayTargets({
-        b: this.b, att0, dir, ref: this.anchor, ruck: inRuck, ruckAge: this.ruckT,
+        // (a kick nobody wrote a line for: both sides run to where it is coming down)
+        b: this.b, att0, dir, ref: this.flight && this.flight.toIdx < 0 ? this.flight.to : this.anchor, ruck: inRuck && !(this.flight && this.flight.toIdx < 0), ruckAge: this.ruckT,
         out: inRuck && this.grounded ? null : out,
-        ruckers: this.ruckers ?? [], tacklers: this.tacklers ?? [],
+        ruckers: this.ruckers ?? [], tacklers: this.tacklers ?? [], posts: this.posts,
         carrier: inRuck ? null : (holderAtt ? this.holder - att0 : this.cIdx), downMan: this.downMan,
         att: this.tac[p.homeBall ? 0 : 1], def: this.tac[p.homeBall ? 1 : 0], gone: this.off,
         go: inRuck ? clamp((this.ruckT - 0.35) / 0.7, 0, 1) : 1,
@@ -541,7 +556,7 @@ export class PitchSim {
       for (const [i, q] of this.over) pts[i] = q
       return { pts, ref: { x: this.anchor.x - dir * 3.5, y: clamp(this.anchor.y + (this.anchor.y < 35 ? 8 : -8), 3, 67) } }
     }
-    const restartUp = (this.mode === 'kickoff' || this.mode === 'dropout') && (this.flight != null || (this.holder < 0 && !this.grounded && this.si > 0))
+    const restartUp = (this.mode === 'kickoff' || this.mode === 'dropout') && this.kicked
     const S = shapeOf({ ...p, flying: restartUp, kind: this.mode, x: this.anchor.x, y: this.anchor.y, ruckers: this.ruckers, tacklers: this.tacklers, downMan: this.downMan }, this.cIdx)
     // open play is ragged; a set piece and a kick-off line are not
     const loose = this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
@@ -549,7 +564,7 @@ export class PitchSim {
     // THE BALL IS OUT OF THE SCRUM: the defending flankers and number 8 break
     // off their binds and go at the half-backs; the attack's flankers stay
     // bound a moment longer to hold them in
-    if (this.mode === 'scrum' && this.holder >= 0 && this.modeT > 1) {
+    if (this.mode === 'scrum' && this.holder >= 0 && this.heeled) {
       const d0 = p.homeBall ? 15 : 0, dr = p.homeBall ? 1 : -1
       const h = this.b[this.holder]
       pts[d0 + 5] = { x: this.anchor.x + dr * 2.2, y: clamp(this.anchor.y + 7, 2, 68) }
@@ -663,7 +678,7 @@ export class PitchSim {
 
     // the script: instant steps fall through, timed ones hold
     let runTo: Pt | null = null
-    this.meet = null
+    if (this.mode !== 'carry') this.meet = null
     this.rate = this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
       const s = this.steps[this.si]
@@ -706,7 +721,7 @@ export class PitchSim {
           break
         }
         case 'heel':
-          this.spotOff = s.by; over = true; break
+          this.spotOff = s.by; this.heeled = true; over = true; break
         case 'wait':
           this.st += dt; over = this.st >= s.t; break
         case 'pick': {
@@ -820,6 +835,7 @@ export class PitchSim {
           over = !this.flight; break
         case 'kick':
           if (first) {
+            this.kicked = true
             const from = { x: this.ball.x, y: this.ball.y }
             // a high ball hangs: that is what lets the chase get under it
             const T = clamp(Math.max(hyp(from, s.to) / 16, s.hang >= 14 && !s.silent ? 3.5 : 0), 1.1, 4)
@@ -938,13 +954,22 @@ export class PitchSim {
   private move(dt: number, runTo: Pt | null) {
     if (!this.phase) return
     const T = this.targets()
+    {
+      const k = 1 - Math.exp(-dt / 0.2)
+      if (this.tg.length !== 30) this.tg = T.pts.map(q => ({ ...q }))
+      for (let i = 0; i < 30; i++) {
+        // (a man told exactly where to stand for a pass or a move is not eased)
+        if (this.over.has(i)) { this.tg[i].x = T.pts[i].x; this.tg[i].y = T.pts[i].y; continue }
+        this.tg[i].x += (T.pts[i].x - this.tg[i].x) * k; this.tg[i].y += (T.pts[i].y - this.tg[i].y) * k
+      }
+    }
     const tight = this.mode === 'scrum' || this.mode === 'maul'
     const chase = (this.mode === 'kick' && this.phase.label !== 'lp.kickTouch') || this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'try'
     const calm = this.mode === 'penalty' || this.mode === 'break' || this.mode === 'con' || this.mode === 'goal'
     for (let i = 0; i < 30; i++) {
       const bd = this.b[i]
       if (this.down[i] > 0) { this.down[i] -= dt; bd.vx *= 0.8; bd.vy *= 0.8; bd.x += bd.vx * dt; bd.y += bd.vy * dt; continue }
-      let tx = T.pts[i].x, ty = T.pts[i].y
+      let tx = this.tg[i].x, ty = this.tg[i].y
       if (this.off[i] && i !== this.holder) { tx = 50 + (i < 15 ? -9 : 9) - (i % 15) * 0.2; ty = -2.6 }
       // the man with the ball runs the line being run
       if (runTo && i === this.holder && !tight) { tx = runTo.x; ty = runTo.y }

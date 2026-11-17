@@ -148,6 +148,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     let seenCuts = S.cuts, dissolve = 0
     /** 0..1: how much the fast-forward mark is showing */
     let ffShown = 0, rateNow = 1
+    // each man's drawn size, eased: he shrinks into a ruck and grows out of it, he does not pop
+    const sz = new Float32Array(30).fill(1)
     /** when the ball went down for a try, for the ring round it */
     let tryAt = -1, tryFor = -99
     // confetti for a try, in screen pixels, in the scorers' colours
@@ -379,7 +381,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         // a man on the ground after a tackle: fainter until he is back up
         const floor = S.down[i] > 0 || S.off[i]
         // the men in a ruck are a pile, not six separate discs
-        R = S.bound(i) || floor ? R0 * 0.74 : up2[0] === i || up2[1] === i ? R0 * 1.24 : R0
+        sz[i] += ((S.bound(i) || floor ? 0.74 : up2[0] === i || up2[1] === i ? 1.24 : 1) - sz[i]) * 0.18
+        R = R0 * sz[i]
         if (floor) g.globalAlpha = 0.6
         g.beginPath(); g.arc(x + R * 0.14, y + R * 0.24, R, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()
         g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fillStyle = side.kit[0]; g.fill()

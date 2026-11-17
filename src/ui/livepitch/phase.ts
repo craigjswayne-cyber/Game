@@ -172,7 +172,10 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
   // ---- set piece
   if (e.fx === 'SCRUM' || s.startsWith('scrum') || s.startsWith('moveCallSc') || s.startsWith('fk_scrum') || s.startsWith('off_scrum') || s.startsWith('chargeScrum') || s.startsWith('tmoFwdScrum')) {
     const pen = s.startsWith('off_') || s.startsWith('fk_')
-    return { ...base, kind: pen ? 'penalty' : 'scrum', y: clamp(drift(12), 15, 55), label: pen ? 'lp.penalty' : 'lp.scrum' }
+    // (a scrum is never set within five metres of a goal line or a touchline:
+    // Law 19. The packs are drawn larger than life, so the mark is kept far
+    // enough out for both of them to be on the field.)
+    return { ...base, x: pen ? base.x : clamp(base.x, 13, 87), kind: pen ? 'penalty' : 'scrum', y: clamp(drift(12), 15, 55), label: pen ? 'lp.penalty' : 'lp.scrum' }
   }
   if (e.fx === 'LINEOUT' || s.startsWith('lineout') || s.startsWith('moveCallLo') || s.startsWith('fk_lineout') || s.startsWith('off_lineout') || s.startsWith('off_lifter') || s.startsWith('chargeLineout') || raw === 'flav9' || raw === 'flav18' || raw === 'flav13') {
     const pen = s.startsWith('off_') || s.startsWith('fk_')
@@ -240,9 +243,15 @@ function kickoff(base: { homeBall: boolean; x: number; at: number; carrier?: num
   // it comes down where the next line picks the play up, when that is in
   // the receivers' half; otherwise a standard restart
   const nx = next?.fld
-  const tx = nx != null && (nx - 50) * d > 10 ? clamp(nx, 4, 96) : 50 + d * (14 + wob(i, 4) * 14)
+  // A KICK-OFF LANDS IN THE FIELD (owner, 17 Nov 2026: "Kicked it dead from
+  // the kick off so should be a scrum back"). It used to be able to come
+  // down nine metres into the stand. It goes at least ten metres and comes
+  // down between the ten-metre line and the 22, inside the 15-metre lines:
+  // never into touch, never dead.
+  const far = nx != null && (nx - 50) * d > 10 ? (nx - 50) * d : 14 + Math.abs(wob(i, 4)) % 1 * 14
+  const tx = 50 + d * clamp(far, 12, 30)
   return { ...base, homeBall: kickerHome, kind: 'kickoff', x: 50, y: 35,
-    to: { x: tx, y: 35 + (wob(i, 5) - 0.5) * 36 }, hang: 16, label }
+    to: { x: tx, y: clamp(35 + ((Math.abs(wob(i, 5)) % 1) - 0.5) * 44, 13, 57) }, hang: 16, label }
 }
 
 /** the shape after the first `upto` lines: the latest phase, the banner that
