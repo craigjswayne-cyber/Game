@@ -5803,6 +5803,7 @@
   "natReviewSubj": "Union annual review: {word_k}",
   "natReview": "The {nat} union has completed its annual review of the national programme: {w} Test {wins_k}, {l} {defeats_k} this season. Confidence in the head coach stands at {conf}%. {tail_k}",
   "proStartSubj": "Pro challenge: {title_k}",
+  "proStartSoldSubj": "Pro challenge: {title_k}",
   "proStart": "The challenge is on. {desc_k} If the deadline passes, the board ends it, and the career with it.",
   "proStartSold": "The challenge is on. {desc_k} Sold before the season: {sold}. If the deadline passes, the board ends it, and the career with it.",
   "proDoneSubj": "Pro challenge complete: {title_k}",

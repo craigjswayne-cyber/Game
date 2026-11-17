@@ -5621,6 +5621,7 @@
   "natReviewSubj": "協会の年次レビュー：{word_k}",
   "natReview": "{nat}協会が代表プログラムの年次レビューを終えた。今シーズンはテストマッチ{w}{wins_k}、{l}{defeats_k}。ヘッドコーチへの信頼度は{conf}%。{tail_k}",
   "proStartSubj": "Proチャレンジ：{title_k}",
+  "proStartSoldSubj": "Proチャレンジ：{title_k}",
   "proStart": "チャレンジ開始。{desc_k}期限が過ぎれば理事会が打ち切り、キャリアも終わる。",
   "proStartSold": "チャレンジ開始。{desc_k}開幕前に売却：{sold}。期限が過ぎれば理事会が打ち切り、キャリアも終わる。",
   "proDoneSubj": "Proチャレンジ達成：{title_k}",

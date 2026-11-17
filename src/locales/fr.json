@@ -5959,6 +5959,7 @@
     "natReviewSubj": "Bilan annuel de la fédération : {word_k}",
     "natReview": "La fédération {nat} a terminé son bilan annuel du programme national : {w} {wins_k} en test-match, {l} {defeats_k} cette saison. La confiance envers le sélectionneur s'établit à {conf}%. {tail_k}",
     "proStartSubj": "Défi Pro : {title_k}",
+    "proStartSoldSubj": "Défi Pro : {title_k}",
     "proStart": "Le défi commence. {desc_k} Si l'échéance passe, le conseil y met fin, et la carrière avec.",
     "proStartSold": "Le défi commence. {desc_k} Vendus avant la saison : {sold}. Si l'échéance passe, le conseil y met fin, et la carrière avec.",
     "proStartSold_f": "Le défi commence. {desc_k} Vendues avant la saison : {sold}. Si l'échéance passe, le conseil y met fin, et la carrière avec.",

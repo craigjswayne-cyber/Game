@@ -5884,6 +5884,7 @@
   "natReviewSubj": "Revisión anual de la federación: {word_k}",
   "natReview": "La federación de {nat} ha completado su revisión anual del programa nacional: {w} {wins_k} y {l} {defeats_k} en tests esta temporada. La confianza en el seleccionador está en el {conf} %. {tail_k}",
   "proStartSubj": "Reto Pro: {title_k}",
+  "proStartSoldSubj": "Reto Pro: {title_k}",
   "proStart": "Empieza el reto. {desc_k} Si pasa el plazo, la directiva lo da por terminado, y la carrera con él.",
   "proStartSold": "Empieza el reto. {desc_k} Vendidos antes de la temporada: {sold}. Si pasa el plazo, la directiva lo da por terminado, y la carrera con él.",
   "proStartSold_f": "Empieza el reto. {desc_k} Vendidas antes de la temporada: {sold}. Si pasa el plazo, la directiva lo da por terminado, y la carrera con él.",

@@ -5915,6 +5915,7 @@
   "natReviewSubj": "Revisione annuale della federazione: {word_k}",
   "natReview": "La federazione di {nat} ha completato la revisione annuale del programma della nazionale: {w} {wins_k} e {l} {defeats_k} nei test match in stagione. La fiducia nel capo allenatore è al {conf}%. {tail_k}",
   "proStartSubj": "Sfida Pro: {title_k}",
+  "proStartSoldSubj": "Sfida Pro: {title_k}",
   "proStart": "La sfida è cominciata. {desc_k} Se la scadenza passa, il consiglio la chiude, e con lei la carriera.",
   "proStartSold": "La sfida è cominciata. {desc_k} Venduti prima della stagione: {sold}. Se la scadenza passa, il consiglio la chiude, e con lei la carriera.",
   "proStartSold_f": "La sfida è cominciata. {desc_k} Vendute prima della stagione: {sold}. Se la scadenza passa, il consiglio la chiude, e con lei la carriera.",

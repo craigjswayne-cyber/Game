@@ -5816,6 +5816,7 @@
   "natReviewSubj": "Unie se jaarlikse oorsig: {word_k}",
   "natReview": "Die {nat}-unie het sy jaarlikse oorsig van die nasionale program voltooi: {w} toets-{wins_k}, {l} {defeats_k} vanjaar. Vertroue in die hoofafrigter staan op {conf}%. {tail_k}",
   "proStartSubj": "Pro-uitdaging: {title_k}",
+  "proStartSoldSubj": "Pro-uitdaging: {title_k}",
   "proStart": "Die uitdaging begin. {desc_k} As die sperdatum verbygaan, beëindig die raad dit, en die loopbaan daarmee saam.",
   "proStartSold": "Die uitdaging begin. {desc_k} Voor die seisoen verkoop: {sold}. As die sperdatum verbygaan, beëindig die raad dit, en die loopbaan daarmee saam.",
   "proDoneSubj": "Pro-uitdaging voltooi: {title_k}",
