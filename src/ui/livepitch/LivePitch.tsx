@@ -27,6 +27,12 @@ export interface PitchSide {
 const GOAL = 8, SIDE = 5.6, END = 11.5
 const FIELD_L = 100 + GOAL * 2 + END * 2, FIELD_W = 70 + SIDE * 2
 
+/** the verdict's type size: full size for TRY, smaller the longer the word */
+function bannerSize(label: string, good: boolean): { fontSize: string } {
+  const full = good ? 3.1 : 2.2
+  return { fontSize: `${Math.max(1.15, Math.min(full, 19.5 / Math.max(1, label.length))).toFixed(2)}rem` }
+}
+
 /** a stable 0..1 from two integers: the crowd is the same crowd every frame */
 function h2(a: number, b: number): number {
   let h = (a * 374761393 + b * 668265263 + 1013904223) >>> 0
@@ -419,7 +425,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       {banner && bSide && (
         <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}`} key={`b${banner.at}`} data-testid="lp-banner">
           {pts != null && <em>+{pts}</em>}
-          <b>{tr(`lp.b.${banner.kind}`)}</b>
+          {/* a long verdict (PENALTY GOAL, CARTELLINO GIALLO) is set smaller so it stays inside the touchlines */}
+          <b style={bannerSize(tr(`lp.b.${banner.kind}`), !!good)}>{tr(`lp.b.${banner.kind}`)}</b>
           <span><i style={{ background: bSide.kit[0], borderColor: bSide.kit[1] }} />
             {banner.teamId === homeId ? teams.home : teams.away}{banner.name ? ` · ${banner.name}` : ''} · {Math.min(80, banner.min)}'</span>
         </div>
