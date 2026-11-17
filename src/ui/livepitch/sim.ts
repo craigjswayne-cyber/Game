@@ -46,6 +46,8 @@ type Step = ({ rate?: number }) & (
   | { k: 'advance'; to: Pt; n?: number; join?: number; kicked?: boolean; chase?: boolean; t0?: number }
   /** in the tackle the ball is slipped to the man on his shoulder, who goes on */
   | { k: 'offload'; thrown?: boolean }
+  /** the ball on the floor is worked back (a scrum: hooked, to the 8's feet) */
+  | { k: 'heel'; by: number }
   /** the ball goes to ground at the anchor */
   | { k: 'ground' }
   | { k: 'mode'; mode: PhaseKind; cIdx?: number | null; anchorOn?: number; at?: Pt; clear?: boolean }
@@ -129,6 +131,9 @@ export class PitchSim {
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
+  /** where the ball lies on the floor, in metres up the field from the anchor:
+   *  at the back of a ruck, at the number 8's feet in a scrum */
+  private spotOff = 0
   /** seconds of play since the match started */
   private clock = 0
   /** the man the lineout throw is going to */
@@ -210,7 +215,9 @@ export class PitchSim {
         break
       case 'scrum':
         cut = cut || d > 10
-        steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'run', to: { x: E.x + dir * 2.5, y: E.y }, v: 0.9 },
+        // the put-in, the hook, the ball worked back to the number 8's feet
+        // while the pack goes forward, and the 9 away from the base
+        steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'heel', by: -dir * 8.8 }, { k: 'run', to: { x: E.x + dir * 2.5, y: E.y }, v: 0.9 },
           { k: 'pick', who: att0 + 8 }, { k: 'wait', t: 0.3 })
         break
       case 'lineout':
@@ -666,8 +673,13 @@ export class PitchSim {
             for (let k = d0; k < d0 + 15; k++) { const dd = hyp(this.b[k], this.b[was]); if (dd < bd) { bd = dd; best = k } }
             if (best >= 0 && bd < 9) this.down[best] = 1.1
           }
-          this.holder = -1; this.grounded = true; this.ruckT = 0; over = true; break
+          this.holder = -1; this.grounded = true; this.ruckT = 0; over = true
+          // in a ruck it is presented back towards his own side, where the 9 can get at it
+          this.spotOff = this.mode === 'ruck' ? (this.phase.homeBall ? -1.5 : 1.5) : 0
+          break
         }
+        case 'heel':
+          this.spotOff = s.by; over = true; break
         case 'wait':
           this.st += dt; over = this.st >= s.t; break
         case 'pick': {
@@ -823,9 +835,9 @@ export class PitchSim {
           }
           if (mine) {
             const c = this.holder - att0
-            if (rem < 1.5) sub.push(...tackle)
+            if (rem < 3) sub.push(...tackle)
             else sub.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: this.holder }, { k: 'run', to: P, v: c < 8 ? 6.3 : 8 }, ...tackle)
-          } else if (rem < 1.5 && this.grounded) { over = true; break }
+          } else if (rem < 3.4 && this.grounded) { over = true; break }
           else if (!this.grounded) {
             // loose: the nearest man is on to it
             if (this.holder >= 0) this.holder = -1
@@ -944,8 +956,8 @@ export class PitchSim {
     } else if (this.holder >= 0) {
       this.ball.x = this.b[this.holder].x; this.ball.y = this.b[this.holder].y; this.ball.lift = 0
     } else if (this.grounded) {
-      const dx = this.anchor.x - this.ball.x, dy = this.anchor.y - this.ball.y, dist = Math.hypot(dx, dy)
-      const mv = Math.min(dist, 7 * dt)
+      const dx = this.anchor.x + this.spotOff - this.ball.x, dy = this.anchor.y - this.ball.y, dist = Math.hypot(dx, dy)
+      const mv = Math.min(dist, (this.mode === 'scrum' ? 4 : 7) * dt)
       if (dist > 1e-6) { this.ball.x += dx / dist * mv; this.ball.y += dy / dist * mv }
     }
   }
