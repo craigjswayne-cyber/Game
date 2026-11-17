@@ -42,6 +42,7 @@ import { paRange, scoutPa, youthPaMargin } from '../src/game/scout'
 import { mulberry32 } from '../src/game/rng'
 import { tIn } from '../src/game/i18n'
 import { devNewsWeek } from '../src/game/devnews'
+import { recall } from '../src/game/memorylog'
 import { absWeek, SEASON_WEEKS, XV_SLOTS, type GameState, type Player } from '../src/game/model'
 import {
   confidence, devDrive, devPhase, driveParts, driverLines, EARLY_RATE, GROUP_ATTRS, heavyLoad, learning,
@@ -259,8 +260,16 @@ console.log('--- 3. ceilings drift within bounds')
   ok(moved.length > 300 && Math.abs(mean(drift)) < 0.1, 'ceilings do move, and the world\'s average barely does')
   const tl = ps.filter(x => x.tl?.length)
   ok(tl.length > 0 && tl.every(x => x.tl!.length <= TL_MAX && x.tl!.every(row => row.length === 3)), `the timeline is written (${tl.length} men) and compact`)
-  ok(tl.every(x => x.career.some(c => c.clubId === w.userClubId) || x.clubId === w.userClubId || x.tl!.length <= 2), 'and only for men who have been the manager\'s')
-  ok(ps.filter(x => x.clubId && x.clubId !== w.userClubId && x.tl).every(x => x.career.some(c => c.clubId === w.userClubId)), 'no AI man carries a timeline he never earned at the club')
+  // WHO HAS BEEN THE MANAGER'S: a career row at the club, or the club's own
+  // record of letting him go (memory.ts rememberDeparture). Career rows are
+  // only written for a season with an appearance, so a reserve who never
+  // played and then left had earned his timeline row and had no row to show
+  // for it - common since 1.9.14, when a man out of contract announces a move
+  // (leaving.ts) rather than only walking at the end.
+  const wasOurs = (x: typeof ps[number]) => x.career.some(c => c.clubId === w.userClubId) ||
+    recall(w, { kind: ['released', 'sold', 'let-go'], playerId: x.id, clubId: w.userClubId }).length > 0
+  ok(tl.every(x => wasOurs(x) || x.clubId === w.userClubId || x.tl!.length <= 2), 'and only for men who have been the manager\'s')
+  ok(ps.filter(x => x.clubId && x.clubId !== w.userClubId && x.tl).every(wasOurs), 'no AI man carries a timeline he never earned at the club')
   const review = told.find(n => n.k === 'news.devReview')
   console.log(`  the summer review letter: ${review ? tIn('en', 'news.devReview', review.v).split('\n').length - 2 + ' lines' : 'none this summer'}`)
   if (review) {
