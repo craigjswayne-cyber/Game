@@ -40,7 +40,7 @@ function h2(a: number, b: number): number {
   return ((h ^ (h >>> 16)) % 10000) / 10000
 }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1 }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false }: {
   events: MatchEvent[]
   cursor: number
   homeId: string
@@ -53,6 +53,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   onPlayed?: (moved: boolean) => void
   /** 1 is real time; the Fast setting plays it quicker, Slow a little slower */
   speed?: number
+  /** play everything at real time: nothing is wound on */
+  realTime?: boolean
   /** the words: an lp.* key and its values */
   tr: (key: string, vars?: Record<string, string | number>) => string
   /** the two sides' short names */
@@ -101,8 +103,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     seen.current.pre = false
   }
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
-  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, ahead, aheadIdx: ahead ? carrierOf(ahead) : null })
-  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, ahead, aheadIdx: ahead ? carrierOf(ahead) : null }
+  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null })
+  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null }
 
   useEffect(() => {
     const cv = canvas.current
@@ -275,8 +277,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const dt = Math.min(0.1, (now - last) / 1000)
       last = now
       if (!io.current.paused) {
-        acc += dt * io.current.speed * S.rate
-        ffShown += ((S.rate >= 1.6 && !S.done ? 1 : 0) - ffShown) * Math.min(1, dt * 8)
+        const rate = io.current.realTime ? Math.min(1, S.rate) : S.rate
+        acc += dt * io.current.speed * rate
+        ffShown += ((rate >= 1.6 && !S.done ? 1 : 0) - ffShown) * Math.min(1, dt * 8)
         while (acc >= 1 / 120) { S.step(1 / 120); acc -= 1 / 120 }
       }
       if (S.cuts !== seenCuts) {

@@ -24,6 +24,7 @@
 import type { Phase, PhaseKind } from './phase'
 import { shapeOf, type Pt } from './shapes'
 import { FLIGHT, TRACKS, trackAt, type Track } from '../clipPlays'
+import { openPlayTargets } from './agents'
 
 export interface Body { x: number; y: number; vx: number; vy: number }
 
@@ -99,6 +100,10 @@ export class PitchSim {
   private ruckers: number[] | undefined
   private tacklers: number[] | undefined
   private downMan: number | null = null
+  /** seconds since the ball last went to ground in a ruck */
+  private ruckT = 0
+  /** this match's defences: a rush comes up hard, a drift slides (by side: home, away) */
+  rush: [boolean, boolean] = [true, true]
   /** a called move being run: the track, where it is laid, and who is who */
   private trk: { tr: Track; O: Pt; dir: number; s: number; who: Record<string, number>; t: number; T: number; ev: number; att0: number } | null = null
 
@@ -121,10 +126,7 @@ export class PitchSim {
     let init = -1
     const need9 = () => { if (!holderAtt) steps.push({ k: 'pick', who: att0 + 8 }) }
     // the men nearest this breakdown are the men at it
-    const nearest = (from: number, pool: number[], n: number, skip = -1) => pool
-      .filter(k => from + k !== skip).map(k => ({ k, d: hyp(this.b[from + k], E) })).sort((a, b) => a.d - b.d).slice(0, n).map(o => o.k)
-    this.ruckers = nearest(att0, [0, 1, 2, 3, 4, 5, 6, 7], 3, this.holder)
-    this.tacklers = nearest(15 - att0, [0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 12], 2)
+    this.mark(E, att0, this.holder)
     this.downMan = null
     this.trk = null
     // how fast it is worth watching: real time where it matters, wound on
@@ -322,6 +324,15 @@ export class PitchSim {
     } else begin()
   }
 
+  /** the men nearest a point: the attack's three forwards for the breakdown,
+   *  the defence's two for the tackle */
+  private mark(at: Pt, att0: number, skip: number) {
+    const near = (from: number, pool: number[], n: number) => pool
+      .filter(k => from + k !== skip).map(k => ({ k, d: hyp(this.b[from + k], at) })).sort((a, b) => a.d - b.d).slice(0, n).map(o => o.k)
+    this.ruckers = near(att0, [0, 1, 2, 3, 4, 5, 6, 7], 3)
+    this.tacklers = near(15 - att0, [0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 12], 2)
+  }
+
   /** the lines being run on to the ball right now: who, and to where */
   runs(): { i: number; to: Pt }[] {
     const out: { i: number; to: Pt }[] = []
@@ -353,9 +364,28 @@ export class PitchSim {
 
   private targets(): { pts: Pt[]; ref: Pt } {
     const p = this.phase!
+    // OPEN PLAY: every man works out his own place (agents.ts)
+    if (this.mode === 'ruck' || this.mode === 'carry') {
+      const att0 = p.homeBall ? 0 : 15
+      const dir = p.homeBall ? 1 : -1
+      const inRuck = this.mode === 'ruck'
+      const holderAtt = this.holder >= 0 && (this.holder < 15) === p.homeBall
+      // the ball is "out" once it has left the base: a pass in the air, or a man running with it
+      const out: Pt | null = this.flight && this.flight.toIdx >= 0 ? { x: this.ball.x, y: this.ball.y }
+        : holderAtt && !(inRuck && this.holder === att0 + 8) ? this.b[this.holder] : null
+      const pts = openPlayTargets({
+        b: this.b, att0, dir, ref: this.anchor, ruck: inRuck, ruckAge: this.ruckT,
+        out: inRuck && this.grounded ? null : out,
+        ruckers: this.ruckers ?? [], tacklers: this.tacklers ?? [],
+        carrier: inRuck ? null : (holderAtt ? this.holder - att0 : this.cIdx), downMan: this.downMan,
+        rush: this.rush[p.homeBall ? 1 : 0],
+      }).map((q, i) => ({ x: q.x + jit(i, 1) * 0.7, y: q.y + jit(i, 2) * 0.5 }))
+      for (const [i, q] of this.over) pts[i] = q
+      return { pts, ref: { x: this.anchor.x - dir * 3.5, y: clamp(this.anchor.y + (this.anchor.y < 35 ? 8 : -8), 3, 67) } }
+    }
     const S = shapeOf({ ...p, kind: this.mode, x: this.anchor.x, y: this.anchor.y, ruckers: this.ruckers, tacklers: this.tacklers, downMan: this.downMan }, this.cIdx)
     // open play is ragged; a set piece and a kick-off line are not
-    const loose = this.mode === 'ruck' || this.mode === 'carry' || this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
+    const loose = this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
     const pts = [...S.home, ...S.away].map((q, i) => ({ x: q.x + jit(i, 1) * (loose ? 2.4 : 0.7), y: q.y + jit(i, 2) * (loose ? 1.6 : 0.5) }))
     for (const [i, q] of this.over) pts[i] = q
     return { pts, ref: S.ref }
@@ -389,6 +419,8 @@ export class PitchSim {
             if (on >= 0) { this.anchor = { x: this.b[on].x, y: this.b[on].y }; if (s.anchorOn < 0) this.cIdx = on % 15 }
           }
           if (s.mode === 'carry' && this.trk) this.trk = null
+          // a new man has it: the men nearest him are the ones who deal with him
+          if (s.mode === 'carry' && this.phase) this.mark(this.anchor, this.phase.homeBall ? 0 : 15, this.holder)
           if (s.clear) this.over.clear()
           over = true; break
         case 'ground': {
@@ -402,7 +434,7 @@ export class PitchSim {
             for (let k = d0; k < d0 + 15; k++) { const dd = hyp(this.b[k], this.b[was]); if (dd < bd) { bd = dd; best = k } }
             if (best >= 0 && bd < 9) this.down[best] = 1.1
           }
-          this.holder = -1; this.grounded = true; over = true; break
+          this.holder = -1; this.grounded = true; this.ruckT = 0; over = true; break
         }
         case 'wait':
           this.st += dt; over = this.st >= s.t; break
@@ -499,6 +531,7 @@ export class PitchSim {
       this.si++; this.st = 0; this.entered = false
     }
     if (this.si >= this.steps.length) { this.done = true; this.rate = 1 }
+    this.ruckT += dt
     this.move(dt, runTo)
   }
 
