@@ -34,7 +34,7 @@ function h2(a: number, b: number): number {
   return ((h ^ (h >>> 16)) % 10000) / 10000
 }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1 }: {
   events: MatchEvent[]
   cursor: number
   homeId: string
@@ -44,7 +44,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   /** a man's name, for the tag over the man on the ball */
   names: (playerId: number) => string | undefined
   /** the newest line has been played out on the grass */
-  onPlayed?: () => void
+  onPlayed?: (moved: boolean) => void
+  /** 1 is real time; the Fast setting plays it quicker, Slow a little slower */
+  speed?: number
   /** the words: an lp.* key and its values */
   tr: (key: string, vars?: Record<string, string | number>) => string
   /** the two sides' short names */
@@ -68,10 +70,11 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
 
   const sim = useRef<PitchSim>()
   if (!sim.current) sim.current = new PitchSim()
-  const seen = useRef<{ at: number; cursor: number; told: boolean }>({ at: -99, cursor: -1, told: true })
+  const seen = useRef<{ at: number; cursor: number; told: boolean; moved: boolean }>({ at: -99, cursor: -1, told: true, moved: false })
   // a new line: a new play if it moves the picture, else it is already played
   if (seen.current.cursor !== cursor) {
     seen.current.cursor = cursor
+    seen.current.moved = phase.at !== seen.current.at
     if (phase.at !== seen.current.at) {
       seen.current.at = phase.at
       sim.current.start(phase, carrier && carrier.home === phase.homeBall ? carrier.i : null)
@@ -79,8 +82,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     seen.current.told = false
   }
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
-  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText, boards })
-  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText, boards }
+  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText, boards, speed })
+  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier, attackText, boards, speed }
 
   useEffect(() => {
     const cv = canvas.current
@@ -238,7 +241,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const dt = Math.min(0.1, (now - last) / 1000)
       last = now
       if (!io.current.paused) {
-        acc += dt
+        acc += dt * io.current.speed
         while (acc >= 1 / 120) { S.step(1 / 120); acc -= 1 / 120 }
       }
       if (S.cuts !== seenCuts) {
@@ -261,7 +264,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       } else if (bw.shownAt !== -1 && (!bw.want || bw.want.at !== bw.shownAt) && !(bw.want && S.landed && S.phase?.at === bw.want.at)) { bw.shownAt = -1; setBanner(null) }
       for (const c of confetti) { c.vy += 26 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.life -= dt; c.rot += c.spin * dt }
       confetti = confetti.filter(c => c.life > 0)
-      if (S.done && !seen.current.told) { seen.current.told = true; io.current.onPlayed?.() }
+      if (S.done && !seen.current.told) { seen.current.told = true; io.current.onPlayed?.(seen.current.moved) }
       draw()
       raf = requestAnimationFrame(frame)
     }

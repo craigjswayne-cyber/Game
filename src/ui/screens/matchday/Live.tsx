@@ -32,6 +32,7 @@ import { FEED_ROWS, useFeedGlide } from './feedGlide'
 import { WEATHER_ICON, weatherWord } from './weather'
 import { Veil } from '../../Veil'
 import { LivePitch, type PitchSide } from '../../livepitch/LivePitch'
+import { NAMES as SPONSOR_NAMES } from '../../../game/commercial'
 
 // ------------------------------------------------------------------
 // Live match
@@ -338,8 +339,10 @@ export function Live() {
     }
     return undefined
   }
+  /** the pitch is off the screen (a panel is up), so the clock keeps time */
+  const panelStops = done || atHalfTime || atBreak || atDecision || (drawer && !playing) || (!preSeen && !!ctx.preReads?.length && (last?.min ?? 0) < 20)
   const startMoment = (): boolean => {
-    if (!highlightsOn) return false
+    if (!highlightsOn || fullMatch) return false
     // caught up with the engine: play the next stretch first (without showing
     // it), or a try that opens a stretch would be on screen before we saw it
     if (cursor >= events.length) useStore.getState().simAhead()
@@ -387,12 +390,28 @@ export function Live() {
     if (lm && line + 1 > lm.cursor) matchCursor(line + 1, true)
   }
 
+  // ---- THE FULL MATCH ON THE PITCH (2.0.0) ----
+  // Owner, 16 Nov 2026: "Extended should be where you watch full match". On
+  // Extended the pitch is on for the whole eighty and it sets the pace: each
+  // line is played out in real time (livepitch/sim.ts) and the ticker moves
+  // on when the play has been seen, not on a clock. Key is as it was: the
+  // commentary, the stats, and a clip for the tries. Automated browsers time
+  // the ticker, so they keep the clock unless a probe asks with ?hl=1.
+  const fullMatch = prefs.highlights === 'extended' && highlightsOn && live.mode !== 'highlights'
+  const [pitchPlayed, setPitchPlayed] = useState<{ at: number; moved: boolean } | null>(null)
+
   useEffect(() => {
     if (!playing || clip) return
+    if (fullMatch && !panelStops) {
+      // wait for the pitch; a line that moved nobody still gets read
+      if (pitchPlayed?.at !== cursor) return
+      const timer = setTimeout(advanceLive, pitchPlayed.moved ? 220 : Math.min(tickMs, 900))
+      return () => clearTimeout(timer)
+    }
     // `timer`, not `t`: t() is the translator
     const timer = setTimeout(() => { if (!startMoment()) advanceLive() }, tickMs + hold)
     return () => clearTimeout(timer)
-  }, [cursor, playing, speedIdx, events.length, tension, hold, clip, prefs.highlights])
+  }, [cursor, playing, speedIdx, events.length, tension, hold, clip, prefs.highlights, fullMatch, pitchPlayed])
 
   const cls = (e: MatchEvent) =>
     e.fx === 'TMO' || e.fx === 'NOTRY' ? 'tmo'
@@ -467,6 +486,12 @@ export function Live() {
       game.clubs[fixture.awayId]?.colors ?? [tokenColor('--kit-away'), white], false)
     return { home: [k.home[0], k.home[1] ?? white] as [string, string], away: [k.away[0], k.away[1] ?? white] as [string, string] }
   })()
+  // the boards carry the home club's own sponsors first, then the game's
+  // invented names (commercial.ts): nothing real is ever on them
+  const pitchBoards = useMemo(() => {
+    const own = fixture.homeId === ctx.userSideId ? Object.values(game.deals ?? {}).map(d => d?.sponsor).filter((x): x is string => !!x) : []
+    return [...new Set([...own, ...SPONSOR_NAMES.shirt, ...SPONSOR_NAMES.sleeve])].slice(0, 12)
+  }, [fixture.homeId])
   const pitchSide = (isHome: boolean): PitchSide => {
     const sd = isHome ? ctx.home : ctx.away
     const lineup = sd.lineup.slice(0, 15)
@@ -474,7 +499,7 @@ export function Live() {
   }
 
   return (
-    <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}`}>
+    <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}${fullMatch && !panelActive ? ' full-match' : ''}`}>
       <MatchAnnouncer game={game} shown={shown} homeId={fixture.homeId} awayId={fixture.awayId} />
       <div className="scoreboard" style={{ '--home-c': kits.home[0], '--away-c': kits.away[0] } as React.CSSProperties}>
         <div className="teams">
@@ -747,15 +772,19 @@ export function Live() {
       )}
       {!panelActive && !clip && !tablet && showPreReact && preReact}
       {/* THE LIVE PITCH (2.0.0, owner: "in game should be evolved into
-          this"): the match on the grass between the highlights, every line
-          moving the thirty men into the shape it describes */}
-      {!panelActive && !clip && !showPreReact && (
+          this"): on Extended the whole match is played on the grass, every
+          line moving the thirty men in real time. On Key the stage is the
+          live stats between the clips, as before. */}
+      {!panelActive && !clip && !showPreReact && fullMatch && (
         <LivePitch events={events} cursor={cursor} homeId={fixture.homeId}
           home={pitchSide(true)} away={pitchSide(false)}
-          paused={!playing}
+          paused={!playing} speed={[0.85, 1, 1.6][speedIdx] ?? 1}
+          boards={pitchBoards}
+          onPlayed={moved => setPitchPlayed({ at: useStore.getState().liveMatch?.cursor ?? cursor, moved })}
           tr={(k, v) => t(k, v)} teams={{ home: teamShort(game, fixture.homeId), away: teamShort(game, fixture.awayId) }}
           names={pid => game.players[pid]?.name} />
       )}
+      {!panelActive && !clip && !tablet && !showPreReact && !fullMatch && <LiveStats shown={shown} />}
 
       {/* THE TABLET DECK (1.8.0). A phone reads the match a line at a time;
           a tablet has half a screen under the pitch that used to be empty, so
