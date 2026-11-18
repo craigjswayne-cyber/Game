@@ -816,7 +816,11 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         // a man on the ground after a tackle: fainter until he is back up
         const floor = S.down[i] > 0 || S.off[i]
         // the men in a ruck are a pile, not six separate discs
-        sz[i] += ((S.bound(i) || floor ? 0.56 : up2[0] === i || up2[1] === i ? 1.24 : 1) - sz[i]) * 0.18
+        // (the men standing round a ruck are drawn a little smaller too, numbers
+        // kept: ten men within a few metres of it is right, but at full size
+        // they were one mass)
+        const atRuck = S.atRuck(i)
+        sz[i] += ((S.bound(i) || floor ? 0.56 : up2[0] === i || up2[1] === i ? 1.24 : atRuck ? 0.84 : 1) - sz[i]) * 0.18
         R = R0 * sz[i]
         if (floor) g.globalAlpha = 0.6
         // DEPTH (owner, 17 Nov 2026: "Add more depth"): a man stands on the

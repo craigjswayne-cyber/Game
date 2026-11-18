@@ -900,6 +900,11 @@ export class PitchSim {
     return [this.jumper, contests && this.holder !== this.jumper ? opp : -1]
   }
 
+  /** is this man standing round a ruck (drawn a little smaller) */
+  atRuck(i: number): boolean {
+    return this.mode === 'ruck' && i !== this.holder && hyp(this.b[i], this.ball) < 7
+  }
+
   /** is this man bound into the ruck (drawn smaller, as one of a pile) */
   bound(i: number): boolean {
     if (this.mode !== 'ruck' || !this.phase || this.holder === i) return false
