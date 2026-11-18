@@ -13,6 +13,7 @@ import artNavy from './stadium-navy.webp'
 import artNight from './stadium-night.webp'
 import artWet from './stadium-wet.webp'
 import artGreen from './stadium-green.webp'
+import artNightRed from './stadium-night-red.webp'
 import type { MatchEvent } from '../../game/model'
 import { readInk, isLight, refereeColour, tokenColor } from '../highlight/draw'
 import { phaseAt, readLine, type Banner, type Phase } from './phase'
@@ -43,23 +44,24 @@ const GOAL = 8
  *  the painter moved the pitch a few pixels between some: x0 and y0 are the
  *  left try line and the far touchline, mx and my the pixels to a metre.) */
 type Stadium = { url: string; w: number; h: number; x0: number; y0: number; mx: number; my: number; seat?: [number, number, number] }
-const GROUNDS: Record<'maroon' | 'red' | 'navy' | 'green' | 'night' | 'wet', Stadium> = {
+const GROUNDS: Record<'maroon' | 'red' | 'navy' | 'green' | 'night' | 'nightRed' | 'wet', Stadium> = {
   maroon: { url: artMaroon, w: 1448, h: 1086, x0: 280.5, y0: 318, mx: 8.87, my: 7.17, seat: [120, 30, 50] },
   red: { url: artRed, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.16, seat: [200, 40, 45] },
-  navy: { url: artNavy, w: 1536, h: 1152, x0: 297, y0: 338, mx: 9.41, my: 7.6, seat: [40, 60, 110] },
+  navy: { url: artNavy, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.17, seat: [40, 60, 110] },
   green: { url: artGreen, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.17, seat: [40, 150, 60] },
-  night: { url: artNight, w: 1448, h: 1086, x0: 277, y0: 318, mx: 8.93, my: 7.19 },
+  night: { url: artNight, w: 1448, h: 1086, x0: 277, y0: 318, mx: 8.93, my: 7.19, seat: [40, 60, 110] },
+  nightRed: { url: artNightRed, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.875, my: 7.18, seat: [200, 40, 45] },
   wet: { url: artWet, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.19 },
 }
 /** which ground a match is played in: the floodlit one at night, the wet one
  *  in rain or snow, otherwise the one whose seats are nearest the home colour */
 const pickGround = (night: boolean, wet: boolean, kit: string): Stadium => {
-  if (night) return GROUNDS.night
-  if (wet) return GROUNDS.wet
+  if (wet && !night) return GROUNDS.wet
   const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(kit)
   const c = m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [40, 60, 110]
   let best = GROUNDS.navy, bd = Infinity
-  for (const g of [GROUNDS.navy, GROUNDS.maroon, GROUNDS.red, GROUNDS.green]) { const d = g.seat!.reduce((t, v, i) => t + (v - c[i]) ** 2, 0); if (d < bd) { bd = d; best = g } }
+  if (night) best = GROUNDS.night
+  for (const g of night ? [GROUNDS.night, GROUNDS.nightRed] : [GROUNDS.navy, GROUNDS.maroon, GROUNDS.red, GROUNDS.green]) { const d = g.seat!.reduce((t, v, i) => t + (v - c[i]) ** 2, 0); if (d < bd) { bd = d; best = g } }
   return best
 }
 const artCache = new Map<string, HTMLImageElement>()
