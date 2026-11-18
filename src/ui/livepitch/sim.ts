@@ -755,6 +755,21 @@ export class PitchSim {
       pts[d0 + 5] = { x: this.anchor.x + dr * 2.2, y: clamp(this.anchor.y + 7, 2, 68) }
       pts[d0 + 6] = { x: this.anchor.x + dr * 2.2, y: clamp(this.anchor.y - 7, 2, 68) }
       pts[d0 + 7] = { x: h.x + dr * 3.5, y: h.y }
+      // ... AND ONCE IT HAS GONE AWAY FROM THE SCRUM, THE SCRUM BREAKS UP
+      // (18 Nov 2026: both packs stayed bound in one knot for seconds after
+      // the backs had the ball). The front five of each side stand up and
+      // fan out after it, a couple of metres apart, their own side of it.
+      const gone = Math.hypot(this.ball.x - this.anchor.x, this.ball.y - this.anchor.y)
+      if (gone > 6 && this.holder % 15 !== 7) {
+        const f = Math.min(1, (gone - 6) / 10), sy = Math.sign(this.ball.y - this.anchor.y) || 1
+        for (const [b0, back] of [[p.homeBall ? 0 : 15, -dr], [d0, dr]] as [number, number][]) {
+          for (let k = 0; k < 5; k++) {
+            const q = pts[b0 + k]
+            q.x += (this.ball.x - this.anchor.x) * 0.35 * f + back * (1.5 + (k % 2) * 2.2) * f
+            q.y = clamp(q.y + sy * (2 + k * 2.6) * f, 2, 68)
+          }
+        }
+      }
     }
     // A MAUL IS BUILT, NOT DROPPED IN: the catcher and his lifters first,
     // then the rest of the pack binding on one by one; the defence the same,
