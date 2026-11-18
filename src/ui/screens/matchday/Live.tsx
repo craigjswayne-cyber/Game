@@ -793,7 +793,7 @@ export function Live() {
         <LivePitch events={events} cursor={cursor} homeId={fixture.homeId}
           home={pitchSide(true)} away={pitchSide(false)}
           paused={!playing} speed={[0.85, 1, 1.6][speedIdx] ?? 1}
-          boards={pitchBoards} tactics={pitchTactics} night={pitchNight}
+          boards={pitchBoards} tactics={pitchTactics} night={pitchNight} wet={fixture.weather === 'Rain' || fixture.weather === 'Snow'}
           onPlayed={moved => setPitchPlayed({ at: useStore.getState().liveMatch?.cursor ?? cursor, moved })}
           tr={(k, v) => t(k, v)} teams={{ home: teamShort(game, fixture.homeId), away: teamShort(game, fixture.awayId) }}
           names={pid => game.players[pid]?.name} />

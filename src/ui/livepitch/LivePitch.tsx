@@ -7,7 +7,11 @@
 // from sim.ts, which plays each line out in real time.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import stadiumUrl from './stadium.webp'
+import artMaroon from './stadium-maroon.webp'
+import artRed from './stadium-red.webp'
+import artNavy from './stadium-navy.webp'
+import artNight from './stadium-night.webp'
+import artWet from './stadium-wet.webp'
 import type { MatchEvent } from '../../game/model'
 import { readInk, isLight, refereeColour, tokenColor } from '../highlight/draw'
 import { phaseAt, readLine, type Banner, type Phase } from './phase'
@@ -33,10 +37,31 @@ const GOAL = 8
  *  field sits in the picture, in its own pixels: the left try line and the
  *  far touchline, and how many pixels a metre is along and across (it is
  *  painted a little foreshortened, so across is fewer). The lamp heads are
- *  for the glow of a night match. */
-const STADIUM = { w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.17, lamps: [[85, 80], [1362, 80], [85, 905], [1362, 905]] as [number, number][] }
-const stadiumArt = typeof Image !== 'undefined' ? new Image() : null
-if (stadiumArt) stadiumArt.src = stadiumUrl
+ *  for the glow of a night match.
+ *  (18 Nov 2026: the owner sent a set of them. Each was measured, because
+ *  the painter moved the pitch a few pixels between some: x0 and y0 are the
+ *  left try line and the far touchline, mx and my the pixels to a metre.) */
+type Stadium = { url: string; w: number; h: number; x0: number; y0: number; mx: number; my: number; seat?: [number, number, number] }
+const GROUNDS: Record<'maroon' | 'red' | 'navy' | 'night' | 'wet', Stadium> = {
+  maroon: { url: artMaroon, w: 1448, h: 1086, x0: 280.5, y0: 318, mx: 8.87, my: 7.17, seat: [120, 30, 50] },
+  red: { url: artRed, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.16, seat: [200, 40, 45] },
+  navy: { url: artNavy, w: 1536, h: 1152, x0: 297, y0: 338, mx: 9.41, my: 7.6, seat: [40, 60, 110] },
+  night: { url: artNight, w: 1448, h: 1086, x0: 277, y0: 318, mx: 8.93, my: 7.19 },
+  wet: { url: artWet, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.19 },
+}
+/** which ground a match is played in: the floodlit one at night, the wet one
+ *  in rain or snow, otherwise the one whose seats are nearest the home colour */
+const pickGround = (night: boolean, wet: boolean, kit: string): Stadium => {
+  if (night) return GROUNDS.night
+  if (wet) return GROUNDS.wet
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(kit)
+  const c = m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [40, 60, 110]
+  let best = GROUNDS.navy, bd = Infinity
+  for (const g of [GROUNDS.navy, GROUNDS.maroon, GROUNDS.red]) { const d = g.seat!.reduce((t, v, i) => t + (v - c[i]) ** 2, 0); if (d < bd) { bd = d; best = g } }
+  return best
+}
+const artCache = new Map<string, HTMLImageElement>()
+const loadArt = (url: string) => { let im = artCache.get(url); if (!im) { im = new Image(); im.src = url; artCache.set(url, im) } return im }
 /** the least ground drawn round the pitch; the rest of the box is filled with
  *  more stand, so the ground runs off the edge of the screen as a real one does */
 const SIDE_MIN = 6.6, END_MIN = 5.5
@@ -56,7 +81,9 @@ function h2(a: number, b: number): number {
   return ((h ^ (h >>> 16)) % 10000) / 10000
 }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false }: {
+  /** rain or snow: the wet ground */
+  wet?: boolean
   /** under the lights, or an afternoon kick-off (owner, 17 Nov 2026: "Make day matches too") */
   night?: boolean
   /** how each club plays (home, away): its own dials, so the two sides look different */
@@ -187,6 +214,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
     }
     // field metres to screen: length up the screen (home attacks up), width across
+    const STADIUM = pickGround(night, wet, io.current.home.kit[0])
+    const stadiumArt = typeof Image !== 'undefined' ? loadArt(STADIUM.url) : null
     const SX = (x: number, y: number) => dim.art ? dim.ox + (STADIUM.x0 + x * STADIUM.mx) * dim.art : dim.up ? dim.ox + (y + SIDE) * dim.sc : dim.ox + (x + GOAL + END) * dim.sc
     const SY = (x: number, y: number) => dim.art ? dim.oy + (STADIUM.y0 + y * STADIUM.my) * dim.art : dim.up ? dim.oy + (100 + GOAL + END - x) * dim.sc : dim.oy + (y + SIDE) * dim.sc
 
@@ -658,21 +687,6 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       if (dim.art && stadiumArt) {
         g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'
         g.drawImage(stadiumArt, dim.ox, dim.oy, STADIUM.w * dim.art, STADIUM.h * dim.art)
-        if (night) {
-          // the same ground after dark: everything dimmed, the pitch lit from
-          // its four corners, a glow at each lamp head
-          g.fillStyle = 'rgba(0,6,26,.5)'; g.fillRect(0, 0, w, h)
-          const cx = SX(50, 35), cy = SY(50, 35), rr = STADIUM.mx * dim.art * 62
-          const pool = g.createRadialGradient(cx, cy, rr * 0.1, cx, cy, rr)
-          pool.addColorStop(0, 'rgba(255,255,225,.2)'); pool.addColorStop(1, 'rgba(255,255,225,0)')
-          g.fillStyle = pool; g.fillRect(0, 0, w, h)
-          for (const [lx, ly] of STADIUM.lamps) {
-            const px = dim.ox + lx * dim.art, py = dim.oy + ly * dim.art, gr = 150 * dim.art
-            const glow = g.createRadialGradient(px, py, 0, px, py, gr)
-            glow.addColorStop(0, 'rgba(255,252,225,.75)'); glow.addColorStop(1, 'rgba(255,252,225,0)')
-            g.fillStyle = glow; g.fillRect(px - gr, py - gr, gr * 2, gr * 2)
-          }
-        }
       } else if (dim.up) g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
       else {
         g.save(); g.translate(dim.ox + FIELD_L * sc, dim.oy); g.rotate(Math.PI / 2)
@@ -940,7 +954,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     void document.fonts?.ready.then(() => { if (cv.isConnected) size() })
     raf = requestAnimationFrame(frame)
     return () => { cancelAnimationFrame(raf); ro.disconnect() }
-  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], night])
+  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], night, wet])
 
   // the chip says what the play is; a plain carry or tackle says nothing.
   // A called move is named, and named large, for as long as it is being run
