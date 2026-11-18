@@ -37,7 +37,7 @@ type Step = ({ rate?: number }) & (
   /** a called move: its men to their marks, then the move as it is drawn */
   | { k: 'trackset' }
   | { k: 'track' }
-  | { k: 'pass'; to: number; hang?: number; thrown?: boolean }
+  | { k: 'pass'; to: number; hang?: number; thrown?: boolean; fin?: number }
   /** the anchor (and the man with the ball) moves to a point at v m/s */
   | { k: 'run'; to: Pt; v: number; straight?: boolean }
   | { k: 'kick'; to: Pt; hang: number; silent?: boolean }
@@ -528,7 +528,7 @@ export class PitchSim {
       const used: number[] = []
       for (const o of cand) {
         if (o.v - at < 5 || wide - at <= 11) continue
-        steps.push({ k: 'pass', to: att0 + o.k, rate }, { k: 'wait', t: 0.2, rate })
+        steps.push({ k: 'pass', to: att0 + o.k, rate, fin: att0 + c }, { k: 'wait', t: 0.2, rate })
         at = o.v; used.push(o.k)
       }
       // still a long way to throw it: whoever is standing in between takes it on
@@ -538,7 +538,7 @@ export class PitchSim {
           .map(k => ({ k, v: (this.b[att0 + k].y - B.y) * sgn })).filter(q => q.v > at + 4 && q.v < wide - 4)
           .sort((a, b) => Math.abs(a.v - (at + 9)) - Math.abs(b.v - (at + 9)))[0]
         if (!o) break
-        steps.push({ k: 'pass', to: att0 + o.k, rate }, { k: 'wait', t: 0.2, rate })
+        steps.push({ k: 'pass', to: att0 + o.k, rate, fin: att0 + c }, { k: 'wait', t: 0.2, rate })
         at = o.v; used.push(o.k)
       }
     }
@@ -976,6 +976,14 @@ export class PitchSim {
         case 'pass':
           if (!s.thrown) {
             if (this.holder === s.to) { over = true; break }
+            // IT GOES ONE WAY ALONG THE LINE (18 Nov 2026, own audit: a pass
+            // was going out past the man it was meant for and then back in to
+            // him, and the pack chased it both ways). A link man is used only
+            // if he is still between the ball and the man it is going to.
+            if (s.fin != null && this.holder >= 0) {
+              const yb = this.ball.y, yf = this.b[s.fin].y, ym = this.b[s.to].y
+              if ((ym - yb) * (yf - yb) <= 0 || Math.abs(ym - yb) > Math.abs(yf - yb) - 3) { over = true; break }
+            }
             // NO FORWARD PASSES: if the man it is going to is in front of the
             // ball he drops back behind it first, and it is held until he has
             if (this.holder >= 0 && (this.holder < 15) === (s.to < 15) && (this.mode === 'ruck' || this.mode === 'carry')) {
@@ -1157,13 +1165,20 @@ export class PitchSim {
       }
     }
     const tight = this.mode === 'scrum' || this.mode === 'maul'
-    const chase = (this.mode === 'kick' && this.phase.label !== 'lp.kickTouch') || this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'try'
+    const chase = (this.mode === 'kick' && this.phase.label !== 'lp.kickTouch') || this.mode === 'kickoff' || this.mode === 'dropout'
     const calm = this.mode === 'penalty' || this.mode === 'break' || this.mode === 'con' || this.mode === 'goal'
     for (let i = 0; i < 30; i++) {
       const bd = this.b[i]
       if (this.down[i] > 0) { this.down[i] -= dt; bd.vx *= 0.8; bd.vy *= 0.8; bd.x += bd.vx * dt; bd.y += bd.vy * dt; continue }
       let tx = this.tg[i].x, ty = this.tg[i].y
       if (this.off[i] && i !== this.holder) { tx = 50 + (i < 15 ? -9 : 9) - (i % 15) * 0.2; ty = -2.6 }
+      // AHEAD OF THE MAN WITH THE BALL: he does not run back fifteen metres to
+      // get behind a carrier who is about to run past him. He stands and
+      // waits to be put onside, and joins in as the ball goes by.
+      if (this.mode === 'carry' && this.holder >= 0 && i !== this.holder && (i < 15) === (this.holder < 15) && !this.over.has(i) && !this.strike) {
+        const d1 = i < 15 ? 1 : -1, gap = (bd.x - this.ball.x) * d1
+        if (gap > 0.5 && gap < 22 && runTo && (runTo.x - this.ball.x) * d1 > 1) { tx = bd.x; ty = bd.y + clamp(ty - bd.y, -1.5, 1.5) }
+      }
       // the man with the ball runs the line being run
       if (runTo && i === this.holder && !tight) { tx = runTo.x; ty = runTo.y }
       ty = clamp(ty, -0.5, 70.5)
@@ -1172,9 +1187,14 @@ export class PitchSim {
       const fwd = i % 15 < 8
       // a man in front of the ball is out of the game until he is back behind it: he hurries
       const ahead = (this.mode === 'ruck' || this.mode === 'carry') && this.phase != null && (i < 15) === this.phase.homeBall && (bd.x - this.ball.x) * (i < 15 ? 1 : -1) > 1
-      const urgent = i === this.holder || this.over.has(i) || chase || dist > 9 || this.rate >= FF || ahead
+      // WHO RUNS FLAT OUT (18 Nov 2026, own audit: every man was covering
+      // 233 metres a minute, three times what a player does). The man with
+      // the ball, a man sent somewhere, the chase, and anyone with a long way
+      // to go. The rest jog to their places, and walk the last of it.
+      const nearBall = Math.hypot(bd.x - this.ball.x, bd.y - this.ball.y) < 14
+      const urgent = i === this.holder || this.over.has(i) || (chase && (this.kicked || nearBall)) || dist > (nearBall ? 9 : 18) || ahead
       const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
-      const want = Math.min(vmax, dist * 2.6)
+      const want = Math.min(vmax, dist * (urgent ? 2.6 : 1.1))
       const wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0
       const ax = wx - bd.vx, ay = wy - bd.vy
       const a = Math.hypot(ax, ay), lim = ACC * dt
