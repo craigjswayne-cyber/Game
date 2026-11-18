@@ -400,6 +400,7 @@ export function Live() {
   // the ticker, so they keep the clock unless a probe asks with ?hl=1.
   const fullMatch = prefs.highlights === 'extended' && highlightsOn && live.mode !== 'highlights'
   const [pitchPlayed, setPitchPlayed] = useState<{ at: number; moved: boolean } | null>(null)
+  const [pitchReached, setPitchReached] = useState(0)
 
   useEffect(() => {
     if (!playing || clip) return
@@ -475,8 +476,14 @@ export function Live() {
   }
   const panelActive = done || atHalfTime || atBreak || atDecision || (drawer && paused)
   // the phone's feed: the last few lines, by their index in the match
-  const feedRows = shown.slice(-FEED_ROWS).map((e, j) => ({ e, i: Math.max(0, shown.length - FEED_ROWS) + j }))
-  useFeedGlide(feedRef, panelActive ? -1 : shown.length)
+  // THE WORDS WAIT FOR THE PICTURE (owner, 18 Nov 2026: "the commentary
+  // doesnt line up with the pitch"). On Extended the line used to appear the
+  // moment its turn came, while the pitch was still playing its way there.
+  // The newest line is now held back until the pitch has got to it.
+  const feedN = fullMatch && !panelActive && !clip && pitchReached < cursor ? Math.max(0, cursor - 1) : cursor
+  const feedShown = feedN === cursor ? shown : events.slice(0, feedN)
+  const feedRows = feedShown.slice(-FEED_ROWS).map((e, j) => ({ e, i: Math.max(0, feedShown.length - FEED_ROWS) + j }))
+  useFeedGlide(feedRef, panelActive ? -1 : feedShown.length)
   useFeedGlide(tabRef, panelActive || !tablet ? -1 : shown.length)
 
   // the two sides for the live pitch: who is in which shirt, the number on
@@ -760,7 +767,7 @@ export function Live() {
           <div className="comm-feed" aria-live="off">
             <div className="comm-list" ref={feedRef}>
               {feedRows.map(({ e, i }) => {
-                const age = shown.length - 1 - i
+                const age = feedShown.length - 1 - i
                 return (
                   <div key={i} data-k={i}
                     className={`comm-line ${cls(e)}${e.teamId ? ' kit' : ''}${age === 0 ? ` cur now-line fresh` : ` old a${Math.min(3, age)}`}${i === flash ? ' try-flash' : ''}`}
@@ -794,6 +801,7 @@ export function Live() {
           home={pitchSide(true)} away={pitchSide(false)}
           paused={!playing} speed={[0.85, 1, 1.6][speedIdx] ?? 1}
           boards={pitchBoards} tactics={pitchTactics} night={pitchNight} wet={fixture.weather === 'Rain'} snow={fixture.weather === 'Snow'}
+          onReached={c => setPitchReached(c)}
           onPlayed={moved => setPitchPlayed({ at: useStore.getState().liveMatch?.cursor ?? cursor, moved })}
           tr={(k, v) => t(k, v)} teams={{ home: teamShort(game, fixture.homeId), away: teamShort(game, fixture.awayId) }}
           names={pid => game.players[pid]?.name} />

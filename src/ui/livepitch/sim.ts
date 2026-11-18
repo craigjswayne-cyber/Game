@@ -159,6 +159,12 @@ export class PitchSim {
   private heeled = false
   /** a kick has been struck in this line's play (latched: the chase does not un-happen) */
   private kicked = false
+  private hit = false
+  /** the play on the grass has got to what this line describes (the words are held back until it has) */
+  get reached(): boolean {
+    if (!this.hit && (this.si >= this.steps.length || (this.steps[this.si] as { main?: boolean }).main === true)) this.hit = true
+    return this.hit
+  }
   /** where a kick made between lines is going, so both sides chase that and not straight ahead */
   private kickTo: Pt | null = null
   /** where and when the last kick was struck: the chase comes up from there as one line */
@@ -431,7 +437,11 @@ export class PitchSim {
         steps.push({ k: 'wait', t: 1 })
     }
 
+    // the steps so far are this line's own play; anything put in front of
+    // them below is the play that gets the ball there
+    for (const st of steps) (st as { main?: boolean }).main = true
     const begin = () => {
+      this.hit = false
       this.landed = !(p.kind === 'try' || p.kind === 'heldup' || p.kind === 'con' || p.kind === 'goal')
       this.phase = p; this.steps = steps; this.si = 0; this.st = 0; this.entered = false; this.done = false
       if (this.mode !== mode) this.modeT = 0
@@ -885,12 +895,16 @@ export class PitchSim {
     let runTo: Pt | null = null
     if (this.mode !== 'carry') this.meet = null
     // (nothing is shown slower than a brisk 1.2: it reads as life speed and saves a sixth)
-    // ONE PACE (owner: "It should flow as one"): the picture used to lurch
-    // between life speed and four times it. Everything now runs between
-    // about one and a half and two and a half times: brisk, and even.
-    this.rate = clamp(this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1, 1.8, 2.8)
+    // TWO PACES, AND THE FAST ONE IS MARKED (owner, 18 Nov 2026: "closer to
+    // 3.5 - when fast forwarding show the little fwd symbol"). What matters
+    // is watched at a brisk life speed: a called move, play in the 22, a try.
+    // Everything else is wound on, with the chevrons up while it is.
+    {
+      const r = this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1
+      this.rate = r <= 1.6 ? 1.6 : r <= 2.6 ? 3.4 : 7
+    }
     // a ball in the air from a restart or a kick at goal is not watched at life speed
-    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, 2.8)
+    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, 7)
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
       const s = this.steps[this.si]
       const first = !this.entered
@@ -1249,7 +1263,28 @@ export class PitchSim {
       const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) : brisk ? (fwd ? V_FWD : V_BACK) * 0.86 : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
       // (a man with a couple of metres to go does not bother: he is where he should be)
       const want = !urgent && dist < 1.6 ? 0 : Math.min(vmax, dist * (urgent ? 2.6 : 1.4))
-      const wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0
+      let wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0
+      // SEPARATION (18 Nov 2026, from the research: Reynolds' steering
+      // behaviours, "do not get too close"). Men in open play keep a couple of
+      // strides off each other instead of standing on the same spot, which is
+      // also what stops the discs piling up. Not in a scrum, lineout or maul,
+      // not for the men bound in a ruck, not for the man with the ball.
+      if (!tight && this.mode !== 'lineout' && i !== this.holder && !this.over.has(i) && !this.bound(i) && this.down[i] <= 0) {
+        const RS = 3.1
+        let sx = 0, sy = 0
+        for (let j = 0; j < 30; j++) {
+          if (j === i || this.off[j]) continue
+          const ex = bd.x - this.b[j].x, ey = bd.y - this.b[j].y
+          if (Math.abs(ex) > RS || Math.abs(ey) > RS) continue
+          const e = Math.hypot(ex, ey)
+          if (e >= RS) continue
+          const f = (1 - e / RS) * 3.4
+          if (e > 0.05) { sx += ex / e * f; sy += ey / e * f } else { sx += ((i * 7) % 3 - 1) * f; sy += ((i * 5) % 3 - 1) * f }
+        }
+        wx += sx; wy += sy
+        const wl = Math.hypot(wx, wy), cap = Math.max(vmax, 3)
+        if (wl > cap) { wx *= cap / wl; wy *= cap / wl }
+      }
       const ax = wx - bd.vx, ay = wy - bd.vy
       const a = Math.hypot(ax, ay), lim = ACC * dt
       const k = a > lim ? lim / a : 1

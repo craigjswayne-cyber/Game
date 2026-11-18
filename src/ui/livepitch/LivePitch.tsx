@@ -98,7 +98,7 @@ function h2(a: number, b: number): number {
   return ((h ^ (h >>> 16)) % 10000) / 10000
 }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false, onReached }: {
   /** snow on the ground */
   snow?: boolean
   /** rain or snow: the wet ground */
@@ -117,6 +117,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   names: (playerId: number) => string | undefined
   /** the newest line has been played out on the grass */
   onPlayed?: (moved: boolean) => void
+  /** the pitch has got to the play the line at this cursor describes */
+  onReached?: (cursor: number) => void
   /** 1 is real time; the Fast setting plays it quicker, Slow a little slower */
   speed?: number
   /** play everything at real time: nothing is wound on */
@@ -169,7 +171,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     seen.current.pre = false
   }
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
-  const io = useRef({ home, away, names, onPlayed, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null })
+  const io = useRef({ home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null })
   if (tactics) sim.current.tac = tactics
   // FOURTEEN MEN: a man shown a card is off the field (ten minutes for a
   // yellow, the rest of the match for a red), and so is a slot the engine
@@ -188,7 +190,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     for (let k = 0; k < 15; k++) { if (home.lineup[k] == null) off[k] = true; if (away.lineup[k] == null) off[15 + k] = true }
     sim.current.off = off
   }
-  io.current = { home, away, names, onPlayed, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null }
+  io.current = { home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null }
 
   useEffect(() => {
     const cv = canvas.current
@@ -214,6 +216,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // the last frame before a cut, dissolved out over the new one
     const ghost = document.createElement('canvas')
     let grassSeen: Phase | null = null
+    let reachedSent = -1
     let seenCuts = S.cuts, dissolve = 0
     /** 0..1: how much the fast-forward mark is showing */
     let ffShown = 0, rateNow = 1
@@ -666,7 +669,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         rateNow += (want - rateNow) * Math.min(1, dt * 3.5)
         const rate = rateNow
         acc += dt * io.current.speed * rate
-        ffShown += ((rate >= 1.6 && !S.done ? 1 : 0) - ffShown) * Math.min(1, dt * 8)
+        ffShown += ((rate >= 2.6 && !S.done ? 1 : 0) - ffShown) * Math.min(1, dt * 8)
         while (acc >= 1 / 120) { S.step(1 / 120); acc -= 1 / 120 }
       }
       if (S.cuts !== seenCuts) {
@@ -681,6 +684,10 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       if (dissolve > 0) dissolve = Math.max(0, dissolve - dt / 0.45)
       if (S.phase && S.phase !== grassSeen) { grassSeen = S.phase; setOnGrass(S.phase) }
+      {
+        const rc = io.current.cursor
+        if (reachedSent !== rc && (S.phase?.at !== rc - 1 || S.reached)) { reachedSent = rc; io.current.onReached?.(rc) }
+      }
       // the banner lands with the moment, not with the line
       const bw = bannerRef.current
       if (bw.want && S.landed && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at) {
@@ -949,6 +956,30 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.fillRect(-3, -1.6, 6, 3.2); g.restore()
       }
       // the dissolve of a cut: the old frame fading off the new one
+      // THE WEATHER FALLS (owner, 18 Nov 2026: "can we incorporate weather?").
+      // The ground is already the wet or the snowy one; now it rains or snows
+      // on it. Rain is fine slanted streaks, snow is slow flakes that drift.
+      if ((wet || snow) && !reduce) {
+        const tm = performance.now() / 1000
+        if (wet) {
+          g.strokeStyle = 'rgba(225,235,255,.34)'; g.lineWidth = 1; g.beginPath()
+          for (let k = 0; k < 110; k++) {
+            const sp = 260 + h2(k, 71) * 160
+            const x0 = (h2(k, 73) * (w + 80) - 40 + tm * 55) % (w + 80) - 40
+            const y0 = (h2(k, 79) * (h + 40) + tm * sp) % (h + 40) - 20
+            g.moveTo(x0, y0); g.lineTo(x0 + 3, y0 + 11)
+          }
+          g.stroke()
+        } else {
+          g.fillStyle = 'rgba(255,255,255,.85)'
+          for (let k = 0; k < 90; k++) {
+            const sp = 22 + h2(k, 83) * 26
+            const x0 = (h2(k, 89) * w + Math.sin(tm * 0.8 + k) * 9 + tm * 6) % w
+            const y0 = (h2(k, 97) * h + tm * sp) % h
+            g.beginPath(); g.arc(x0, y0, 0.9 + h2(k, 101) * 1.1, 0, Math.PI * 2); g.fill()
+          }
+        }
+      }
       const o = cv.getContext('2d')!
       o.setTransform(1, 0, 0, 1, 0, 0)
       if (dim.tilt) {
