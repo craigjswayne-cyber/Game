@@ -160,6 +160,10 @@ export class PitchSim {
   /** a kick has been struck in this line's play (latched: the chase does not un-happen) */
   private kicked = false
   private hit = false
+  /** this line ends in a try: the defence goes after the man with the ball */
+  private tryRun = false
+  private tried = new Set<number>()
+  private hunt: number[] = []
   /** the play on the grass has got to what this line describes (the words are held back until it has) */
   get reached(): boolean {
     if (!this.hit && (this.si >= this.steps.length || (this.steps[this.si] as { main?: boolean }).main === true)) this.hit = true
@@ -244,6 +248,10 @@ export class PitchSim {
     this.kicked = false
     this.kickTo = null
     this.kickAt = null
+    this.tryRun = p.kind === 'try'
+    this.tried.clear()
+    for (const i of this.hunt) this.over.delete(i)
+    this.hunt = []
     this.idleN = 0
     this.trk = null
     // how fast it is worth watching: real time where it matters, wound on
@@ -1204,6 +1212,33 @@ export class PitchSim {
     if (this.strike) this.strike.t += dt
     this.modeT += dt
     this.clock += dt
+    // A TRY IS SCORED AGAINST A DEFENCE (owner, 18 Nov 2026: "Tom Pearson
+    // running with defenders not moving to tackle him and he scored"). The
+    // defence used to stand in its line and watch. Now, while a man is
+    // running in for a try, the four defenders nearest him go for him, aiming
+    // at where he will be, flat out. The first two who get to him are
+    // beaten: they go to ground behind him. Anyone after that has hold of
+    // him as he gets over. The rest turn and chase.
+    for (const i of this.hunt) this.over.delete(i)
+    this.hunt = []
+    if (this.tryRun && this.holder >= 0 && this.mode === 'carry' && runTo && !this.strike && !this.trk) {
+      const h = this.holder, hb = this.b[h], d0 = h < 15 ? 15 : 0, dr = h < 15 ? 1 : -1
+      const left = Math.abs((h < 15 ? 100 : 0) - hb.x)
+      const men = [...Array(15).keys()].map(k => d0 + k).filter(i => this.down[i] <= 0 && !this.off[i])
+        .map(i => ({ i, d: hyp(this.b[i], hb), ahead: (this.b[i].x - hb.x) * dr })).sort((a, c) => a.d - c.d)
+      for (const m of men.slice(0, 4)) {
+        const lead = clamp(m.d / 9, 0, 0.7)
+        // a man in front of him closes the space; a man behind chases his heels
+        const tx = hb.x + hb.vx * lead + (m.ahead > 0 ? 0 : -dr * 0.6), ty = hb.y + hb.vy * lead
+        this.over.set(m.i, { x: clamp(tx, -6, 106), y: clamp(ty, 1, 69) })
+        this.hunt.push(m.i)
+        if (m.d < 1.5 && !this.tried.has(m.i)) {
+          this.tried.add(m.i)
+          // beaten, unless he is the third to get there or it is on the line
+          if (this.tried.size <= 2 && left > 4) this.down[m.i] = 1.4
+        }
+      }
+    }
     this.move(dt, runTo)
   }
 
