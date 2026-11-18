@@ -15,7 +15,7 @@ let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const errors = []
 const server = await startPreview(0, 2500)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
 page.on('pageerror', e => errors.push(String(e).slice(0, 200)))
 await page.goto(`${server.origin}/`)
