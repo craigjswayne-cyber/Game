@@ -298,7 +298,14 @@ export class PitchSim {
           steps.push({ k: 'run', to: E, v: 6 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at, this.tac[p.homeBall ? 0 : 1].tempo) })
         } else {
           anchor = B
-          steps.push({ k: 'ground' }, { k: 'run', to: E, v: 5 }, { k: 'wait', t: ruckLen(p.at, this.tac[p.homeBall ? 0 : 1].tempo) })
+          // (18 Nov 2026, own audit: the ruck itself used to slide along the
+          // grass to where this line has it, ball on the floor, thirty men
+          // shuffling with it. A man picks it up and carries it there.)
+          if (hyp(B, E) > 3) {
+            const c = this.nearest(att0, B, [8, ...(this.downMan != null ? [this.downMan] : [])]) - att0
+            steps.push({ k: 'pick', who: att0 + c, max: 1.2 }, { k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true },
+              { k: 'run', to: E, v: c < 8 ? 6.3 : 8 }, { k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: ruckLen(p.at, this.tac[p.homeBall ? 0 : 1].tempo) })
+          } else steps.push({ k: 'ground' }, { k: 'wait', t: ruckLen(p.at, this.tac[p.homeBall ? 0 : 1].tempo) })
         }
         break
       case 'penalty':
@@ -1035,14 +1042,17 @@ export class PitchSim {
           const mine = this.holder >= 0 && (this.holder < 15) === this.phase.homeBall
           const n = s.n = (s.n ?? 0) + 1
           const sub: Step[] = []
-          const tackle: Step[] = [{ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 0.45 }]
+          // (18 Nov 2026: a ruck was over in a quarter of a second, so nobody ever
+          // stood still. Fewer phases, each with a ruck long enough to see
+          // both sides re-form round it.)
+          const tackle: Step[] = [{ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 2.6 }]
           // how far this carry goes: a few phases, however far it is
           // a forward makes a few metres, a back a few more: nobody runs the length of the field
           const carrierIsFwd = mine ? this.holder - att0 < 8 : true
-          const len = carrierIsFwd ? clamp(rem / 2, 8, 14) : clamp(rem / 1.6, 12, 24)
+          const len = carrierIsFwd ? clamp(rem / 1.4, 10, 18) : clamp(rem / 1.15, 14, 30)
           // it has gone on long enough: the next man goes all the way
           s.t0 ??= this.clock
-          const late = this.clock - s.t0 > 8
+          const late = this.clock - s.t0 > 7
           const P: Pt = late || rem - len < 4 ? { ...s.to } : { x: B.x + (s.to.x - B.x) / rem * len, y: clamp(B.y + (s.to.y - B.y) / rem * len, 4, 66) }
           if (n > 14) { over = true; break }
           // the man this line is about comes with the play: he is on the

@@ -168,6 +168,24 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
     podSlots.push([-5.5, 19], [-7, vB + 7.6])
   }
   const freeFwd = [0, 1, 2, 3, 4, 5, 6, 7].filter(k => !taken.has(k) && !gone(att0 + k))
+  // A FORWARD STAYS ON THE SIDE OF THE RUCK HE IS ON (18 Nov 2026, own audit:
+  // "players running in strange areas"). Every pod was set on the open side,
+  // so at each ruck any forward on the short side ran across behind it, and
+  // when the open side changed the whole pack crossed over. A forward who is
+  // already out on the short side now holds a place there, as a short-side
+  // pod does, and only the men near the ruck or on the open side fill the
+  // open-side pods.
+  {
+    const room = Math.max(0, near - 5)
+    const shortMen = freeFwd.filter(k => vOf(att0 + k) < -5).sort((a, c) => vOf(att0 + c) - vOf(att0 + a)).slice(0, room > 14 ? 3 : room > 7 ? 2 : 0)
+    shortMen.forEach((k, j) => {
+      out[att0 + k] = P(Math.min(-3, -4 - j * 0.9 + go * 1.2), -Math.min(room, 7 + j * 4.2))
+      taken.add(k)
+    })
+    for (const k of shortMen) freeFwd.splice(freeFwd.indexOf(k), 1)
+    // (the open side has that many fewer: the widest places go unfilled)
+    podSlots = podSlots.filter(q => q[1] > 0).sort((a, c) => a[1] - c[1]).slice(0, freeFwd.length).concat(podSlots.filter(q => q[1] <= 0)).slice(0, Math.max(freeFwd.length, 0))
+  }
   for (const [g, [u, v]] of deal(freeFwd.map(k => att0 + k), vOf, podSlots.slice(0, freeFwd.length))) { out[g] = P(Math.min(-3, u + go * 1.2), v); taken.add(g - att0) }
   // the backs: 10 out the back of the first pod; 12, 13 and the open wing
   // each wider and deeper than the man inside him; 15 between 13 and the
