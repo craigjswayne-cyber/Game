@@ -190,6 +190,16 @@ export class PitchSim {
     const dir = p.homeBall ? 1 : -1
     const E: Pt = { x: p.x, y: p.y }
     const B: Pt = { x: this.ball.x, y: this.ball.y }
+    // PLAY GOES ON FROM WHERE THE BALL IS (18 Nov 2026: the lurch). The line
+    // says roughly where on the field it is; the ball on the pitch may be
+    // somewhere else by now. An ordinary phase, a scrum or a penalty is
+    // played within a carry of where the ball actually is, and the picture
+    // catches the engine up over the lines that follow.
+    if (this.started && (p.kind === 'ruck' || p.kind === 'carry' || p.kind === 'penalty' || p.kind === 'maul' || p.kind === 'scrum')) {
+      const lim = p.kind === 'scrum' ? 10 : 14
+      E.x = clamp(B.x + clamp(E.x - B.x, -lim, lim), 2, 98)
+      E.y = clamp(B.y + clamp(E.y - B.y, -18, 18), 4, 66)
+    }
     const d = hyp(E, B)
     const holderAtt = this.holder >= 0 && (this.holder < 15) === p.homeBall
     const steps: Step[] = []
@@ -253,6 +263,7 @@ export class PitchSim {
         {
           const to = p.to ?? E
           const who = (p.homeBall ? 15 : 0) + restartCatcher((to.x - p.x) * dir, (to.y - p.y) * (p.y <= 35 ? 1 : -1))
+          this.jumper = who
           steps.push({ k: 'pick', who, max: 1.4 }, { k: 'wait', t: 0.45 })
         }
         break
@@ -819,6 +830,11 @@ export class PitchSim {
   /** the lineout jumper while he is in the air (drawn larger: he is up), and
    *  the man opposite him going up against the throw; -1 when nobody is */
   lifted(): [number, number] {
+    // a forward taking a restart is lifted for it, as at a lineout
+    if ((this.mode === 'kickoff' || this.mode === 'dropout') && this.jumper >= 0 && this.jumper % 15 < 8) {
+      const f = this.flight
+      return [f != null && f.toIdx < 0 && f.t > f.T * 0.7 ? this.jumper : -1, -1]
+    }
     if (this.mode !== 'lineout' || this.jumper < 0) return [-1, -1]
     const up = (this.flight != null && this.flight.toIdx === this.jumper && this.flight.t > this.flight.T * 0.35) || this.holder === this.jumper
     if (!up) return [-1, -1]
@@ -1212,9 +1228,12 @@ export class PitchSim {
       // to go. The rest jog to their places, and walk the last of it.
       const nearBall = Math.hypot(bd.x - this.ball.x, bd.y - this.ball.y) < 14
       const urgent = i === this.holder || this.over.has(i) || (chase && (this.kicked || nearBall)) || dist > (nearBall ? 9 : 18) || ahead
-      const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
+      // three gaits: flat out; a brisk run for a man who is well out of his
+      // place (so the shape is set before the ball moves again); a jog
+      const brisk = !urgent && dist > 6 && !calm
+      const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) : brisk ? (fwd ? V_FWD : V_BACK) * 0.86 : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
       // (a man with a couple of metres to go does not bother: he is where he should be)
-      const want = !urgent && dist < 1.6 ? 0 : Math.min(vmax, dist * (urgent ? 2.6 : 0.9))
+      const want = !urgent && dist < 1.6 ? 0 : Math.min(vmax, dist * (urgent ? 2.6 : 1.4))
       const wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0
       const ax = wx - bd.vx, ay = wy - bd.vy
       const a = Math.hypot(ax, ay), lim = ACC * dt
