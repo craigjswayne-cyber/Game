@@ -373,7 +373,16 @@ export class PitchSim {
         // defence still getting back its ten metres)
         const c = p.label === 'lp.quickTap' ? 8 : carrierIdx ?? (p.kind === 'carry' ? 11 : 13)
         const scoring = p.kind !== 'carry'
-        const v = p.kind === 'try' ? 8.6 : c < 8 ? 6.3 : 8
+        const tk = p.kind === 'try' && !p.move ? p.tryKind : undefined
+        const v = tk === 'close' ? 4.4 : p.kind === 'try' ? 8.6 : c < 8 ? 6.3 : 8
+        // FROM A LONG WAY OUT: an intercept, a charge-down, turnover ball. He
+        // takes it where it is and goes, the side that had it turning to chase.
+        if (tk === 'long') {
+          mode = 'carry'; cIdx = c; anchor = B
+          steps.push({ k: 'pick', who: att0 + c, max: 2.5 }, { k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true },
+            { k: 'run', to: E, v: 8.8 }, { k: 'mode', mode: 'try' }, { k: 'wait', t: 5.5 })
+          break
+        }
         // A GAP IN THE SAME ATTACK IS A BREAK, NOT A CUT: when the side that
         // had the ball still has it and the line is further up the field, the
         // man runs there. A long-range try is the run it was.
@@ -381,7 +390,7 @@ export class PitchSim {
         const gain = (E.x - B.x) * dir
         // a try from long range is the last forty metres of it; a held-up
         // drive is from close in
-        const reach = p.kind === 'try' ? 42 : p.kind === 'heldup' ? 14 : 38
+        const reach = tk === 'close' ? 70 : p.kind === 'try' ? 42 : p.kind === 'heldup' ? 14 : 38
         cut = cut || (d > 16 && !(sameSide && gain > 0 && d <= reach))
         // A CALLED MOVE IS RUN AS IT IS DRAWN (owner: "I didnt see any of the
         // moves"). The line names the move; the Playbook's own keyframes
@@ -413,7 +422,7 @@ export class PitchSim {
         }
         if (cut) {
           mode = 'carry'; cIdx = c; init = att0 + c
-          anchor = { x: E.x - dir * (p.kind === 'try' ? (d > 42 ? 38 : 14) : p.kind === 'heldup' ? 7 : 6), y: E.y }
+          anchor = { x: E.x - dir * (tk === 'close' ? 6 : p.kind === 'try' ? (d > 42 ? 38 : 14) : p.kind === 'heldup' ? 7 : 6), y: E.y }
         } else if (this.holder === att0 + c) {
           mode = 'carry'; cIdx = c; anchor = B
         } else {
@@ -437,8 +446,23 @@ export class PitchSim {
           }
           steps.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true })
         }
+        if (tk === 'kick') {
+          // A KICK IN BEHIND: he takes it up, puts it along the floor into the
+          // in-goal, and the scorer wins the race to it
+          const kicker = this.holder >= 0 && holderAtt && this.holder !== att0 + c ? this.holder : att0 + (c === 9 ? 11 : 9)
+          const at = steps.findIndex(x => x.k === 'pass' && x.to === att0 + c)
+          if (at >= 0) (steps[at] as { to: number }).to = kicker
+          for (const st of steps) if (st.k === 'mode' && st.anchorOn === att0 + c) { st.anchorOn = kicker; st.cIdx = kicker - att0 }
+          this.over.delete(att0 + c)
+          steps.push({ k: 'wait', t: 0.5 }, { k: 'kick', to: { x: E.x - dir * 1.2, y: E.y }, hang: 2 }, { k: 'pick', who: att0 + c, max: 5 },
+            { k: 'mode', mode: 'try' }, { k: 'wait', t: 5.5 })
+          break
+        }
         steps.push({ k: 'run', to: E, v })
         if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 5.5 : 2.4 })
+        // FROM CLOSE IN it is worked up to the line first: the pack carries it
+        // to within a few metres, and he goes over from there
+        if (tk === 'close' && !cut && d > 10) steps.unshift({ k: 'advance', to: { x: clamp(E.x - dir * 7.5, 3, 97), y: E.y }, rate: ADV })
         break
       }
       default:
@@ -1238,6 +1262,13 @@ export class PitchSim {
           if (this.tried.size <= 2 && left > 4) this.down[m.i] = 1.4
         }
       }
+    }
+    // ... and when it has been kicked in behind for a try, the two defenders
+    // nearest where it is going turn and race for it, a stride too late
+    if (this.tryRun && this.holder < 0 && this.flight && this.flight.toIdx < 0 && this.phase) {
+      const d0 = this.phase.homeBall ? 15 : 0, dr = this.phase.homeBall ? 1 : -1, T = this.flight.to
+      const men = [...Array(15).keys()].map(k => d0 + k).filter(i => this.down[i] <= 0 && !this.off[i]).map(i => ({ i, d: hyp(this.b[i], T) })).sort((a, c) => a.d - c.d)
+      men.slice(0, 2).forEach((m, j) => { this.over.set(m.i, { x: T.x - dr * (1.6 + j * 1.4), y: clamp(T.y + (j ? 2 : -2), 1, 69) }); this.hunt.push(m.i) })
     }
     this.move(dt, runTo)
   }

@@ -43,6 +43,8 @@ export interface Phase {
   carrier?: number
   /** set by the pitch once a restart has been kicked: the chase is on */
   flying?: boolean
+  /** how a try is scored, read from the words: from close in, out wide, through the line, off a kick, or from a long way out */
+  tryKind?: 'close' | 'wide' | 'break' | 'kick' | 'long'
   /** a kick into space: nobody of theirs is under it */
   space?: boolean
   /** where a kick comes down, and how high it goes (metres) */
@@ -147,8 +149,21 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     const pen = s.startsWith('penTry')
     // a try is grounded over the line it was scored at, wherever the engine
     // last had the ball; a penalty try under the posts
-    const y = pen ? 35 : clamp(prevY + (wob(i, 2) - 0.5) * 30, 6, 64)
-    return { ...base, homeBall: isHome, kind: 'try', x: isHome ? 101.5 : -1.5, y, label: 'lp.try',
+    // THE TRY THE WORDS DESCRIBE (owner, 18 Nov 2026: "moves to score tries
+    // should be better"). Every try used to be the same run. The line says
+    // how it was scored, and the pitch now plays that.
+    const n = Number(/^try(\d+)/.exec(raw)?.[1] ?? 0)
+    const tryKind: Phase['tryKind'] = pen ? 'close'
+      : /^try(Intercept|Charge)/.test(raw) || n === 13 || n === 24 ? 'long'
+      : n === 8 || n === 14 ? 'kick'
+      : [1, 4, 10, 15, 18, 25].includes(n) ? 'close'
+      : [2, 6, 9, 20, 22, 26].includes(n) ? 'wide'
+      : n ? 'break'
+      : (['break', 'wide', 'close'] as const)[i % 3]
+    // out wide it is in the corner, on the side with more room; from close in it is near where the ball was
+    const y = pen ? 35 : tryKind === 'wide' ? (prevY < 35 ? 64.5 : 5.5) : tryKind === 'close' ? clamp(prevY + (wob(i, 2) - 0.5) * 10, 10, 60)
+      : clamp(prevY + (wob(i, 2) - 0.5) * 30, 6, 64)
+    return { ...base, homeBall: isHome, kind: 'try', x: isHome ? 101.5 : -1.5, y, label: 'lp.try', tryKind,
       banner: { kind: pen ? 'pentry' : 'try', teamId: e.teamId, name: e.playerName, min: e.min, at: i } }
   }
   if (e.type === 'CON' || s === 'conWide' || s === 'conPost') {
