@@ -1286,7 +1286,10 @@ export class PitchSim {
         if (wl > cap) { wx *= cap / wl; wy *= cap / wl }
       }
       const ax = wx - bd.vx, ay = wy - bd.vy
-      const a = Math.hypot(ax, ay), lim = ACC * dt
+      // (from the research: a man eases into his run and out of it. Only the
+      // men who are flat out get a sprinter's acceleration; the rest build
+      // up and slow down gently, which is what reads as smooth)
+      const a = Math.hypot(ax, ay), lim = (urgent ? ACC : 6.5) * dt
       const k = a > lim ? lim / a : 1
       bd.vx += ax * k; bd.vy += ay * k
       bd.x += bd.vx * dt; bd.y += bd.vy * dt

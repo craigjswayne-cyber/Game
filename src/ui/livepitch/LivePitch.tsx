@@ -961,22 +961,25 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // on it. Rain is fine slanted streaks, snow is slow flakes that drift.
       if ((wet || snow) && !reduce) {
         const tm = performance.now() / 1000
+        // (h2 runs from -1 to 1: its size is used here, or half the weather
+        // falls off the screen and a flake can have a negative radius)
+        const u = (k: number, n: number) => Math.abs(h2(k, n))
         if (wet) {
-          g.strokeStyle = 'rgba(225,235,255,.34)'; g.lineWidth = 1; g.beginPath()
-          for (let k = 0; k < 110; k++) {
-            const sp = 260 + h2(k, 71) * 160
-            const x0 = (h2(k, 73) * (w + 80) - 40 + tm * 55) % (w + 80) - 40
-            const y0 = (h2(k, 79) * (h + 40) + tm * sp) % (h + 40) - 20
-            g.moveTo(x0, y0); g.lineTo(x0 + 3, y0 + 11)
+          g.strokeStyle = 'rgba(232,240,255,.5)'; g.lineWidth = 1.1; g.beginPath()
+          for (let k = 0; k < 150; k++) {
+            const sp = 300 + u(k, 71) * 180
+            const x0 = (u(k, 73) * (w + 80) + tm * 60) % (w + 80) - 40
+            const y0 = (u(k, 79) * (h + 40) + tm * sp) % (h + 40) - 20
+            g.moveTo(x0, y0); g.lineTo(x0 + 3.5, y0 + 13)
           }
           g.stroke()
         } else {
-          g.fillStyle = 'rgba(255,255,255,.85)'
-          for (let k = 0; k < 90; k++) {
-            const sp = 22 + h2(k, 83) * 26
-            const x0 = (h2(k, 89) * w + Math.sin(tm * 0.8 + k) * 9 + tm * 6) % w
-            const y0 = (h2(k, 97) * h + tm * sp) % h
-            g.beginPath(); g.arc(x0, y0, 0.9 + h2(k, 101) * 1.1, 0, Math.PI * 2); g.fill()
+          g.fillStyle = 'rgba(255,255,255,.9)'
+          for (let k = 0; k < 110; k++) {
+            const sp = 22 + u(k, 83) * 26
+            const x0 = (u(k, 89) * w + Math.sin(tm * 0.8 + k) * 9 + tm * 6 + w) % w
+            const y0 = (u(k, 97) * h + tm * sp) % h
+            g.beginPath(); g.arc(x0, y0, 1 + u(k, 101) * 1.2, 0, Math.PI * 2); g.fill()
           }
         }
       }
