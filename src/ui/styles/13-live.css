@@ -943,6 +943,12 @@
   /* the label sits on the far stand's roof, clear of the dugouts and tunnel */
   .live-wrap.full-match .lp-chip { top: 2px; }
   .live-wrap.full-match .now-strip { order: 2; flex: 1 1 0; min-height: 0; }
+  /* (owner, 18 Nov 2026: the commentary "should be lower" and must fit. The
+     feed takes all the room between the pitch and the buttons, so the line
+     being read sits at the foot, just above the controls, and the earlier
+     lines stack up above it with nothing cut off part-way.) */
+  .live-wrap.full-match .now-strip { display: flex; flex-direction: column; }
+  .live-wrap.full-match .comm-feed { flex: 1 1 0; height: auto; min-height: 96px; margin-top: 8px; }
   .live-wrap.full-match .match-status { display: none; }
   .live-wrap.full-match .speed-controls { order: 3; padding-top: 6px; padding-bottom: calc(8px + var(--safe-area-inset-bottom, 0px)); }
 }

@@ -452,11 +452,36 @@ export class PitchSim {
       if (reset) {
         // A RESET: the nearest man gathers it and brings it with him while
         // both sides jog to the mark
-        if (!holderAtt) { this.holder = -1; this.grounded = false; pre.push({ k: 'pick', who: this.nearest(att0, B), max: 1.5, rate: FF }) }
-        pre.push({ k: 'settle', max: 3.6, rate: FF })
-        if (init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
-        steps.unshift(...pre)
-        begin()
+        // IT FLOWS INTO THE SET PIECE (18 Nov 2026, owner: "still jumping
+        // between parts of the game. It should flow as one"). Thirty men used
+        // to sprint forty metres to a scrum that came from nowhere. Now the
+        // play goes there: it is carried to where the scrum is given, or put
+        // into touch where the lineout is, and the set piece forms on the spot.
+        const flows = d > 8 && d <= 70 && (p.kind === 'scrum' || p.kind === 'maul' || p.kind === 'lineout')
+        if (flows && p.kind !== 'lineout' && gain > -8) {
+          if (!holderAtt) { this.holder = -1; this.grounded = false }
+          pre.push({ k: 'advance', to: { ...anchor }, rate: ADV }, { k: 'mode', mode, cIdx, at: { ...anchor }, clear: true },
+            { k: 'pick', who: att0 + 8, max: 1, rate: ADV }, { k: 'settle', max: 2.2, rate: ADV })
+          if (init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
+          steps.unshift(...pre)
+          if (holderAtt) { mode = 'carry'; cIdx = this.holder - att0 } else { mode = 'ruck'; cIdx = null }
+          anchor = B
+          begin()
+        } else if (flows && this.holder >= 0) {
+          const m0 = this.mode, c0 = this.cIdx, a0 = this.anchor
+          pre.push({ k: 'kick', to: { ...anchor }, hang: 9, silent: true, rate: 2.2 }, { k: 'mode', mode, cIdx, at: { ...anchor }, clear: true },
+            { k: 'pick', who: this.nearest(att0, anchor), max: 2, rate: ADV }, { k: 'settle', max: 2.2, rate: ADV })
+          if (init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
+          steps.unshift(...pre)
+          mode = m0; cIdx = c0; anchor = a0
+          begin()
+        } else {
+          if (!holderAtt) { this.holder = -1; this.grounded = false; pre.push({ k: 'pick', who: this.nearest(att0, B), max: 1.5, rate: FF }) }
+          pre.push({ k: 'settle', max: 3.6, rate: FF })
+          if (init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
+          steps.unshift(...pre)
+          begin()
+        }
       } else if (gain < -8 || p.kind === 'catch') {
         // IT WENT BACK DOWN THE FIELD: it was kicked there
         this.holder = -1; this.grounded = false
@@ -821,7 +846,10 @@ export class PitchSim {
     let runTo: Pt | null = null
     if (this.mode !== 'carry') this.meet = null
     // (nothing is shown slower than a brisk 1.2: it reads as life speed and saves a sixth)
-    this.rate = Math.max(1.35, this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1)
+    // ONE PACE (owner: "It should flow as one"): the picture used to lurch
+    // between life speed and four times it. Everything now runs between
+    // about one and a half and two and a half times: brisk, and even.
+    this.rate = clamp(this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1, 1.8, 2.8)
     // a ball in the air from a restart or a kick at goal is not watched at life speed
     if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, 2.8)
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
