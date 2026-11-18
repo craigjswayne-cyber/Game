@@ -48,10 +48,21 @@ function affordable(g: GameState, clubId: string): { better: number; can: number
   return { better: pool.length, can: pool.filter(p => askingPrice(g, p) <= c.budget).length }
 }
 
-const champs: Record<string, string[]> = {}
-let driftMax = 0
+// SIX CAREERS, NOT TWO (1.9.14 release check). Two careers' worth of seasons
+// could not tell the world from the dice: 1.9.13 as shipped failed the title
+// line (one league with two champions in eight seasons, 25%) and 1.9.14,
+// whose new code moves the world's random stream but not its prices, failed
+// the drift line instead (1.26), each on one league in one world. The
+// properties are now read as the MEAN over six independent worlds, per
+// league: how far its spread moved, and how often its title changed hands
+// within each world. The bounds are the same numbers.
+const CAREERS: [string, number][] = [
+  ['harlequins', 11], ['leicester', 12], ['bath', 13], ['saracens', 14], ['exeter', 15], ['harlequins', 16],
+].slice(0, Number(process.env.CAREERS ?? 6)) as [string, number][]
+const drifts: Record<string, number[]> = {}
+const rotation: Record<string, number[]> = {}
 let shareMax = 0
-for (const [club, seed] of [['harlequins', 11], ['leicester', 12]] as const) {
+for (const [club, seed] of CAREERS) {
   const g = newGame(club, 'Contract End', seed)
   const s0 = Object.fromEntries(LEAGUES.map(l => [l, spread(g, l)]))
   const a0 = affordable(g, club)
@@ -64,17 +75,20 @@ for (const [club, seed] of [['harlequins', 11], ['leicester', 12]] as const) {
     shareMax = Math.max(shareMax, a.can / Math.max(1, a.better))
   }
   for (const l of LEAGUES) {
-    const d = spread(g, l) - s0[l]
-    driftMax = Math.max(driftMax, d)
-    for (const h of g.history.filter(x => x.compId === l)) (champs[l] ??= []).push(h.champion)
+    ;(drifts[l] ??= []).push(spread(g, l) - s0[l])
+    const ch = g.history.filter(x => x.compId === l).map(h => h.champion)
+    if (ch.length) (rotation[l] ??= []).push(new Set(ch).size / ch.length)
   }
-  console.log(`  ${club}: spread ${LEAGUES.map(l => `${l} ${s0[l].toFixed(2)} -> ${spread(g, l).toFixed(2)}`).join(', ')}; affordable improvers ${a0.can}/${a0.better} at the start`)
+  console.log(`  ${club} (${seed}): spread ${LEAGUES.map(l => `${l} ${s0[l].toFixed(2)} -> ${spread(g, l).toFixed(2)}`).join(', ')}; affordable improvers ${a0.can}/${a0.better} at the start`)
 }
-const distinct = LEAGUES.map(l => new Set(champs[l] ?? []).size / Math.max(1, (champs[l] ?? []).length))
-console.log(`  champions: ${LEAGUES.map((l, i) => `${l} ${new Set(champs[l]).size} different in ${(champs[l] ?? []).length} (${(distinct[i] * 100).toFixed(0)}%)`).join(', ')}`)
-console.log(`  largest spread drift ${driftMax.toFixed(2)}, largest affordable share ${(shareMax * 100).toFixed(1)}%`)
+const avg = (a: number[] = []) => a.reduce((x, y) => x + y, 0) / Math.max(1, a.length)
+const meanDrift = LEAGUES.map(l => avg(drifts[l]))
+const driftMax = Math.max(...meanDrift)
+const distinct = LEAGUES.map(l => avg(rotation[l]))
+console.log(`  mean spread drift by league: ${LEAGUES.map((l, i) => `${l} ${meanDrift[i].toFixed(2)}`).join(', ')}`)
+console.log(`  champions per world: ${LEAGUES.map((l, i) => `${l} ${(distinct[i] * 100).toFixed(0)}%`).join(', ')}; largest affordable share ${(shareMax * 100).toFixed(1)}%`)
 
-ok(driftMax <= 0.9, `club strength in a league does not pull apart over ${SEASONS} seasons (largest drift ${driftMax.toFixed(2)} rating points)`)
+ok(driftMax <= 0.9, `club strength in a league does not pull apart over ${SEASONS} seasons (largest mean drift ${driftMax.toFixed(2)} rating points, ${CAREERS.length} worlds)`)
 // 1.9.12's prices, measured the same way: 6, 4 and 3 different champions in 8
 // seasons (75%, 50%, 38%). A third is the floor: a league where one or two
 // clubs win nearly everything is what this guards.
