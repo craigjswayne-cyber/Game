@@ -454,7 +454,7 @@ export class PitchSim {
           if (at >= 0) (steps[at] as { to: number }).to = kicker
           for (const st of steps) if (st.k === 'mode' && st.anchorOn === att0 + c) { st.anchorOn = kicker; st.cIdx = kicker - att0 }
           this.over.delete(att0 + c)
-          steps.push({ k: 'wait', t: 0.5 }, { k: 'kick', to: { x: E.x - dir * 1.2, y: E.y }, hang: 2 }, { k: 'pick', who: att0 + c, max: 5 },
+          steps.push({ k: 'wait', t: 0.5 }, { k: 'kick', to: { x: E.x + dir * 2.5, y: E.y }, hang: 2 }, { k: 'pick', who: att0 + c, max: 5 },
             { k: 'mode', mode: 'try' }, { k: 'wait', t: 5.5 })
           break
         }
@@ -1273,7 +1273,7 @@ export class PitchSim {
     if (this.tryRun && this.holder < 0 && this.flight && this.flight.toIdx < 0 && this.phase) {
       const d0 = this.phase.homeBall ? 15 : 0, dr = this.phase.homeBall ? 1 : -1, T = this.flight.to
       const men = [...Array(15).keys()].map(k => d0 + k).filter(i => this.down[i] <= 0 && !this.off[i]).map(i => ({ i, d: hyp(this.b[i], T) })).sort((a, c) => a.d - c.d)
-      men.slice(0, 2).forEach((m, j) => { this.over.set(m.i, { x: T.x - dr * (1.6 + j * 1.4), y: clamp(T.y + (j ? 2 : -2), 1, 69) }); this.hunt.push(m.i) })
+      men.slice(0, 2).forEach((m, j) => { this.over.set(m.i, { x: T.x - dr * (3.2 + j * 1.6), y: clamp(T.y + (j ? 2.4 : -2.4), 1, 69) }); this.hunt.push(m.i) })
     }
     this.move(dt, runTo)
   }

@@ -798,6 +798,10 @@
   text-shadow: 0 3px 14px rgba(0, 0, 0, .5);
   animation: lp-banner .45s cubic-bezier(.2, .9, .3, 1.12) both;
 }
+/* a score is made at one end: the word sits in the other half of the pitch,
+   so the try itself is never under it (home scores at the right-hand end) */
+.lp-banner.low { padding-right: 24%; background: radial-gradient(ellipse 52% 46% at 38% 50%, rgba(0, 0, 0, .46), rgba(0, 0, 0, 0) 100%); }
+.lp-banner.high { padding-left: 24%; background: radial-gradient(ellipse 52% 46% at 62% 50%, rgba(0, 0, 0, .46), rgba(0, 0, 0, 0) 100%); }
 .lp-banner b { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; font-size: 3.4rem; letter-spacing: -1.5px; line-height: .95; }
 .lp-banner em { font-style: normal; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--lp-plus); line-height: 1; margin-left: 22%; margin-bottom: -4px; }
 .lp-banner span { max-width: 94%; overflow: hidden; display: flex; align-items: center; gap: 7px; margin-top: 5px; font-size: 0.625rem; font-weight: 700; letter-spacing: 2.4px; text-transform: uppercase; }
