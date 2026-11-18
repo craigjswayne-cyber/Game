@@ -14,6 +14,9 @@ import artNight from './stadium-night.webp'
 import artWet from './stadium-wet.webp'
 import artGreen from './stadium-green.webp'
 import artNightRed from './stadium-night-red.webp'
+import artNightGreen from './stadium-night-green.webp'
+import artSnow from './stadium-snow.webp'
+import artNightWet from './stadium-night-wet.webp'
 import type { MatchEvent } from '../../game/model'
 import { readInk, isLight, refereeColour, tokenColor } from '../highlight/draw'
 import { phaseAt, readLine, type Banner, type Phase } from './phase'
@@ -44,24 +47,29 @@ const GOAL = 8
  *  the painter moved the pitch a few pixels between some: x0 and y0 are the
  *  left try line and the far touchline, mx and my the pixels to a metre.) */
 type Stadium = { url: string; w: number; h: number; x0: number; y0: number; mx: number; my: number; seat?: [number, number, number] }
-const GROUNDS: Record<'maroon' | 'red' | 'navy' | 'green' | 'night' | 'nightRed' | 'wet', Stadium> = {
+const GROUNDS: Record<'maroon' | 'red' | 'navy' | 'green' | 'night' | 'nightRed' | 'nightGreen' | 'nightWet' | 'wet' | 'snow', Stadium> = {
   maroon: { url: artMaroon, w: 1448, h: 1086, x0: 280.5, y0: 318, mx: 8.87, my: 7.17, seat: [120, 30, 50] },
   red: { url: artRed, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.16, seat: [200, 40, 45] },
   navy: { url: artNavy, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.17, seat: [40, 60, 110] },
   green: { url: artGreen, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.17, seat: [40, 150, 60] },
   night: { url: artNight, w: 1448, h: 1086, x0: 277, y0: 318, mx: 8.93, my: 7.19, seat: [40, 60, 110] },
   nightRed: { url: artNightRed, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.875, my: 7.18, seat: [200, 40, 45] },
+  nightGreen: { url: artNightGreen, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.88, my: 7.17, seat: [40, 150, 60] },
+  nightWet: { url: artNightWet, w: 1448, h: 1086, x0: 280.5, y0: 318.5, mx: 8.865, my: 7.16 },
+  snow: { url: artSnow, w: 1448, h: 1086, x0: 280, y0: 318.5, mx: 8.87, my: 7.16 },
   wet: { url: artWet, w: 1448, h: 1086, x0: 280, y0: 318, mx: 8.87, my: 7.19 },
 }
 /** which ground a match is played in: the floodlit one at night, the wet one
  *  in rain or snow, otherwise the one whose seats are nearest the home colour */
-const pickGround = (night: boolean, wet: boolean, kit: string): Stadium => {
+const pickGround = (night: boolean, wet: boolean, snow: boolean, kit: string): Stadium => {
+  if ((wet || snow) && night) return GROUNDS.nightWet
+  if (snow && !night) return GROUNDS.snow
   if (wet && !night) return GROUNDS.wet
   const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(kit)
   const c = m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [40, 60, 110]
   let best = GROUNDS.navy, bd = Infinity
   if (night) best = GROUNDS.night
-  for (const g of night ? [GROUNDS.night, GROUNDS.nightRed] : [GROUNDS.navy, GROUNDS.maroon, GROUNDS.red, GROUNDS.green]) { const d = g.seat!.reduce((t, v, i) => t + (v - c[i]) ** 2, 0); if (d < bd) { bd = d; best = g } }
+  for (const g of night ? [GROUNDS.night, GROUNDS.nightRed, GROUNDS.nightGreen] : [GROUNDS.navy, GROUNDS.maroon, GROUNDS.red, GROUNDS.green]) { const d = g.seat!.reduce((t, v, i) => t + (v - c[i]) ** 2, 0); if (d < bd) { bd = d; best = g } }
   return best
 }
 const artCache = new Map<string, HTMLImageElement>()
@@ -85,7 +93,9 @@ function h2(a: number, b: number): number {
   return ((h ^ (h >>> 16)) % 10000) / 10000
 }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false }: {
+  /** snow on the ground */
+  snow?: boolean
   /** rain or snow: the wet ground */
   wet?: boolean
   /** under the lights, or an afternoon kick-off (owner, 17 Nov 2026: "Make day matches too") */
@@ -218,7 +228,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
     }
     // field metres to screen: length up the screen (home attacks up), width across
-    const STADIUM = pickGround(night, wet, io.current.home.kit[0])
+    const STADIUM = pickGround(night, wet, snow, io.current.home.kit[0])
     const stadiumArt = typeof Image !== 'undefined' ? loadArt(STADIUM.url) : null
     const SX = (x: number, y: number) => dim.art ? dim.ox + (STADIUM.x0 + x * STADIUM.mx) * dim.art : dim.up ? dim.ox + (y + SIDE) * dim.sc : dim.ox + (x + GOAL + END) * dim.sc
     const SY = (x: number, y: number) => dim.art ? dim.oy + (STADIUM.y0 + y * STADIUM.my) * dim.art : dim.up ? dim.oy + (100 + GOAL + END - x) * dim.sc : dim.oy + (y + SIDE) * dim.sc
@@ -958,7 +968,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     void document.fonts?.ready.then(() => { if (cv.isConnected) size() })
     raf = requestAnimationFrame(frame)
     return () => { cancelAnimationFrame(raf); ro.disconnect() }
-  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], night, wet])
+  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], night, wet, snow])
 
   // the chip says what the play is; a plain carry or tackle says nothing.
   // A called move is named, and named large, for as long as it is being run
