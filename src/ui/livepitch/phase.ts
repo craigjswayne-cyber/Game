@@ -96,6 +96,27 @@ export function readLine(e: MatchEvent, i: number, homeId: string, prev: Phase |
   const p = readLine0(e, i, homeId, prev, next)
   const mk = e.v?.move_k
   if (p && typeof mk === 'string') p.move = mk
+  // ONE PASSAGE OF PLAY, NOT A HUNDRED SNAPSHOTS (18 Nov 2026, owner: "It
+  // should flow as one", "players running in strange areas"; own audit: play
+  // jumped a median of 19 metres between one line and the next, so thirty
+  // men ran 218 metres a minute relocating). The engine says roughly where
+  // on the field each line is. The pitch now treats that as where play is
+  // heading, not where it instantly is: an ordinary phase moves on at most a
+  // carry's length from where the ball actually was, and catches the engine
+  // up over the next line or two. Scores, restarts and kicks are exact.
+  if (p && prev) {
+    const from = prev.to && (prev.kind === 'kick' || prev.kind === 'kickoff' || prev.kind === 'dropout') ? prev.to : prev
+    const soon = next?.type === 'TRY'
+    const step = p.kind === 'ruck' || p.kind === 'carry' || p.kind === 'penalty' || p.kind === 'maul' ? 12
+      : p.kind === 'scrum' ? 10 : p.kind === 'lineout' ? 30 : p.kind === 'kick' || p.kind === 'catch' ? 16 : 0
+    if (step && !soon && Math.abs(from.x - 50) < 60) {
+      const nx = from.x + clamp(p.x - from.x, -step, step)
+      const dx = nx - p.x
+      p.x = clamp(nx, 1, 99)
+      if (p.to) p.to = { x: clamp(p.to.x + dx, 1, 99), y: p.to.y }
+      if (p.kind !== 'lineout') p.y = clamp(from.y + clamp(p.y - from.y, -16, 16), 3, 67)
+    }
+  }
   // A TURNOVER IS NAMED: when the ball changes hands in open play, with no
   // kick and no whistle between, the pitch says so while it shows it (the
   // strip, the steal at the ruck or the intercept: sim.ts)

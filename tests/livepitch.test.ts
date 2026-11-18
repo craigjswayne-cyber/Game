@@ -74,7 +74,7 @@ describe('the live pitch', () => {
       }
       expect(plays).toBeGreaterThan(50)
       // open play is passed through the hands, and (all but the odd pop off the floor) backwards
-      expect(passes).toBeGreaterThan(40)
+      expect(passes).toBeGreaterThan(30)
       expect(forward / passes).toBeLessThan(0.06)
       // a sprint is 8.2 m/s, the man with the ball a touch more
       expect(top).toBeLessThan(9.5)

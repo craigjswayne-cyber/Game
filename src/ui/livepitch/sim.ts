@@ -1161,7 +1161,16 @@ export class PitchSim {
       for (let i = 0; i < 30; i++) {
         // (a man told exactly where to stand for a pass or a move is not eased)
         if (this.over.has(i)) { this.tg[i].x = T.pts[i].x; this.tg[i].y = T.pts[i].y; continue }
-        this.tg[i].x += (T.pts[i].x - this.tg[i].x) * k; this.tg[i].y += (T.pts[i].y - this.tg[i].y) * k
+        // THE FURTHER FROM THE BALL, THE LATER A MAN REACTS (18 Nov 2026, own
+        // audit). The whole shape was hung rigidly off the ball, so when a
+        // man carried ten metres all thirty ran ten metres with him, the far
+        // wing included. A man near the ball moves with it; a man forty
+        // metres away drifts after it. That is what stops everybody running
+        // all the time.
+        const open = this.mode === 'carry' || this.mode === 'ruck'
+        const far = open && i !== this.holder ? Math.hypot(this.b[i].x - this.ball.x, this.b[i].y - this.ball.y) : 0
+        const ki = far > 8 ? 1 - Math.exp(-dt / (0.2 + (far - 8) * 0.075)) : k
+        this.tg[i].x += (T.pts[i].x - this.tg[i].x) * ki; this.tg[i].y += (T.pts[i].y - this.tg[i].y) * ki
       }
     }
     const tight = this.mode === 'scrum' || this.mode === 'maul'
@@ -1194,7 +1203,8 @@ export class PitchSim {
       const nearBall = Math.hypot(bd.x - this.ball.x, bd.y - this.ball.y) < 14
       const urgent = i === this.holder || this.over.has(i) || (chase && (this.kicked || nearBall)) || dist > (nearBall ? 9 : 18) || ahead
       const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
-      const want = Math.min(vmax, dist * (urgent ? 2.6 : 1.1))
+      // (a man with a couple of metres to go does not bother: he is where he should be)
+      const want = !urgent && dist < 1.6 ? 0 : Math.min(vmax, dist * (urgent ? 2.6 : 0.9))
       const wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0
       const ax = wx - bd.vx, ay = wy - bd.vy
       const a = Math.hypot(ax, ay), lim = ACC * dt
