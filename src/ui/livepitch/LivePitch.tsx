@@ -809,7 +809,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         // a man on the ground after a tackle: fainter until he is back up
         const floor = S.down[i] > 0 || S.off[i]
         // the men in a ruck are a pile, not six separate discs
-        sz[i] += ((S.bound(i) || floor ? 0.74 : up2[0] === i || up2[1] === i ? 1.24 : 1) - sz[i]) * 0.18
+        sz[i] += ((S.bound(i) || floor ? 0.56 : up2[0] === i || up2[1] === i ? 1.24 : 1) - sz[i]) * 0.18
         R = R0 * sz[i]
         if (floor) g.globalAlpha = 0.6
         // DEPTH (owner, 17 Nov 2026: "Add more depth"): a man stands on the
@@ -827,7 +827,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.fillStyle = isLight(side.kit[0]) ? ink.dark : ink.white
         g.font = `800 ${Math.round(R * 1.08)}px system-ui, sans-serif`
         g.textAlign = 'center'; g.textBaseline = 'middle'
-        g.fillText(String(side.nums[k] ?? k + 1), x, y + 0.5)
+        // (a man bound in a ruck or on the floor is one of a knot: no number on him)
+        if (sz[i] > 0.8) g.fillText(String(side.nums[k] ?? k + 1), x, y + 0.5)
         if (floor) g.globalAlpha = 1
         R = R0
       }

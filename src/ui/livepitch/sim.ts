@@ -477,7 +477,8 @@ export class PitchSim {
           begin()
         } else {
           if (!holderAtt) { this.holder = -1; this.grounded = false; pre.push({ k: 'pick', who: this.nearest(att0, B), max: 1.5, rate: FF }) }
-          pre.push({ k: 'settle', max: 3.6, rate: FF })
+          // (a kick at goal waits for both sides to get to their places: it was being taken with thirty men still in a heap)
+          pre.push({ k: 'settle', max: p.kind === 'con' || p.kind === 'goal' ? 6 : 3.6, rate: FF })
           if (init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
           steps.unshift(...pre)
           begin()
