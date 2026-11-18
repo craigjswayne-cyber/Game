@@ -406,7 +406,7 @@ export class PitchSim {
           steps.push({ k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true })
         }
         steps.push({ k: 'run', to: E, v })
-        if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 2.8 : 1.6 })
+        if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 5.5 : 2.4 })
         break
       }
       default:

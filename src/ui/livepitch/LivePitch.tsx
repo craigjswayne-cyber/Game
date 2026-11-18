@@ -87,8 +87,8 @@ let FIELD_L = 100 + GOAL * 2 + END * 2, FIELD_W = 70 + SIDE * 2
 
 /** the verdict's type size: full size for TRY, smaller the longer the word */
 function bannerSize(label: string, good: boolean): { fontSize: string } {
-  const full = good ? 3.1 : 2.2
-  return { fontSize: `${Math.max(1.15, Math.min(full, 19.5 / Math.max(1, label.length))).toFixed(2)}rem` }
+  const full = good ? 3.4 : 2.4
+  return { fontSize: `${Math.max(1.15, Math.min(full, 22 / Math.max(1, label.length))).toFixed(2)}rem` }
 }
 
 /** a stable 0..1 from two integers: the crowd is the same crowd every frame */

@@ -788,26 +788,29 @@
 .lp-chip i { width: 7px; height: 7px; border-radius: 50%; display: block; }
 @keyframes lp-chip { from { opacity: 0; transform: translate(-50%, -4px); } }
 .lp-banner {
-  position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  /* (owner, 18 Nov 2026, of the reference clip: "Score overlay needs to be
+     more like this". There the word is big, white and plain across the middle
+     of the pitch, the points small and green above it, one quiet line of
+     small spaced capitals under it, and the pitch dims a little behind.) */
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   color: var(--prop-ink); text-align: center; white-space: nowrap; pointer-events: none;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
-  animation: lp-banner .5s cubic-bezier(.2, .9, .3, 1.15) both;
+  background: radial-gradient(ellipse 62% 46% at 50% 50%, rgba(0, 0, 0, .46), rgba(0, 0, 0, 0) 100%);
+  text-shadow: 0 3px 14px rgba(0, 0, 0, .5);
+  animation: lp-banner .45s cubic-bezier(.2, .9, .3, 1.12) both;
 }
-.lp-banner b { font-family: var(--cond); font-weight: 800; font-size: 3.1rem; letter-spacing: 3px; line-height: .95; }
-.lp-banner em { font-style: normal; font-family: var(--cond); font-weight: 800; font-size: 1.35rem; color: var(--lp-plus); line-height: 1; }
-.lp-banner { max-width: 94%; }
-.lp-banner span { max-width: 100%; overflow: hidden; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
-.lp-banner span i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid; display: block; }
-/* a score is made at one end: its banner sits in the other half, so the
-   try itself is never under the word (home attacks up the screen) */
-@media (orientation: portrait) {
-  .lp-banner.low { top: 66%; }
-  .lp-banner.high { top: 32%; }
+.lp-banner b { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; font-size: 3.4rem; letter-spacing: -1.5px; line-height: .95; }
+.lp-banner em { font-style: normal; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--lp-plus); line-height: 1; margin-left: 22%; margin-bottom: -4px; }
+.lp-banner span { max-width: 94%; overflow: hidden; display: flex; align-items: center; gap: 7px; margin-top: 5px; font-size: 0.625rem; font-weight: 700; letter-spacing: 2.4px; text-transform: uppercase; }
+.lp-banner span i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid; display: block; }
+/* a card: the card itself, tilted, beside the word */
+.lp-banner.yc b, .lp-banner.rc b { display: flex; align-items: center; gap: 12px; color: var(--prop-ink); }
+.lp-banner.yc b::before, .lp-banner.rc b::before {
+  content: ''; width: .62em; height: .86em; border-radius: 3px; transform: rotate(-9deg);
+  background: var(--gold-fill); box-shadow: 0 3px 10px rgba(0, 0, 0, .5);
 }
-.lp-banner:not(.good) b { font-size: 2.2rem; color: var(--gold-fill); }
-.lp-banner.rc b { color: var(--danger-fill); }
-@keyframes lp-banner { from { opacity: 0; transform: translate(-50%, -42%) scale(.86); } }
+.lp-banner.rc b::before { background: var(--danger-fill); }
+.lp-banner:not(.good):not(.yc):not(.rc) b { color: var(--gold-fill); }
+@keyframes lp-banner { from { opacity: 0; transform: scale(.88); } }
 @media (prefers-reduced-motion: reduce) { .lp-chip, .lp-banner { animation: none; } }
 @keyframes hl-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
 .hl-canvas { display: block; width: 100%; height: 100%; }
@@ -942,15 +945,15 @@
   }
   /* the label sits on the far stand's roof, clear of the dugouts and tunnel */
   .live-wrap.full-match .lp-chip { top: 2px; }
-  .live-wrap.full-match .now-strip { order: 2; flex: 1 1 0; min-height: 0; }
-  /* (owner, 18 Nov 2026: the commentary "should be lower" and must fit. The
-     feed takes all the room between the pitch and the buttons, so the line
-     being read sits at the foot, just above the controls, and the earlier
-     lines stack up above it with nothing cut off part-way.) */
-  .live-wrap.full-match .now-strip { display: flex; flex-direction: column; }
-  .live-wrap.full-match .comm-feed { flex: 1 1 0; height: auto; min-height: 96px; margin-top: 8px; }
+  /* (owner, 18 Nov 2026: "it should be pitch, buttons and then commentary
+     with one line of commentary with the last one going up". The buttons sit
+     straight under the pitch. Under them is the line being read, and above
+     it the one before, faded, sliding up and out as the new one arrives.) */
+  .live-wrap.full-match .speed-controls { order: 2; padding-top: 8px; padding-bottom: 6px; }
+  .live-wrap.full-match .now-strip { order: 3; flex: none; }
+  .live-wrap.full-match .comm-feed { height: 132px; }
+  .live-wrap.full-match .comm-line.old.a2, .live-wrap.full-match .comm-line.old.a3 { display: none; }
   .live-wrap.full-match .match-status { display: none; }
-  .live-wrap.full-match .speed-controls { order: 3; padding-top: 6px; padding-bottom: calc(8px + var(--safe-area-inset-bottom, 0px)); }
 }
 
 /* the full match with the phone on its side, and on a tablet: the pitch box
