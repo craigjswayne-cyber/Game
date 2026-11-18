@@ -177,7 +177,7 @@ function maul(): { att: UV[]; def: UV[] } {
  * take the pass infield, the other wing dropping in behind, the half-backs
  * and the rest turning and working back to get behind the ball.
  */
-function kickChase(landU: number, landV: number, kind: 'contest' | 'long' | 'touch' = 'long'): { att: UV[]; def: UV[] } {
+function kickChase(landU: number, landV: number, kind: 'contest' | 'long' | 'touch' = 'long', space = false): { att: UV[]; def: UV[] } {
   const sv = landV >= 0 ? 1 : -1
   const att: UV[] = []
   for (let k = 0; k < 15; k++) att.push([0, 0])
@@ -205,7 +205,8 @@ function kickChase(landU: number, landV: number, kind: 'contest' | 'long' | 'tou
   for (let k = 0; k < 15; k++) def.push([0, 0])
   // (their wings, seen from the kicker: 10 is on the -v side, 13 on the +v side)
   const dNear = sv > 0 ? 13 : 10, dFar = sv > 0 ? 10 : 13
-  def[14] = [landU, landV]
+  // (kicked into space: their full-back is not under it, he is coming across late)
+  def[14] = space ? [landU + 11, landV - sv * 9] : [landU, landV]
   def[dNear] = [landU + 4.5, landV + sv * 3.5]
   def[dFar] = [landU + 2, landV - sv * 13]
   def[9] = [landU - 4, landV - sv * 9]
@@ -215,6 +216,64 @@ function kickChase(landU: number, landV: number, kind: 'contest' | 'long' | 'tou
     def[k] = [Math.max(3, landU - 9 - (j % 3) * 3.4 - (k < 5 ? 5 : 0)), landV - sv * (-4 + j * 5)]
   })
   return { att, def }
+}
+
+/**
+ * THE SIDE RECEIVING A RESTART (18 Nov 2026, stage 2, owner: "Kick off players
+ * running away from the ball"). They used to stand in loose pods, and when
+ * the ball went up the full-back ran thirty metres forward to catch it while
+ * the forwards beside the landing ran away from it towards halfway.
+ *
+ * How a side really receives: a hooker up on the ten-metre line for the short
+ * one; two lifting pods of three, a lock between two lifters, one under where
+ * it is expected and one in midfield; the number 8 across the other side; the
+ * scrum-half behind the pods; the backs deep and across, the full-back last.
+ * u is metres beyond the kick, v across from it (positive: the side it goes).
+ */
+const RECV: UV[] = [
+  [18.3, 16], [12, 9], [21.7, 16], [20, 16], [21, 2], [19.3, 2], [22.7, 2], [26, -12],
+  [27, 8], [34, -4], [33, -27], [30, -14], [27, -22], [32, 28], [42, 3],
+]
+/** ... and once it is in the air: THE NEAREST MAN TAKES IT, where he is or a
+ *  few strides from it; if he is a lock his two lifters come in under him;
+ *  the rest of the forwards come TO the ball and gather on their own side of
+ *  it; the scrum-half comes to its base; the backs hold their depth and slide
+ *  across behind it for the clearance. Nobody runs away from it. */
+/** the man of the receiving side who takes a restart coming down at (landU, landV) */
+export function restartCatcher(landU: number, landV: number): number {
+  const sv = landV >= 0 ? 1 : -1
+  let c = 3, bd = Infinity
+  // (not the scrum-half: he is there to clear it, not to catch it)
+  for (const k of [3, 4, 7, 9, 11, 12, 13, 14, 10]) { const d = Math.hypot(RECV[k][0] - landU, RECV[k][1] * sv - landV); if (d < bd) { bd = d; c = k } }
+  return c
+}
+function restartReceive(landU: number, landV: number): UV[] {
+  const sv = landV >= 0 ? 1 : -1
+  const at = RECV.map(([u, v]) => [u, v * sv] as UV)
+  const c = restartCatcher(landU, landV)
+  const def = at.map(q => [q[0], q[1]] as UV)
+  def[c] = [landU, landV]
+  const lifters = c === 3 ? [0, 2] : c === 4 ? [5, 6] : []
+  lifters.forEach((k, j) => { def[k] = [landU + (j ? 2.6 : -2.6), landV] })
+  // the other forwards arrive behind him, on their own side of the ball
+  // (spread, not stacked: a man is drawn far wider than he is, and six of
+  // them a stride apart are one blob)
+  const gather: UV[] = [[6, -6], [6, 6], [10, 0], [10, -11], [10, 11], [14, 6], [14, -6], [18, 0]]
+  let j = 0
+  for (let k = 0; k < 8; k++) {
+    if (k === c || lifters.includes(k)) continue
+    def[k] = [landU + gather[j][0], landV + gather[j][1]]
+    j++
+  }
+  const set = (k: number, q: UV) => { if (k !== c) def[k] = q }
+  set(8, [landU + 4.5, landV - sv * 3])
+  set(9, [landU + 12, landV - sv * 9])
+  set(11, [landU + 10, landV - sv * 17])
+  set(12, [landU + 9, landV - sv * 25])
+  set(10, [Math.max(landU + 8, 30), -sv * 28])
+  set(13, [Math.max(landU + 8, 30), sv * 28])
+  set(14, [Math.max(landU + 15, 40), landV * 0.4])
+  return def
 }
 
 /**
@@ -319,9 +378,9 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
       const landV = (to.y - p.y) * open
       // (a kick in behind is along the floor and is raced for, like a high ball)
       const how = p.label === 'lp.kickTouch' ? 'touch' : (p.hang ?? 0) >= 14 || p.label === 'lp.grubber' ? 'contest' : 'long'
-      ;({ att, def } = kickChase(landU, landV, how))
+      ;({ att, def } = kickChase(landU, landV, how, !!p.space))
       // a restart in the air is chased like any high ball; before it is kicked both sides are set
-      if (p.flying) { holder = null; ball = to; ref = { x: ux(landU * 0.5), y: clamp(vy(landV * 0.5 + 8), 2, 68) }; break }
+      if (p.flying) { def = restartReceive(landU, landV); holder = null; ball = to; ref = { x: ux(landU * 0.5), y: clamp(vy(landV * 0.5 + 8), 2, 68) }; break }
       if (p.kind === 'kickoff' || p.kind === 'dropout') {
         // the kicking side level along the line, the others waiting in pods
         // v is measured from the ball, which sits mid-field for a kick-off
@@ -333,14 +392,11 @@ export function shapeOf(p: Phase, carrierIdx: number | null): Shape {
         // outside them; the number 8 and the full-back stay back for the
         // kick that comes back)
         const ko: UV[] = [
-          [0, -5], [0, 5], [0, -9], [0, 9], [0, 13], [0, 17], [0, 21], [-13, 3],
-          [-4, -3], [-1.5, 0], [0, -31], [0, 25], [0, -15], [0, 31], [-18, -12],
+          [0, -6], [0, 6], [0, -11], [0, 11], [0, 16], [0, 21], [0, 26], [-13, 3],
+          [-5, -3], [-1.5, 0], [0, -31], [0, -16], [0, -23], [0, 32], [-18, -10],
         ]
         att = ko.map(([u, v]) => [u, v * sv] as UV)
-        const recv: UV[] = [
-          [12, 14], [12, 11], [13, 8], [15, -6], [15, -9], [13, -12], [17, 4], [18, -2],
-          [21, 0], [27, -4], [34, -26], [30, -12], [32, -20], [34, 28], [42, 0],
-        ].map(([u, v]) => [u, v * sv] as UV)
+        const recv: UV[] = RECV.map(([u, v]) => [u, v * sv] as UV)
         def = recv
         if (p.kind === 'dropout') def = recv.map(([u, v]) => [u + 8, v] as UV)
       } else {

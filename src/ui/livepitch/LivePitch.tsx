@@ -642,8 +642,14 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       dim = { w, h, dpr, sc, up, tilt, art: 0, ox: (w - (up ? FIELD_W : FIELD_L) * sc) / 2, oy: (h - (up ? FIELD_L : FIELD_W) * sc) / 2 }
       // on its side, and the picture has arrived: the picture is the ground
       if (!up && stadiumArt?.complete && stadiumArt.naturalWidth > 0 && w > 0) {
-        const k = Math.min(w / STADIUM.w, h / STADIUM.h)
-        dim = { w, h, dpr, sc: STADIUM.mx * k, up, tilt: false, art: k, ox: (w - STADIUM.w * k) / 2, oy: (h - STADIUM.h * k) / 2 }
+        // THE PITCH A LITTLE CLOSER (18 Nov 2026, stage 2). With the whole
+        // picture in the panel a man was drawn nearly five metres across, so
+        // any ruck was one blob. The outer edge of the picture (the backs of
+        // the roofs, the trees) is left off: every seat is still in view and
+        // the pitch is a sixth bigger.
+        const crop = { x: 100, y: 75, w: 1248, h: 936 }
+        const k = Math.min(w / crop.w, h / crop.h)
+        dim = { w, h, dpr, sc: STADIUM.mx * k, up, tilt: false, art: k, ox: (w - crop.w * k) / 2 - crop.x * k, oy: (h - crop.h * k) / 2 - crop.y * k }
       } else if (sc > 0) paintField()
     }
     size()
@@ -788,7 +794,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // (smaller than they were: the reference draws a man about a metre and a
       // half across and lets a pack overlap)
       // (in the painted ground the pitch is a smaller share of the panel, so the men are a touch smaller)
-      const R0 = Math.max(dim.art ? 5.8 : 6.5, sc * 1.45)
+      const R0 = Math.max(dim.art ? 5.2 : 6.5, sc * 1.45)
       let R = R0
       const { home: H, away: A, names: N, carrierId } = io.current
       const flying = S.ball.lift > 0.4

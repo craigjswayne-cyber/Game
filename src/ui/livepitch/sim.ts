@@ -22,7 +22,7 @@
 // Reads phases only; no rng, nothing written back.
 
 import type { Phase, PhaseKind } from './phase'
-import { shapeOf, type Pt } from './shapes'
+import { shapeOf, restartCatcher, type Pt } from './shapes'
 import { FLIGHT, TRACKS, trackAt, type Track } from '../clipPlays'
 import { openPlayTargets, MID_TAC, type PitchTac } from './agents'
 
@@ -156,6 +156,8 @@ export class PitchSim {
   private heeled = false
   /** a kick has been struck in this line's play (latched: the chase does not un-happen) */
   private kicked = false
+  /** where a kick made between lines is going, so both sides chase that and not straight ahead */
+  private kickTo: Pt | null = null
   /** the two defenders standing post at this ruck (side-relative), fixed when the ruck forms */
   private posts: number[] = []
   /** seconds since the mode last changed */
@@ -219,6 +221,7 @@ export class PitchSim {
     this.strike = null
     this.heeled = false
     this.kicked = false
+    this.kickTo = null
     this.idleN = 0
     this.trk = null
     // how fast it is worth watching: real time where it matters, wound on
@@ -236,7 +239,16 @@ export class PitchSim {
     switch (p.kind) {
       case 'kickoff': case 'dropout':
         cut = true; init = att0 + 9; cIdx = null
-        steps.push({ k: 'wait', t: 1.3 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 14 }, { k: 'wait', t: 0.5 })
+        steps.push({ k: 'wait', t: 1.3 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 14 })
+        // IT IS CAUGHT (18 Nov 2026, stage 2). The restart used to end with
+        // the ball lying where it landed and nobody on it. The man of the
+        // receiving side under it takes it, and the line that follows starts
+        // from a man with the ball in his hands.
+        {
+          const to = p.to ?? E
+          const who = (p.homeBall ? 15 : 0) + restartCatcher((to.x - p.x) * dir, (to.y - p.y) * (p.y <= 35 ? 1 : -1))
+          steps.push({ k: 'pick', who, max: 1.4 }, { k: 'wait', t: 0.45 })
+        }
         break
       case 'con': case 'goal':
         cut = true; cIdx = carrierIdx ?? 9; init = att0 + cIdx
@@ -655,7 +667,7 @@ export class PitchSim {
       return { pts, ref: { x: this.anchor.x - dir * 3.5, y: clamp(this.anchor.y + (this.anchor.y < 35 ? 8 : -8), 3, 67) } }
     }
     const restartUp = (this.mode === 'kickoff' || this.mode === 'dropout') && this.kicked
-    const S = shapeOf({ ...p, flying: restartUp, kind: this.mode, x: this.anchor.x, y: this.anchor.y, ruckers: this.ruckers, tacklers: this.tacklers, downMan: this.downMan }, this.cIdx)
+    const S = shapeOf({ ...p, ...(this.mode === 'kick' && this.kickTo ? { to: this.kickTo, hang: 15, label: 'lp.boxKick', space: true } : {}), flying: restartUp, kind: this.mode, x: this.anchor.x, y: this.anchor.y, ruckers: this.ruckers, tacklers: this.tacklers, downMan: this.downMan }, this.cIdx)
     // open play is ragged; a set piece and a kick-off line are not
     const loose = this.mode === 'catch' || this.mode === 'penalty' || this.mode === 'con' || this.mode === 'goal' || this.mode === 'try' || this.mode === 'break'
     const pts = [...S.home, ...S.away].map((q, i) => ({ x: q.x + jit(i, 1) * (loose ? 2.4 : 0.7), y: q.y + jit(i, 2) * (loose ? 1.6 : 0.5) }))
@@ -937,7 +949,7 @@ export class PitchSim {
             this.kicked = true
             const from = { x: this.ball.x, y: this.ball.y }
             // a high ball hangs: that is what lets the chase get under it
-            const T = clamp(Math.max(hyp(from, s.to) / 16, s.hang >= 14 && !s.silent ? 3.5 : 0), 1.1, 4)
+            const T = clamp(Math.max(hyp(from, s.to) / 16, s.hang >= 14 && !s.silent ? 3.5 : s.hang >= 15 ? 3.9 : 0), 1.1, 4)
             this.flight = { from, to: s.to, toIdx: -1, T, t: 0, hang: s.hang, silent: s.silent }
             this.holder = -1; this.grounded = false
           }
@@ -968,10 +980,25 @@ export class PitchSim {
             this.over.set(join, { x: clamp(s.to.x - dir * 6, 1, 99), y: clamp(s.to.y + jy * 9, 3, 67) })
           }
           // a long way to go: it is kicked down there and chased
-          if (rem > 38 && !s.kicked && (mine || this.grounded)) {
+          // (18 Nov 2026, stage 2: it used to be kicked by nobody, off the
+          // grass, forty-five metres, and gathered by a scrum-half who was
+          // somehow already down there on his own. Now a man has to have it:
+          // it goes back to the 9, he puts up a box kick of no more than
+          // thirty metres, the whole side chases it in a line and the wing
+          // on that side wins it in the air. The rest is carried.)
+          if (rem > 38 && !s.kicked && mine) {
             s.kicked = true; s.chase = true
-            const far = Math.min(45, rem - 9)
-            this.steps.splice(this.si, 0, { k: 'kick', to: { x: B.x + (s.to.x - B.x) / rem * far, y: clamp(B.y + (s.to.y - B.y) / rem * far, 6, 64) }, hang: 11, silent: true, rate: s.rate })
+            const far = Math.min(30, rem - 9)
+            const T: Pt = { x: B.x + (s.to.x - B.x) / rem * far, y: clamp(B.y + (s.to.y - B.y) / rem * far, 6, 64) }
+            // the back nearest where it is coming down goes and gets it
+            const wing = this.nearest(att0, T, [0, 1, 2, 3, 4, 5, 6, 7, 8, this.holder - att0])
+            const ins: Step[] = []
+            // (to the 9 only when he is behind the ball and close: otherwise the man who has it kicks it himself)
+            const nine = this.b[att0 + 8], back = (B.x - nine.x) * dir
+            if (this.holder !== att0 + 8 && back > 1 && hyp(nine, B) < 14) ins.push({ k: 'pass', to: att0 + 8, rate: s.rate }, { k: 'wait', t: 0.3, rate: s.rate })
+            ins.push({ k: 'mode', mode: 'kick', at: { ...B } }, { k: 'kick', to: T, hang: 15, silent: true, rate: s.rate }, { k: 'pick', who: wing, max: 3, rate: s.rate })
+            this.kickTo = T
+            this.steps.splice(this.si, 0, ...ins)
             this.entered = false; this.st = 0
             continue
           }

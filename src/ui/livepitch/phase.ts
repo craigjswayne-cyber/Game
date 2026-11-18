@@ -43,6 +43,8 @@ export interface Phase {
   carrier?: number
   /** set by the pitch once a restart has been kicked: the chase is on */
   flying?: boolean
+  /** a kick into space: nobody of theirs is under it */
+  space?: boolean
   /** where a kick comes down, and how high it goes (metres) */
   to?: { x: number; y: number }
   hang?: number
