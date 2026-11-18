@@ -1,5 +1,6 @@
 // The loan-in market: borrow tomorrow's stars from the big clubs' benches.
 
+import { proBlocksSigning } from './prochallenge'
 import type { GameState, Player } from './model'
 import { absWeek, SEASON_WEEKS, fmtWage, leagueTier } from './model'
 import { autoSelect } from './matchEngine'
@@ -218,6 +219,7 @@ export function loanIn(state: GameState, playerId: number, length: LoanLength = 
   const user = state.clubs[state.userClubId]
   // out of work, userClubId is the club that let him go (1.9.4 audit)
   if (state.unemployed) return t('reply.noDesk')
+  if (proBlocksSigning(state)) return t('reply.proAcademy') // Pro: Academy Only
   // A SHARE IS A SHARE (1.9.4 audit): the screen offers LOAN_SHARES, but the
   // engine took any number, and the four per cent floor on the parent's yes
   // let a negative one through - a negative wage, paid every week

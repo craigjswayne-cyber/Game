@@ -11,7 +11,8 @@ import { fmtMoney, seasonLabel } from '../../game/model'
 import { t, localeTag, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { listSaves, type SaveMeta } from '../../game/save'
-import { saveSlotLimit } from '../../game/monetise'
+import { SUPPORTER_SKU, buyOwnable, proChallengesOpen, saveSlotLimit } from '../../game/monetise'
+import { PRO_CHALLENGE_IDS, PRO_SEASONS, startProChallenge, type ProChallengeId } from '../../game/prochallenge'
 import { SLOTS as SAVE_SLOTS, slotName } from './Saves'
 import { rowNav } from '../rowNav'
 import { acc } from '../accent'
@@ -52,6 +53,22 @@ export default function NewGame() {
   const [name, setName] = useState('')
   const [styleId, setStyleId] = useState('balanced')
   const [challengeId, setChallengeId] = useState<string | null>(null)
+  // a Pro challenge laid over the club picked next (1.9.14, prochallenge.ts)
+  const [proId, setProId] = useState<ProChallengeId | null>(null)
+  const [isPro, setIsPro] = useState(() => proChallengesOpen())
+  const [proMsg, setProMsg] = useState<string | null>(null)
+  const pickPro = async (id: ProChallengeId) => {
+    setProMsg(null)
+    if (!isPro) {
+      const out = await buyOwnable(SUPPORTER_SKU)
+      if (out !== 'owned') { setProMsg(t('pro.notBought')); return }
+      setIsPro(true)
+    }
+    setChallengeId(null)
+    setProId(id)
+    setClubId(null)
+    setLeagueIdx(null)
+  }
   const [picked, setPicked] = useState<string[] | null>(null)
   /* A NEW CAREER NEVER LANDS ON AN OLD ONE (1.8.0). start() wrote to whichever
    * slot was last loaded or saved, so starting afresh from the menu silently
@@ -106,6 +123,7 @@ export default function NewGame() {
     const ch = CHALLENGES.find(c => c.id === id)!
     const li = defs.findIndex(d => d.clubs.some(c => c.id === ch.clubId))
     setChallengeId(id)
+    setProId(null)
     setLeagueIdx(li)
     setClubId(ch.clubId)
     setStep(2)
@@ -139,6 +157,8 @@ export default function NewGame() {
     // The pronoun is not asked here any more (v1.5.3): Settings owns it, and
     // start() takes the device's last answer when nothing is passed.
     start(club.id, name.trim(), challengeId ?? undefined, undefined, undefined, undefined, seed)
+    // the Pro challenge goes on before anything else is saved
+    if (proId) { const g0 = useStore.getState().game; if (g0) startProChallenge(g0, proId) }
     // coaching philosophy shapes your starting game plan
     const g = useStore.getState().game
     const chosen = COACHING_STYLES.find(s => s.id === styleId)
@@ -279,6 +299,21 @@ export default function NewGame() {
               })}
             </div>
             </>}
+            {/* PRO CHALLENGES (1.9.14): a rule over any club, picked next */}
+            <div className="wizard-hint" style={{ marginTop: 10 }}>{t('pro.sectionTitle')}<span className="pro-badge">PRO</span></div>
+            <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 6 }} data-pro-challenges>
+              {PRO_CHALLENGE_IDS.map(id => (
+                <button key={id} type="button" className={`card challenge-card pro-card${proId === id ? ' sel' : ''}`} style={{ margin: 0 }} data-pro={id}
+                  aria-pressed={proId === id} onClick={() => { void pickPro(id) }}>
+                  <span style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
+                    <b style={{ display: 'block', fontFamily: 'var(--serif)', fontSize: '0.875rem', color: 'var(--text-primary)' }}>{t(`pro.${id}`)}{!isPro && <span className="pro-badge">PRO</span>}</b>
+                    <span className="meta" style={{ display: 'block', fontSize: '0.75rem' }}>{t(`pro.${id}Desc`, { n: PRO_SEASONS[id] })}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+            {proMsg && <div className="meta" style={{ padding: '6px 16px' }}>{proMsg}</div>}
+            {proId && <div className="meta" style={{ padding: '6px 16px', fontWeight: 700 }} data-pro-picked>{t('pro.pickClub', { title: t(`pro.${proId}`) })}</div>}
           </>
         )}
 
@@ -337,6 +372,12 @@ export default function NewGame() {
               <div className="card" style={{ ...acc('var(--gold)') }}>
                 <h3 style={{ fontSize: '1rem' }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
                 <div className="meta">{t(challenge.desc)}</div>
+              </div>
+            )}
+            {proId && (
+              <div className="card" style={{ ...acc('var(--gold)') }} data-pro-banner>
+                <h3 style={{ fontSize: '1rem' }}>{t('wizard.challengeAccepted', { title: t(`pro.${proId}`) })}<span className="pro-badge">PRO</span></h3>
+                <div className="meta">{t(`pro.${proId}Desc`, { n: PRO_SEASONS[proId] })}</div>
               </div>
             )}
             {/* the name field and the philosophy tiles were one 385px card, so
@@ -406,6 +447,7 @@ export default function NewGame() {
                 <div><label>{t('wizard.philosophyShort')}</label><span>{t(COACHING_STYLES.find(s => s.id === styleId)?.name ?? '')}</span></div>
                 <div><label>{t('wizard.season')}</label><span>{seasonLabel(0)}</span></div>
                 {challenge && <div><label>{t('wizard.challenge')}</label><span>{t(challenge.title)}</span></div>}
+                {proId && <div><label>{t('wizard.challenge')}</label><span>{t(`pro.${proId}`)}</span></div>}
                 <div><label>{t('wizard.objective')}</label><span>{(() => { const s = t(wizardAim(defs, club.id, seed)); return s.charAt(0).toLocaleUpperCase(localeTag()) + s.slice(1) })()}</span></div>
               </div>
             </div>

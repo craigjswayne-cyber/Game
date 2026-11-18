@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from 'react'
+import { proBlocksMoney } from '../../game/prochallenge'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {
@@ -345,6 +346,8 @@ export default function Supporter() {
      store, so neither a throw nor a silence can reach another row. */
   const buyInjection = (tier: InjectTier) => runFor(INJECT_SKUS[tier], async () => {
     if (!inCareer) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
+    // a Pro challenge's purse is the purse: refused before anything is bought
+    if (game && proBlocksMoney(game)) { say(INJECT_SKUS[tier], t('reply.proNoFunds')); return }
     const sku = INJECT_SKUS[tier]
     const owed = await claimHeld(sku)
     if (owed === 'stuck') { say(sku, t('till.owedHeld')); return }

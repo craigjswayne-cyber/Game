@@ -1032,6 +1032,10 @@ function migrateManagerAndNation(s: GameState): void {
   if (s.natPrevSquad != null && !Array.isArray(s.natPrevSquad)) delete s.natPrevSquad
   if (s.natTerm != null && (typeof s.natTerm !== 'object' || typeof s.natTerm.nat !== 'string' || !Number.isFinite(s.natTerm.rank) || !Number.isFinite(s.natTerm.since))) delete s.natTerm
   if (s.natUnveil != null && (typeof s.natUnveil !== 'object' || typeof s.natUnveil.nat !== 'string')) delete s.natUnveil
+  // Pro challenges (1.9.14): damaged, the challenge is dropped, never a crash
+  if (s.proChallenge != null && (typeof s.proChallenge !== 'object' || !['academy', 'shoestring', 'firesale'].includes(s.proChallenge.id) ||
+    typeof s.proChallenge.clubId !== 'string' || !Number.isFinite(s.proChallenge.since) || !Number.isFinite(s.proChallenge.streak))) delete s.proChallenge
+  if (s.careerOver != null && (typeof s.careerOver !== 'object' || typeof s.careerOver.k !== 'string')) delete s.careerOver
   if (s.natFed != null && (typeof s.natFed !== 'object' || typeof s.natFed.nat !== 'string' || !Array.isArray(s.natFed.ids))) delete s.natFed
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist

@@ -97,8 +97,6 @@
   --scrim: rgba(0, 0, 0, 0.65);
   --pitch-a: #1d4a35;
   --pitch-b: #1a4330;
-  /* the walk-out's standing figures (1.9.14, TestDay.tsx): a head, not a person */
-  --figure-head: #c9a27e;
   /* HOW FAR THE GRASS IS HELD BACK on the tactics pitch. The photograph is a
      backdrop for fifteen jerseys, not a picture in its own right (owner,
      v1.8.2: "make the opacity low so the players are still clear"), and the

@@ -843,6 +843,13 @@ export function tillOpen(): boolean {
  *  is starting another (a new career, a copy into an empty slot, an import)
  *  until they are back under it or have gone Pro. */
 export const PRO_SAVE_SLOTS = 4
+/** PRO CHALLENGES (1.9.14): locked only where Pro can be bought and is not
+ *  owned, the same rule as the save slots. The web build has no till, so
+ *  they are open there: a lock nobody can lift is not an offer. */
+export function proChallengesOpen(): boolean {
+  return !tillOpen() || hasSupporter()
+}
+
 export function saveSlotLimit(): number {
   return tillOpen() && !hasSupporter() ? 1 : PRO_SAVE_SLOTS
 }

@@ -15,6 +15,7 @@
 // One joker per injured man, so a treatment room of six is not a licence to
 // sign six players over the cap. And a squad at its limit can still take one,
 // because the whole point is that a man who cannot play is filling a place.
+import { proBlocksSigning } from './prochallenge'
 import { fmtWage, type GameState, type Player } from './model'
 import { capBill, embargoed, executeTransfer, renewalDemand, squadFull, squadFullMsg } from './ai'
 import { userWageBudget } from './grants'
@@ -47,7 +48,7 @@ export function jokerFor(state: GameState, injuredId: number): Player | null {
 /** Can a joker be signed for this man right now? */
 export function jokerOpen(state: GameState, p: Player): boolean {
   return p.clubId === state.userClubId && !p.joker && weeksOut(state, p) >= JOKER_MIN_WEEKS
-    && !jokerFor(state, p.id) && !state.unemployed
+    && !jokerFor(state, p.id) && !state.unemployed && !proBlocksSigning(state)
 }
 
 /** What he would cost for the cover. */

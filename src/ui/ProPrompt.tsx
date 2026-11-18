@@ -131,10 +131,10 @@ export function ProPrompt() {
           const { normal, intro } = await proPrices()
           if (blocked() || due() !== kind) return
           let card: Open | null = null
-          if (kind === 'offer' && intro) {
+          if ((kind === 'offer' || kind === 'moment') && intro) {
             card = { kind, sku: PRO_INTRO_SKU, price: intro.price, usual: normal?.price ?? null, pct: proDiscount(normal, intro), fallback: false }
           } else if (normal) {
-            card = { kind, sku: SUPPORTER_SKU, price: normal.price, usual: null, pct: null, fallback: kind === 'offer' }
+            card = { kind, sku: SUPPORTER_SKU, price: normal.price, usual: null, pct: null, fallback: kind === 'offer' || kind === 'moment' }
           }
           if (!card) { quietUntil = Date.now() + RETRY_MS; return }
           // the card is spent THE MOMENT it is shown, so a restart mid-card
@@ -154,11 +154,12 @@ export function ProPrompt() {
 
   if (!open) return null
 
-  const isOffer = open.kind === 'offer' && !open.fallback
+  const isOffer = (open.kind === 'offer' || open.kind === 'moment') && !open.fallback
+  const isMoment = open.kind === 'moment'
   const close = () => {
     // Continue Free on the real offer declines it for good, and that is all
     // it does: no confirm, no follow-up, nothing taken away
-    if (isOffer && !done) writeFunnel(proOfferAnswered(readFunnel(), false))
+    if (isOffer && !isMoment && !done) writeFunnel(proOfferAnswered(readFunnel(), false))
     setOpen(null)
   }
   const buy = async () => {
@@ -167,7 +168,7 @@ export function ProPrompt() {
     try {
       const out = await buyOwnable(open.sku)
       if (out === 'owned') {
-        if (isOffer) writeFunnel(proOfferAnswered(readFunnel(), true))
+        if (isOffer && !isMoment) writeFunnel(proOfferAnswered(readFunnel(), true))
         claim() // repaint now: the skins unlock and the adverts go this frame
         setDone(true)
       } else {
@@ -197,13 +198,14 @@ export function ProPrompt() {
           </>
         ) : (
           <>
-            {isOffer && <div className="pro-tag">{t('pro.offerTag')}</div>}
+            {isOffer && <div className="pro-tag">{t(isMoment ? 'pro.momentTag' : 'pro.offerTag')}</div>}
             <div className="pro-head">
               <span className="pro-ico"><Glyph name="star" /></span>
               <h2 id={headId}>{title}</h2>
             </div>
             <p className="pro-line">
               {open.kind === 'first' ? t('pro.firstLine')
+                : isMoment ? t('pro.momentLine')
                 : isOffer ? t('pro.offerLine')
                 : t(ads ? 'pro.reminderLine' : 'pro.reminderLineSkins')}
             </p>
@@ -212,6 +214,7 @@ export function ProPrompt() {
                 {ads && <li>{t('pro.benefitAds')}</li>}
                 <li>{t('pro.benefitSkins')}</li>
                 <li>{t('pro.benefitSlots')}</li>
+                <li>{t('pro.benefitChallenges')}</li>
                 <li>{t('pro.benefitBack')}</li>
               </ul>
             )}
@@ -225,7 +228,7 @@ export function ProPrompt() {
             </button>
             <button className="btn ghost pro-btn" disabled={busy} onClick={close}>{t('pro.free')}</button>
             {msg && <div className="meta pro-msg" role="status">{msg}</div>}
-            <p className="pro-fine">{t(isOffer ? 'pro.offerFine' : 'pro.laterFine')}</p>
+            <p className="pro-fine">{t(isMoment ? 'pro.momentFine' : isOffer ? 'pro.offerFine' : 'pro.laterFine')}</p>
           </>
         )}
       </div>

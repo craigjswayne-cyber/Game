@@ -1,6 +1,7 @@
 // The board: the manager's requests (facilities, the ground, funds), its
 // weekly reaction to results and its reading of the table. Split out of
 // season.ts, which re-exports the public parts.
+import { proBlocksMoney } from '../prochallenge'
 import type { FacilityId, Fixture, GameState } from '../model'
 import { offerResult, offerRun } from '../records'
 import { book } from '../books'
@@ -293,6 +294,7 @@ export function askTheBoard(state: GameState, id: BoardAsk): string {
 export function requestFunds(state: GameState): string {
   const club = state.clubs[state.userClubId]
   if (!club || state.unemployed) return ''
+  if (proBlocksMoney(state)) return t('reply.proNoFunds') // Pro: Shoestring, Fire Sale
   const abs = state.season * 100 + state.week
   // the board said no THIS SEASON and here he is again: that is pressing
   const rec = state.boardAsks?.funds

@@ -184,6 +184,32 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   Store declarations: `docs/launch/STORE-PRIVACY-1.9.14.md`. Publish the new
   page before updating the store forms.
 
+- **Pro challenges (Pro Manager only).** A feedback report from a player
+  four seasons in (80% wins, one trophy, never opened Settings) asked for a
+  harder game. The new-career screen now has three Pro challenge careers.
+  Each has a deadline, and missing it ends the career (owner's choice): the
+  manager is sacked and a full-screen card offers only a new career or the
+  menu.
+  - **Academy Only** (end of season 5): no signings, loans, pre-contracts or
+    injury jokers. Win a trophy with the club.
+  - **Shoestring** (end of season 6): transfer budget halved every season,
+    wage budget halved (never below the current wage bill), no board funds, no paid
+    injection, no town collection. Meet the board's target three seasons in
+    a row (a miss resets the run).
+  - **Fire Sale** (end of season 4): your five best senior players are sold
+    to league rivals on day one, and only 30% of the fees reach your budget.
+    The same money locks as Shoestring. Win the league.
+  Picking a challenge without Pro opens the Pro purchase; nothing starts
+  unless the store says it is owned. Leaving the club or being sacked for
+  another reason voids the challenge. The web build has no store, so the
+  challenges are open there. The match engine is unchanged: a challenge only
+  blocks doors and moves money (the fingerprint is the same).
+- **One-time price after a big moment.** A free player with 40 or more
+  competitive matches sees the one-time Pro price once, at the next safe
+  moment after a celebration screen (a trophy, a promotion, a challenge won). It is
+  device state like the other Pro cards, never shown twice, and only in the
+  store apps.
+
 ## Not changed
 
 - The match engine and the world: the plan only writes settings that already
@@ -213,6 +239,12 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   resale term) and `scripts/freeagentui.mjs` (browser: three lengths with
   their own asking, the card scrolls up to the thumb, a lowball answered in
   the card, signing at the asking on three seasons).
+- New: `tests/prochallenge.test.ts` (Fire Sale sells five and keeps 30%,
+  Academy Only blocks every way in, Shoestring halves the purse and refuses
+  board money, the goal awards the badge, a missed season resets the run,
+  the deadline ends the career, leaving voids it, the moment card once) and
+  `scripts/prochallengeui.mjs` (browser: the Pro section on the new-career
+  screen, the challenge banner, the career-over card).
 - New: `tests/marqueeswap.test.ts`, `scripts/marqueeui.mjs` (browser: a full
   list offers the swap, the swap moves the slot, Finances opens the player,
   and the locked page says why).
