@@ -141,7 +141,8 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
   const homeBall = known ? (defLine ? !isHome : isHome) : (prev?.homeBall ?? true)
   const dir = homeBall ? 1 : -1
   // across the field, the ball wanders from where it was rather than jumping
-  const drift = (span: number, lo = 9, hi = 61) => clamp(prevY + (wob(i, 1) - 0.5) * span, lo, hi)
+  // (and it comes back towards the middle: left to wander it ended up down a touchline for whole passages)
+  const drift = (span: number, lo = 9, hi = 61) => clamp(prevY + (35 - prevY) * 0.22 + (wob(i, 1) - 0.5) * span, lo, hi)
   const base = { homeBall, x: clamp(fld, 1, 99), at: i, carrier: e.playerId }
 
   // ---- the score and the cards first: they are what the banner is for
@@ -161,8 +162,27 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
       : n ? 'break'
       : (['break', 'wide', 'close'] as const)[i % 3]
     // out wide it is in the corner, on the side with more room; from close in it is near where the ball was
-    const y = pen ? 35 : tryKind === 'wide' ? (prevY < 35 ? 64.5 : 5.5) : tryKind === 'close' ? clamp(prevY + (wob(i, 2) - 0.5) * 10, 10, 60)
-      : clamp(prevY + (wob(i, 2) - 0.5) * 30, 6, 64)
+    // WHERE IT IS SCORED FITS THE KICK THAT FOLLOWS (owner, 19 Nov 2026:
+    // "kicks at goal should be realistic to where they are"). The engine
+    // decides whether the conversion goes over from the kicker and the
+    // weather, and has no place for the try. The pitch does, and it can see
+    // the next line: a conversion that is missed, or one the words put on
+    // the touchline, follows a try out wide; a routine one follows a try
+    // nearer the posts. The odds are untouched; the picture agrees with them.
+    const nk = (next?.k ?? '').replace(/^comm\./, '')
+    const conMiss = /^con(Wide|Post)/.test(nk)
+    const conTouch = nk === 'con3' || nk === 'con8'
+    const conEasy = nk === 'con4' || nk === 'con5' || nk === 'con7'
+    const far = prevY < 35 ? 1 : -1   // the side with more room
+    const u2 = Math.abs(wob(i, 2)) % 1
+    const posts = n === 5 || n === 21
+    const y = pen || (posts && !conMiss) ? 35 + (u2 - 0.5) * 6
+      : posts ? 35 + far * (11 + u2 * 6)
+      : tryKind === 'wide' || conTouch ? (far > 0 ? 64.5 - u2 * 3 : 5.5 + u2 * 3)
+      : conMiss ? 35 + far * (19 + u2 * 9)
+      : conEasy ? 35 + (u2 - 0.5) * 12
+      : tryKind === 'close' ? clamp(prevY * 0.5 + 17.5 + (u2 - 0.5) * 14, 14, 56)
+      : 35 + far * (4 + u2 * 16)
     return { ...base, homeBall: isHome, kind: 'try', x: isHome ? 101.5 : -1.5, y, label: 'lp.try', tryKind,
       banner: { kind: pen ? 'pentry' : 'try', teamId: e.teamId, name: e.playerName, min: e.min, at: i } }
   }
@@ -170,8 +190,10 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     const good = e.type === 'CON'
     // in line with the try, fifteen to twenty metres out
     const ty = prev?.kind === 'try' || prev?.kind === 'con' ? prev.y : 35
-    const y = clamp(ty, 10, 60)
-    const out = 15 + Math.abs(y - 35) * 0.25
+    // (in line with where it was grounded, as the law has it; and the wider
+    // it was scored, the further back the kicker goes to open up the posts)
+    const y = clamp(ty, 5, 65)
+    const out = clamp(13 + Math.abs(y - 35) * 0.72, 13, 34)
     return { ...base, homeBall: isHome, kind: 'con', x: isHome ? 100 - out : out, y, good, label: 'lp.con',
       to: { x: isHome ? 104 : -4, y: good ? 35 : 35 + (wob(i, 3) < 0.5 ? -6 : 6) }, hang: 9,
       banner: { kind: good ? 'con' : 'conMiss', teamId: e.teamId, name: e.playerName, min: e.min, at: i } }
@@ -180,7 +202,9 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     const good = e.type === 'PEN' || e.type === 'DG'
     const drop = e.type === 'DG' || s.startsWith('dropMiss')
     const x = clamp(fld, isHome ? 50 : 8, isHome ? 92 : 50)
-    const y = drop ? drift(16, 18, 52) : clamp(prevY, 12, 58)
+    // (a penalty that is missed was a hard one: out towards the touchline.
+    // One that goes over is from in front or nearly so.)
+    const y = drop ? drift(16, 18, 52) : good ? clamp(35 + (prevY - 35) * 0.55, 14, 56) : clamp(35 + (prevY < 35 ? -1 : 1) * (20 + Math.abs(wob(i, 6)) % 1 * 8), 8, 62)
     return { ...base, homeBall: isHome, kind: 'goal', x, y, good, label: drop ? 'lp.drop' : 'lp.goalKick',
       to: { x: isHome ? 104 : -4, y: good ? 35 : 35 + (wob(i, 3) < 0.5 ? -7 : 7) }, hang: drop ? 7 : 10,
       banner: { kind: drop ? (good ? 'dg' : 'dgMiss') : (good ? 'pen' : 'penMiss'), teamId: e.teamId, name: e.playerName, min: e.min, at: i } }
