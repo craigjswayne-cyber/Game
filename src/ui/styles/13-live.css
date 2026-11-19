@@ -1002,3 +1002,26 @@
 .live-wrap .now-strip .live-stats.brief { order: 4; margin: 8px 0 0; padding: 4px 12px; }
 .live-wrap .now-strip .live-stats.brief .ls-head { display: none; }
 .live-wrap .now-strip .live-stats.brief .ls-row { padding: 4px 0; }
+
+/* THE CARDS UNDER A SIDE'S NAME (owner, 19 Nov 2026) */
+.scoreboard .tname { position: relative; }
+.scoreboard .tname .tcards { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); display: flex; gap: 3px; margin-top: 1px; }
+.scoreboard .tname .tcards i { display: block; width: 8px; height: 11px; border-radius: 1.5px; background: var(--gold-fill); transform: rotate(-8deg); }
+.scoreboard .tname .tcards i.rc { background: var(--danger-fill); }
+
+/* THE WORD OVER THE PITCH IS SMALL, IN THE MIDDLE AND AT THE BOTTOM (owner,
+   19 Nov 2026: "any pop up like a yellow card or try should be smaller,
+   centralised and down the bottom of the pitch"). It was the size of the
+   pitch and sat across the play. It is one compact plate on the near
+   touchline now, the same place whichever end the score is at. */
+.live-pitch .lp-banner, .live-pitch .lp-banner.low, .live-pitch .lp-banner.high {
+  inset: auto auto 13.5% 50%; transform: translateX(-50%); padding: 6px 14px 7px; gap: 2px; max-width: 80%;
+  border-radius: 14px; background: rgba(8, 12, 10, .84); text-shadow: none;
+  animation: lp-banner-low .35s cubic-bezier(.2, .9, .3, 1.1) both;
+}
+.live-pitch .lp-banner b { font-size: 1.0625rem; letter-spacing: 0; line-height: 1.05; }
+.live-pitch .lp-banner em { position: absolute; top: 6px; right: 12px; margin: 0; font-size: .75rem; }
+.live-pitch .lp-banner.good b { padding: 0 28px; }
+.live-pitch .lp-banner span { margin-top: 2px; padding: 0; background: none; font-size: .625rem; letter-spacing: .4px; white-space: nowrap; flex-wrap: nowrap; }
+@keyframes lp-banner-low { from { opacity: 0; transform: translate(-50%, 8px); } }
+@media (prefers-reduced-motion: reduce) { .live-pitch .lp-banner { animation: none; } }

@@ -525,15 +525,23 @@ export function Live() {
       fresh: lineup.map(id => (id != null ? sd.energy.get(id) : undefined)) }
   }
 
+  // THE CARDS A SIDE IS CARRYING SIT UNDER ITS NAME (owner, 19 Nov 2026:
+  // "Yellow card graphic that appears should be under the name up the top").
+  // A yellow for the ten minutes it lasts, a red for the rest of the match.
+  const cardsFor = (teamId: string) => {
+    const now = feedShown[feedShown.length - 1]?.min ?? 0
+    const cs = feedShown.filter(e => e.teamId === teamId && ((e.type === 'YC' && now - e.min < 10) || e.type === 'RC'))
+    return cs.length ? <span className="tcards" data-testid="tcards">{cs.map((e, k) => <i key={k} className={e.type === 'RC' ? 'rc' : 'yc'} />)}</span> : null
+  }
   return (
     <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}${fullMatch && !panelActive ? ' full-match' : ''}`}>
       <MatchAnnouncer game={game} shown={shown} homeId={fixture.homeId} awayId={fixture.awayId} />
       <div className="scoreboard" style={{ '--home-c': kits.home[0], '--away-c': kits.away[0] } as React.CSSProperties}>
         <div className="teams">
-          <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: kits.home[0] }} /></div>
+          <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: kits.home[0] }} />{cardsFor(fixture.homeId)}</div>
           {/* the score the pitch has got to, not the one the next line holds */}
           {(() => { const l = feedShown[feedShown.length - 1]; const h = l?.homeScore ?? 0, a = l?.awayScore ?? 0; return <div className="score" key={`${h}-${a}`}>{h} – {a}</div> })()}
-          <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: kits.away[0] }} /></div>
+          <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: kits.away[0] }} />{cardsFor(fixture.awayId)}</div>
         </div>
         <div className="minute">
           {/* A FRIENDLY HAS NO COMPETITION, and this line used to print the

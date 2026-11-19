@@ -91,8 +91,9 @@ let FIELD_L = 100 + GOAL * 2 + END * 2, FIELD_W = 70 + SIDE * 2
 
 /** the verdict's type size: full size for TRY, smaller the longer the word */
 function bannerSize(label: string, good: boolean): { fontSize: string } {
-  const full = good ? 3.4 : 2.4
-  return { fontSize: `${Math.max(1.15, Math.min(full, 22 / Math.max(1, label.length))).toFixed(2)}rem` }
+  // (owner, 19 Nov 2026: the pop-up is small and sits at the bottom of the pitch)
+  const full = good ? 1.25 : 1.0625
+  return { fontSize: `${Math.max(0.9, Math.min(full, 14 / Math.max(1, label.length))).toFixed(2)}rem` }
 }
 
 /** is this trim colour too dark to show as a rim on grass */
