@@ -958,7 +958,10 @@
      it the one before, faded, sliding up and out as the new one arrives.) */
   .live-wrap.full-match .speed-controls { order: 2; padding-top: 8px; padding-bottom: 6px; }
   .live-wrap.full-match .now-strip { order: 3; flex: none; }
-  .live-wrap.full-match .comm-feed { height: 132px; }
+  /* (owner, 19 Nov 2026: "make sure all text is clearly visible". The line before was
+     faint and its first row was cut by the top edge when it ran to three rows.) */
+  .live-wrap.full-match .comm-feed { height: 158px; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10px); mask-image: linear-gradient(to bottom, transparent 0, #000 10px); }
+  .live-wrap.full-match .comm-line.old { opacity: .82; }
   .live-wrap.full-match .comm-line.old.a2, .live-wrap.full-match .comm-line.old.a3 { display: none; }
   .live-wrap.full-match .match-status { display: none; }
 }
