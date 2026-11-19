@@ -776,7 +776,7 @@ export class PitchSim {
         out: inRuck && this.grounded ? null : out,
         ruckers: this.ruckers ?? [], tacklers: this.tacklers ?? [], posts: this.posts,
         carrier: inRuck ? null : (holderAtt ? this.holder - att0 : this.cIdx), downMan: this.downMan,
-        att: this.tac[p.homeBall ? 0 : 1], def: this.tac[p.homeBall ? 1 : 0], gone: this.off,
+        att: this.attTac(p.homeBall), def: this.tac[p.homeBall ? 1 : 0], gone: this.off,
         go: inRuck ? clamp((this.ruckT - 0.35) / 0.7, 0, 1) : 1,
         side: this.side, meet: inRuck ? null : this.meet, overlap: this.manUp(),
       }).map((q, i) => ({ x: q.x + jit(i, 1) * 0.7, y: q.y + jit(i, 2) * 0.5 }))
@@ -923,6 +923,31 @@ export class PitchSim {
     const opp = this.jumper < 15 ? this.jumper + 15 : this.jumper - 15
     const contests = this.tac[this.jumper < 15 ? 1 : 0].contest >= 45
     return [this.jumper, contests && this.holder !== this.jumper ? opp : -1]
+  }
+
+  /**
+   * THE ZONAL GAME PLAN ON THE GRASS (owner, 19 Nov 2026: "the impact of the
+   * managers ... tactics"). The engine already scores the plan a manager sets
+   * for each third of the field. The pitch now plays it: where the ball is
+   * decides which plan is in force, and the plan bends the side's own dials.
+   * Own 22: kick long, box kick, or play out. Middle: territory or keep it
+   * in hand. Their 22: drive it with the forwards, or spread it wide.
+   */
+  private attTac(homeBall: boolean): PitchTac {
+    const t = this.tac[homeBall ? 0 : 1], z = t.zones
+    if (!z) return t
+    const up = homeBall ? this.ball.x : 100 - this.ball.x
+    const plan = up < 22 ? z.own22 : up > 78 ? z.opp22 : z.middle
+    let style = t.style, kicking = t.kicking ?? 50
+    if (plan === 'long') kicking += 35
+    else if (plan === 'box') kicking += 15
+    else if (plan === 'play') { kicking -= 35; style += 15 }
+    else if (plan === 'terr') kicking += 25
+    else if (plan === 'hand') kicking -= 25
+    else if (plan === 'drive') style -= 35
+    else if (plan === 'spread') style += 35
+    else return t
+    return { ...t, style: clamp(style, 0, 100), kicking: clamp(kicking, 0, 100) }
   }
 
   /** how many more men the side with the ball has on the field than the other (cards) */
@@ -1189,7 +1214,7 @@ export class PitchSim {
           // (THE KICKING DIAL: a side told to kick puts boot to ball from
           // twenty-odd metres out; a side told to keep it in hand runs it
           // unless there is half the field to cover)
-          const kd = this.tac[this.phase.homeBall ? 0 : 1].kicking ?? 50
+          const kd = this.attTac(this.phase.homeBall).kicking ?? 50
           if (rem > 38 + (50 - kd) * 0.36 && !s.kicked && mine) {
             s.kicked = true; s.chase = true
             const far = Math.min(30, rem - 9)
@@ -1219,7 +1244,7 @@ export class PitchSim {
           } else {
             // quick ball: the 9 to a man coming on to it, forwards and backs in turn
             const side = Math.abs(s.to.y - B.y) > 4 ? Math.sign(s.to.y - B.y) : (B.y <= 35 ? 1 : -1)
-            const st = this.tac[this.phase.homeBall ? 0 : 1].style
+            const st = this.attTac(this.phase.homeBall).style
             // (a man up, it goes wide two phases in three, whatever the style)
             const wide = this.manUp() > 0 ? n % 3 !== 0 : st >= 60 ? n % 2 === 0 : st <= 40 ? n % 4 === 0 : n % 3 === 0
             const busy = [8, ...(this.ruckers ?? []), ...(this.downMan != null ? [this.downMan] : []), ...(join >= 0 ? [join - att0] : [])]

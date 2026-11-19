@@ -511,10 +511,10 @@ export function Live() {
   }, [fixture.id])
   const pitchTactics = useMemo(() => [fixture.homeId, fixture.awayId].map(id => {
     const tc = game.clubs[id]?.tactic
-    return { style: tc?.style ?? 50, tempo: tc?.tempo ?? 50, commit: tc?.ruckCommit ?? 50, defLine: tc?.defLine ?? 50, defWidth: tc?.defWidth ?? 50, contest: tc?.ruckContest ?? 50, kicking: tc?.kicking ?? 50 }
+    return { style: tc?.style ?? 50, tempo: tc?.tempo ?? 50, commit: tc?.ruckCommit ?? 50, defLine: tc?.defLine ?? 50, defWidth: tc?.defWidth ?? 50, contest: tc?.ruckContest ?? 50, kicking: tc?.kicking ?? 50, zones: tc?.zones }
   // (IN-GAME CHANGES COUNT: this used to be read once at kick-off, so a
   // manager who changed his tactics at half-time saw no difference on the pitch)
-  }) as [PitchTac, PitchTac], [fixture.homeId, fixture.awayId, cursor === 0, JSON.stringify([fixture.homeId, fixture.awayId].map(id => { const tc = game.clubs[id]?.tactic; return tc ? [tc.style, tc.tempo, tc.ruckCommit, tc.defLine, tc.defWidth, tc.ruckContest, tc.kicking] : null }))])
+  }) as [PitchTac, PitchTac], [fixture.homeId, fixture.awayId, cursor === 0, JSON.stringify([fixture.homeId, fixture.awayId].map(id => { const tc = game.clubs[id]?.tactic; return tc ? [tc.style, tc.tempo, tc.ruckCommit, tc.defLine, tc.defWidth, tc.ruckContest, tc.kicking, tc.zones] : null }))])
   const pitchSide = (isHome: boolean): PitchSide => {
     const sd = isHome ? ctx.home : ctx.away
     const lineup = sd.lineup.slice(0, 15)
