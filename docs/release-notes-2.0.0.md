@@ -125,3 +125,23 @@ What changed on the Extended match view. The match engine's results and scoring 
 - Movement: a spring on every man's place, separation between men in open play, gentler starts and stops.
 
 Not done: aggression and player roles on the pitch; match length is above the 3.5 minutes asked for.
+
+## The live pitch, 19 November 2026 (day)
+
+Owner's notes on the full-match video, and the day's list.
+
+- The ball never travels forward between team-mates: a pass no longer follows a receiver who has run past the passer.
+- The dashed move lines, the carrier arrows and the gold "Move" label are gone.
+- A lineout forms where the kick crossed the touchline, never within five metres of a goal line.
+- A missed penalty goal that goes dead is a 22 drop-out: a commentary line in six languages (words only, results unchanged) and the pitch plays it.
+- Out on the full and the 50:22 are drawn and labelled; the other side's lineout follows a kick out on the full.
+- Defenders step up to the ball carrier. A try-scoring break goes through the line and the defence turns and chases in lanes.
+- Tries are scored on the side of the field the ball is on; the scorer stays where he grounded it.
+- A kick at goal is taken from its mark, the kicker walking out with the ball.
+- The set piece breaks up once the ball is well clear of it.
+- One kick-off, not two. The score and the try line wait until the pitch has grounded it.
+- Tired players are up to a tenth slower; fresh replacements are not.
+- A few live stats under the commentary. Bigger, clearer text: the name under the score word, shirt numbers, the pitch label, the 14-man plate, both commentary lines.
+- A trial ceiling on the wind-on speed (`?lpcap=`), off by default.
+
+Measured, not changed: selection (best XV wins 48.0%, three stars rested 31.5%, second XV 14.0%), team talks (51.6% best, 45.7% none, 40.1% worst in even games), substitutions (+1.3 points from four fresh men), game plan (+4.9 points), referees (strict 2.04 yellows a match, lenient 0.76).
