@@ -204,6 +204,10 @@ export class PitchSim {
   private doneT = 0
   private trk: { tr: Track; O: Pt; dir: number; s: number; who: Record<string, number>; t: number; T: number; ev: number; att0: number } | null = null
 
+  /** the fastest anything is wound on. Infinity is the shipped pace (about four
+   *  minutes a match); 3 is about six minutes and nothing looks sped up beyond
+   *  recognition. Set from ?lpcap= while the owner decides (19 Nov 2026). */
+  static cap = Infinity
   constructor() {
     for (let i = 0; i < 30; i++) this.b.push({ x: 50 + (i < 15 ? -8 : 8), y: 6 + (i % 15) * 4, vx: 0, vy: 0 })
   }
@@ -1039,6 +1043,8 @@ export class PitchSim {
     }
     // a ball in the air from a restart or a kick at goal is not watched at life speed
     if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, 6.6)
+    // (a ceiling on the wind-on, for trying a slower, longer match: see PitchSim.cap)
+    if (this.rate > PitchSim.cap) this.rate = PitchSim.cap
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
       const s = this.steps[this.si]
       const first = !this.entered
