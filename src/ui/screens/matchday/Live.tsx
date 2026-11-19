@@ -528,7 +528,8 @@ export function Live() {
       <div className="scoreboard" style={{ '--home-c': kits.home[0], '--away-c': kits.away[0] } as React.CSSProperties}>
         <div className="teams">
           <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: kits.home[0] }} /></div>
-          <div className="score" key={`${hs}-${as}`}>{hs} – {as}</div>
+          {/* the score the pitch has got to, not the one the next line holds */}
+          {(() => { const l = feedShown[feedShown.length - 1]; const h = l?.homeScore ?? 0, a = l?.awayScore ?? 0; return <div className="score" key={`${h}-${a}`}>{h} – {a}</div> })()}
           <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: kits.away[0] }} /></div>
         </div>
         <div className="minute">

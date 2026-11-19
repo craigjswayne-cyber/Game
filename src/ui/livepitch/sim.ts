@@ -172,6 +172,14 @@ export class PitchSim {
   private hunt: number[] = []
   /** the play on the grass has got to what this line describes (the words are held back until it has) */
   get reached(): boolean {
+    // A SCORE IS NOT GIVEN AWAY EARLY (19 Nov 2026: the try line and the new
+    // score were up while the man was still running). A try is reached as it
+    // is grounded, a kick at goal once it has gone over or wide.
+    const k = this.phase?.kind
+    if (k === 'try' || k === 'con' || k === 'goal') {
+      if (!this.hit && this.si >= this.steps.length - (k === 'try' ? 1 : 0)) this.hit = true
+      return this.hit
+    }
     if (!this.hit && (this.si >= this.steps.length || (this.steps[this.si] as { main?: boolean }).main === true)) this.hit = true
     return this.hit
   }
