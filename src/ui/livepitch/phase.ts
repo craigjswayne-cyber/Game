@@ -190,12 +190,15 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     const u2 = Math.abs(wob(i, 2)) % 1
     const posts = n === 5 || n === 21
     const y = pen || (posts && !conMiss) ? 35 + (u2 - 0.5) * 6
-      : posts ? 35 + far * (11 + u2 * 6)
+      : posts ? 35 - far * (11 + u2 * 6)
       // (the corner on the side the ball is already on: it used to be the far one, a fifty-metre run across the field)
       : tryKind === 'wide' || conTouch ? (far < 0 ? 64.5 - u2 * 3 : 5.5 + u2 * 3)
-      : conMiss ? 35 + far * (19 + u2 * 9)
+      // (a missed conversion follows a try out wide ON THE SIDE THE BALL IS ON: it was the far side,
+      // so a man stopped a metre short by one touchline scored forty metres away by the other)
+      : conMiss ? 35 - far * (19 + u2 * 9)
       : conEasy ? 35 + (u2 - 0.5) * 12
-      : tryKind === 'close' || tryKind === 'maul' ? clamp(prevY * 0.5 + 17.5 + (u2 - 0.5) * 14, 14, 56)
+      // (from close in it goes down within a few metres of where the ball was)
+      : tryKind === 'close' || tryKind === 'maul' ? clamp(prevY + (u2 - 0.5) * 9, 6, 64)
       : 35 + far * (4 + u2 * 16)
     return { ...base, homeBall: isHome, kind: 'try', x: isHome ? 101.5 : -1.5, y, label: 'lp.try', tryKind,
       banner: { kind: pen ? 'pentry' : 'try', teamId: e.teamId, name: e.playerName, min: e.min, at: i } }
