@@ -260,7 +260,8 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     const pen = s.startsWith('off_') || s.startsWith('fk_')
     // the throw is on the touchline nearer the ball, and a maul set off it
     const maul = raw === 'lineout5'
-    return { ...base, kind: pen ? 'penalty' : maul ? 'maul' : 'lineout', y: prevY < 35 ? 0 : 70, label: pen ? 'lp.penalty' : maul ? 'lp.maul' : 'lp.lineout' }
+    // (law 18: a lineout is never formed within five metres of a goal line)
+    return { ...base, x: pen || maul ? base.x : clamp(base.x, 5, 95), kind: pen ? 'penalty' : maul ? 'maul' : 'lineout', y: prevY < 35 ? 0 : 70, label: pen ? 'lp.penalty' : maul ? 'lp.maul' : 'lp.lineout' }
   }
   if (e.fx === 'MAUL' || raw === 'flav6' || s.startsWith('off_maul') || s === 'tryMaulRumbles' || s === 'tryPackDrive') {
     const y = prev?.kind === 'lineout' ? (prev.y < 35 ? 8 : 62) : drift(8)
