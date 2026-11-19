@@ -528,6 +528,10 @@ export class PitchSim {
 
     // the steps so far are this line's own play; anything put in front of
     // them below is the play that gets the ball there
+    // BEFORE THE FIRST LINE THE SIDES ONLY LINE UP (19 Nov 2026: the kick-off
+    // was played on the placeholder before the match's first line and then
+    // again on the line itself, so the match opened with two kick-offs).
+    if (p.at < 0) steps.length = 0
     for (const st of steps) (st as { main?: boolean }).main = true
     const begin = () => {
       this.hit = false
