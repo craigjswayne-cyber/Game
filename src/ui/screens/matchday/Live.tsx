@@ -519,7 +519,10 @@ export function Live() {
     const sd = isHome ? ctx.home : ctx.away
     const lineup = sd.lineup.slice(0, 15)
     return { lineup, nums: lineup.map((id, i) => (id != null ? shirtNumber(sd, id) : undefined) ?? i + 1), kit: isHome ? pitchKits.home : pitchKits.away,
-      pace: lineup.map(id => (id != null ? game.players[id]?.a.pac : undefined)) }
+      pace: lineup.map(id => (id != null ? game.players[id]?.a.pac : undefined)),
+      // TIRED LEGS SHOW (owner, 19 Nov 2026: selections and substitutions
+      // should change how a team plays). The tank the engine already keeps.
+      fresh: lineup.map(id => (id != null ? sd.energy.get(id) : undefined)) }
   }
 
   return (
