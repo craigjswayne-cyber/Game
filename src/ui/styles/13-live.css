@@ -783,8 +783,6 @@
   font-size: 0.75rem; font-weight: 700; letter-spacing: .2px;
   animation: lp-chip .28s ease-out both; pointer-events: none;
 }
-.lp-chip.move { font-size: 0.9375rem; padding: 6px 14px 6px 11px; box-shadow: 0 0 0 1.5px var(--gold-fill); }
-.lp-chip.move small { font-size: 0.625rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold-fill); }
 .lp-chip i { width: 7px; height: 7px; border-radius: 50%; display: block; }
 @keyframes lp-chip { from { opacity: 0; transform: translate(-50%, -4px); } }
 .lp-banner {

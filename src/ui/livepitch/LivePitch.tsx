@@ -856,28 +856,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         if (floor) g.globalAlpha = 1
         R = R0
       }
-      // A CALLED MOVE'S LINES, as the Playbook draws them: each man's run
-      // from where he is to where it ends, dashed, with an arrow on it
-      {
-        const tl = S.trails()
-        if (tl.length) {
-          g.save()
-          g.strokeStyle = 'rgba(255,255,255,.72)'; g.fillStyle = 'rgba(255,255,255,.72)'
-          g.lineWidth = Math.max(1.6, sc * 0.3); g.lineCap = 'round'; g.lineJoin = 'round'
-          for (const line of tl) {
-            g.setLineDash([sc * 1.1, sc * 1.0])
-            g.beginPath()
-            line.forEach((q, n) => { const x = SX(q.x, q.y), y = SY(q.x, q.y); if (n) g.lineTo(x, y); else g.moveTo(x, y) })
-            g.stroke()
-            const e = line[line.length - 1], f = line[Math.max(0, line.length - 3)]
-            const x1 = SX(e.x, e.y), y1 = SY(e.x, e.y), x0 = SX(f.x, f.y), y0 = SY(f.x, f.y)
-            const d = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / d, uy = (y1 - y0) / d
-            g.setLineDash([])
-            g.beginPath(); g.moveTo(x1 + ux * 4, y1 + uy * 4); g.lineTo(x1 - ux * 4 - uy * 3.6, y1 - uy * 4 + ux * 3.6); g.lineTo(x1 - ux * 4 + uy * 3.6, y1 - uy * 4 - ux * 3.6); g.closePath(); g.fill()
-          }
-          g.restore()
-        }
-      }
+      // (the dashed lines that drew a called move's runs are gone: owner, 19 Nov
+      // 2026, "remove all the little lines that appear to show the moves")
       // THE TRY IS SEEN (owner: "tries seem a bit unclear"): where the ball
       // goes down, rings spread from it in the scorers' colour
       if (S.phase?.kind === 'try' && S.landed) {
@@ -1052,16 +1032,17 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   // (owner, 17 Nov 2026: "I didnt see any of the moves")
   const now = onGrass ?? phase
   const quiet = now.kind === 'carry' || now.label === 'lp.tackle' || now.label === 'lp.ruck' || now.kind === 'try' || now.kind === 'con' || now.kind === 'goal'
-  const cap = (x: string) => x.charAt(0).toLocaleUpperCase() + x.slice(1)
   const isMove = !!now.move
-  const chip = isMove ? cap(tr(now.move!)) : quiet ? '' : tr(now.label, now.n != null ? { n: now.n } : undefined)
+  // (a called move no longer gets its own gold label: owner, 19 Nov 2026,
+  // "remove the pop up that says moves". It carries the ordinary one.)
+  const chip = quiet && !isMove ? '' : tr(now.label, now.n != null ? { n: now.n } : undefined)
   const bSide = banner ? (banner.teamId === homeId ? home : away) : null
   const good = banner && (banner.kind === 'try' || banner.kind === 'pentry' || banner.kind === 'con' || banner.kind === 'pen' || banner.kind === 'dg')
   const pts = banner ? ({ try: 5, pentry: 7, con: 2, pen: 3, dg: 3 } as Record<string, number>)[banner.kind] : undefined
   return (
     <div className={`live-pitch${night ? '' : ' day'}`} data-testid="live-pitch" data-phase={phase.kind}>
       <canvas ref={canvas} className="lp-canvas" />
-      {chip && <div className={`lp-chip${isMove ? ' move' : ''}`} key={`c${now.at}`}><i style={{ background: (now.homeBall ? home : away).kit[0] }} />{isMove && <small>{tr('lp.move')}</small>}{chip}</div>}
+      {chip && <div className="lp-chip" key={`c${now.at}`}><i style={{ background: (now.homeBall ? home : away).kit[0] }} />{chip}</div>}
       {banner && bSide && (
         <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}${(banner.teamId === homeId) ? ' low' : ' high'}`} key={`b${banner.at}`} data-testid="lp-banner">
           {pts != null && <em>+{pts}</em>}

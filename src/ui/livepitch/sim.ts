@@ -200,8 +200,24 @@ export class PitchSim {
     for (let i = 0; i < 30; i++) this.b.push({ x: 50 + (i < 15 ? -8 : 8), y: 6 + (i % 15) * 4, vx: 0, vy: 0 })
   }
 
+  /** a line held back while a restart the engine does not write is played first */
+  private queued: { p: Phase; c: number | null } | null = null
   /** the next line's play: plan it from where everything is now */
   start(p: Phase, carrierIdx: number | null) {
+    // A MISSED KICK AT GOAL IS A 22 DROP-OUT (owner, 19 Nov 2026; World Rugby
+    // law 12.11 and the exception in 21.11: an unsuccessful penalty goal or
+    // drop goal made dead in in-goal restarts with a 22-metre drop-out to the
+    // defending side). The engine writes no line for it, so the pitch plays
+    // it before the line that follows.
+    const last = this.phase
+    if (last && last.kind === 'goal' && last.good === false && !this.queued && p.at !== last.at && p.kind !== 'kickoff' && p.kind !== 'dropout' && p.kind !== 'goal' && p.kind !== 'con') {
+      const home = !last.homeBall, x = home ? 21 : 79, d = home ? 1 : -1
+      const D: Phase = { kind: 'dropout', homeBall: home, x, y: 35, at: p.at, label: 'lp.dropout', hang: 14,
+        to: { x: clamp(x + d * 30, 3, 97), y: clamp(p.y, 14, 56) } }
+      this.queued = { p, c: carrierIdx }
+      this.start(D, null)
+      return
+    }
     const att0 = p.homeBall ? 0 : 15
     const dir = p.homeBall ? 1 : -1
     const E: Pt = { x: p.x, y: p.y }
@@ -542,6 +558,7 @@ export class PitchSim {
         // to sprint forty metres to a scrum that came from nowhere. Now the
         // play goes there: it is carried to where the scrum is given, or put
         // into touch where the lineout is, and the set piece forms on the spot.
+        void 0
         const flows = d > 8 && d <= 70 && (p.kind === 'scrum' || p.kind === 'maul' || p.kind === 'lineout')
         if (flows && p.kind !== 'lineout' && gain > -8) {
           if (!holderAtt) { this.holder = -1; this.grounded = false }
@@ -997,10 +1014,10 @@ export class PitchSim {
     // Everything else is wound on, with the chevrons up while it is.
     {
       const r = this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1
-      this.rate = r <= 1.6 ? 1.85 : r <= 2.6 ? 4.2 : 7.5
+      this.rate = r <= 1.6 ? 1.85 : r <= 2.6 ? 4.2 : 6.6
     }
     // a ball in the air from a restart or a kick at goal is not watched at life speed
-    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, 7.5)
+    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, 6.6)
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
       const s = this.steps[this.si]
       const first = !this.entered
@@ -1134,11 +1151,19 @@ export class PitchSim {
             }
             // NO FORWARD PASSES: if the man it is going to is in front of the
             // ball he drops back behind it first, and it is held until he has
-            if (this.holder >= 0 && (this.holder < 15) === (s.to < 15) && (this.mode === 'ruck' || this.mode === 'carry')) {
+            if (this.holder >= 0 && (this.holder < 15) === (s.to < 15) && this.mode !== 'lineout') {
               const d1 = s.to < 15 ? 1 : -1
               if ((this.b[s.to].x - this.ball.x) * d1 > -0.4 && this.st < 2.5) {
                 this.over.set(s.to, { x: this.ball.x - d1 * 3, y: this.b[s.to].y })
                 this.st += dt
+                break
+              }
+              // he still is not behind it: it is not thrown. He comes to the
+              // man with the ball and takes it from his hands.
+              if ((this.b[s.to].x - this.ball.x) * d1 > -0.2) {
+                this.over.set(s.to, { x: this.ball.x - d1 * 0.8, y: this.ball.y })
+                this.st += dt
+                if (hyp(this.b[s.to], this.ball) < 1.9 || this.st > 2.2) { this.over.delete(s.to); this.holder = s.to; over = true }
                 break
               }
             }
@@ -1300,7 +1325,10 @@ export class PitchSim {
       if (!over) break
       this.si++; this.st = 0; this.entered = false
     }
-    if (this.si >= this.steps.length) { this.done = true; this.rate = 1 }
+    if (this.si >= this.steps.length) {
+      if (this.queued) { const q = this.queued; this.start(q.p, q.c); this.queued = null }
+      else { this.done = true; this.rate = 1 }
+    }
     this.ruckT += dt
     if (this.strike) this.strike.t += dt
     this.modeT += dt
@@ -1314,6 +1342,20 @@ export class PitchSim {
     // him as he gets over. The rest turn and chase.
     for (const i of this.hunt) this.over.delete(i)
     this.hunt = []
+    // ... AND ON ANY CARRY THE NEAREST TWO COME UP AND MEET HIM (owner, 19 Nov
+    // 2026: "Gallagher running with ball the defenders dont move forward").
+    // The line used to hold where it stood and let him run at it.
+    if (!this.tryRun && this.holder >= 0 && this.mode === 'carry' && runTo && !this.strike && !this.trk && this.phase && (this.holder < 15) === this.phase.homeBall) {
+      const h = this.holder, hb = this.b[h], d0 = h < 15 ? 15 : 0
+      const men = [...Array(15).keys()].map(k => d0 + k).filter(i => this.down[i] <= 0 && !this.off[i] && i % 15 !== 14)
+        .map(i => ({ i, d: hyp(this.b[i], hb) })).sort((a, c) => a.d - c.d)
+      for (const m of men.slice(0, 2)) {
+        if (m.d > 16) continue
+        const lead = clamp(m.d / 10, 0, 0.6)
+        this.over.set(m.i, { x: clamp(hb.x + hb.vx * lead, -4, 104), y: clamp(hb.y + hb.vy * lead, 1, 69) })
+        this.hunt.push(m.i)
+      }
+    }
     if (this.tryRun && this.holder >= 0 && this.mode === 'carry' && runTo && !this.strike && !this.trk) {
       const h = this.holder, hb = this.b[h], d0 = h < 15 ? 15 : 0, dr = h < 15 ? 1 : -1
       const left = Math.abs((h < 15 ? 100 : 0) - hb.x)
@@ -1390,6 +1432,11 @@ export class PitchSim {
         const d1 = i < 15 ? 1 : -1, gap = (bd.x - this.ball.x) * d1
         if (gap > 0.5 && gap < 22 && runTo && (runTo.x - this.ball.x) * d1 > 1) { tx = bd.x; ty = bd.y + clamp(ty - bd.y, -1.5, 1.5) }
       }
+      // (the man a pass is coming to does not run on past where it was thrown from)
+      if (this.flight && this.flight.toIdx === i && this.mode !== 'lineout') {
+        const d1 = i < 15 ? 1 : -1, lim = this.flight.from.x - d1 * 0.6
+        if ((tx - lim) * d1 > 0) tx = lim
+      }
       // the man with the ball runs the line being run
       if (runTo && i === this.holder && !tight) { tx = runTo.x; ty = runTo.y }
       ty = clamp(ty, -0.5, 70.5)
@@ -1454,7 +1501,14 @@ export class PitchSim {
     if (f) {
       f.t += dt
       const u = clamp(f.t / f.T, 0, 1)
-      this.ball.x = f.from.x + (f.to.x - f.from.x) * u
+      // NEVER FORWARD (owner, 19 Nov 2026: "ball randomly moves forward from
+      // teammates"). A pass is aimed at a man who is running, and it used to
+      // follow him: if he ran on past where it was thrown from, the ball went
+      // forward. A ball passed by hand never ends up ahead of where it left
+      // the hands; the man it is for checks his run to take it.
+      let tx = f.to.x
+      if (f.toIdx >= 0 && this.mode !== 'lineout') { const d1 = f.toIdx < 15 ? 1 : -1; if ((tx - f.from.x) * d1 > -0.4) tx = f.from.x - d1 * 0.4 }
+      this.ball.x = f.from.x + (tx - f.from.x) * u
       this.ball.y = f.from.y + (f.to.y - f.from.y) * u
       this.ball.lift = Math.sin(Math.PI * u) * f.hang
       if (u >= 1) { if (f.toIdx < 0 && !f.silent) this.landed = true; this.flight = null; this.ball.lift = 0; this.holder = f.toIdx; this.grounded = false }

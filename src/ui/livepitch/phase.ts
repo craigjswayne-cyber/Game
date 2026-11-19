@@ -106,6 +106,14 @@ export function readLine(e: MatchEvent, i: number, homeId: string, prev: Phase |
   // heading, not where it instantly is: an ordinary phase moves on at most a
   // carry's length from where the ball actually was, and catches the engine
   // up over the next line or two. Scores, restarts and kicks are exact.
+  // THE LINEOUT IS WHERE IT WENT OUT (owner, 19 Nov 2026: "ball gets kicked
+  // into touch, lineout happens miles away from it"). The kick's landing spot
+  // and the engine's place for the lineout were worked out separately.
+  if (p && prev && p.kind === 'lineout' && prev.kind === 'kick' && prev.label === 'lp.kickTouch' && prev.to) {
+    p.x = clamp(prev.to.x, 5, 95)
+    p.y = prev.to.y < 35 ? Math.min(p.y, 35 - Math.abs(p.y - 35)) : Math.max(p.y, 35 + Math.abs(p.y - 35))
+    return p
+  }
   if (p && prev) {
     const from = prev.to && (prev.kind === 'kick' || prev.kind === 'kickoff' || prev.kind === 'dropout') ? prev.to : prev
     const soon = next?.type === 'TRY'
