@@ -90,6 +90,8 @@ export interface OpenWorld {
    *  if he is running: the defence holds its line there, it does not back
    *  away in front of him */
   meet: Pt | null
+  /** how many more men the attack has on the field than the defence (a card): above nothing, it plays to the space */
+  overlap?: number
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -190,13 +192,21 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   // the backs: 10 out the back of the first pod; 12, 13 and the open wing
   // each wider and deeper than the man inside him; 15 between 13 and the
   // wing when there is room for him, else behind the midfield
-  const v13 = vB + 8, vW = far - 4
+  // A MAN UP, THEY GO WIDE (owner, 19 Nov 2026: "if a team goes down to 14
+  // then the opposition should look to exploit it"). The defence is a man
+  // short and cannot cover the width, so the attack stretches it: the
+  // centres stand wider, the wing hugs the touchline, and the play goes
+  // there (sim.ts sends it wide two phases in three).
+  const up1 = (w.overlap ?? 0) > 0
+  const v13 = vB + (up1 ? 12 : 8), vW = far - (up1 ? 2.2 : 4)
   if (!taken.has(9)) put(9, -8.5 + go * 1.5, 13.4)
   const centres = [11, 12].filter(k => !taken.has(k) && !gone(att0 + k))
-  const cSlots: [number, number][] = [[-10, 19.4], [-11.5, v13]]
+  const cSlots: [number, number][] = [[-10, up1 ? 23 : 19.4], [-11.5, v13]]
   for (const [g, [u, v]] of deal(centres.map(k => att0 + k), vOf, cSlots.slice(0, centres.length))) { out[g] = P(u + go * 1.5, v); taken.add(g - att0) }
   const wOpen = wingOn(att0 === 0, !openHigh), wShort = wOpen === 10 ? 13 : 10
   if (!taken.has(wOpen)) put(wOpen, -13.5 + go * 1.5, vW)
+  // ... and the full-back comes into the line as the extra man, between the outside centre and the wing
+  if (up1 && !taken.has(14) && !gone(att0 + 14) && vW - v13 > 7) put(14, -13 + go * 1.5, (v13 + vW) / 2)
   if (!taken.has(wShort)) put(wShort, near > 9 ? -4.5 : -7, -(near - 3.5))
   if (!taken.has(14)) { if (vW - v13 > 13) put(14, -12.5 + go * 1.5, (v13 + vW) / 2); else put(14, -16, vB - 3) }
 
@@ -265,7 +275,9 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   if (!dTaken.has(dShort)) dput(dShort, dnear > 9 ? D(up(-(dnear - 4)) + 0.4, -(dnear - 4)) : D(10, -(dnear - 3)))
   if (!dTaken.has(dOpen)) {
     const coming = C != null && Cv > dfar - 24
-    dput(dOpen, coming || dfar < 24 ? D(up(dfar - 5) + 0.6, dfar - 5) : D(L + 5, dfar - 5))
+    // (a man short, their wing has to come in off his touchline to fill the line: the outside channel is open)
+    const tuck = (w.overlap ?? 0) > 0 ? 13 : 5
+    dput(dOpen, coming || dfar < 24 ? D(up(dfar - tuck) + 0.6, dfar - tuck) : D(L + 5, dfar - tuck))
   }
   // everyone else is the line: how many each side goes by how much field there is
   const lineMen = [0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 12].filter(k => !dTaken.has(k) && !gone(def0 + k))

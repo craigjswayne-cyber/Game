@@ -753,7 +753,7 @@ export class PitchSim {
         carrier: inRuck ? null : (holderAtt ? this.holder - att0 : this.cIdx), downMan: this.downMan,
         att: this.tac[p.homeBall ? 0 : 1], def: this.tac[p.homeBall ? 1 : 0], gone: this.off,
         go: inRuck ? clamp((this.ruckT - 0.35) / 0.7, 0, 1) : 1,
-        side: this.side, meet: inRuck ? null : this.meet,
+        side: this.side, meet: inRuck ? null : this.meet, overlap: this.manUp(),
       }).map((q, i) => ({ x: q.x + jit(i, 1) * 0.7, y: q.y + jit(i, 2) * 0.5 }))
       for (const [i, q] of this.over) pts[i] = q
       return { pts, ref: { x: this.anchor.x - dir * 3.5, y: clamp(this.anchor.y + (this.anchor.y < 35 ? 8 : -8), 3, 67) } }
@@ -898,6 +898,15 @@ export class PitchSim {
     const opp = this.jumper < 15 ? this.jumper + 15 : this.jumper - 15
     const contests = this.tac[this.jumper < 15 ? 1 : 0].contest >= 45
     return [this.jumper, contests && this.holder !== this.jumper ? opp : -1]
+  }
+
+  /** how many more men the side with the ball has on the field than the other (cards) */
+  manUp(): number {
+    if (!this.phase) return 0
+    const a0 = this.phase.homeBall ? 0 : 15, d0 = 15 - a0
+    let a = 0, d = 0
+    for (let k = 0; k < 15; k++) { if (this.off[a0 + k]) a++; if (this.off[d0 + k]) d++ }
+    return d - a
   }
 
   /** is this man standing round a ruck (drawn a little smaller) */
@@ -1182,10 +1191,11 @@ export class PitchSim {
             // quick ball: the 9 to a man coming on to it, forwards and backs in turn
             const side = Math.abs(s.to.y - B.y) > 4 ? Math.sign(s.to.y - B.y) : (B.y <= 35 ? 1 : -1)
             const st = this.tac[this.phase.homeBall ? 0 : 1].style
-            const wide = st >= 60 ? n % 2 === 0 : st <= 40 ? n % 4 === 0 : n % 3 === 0
+            // (a man up, it goes wide two phases in three, whatever the style)
+            const wide = this.manUp() > 0 ? n % 3 !== 0 : st >= 60 ? n % 2 === 0 : st <= 40 ? n % 4 === 0 : n % 3 === 0
             const busy = [8, ...(this.ruckers ?? []), ...(this.downMan != null ? [this.downMan] : []), ...(join >= 0 ? [join - att0] : [])]
-            const pool = (wide ? [9, 11, 12, 10, 13, 14] : [0, 1, 2, 3, 4, 5, 6, 7]).filter(k => !busy.includes(k))
-            const W: Pt = { x: B.x - dir * (wide ? 7 : 3.5), y: clamp(B.y + side * (wide ? 12 : 6), 3, 67) }
+            const pool = (wide ? (this.manUp() > 0 ? [11, 12, 10, 13, 14] : [9, 11, 12, 10, 13, 14]) : [0, 1, 2, 3, 4, 5, 6, 7]).filter(k => !busy.includes(k))
+            const W: Pt = { x: B.x - dir * (wide ? 7 : 3.5), y: clamp(B.y + side * (wide ? (this.manUp() > 0 ? 26 : 12) : 6), 3, 67) }
             let c = this.nearest(att0, W, [...Array(15).keys()].filter(k => !pool.includes(k))) - att0
             // whoever is there: after a kick or a break the nearest support is the support
             if (hyp(this.b[att0 + c], W) > 12) c = this.nearest(att0, W, busy) - att0
