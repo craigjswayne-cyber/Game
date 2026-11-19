@@ -64,7 +64,7 @@ const ADV = 3.2
 const V_FWD = 6.3, V_BACK = 8.2, ACC = 15, V_PASS = 17
 /** off the ball a man jogs into shape; only the action, and a man a long
  *  way out of place, runs flat out (the reference clips' calm) */
-const JOG_FWD = 3.9, JOG_BACK = 4.8
+const JOG_FWD = 3.1, JOG_BACK = 3.7
 const hyp = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y)
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
@@ -159,6 +159,8 @@ export class PitchSim {
    *  changed over a fifth of a second, not between two frames (owner, 17 Nov
    *  2026: "Looks glitchy again") */
   private tg: Pt[] = []
+  /** how fast each man's place is moving (the spring that eases it) */
+  private tgv: Pt[] = []
   /** the scrum ball has been hooked in this line's play */
   private heeled = false
   /** a kick has been struck in this line's play (latched: the chase does not un-happen) */
@@ -491,6 +493,7 @@ export class PitchSim {
         begin()
         this.cuts++
         this.tg = []
+        this.tgv = []
         this.flight = null; this.holder = init; this.grounded = init < 0
         this.down.fill(0)
         const T = this.targets()
@@ -1304,7 +1307,7 @@ export class PitchSim {
       if (this.tg.length !== 30) this.tg = T.pts.map(q => ({ ...q }))
       for (let i = 0; i < 30; i++) {
         // (a man told exactly where to stand for a pass or a move is not eased)
-        if (this.over.has(i)) { this.tg[i].x = T.pts[i].x; this.tg[i].y = T.pts[i].y; continue }
+        if (this.over.has(i)) { this.tg[i].x = T.pts[i].x; this.tg[i].y = T.pts[i].y; if (this.tgv[i]) { this.tgv[i].x = 0; this.tgv[i].y = 0 } continue }
         // THE FURTHER FROM THE BALL, THE LATER A MAN REACTS (18 Nov 2026, own
         // audit). The whole shape was hung rigidly off the ball, so when a
         // man carried ten metres all thirty ran ten metres with him, the far
@@ -1313,8 +1316,20 @@ export class PitchSim {
         // all the time.
         const open = this.mode === 'carry' || this.mode === 'ruck'
         const far = open && i !== this.holder ? Math.hypot(this.b[i].x - this.ball.x, this.b[i].y - this.ball.y) : 0
-        const ki = far > 8 ? 1 - Math.exp(-dt / (0.2 + (far - 8) * 0.075)) : k
-        this.tg[i].x += (T.pts[i].x - this.tg[i].x) * ki; this.tg[i].y += (T.pts[i].y - this.tg[i].y) * ki
+        void k
+        // A SPRING, NOT A SNAP (19 Nov 2026, from the research: the critically
+        // damped spring games use for smooth following, Unity's SmoothDamp).
+        // A man's place used to lurch towards where it should be and slow
+        // down; now it gathers speed, travels and settles, with no overshoot.
+        const T2 = far > 8 ? 0.34 + (far - 8) * 0.06 : 0.3
+        const om = 2 / T2, xk = om * dt, ex = 1 / (1 + xk + 0.48 * xk * xk + 0.235 * xk * xk * xk)
+        const v = this.tgv[i] ?? (this.tgv[i] = { x: 0, y: 0 })
+        for (const ax of ['x', 'y'] as const) {
+          const ch = this.tg[i][ax] - T.pts[i][ax]
+          const tmp = (v[ax] + om * ch) * dt
+          v[ax] = (v[ax] - om * tmp) * ex
+          this.tg[i][ax] = T.pts[i][ax] + (ch + tmp) * ex
+        }
       }
     }
     const tight = this.mode === 'scrum' || this.mode === 'maul'
@@ -1345,11 +1360,11 @@ export class PitchSim {
       // the ball, a man sent somewhere, the chase, and anyone with a long way
       // to go. The rest jog to their places, and walk the last of it.
       const nearBall = Math.hypot(bd.x - this.ball.x, bd.y - this.ball.y) < 14
-      const urgent = i === this.holder || this.over.has(i) || (chase && (this.kicked || nearBall)) || dist > (nearBall ? 9 : 18) || ahead
+      const urgent = i === this.holder || this.over.has(i) || (chase && (this.kicked || nearBall)) || dist > (nearBall ? 9 : 26) || ahead
       // three gaits: flat out; a brisk run for a man who is well out of his
       // place (so the shape is set before the ball moves again); a jog
       const brisk = !urgent && dist > 6 && !calm
-      const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) * this.pace[i] : brisk ? (fwd ? V_FWD : V_BACK) * 0.86 : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
+      const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) * this.pace[i] : brisk ? (fwd ? V_FWD : V_BACK) * 0.72 : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
       // (a man with a couple of metres to go does not bother: he is where he should be)
       const want = !urgent && dist < 1.6 ? 0 : Math.min(vmax, dist * (urgent ? 2.6 : 1.4))
       let wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0
