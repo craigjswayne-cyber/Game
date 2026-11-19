@@ -94,8 +94,8 @@ const DEFENDING = /^(defSet|defHit|off_|notBackTen|heldUp|flav(8|12|15|23)$|ycRe
  * Returns null for a line that does not move the play (the crowd, the weather,
  * a coach's note, a substitution): the pitch holds the shape it had.
  */
-export function readLine(e: MatchEvent, i: number, homeId: string, prev: Phase | null, next?: MatchEvent): Phase | null {
-  const p = readLine0(e, i, homeId, prev, next)
+export function readLine(e: MatchEvent, i: number, homeId: string, prev: Phase | null, next?: MatchEvent, up = false): Phase | null {
+  const p = readLine0(e, i, homeId, prev, next, up)
   const mk = e.v?.move_k
   if (p && typeof mk === 'string') p.move = mk
   // ONE PASSAGE OF PLAY, NOT A HUNDRED SNAPSHOTS (18 Nov 2026, owner: "It
@@ -127,7 +127,7 @@ export function readLine(e: MatchEvent, i: number, homeId: string, prev: Phase |
   return p
 }
 
-function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null, next?: MatchEvent): Phase | null {
+function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null, next?: MatchEvent, up = false): Phase | null {
   const s = stem(e.k)
   /** the key with its number: 'flav9' and 'flav3' are different moments */
   const raw = (e.k ?? '').replace(/^comm\./, '').replace(/_f$/, '')
@@ -160,6 +160,10 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
       : n === 4 ? 'maul'
       : [1, 4, 10, 15, 18, 25].includes(n) ? 'close'
       : [2, 6, 9, 20, 22, 26].includes(n) ? 'wide'
+      // A MAN UP, THEY SCORE OUT WIDE (owner, 19 Nov 2026: "if a team goes
+      // down to 14 then the opposition should look to exploit it"): a try
+      // through the middle becomes the overlap, finished in the corner
+      : n && up ? 'wide'
       : n ? 'break'
       : (['break', 'wide', 'close'] as const)[i % 3]
     // out wide it is in the corner, on the side with more room; from close in it is near where the ball was
@@ -320,10 +324,24 @@ function kickoff(base: { homeBall: boolean; x: number; at: number; carrier?: num
 
 /** the shape after the first `upto` lines: the latest phase, the banner that
  *  belongs to the newest line if it has one, and the possession run's length */
+/** has the side this line belongs to more men on the field than the other (cards shown before it) */
+export function manUpAt(events: MatchEvent[], i: number): boolean {
+  const e = events[i]
+  if (!e?.teamId) return false
+  let mine = 0, theirs = 0
+  for (let k = 0; k < i; k++) {
+    const c = events[k]
+    if (!c.teamId || (c.type !== 'YC' && c.type !== 'RC')) continue
+    if (c.type === 'YC' && e.min - c.min >= 10) continue
+    if (c.teamId === e.teamId) mine++; else theirs++
+  }
+  return theirs > mine
+}
+
 export function phaseAt(events: MatchEvent[], upto: number, homeId: string): Phase {
   let cur: Phase | null = null
   for (let i = 0; i < Math.min(upto, events.length); i++) {
-    const p = readLine(events[i], i, homeId, cur, events[i + 1])
+    const p = readLine(events[i], i, homeId, cur, events[i + 1], events[i].type === 'TRY' && manUpAt(events, i))
     if (p) cur = p
   }
   return cur ?? { kind: 'kickoff', homeBall: true, x: 50, y: 35, at: -1, label: 'lp.kickoff' }

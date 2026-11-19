@@ -21,7 +21,7 @@ import artNightMaroon from './stadium-night-maroon.webp'
 import artNightSnow from './stadium-night-snow.webp'
 import type { MatchEvent } from '../../game/model'
 import { readInk, isLight, refereeColour, tokenColor } from '../highlight/draw'
-import { phaseAt, readLine, type Banner, type Phase } from './phase'
+import { manUpAt, phaseAt, readLine, type Banner, type Phase } from './phase'
 import { PitchSim } from './sim'
 import type { PitchTac } from './agents'
 
@@ -161,7 +161,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const ahead = useMemo(() => {
     const e = events[cursor]
     if (!e) return null
-    const p = readLine(e, cursor, homeId, phase, events[cursor + 1])
+    const p = readLine(e, cursor, homeId, phase, events[cursor + 1], e.type === 'TRY' && manUpAt(events, cursor))
     return p?.banner && p.banner.kind !== 'yc' && p.banner.kind !== 'rc' ? p : null
   }, [events, cursor, homeId, phase])
   const sim = useRef<PitchSim>()
