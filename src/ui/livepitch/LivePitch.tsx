@@ -875,21 +875,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           g.lineWidth = Math.max(2, sc * 0.6) * (1 - a); g.strokeStyle = n % 2 ? ink.white : kit[0]; g.globalAlpha = 1 - a; g.stroke(); g.globalAlpha = 1
         }
       }
-      // the lines being run on to the ball: a dashed arrow to where he will take it
-      g.save()
-      g.strokeStyle = 'rgba(255,255,255,.6)'; g.fillStyle = 'rgba(255,255,255,.6)'; g.lineWidth = Math.max(1.4, sc * 0.26); g.setLineDash([sc * 1.1, sc * 0.9]); g.lineCap = 'round'
-      for (const r of S.runs()) {
-        const a = S.b[r.i]
-        const x0 = SX(a.x, a.y), y0 = SY(a.x, a.y), x1 = SX(r.to.x, r.to.y), y1 = SY(r.to.x, r.to.y)
-        const d = Math.hypot(x1 - x0, y1 - y0)
-        if (d < R * 1.6) continue
-        const ux = (x1 - x0) / d, uy = (y1 - y0) / d
-        g.beginPath(); g.moveTo(x0 + ux * R * 1.15, y0 + uy * R * 1.15); g.lineTo(x1 - ux * 3, y1 - uy * 3); g.stroke()
-        g.setLineDash([])
-        g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 - ux * 6 - uy * 3.4, y1 - uy * 6 + ux * 3.4); g.lineTo(x1 - ux * 6 + uy * 3.4, y1 - uy * 6 - ux * 3.4); g.closePath(); g.fill()
-        g.setLineDash([sc * 1.1, sc * 0.9])
-      }
-      g.restore()
+      // (the dashed arrows for the lines being run are gone with the move lines: owner, 19 Nov 2026)
       // the side with the ball on top, the man with it last of all
       const top = S.phase?.homeBall === false ? 15 : 0
       for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder && S.bound(i)) dot(i)

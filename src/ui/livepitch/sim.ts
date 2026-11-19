@@ -1394,6 +1394,21 @@ export class PitchSim {
           if (this.tried.size <= 2 && left > 4) this.down[m.i] = 1.4
         }
       }
+      // THE REST OF THE DEFENCE DOES NOT RUN BACKWARDS IN FRONT OF HIM (19 Nov
+      // 2026, frame review of a long try: the whole line retreated at his
+      // pace, five metres ahead of him, all the way to the posts). A break is
+      // THROUGH the line. A man he has not reached holds his ground and
+      // closes across; a man he has gone past turns and chases, and loses
+      // ground. Only the last man back stays goal-side.
+      const last = men.reduce((a, m) => (m.ahead > a.ahead ? m : a), men[0])
+      // (the chasers come back in their own lanes, in the order they stand across the field, not as one knot)
+      const rest = men.slice(4).filter(m => m !== last).sort((a, c) => this.b[a.i].y - this.b[c.i].y)
+      rest.forEach((m, j) => {
+        const me = this.b[m.i]
+        if (m.ahead > 0) this.over.set(m.i, { x: me.x, y: clamp(me.y + clamp(hb.y - me.y, -1, 1) * 2.5, 1, 69) })
+        else this.over.set(m.i, { x: clamp(hb.x - dr * (3 + Math.min(9, -m.ahead) + (j % 3) * 1.6), -6, 106), y: clamp(hb.y + (j - (rest.length - 1) / 2) * 3.4, 1, 69) })
+        this.hunt.push(m.i)
+      })
     }
     // ... and when it has been kicked in behind for a try, the two defenders
     // nearest where it is going turn and race for it, a stride too late
