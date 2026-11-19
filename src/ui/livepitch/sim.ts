@@ -1377,6 +1377,10 @@ export class PitchSim {
     // him as he gets over. The rest turn and chase.
     for (const i of this.hunt) this.over.delete(i)
     this.hunt = []
+    // THE SCORER STAYS WHERE HE PUT IT DOWN (19 Nov 2026, traced: after
+    // grounding it he ran eleven metres back up the field with the ball
+    // while the word TRY was still up).
+    if (this.mode === 'try' && this.holder >= 0) { this.over.set(this.holder, { x: this.anchor.x, y: this.anchor.y }); this.hunt.push(this.holder) }
     // THE SET PIECE BREAKS UP WHEN THE BALL HAS GONE (19 Nov 2026, frame
     // review: a centre had the ball fifteen metres away and both packs were
     // still bound in the scrum). Once a man has it well clear, it is open play.
