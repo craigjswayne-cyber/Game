@@ -105,6 +105,11 @@ export function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, m
     const post = !!kicker && ctx.crng() < 0.14
     pushLine(state, ctx, min, 'SUB', side, post ? `comm.penPost${1 + Math.floor(ctx.crng() * 2)}` : kicker ? 'comm.penWideNamed' : 'comm.penWide',
       { player: kicker?.name ?? '' }, kicker?.id)
+    // A MISSED PENALTY GOAL THAT GOES DEAD IS A 22 DROP-OUT (owner, 19 Nov
+    // 2026; World Rugby law 12.11). Words only, on no dice: the result of the
+    // match and every later draw are as they were. Off the post the ball is
+    // live, so nothing is said.
+    if (!post) pushLine(state, ctx, min, 'SUB', other, `comm.do22_${1 + (min % 2)}`, { team: teamShort(state, other.teamId) })
   } else {
     // unsaid, the kick still took its minute
     clockOnly(ctx, min)

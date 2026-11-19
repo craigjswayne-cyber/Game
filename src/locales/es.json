@@ -6819,6 +6819,8 @@
   "heldUp3": "{carrier} empuja hacia la línea y queda retenido. Gran trabajo de {player} y de la defensa de {team}.",
   "gldo1": "Saque de la línea de marca para {team}. Se han librado.",
   "gldo2": "{team} reanudan con un saque de botepronto desde su propia línea de marca y alejan el peligro.",
+  "do22_1": "Saque de 22 para {team}. La patada sale desviada y muerta, y reanudan desde su 22.",
+  "do22_2": "Fuera y balón muerto tras los palos. {team} sacan de 22.",
   "fk_mark": "¡Mark! {player} lo pide dentro de los 22 y {team} tienen un golpe franco.",
   "fk_scrumEarly": "Golpe franco para {team}: {opp} se adelantaron en la melé.",
   "fk_lineoutNumbers": "Golpe franco para {team}: {opp} tenían demasiados jugadores en la touche.",

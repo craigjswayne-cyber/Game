@@ -7240,6 +7240,8 @@
   "heldUp3": "{carrier} drives for the line and is held up. Great work from {player} and the {team} defence.",
   "gldo1": "Goal-line drop-out to {team}. Out of jail.",
   "gldo2": "{team} restart with a drop-out from their own goal line, and clear the danger.",
+  "do22_1": "22 drop-out to {team}. The kick is wide and dead, so they restart from their own 22.",
+  "do22_2": "Wide and dead behind the posts. {team} take the 22 drop-out.",
   "fk_mark": "Mark! {player} calls it inside the 22 and {team} have a free kick.",
   "fk_scrumEarly": "Free kick to {team}: {opp} went early at the scrum.",
   "fk_lineoutNumbers": "Free kick to {team}: {opp} had too many in the lineout.",

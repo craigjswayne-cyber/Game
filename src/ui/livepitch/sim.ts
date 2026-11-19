@@ -226,6 +226,15 @@ export class PitchSim {
       this.start(D, null)
       return
     }
+    // OUT ON THE FULL IS THEIR LINEOUT, BACK WHERE IT WAS KICKED (law 18). The
+    // engine's line says so and then moves on, so the pitch plays the throw
+    // unless the next line is already a lineout.
+    if (last && last.label === 'lp.outFull' && !this.queued && p.at !== last.at && p.kind !== 'lineout' && p.kind !== 'kickoff') {
+      const L: Phase = { kind: 'lineout', homeBall: !last.homeBall, x: clamp(last.x, 6, 94), y: (last.to?.y ?? 0) < 35 ? 0 : 70, at: p.at, label: 'lp.lineout' }
+      this.queued = { p, c: carrierIdx }
+      this.start(L, null)
+      return
+    }
     const att0 = p.homeBall ? 0 : 15
     const dir = p.homeBall ? 1 : -1
     const E: Pt = { x: p.x, y: p.y }

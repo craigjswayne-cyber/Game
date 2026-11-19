@@ -286,6 +286,11 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
   if (s.startsWith('fifty22')) {
     return { ...base, kind: 'kick', y: prevY, to: { x: isHome ? 86 : 14, y: prevY < 35 ? -1 : 71 }, hang: 7, label: 'lp.fifty22' }
   }
+  // ---- the 22 drop-out after a missed kick at goal (the engine writes it now)
+  if (s.startsWith('do22_')) {
+    const x = isHome ? 21 : 79
+    return { ...base, homeBall: isHome, kind: 'dropout', x, y: 35, to: { x: clamp(x + (isHome ? 1 : -1) * 30, 3, 97), y: drift(30) }, hang: 14, label: 'lp.dropout22' }
+  }
   // ---- kicks: off the boot here, down where the next line picks it up
   if (s.startsWith('kick') && !s.startsWith('kickField') || raw === 'flav7' || raw === 'flav10' || raw === 'flav17' || s === 'gldo' || s.startsWith('chargeDown')) {
     if (s === 'gldo') {

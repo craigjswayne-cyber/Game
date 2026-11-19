@@ -6856,6 +6856,8 @@
   "heldUp3": "{carrier} spinge verso la linea, ma il pallone viene tenuto alto. Gran lavoro di {player} e della difesa di {team}.",
   "gldo1": "Drop dalla linea di meta per {team}. Salvi.",
   "gldo2": "{team} riparte con un drop dalla propria linea di meta e allontana il pericolo.",
+  "do22_1": "Rinvio dai 22 per {team}. Il calcio è fuori e morto, si riparte dai loro 22.",
+  "do22_2": "Fuori, palla morta dietro i pali. {team} calciano il rinvio dai 22.",
   "fk_mark": "Mark! {player} lo chiama dentro i 22 e {team} ha un calcio libero.",
   "fk_scrumEarly": "Calcio libero per {team}: {opp} è partito in anticipo in mischia.",
   "fk_lineoutNumbers": "Calcio libero per {team}: {opp} aveva troppi uomini in touche.",

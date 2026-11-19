@@ -6965,6 +6965,8 @@
     "heldUp3": "{carrier} pousse vers la ligne et est tenu en l'air. Gros travail de {player} et de la défense de {team}.",
     "gldo1": "Renvoi aux 5 mètres pour {team}. Ils s'en sortent.",
     "gldo2": "{team} relance par un renvoi depuis sa ligne d'en-but et écarte le danger.",
+    "do22_1": "Renvoi aux 22 mètres pour {team}. Le coup de pied est mort, ils relancent depuis leurs 22.",
+    "do22_2": "À côté, ballon mort derrière les poteaux. {team} jouent le renvoi aux 22.",
     "fk_mark": "Arrêt de volée ! {player} le réclame dans les 22 mètres et {team} obtient un coup franc.",
     "fk_scrumEarly": "Coup franc pour {team} : {opp} est parti trop tôt en mêlée.",
     "fk_lineoutNumbers": "Coup franc pour {team} : {opp} avait trop de joueurs dans l'alignement.",

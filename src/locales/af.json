@@ -6857,6 +6857,8 @@
   "heldUp3": "{carrier} storm vir die lyn en word opgehou. Puik werk van {player} en die {team}-verdediging.",
   "gldo1": "Doellyn-uitskop vir {team}. Uit die tronk.",
   "gldo2": "{team} skop weer af met 'n uitskop van hul eie doellyn, en ruim die gevaar op.",
+  "do22_1": "22-uitskop vir {team}. Die skop is mis en dood, en hulle begin weer van hul eie 22.",
+  "do22_2": "Mis en dood agter die pale. {team} neem die 22-uitskop.",
   "fk_mark": "Merk! {player} roep dit binne die 22 en {team} kry 'n vryskop.",
   "fk_scrumEarly": "Vryskop vir {team}: {opp} het te vroeg by die skrum ingesak.",
   "fk_lineoutNumbers": "Vryskop vir {team}: {opp} het te veel spelers in die lynstaan gehad.",
