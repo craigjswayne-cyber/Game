@@ -780,7 +780,7 @@
   position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
   display: flex; align-items: center; gap: 6px; padding: 4px 11px 4px 9px; border-radius: 999px;
   background: rgba(8, 12, 10, .78); color: var(--prop-ink); white-space: nowrap;
-  font-size: 0.75rem; font-weight: 700; letter-spacing: .2px;
+  font-size: 0.8125rem; font-weight: 800; letter-spacing: .2px;
   animation: lp-chip .28s ease-out both; pointer-events: none;
 }
 .lp-chip i { width: 7px; height: 7px; border-radius: 50%; display: block; }

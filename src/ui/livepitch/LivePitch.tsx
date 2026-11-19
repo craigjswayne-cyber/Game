@@ -937,11 +937,12 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         let n = 0; for (let k = 0; k < 15; k++) if (S.off[a0 + k]) n++
         if (!n) continue
         const px = SX(50 + (a0 === 0 ? -15 : 15), 1.5), py = SY(50, 1.5)
-        const tw = 46, th = 20
-        g.fillStyle = 'rgba(10,14,20,.82)'; g.beginPath(); g.roundRect(px - tw / 2, py - th / 2, tw, th, 10); g.fill()
-        g.save(); g.translate(px - 12, py); g.rotate(-0.16); g.fillStyle = gold; g.fillRect(-4, -6, 8, 12); g.restore()
-        g.fillStyle = side.kit[0]; g.beginPath(); g.arc(px + 1, py, 3.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = ink.white; g.lineWidth = 1; g.stroke()
-        g.font = '800 12px system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = ink.white
+        // (a size up, with the rest of the text on the pitch: owner, 19 Nov 2026)
+        const tw = 60, th = 26
+        g.fillStyle = 'rgba(10,14,20,.86)'; g.beginPath(); g.roundRect(px - tw / 2, py - th / 2, tw, th, 13); g.fill()
+        g.save(); g.translate(px - 17, py); g.rotate(-0.16); g.fillStyle = gold; g.fillRect(-5, -7.5, 10, 15); g.restore()
+        g.fillStyle = side.kit[0]; g.beginPath(); g.arc(px - 1, py, 4.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = ink.white; g.lineWidth = 1.2; g.stroke()
+        g.font = '800 15px system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = ink.white
         g.fillText(String(15 - n), px + 7, py + 0.5)
       }
       // wound on: two chevrons in the corner while the quiet play goes by
