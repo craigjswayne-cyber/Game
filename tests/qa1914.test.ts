@@ -13,7 +13,8 @@ import { proGoalMet, startProChallenge } from '../src/game/prochallenge'
 import { releaseToBudget } from '../src/game/treasury'
 import { applyInjection } from '../src/game/grants'
 import { freeAgentDemand, offerFreeAgent, respondToOffer } from '../src/game/ai'
-import type { GameState, Pos } from '../src/game/model'
+import { closeNatTenure, type GameState, type Pos } from '../src/game/model'
+import { processWeekAndAdvance } from '../src/game/season'
 
 const MIN: [Pos, number][] = [['LP', 2], ['HK', 2], ['TP', 2], ['LK', 3], ['FL', 3], ['N8', 1], ['SH', 2], ['FH', 2], ['CE', 3], ['WG', 3], ['FB', 1]]
 
@@ -101,4 +102,22 @@ describe('1.9.14 QA: women\'s squads', () => {
     }
     expect(short).toEqual([])
   })
+})
+
+describe('1.9.14 QA: international windows', () => {
+  it('the women\'s Pacific Four keeps the squads it names (the summer series closes first)', () => {
+    const g = newGame('w:saracens', 'QA', 7, undefined, 'coach', 'w')
+    while (g.week < 47 && g.season === 0) processWeekAndAdvance(g)
+    for (const n of ['NZL', 'AUS', 'CAN', 'USA']) expect(g.natSquads[n]?.length ?? 0).toBeGreaterThanOrEqual(23)
+  }, 60_000)
+
+  it('a coach who steps down mid-window leaves the federation a full camp', () => {
+    const g = newGame('leicester', 'QA', 7)
+    while (g.week < 11) processWeekAndAdvance(g)
+    g.natTeam = 'ENG'; g.natConfidence = 60; g.natRecord = { m: 0, w: 0, d: 0, l: 0 } as never
+    processWeekAndAdvance(g); processWeekAndAdvance(g)
+    closeNatTenure(g)
+    processWeekAndAdvance(g)
+    expect(g.natSquads.ENG?.length ?? 0).toBeGreaterThanOrEqual(23)
+  }, 60_000)
 })

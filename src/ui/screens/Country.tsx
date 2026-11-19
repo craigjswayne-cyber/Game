@@ -14,6 +14,7 @@ import { Glyph } from '../glyphs'
 import { rowNavTr } from '../rowNav'
 import { acc } from '../accent'
 import { NatCampaign } from '../NatCampaign'
+import { CampFocus } from '../CampFocus'
 import { NatBand, NatEraCard } from '../NatOccasion'
 import { natKit } from '../../data/natcolours'
 
@@ -95,6 +96,9 @@ export default function Country() {
       <FullFitness compact />
 
       <NatCampaign />
+      {/* a coach with no club has no Training screen, so the camp's focus is
+          set here (QA, 1.9.14) */}
+      {game.unemployed && <CampFocus />}
       <NatSquad />
       <NatEraCard />
 

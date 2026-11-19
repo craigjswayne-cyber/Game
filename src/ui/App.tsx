@@ -919,6 +919,9 @@ export default function App() {
                 off the pile. A badge counting jobs that are no longer in the list is
                 a red dot with nothing behind it. */}
             {navBtn('jobs', <IcoClipboard />, t('nav.jobs'), openJobs)}
+            {/* a nation-only coach still holds a job: the Country button is
+                for the Test job, club or no club (QA, 1.9.14) */}
+            {game.natTeam && navBtn('country', <IcoGlobe />, t('nav.country'), campToDo)}
             {groupBtn('manager', <IcoPress />, t('nav.manager'))}
             {groupBtn('world', <IcoTrophy />, t('nav.world'))}
           </>

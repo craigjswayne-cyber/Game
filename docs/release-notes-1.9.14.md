@@ -226,8 +226,11 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
     PWR, the Celtic and Pacific sides, the French Elite 1 and 2 and Richmond
     were looked up against club squad pages, team sheets and union profiles
     (through web-search summaries of those pages; the network here does not
-    open the sites themselves). 528 change position, and each is kept with
-    its source. Invented players are left alone. Bristol follows the club's
+    open the sites themselves). 506 change position, and each is kept with
+    its source; where a source said only "prop" or "back row" the old side
+    or role is kept. Invented players are left alone. New careers only: a
+    career already under way keeps the world it began in, so Holly Phillips
+    stays on the wing in a 1.9.13 save. Bristol follows the club's
     own 2026/27 squad announcement: Holly Phillips is a tighthead prop, seven
     players join, and five not on the club's list start as free agents.
   - The try timing (a TRY line, then play, then the try's animation at the
@@ -235,6 +238,62 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
     full matches on the real match screen, at Fast and Normal and in Key
     Moments, play every try's animation before its line. Asked for the match
     settings she uses.
+
+## Release QA (five testers, men's and women's careers, six languages)
+
+Found and fixed before upload:
+
+- Pro challenges
+  - The career-over card could not be left: Main menu and New career now work.
+  - Shoestring and Fire Sale: money still reached the budget through the
+    treasury slider, a board funds request, a banked injection credit, the
+    war chest, the objective bonus, Team of the Year and a takeover. All
+    closed, and the Finances store link is hidden under them.
+  - Fire Sale: a league title that took the club up was read against the
+    division above, so the manager was sacked for winning it. Any league
+    title since the start now counts.
+  - Academy Only: the board's summer free-agent signings are gone, and a
+    trophy won with the country no longer completes it.
+  - Pro bought from the new-career screen is claimed at once; no other card
+    opens over the career-over card; a challenge win never replaces a title
+    celebration from the same summer.
+- Transfers
+  - A pre-contract is binding: a man who has signed elsewhere can no longer
+    be released and signed back as a free agent, and a bid lodged before he
+    announced cannot be accepted.
+  - Medical jokers no longer warn they are leaving.
+  - Free-agent and renewal wages land on GBP 50 steps, so meeting a counter
+    is never refused over a few pounds.
+- Women's game
+  - Every women's club starts with the matchday minimum in every position
+    (Exeter had no number 8 or full-back; six clubs were short).
+  - The Pacific Four was played with no national squads: the summer series
+    released them the week the Pacific Four named them. Every window that
+    ends now closes before any window opens, and a window ending in the last
+    week is reviewed in the summer.
+  - "Agent talk" shortlist alert feminine in French and Italian; "Arroparla"
+    in Spanish.
+- International
+  - A coach who steps down mid-window leaves the federation a full camp
+    (England had played three Tests with four players).
+  - A nation-only coach has the Country button and the camp focus.
+  - The curfew's "send him home" no longer gets round the own-club rule.
+  - Test-week text said "Saturday"; Tests are Friday to Sunday, so it says
+    "this week" in all six languages.
+  - French campaign card: no more "victoire(s)"; step labels wrap at 320px;
+    the walk-out "Main stand" label reads in day theme; the captain's ring is
+    on the captain's own shirt.
+  - Damaged saves: the campaign card's reveal, event and review are checked
+    on load.
+- New: `tests/qa1914.test.ts` (eight checks; each fails on the code before
+  these fixes).
+
+Left for a later round (minor, no wrong result for a player): the loan
+buy-out priced against the borrowing squad, a free agent's morale after
+repeated lowball offers, the dropped-player morale counted twice, the
+walk-out showing one side's challenge, kit clashes in the walk-out, the era
+card's record before the week settles, and the Store line not naming the
+Pro challenges.
 
 ## Not changed
 

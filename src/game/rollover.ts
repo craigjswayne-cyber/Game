@@ -3,6 +3,7 @@
 // (ageing, intake, contracts, squads, development, awards, review, national,
 // finance, competitions, registry, pledges). The names below are re-exported
 // so every caller keeps importing from './rollover'.
+import { reviewNatWindow } from './natwin'
 import { applyShoestring, proCheck } from './prochallenge'
 import { closeAcademySeason, topUpAcademy } from './academy'
 import { aiBoardsReinvest, aiWageRooms } from './aiecon'
@@ -113,6 +114,10 @@ export function rebuildSeason(state: GameState) {
   // estimate is read before and after the summer, so the row can say whether
   // they raised or lowered their sights.
   const { sightsBefore, bandBefore } = closeSeasonStats(state)
+  // a window that closes with the season (the women's Pacific Four ends in
+  // the last week) has no week after it to be reviewed in (QA, 1.9.14)
+  if (state.natWin && !state.natWin.review) reviewNatWindow(state, state.natWin.start)
+  state.natOrphan = null
   state.natSquads = {}
   delete state.natSent
   delete state.natFed

@@ -165,7 +165,7 @@
 
 /* the window as a campaign (1.9.14, NatCampaign.tsx) */
 .nc-steps { list-style: none; margin: 8px 0 4px; padding: 0; display: flex; gap: 4px; }
-.nc-steps li { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.6875rem; text-align: center; color: var(--text-muted); line-height: 1.2; }
+.nc-steps li { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; hyphens: auto; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.6875rem; text-align: center; color: var(--text-muted); line-height: 1.2; }
 .nc-steps .nc-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-strong); display: grid; place-items: center; font-size: 0.6875rem; font-weight: 800; }
 .nc-steps li.done { color: var(--text-secondary); }
 .nc-steps li.done .nc-dot { background: var(--text-positive); border-color: var(--text-positive); color: var(--canvas); }
@@ -216,5 +216,5 @@
 .walkout .wo-anthem-line .wo-side { flex: 1 1 0; min-width: 0; }
 .walkout .wo-anthem-line .wo-line { gap: 0; }
 .walkout .wo-anthem-line .wo-fig { width: calc(100% / 15); max-width: 14px; }
-.walkout .wo-stand-label { position: relative; margin-top: 8px; padding-top: 4px; border-top: 2px solid rgba(255,255,255,.4); font-size: 0.6875rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); }
+.walkout .wo-stand-label { position: relative; margin-top: 8px; padding-top: 4px; border-top: 2px solid rgba(255,255,255,.4); font-size: 0.6875rem; letter-spacing: 1px; text-transform: uppercase; color: var(--on-hero-soft); }
 .cap-chip .muted { margin-left: 6px; }
