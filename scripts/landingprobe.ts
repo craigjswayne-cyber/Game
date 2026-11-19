@@ -108,8 +108,15 @@ ok(/href="https:\/\/discord\.gg\/kJg5NdsRnq"/.test(html), 'and to the PHASE Disc
 // Apple sends each visitor to their own storefront.
 ok(/play\.google\.com\/store\/apps\/details\?id=com\.phaserugbymanager\.app/.test(html),
   'the Google Play link uses the real package id')
-ok(/href="https:\/\/apps\.apple\.com\/app\/phase-rugby-manager\/id6826581592"/.test(html),
+ok(/href="https:\/\/apps\.apple\.com\/app\/phase-rugby-manager\/id6826581592(\?[^"]*)?"/.test(html),
   'the App Store link goes to the live listing')
+// both buttons carry a source tag, so the stores can count downloads from
+// this page: Apple's campaign link (ct=website, shown in App Store Connect
+// under Acquisition > Campaigns) and Play's install referrer (utm_source=website)
+ok(/id6826581592\?pt=129672104&amp;ct=website/.test(html),
+  'the App Store link carries the website campaign token')
+ok(/referrer=utm_source%3Dwebsite/.test(html),
+  'the Google Play link carries the website utm_source')
 ok(!/class="store soon"/.test(html) && !/coming soon/i.test(html),
   'no store button still says coming soon')
 
