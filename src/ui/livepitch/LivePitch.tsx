@@ -188,6 +188,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       else if (ai >= 0 && ai < 15) off[15 + ai] = true
     }
     for (let k = 0; k < 15; k++) { if (home.lineup[k] == null) off[k] = true; if (away.lineup[k] == null) off[15 + k] = true }
+    // (a test hook for the preview page: ?off=21 takes that man off)
+    if (typeof location !== 'undefined' && location.pathname.includes('lp-preview')) for (const v of (new URLSearchParams(location.search).get('off') ?? '').split(',')) if (v) off[Number(v)] = true
     sim.current.off = off
   }
   io.current = { home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null }
@@ -944,6 +946,20 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
             g.fillText(label, lx, ly + 0.5)
           }
         }
+      }
+      // A SIDE THAT IS SHORT SAYS SO (19 Nov 2026: playing against fourteen
+      // could not be seen). A small plate by the touchline where its man is
+      // sitting: a card and the number it is down to.
+      for (const [a0, side] of [[0, H], [15, A]] as [number, PitchSide][]) {
+        let n = 0; for (let k = 0; k < 15; k++) if (S.off[a0 + k]) n++
+        if (!n) continue
+        const px = SX(50 + (a0 === 0 ? -15 : 15), 1.5), py = SY(50, 1.5)
+        const tw = 46, th = 20
+        g.fillStyle = 'rgba(10,14,20,.82)'; g.beginPath(); g.roundRect(px - tw / 2, py - th / 2, tw, th, 10); g.fill()
+        g.save(); g.translate(px - 12, py); g.rotate(-0.16); g.fillStyle = gold; g.fillRect(-4, -6, 8, 12); g.restore()
+        g.fillStyle = side.kit[0]; g.beginPath(); g.arc(px + 1, py, 3.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = ink.white; g.lineWidth = 1; g.stroke()
+        g.font = '800 12px system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = ink.white
+        g.fillText(String(15 - n), px + 7, py + 0.5)
       }
       // wound on: two chevrons in the corner while the quiet play goes by
       if (ffShown > 0.02) {
