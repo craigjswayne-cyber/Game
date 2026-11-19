@@ -212,7 +212,7 @@ export class PitchSim {
     const last = this.phase
     if (last && last.kind === 'goal' && last.good === false && !this.queued && p.at !== last.at && p.kind !== 'kickoff' && p.kind !== 'dropout' && p.kind !== 'goal' && p.kind !== 'con') {
       const home = !last.homeBall, x = home ? 21 : 79, d = home ? 1 : -1
-      const D: Phase = { kind: 'dropout', homeBall: home, x, y: 35, at: p.at, label: 'lp.dropout', hang: 14,
+      const D: Phase = { kind: 'dropout', homeBall: home, x, y: 35, at: p.at, label: 'lp.dropout22', hang: 14,
         to: { x: clamp(x + d * 30, 3, 97), y: clamp(p.y, 14, 56) } }
       this.queued = { p, c: carrierIdx }
       this.start(D, null)
@@ -1418,7 +1418,7 @@ export class PitchSim {
       }
     }
     const tight = this.mode === 'scrum' || this.mode === 'maul'
-    const chase = (this.mode === 'kick' && this.phase.label !== 'lp.kickTouch') || this.mode === 'kickoff' || this.mode === 'dropout'
+    const chase = (this.mode === 'kick' && this.phase.label !== 'lp.kickTouch' && this.phase.label !== 'lp.outFull' && this.phase.label !== 'lp.fifty22') || this.mode === 'kickoff' || this.mode === 'dropout'
     const calm = this.mode === 'penalty' || this.mode === 'break' || this.mode === 'con' || this.mode === 'goal'
     for (let i = 0; i < 30; i++) {
       const bd = this.b[i]

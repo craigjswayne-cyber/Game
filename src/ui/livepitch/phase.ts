@@ -275,6 +275,17 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     return { ...base, kind: 'kick', y: prevY, to: { x: clamp(fld + dir * 28, 3, 97), y: prevY < 35 ? -1 : 71 }, hang: 8, label: 'lp.kickTouch' }
   }
 
+  // ---- OUT ON THE FULL, AND THE 50:22 (owner, 19 Nov 2026: "if a player kicks
+  // the ball out on the full, it should say that ... its important things are
+  // clear to the user what has happened"). The engine has always written both;
+  // the pitch drew neither. Out on the full flies over the touchline without
+  // landing; the 50:22 lands in the field and bounces out inside their 22.
+  if (s.startsWith('outFull')) {
+    return { ...base, kind: 'kick', y: prevY, to: { x: clamp(fld + dir * 30, 3, 97), y: prevY < 35 ? -4 : 74 }, hang: 16, label: 'lp.outFull' }
+  }
+  if (s.startsWith('fifty22')) {
+    return { ...base, kind: 'kick', y: prevY, to: { x: isHome ? 86 : 14, y: prevY < 35 ? -1 : 71 }, hang: 7, label: 'lp.fifty22' }
+  }
   // ---- kicks: off the boot here, down where the next line picks it up
   if (s.startsWith('kick') && !s.startsWith('kickField') || raw === 'flav7' || raw === 'flav10' || raw === 'flav17' || s === 'gldo' || s.startsWith('chargeDown')) {
     if (s === 'gldo') {

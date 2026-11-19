@@ -782,6 +782,7 @@ export function Live() {
               })}
             </div>
           </div>
+          {fullMatch && !tablet && !clip && !showPreReact && <LiveStats shown={feedShown} brief />}
         </div>
       )}
 

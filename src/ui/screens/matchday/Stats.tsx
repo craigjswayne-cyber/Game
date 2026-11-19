@@ -58,7 +58,9 @@ function shownStats(live: { ctx: { kickLog?: [number, 0 | 1, 0 | 1][] }; cursor:
  * read off the lines shown so far: territory, and visits to the opposition 22.
  * Two columns, a split bar per row in the clubs' colours.
  */
-export function LiveStats({ shown }: { shown: MatchEvent[] }) {
+/** `brief`: the few rows that sit under the commentary on the live pitch
+ *  (owner, 19 Nov 2026: "can we add a few stats underneath to fill the space up") */
+export function LiveStats({ shown, brief }: { shown: MatchEvent[]; brief?: boolean }) {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   const st = matchStats(live.ctx)
@@ -80,7 +82,7 @@ export function LiveStats({ shown }: { shown: MatchEvent[] }) {
   // a row: the label, the two numbers the bar splits, and how each side reads
   type Row = [string, [number, number], ((i: 0 | 1) => string)?]
   const pct = (v: [number, number]) => (i: 0 | 1) => `${v[i]}%`
-  const rows: Row[] = [
+  const all: Row[] = [
     [t('matchday.stPossession'), st.possession, pct(st.possession)],
     [t('matchday.stTerritory'), [homeTerr, 100 - homeTerr], pct([homeTerr, 100 - homeTerr])],
     [t('matchday.stTries'), shownSt.tries],
@@ -93,8 +95,9 @@ export function LiveStats({ shown }: { shown: MatchEvent[] }) {
     [t('matchday.stLineouts'), st.lineoutsWon],
     [t('matchday.stCards'), shownSt.cards],
   ]
+  const rows = brief ? [all[0], all[1], all[3], all[6], all[5]] : all
   return (
-    <div className="live-stats" data-testid="live-stats">
+    <div className={`live-stats${brief ? ' brief' : ''}`} data-testid="live-stats">
       {/* the crests carry the three-letter code; a tablet shows them in
           place of the names, which ran into each other and into the title in
           its narrow panel (owner, tablet round: "can you use team logos") */}

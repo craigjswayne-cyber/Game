@@ -987,3 +987,10 @@
   .app.tablet .live-wrap.full-match .now-strip { display: none; }
   .app.tablet .live-wrap.full-match .speed-controls { grid-area: ctrl; justify-content: center; }
 }
+
+/* THE FEW STATS UNDER THE COMMENTARY on the live pitch (owner, 19 Nov 2026:
+   "can we add a few stats underneath to fill the space up"). The same rows
+   as the full panel, without its heading, and it takes the room left. */
+.live-wrap .now-strip .live-stats.brief { order: 4; margin: 8px 0 0; padding: 4px 12px; }
+.live-wrap .now-strip .live-stats.brief .ls-head { display: none; }
+.live-wrap .now-strip .live-stats.brief .ls-row { padding: 4px 0; }
