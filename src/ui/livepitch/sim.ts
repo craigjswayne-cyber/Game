@@ -233,8 +233,16 @@ export class PitchSim {
     // OUT ON THE FULL IS THEIR LINEOUT, BACK WHERE IT WAS KICKED (law 18). The
     // engine's line says so and then moves on, so the pitch plays the throw
     // unless the next line is already a lineout.
-    if (last && last.label === 'lp.outFull' && !this.queued && p.at !== last.at && p.kind !== 'lineout' && p.kind !== 'kickoff') {
-      const L: Phase = { kind: 'lineout', homeBall: !last.homeBall, x: clamp(last.x, 6, 94), y: (last.to?.y ?? 0) < 35 ? 0 : 70, at: p.at, label: 'lp.lineout' }
+    // AND ANY BALL KICKED INTO TOUCH IS A LINEOUT, THE OTHER SIDE'S THROW
+    // (owner, 19 Nov 2026: "If a team kicks it out unless its a penalty or a
+    // 50/22 it should be the other sides throw in"; "no lineout suddenly").
+    // The engine often goes straight to what came of the lineout, so the
+    // ball was simply in the other side's hands. The throw is played where
+    // it went out; a 50:22 is the kicking side's own throw.
+    const outAt = last && last.kind === 'kick' && last.to && (last.to.y < 0 || last.to.y > 70)
+    if (last && (last.label === 'lp.outFull' || outAt) && !this.queued && p.at !== last.at && p.kind !== 'lineout' && p.kind !== 'kickoff' && p.kind !== 'break') {
+      const full = last.label === 'lp.outFull', own = last.label === 'lp.fifty22'
+      const L: Phase = { kind: 'lineout', homeBall: own ? last.homeBall : !last.homeBall, x: clamp(full ? last.x : last.to!.x, 6, 94), y: (last.to?.y ?? 0) < 35 ? 0 : 70, at: p.at, label: 'lp.lineout' }
       this.queued = { p, c: carrierIdx }
       this.start(L, null)
       return
@@ -407,8 +415,20 @@ export class PitchSim {
           }
           steps.push({ k: 'wait', t: box ? 0.7 : 0.35 })
         }
-        steps.push({ k: 'mode', mode: 'kick', anchorOn: att0 + k, clear: true },
-          { k: 'kick', to: p.to ?? { x: E.x + dir * 30, y: E.y }, hang: p.hang ?? 12 }, { k: 'wait', t: 0.4 })
+        steps.push({ k: 'mode', mode: 'kick', anchorOn: att0 + k, clear: true })
+        // A KICK TO TOUCH BOUNCES IN THE FIELD BEFORE IT GOES OUT (owner, 19 Nov
+        // 2026: "the ball must bounce into touch, if it goes straight out its
+        // a lineout in line with where it was kicked"). It flew straight over
+        // the line, which is out on the full. It comes down a few metres in
+        // and runs on into touch; only the kick the engine calls out on the
+        // full goes over without landing.
+        const tt = p.to
+        if (tt && (tt.y < 0 || tt.y > 70) && p.label !== 'lp.outFull') {
+          const iny = tt.y < 0 ? 4.5 : 65.5
+          const ox = clamp(tt.x, 5.5, 94.5)
+          steps.push({ k: 'kick', to: { x: ox - dir * 5, y: iny }, hang: p.hang ?? 12 },
+            { k: 'kick', to: { x: ox, y: tt.y < 0 ? -2.5 : 72.5 }, hang: 1, silent: true }, { k: 'wait', t: 0.3 })
+        } else steps.push({ k: 'kick', to: p.to ?? { x: E.x + dir * 30, y: E.y }, hang: p.hang ?? 12 }, { k: 'wait', t: 0.4 })
         break
       }
       case 'carry': case 'try': case 'heldup': {
