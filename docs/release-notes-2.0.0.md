@@ -108,3 +108,20 @@ not bumped yet: that is the owner's call when it ships.
   store text and screenshots want redoing round the pitch.
 - **A real phone.** Frame rate and battery on an older Android have not been
   measured.
+
+## The live pitch, 18 to 19 November 2026
+
+What changed on the Extended match view. The match engine's results and scoring odds are unchanged (the sim fingerprint passes).
+
+- The ground is a painted stadium: twelve of them, chosen by the home colour, day or night, rain or snow. Rain and snow fall.
+- The match screen is the pitch, then the buttons, then one line of commentary with the last one sliding up. The line waits until the pitch has reached the play it describes.
+- Play flows from one line to the next from where the ball actually is. Scrums and lineouts form where play takes them.
+- Two speeds, with the chevrons up while it winds on. A whole match is about four and a half minutes.
+- The kick-off is received in pods and caught; the chase comes up as a line.
+- Tries are played the way the words describe them: from close in, off a maul, out wide, through the line, a kick in behind, from long range, and the overlap against a side a man down. The defence contests them.
+- A try is grounded where the kick that follows makes sense; conversions are taken in line with it and further back the wider it was.
+- A side down to fourteen shows a plate by the touchline; the side a man up stretches the play.
+- Tactics changed during the match now reach the pitch (they were read once at kick-off). The kicking dial, the zonal plan and each selected player's pace show too.
+- Movement: a spring on every man's place, separation between men in open play, gentler starts and stops.
+
+Not done: aggression and player roles on the pitch; match length is above the 3.5 minutes asked for.
