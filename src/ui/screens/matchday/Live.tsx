@@ -407,7 +407,7 @@ export function Live() {
     if (fullMatch && !panelStops) {
       // wait for the pitch; a line that moved nobody still gets read
       if (pitchPlayed?.at !== cursor) return
-      const timer = setTimeout(advanceLive, pitchPlayed.moved ? 40 : Math.min(tickMs, 900))
+      const timer = setTimeout(advanceLive, pitchPlayed.moved ? 40 : Math.min(tickMs, 650))
       return () => clearTimeout(timer)
     }
     // `timer`, not `t`: t() is the translator

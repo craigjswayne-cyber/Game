@@ -972,10 +972,10 @@ export class PitchSim {
     // Everything else is wound on, with the chevrons up while it is.
     {
       const r = this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1
-      this.rate = r <= 1.6 ? 1.6 : r <= 2.6 ? 3.4 : 7
+      this.rate = r <= 1.6 ? 1.85 : r <= 2.6 ? 4.2 : 7.5
     }
     // a ball in the air from a restart or a kick at goal is not watched at life speed
-    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, 7)
+    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, 7.5)
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
       const s = this.steps[this.si]
       const first = !this.entered
