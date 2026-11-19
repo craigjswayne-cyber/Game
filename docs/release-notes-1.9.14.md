@@ -210,6 +210,32 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   device state like the other Pro cards, never shown twice, and only in the
   store apps.
 
+- **Eilidh's report (iPhone, 1.9.13), five points.**
+  - A woman on the shortlist wanted by a rival was still "Move now or lose
+    him". The line now has its women's version in English, French, Spanish,
+    Italian and Afrikaans (Japanese does not gender it).
+  - A close-season event (a golf day, a comedy night) filed an inbox story
+    showing its placeholder instead of the event's name. The story text now
+    reads the name it was always saved with, in six languages, which mends
+    stories already in a career too.
+  - On an iPhone held upright, typing in the Transfers name search zoomed the
+    page in and left it there: that box was 11px and iOS zooms to any box
+    under 16px. It is 16px again, and any zoom a text box brings is let go of
+    when the typing stops.
+  - Women's players in the positions they really play: 727 real players in
+    PWR, the Celtic and Pacific sides, the French Elite 1 and 2 and Richmond
+    were looked up against club squad pages, team sheets and union profiles
+    (through web-search summaries of those pages; the network here does not
+    open the sites themselves). 528 change position, and each is kept with
+    its source. Invented players are left alone. Bristol follows the club's
+    own 2026/27 squad announcement: Holly Phillips is a tighthead prop, seven
+    players join, and five not on the club's list start as free agents.
+  - The try timing (a TRY line, then play, then the try's animation at the
+    conversion) could not be reproduced: 30 matches through the engine and two
+    full matches on the real match screen, at Fast and Normal and in Key
+    Moments, play every try's animation before its line. Asked for the match
+    settings she uses.
+
 ## Not changed
 
 - The match engine and the world: the plan only writes settings that already
@@ -245,6 +271,10 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   the deadline ends the career, leaving voids it, the moment card once) and
   `scripts/prochallengeui.mjs` (browser: the Pro section on the new-career
   screen, the challenge banner, the career-over card).
+- New: `tests/eilidh1914.test.ts` (her rival line in five languages, a booked
+  close-season event's story names the event in all six) and
+  `scripts/typezoomui.mjs` (browser: every box you type in is 16px on a
+  portrait phone; it fails on the old 11px search box).
 - New: `tests/marqueeswap.test.ts`, `scripts/marqueeui.mjs` (browser: a full
   list offers the swap, the swap moves the slot, Finances opens the player,
   and the locked page says why).
