@@ -802,7 +802,11 @@
 .lp-banner.high { padding-left: 24%; background: radial-gradient(ellipse 52% 46% at 62% 50%, rgba(0, 0, 0, .46), rgba(0, 0, 0, 0) 100%); }
 .lp-banner b { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; font-size: 3.4rem; letter-spacing: -1.5px; line-height: .95; }
 .lp-banner em { font-style: normal; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--lp-plus); line-height: 1; margin-left: 22%; margin-bottom: -4px; }
-.lp-banner span { max-width: 94%; overflow: hidden; display: flex; align-items: center; gap: 7px; margin-top: 5px; font-size: 0.625rem; font-weight: 700; letter-spacing: 2.4px; text-transform: uppercase; }
+/* THE NAME UNDER THE WORD IS READ AS EASILY AS THE WORD (owner, 19 Nov 2026:
+   "Try is fine but name underneath is harder to read"). It was ten pixels of
+   widely spaced caps straight on the grass, and cut off when it ran long. It
+   is bigger, tighter, on its own dark plate, and it wraps rather than clips. */
+.lp-banner span { max-width: 96%; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 7px; margin-top: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(8, 12, 10, .82); font-size: 0.8125rem; font-weight: 800; letter-spacing: .6px; line-height: 1.2; text-transform: uppercase; text-align: center; }
 .lp-banner span i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid; display: block; }
 /* a card: the card itself, tilted, beside the word */
 .lp-banner.yc b, .lp-banner.rc b { display: flex; align-items: center; gap: 12px; color: var(--prop-ink); }
