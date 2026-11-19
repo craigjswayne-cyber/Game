@@ -30,16 +30,37 @@ export function resetPage(): void {
     for (const el of [document.documentElement, document.body, document.getElementById('root')]) {
       if (el && (el.scrollTop !== 0 || el.scrollLeft !== 0)) { el.scrollTop = 0; el.scrollLeft = 0 }
     }
+    releaseZoom()
+  } catch { /* an engine without visualViewport: nothing to put back */ }
+}
+
+/** Let go of a zoom the page is in, without moving anything else. The one way
+ *  a page can ask a browser to: cap the scale for a moment, then give the
+ *  freedom back. Pinch-zoom still works afterwards. */
+export function releaseZoom(): void {
+  try {
     if (pageScale() <= 1.01) return
-    // the one way a page can ask a browser to let go of a zoom: cap the scale
-    // for a moment, then give the freedom back
     const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]')
     if (!meta) return
     const own = meta.getAttribute('data-own') ?? meta.content
     meta.setAttribute('data-own', own)
     meta.content = `${own}, maximum-scale=1`
     window.setTimeout(() => { meta.content = own }, 350)
-  } catch { /* an engine without visualViewport: nothing to put back */ }
+  } catch { /* an engine without visualViewport: nothing to let go of */ }
+}
+
+/** WHEN THE TYPING STOPS, THE ZOOM GOES (1.9.14). iOS zooms in on a text box
+ *  whose writing is under 16px and stays there after the keyboard closes
+ *  (player report: "stays zoomed in tight until I close the app"). Every box
+ *  is 16px now, but a zoom the focus brought is let go of the moment no box
+ *  has the focus, wherever it came from. A zoom the player pinched in while
+ *  not typing is left alone. */
+export function watchTypingZoom(): () => void {
+  if (typeof document === 'undefined') return () => {}
+  const typing = (el: Element | null) => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')
+  const onOut = () => window.setTimeout(() => { if (!typing(document.activeElement)) releaseZoom() }, 120)
+  document.addEventListener('focusout', onOut)
+  return () => document.removeEventListener('focusout', onOut)
 }
 
 /** Scroll `target` to the top of the game's own scrolling column, and only

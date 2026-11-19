@@ -8531,8 +8531,8 @@
   "alreadyBooked": "その週にはすでに予定がある。スタジアムはひとつだけだ。",
   "cannotHost": "このスタジアムではまだ開催できない。",
   "booked": "{event}を予約した。クラブに{fee}。",
-  "newsSubj": "スタジアムで{event}",
-  "news": "{club}は今週{event}を開催した。{fee}の収入、そしてボールは一つも見当たらない。",
+  "newsSubj": "スタジアムで{event_k}",
+  "news": "{club}は今週{event_k}を開催した。{fee}の収入、そしてボールは一つも見当たらない。",
   "mishapWedding": "駐車場での乱闘と割れた窓",
   "mishapComedy": "レンタルした音響機材が破損して返却",
   "mishapTownshow": "テントの杭が灌漑パイプを直撃",
@@ -8540,11 +8540,11 @@
   "mishapShooting": "きわどい一発のあとの保険免責金",
   "mishapSponsor": "ケータリングの請求が見積もりを大幅超過",
   "mishapConcert": "ステージ装置がスタンドの一区画を壊した",
-  "newsBad": "{club}は今週{event}を開催。{what}で{bill}かかり、手取りは{fee}。",
+  "newsBad": "{club}は今週{event_k}を開催。{what_k}で{bill}かかり、手取りは{fee}。",
   "bookedBad": "{event}を予約。クラブに{fee}。{what}で{bill}が差し引かれた。",
   "slateSub": "今週は3件。予約はひとつ。",
   "risk": "当たり外れあり",
-  "newsBadSubj": "{event}をグラウンドで開催、そして請求書つき"
+  "newsBadSubj": "{event_k}をグラウンドで開催、そして請求書つき"
  },
  "point": {
   "ticketsSubj": "取締役会が入場者数の数字を見た",

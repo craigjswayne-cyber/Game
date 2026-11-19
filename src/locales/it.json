@@ -6185,6 +6185,7 @@
   "shortlistAlertSubj": "Avviso dalla lista osservati: {player}",
   "shortlistAlert": "Il capo degli osservatori chiama in sede: {player} ({pos}, {short}) {alert_k}",
   "slRival_genuine": "è nel mirino di {rival}, e il capo osservatore ci crede. Muoviti ora o lo perderai.",
+  "slRival_genuine_f": "è nel mirino di {rival}, e il capo osservatore ci crede. Muoviti ora o la perderai.",
   "slRival_unsure": "sarebbe nel mirino di {rival}. Il capo osservatore non sa ancora se sia vero.",
   "slRival_agent": "viene accostato a {rival}. Probabilmente voci del procuratore: potrebbero spegnersi se aspetti.",
   "slListed": "è stato messo sul mercato da {short}. Costerà poco, e non resterà in lista a lungo.",
@@ -8949,8 +8950,8 @@
   "alreadyBooked": "Quella settimana c'è già qualcosa. L'impianto è uno solo.",
   "cannotHost": "Il tuo impianto non può ancora ospitarlo.",
   "booked": "Prenotazione fatta: {event}. {fee} al club.",
-  "newsSubj": "{event} all'impianto",
-  "news": "{event} al {club} questa settimana: {fee} incassati, e nemmeno un pallone in vista.",
+  "newsSubj": "{event_k} all'impianto",
+  "news": "{event_k} al {club} questa settimana: {fee} incassati, e nemmeno un pallone in vista.",
   "mishapWedding": "una rissa nel parcheggio e una finestra in meno",
   "mishapComedy": "l'impianto audio noleggiato è tornato danneggiato",
   "mishapTownshow": "un picchetto del tendone dritto in una tubazione di irrigazione",
@@ -8958,11 +8959,11 @@
   "mishapShooting": "una franchigia assicurativa dopo un tiro andato troppo vicino",
   "mishapSponsor": "la fattura del catering è arrivata molto sopra il preventivo",
   "mishapConcert": "la struttura del palco ha portato via un settore di gradinata",
-  "newsBad": "{event} al {club} questa settimana: {fee} incassati, tolti {bill} per {what}.",
+  "newsBad": "{event_k} al {club} questa settimana: {fee} incassati, tolti {bill} per {what_k}.",
   "bookedBad": "Prenotazione fatta: {event}. {fee} al club ({what}), {bill} tolti dall'incasso.",
   "slateSub": "Tre questa settimana. Una prenotazione.",
   "risk": "può andare storto",
-  "newsBadSubj": "{event} all'impianto, e il conto da pagare"
+  "newsBadSubj": "{event_k} all'impianto, e il conto da pagare"
  },
  "point": {
   "ticketsSubj": "Il consiglio ha visto i dati del botteghino",

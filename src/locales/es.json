@@ -6148,6 +6148,7 @@
   "shortlistAlertSubj": "Aviso de la lista de seguimiento: {player}",
   "shortlistAlert": "El jefe de ojeadores llama para avisar: {player} ({pos}, {short}) {alert_k}",
   "slRival_genuine": "está en la agenda de {rival}, y el jefe de ojeadores cree que va en serio. Muévete ya o lo perderás.",
+  "slRival_genuine_f": "está en la agenda de {rival}, y el jefe de ojeadores cree que va en serio. Muévete ya o la perderás.",
   "slRival_unsure": "estaría en la agenda de {rival}. El jefe de ojeadores aún no sabe si es real.",
   "slRival_agent": "suena para {rival}. Probablemente cosa del agente: puede apagarse si esperas.",
   "slListed": "ha sido declarado transferible por {short}. Saldrá barato, y no estará mucho tiempo en la lista.",
@@ -8903,8 +8904,8 @@
   "alreadyBooked": "Ya hay algo esa semana. Solo hay un campo.",
   "cannotHost": "Tu campo todavía no puede acoger eso.",
   "booked": "Reserva hecha: {event}. {fee} para el club.",
-  "newsSubj": "{event} en el campo",
-  "news": "{event} en el estadio del {club} esta semana: {fee} de ingresos, y ni un balón a la vista.",
+  "newsSubj": "{event_k} en el campo",
+  "news": "{event_k} en el estadio del {club} esta semana: {fee} de ingresos, y ni un balón a la vista.",
   "mishapWedding": "una pelea en el aparcamiento y una ventana rota",
   "mishapComedy": "el equipo de sonido alquilado volvió dañado",
   "mishapTownshow": "una estaca de carpa atravesando una tubería de riego",
@@ -8912,11 +8913,11 @@
   "mishapShooting": "una franquicia del seguro tras un disparo demasiado cerca",
   "mishapSponsor": "la factura del catering llegó muy por encima del presupuesto",
   "mishapConcert": "la estructura del escenario se llevó parte de la grada",
-  "newsBad": "{event} en el estadio del {club} esta semana: {fee} de ingresos, descontados {bill} por {what}.",
+  "newsBad": "{event_k} en el estadio del {club} esta semana: {fee} de ingresos, descontados {bill} por {what_k}.",
   "bookedBad": "Reserva hecha: {event}. {fee} para el club ({what}), {bill} menos de la recaudación.",
   "slateSub": "Tres esta semana. Una reserva.",
   "risk": "puede salir mal",
-  "newsBadSubj": "{event} en el campo, y con factura"
+  "newsBadSubj": "{event_k} en el campo, y con factura"
  },
  "point": {
   "ticketsSubj": "La junta ha visto las cifras de taquilla",

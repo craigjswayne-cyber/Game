@@ -201,10 +201,12 @@ export function bookEvent(state: GameState, id: string): string {
     // the subject key is the body key with Subj on the end (newsSubject in
     // news.ts), so a bad-night body needs its own headline or the inbox renders
     // the raw key - newsprobe caught exactly that here
-    subject: tIn('en', bill > 0 ? 'close.newsBadSubj' : 'close.newsSubj', { event: tIn('en', `close.${ev.id}`) }),
-    body: bill > 0
-      ? tIn('en', 'close.newsBad', { event: tIn('en', `close.${ev.id}`), fee: fmtMoney(net), club: club.name, what: tIn('en', MISHAPS[ev.id]), bill: fmtMoney(bill) })
-      : tIn('en', 'close.news', { event: tIn('en', `close.${ev.id}`), fee: fmtMoney(net), club: club.name }),
+    subject: tIn('en', bill > 0 ? 'close.newsBadSubj' : 'close.newsSubj', v),
+    // the story and its headline read {event_k} and {what_k}: the event's
+    // name is a key, read in the reader's language. They read {event} until
+    // 1.9.14, which the saved story never carried, so the inbox showed the
+    // placeholder (player report, Eilidh, 1.9.13)
+    body: tIn('en', bill > 0 ? 'close.newsBad' : 'close.news', bill > 0 ? { ...v, what_k: MISHAPS[ev.id], bill: fmtMoney(bill) } : v),
     k: bill > 0 ? 'close.newsBad' : 'close.news',
     v: bill > 0 ? { ...v, what_k: MISHAPS[ev.id], bill: fmtMoney(bill) } : v,
   })

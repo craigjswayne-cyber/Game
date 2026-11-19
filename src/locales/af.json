@@ -6068,6 +6068,7 @@
   "shortlistAlertSubj": "Kortlys-waarskuwing: {player}",
   "shortlistAlert": "Die hooftalentsoeker bel dit in: {player} ({pos}, {short}) {alert_k}",
   "slRival_genuine": "word deur {rival} gesoek, en die hooftalentsoeker glo dit is eg. Beweeg nou of verloor hom.",
+  "slRival_genuine_f": "word deur {rival} gesoek, en die hooftalentsoeker glo dit is eg. Beweeg nou of verloor haar.",
   "slRival_unsure": "word glo deur {rival} gesoek. Die hooftalentsoeker kan nog nie sê of dit eg is nie.",
   "slRival_agent": "word aan {rival} gekoppel. Waarskynlik net agentpraatjies: dit kan verdwyn as jy wag.",
   "slListed": "is deur {short} op die oordraglys geplaas. Hy sal goedkoop wees, en hy sal nie lank op die lys bly nie.",
@@ -9049,8 +9050,8 @@
   "alreadyBooked": "Iets is reeds daardie week in die dagboek. Dis een veld.",
   "cannotHost": "Jou veld kan daardie een nog nie hou nie.",
   "booked": "{event} bespreek. {fee} aan die klub.",
-  "newsSubj": "{event} by die veld",
-  "news": "{event} by {club} hierdie week. {fee} in, en nie 'n rugbybal in sig nie.",
+  "newsSubj": "{event_k} by die veld",
+  "news": "{event_k} by {club} hierdie week. {fee} in, en nie 'n rugbybal in sig nie.",
   "mishapWedding": "'n bakleiery op die parkeerterrein en 'n gebreekte venster",
   "mishapComedy": "die gehuurde klankstelsel is beskadig teruggestuur",
   "mishapTownshow": "'n tentpen dwarsdeur 'n besproeiingspyp",
@@ -9058,11 +9059,11 @@
   "mishapShooting": "'n versekeringsbybetaling ná 'n skoot wat net-net verbygegaan het",
   "mishapSponsor": "die spyseniers se rekening was ver bo die kwotasie",
   "mishapConcert": "die verhoogstruktuur het 'n deel van die pawiljoen uitgehaal",
-  "newsBad": "{event} by {club} hierdie week. {fee} in, ná {bill} vir {what}.",
+  "newsBad": "{event_k} by {club} hierdie week. {fee} in, ná {bill} vir {what_k}.",
   "bookedBad": "{event} bespreek. {fee} vir die klub, maar {what}: {bill} van die fooi af.",
   "slateSub": "Drie hierdie week. Een bespreking.",
   "risk": "kan verkeerd loop",
-  "newsBadSubj": "{event} by die veld, en 'n rekening daarmee saam"
+  "newsBadSubj": "{event_k} by die veld, en 'n rekening daarmee saam"
  },
  "point": {
   "ticketsSubj": "Die Raad het die hekgetalle gesien",
