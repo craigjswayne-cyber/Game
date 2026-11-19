@@ -442,7 +442,13 @@ export class PitchSim {
           const dy = E.y - B.y
           const sy = Math.abs(dy) < 4 ? open(B.y) * 5 : clamp(dy, -15, 15)
           const out = hyp(me, B) > 14
-          const S: Pt = out
+          // OUT WIDE IT GOES THROUGH THE HANDS (19 Nov 2026: a try in the corner
+          // was one man running a fifty-metre diagonal). The scorer waits out
+          // by the touchline, deep, and the ball is passed along the line to
+          // him; he has only the last of it to run.
+          const S: Pt = tk === 'wide'
+            ? { x: clamp(B.x - dir * 10, 2, 98), y: clamp(E.y + (E.y > 35 ? -3 : 3), 3, 67) }
+            : out
             ? { x: dir > 0 ? Math.min(me.x, B.x - 3) : Math.max(me.x, B.x + 3), y: me.y }
             : { x: B.x - dir * 6, y: clamp(B.y + sy, 3, 67) }
           if (c !== 8) {

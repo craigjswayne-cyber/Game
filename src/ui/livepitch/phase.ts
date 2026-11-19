@@ -178,7 +178,8 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     const posts = n === 5 || n === 21
     const y = pen || (posts && !conMiss) ? 35 + (u2 - 0.5) * 6
       : posts ? 35 + far * (11 + u2 * 6)
-      : tryKind === 'wide' || conTouch ? (far > 0 ? 64.5 - u2 * 3 : 5.5 + u2 * 3)
+      // (the corner on the side the ball is already on: it used to be the far one, a fifty-metre run across the field)
+      : tryKind === 'wide' || conTouch ? (far < 0 ? 64.5 - u2 * 3 : 5.5 + u2 * 3)
       : conMiss ? 35 + far * (19 + u2 * 9)
       : conEasy ? 35 + (u2 - 0.5) * 12
       : tryKind === 'close' ? clamp(prevY * 0.5 + 17.5 + (u2 - 0.5) * 14, 14, 56)
