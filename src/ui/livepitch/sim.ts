@@ -605,8 +605,14 @@ export class PitchSim {
         } else {
           if (!holderAtt) { this.holder = -1; this.grounded = false; pre.push({ k: 'pick', who: this.nearest(att0, B), max: 1.5, rate: FF }) }
           // (a kick at goal waits for both sides to get to their places: it was being taken with thirty men still in a heap)
-          pre.push({ k: 'settle', max: p.kind === 'con' || p.kind === 'goal' ? 6 : 3.6, rate: FF })
-          if (init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
+          // FOR A KICK AT GOAL THE BALL IS THROWN TO THE KICKER FIRST, and he
+          // walks to his mark with it (19 Nov 2026, traced: the try scorer
+          // carried it forty metres back to halfway, and the kick was struck
+          // from wherever the kicker had got to, twenty metres off the mark).
+          const atGoal = p.kind === 'con' || p.kind === 'goal'
+          if (atGoal && init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
+          pre.push({ k: 'settle', max: atGoal ? 9 : 3.6, rate: FF })
+          if (!atGoal && init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
           steps.unshift(...pre)
           begin()
         }
@@ -1118,6 +1124,8 @@ export class PitchSim {
           let there = 0
           for (let i = 0; i < 30; i++) if (hyp(this.b[i], T.pts[i]) < 5) there++
           over = there >= 25 || this.st >= s.max
+          // (a kick at goal goes once the kicker is on his mark and most are in place)
+          if (!over && (this.mode === 'con' || this.mode === 'goal') && this.holder >= 0 && this.st > 2.5 && there >= 18 && hyp(this.b[this.holder], T.pts[this.holder]) < 1.2) over = true
           break
         }
         case 'trackset': {
@@ -1178,7 +1186,7 @@ export class PitchSim {
             }
             // NO FORWARD PASSES: if the man it is going to is in front of the
             // ball he drops back behind it first, and it is held until he has
-            if (this.holder >= 0 && (this.holder < 15) === (s.to < 15) && this.mode !== 'lineout') {
+            if (this.holder >= 0 && (this.holder < 15) === (s.to < 15) && this.mode !== 'lineout' && this.mode !== 'con' && this.mode !== 'goal') {
               const d1 = s.to < 15 ? 1 : -1
               if ((this.b[s.to].x - this.ball.x) * d1 > -0.4 && this.st < 2.5) {
                 this.over.set(s.to, { x: this.ball.x - d1 * 3, y: this.b[s.to].y })
@@ -1482,7 +1490,7 @@ export class PitchSim {
         if (gap > 0.5 && gap < 22 && runTo && (runTo.x - this.ball.x) * d1 > 1) { tx = bd.x; ty = bd.y + clamp(ty - bd.y, -1.5, 1.5) }
       }
       // (the man a pass is coming to does not run on past where it was thrown from)
-      if (this.flight && this.flight.toIdx === i && this.mode !== 'lineout') {
+      if (this.flight && this.flight.toIdx === i && this.mode !== 'lineout' && this.mode !== 'con' && this.mode !== 'goal') {
         const d1 = i < 15 ? 1 : -1, lim = this.flight.from.x - d1 * 0.6
         if ((tx - lim) * d1 > 0) tx = lim
       }
@@ -1556,7 +1564,7 @@ export class PitchSim {
       // forward. A ball passed by hand never ends up ahead of where it left
       // the hands; the man it is for checks his run to take it.
       let tx = f.to.x
-      if (f.toIdx >= 0 && this.mode !== 'lineout') { const d1 = f.toIdx < 15 ? 1 : -1; if ((tx - f.from.x) * d1 > -0.4) tx = f.from.x - d1 * 0.4 }
+      if (f.toIdx >= 0 && this.mode !== 'lineout' && this.mode !== 'con' && this.mode !== 'goal') { const d1 = f.toIdx < 15 ? 1 : -1; if ((tx - f.from.x) * d1 > -0.4) tx = f.from.x - d1 * 0.4 }
       this.ball.x = f.from.x + (tx - f.from.x) * u
       this.ball.y = f.from.y + (f.to.y - f.from.y) * u
       this.ball.lift = Math.sin(Math.PI * u) * f.hang
