@@ -21,7 +21,7 @@ import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { closeNatTenure } from './model'
 import { tIn } from './i18n'
-import { nationNameIn } from './nations'
+import { conflictedClub, federationList, nationNameIn, NAT_SQUAD_SIZE } from './nations'
 
 export type CampEventKind = 'rest' | 'curfew' | 'scare' | 'bolter'
 export type CampAnswer = 'a' | 'b' | 'c'
@@ -159,6 +159,11 @@ export function answerCampEvent(state: GameState, answer: CampAnswer, floor: num
   const others = squad.filter(id => id !== p.id).map(id => state.players[id]).filter((q): q is Player => !!q)
   const leave = () => {
     if (squad.length <= floor) return false
+    // the own-club rule natDrop keeps (country.ts): his club's men on the
+    // federation's list stay in camp, whatever the camp's story (QA, 1.9.14)
+    const mine = conflictedClub(state)
+    if (mine && p.clubId === mine && !p.injury && federationList(state, w.nat, NAT_SQUAD_SIZE).some(q => q.id === p.id)) return false
+    ;(state.natSent ??= []).push(p.id)
     const i = squad.indexOf(p.id)
     if (i >= 0) squad.splice(i, 1)
     p.natSquad = false

@@ -42,6 +42,7 @@
  * and every save in progress with it.
  */
 import type { GameState, Player, Pos } from './model'
+import { proBlocksMoney } from './prochallenge'
 import { tIn, type Vars } from './i18n'
 
 /** Enough club rugby to have been watched, not so much that it excludes a
@@ -142,7 +143,10 @@ export function runTeamOfTheYear(state: GameState, winnerId: number | null) {
   if (!mine.length) return
   const hasWinner = winnerId != null && mine.some(p => p.id === winnerId)
   const cash = awardWindfall(club.rep, mine.length, hasWinner)
-  club.budget += cash
+  // under Shoestring or Fire Sale the windfall goes to the bank, not the
+  // playing budget (prochallenge.ts proBlocksMoney)
+  if (proBlocksMoney(state)) club.balance += cash
+  else club.budget += cash
   file('news.totyMine', {
     n: mine.length,
     names: mine.map(p => p.name).join(', '),

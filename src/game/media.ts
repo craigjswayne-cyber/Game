@@ -1,4 +1,5 @@
 import type { GameState, Player, PressItem, PressOption } from './model'
+import { proBlocksMoney } from './prochallenge'
 import { subjectVar } from './gender'
 import {absWeek, careerRows, SEASON_WEEKS, pledgeDue, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
 import { loanOut } from './loans'
@@ -1368,7 +1369,8 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     const c = state.clubs[state.userClubId]
     // the war chest lands the moment the words are out - and the rollover
     // remembers exactly how much the promise was worth
-    if (opt.fund) {
+    // (not under Shoestring or Fire Sale: no board money, prochallenge.ts)
+    if (opt.fund && !proBlocksMoney(state)) {
       c.budget += opt.fund
       state.stanceFund = opt.fund
     }

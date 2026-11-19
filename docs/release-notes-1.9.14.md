@@ -210,6 +210,91 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   device state like the other Pro cards, never shown twice, and only in the
   store apps.
 
+- **Eilidh's report (iPhone, 1.9.13), five points.**
+  - A woman on the shortlist wanted by a rival was still "Move now or lose
+    him". The line now has its women's version in English, French, Spanish,
+    Italian and Afrikaans (Japanese does not gender it).
+  - A close-season event (a golf day, a comedy night) filed an inbox story
+    showing its placeholder instead of the event's name. The story text now
+    reads the name it was always saved with, in six languages, which mends
+    stories already in a career too.
+  - On an iPhone held upright, typing in the Transfers name search zoomed the
+    page in and left it there: that box was 11px and iOS zooms to any box
+    under 16px. It is 16px again, and any zoom a text box brings is let go of
+    when the typing stops.
+  - Women's players in the positions they really play: 727 real players in
+    PWR, the Celtic and Pacific sides, the French Elite 1 and 2 and Richmond
+    were looked up against club squad pages, team sheets and union profiles
+    (through web-search summaries of those pages; the network here does not
+    open the sites themselves). 506 change position, and each is kept with
+    its source; where a source said only "prop" or "back row" the old side
+    or role is kept. Invented players are left alone. New careers only: a
+    career already under way keeps the world it began in, so Holly Phillips
+    stays on the wing in a 1.9.13 save. Bristol follows the club's
+    own 2026/27 squad announcement: Holly Phillips is a tighthead prop, seven
+    players join, and five not on the club's list start as free agents.
+  - The try timing (a TRY line, then play, then the try's animation at the
+    conversion) could not be reproduced: 30 matches through the engine and two
+    full matches on the real match screen, at Fast and Normal and in Key
+    Moments, play every try's animation before its line. Asked for the match
+    settings she uses.
+
+## Release QA (five testers, men's and women's careers, six languages)
+
+Found and fixed before upload:
+
+- Pro challenges
+  - The career-over card could not be left: Main menu and New career now work.
+  - Shoestring and Fire Sale: money still reached the budget through the
+    treasury slider, a board funds request, a banked injection credit, the
+    war chest, the objective bonus, Team of the Year and a takeover. All
+    closed, and the Finances store link is hidden under them.
+  - Fire Sale: a league title that took the club up was read against the
+    division above, so the manager was sacked for winning it. Any league
+    title since the start now counts.
+  - Academy Only: the board's summer free-agent signings are gone, and a
+    trophy won with the country no longer completes it.
+  - Pro bought from the new-career screen is claimed at once; no other card
+    opens over the career-over card; a challenge win never replaces a title
+    celebration from the same summer.
+- Transfers
+  - A pre-contract is binding: a man who has signed elsewhere can no longer
+    be released and signed back as a free agent, and a bid lodged before he
+    announced cannot be accepted.
+  - Medical jokers no longer warn they are leaving.
+  - Free-agent and renewal wages land on GBP 50 steps, so meeting a counter
+    is never refused over a few pounds.
+- Women's game
+  - Every women's club starts with the matchday minimum in every position
+    (Exeter had no number 8 or full-back; six clubs were short).
+  - The Pacific Four was played with no national squads: the summer series
+    released them the week the Pacific Four named them. Every window that
+    ends now closes before any window opens, and a window ending in the last
+    week is reviewed in the summer.
+  - "Agent talk" shortlist alert feminine in French and Italian; "Arroparla"
+    in Spanish.
+- International
+  - A coach who steps down mid-window leaves the federation a full camp
+    (England had played three Tests with four players).
+  - A nation-only coach has the Country button and the camp focus.
+  - The curfew's "send him home" no longer gets round the own-club rule.
+  - Test-week text said "Saturday"; Tests are Friday to Sunday, so it says
+    "this week" in all six languages.
+  - French campaign card: no more "victoire(s)"; step labels wrap at 320px;
+    the walk-out "Main stand" label reads in day theme; the captain's ring is
+    on the captain's own shirt.
+  - Damaged saves: the campaign card's reveal, event and review are checked
+    on load.
+- New: `tests/qa1914.test.ts` (eight checks; each fails on the code before
+  these fixes).
+
+Left for a later round (minor, no wrong result for a player): the loan
+buy-out priced against the borrowing squad, a free agent's morale after
+repeated lowball offers, the dropped-player morale counted twice, the
+walk-out showing one side's challenge, kit clashes in the walk-out, the era
+card's record before the week settles, and the Store line not naming the
+Pro challenges.
+
 ## Not changed
 
 - The match engine and the world: the plan only writes settings that already
@@ -245,6 +330,10 @@ Version 1.9.14, Play versionCode 76. Baseline: 1.9.13, code 75.
   the deadline ends the career, leaving voids it, the moment card once) and
   `scripts/prochallengeui.mjs` (browser: the Pro section on the new-career
   screen, the challenge banner, the career-over card).
+- New: `tests/eilidh1914.test.ts` (her rival line in five languages, a booked
+  close-season event's story names the event in all six) and
+  `scripts/typezoomui.mjs` (browser: every box you type in is 16px on a
+  portrait phone; it fails on the old 11px search box).
 - New: `tests/marqueeswap.test.ts`, `scripts/marqueeui.mjs` (browser: a full
   list offers the swap, the swap moves the slot, Finances opens the player,
   and the locked page says why).

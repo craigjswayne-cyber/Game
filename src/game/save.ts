@@ -668,6 +668,7 @@ function migrateCollections(s: GameState): void {
     if (Array.isArray(r.cups)) for (const c of r.cups) if (c?.comp) c.comp = reword(c.comp)
   }
   s.natSquads = asMap(s.natSquads)
+  if (s.natOrphan != null && typeof s.natOrphan !== 'string') delete s.natOrphan
   s.players = asMap(s.players)
   // A MAN IS FILED UNDER HIS OWN ID (1.9.4 audit). A null left by a bad
   // write threw later in this function and cost the whole career; a key
@@ -1029,13 +1030,31 @@ function migrateManagerAndNation(s: GameState): void {
   // the window campaign (1.9.14): damaged, it is dropped, never a crash
   if (s.natWin != null && (typeof s.natWin !== 'object' || typeof s.natWin.nat !== 'string' ||
     ![s.natWin.season, s.natWin.start, s.natWin.end, s.natWin.tests, s.natWin.target, s.natWin.w, s.natWin.d, s.natWin.l].every(n => typeof n === 'number' && Number.isFinite(n)))) delete s.natWin
+  // the parts the campaign card reads straight off (QA, 1.9.14): a damaged
+  // reveal or event threw on the Country screen
+  if (s.natWin) {
+    const r = s.natWin.reveal as Record<string, unknown> | null | undefined
+    if (r != null && (typeof r !== 'object' || !['debuts', 'recalls', 'omitted'].every(k => Array.isArray(r[k])))) delete s.natWin.reveal
+    const e = s.natWin.event
+    if (e != null && (typeof e !== 'object' || !['rest', 'curfew', 'scare', 'bolter'].includes(e.kind) || !Number.isFinite(e.playerId))) delete s.natWin.event
+    const v = s.natWin.review
+    if (v != null && (typeof v !== 'object' || !Number.isFinite(v.conf))) delete s.natWin.review
+  }
   if (s.natPrevSquad != null && !Array.isArray(s.natPrevSquad)) delete s.natPrevSquad
   if (s.natTerm != null && (typeof s.natTerm !== 'object' || typeof s.natTerm.nat !== 'string' || !Number.isFinite(s.natTerm.rank) || !Number.isFinite(s.natTerm.since))) delete s.natTerm
   if (s.natUnveil != null && (typeof s.natUnveil !== 'object' || typeof s.natUnveil.nat !== 'string')) delete s.natUnveil
   // Pro challenges (1.9.14): damaged, the challenge is dropped, never a crash
   if (s.proChallenge != null && (typeof s.proChallenge !== 'object' || !['academy', 'shoestring', 'firesale'].includes(s.proChallenge.id) ||
     typeof s.proChallenge.clubId !== 'string' || !Number.isFinite(s.proChallenge.since) || !Number.isFinite(s.proChallenge.streak))) delete s.proChallenge
+  if (s.proChallenge) {
+    // the two flags are true or absent: a damaged "false" string read as true
+    for (const f of ['done', 'over'] as const) if (s.proChallenge[f] !== undefined && s.proChallenge[f] !== true) delete s.proChallenge[f]
+  }
   if (s.careerOver != null && (typeof s.careerOver !== 'object' || typeof s.careerOver.k !== 'string')) delete s.careerOver
+  // the end card's text needs its fields: without them it showed raw {title_k}
+  else if (s.careerOver && (s.careerOver.v == null || typeof s.careerOver.v !== 'object' || typeof s.careerOver.v.title_k !== 'string')) {
+    s.careerOver.v = { title_k: s.proChallenge ? `pro.${s.proChallenge.id}` : 'pro.academy', n: Number.isFinite(s.careerOver.v?.n) ? s.careerOver.v.n : s.season }
+  }
   if (s.natFed != null && (typeof s.natFed !== 'object' || typeof s.natFed.nat !== 'string' || !Array.isArray(s.natFed.ids))) delete s.natFed
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist

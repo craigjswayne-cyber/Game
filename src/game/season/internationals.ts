@@ -44,13 +44,79 @@ export function activeWindows(state: GameState): Window[] {
 }
 
 export function manageInternationals(state: GameState, rng: Rng) {
-  for (const w of activeWindows(state)) {
-    // the coach's window as a campaign (1.9.14, natwin.ts): the union's
-    // target when camp opens, its review when the window closes
-    if (state.natTeam && w.nations.includes(state.natTeam)) {
-      if (state.week === w.start) openNatWindow(state, w)
-      if (state.week === w.end + 1) reviewNatWindow(state, w.start)
+  const wins = activeWindows(state)
+  // CLOSES BEFORE OPENINGS (QA, 1.9.14). One window ending the week another
+  // begins (the women's summer series into the Pacific Four, the men's
+  // Championship into the autumn) ran in list order: the later window's
+  // release wiped the squads the earlier one had just named, and the review
+  // missed its window once the next one opened. Every close now runs first.
+  for (const w of wins) {
+    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.end + 1) reviewNatWindow(state, w.start)
+    if (state.week === w.end + 1) {
+      if (state.natLineup && w.nations.includes(state.natLineup.team)) state.natLineup = null
+      const returnedMine: string[] = []
+      const lionsHome: Player[] = []
+      for (const nat of w.nations) {
+        for (const id of state.natSquads[nat] ?? []) {
+          const p = state.players[id]
+          if (p) {
+            p.natSquad = false
+            // Test rugby empties the tank - returning internationals need
+            // managing, not flogging
+            p.cond = clamp(p.cond - 10, 20, 100)
+            if (isMyClub(state, p.clubId)) {
+              if (nat === 'LIO') lionsHome.push(p)
+              else returnedMine.push(p.name)
+            }
+          }
+        }
+        delete state.natSquads[nat]
+        if (nat === state.natTeam) { delete state.natSent; delete state.natFed }
+        if (nat === state.natOrphan) state.natOrphan = null
+      }
+      if (lionsHome.length) {
+        // a tour changes a player: he comes home a bigger presence
+        const comp = isleTour(state)
+        const seriesWon = comp?.champion === 'LIO'
+        for (const p of lionsHome) {
+          p.morale = clamp(p.morale + 0.6, 1, 10)
+          p.a.lea = clamp(p.a.lea + 1, 1, 20)
+        }
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `The tourists come home${seriesWon ? ' as series winners' : ''}`,
+          k: seriesWon ? 'news.lionsHomeWon' : 'news.lionsHome',
+          v: {
+            tour: comp?.name ?? 'the Isles tour',
+            names: lionsHome.map(p => p.name).join(', '),
+            him_k: lionsHome.length === 1 ? 'news.himOne' : 'news.himMany',
+            come_k: lionsHome.length === 1 ? 'news.comesOne' : 'news.comeMany',
+          },
+          body: [
+            `Back in club colours after ${comp?.name ?? 'the Isles tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
+            seriesWon
+              ? `A series win in the luggage, and the kind of standing money cannot buy. Expect ${lionsHome.length === 1 ? 'him' : 'them'} to walk taller here too.`
+              : `Win or lose, a tour changes a player - ${lionsHome.length === 1 ? 'he comes' : 'they come'} back a bigger presence in this dressing room.`,
+            `The medical staff still counsel care: a tour summer empties the tank like nothing else.`,
+          ].join(' '),
+          playerId: lionsHome[0].id,
+        })
+      }
+      if (returnedMine.length) {
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+          subject: `Internationals return - leggy`,
+          body: `Back in club colours: ${returnedMine.join(', ')}. The medical staff's advice is blunt: Test rugby empties the tank, and none of them are at full freshness this week. Rotate or risk it - your call.`,
+          k: 'news.intlBack',
+          v: { names: returnedMine.join(', ') },
+        })
+      }
     }
+  }
+  for (const w of wins) {
+    // the coach's window as a campaign (1.9.14, natwin.ts): the union's
+    // target when camp opens, its review when the window closes (above)
+    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.start) openNatWindow(state, w)
     if (state.week === w.start) {
       // call-ups
       const userCalls: Player[] = []
@@ -269,65 +335,6 @@ export function manageInternationals(state: GameState, rng: Rng) {
         }
       }
     }
-    if (state.week === w.end + 1) {
-      if (state.natLineup && w.nations.includes(state.natLineup.team)) state.natLineup = null
-      const returnedMine: string[] = []
-      const lionsHome: Player[] = []
-      for (const nat of w.nations) {
-        for (const id of state.natSquads[nat] ?? []) {
-          const p = state.players[id]
-          if (p) {
-            p.natSquad = false
-            // Test rugby empties the tank - returning internationals need
-            // managing, not flogging
-            p.cond = clamp(p.cond - 10, 20, 100)
-            if (isMyClub(state, p.clubId)) {
-              if (nat === 'LIO') lionsHome.push(p)
-              else returnedMine.push(p.name)
-            }
-          }
-        }
-        delete state.natSquads[nat]
-        if (nat === state.natTeam) { delete state.natSent; delete state.natFed }
-      }
-      if (lionsHome.length) {
-        // a tour changes a player: he comes home a bigger presence
-        const comp = isleTour(state)
-        const seriesWon = comp?.champion === 'LIO'
-        for (const p of lionsHome) {
-          p.morale = clamp(p.morale + 0.6, 1, 10)
-          p.a.lea = clamp(p.a.lea + 1, 1, 20)
-        }
-        state.news.push({
-          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `The tourists come home${seriesWon ? ' as series winners' : ''}`,
-          k: seriesWon ? 'news.lionsHomeWon' : 'news.lionsHome',
-          v: {
-            tour: comp?.name ?? 'the Isles tour',
-            names: lionsHome.map(p => p.name).join(', '),
-            him_k: lionsHome.length === 1 ? 'news.himOne' : 'news.himMany',
-            come_k: lionsHome.length === 1 ? 'news.comesOne' : 'news.comeMany',
-          },
-          body: [
-            `Back in club colours after ${comp?.name ?? 'the Isles tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
-            seriesWon
-              ? `A series win in the luggage, and the kind of standing money cannot buy. Expect ${lionsHome.length === 1 ? 'him' : 'them'} to walk taller here too.`
-              : `Win or lose, a tour changes a player - ${lionsHome.length === 1 ? 'he comes' : 'they come'} back a bigger presence in this dressing room.`,
-            `The medical staff still counsel care: a tour summer empties the tank like nothing else.`,
-          ].join(' '),
-          playerId: lionsHome[0].id,
-        })
-      }
-      if (returnedMine.length) {
-        state.news.push({
-          id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-          subject: `Internationals return - leggy`,
-          body: `Back in club colours: ${returnedMine.join(', ')}. The medical staff's advice is blunt: Test rugby empties the tank, and none of them are at full freshness this week. Rotate or risk it - your call.`,
-          k: 'news.intlBack',
-          v: { names: returnedMine.join(', ') },
-        })
-      }
-    }
   }
 }
 
@@ -342,7 +349,7 @@ export function manageInternationals(state: GameState, rng: Rng) {
 export function fillShortNatSquad(state: GameState) {
   // not gated on employment: a coach between club jobs still has a country,
   // and its camp opens empty for him like anyone's (see natSquadHold)
-  const nat = state.natTeam
+  const nat = state.natTeam ?? state.natOrphan
   if (!nat) return
   const playing = state.fixtures.some(f =>
     !f.played && f.week === state.week && (f.homeId === nat || f.awayId === nat))

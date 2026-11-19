@@ -140,6 +140,9 @@ export function applyInjection(state: GameState, tier: InjectTier): boolean {
   if (state.unemployed) return false
   const club = state.clubs[state.userClubId]
   if (!club || injectionsLeft(state, tier) <= 0) return false
+  // a credit banked earlier is still board money: not under Shoestring or Fire
+  // Sale (the shop's buy button refused, its Apply here did not; QA, 1.9.14)
+  if (proBlocksMoney(state)) return false
   const cash = injectionCash(state, tier)
   club.budget += cash
   club.balance += cash

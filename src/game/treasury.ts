@@ -24,6 +24,7 @@
 // cash the summer sweep can no longer turn into facilities.
 
 import type { GameState } from './model'
+import { proBlocksMoney } from './prochallenge'
 import {absWeek, SEASON_WEEKS, boardObjective, fmtMoney, logDecision, operatingCost } from './model'
 import { leaguePos } from './schedule'
 import { t, tIn } from './i18n'
@@ -100,6 +101,10 @@ export function releaseBlock(state: GameState): string | null {
   if (state.unemployed) return t('finances.treasuryNoClub')
   const club = state.clubs[state.userClubId]
   if (!club) return t('finances.treasuryNoClub')
+  // Shoestring and Fire Sale (prochallenge.ts): the reserve does not feed the
+  // budget either, or the halved purse and the sold squad's fees come straight
+  // back through this slider (QA, 1.9.14)
+  if (proBlocksMoney(state)) return t('reply.proNoFunds')
   // the only thing that stops a move now is having nothing to move
   if (releasable(state) <= 0) return t('finances.treasuryEmpty', { step: fmtMoney(RELEASE_STEP) })
   return null

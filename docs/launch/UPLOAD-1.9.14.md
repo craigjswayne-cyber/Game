@@ -8,8 +8,8 @@ Do the steps in order. Each step says what you should see before you move on. If
 
 ## Step 0. Check the computer is happy (I do this part)
 
-- [x] **Gate is green on main** (commit `48f01f1`, 18 Nov 2026). Done.
-- [ ] **Release check is green on the same commit** (GitHub > Actions > "Release check"). It takes up to 5 hours. I started it on 18 Nov at 19:40 UTC and will tell you when it passes. Do not upload until it is green.
+- [x] **Gate is green on main** (commit `ca56461`, 19 Nov 2026). Done.
+- [x] **Release check is green on the same commit** (`ca56461`, 19 Nov 2026, all 11 jobs). Done. This is the commit to build.
 - [x] **The website has updated** (it published on 18 Nov at 19:32 UTC). Check it yourself once: open https://phaserugbymanager.com/privacy.html on your phone. You should see the adverts list: advertising ID, IP address, ad and app interactions, device and performance data. If you see the old page, wait 10 minutes and refresh.
 
 ---

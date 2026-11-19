@@ -33,6 +33,7 @@ import { OptionLabel } from '../OptionLabel'
 import { isBoardroom } from '../../game/media'
 import { INJECT_TIERS, injectionsLeft, userWageBudget, type InjectTier } from '../../game/grants'
 import { acc, accLine } from '../accent'
+import { proBlocksMoney } from '../../game/prochallenge'
 import { FAN_CAUSES } from '../../game/fans'
 
 export default function Finances() {
@@ -383,7 +384,7 @@ export default function Finances() {
           landInjection and the v1.1.17 note above it). Two copies of that
           flow is two places for a receipt to be eaten, so this one points at
           the door rather than cutting a new one. */}
-      {tillOpen() && !game.unemployed && (() => {
+      {tillOpen() && !game.unemployed && !proBlocksMoney(game) && (() => {
         const tiers = Object.keys(INJECT_TIERS) as InjectTier[]
         const left = tiers.reduce((n, tr) => n + injectionsLeft(game, tr), 0)
         if (left <= 0) return null

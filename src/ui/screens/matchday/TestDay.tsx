@@ -134,6 +134,8 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
   const plan = natPlanOf(game)
   const capId = plan?.captain != null && lineup.slice(0, 15).includes(plan.captain) ? plan.captain : null
   const cap = capId != null ? game.players[capId] : null
+  // the ring on the captain's own shirt, not always on the 1 (QA, 1.9.14)
+  const capAt = capId != null ? lineup.slice(0, 15).indexOf(capId) : 0
   const challenger = [fx.homeId, fx.awayId].find(c => natChallenge(c))
   const beats: ('out' | 'anthems' | 'challenge' | 'ko')[] = ['out', 'anthems', ...(challenger ? ['challenge' as const] : []), 'ko']
   const [i, setI] = useState(0)
@@ -142,7 +144,7 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
   const oppKit = natKit(opp) ?? NAT_KIT_FALLBACK_OPP
   const line = (kit: [string, string], c: boolean) => (
     <div className="wo-line" aria-hidden="true">
-      {Array.from({ length: 15 }, (_, k) => <Figure key={k} kit={kit} n={k + 1} cap={c && k === 0} />)}
+      {Array.from({ length: 15 }, (_, k) => <Figure key={k} kit={kit} n={k + 1} cap={c && k === capAt} />)}
     </div>
   )
   const anthemLine = (code: string) => {

@@ -574,6 +574,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         // `gen`, so nothing in the men's world moves.
         p.real = !rp.gen
         state.players[p.id] = p
+        // a player the club's own 2026-27 list leaves out opens as a free
+        // agent (RawPlayer.released); no men's file carries the flag
+        if (rp.released) { p.clubId = null; continue }
         club.players.push(p.id)
       }
       state.clubs[club.id] = club
@@ -679,10 +682,11 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     // Benetton's, the club was built with two and a half (scripts/dataaudit.ts
     // check 1b). Only a squad below the minimum draws anything here, so every
     // club the old data built in full is built exactly as before. Men's world
-    // only, for now: two women's clubs sit below this line today (Gloucester-
-    // Hartpury on the wing, Bristol at fly-half), and drawing for them would
-    // rebuild every women's world - an owner's call, not a data import's.
-    for (const [want, n] of gender === 'w' ? [] : SHIRT_MIN) {
+    // and, from 1.9.14, the women's world too. It was held back because the
+    // draw rebuilds every women's world, but the 1.9.14 position import
+    // already did that, and left Exeter with no number 8 and no full-back
+    // (QA): a career in progress keeps the world it began in (save.ts).
+    for (const [want, n] of SHIRT_MIN) {
       let more = 0
       while (seniorCover(club, want) < n && more++ < 3) {
         mkExtra(21 + Math.floor(rng() * 9), Math.max(42, club.rep - 16 + Math.floor(rng() * 10)), false, 90 + more, want)

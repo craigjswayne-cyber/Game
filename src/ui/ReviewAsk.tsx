@@ -20,7 +20,7 @@ import { nativePlatform } from '../game/shell'
  * has no store to rate it in. Automated browsers never get it.
  */
 const SAFE: ReadonlySet<Screen> = new Set<Screen>(['home', 'day'])
-const OVERLAYS = '.modal-veil, .tut-veil, .celebrate-veil, .sack-veil, .submenu-veil, .intro, .pro-veil, .fb-veil'
+const OVERLAYS = '.modal-veil, .tut-veil, .celebrate-veil, .sack-veil, .submenu-veil, .intro, .pro-veil, .fb-veil, .career-over'
 const AFTER_PURCHASE_MS = 30_000
 
 let asking = false
@@ -41,7 +41,7 @@ export function ReviewAsk() {
       const here = s.nav[s.nav.length - 1]?.screen
       if (!g || !here || !SAFE.has(here)) return true
       if (s.liveMatch || s.resuming || s.tut) return true
-      if (g.sacked || g.celebration || g.annual) return true
+      if (g.sacked || g.celebration || g.annual || g.careerOver) return true
       if (purchaseActive() || msSincePurchase() < AFTER_PURCHASE_MS) return true
       // a Pro card due on this landing goes first, even while it is still
       // fetching the store's price (ProPrompt.tsx); this waits for the next

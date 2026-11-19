@@ -290,6 +290,12 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
     font-size: 0.6875rem; padding-left: 5px; padding-right: 5px;
   }
 }
+/* A BOX YOU TYPE IN STAYS AT 16px (1.9.14). The row's 11px was right for its
+   buttons and menus, but it caught the Transfers name search too, and iOS
+   zooms the whole page in when a box with writing under 16px takes focus
+   (player report, iPhone, 1.9.13: "stays zoomed in tight until I close the
+   app"). The base rule in 01-base.css says the same for every other field. */
+.filter-line > input.inline-input { font-size: max(16px, 1rem); }
 .talk-acts .btn { margin: 0; width: 100%; min-height: 44px; white-space: normal; line-height: 1.2; }
 
 /* Four standing instructions, two by two (user: "tidy kickable penalty options

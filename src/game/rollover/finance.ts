@@ -2,6 +2,7 @@
 // reinvestment, the summer sponsorship call, next season's budgets and
 // board mood, and the money the board promised the manager.
 import { aiTransferBudget } from '../aiecon'
+import { proBlocksMoney } from '../prochallenge'
 import { openingWageBudget } from '../grants'
 import { splitFor } from '../bench'
 import { book } from '../books'
@@ -291,7 +292,9 @@ function keepSheet(state: GameState, club: Club, kept: (number | null)[]): (numb
 export function settleBoardMoney(state: GameState, objBonus: number, userWonLeague: boolean, userFinishPos: number) {
   if (!state.unemployed) {
     const club = state.clubs[state.userClubId]
-    if (objBonus > 0) club.budget += objBonus
+    // the objective bonus is board money too: none under Shoestring or Fire
+    // Sale, where it also landed after the summer halving (QA, 1.9.14)
+    if (objBonus > 0 && !proBlocksMoney(state)) club.budget += objBonus
     // THE AIM-HIGH RECKONING (user: "they get a bit more money but they best
     // win or the board will be nervous about their budget"). The war chest was
     // an advance against a promise to beat the pundits' number. Beat it, or

@@ -89,16 +89,23 @@ console.log('\n=== 1.9.10: retraining in a women\'s squad ===')
 console.log('\n=== 1.9.10: the office knock that asks to learn a shirt, and the load ===')
 {
   // the knock is rare in either game (about one career in five sees it in
-  // three seasons, men's and women's alike, measured 4 Nov 2026); this is a
-  // women's career where it comes. SEED 36, NOT 33 (1.9.12): the match
-  // retune moved the dice; of seeds 33-36 and 45 the knock comes in 36 (week
-  // 13) and 45 (week 24)
-  const g = newGame('w:bristol', 'Probe', 36, undefined, 'coach', 'w')
-  g.trainLoad = 'hard'
+  // three seasons, men's and women's alike, measured 4 Nov 2026), so a fixed
+  // seed is a coin that lands differently every time the squads change: it
+  // moved 33 to 36 with the 1.9.12 match retune and back to 33 with 1.9.14's
+  // real positions, then away again when Bristol took its own 2026/27 list.
+  // THE FIRST OF A FEW CAREERS WHERE IT COMES (1.9.14): what is checked is
+  // that a women's player CAN knock and that the answer starts a retrain,
+  // not which week of which seed it lands in.
+  let g = newGame('w:bristol', 'Probe', 33, undefined, 'coach', 'w')
   let knock: GameState['press'][number] | undefined
-  for (let w = 0; w < 48 * 3 && !knock; w++) {
-    processWeekAndAdvance(g)
-    knock = g.press.find(q => q.qk === 'talk.positionQ3' && !q.answered)
+  for (const seed of [33, 37, 41, 36, 45, 34, 35, 38, 39, 40, 42, 43, 44]) {
+    g = newGame('w:bristol', 'Probe', seed, undefined, 'coach', 'w')
+    g.trainLoad = 'hard'
+    for (let w = 0; w < 48 * 3 && !knock; w++) {
+      processWeekAndAdvance(g)
+      knock = g.press.find(q => q.qk === 'talk.positionQ3' && !q.answered)
+    }
+    if (knock) break
   }
   ok(!!g.trainLog && g.trainLog.load === 'hard', `the hard load writes last week's line (${JSON.stringify(g.trainLog)})`)
   ok(!!knock, 'a women\'s player knocks to ask to learn a new position')

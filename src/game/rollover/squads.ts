@@ -1,6 +1,7 @@
 // Squad sizes over the summer: short squads sign free agents, swollen AI
 // squads release their weakest seniors, and the free-agent pool is kept small.
 import { aiPayRate } from '../aiecon'
+import { proBlocksSigning } from '../prochallenge'
 import { assignPersonality, deriveAttrs, nextPid, playerValue, playerWage } from '../attributes'
 import { genderOf } from '../gender'
 import { absWeek, emptyStats, type Club, type GameState, type Player } from '../model'
@@ -40,10 +41,14 @@ export function replenishSquads(state: GameState, rng: Rng, rooms: Map<string, n
       // side came to sign an 88-rated Test back for nothing every summer
       const pool = freeAgents()
       const fits = (p: { ca: number }) => p.ca <= club.rep + 15
-      const fa = pool.find(p => fits(p) && (p.pos === need || p.alt.includes(need)))
-        ?? pool.find(fits)
-        ?? pool.find(p => p.pos === need || p.alt.includes(need))
-        ?? pool[0]
+      // ACADEMY ONLY (prochallenge.ts): the board does not sign a free agent
+      // for the manager's club either; it promotes a young pro, below
+      // (QA, 1.9.14: four seniors arrived this way in one summer)
+      const own = club.id === state.userClubId && proBlocksSigning(state)
+      const fa = own ? undefined : pool.find(p => fits(p) && (p.pos === need || p.alt.includes(need)))
+        ?? (own ? undefined : pool.find(fits))
+        ?? (own ? undefined : pool.find(p => p.pos === need || p.alt.includes(need)))
+        ?? (own ? undefined : pool[0])
       if (!fa) {
         // The market is bare - hand a young pro a senior contract instead. He
         // used to be registered as an academy scholar, which stopped being safe

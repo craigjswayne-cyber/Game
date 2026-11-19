@@ -1997,6 +1997,9 @@ export interface GameState {
   } | null
   /** the squad the last window ended with: who is a recall, who was left out */
   natPrevSquad?: number[]
+  /** A nation whose coach left mid-window: the federation tops its camp up
+   *  to the floor for its Tests (QA, 1.9.14). Cleared when the window closes. */
+  natOrphan?: string | null
   /** a window whose review ended the tenure, kept so the screen can say so */
   natLastReview?: GameState['natWin']
   /** the federation's own list for the user's nation, snapshotted when the

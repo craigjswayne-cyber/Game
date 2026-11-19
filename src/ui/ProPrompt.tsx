@@ -38,7 +38,7 @@ import { Glyph } from './glyphs'
 /** Where a card may appear: the desk and the day room. */
 const SAFE: ReadonlySet<Screen> = new Set<Screen>(['home', 'day'])
 /** Anything already floating over the screen. The card never stacks on one. */
-const OVERLAYS = '.modal-veil, .tut-veil, .celebrate-veil, .sack-veil, .submenu-veil, .intro, .fb-veil'
+const OVERLAYS = '.modal-veil, .tut-veil, .celebrate-veil, .sack-veil, .submenu-veil, .intro, .fb-veil, .career-over'
 /** How long after a purchase ends before a card may follow it: long enough
  *  that the line the purchase printed has been read and left behind. */
 const AFTER_PURCHASE_MS = 30_000
@@ -87,7 +87,7 @@ export function ProPrompt() {
     const here = s.nav[s.nav.length - 1]?.screen
     if (!g || !here || !SAFE.has(here)) return true
     if (s.liveMatch || s.resuming || s.tut) return true
-    if (g.sacked || g.celebration || g.annual) return true
+    if (g.sacked || g.celebration || g.annual || g.careerOver) return true
     if (!canBuy() || !proLocked() || hasSupporter()) return true
     if (purchaseActive() || msSincePurchase() < AFTER_PURCHASE_MS) return true
     if (typeof document !== 'undefined' && document.querySelector(OVERLAYS)) return true

@@ -34,7 +34,7 @@ import { COMMUNITY_URL } from '../game/community'
 import { TurningVeil } from './TurningVeil'
 import { VisitContext, noteScroll, scrollFor } from './visitState'
 import { Veil } from './Veil'
-import { resetPage } from './pageReset'
+import { resetPage, watchTypingZoom } from './pageReset'
 
 /* A SCREEN WHOSE FILE IS GONE RELOADS THE GAME ONCE (1.9.1 re-audit). After
    a new build replaces the old one, a tab still running the old build asks
@@ -539,6 +539,8 @@ export default function App() {
   }, [cur])
   // a zoom or a dragged page belongs to the screen it happened on (pageReset.ts)
   useEffect(() => { resetPage() }, [cur.screen, cur.param])
+  // and a zoom a text box brought goes when the typing stops (pageReset.ts)
+  useEffect(() => watchTypingZoom(), [])
   // a skin is a third class on the same root: tokens.css declares the skin
   // blocks after night and day, so the skin wins the cascade and the
   // floodlight toggle still does its job underneath
@@ -917,6 +919,9 @@ export default function App() {
                 off the pile. A badge counting jobs that are no longer in the list is
                 a red dot with nothing behind it. */}
             {navBtn('jobs', <IcoClipboard />, t('nav.jobs'), openJobs)}
+            {/* a nation-only coach still holds a job: the Country button is
+                for the Test job, club or no club (QA, 1.9.14) */}
+            {game.natTeam && navBtn('country', <IcoGlobe />, t('nav.country'), campToDo)}
             {groupBtn('manager', <IcoPress />, t('nav.manager'))}
             {groupBtn('world', <IcoTrophy />, t('nav.world'))}
           </>

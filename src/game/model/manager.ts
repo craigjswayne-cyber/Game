@@ -118,6 +118,9 @@ export function closeNatTenure(state: GameState) {
   state.natTerm = null
   state.natUnveil = null
   state.natPrevSquad = []
+  // a camp opened empty for the coach, or named short, goes back to the
+  // federation: its Tests were played by three men (QA, 1.9.14)
+  state.natOrphan = state.natTeam
   state.natTeam = null
   state.natConfidence = null
   state.natRecord = null
