@@ -383,6 +383,18 @@ export class PitchSim {
         const v = tk === 'close' ? 4.4 : p.kind === 'try' ? 8.6 : c < 8 ? 6.3 : 8
         // FROM A LONG WAY OUT: an intercept, a charge-down, turnover ball. He
         // takes it where it is and goes, the side that had it turning to chase.
+        // OFF THE BACK OF THE MAUL: it is set a few metres out, both packs
+        // bind on, it is driven to the line and he falls over it
+        if (tk === 'maul') {
+          const at: Pt = { x: clamp(E.x - dir * 7, 3, 97), y: E.y }
+          const who = att0 + (c < 8 ? c : 7)
+          if (hyp(B, at) > 8) steps.push({ k: 'advance', to: { ...at }, rate: ADV })
+          steps.push({ k: 'mode', mode: 'maul', at: { ...at }, clear: true }, { k: 'pick', who, max: 2.5 }, { k: 'wait', t: 1.4 },
+            { k: 'run', to: { ...E }, v: 1.7 }, { k: 'mode', mode: 'try' }, { k: 'wait', t: 5.5 })
+          if (holderAtt) { mode = 'carry'; cIdx = this.holder - att0 } else { mode = 'ruck'; cIdx = null }
+          anchor = B
+          break
+        }
         if (tk === 'long') {
           mode = 'carry'; cIdx = c; anchor = B
           steps.push({ k: 'pick', who: att0 + c, max: 2.5 }, { k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true },

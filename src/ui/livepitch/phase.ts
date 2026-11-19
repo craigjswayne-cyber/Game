@@ -44,7 +44,7 @@ export interface Phase {
   /** set by the pitch once a restart has been kicked: the chase is on */
   flying?: boolean
   /** how a try is scored, read from the words: from close in, out wide, through the line, off a kick, or from a long way out */
-  tryKind?: 'close' | 'wide' | 'break' | 'kick' | 'long'
+  tryKind?: 'close' | 'wide' | 'break' | 'kick' | 'long' | 'maul'
   /** a kick into space: nobody of theirs is under it */
   space?: boolean
   /** where a kick comes down, and how high it goes (metres) */
@@ -157,6 +157,7 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     const tryKind: Phase['tryKind'] = pen ? 'close'
       : /^try(Intercept|Charge)/.test(raw) || n === 13 || n === 24 ? 'long'
       : n === 8 || n === 14 ? 'kick'
+      : n === 4 ? 'maul'
       : [1, 4, 10, 15, 18, 25].includes(n) ? 'close'
       : [2, 6, 9, 20, 22, 26].includes(n) ? 'wide'
       : n ? 'break'
@@ -182,7 +183,7 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
       : tryKind === 'wide' || conTouch ? (far < 0 ? 64.5 - u2 * 3 : 5.5 + u2 * 3)
       : conMiss ? 35 + far * (19 + u2 * 9)
       : conEasy ? 35 + (u2 - 0.5) * 12
-      : tryKind === 'close' ? clamp(prevY * 0.5 + 17.5 + (u2 - 0.5) * 14, 14, 56)
+      : tryKind === 'close' || tryKind === 'maul' ? clamp(prevY * 0.5 + 17.5 + (u2 - 0.5) * 14, 14, 56)
       : 35 + far * (4 + u2 * 16)
     return { ...base, homeBall: isHome, kind: 'try', x: isHome ? 101.5 : -1.5, y, label: 'lp.try', tryKind,
       banner: { kind: pen ? 'pentry' : 'try', teamId: e.teamId, name: e.playerName, min: e.min, at: i } }

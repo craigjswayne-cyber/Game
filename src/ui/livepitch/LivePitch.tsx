@@ -93,6 +93,12 @@ function bannerSize(label: string, good: boolean): { fontSize: string } {
   return { fontSize: `${Math.max(1.15, Math.min(full, 22 / Math.max(1, label.length))).toFixed(2)}rem` }
 }
 
+/** is this trim colour too dark to show as a rim on grass */
+function darkTrim(c: string): boolean {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(c)
+  return !!m && (parseInt(m[1], 16) * 0.299 + parseInt(m[2], 16) * 0.587 + parseInt(m[3], 16) * 0.114) / 255 < 0.24
+}
+
 /** a stable 0..1 from two integers: the crowd is the same crowd every frame */
 function h2(a: number, b: number): number {
   let h = (a * 374761393 + b * 668265263 + 1013904223) >>> 0
@@ -840,7 +846,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           g.fillStyle = sh; g.fill()
         }
         g.lineWidth = has ? Math.max(2.4, R * 0.3) : Math.max(1.3, R * 0.17)
-        g.strokeStyle = scorer ? gold : has ? ink.white : side.kit[1]; g.stroke()
+        // (a dark kit with a dark trim was hard to pick out on the grass: it gets a pale rim)
+        g.strokeStyle = scorer ? gold : has ? ink.white : (!isLight(side.kit[0]) && darkTrim(side.kit[1]) ? 'rgba(236,240,246,.9)' : side.kit[1]); g.stroke()
         g.fillStyle = isLight(side.kit[0]) ? ink.dark : ink.white
         g.font = `800 ${Math.round(R * 1.08)}px system-ui, sans-serif`
         g.textAlign = 'center'; g.textBaseline = 'middle'
