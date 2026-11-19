@@ -126,7 +126,7 @@ export const W_CHAMP: RawClub[] = [
       { name: 'Selina Keppie', pos: 'FH', age: 24, nat: 'ENG', q: 62, gk: true },
       { name: 'Lottie Kissick-Jones', pos: 'CE', age: 30, nat: 'ENG', q: 55 },
       { name: 'Jay Badland-Shaw', pos: 'FB', age: 22, nat: 'ENG', q: 52 },
-      { name: 'Amanda McHugh', pos: 'HK', age: 30, nat: 'ENG', q: 62 },
+      { name: 'Amanda McHugh', pos: 'SH', age: 30, nat: 'ENG', q: 62 },
       { name: 'Lauren Manners', pos: 'TP', age: 19, nat: 'ENG', q: 57 },
       { name: 'Monique Adedeji', pos: 'N8', age: 23, nat: 'ENG', q: 55 },
       { name: 'Lizzie Musa', pos: 'WG', age: 24, nat: 'ENG', q: 62 },

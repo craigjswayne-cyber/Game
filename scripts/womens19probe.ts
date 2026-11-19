@@ -92,8 +92,10 @@ console.log('\n=== 1.9.10: the office knock that asks to learn a shirt, and the 
   // three seasons, men's and women's alike, measured 4 Nov 2026); this is a
   // women's career where it comes. SEED 36, NOT 33 (1.9.12): the match
   // retune moved the dice; of seeds 33-36 and 45 the knock comes in 36 (week
-  // 13) and 45 (week 24)
-  const g = newGame('w:bristol', 'Probe', 36, undefined, 'coach', 'w')
+  // 13) and 45 (week 24). SEED 33 AGAIN (1.9.14): 528 women's players now play
+  // the positions they really play (Eilidh's report), which re-deals Bristol's
+  // squad; of seeds 33-41 the knock comes in 33 (week 11), 37 and 41
+  const g = newGame('w:bristol', 'Probe', 33, undefined, 'coach', 'w')
   g.trainLoad = 'hard'
   let knock: GameState['press'][number] | undefined
   for (let w = 0; w < 48 * 3 && !knock; w++) {
