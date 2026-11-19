@@ -37,7 +37,7 @@ import { Glyph } from './glyphs'
  */
 
 const SAFE: ReadonlySet<Screen> = new Set<Screen>(['home', 'day'])
-const OVERLAYS = '.modal-veil, .tut-veil, .celebrate-veil, .sack-veil, .submenu-veil, .intro, .pro-veil'
+const OVERLAYS = '.modal-veil, .tut-veil, .celebrate-veil, .sack-veil, .submenu-veil, .intro, .pro-veil, .career-over'
 const AFTER_PURCHASE_MS = 30_000
 
 function autoAllowed(): boolean {
@@ -83,7 +83,7 @@ export function FeedbackPrompt() {
     if (s.feedback) return true
     if (!g || !here || !SAFE.has(here)) return true
     if (s.liveMatch || s.resuming || s.tut) return true
-    if (g.sacked || g.celebration || g.annual) return true
+    if (g.sacked || g.celebration || g.annual || g.careerOver) return true
     if (purchaseActive() || msSincePurchase() < AFTER_PURCHASE_MS) return true
     if (typeof document !== 'undefined' && document.querySelector(OVERLAYS)) return true
     if (proInTheWay()) return true

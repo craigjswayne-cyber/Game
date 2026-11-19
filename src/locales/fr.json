@@ -1994,7 +1994,7 @@
     "kicker": "Défi Pro",
     "title": "Carrière terminée",
     "proFailed": "{title_k} : la saison {n} est terminée et l'objectif n'est pas atteint. Le conseil se sépare de vous.",
-    "record": "Votre bilan : {w} victoires, {d} nuls, {l} défaites.",
+    "record": "Votre bilan : victoires {w}, nuls {d}, défaites {l}.",
     "newCareer": "Commencer une nouvelle carrière",
     "menu": "Menu principal"
   },

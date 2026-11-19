@@ -671,6 +671,10 @@ export function offerFreeAgent(state: GameState, playerId: number, offer: number
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId != null || !user) return { ok: false, msg: t('reply.notFreeAgent') }
+  // A PRE-CONTRACT IS BINDING (QA, 1.9.14): released and signed back as a
+  // free agent, a man who had announced his move stayed for a small pay-off,
+  // and executeTransfer quietly voided the deal he had signed
+  if ((state.preContracts ?? []).some(pc => pc.playerId === p.id)) return { ok: false, msg: t('reply.preContractElsewhere', { name: p.name }) }
   const term: FreeTerm = (FREE_TERMS as readonly number[]).includes(years) ? years as FreeTerm : 2
   if (squadFull(state, user)) return { ok: false, msg: squadFullMsg(state, user) }
   if (embargoed(state, user.id)) {
@@ -704,7 +708,7 @@ export function offerFreeAgent(state: GameState, playerId: number, offer: number
       return { ok: false, msg: t('reply.signTodayAt', { name: p.name, counter: fmtWage(counterAt) }), counter: counterAt }
     }
   }
-  const wage = Math.min(offer, Math.round(demand * 1.3)) // no accidental silly money
+  const wage = Math.floor(Math.min(offer, demand * 1.3) / 50) * 50 // no accidental silly money
   executeTransfer(state, p, user.id, 0)
   p.acad = false
   p.wage = wage
@@ -796,6 +800,9 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
     // and from 1.8.15 an accepted bid outside one is agreed now and completes
     // when the window opens (settlePendingDeals)
     if (pendingDeal(state, p.id)) { o.status = 'rejected'; return t('reply.offerGone') }
+    // a bid lodged before he announced a pre-contract: accepted, it sold a
+    // man already leaving free and dropped the deal he signed (QA, 1.9.14)
+    if ((state.preContracts ?? []).some(pc => pc.playerId === p.id)) { o.status = 'rejected'; return t('reply.preContractElsewhere', { name: p.name }) }
     // THE BOARD'S SQUAD FLOOR (chaos sweep finding). There is no release
     // button in this game, so accepting incoming bids is the one lever that
     // can drain a squad - and it had no floor at all: accept everything and
@@ -1061,7 +1068,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
       return { ok: false, msg: t('reply.signTodayAt', { name: p.name, counter: fmtWage(counterAt) }), counter: counterAt }
     }
   }
-  wage = Math.min(offer, Math.round(demand * 1.3)) // no accidental silly money
+  wage = Math.floor(Math.min(offer, demand * 1.3) / 50) * 50 // no accidental silly money
   p.wage = wage
   p.renewedSeason = state.season
   // A NEW DEAL IS NEVER SHORTER THAN THE OLD ONE. The term is counted from now,

@@ -126,7 +126,7 @@ export const W_E1: RawClub[] = [
       { name: 'Morgane Bourgeois', pos: 'FB', age: 29, nat: 'FRA', q: 87, gk: true },
       { name: 'Khoudedia Cissokho', pos: 'FL', age: 26, nat: 'FRA', q: 79 },
       { name: 'Emma Coudert', pos: 'FH', age: 19, nat: 'FRA', q: 69 },
-      { name: 'Annaelle Deshaye', pos: 'LP', age: 32, nat: 'FRA', q: 75 },
+      { name: 'Annaelle Deshaye', pos: 'TP', age: 32, nat: 'FRA', q: 75 },
       { name: 'Taylor Donato', pos: 'SH', age: 24, nat: 'FRA', q: 80 },
       // one woman, listed twice until 18 Oct 2026: additions.ts also had her as
       // 'Madoussou Fall' with the owner's database figures, which she keeps here
@@ -322,7 +322,7 @@ export const W_E1: RawClub[] = [
       { name: 'Oceane Millot Chevrey', pos: 'WG', age: 34, nat: 'FRA', q: 57 },
       { name: 'Aurora Bowie', pos: 'FB', age: 27, nat: 'FRA', q: 80, gk: true },
       { name: 'Lou Thoron', pos: 'WG', age: 30, nat: 'FRA', q: 72 },
-      { name: 'Taina Maka', pos: 'FL', age: 18, nat: 'FRA', q: 58 },
+      { name: 'Taina Maka', pos: 'N8', age: 18, nat: 'FRA', q: 58 },
       { name: 'Enoleen Brisa', pos: 'HK', age: 29, nat: 'FRA', q: 65 },
       { name: 'Justine Ogier', pos: 'SH', age: 22, nat: 'FRA', q: 59 },
       { name: 'Sydney De Weijer', pos: 'TP', age: 24, nat: 'FRA', q: 68 },
@@ -363,7 +363,7 @@ export const W_E1: RawClub[] = [
       { name: 'Garance Delord', pos: 'SH', age: 21, nat: 'FRA', q: 59 },
       { name: 'Julie Guillot', pos: 'FB', age: 18, nat: 'FRA', q: 54 },
       { name: 'Alizee Foure', pos: 'SH', age: 24, nat: 'FRA', q: 65 },
-      { name: 'Clarisse Clainholphe', pos: 'LP', age: 26, nat: 'FRA', q: 70 },
+      { name: 'Clarisse Clainholphe', pos: 'TP', age: 26, nat: 'FRA', q: 70 },
       { name: 'Maelle Jouve', pos: 'HK', age: 21, nat: 'FRA', q: 60 },
       { name: 'Clementine Joliveau', pos: 'LK', age: 19, nat: 'FRA', q: 55 },
       { name: 'Alissa Ranuccini', pos: 'FL', age: 25, nat: 'FRA', q: 73 },

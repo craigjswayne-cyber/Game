@@ -1,4 +1,5 @@
 import type { GameState } from './model'
+import { proBlocksMoney } from './prochallenge'
 import { addWeeks100, fmtMoney, logDecision, MAX_FACILITY, FACILITY_INFO,
   stamp100, weeksBetween100, type FacilityId } from './model'
 import { clamp } from './rng'
@@ -163,6 +164,9 @@ export function boardRequests(state: GameState): AskState[] {
       }
     } else if (id === 'funds') {
       if (state.fundsAskedSeason === state.season) { possible = false; blocked = t('board.blockFundsSeason') }
+      // no board money under Shoestring or Fire Sale (prochallenge.ts; QA,
+      // 1.9.14: this door was open while season/board.ts's was shut)
+      else if (proBlocksMoney(state)) { possible = false; blocked = t('reply.proNoFunds') }
     } else if (id === 'staff') {
       if (state.staffAskedSeason === state.season) { possible = false; blocked = t('board.blockStaffSeason') }
     }

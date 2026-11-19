@@ -52,7 +52,7 @@ const hash = (a: number, b: number, c: number) => {
 
 /** Is he exposed: out of contract this summer, not renewed, not already gone? */
 function exposed(state: GameState, p: Player): boolean {
-  return p.contractEnds <= state.season && p.renewedSeason !== state.season && !p.loanFrom && !p.retiring && !p.acad &&
+  return p.contractEnds <= state.season && p.renewedSeason !== state.season && !p.loanFrom && !p.retiring && !p.acad && !p.joker &&
     !(state.preContracts ?? []).some(pc => pc.playerId === p.id)
 }
 

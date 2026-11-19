@@ -52,6 +52,27 @@ try {
   await shot('over')
   await page.locator('[data-co-menu]').click()
   await page.waitForSelector('text=New Career', { timeout: 4000 })
+  // AND THE MENU IS REALLY THERE (QA, 1.9.14): the card used to stay drawn
+  // over the title, so "New Career" was in the page but under the card. Held
+  // as what a tap would land on, not as what the DOM contains.
+  ok(await page.locator('[data-career-over]').count() === 0, 'Main menu takes the card down')
+  const top = await page.evaluate(() => {
+    const el = [...document.querySelectorAll('button, .btn, a')].find(e => /New Career/.test(e.textContent ?? ''))
+    if (!el) return 'none'
+    const r = el.getBoundingClientRect()
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+    return hit && (hit === el || el.contains(hit)) ? 'yes' : 'covered'
+  })
+  ok(top === 'yes', `and a tap on New Career lands on it (${top})`)
+  // back into the finished career: the card is there again, and its other
+  // button opens the wizard with the card gone
+  await page.evaluate(() => window.rugbyStore.getState().home())
+  await page.waitForSelector('[data-career-over]', { timeout: 3000 })
+  ok(true, 'the finished career still shows its end card')
+  await page.locator('[data-co-new]').click()
+  await page.waitForTimeout(400)
+  const after = await page.evaluate(() => ({ screen: window.rugbyStore.getState().nav.at(-1)?.screen, card: !!document.querySelector('[data-career-over]') }))
+  ok(after.screen === 'newgame' && !after.card, `Start a new career opens the wizard with the card gone (${JSON.stringify(after)})`)
   ok(true, 'the main menu button leaves it')
 } catch (e) {
   ok(false, `the harness threw: ${String(e).split('\n')[0].slice(0, 200)}`)

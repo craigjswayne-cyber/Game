@@ -37,6 +37,7 @@ const finances = (budget: number) =>
 export default function NewGame() {
   const start = useStore(s => s.start)
   const back = useStore(s => s.back)
+  const claimSupporter = useStore(s => s.claimSupporter)
   const newGender = useStore(s => s.newGender)
   const setNewGender = useStore(s => s.setNewGender)
   const defs = useMemo(() => LEAGUE_DEFS(newGender), [newGender])
@@ -63,6 +64,7 @@ export default function NewGame() {
       const out = await buyOwnable(SUPPORTER_SKU)
       if (out !== 'owned') { setProMsg(t('pro.notBought')); return }
       setIsPro(true)
+      claimSupporter()
     }
     setChallengeId(null)
     setProId(id)

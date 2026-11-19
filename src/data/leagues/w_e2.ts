@@ -45,7 +45,7 @@ export const W_E2: RawClub[] = [
     rep: 62, budget: 120000,
     // 30 players, 19 real
     players: [
-      { name: 'Maeva Abderemane', pos: 'LP', age: 20, nat: 'FRA', q: 54 },
+      { name: 'Maeva Abderemane', pos: 'TP', age: 20, nat: 'FRA', q: 54 },
       { name: 'Katia Ambonguilat', pos: 'FL', age: 29, nat: 'FRA', q: 65 },
       { name: 'Igoudou Bamba', pos: 'TP', age: 25, nat: 'FRA', q: 61 },
       { name: 'Zoé Blanco', pos: 'SH', age: 22, nat: 'FRA', q: 52 },

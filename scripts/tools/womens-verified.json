@@ -676,8 +676,8 @@
   "src": "en.wikipedia.org Gloucester-Hartpury_Women 2025-26 squad - scrum-half (1.9.14 web check)"
  },
  "Akina Gondwe": {
-  "pos": "LP",
-  "src": "rugbypass.com/teams/saracens-women - prop (1.9.14 web check)"
+  "pos": "TP",
+  "src": "rugbypass.com/teams/saracens-women - prop (1.9.14 web check; side or role not given, kept as before)"
  },
  "Carmen Tremelling": {
   "pos": "HK",
@@ -744,8 +744,8 @@
   "src": "thepwr.com/clubs/saracens-women - wing (1.9.14 web check)"
  },
  "Kaylee McHugh": {
-  "pos": "LP",
-  "src": "en.wikipedia.org Saracens_Women squad - prop (1.9.14 web check)"
+  "pos": "TP",
+  "src": "en.wikipedia.org Saracens_Women squad - prop (1.9.14 web check; side or role not given, kept as before)"
  },
  "Licia MacCutchan": {
   "pos": "FL",
@@ -836,12 +836,12 @@
   "src": "en.wikipedia.org/wiki/Danelle_Lochner - lock (1.9.14 web check)"
  },
  "Abby Middlebrooke": {
-  "pos": "LP",
-  "src": "en.wikipedia.org Harlequins_Women squad - prop (1.9.14 web check)"
+  "pos": "TP",
+  "src": "en.wikipedia.org Harlequins_Women squad - prop (1.9.14 web check; side or role not given, kept as before)"
  },
  "Joy Okechukwu": {
-  "pos": "FL",
-  "src": "en.wikipedia.org Harlequins_Women squad + season preview - back row (1.9.14 web check)"
+  "pos": "N8",
+  "src": "en.wikipedia.org Harlequins_Women squad + season preview - back row (1.9.14 web check; side or role not given, kept as before)"
  },
  "Millie Pearce": {
   "pos": "SH",
@@ -1196,8 +1196,8 @@
   "src": "leicestertigers.com team news - second row (1.9.14 web check)"
  },
  "Tiana Gordon": {
-  "pos": "FL",
-  "src": "leicestertigers.com womens-squad-final-2425 - back row (1.9.14 web check)"
+  "pos": "N8",
+  "src": "leicestertigers.com womens-squad-final-2425 - back row (1.9.14 web check; side or role not given, kept as before)"
  },
  "Micke Gunter": {
   "pos": "HK",
@@ -1224,8 +1224,8 @@
   "src": "rugbypass.com/teams/leicester-tigers-women - prop (1.9.14 web check)"
  },
  "Ellie Smith": {
-  "pos": "LP",
-  "src": "leicestertigers.com womens-squad-final-2425 front row + team news - prop (1.9.14 web check)"
+  "pos": "TP",
+  "src": "leicestertigers.com womens-squad-final-2425 front row + team news - prop (1.9.14 web check; side or role not given, kept as before)"
  },
  "Nadine Vincent": {
   "pos": "LP",
@@ -1704,8 +1704,8 @@
   "src": "edinburghrugby.org team sheets - started at 6,6,6,8,8,8,8,8,8 (1.9.14 web check)"
  },
  "Molly Poolman": {
-  "pos": "TP",
-  "src": "bbc.com team sheets - started at 3; edinburghrugby.org team sheets - started at 3,3,3,3,3,3,3 | en.wikipedia.org/2026 Women's Six Nations squads - prop | en.wikipedia.org/2025 Women's Six Nations squads - prop | en.wikipedia.org/2025 Women's Rugby World Cup squads - prop (1.9.14 web check)"
+  "pos": "LP",
+  "src": "bbc.com team sheets - started at 3; edinburghrugby.org team sheets - started at 3,3,3,3,3,3,3 | en.wikipedia.org/2026 Women's Six Nations squads - prop | en.wikipedia.org/2025 Women's Six Nations squads - prop | en.wikipedia.org/2025 Women's Rugby World Cup squads - prop (1.9.14 web check; side or role not given, kept as before)"
  },
  "Natasha Logan": {
   "pos": "LK",
@@ -1896,8 +1896,8 @@
   "src": "bbc.com team sheets - started at 8,8 (1.9.14 web check)"
  },
  "Branwen Metcalfe": {
-  "pos": "N8",
-  "src": "bbc.com team sheets - started at 6,6,8,8,8,8 | bbc.com 2025-12 Brython Thunder and Gwalia Lightning set for Celtic Challenge - back-row forward | en.wikipedia.org/2026 Women's Six Nations squads - back row | en.wikipedia.org/2025 Women's Rugby World Cup squads - back row (1.9.14 web check)"
+  "pos": "FL",
+  "src": "bbc.com team sheets - started at 6,6,8,8,8,8 | bbc.com 2025-12 Brython Thunder and Gwalia Lightning set for Celtic Challenge - back-row forward | en.wikipedia.org/2026 Women's Six Nations squads - back row | en.wikipedia.org/2025 Women's Rugby World Cup squads - back row (1.9.14 web check; side or role not given, kept as before)"
  },
  "Lucy Isaac": {
   "pos": "FL",
@@ -1964,8 +1964,8 @@
   "src": "glasgowwarriors.org team sheets - started at 1,1 | glasgowwarriors.org 2024/25 squad - props | glasgowwarriors.org player profile - prop | glasgowwarriors.org 2025/26 squad - props | en.wikipedia.org/2026 Women's Six Nations squads - prop (1.9.14 web check)"
  },
  "Isla Gillan": {
-  "pos": "LP",
-  "src": "glasgowwarriors.org player profile - prop | glasgowwarriors.org 2025/26 squad - props (1.9.14 web check)"
+  "pos": "TP",
+  "src": "glasgowwarriors.org player profile - prop | glasgowwarriors.org 2025/26 squad - props (1.9.14 web check; side or role not given, kept as before)"
  },
  "Katie Lindsay": {
   "pos": "TP",
@@ -2008,8 +2008,8 @@
   "src": "en.wikipedia Glasgow Warriors Women 2023/24 squad - second row | glasgowwarriors.org 2025/26 squad - second row (1.9.14 web check)"
  },
  "Gemma Bell": {
-  "pos": "FL",
-  "src": "glasgowwarriors.org team sheets - started at 7,7,7 | glasgowwarriors.org player profile - flanker | glasgowwarriors.org 2025/26 squad - back row | en.wikipedia.org/2026 Women's Six Nations squads - back row (1.9.14 web check)"
+  "pos": "N8",
+  "src": "glasgowwarriors.org team sheets - started at 7,7,7 | glasgowwarriors.org player profile - flanker | glasgowwarriors.org 2025/26 squad - back row | en.wikipedia.org/2026 Women's Six Nations squads - back row (1.9.14 web check; side or role not given, kept as before)"
  },
  "Emily Coubrough": {
   "pos": "N8",
@@ -2024,8 +2024,8 @@
   "src": "glasgowwarriors.org 2025/26 squad - back row (1.9.14 web check)"
  },
  "Samaanther Taganekurukuru": {
-  "pos": "N8",
-  "src": "edinburghrugby.org team sheets - started at 6,8,8,8,8; glasgowwarriors.org team sheets - started at 6 | glasgowwarriors.org 2025/26 squad - back row (1.9.14 web check)"
+  "pos": "FL",
+  "src": "edinburghrugby.org team sheets - started at 6,8,8,8,8; glasgowwarriors.org team sheets - started at 6 | glasgowwarriors.org 2025/26 squad - back row (1.9.14 web check; side or role not given, kept as before)"
  },
  "Gemma Thomson": {
   "pos": "FL",
@@ -2176,8 +2176,8 @@
   "src": "blues.rugby nib Blues name 2026 Aupiki squad - props (1.9.14 web check)"
  },
  "Cheyenne Tuli-Fale": {
-  "pos": "LP",
-  "src": "blues.rugby nib Blues name 2026 Aupiki squad - props (1.9.14 web check)"
+  "pos": "TP",
+  "src": "blues.rugby nib Blues name 2026 Aupiki squad - props (1.9.14 web check; side or role not given, kept as before)"
  },
  "Zara Feaunati": {
   "pos": "FL",
@@ -2212,8 +2212,8 @@
   "src": "rugbypass.com '26 Chiefs Manawa squad - prop (1.9.14 web check)"
  },
  "Veisinia Mahutariki-Fakalelu": {
-  "pos": "LP",
-  "src": "rugbypass.com '26 Chiefs Manawa squad - prop (1.9.14 web check)"
+  "pos": "TP",
+  "src": "rugbypass.com '26 Chiefs Manawa squad - prop (1.9.14 web check; side or role not given, kept as before)"
  },
  "Nicole Purdom": {
   "pos": "HK",
@@ -2296,8 +2296,8 @@
   "src": "rugbypass.com Chiefs Manawa team page - centre (1.9.14 web check)"
  },
  "Maddi Robinson": {
-  "pos": "LP",
-  "src": "matatu.co.nz 2026 squad announced - prop (1.9.14 web check)"
+  "pos": "TP",
+  "src": "matatu.co.nz 2026 squad announced - prop (1.9.14 web check; side or role not given, kept as before)"
  },
  "Laura Bayfield": {
   "pos": "LK",
@@ -2308,8 +2308,8 @@
   "src": "matatu.co.nz 2026 squad announced - lock (1.9.14 web check)"
  },
  "Kaipo Olsen-Baker": {
-  "pos": "FL",
-  "src": "matatu.co.nz 2026 squad announced - loose forward (1.9.14 web check)"
+  "pos": "N8",
+  "src": "matatu.co.nz 2026 squad announced - loose forward (1.9.14 web check; side or role not given, kept as before)"
  },
  "Maia Joseph": {
   "pos": "SH",
@@ -2352,8 +2352,8 @@
   "src": "matatu.co.nz Grand Final team naming 2026 - loose forwards (1.9.14 web check)"
  },
  "Elinor-Plum King": {
-  "pos": "FL",
-  "src": "matatu.co.nz Grand Final team naming 2026 - loose forwards (1.9.14 web check)"
+  "pos": "N8",
+  "src": "matatu.co.nz Grand Final team naming 2026 - loose forwards (1.9.14 web check; side or role not given, kept as before)"
  },
  "Charntay Poko": {
   "pos": "FH",
@@ -2400,8 +2400,8 @@
   "src": "rnz.co.nz 33 debut players named in Aupiki squads - Poua loose forwards (1.9.14 web check)"
  },
  "Anahera Hamahona": {
-  "pos": "FL",
-  "src": "rnz.co.nz 33 debut players named in Aupiki squads - Poua loose forwards (1.9.14 web check)"
+  "pos": "N8",
+  "src": "rnz.co.nz 33 debut players named in Aupiki squads - Poua loose forwards (1.9.14 web check; side or role not given, kept as before)"
  },
  "Greer Muir": {
   "pos": "FL",
@@ -2468,8 +2468,8 @@
   "src": "hurricanes.co.nz Poua squad confirmed 2026 - wing, transfer from Matatū (1.9.14 web check)"
  },
  "Layla Sae": {
-  "pos": "FL",
-  "src": "hurricanes.co.nz Poua squad confirmed 2026 - loose forward (1.9.14 web check)"
+  "pos": "N8",
+  "src": "hurricanes.co.nz Poua squad confirmed 2026 - loose forward (1.9.14 web check; side or role not given, kept as before)"
  },
  "Ngano Tavake": {
   "pos": "LP",
@@ -2956,8 +2956,8 @@
   "src": "fr.wikipedia Stade bordelais (rugby à XV, féminines) effectif 2025-2026 - pilier (1.9.14 web check)"
  },
  "Annaelle Deshaye": {
-  "pos": "LP",
-  "src": "fr.wikipedia Stade bordelais (rugby à XV, féminines) effectif 2025-2026 - pilier (1.9.14 web check)"
+  "pos": "TP",
+  "src": "fr.wikipedia Stade bordelais (rugby à XV, féminines) effectif 2025-2026 - pilier (1.9.14 web check; side or role not given, kept as before)"
  },
  "Maïlys Mailagi": {
   "pos": "LP",
@@ -3124,8 +3124,8 @@
   "src": "association.lourugby.fr féminines séniors 2024/25 squad - centre (LOU 24/25) (1.9.14 web check)"
  },
  "Clarisse Clainholphe": {
-  "pos": "LP",
-  "src": "lourugby.fr/effectif-feminin (LOU official squad page) - pilier (1.9.14 web check)"
+  "pos": "TP",
+  "src": "lourugby.fr/effectif-feminin (LOU official squad page) - pilier (1.9.14 web check; side or role not given, kept as before)"
  },
  "Solenne Mpari": {
   "pos": "LP",
@@ -3228,8 +3228,8 @@
   "src": "en.wikipedia 2025 Women's Six Nations Championship squads (France) - Back row (1.9.14 web check)"
  },
  "Taina Maka": {
-  "pos": "FL",
-  "src": "en.wikipedia 2025 Women's Six Nations Championship squads (France) - Back row (1.9.14 web check)"
+  "pos": "N8",
+  "src": "en.wikipedia 2025 Women's Six Nations Championship squads (France) - Back row (1.9.14 web check; side or role not given, kept as before)"
  },
  "Kelly Arbey": {
   "pos": "WG",
@@ -3256,8 +3256,8 @@
   "src": "rugbypass France women lineup (via search) - No. 8 (1.9.14 web check)"
  },
  "Maeva Abderemane": {
-  "pos": "LP",
-  "src": "en.wikipedia Racing 92 Women squad + racing92.fr/feminines - Prop (1.9.14 web check)"
+  "pos": "TP",
+  "src": "en.wikipedia Racing 92 Women squad + racing92.fr/feminines - Prop (1.9.14 web check; side or role not given, kept as before)"
  },
  "Kalie Faustin": {
   "pos": "LP",

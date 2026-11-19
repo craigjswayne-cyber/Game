@@ -1982,7 +1982,7 @@
   "kicker": "Reto Pro",
   "title": "Carrera terminada",
   "proFailed": "{title_k}: la temporada {n} ha terminado y no se ha cumplido el objetivo. La directiva prescinde de ti.",
-  "record": "Tu balance: {w} victorias, {d} empates, {l} derrotas.",
+  "record": "Tu balance: victorias {w}, empates {d}, derrotas {l}.",
   "newCareer": "Empezar una nueva carrera",
   "menu": "Menú principal"
  },

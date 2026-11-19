@@ -105,7 +105,7 @@ export const W_PWR: RawClub[] = [
     rep: 87, budget: 375000,
     // 50 players from the sheet; 11 carry a stated position and union
     players: [
-      { name: 'Akina Gondwe', pos: 'LP', age: 30, nat: 'ENG', q: 76 },
+      { name: 'Akina Gondwe', pos: 'TP', age: 30, nat: 'ENG', q: 76 },
       { name: 'Alysha Corrigan', pos: 'WG', age: 29, nat: 'CAN', q: 83, intl: true },
       { name: 'Amelia MacDougall', pos: 'CE', age: 27, nat: 'ENG', q: 82 },
       { name: 'Amelia Tutt', pos: 'WG', age: 24, nat: 'ENG', q: 76 },
@@ -131,7 +131,7 @@ export const W_PWR: RawClub[] = [
       { name: 'Jodie Verghese', pos: 'LK', age: 36, nat: 'ENG', q: 71, intl: true },
       { name: 'Joia Bennett', pos: 'LP', age: 29, nat: 'ENG', q: 82 },
       { name: 'Julia Omokhuale', pos: 'HK', age: 23, nat: 'ENG', q: 82 },
-      { name: 'Kaylee McHugh', pos: 'LP', age: 24, nat: 'ENG', q: 77 },
+      { name: 'Kaylee McHugh', pos: 'TP', age: 24, nat: 'ENG', q: 77 },
       { name: 'Kelsey Clifford', pos: 'TP', age: 25, nat: 'ENG', q: 82, intl: true },
       { name: 'Laetitia Royer', pos: 'LK', age: 35, nat: 'CAN', q: 85, intl: true },
       { name: 'Licia MacCutchan', pos: 'FL', age: 31, nat: 'ENG', q: 82 },
@@ -243,8 +243,8 @@ export const W_PWR: RawClub[] = [
       { name: 'Danelle Lochner', pos: 'LK', age: 27, nat: 'ENG', q: 80 },
       { name: 'Sara Mannini', pos: 'FH', age: 21, nat: 'ITA', q: 72, intl: true },
       { name: 'Maja Meuller', pos: 'HK', age: 19, nat: 'ENG', q: 67 },
-      { name: 'Abby Middlebrooke', pos: 'LP', age: 29, nat: 'ENG', q: 78 },
-      { name: 'Joy Okechukwu', pos: 'FL', age: 22, nat: 'ENG', q: 62 },
+      { name: 'Abby Middlebrooke', pos: 'TP', age: 29, nat: 'ENG', q: 78 },
+      { name: 'Joy Okechukwu', pos: 'N8', age: 22, nat: 'ENG', q: 62 },
       { name: 'Lucy Packer', pos: 'SH', age: 26, nat: 'ENG', q: 81, intl: true },
       { name: 'Marlie Packer', pos: 'FL', age: 37, nat: 'ENG', q: 88, intl: true },
       { name: 'Maddy Page', pos: 'LK', age: 27, nat: 'ENG', q: 82 },
@@ -442,7 +442,7 @@ export const W_PWR: RawClub[] = [
       // a Wales international back-five forward (wru.wales)
       { name: 'Abbie Fleming', pos: 'FL', alt: ['LK'], age: 31, nat: 'WAL', q: 70, intl: true },
       { name: 'Grace Freeman', pos: 'FL', age: 27, nat: 'ENG', q: 66 },
-      { name: 'Tiana Gordon', pos: 'FL', age: 30, nat: 'ENG', q: 61 },
+      { name: 'Tiana Gordon', pos: 'N8', age: 30, nat: 'ENG', q: 61 },
       { name: 'Freya Greensmith', pos: 'FL', age: 25, nat: 'ENG', q: 62 },
       { name: 'Micke Gunter', pos: 'HK', age: 21, nat: 'ENG', q: 55 },
       { name: 'Caitlyn Halse', pos: 'FB', age: 20, nat: 'AUS', q: 76, intl: true },
@@ -461,7 +461,7 @@ export const W_PWR: RawClub[] = [
       { name: 'Jordan Russell', pos: 'FL', age: 21, nat: 'ENG', q: 51 },
       { name: 'Rowann Sinclair', pos: 'WG', age: 20, nat: 'ENG', q: 53 },
       { name: 'Eve Slater', pos: 'HK', age: 26, nat: 'ENG', q: 63 },
-      { name: 'Ellie Smith', pos: 'LP', age: 18, nat: 'ENG', q: 49 },
+      { name: 'Ellie Smith', pos: 'TP', age: 18, nat: 'ENG', q: 49 },
       // an England centre, born 16 Jun 1998, from Quins
       { name: 'Lagi Tuima', pos: 'CE', age: 28, nat: 'ENG', q: 74, intl: true },
       { name: 'Tabua Tuinakauvadra', pos: 'FL', age: 24, nat: 'AUS', q: 74, intl: true },

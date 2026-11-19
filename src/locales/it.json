@@ -1985,7 +1985,7 @@
   "kicker": "Sfida Pro",
   "title": "Carriera finita",
   "proFailed": "{title_k}: la stagione {n} è finita e l'obiettivo non è stato raggiunto. Il consiglio ti ha sollevato dall'incarico.",
-  "record": "Il tuo bilancio: {w} vittorie, {d} pareggi, {l} sconfitte.",
+  "record": "Il tuo bilancio: vittorie {w}, pareggi {d}, sconfitte {l}.",
   "newCareer": "Inizia una nuova carriera",
   "menu": "Menu principale"
  },

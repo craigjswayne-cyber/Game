@@ -110,9 +110,15 @@ export function proSeasonVerdict(state: GameState, met: boolean): void {
 export function proGoalMet(state: GameState, c: ProState): boolean {
   const club = state.clubs[c.clubId]
   if (!club) return false
-  if (c.id === 'academy') return state.mgr.trophies.some(t => t.clubId === c.clubId && t.season >= c.since)
+  // a trophy WITH THE CLUB: a national title is filed under the club the
+  // coach also held (season.ts), so it is told apart by its competition
+  if (c.id === 'academy') return state.mgr.trophies.some(t => t.clubId === c.clubId && t.season >= c.since && state.comps[t.compId]?.type !== 'intl' && !state.comps[t.compId]?.isNational)
   if (c.id === 'shoestring') return c.streak >= SHOESTRING_RUN
-  return state.history.some(h => h.champion === c.clubId && h.compId === club.leagueId && h.season >= c.since)
+  // ANY LEAGUE TITLE SINCE THE START (QA, 1.9.14). This read the club's
+  // league at the moment of checking, which the same summer's promotion has
+  // already changed: a title that took the club up was read against the
+  // division above, and the manager was sacked for winning it.
+  return state.history.some(h => h.champion === c.clubId && h.season >= c.since && state.comps[h.compId]?.type === 'league')
 }
 
 /** The summer: the goal met, the deadline passed, or the challenge void.
@@ -131,7 +137,8 @@ export function proCheck(state: GameState): void {
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
       subject: tIn('en', 'news.proDoneSubj', v), body: tIn('en', 'news.proDone', v), k: 'news.proDone', v,
     })
-    state.celebration = {
+    // never over a celebration already waiting (a title won the same summer)
+    if (!state.celebration) state.celebration = {
       headline: tIn('en', 'cel.challenge'),
       sub: tIn('en', 'cel.challengeSub', { title_k: `pro.${c.id}`, manager: state.managerName }),
       icon: 'award', hk: 'cel.challenge', sk: 'cel.challengeSub', sv: { title_k: `pro.${c.id}`, manager: state.managerName },

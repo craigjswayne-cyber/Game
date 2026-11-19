@@ -2,6 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
+import { proBlocksMoney } from './prochallenge'
 import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, isMyClub, mgrReputation, poss, weeksBetween100 } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, shuffled, type Rng } from './rng'
@@ -319,7 +320,9 @@ function moneyMen(state: GameState, rng: Rng) {
         })
       } else {
         const boost = 4_000_000 + Math.round(rng() * 10_000_000 / 500_000) * 500_000
-        club.budget += boost
+        // (the draw is taken either way, so the world's stream does not move)
+        const locked = club.id === state.userClubId && proBlocksMoney(state)
+        if (!locked) club.budget += boost
         club.balance += Math.round(boost * 0.6)
         club.wageBudget = Math.round(club.wageBudget * 1.12)
         club.rep = clamp(club.rep + 2, 30, 95)
