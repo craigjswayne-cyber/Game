@@ -850,11 +850,12 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           sh.addColorStop(0, 'rgba(255,255,255,.3)'); sh.addColorStop(0.55, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(0,0,0,.3)')
           g.fillStyle = sh; g.fill()
         }
-        g.lineWidth = has ? Math.max(2.4, R * 0.3) : Math.max(1.3, R * 0.17)
+        g.lineWidth = has ? Math.max(2.4, R * 0.3) : Math.max(1.3, R * (isLight(side.kit[0]) ? 0.17 : 0.23))
         // (a dark kit with a dark trim was hard to pick out on the grass: it gets a pale rim)
         g.strokeStyle = scorer ? gold : has ? ink.white : (!isLight(side.kit[0]) && darkTrim(side.kit[1]) ? 'rgba(236,240,246,.9)' : side.kit[1]); g.stroke()
         g.fillStyle = isLight(side.kit[0]) ? ink.dark : ink.white
-        g.font = `800 ${Math.round(R * 1.08)}px system-ui, sans-serif`
+        // (owner, 19 Nov 2026: "make sure all text is clearly visible". The numbers are a size up.)
+        g.font = `800 ${Math.round(R * 1.2)}px system-ui, sans-serif`
         g.textAlign = 'center'; g.textBaseline = 'middle'
         // (a man bound in a ruck or on the floor is one of a knot: no number on him)
         if (sz[i] > 0.8) g.fillText(String(side.nums[k] ?? k + 1), x, y + 0.5)

@@ -798,8 +798,9 @@
 }
 /* a score is made at one end: the word sits in the other half of the pitch,
    so the try itself is never under it (home scores at the right-hand end) */
-.lp-banner.low { padding-right: 24%; background: radial-gradient(ellipse 52% 46% at 38% 50%, rgba(0, 0, 0, .46), rgba(0, 0, 0, 0) 100%); }
-.lp-banner.high { padding-left: 24%; background: radial-gradient(ellipse 52% 46% at 62% 50%, rgba(0, 0, 0, .46), rgba(0, 0, 0, 0) 100%); }
+/* (the shade behind the words is deeper and wider, so players standing under them do not muddle the text) */
+.lp-banner.low { padding-right: 24%; background: radial-gradient(ellipse 66% 52% at 38% 50%, rgba(0, 0, 0, .74) 0%, rgba(0, 0, 0, .6) 55%, rgba(0, 0, 0, 0) 100%); }
+.lp-banner.high { padding-left: 24%; background: radial-gradient(ellipse 66% 52% at 62% 50%, rgba(0, 0, 0, .74) 0%, rgba(0, 0, 0, .6) 55%, rgba(0, 0, 0, 0) 100%); }
 .lp-banner b { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; font-size: 3.4rem; letter-spacing: -1.5px; line-height: .95; }
 .lp-banner em { font-style: normal; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--lp-plus); line-height: 1; margin-left: 22%; margin-bottom: -4px; }
 /* THE NAME UNDER THE WORD IS READ AS EASILY AS THE WORD (owner, 19 Nov 2026:
