@@ -1,6 +1,6 @@
 # Uploading 1.9.14, step by step
 
-Version **1.9.14**. Play version code **76**. iPhone build number: **one more than the 1.9.13 build**.
+Version **1.9.14**. Play version code **77** (76 was refused over the portrait screen, see Step 3). iPhone build number: **one more than the 1.9.13 build**.
 
 Do the steps in order. Each step says what you should see before you move on. If you see something different, stop and send me a screenshot.
 
@@ -53,7 +53,7 @@ npm install
 ./scaffold.sh
 ```
 
-- [ ] At the end, `scaffold.sh` prints the version code. It must say **76**.
+- [ ] At the end, `scaffold.sh` prints the version code. It must say **77**, and it must print `portrait screen optional`.
 
 Then in **Android Studio**:
 1. Menu: **Build > Generate Signed App Bundle / APK**.
@@ -71,7 +71,7 @@ Then in **Android Studio**:
 3. **Release name**, copy this:
 
 ```
-1.9.14 (76)
+1.9.14 (77)
 ```
 
 4. **Release notes**: Play wants one block for each language. Copy everything in the grey box below and paste it in as it is (the language tags are part of it):
@@ -272,4 +272,4 @@ If anything looks wrong, stop and send me a screenshot. Do not promote.
 
 ## Step 8. After it is live
 
-- [ ] Tell me it is live, and I will update `docs/launch/LAUNCH-PROGRAMME.md` (current version 1.9.14, Play code 76, the App Store status).
+- [ ] Tell me it is live, and I will update `docs/launch/LAUNCH-PROGRAMME.md` (current version 1.9.14, Play code 77, the App Store status).

@@ -128,6 +128,25 @@ if ! grep -q 'android:screenOrientation="portrait"' "$MANIFEST"; then
   echo "    portrait only"
 fi
 
+# ---- MANIFEST: portrait is a preference, not a hardware requirement ----
+# A portrait lock makes Android assume android.hardware.screen.portrait is
+# REQUIRED, and from 1.9.14 Play refuses to send a release for review over
+# it ("Required hardware feature declarations are restricting your app's
+# availability ... android.hardware.screen.portrait", 19 Nov 2026). Declared
+# optional, every phone, tablet and desktop can install the game; it still
+# opens in portrait. No newline in the replacement: macOS sed does not
+# understand one.
+if ! grep -q 'android.hardware.screen.portrait' "$MANIFEST"; then
+  sed -i.bak 's|<application|<uses-feature android:name="android.hardware.screen.portrait" android:required="false" /><application|' "$MANIFEST"
+  rm -f "$MANIFEST.bak"
+fi
+if grep -q 'android:name="android.hardware.screen.portrait" android:required="false"' "$MANIFEST"; then
+  echo "    portrait screen optional (uses-feature required=false)"
+else
+  echo "    could not mark android.hardware.screen.portrait optional in $MANIFEST" >&2
+  exit 1
+fi
+
 # ---- MANIFEST: no Android backup of the web view's storage ----
 # Capacitor's template says android:allowBackup="true", which lets Android copy
 # the app's data directory (IndexedDB careers, the localStorage that holds the
