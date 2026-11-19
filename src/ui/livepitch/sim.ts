@@ -131,6 +131,10 @@ export class PitchSim {
   /** men off the field (sin bin, sent off, a slot the engine has emptied):
    *  they walk to the touchline and the fourteen play without them */
   off: boolean[] = new Array(30).fill(false)
+  /** THE MEN PICKED (owner, 19 Nov 2026: "the impact of the managers selection"):
+   *  how fast each of the thirty is, as a factor on his top speed (1 is average).
+   *  A quick wing gets away; a slow prop does not. */
+  pace: number[] = new Array(30).fill(1)
   /** a called move being run: the track, where it is laid, and who is who */
   /** how many phases the pitch has played on its own since the last line */
   private idleN = 0
@@ -1161,7 +1165,11 @@ export class PitchSim {
           // it goes back to the 9, he puts up a box kick of no more than
           // thirty metres, the whole side chases it in a line and the wing
           // on that side wins it in the air. The rest is carried.)
-          if (rem > 38 && !s.kicked && mine) {
+          // (THE KICKING DIAL: a side told to kick puts boot to ball from
+          // twenty-odd metres out; a side told to keep it in hand runs it
+          // unless there is half the field to cover)
+          const kd = this.tac[this.phase.homeBall ? 0 : 1].kicking ?? 50
+          if (rem > 38 + (50 - kd) * 0.36 && !s.kicked && mine) {
             s.kicked = true; s.chase = true
             const far = Math.min(30, rem - 9)
             const T: Pt = { x: B.x + (s.to.x - B.x) / rem * far, y: clamp(B.y + (s.to.y - B.y) / rem * far, 6, 64) }
@@ -1341,7 +1349,7 @@ export class PitchSim {
       // three gaits: flat out; a brisk run for a man who is well out of his
       // place (so the shape is set before the ball moves again); a jog
       const brisk = !urgent && dist > 6 && !calm
-      const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) : brisk ? (fwd ? V_FWD : V_BACK) * 0.86 : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
+      const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) * this.pace[i] : brisk ? (fwd ? V_FWD : V_BACK) * 0.86 : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
       // (a man with a couple of metres to go does not bother: he is where he should be)
       const want = !urgent && dist < 1.6 ? 0 : Math.min(vmax, dist * (urgent ? 2.6 : 1.4))
       let wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0

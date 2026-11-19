@@ -32,6 +32,8 @@ export interface PitchSide {
   nums: number[]
   /** fill and edge */
   kit: [string, string]
+  /** each man's pace, 1 to 20, by shirt index (the players the manager picked) */
+  pace?: (number | undefined)[]
 }
 
 /** in-goal metres drawn each end; the ground round the pitch: SIDE metres
@@ -173,6 +175,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
   const io = useRef({ home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null })
   if (tactics) sim.current.tac = tactics
+  // a quick man is up to a tenth quicker than average and a slow one a tenth slower
+  for (let k = 0; k < 15; k++) { sim.current.pace[k] = 1 + (((home.pace?.[k] ?? 11) - 11) / 9) * 0.1; sim.current.pace[15 + k] = 1 + (((away.pace?.[k] ?? 11) - 11) / 9) * 0.1 }
   // FOURTEEN MEN: a man shown a card is off the field (ten minutes for a
   // yellow, the rest of the match for a red), and so is a slot the engine
   // has left empty. He walks to the touchline and his side plays without him.

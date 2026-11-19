@@ -48,7 +48,7 @@ import type { Pt } from './shapes'
  *   defWidth  narrow round the ruck .. spread to the touchlines
  *   contest   fan out and hold the line .. go after the ball on the floor
  */
-export interface PitchTac { style: number; tempo: number; commit: number; defLine: number; defWidth: number; contest: number }
+export interface PitchTac { style: number; tempo: number; commit: number; defLine: number; defWidth: number; contest: number; /** 0 keep it in hand .. 100 kick heavy */ kicking?: number }
 export const MID_TAC: PitchTac = { style: 50, tempo: 50, commit: 50, defLine: 50, defWidth: 50, contest: 50 }
 
 export interface OpenWorld {
