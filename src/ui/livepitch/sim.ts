@@ -1369,6 +1369,13 @@ export class PitchSim {
     // him as he gets over. The rest turn and chase.
     for (const i of this.hunt) this.over.delete(i)
     this.hunt = []
+    // THE SET PIECE BREAKS UP WHEN THE BALL HAS GONE (19 Nov 2026, frame
+    // review: a centre had the ball fifteen metres away and both packs were
+    // still bound in the scrum). Once a man has it well clear, it is open play.
+    if ((this.mode === 'scrum' || this.mode === 'lineout') && this.holder >= 0 && hyp(this.b[this.holder], this.anchor) > 9) {
+      this.mode = 'carry'; this.modeT = 0; this.cIdx = this.holder % 15
+      this.anchor = { x: this.b[this.holder].x, y: this.b[this.holder].y }
+    }
     // ... AND ON ANY CARRY THE NEAREST TWO COME UP AND MEET HIM (owner, 19 Nov
     // 2026: "Gallagher running with ball the defenders dont move forward").
     // The line used to hold where it stood and let him run at it.
