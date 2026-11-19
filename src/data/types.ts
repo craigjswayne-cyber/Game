@@ -37,6 +37,13 @@ export interface RawPlayer {
   /** Current or recent test international */
   intl?: boolean
   /**
+   * ON THE SHEET, NOT ON THE CLUB'S OWN LIST (1.9.14). The owner's squad sheet
+   * had this player at the club; the club's 2026-27 announcement does not.
+   * She opens the career as a free agent rather than vanishing, so the sheet
+   * and the club's list can both be kept honest in one row.
+   */
+  released?: boolean
+  /**
    * TRUE IF THIS NAME IS INVENTED, absent if the name is a real player's.
    *
    * The real/generated split used to exist only as a sentence at the top of

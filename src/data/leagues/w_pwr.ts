@@ -1,7 +1,8 @@
 /**
  * ---- PREMIERSHIP WOMEN'S RUGBY (England), 2026-27 ----
  *
- * The nine clubs and all 375 contracted players, from the squad list the owner
+ * The nine clubs and all 375 contracted players (382 since 1.9.14: Bristol
+ * follows the club's own 2026/27 list, see its block), from the squad list the owner
  * supplied on 6 Sep 2026 ("Full PWR Player List & Current Club 26/27"). Every
  * NAME and every CLUB in this file is real and comes from that sheet: the club
  * totals here match its own squad-size column exactly, club for club.
@@ -162,7 +163,11 @@ export const W_PWR: RawClub[] = [
     stadium: 'Shaftsbury Park', capacity: 2000,
     colors: ['#0a2240', '#ffffff'],
     rep: 80, budget: 300000,
-    // 38 players from the sheet; 9 carry a stated position and union
+    // 45 players: 38 from the sheet, and 7 named on the club's own 2026/27
+    // list (bristolbearsrugby.com, 18 Nov 2026) who were not on it. Their
+    // positions are the club's; age and rating are the game's, as for everyone
+    // else here. The 5 on the sheet but not on the club's list carry
+    // released: true and open as free agents.
     players: [
       { name: 'Abbie Ward', pos: 'LK', age: 33, nat: 'ENG', q: 86, intl: true },
       { name: 'Aisha Jah', pos: 'LP', age: 33, nat: 'ENG', q: 69 },
@@ -174,7 +179,7 @@ export const W_PWR: RawClub[] = [
       { name: 'Ellen Scantlebury', pos: 'WG', age: 23, nat: 'ENG', q: 68 },
       { name: 'Ellie Kildunne', pos: 'FB', age: 27, nat: 'ENG', q: 91, gk: true, intl: true },
       { name: 'Evie Gallagher', pos: 'N8', age: 26, nat: 'SCO', q: 84, intl: true },
-      { name: 'Gwennan Hopkins', pos: 'FL', age: 20, nat: 'ENG', q: 63 },
+      { name: 'Gwennan Hopkins', pos: 'FL', age: 20, nat: 'ENG', q: 63, released: true },
       { name: 'Hannah Botterman', pos: 'LP', age: 27, nat: 'ENG', q: 86, intl: true },
       { name: 'Heidi Pashaei-Tarighoun', pos: 'FL', age: 32, nat: 'ENG', q: 71 },
       { name: 'Hollie Cunningham', pos: 'LK', age: 30, nat: 'ENG', q: 68 },
@@ -183,7 +188,7 @@ export const W_PWR: RawClub[] = [
       { name: 'Jenny Herring', pos: 'N8', age: 23, nat: 'ENG', q: 61 },
       { name: 'Jenny Hesketh', pos: 'FB', age: 21, nat: 'ENG', q: 65 },
       { name: 'Jess Sprague', pos: 'HK', age: 22, nat: 'ENG', q: 66 },
-      { name: 'Josie Harris', pos: 'WG', age: 24, nat: 'ENG', q: 66 },
+      { name: 'Josie Harris', pos: 'WG', age: 24, nat: 'ENG', q: 66, released: true },
       { name: 'Keira Bevan', pos: 'SH', age: 29, nat: 'WAL', q: 78, intl: true },
       { name: 'Lana Skeldon', pos: 'HK', age: 33, nat: 'SCO', q: 82, intl: true },
       { name: 'Lark Atkin-Davies', pos: 'HK', age: 31, nat: 'ENG', q: 82, intl: true },
@@ -191,17 +196,24 @@ export const W_PWR: RawClub[] = [
       { name: 'Lucy Burgess', pos: 'SH', age: 29, nat: 'ENG', q: 71 },
       { name: 'Millie David', pos: 'WG', age: 21, nat: 'ENG', q: 82, intl: true },
       { name: 'Millie Hyett', pos: 'CE', age: 26, nat: 'ENG', q: 77 },
-      { name: 'Natalee Evans', pos: 'FH', age: 28, nat: 'ENG', q: 78 },
+      { name: 'Natalee Evans', pos: 'FH', age: 28, nat: 'ENG', q: 78, released: true },
       { name: 'Nicola Beet', pos: 'LK', age: 29, nat: 'ENG', q: 72 },
-      { name: 'Orla Proctor', pos: 'FB', age: 21, nat: 'ENG', q: 62 },
+      { name: 'Orla Proctor', pos: 'FB', age: 21, nat: 'ENG', q: 62, released: true },
       { name: 'Phoebe Murray', pos: 'CE', age: 31, nat: 'ENG', q: 70 },
       { name: 'Pip Hendy', pos: 'CE', age: 19, nat: 'ENG', q: 60 },
       { name: 'Reneeqa Bonner', pos: 'WG', age: 32, nat: 'ENG', q: 64 },
-      { name: 'Rosie Carr', pos: 'HK', age: 20, nat: 'ENG', q: 65 },
+      { name: 'Rosie Carr', pos: 'HK', age: 20, nat: 'ENG', q: 65, released: true },
       { name: 'Rownita Marston-Mulhearn', pos: 'N8', age: 26, nat: 'ENG', q: 81 },
       { name: 'Sarah Bern', pos: 'TP', age: 29, nat: 'ENG', q: 87, intl: true },
       { name: 'Simi Pam', pos: 'LP', age: 27, nat: 'ENG', q: 82 },
       { name: 'Zoe Evans', pos: 'WG', age: 26, nat: 'ENG', q: 80 },
+      { name: 'Izzy Jaques', pos: 'LP', age: 24, nat: 'ENG', q: 68 },
+      { name: 'Amy Dale', pos: 'HK', age: 25, nat: 'ENG', q: 70 },
+      { name: 'Jorja Battishill', pos: 'LK', age: 23, nat: 'ENG', q: 68 },
+      { name: 'Charlotte Heath', pos: 'SH', age: 22, nat: 'ENG', q: 66 },
+      { name: 'Meryl Smith', pos: 'FH', age: 26, nat: 'SCO', q: 78, intl: true },
+      { name: 'Kirsty Hillier', pos: 'WG', age: 24, nat: 'ENG', q: 68 },
+      { name: 'Sophie Piper', pos: 'WG', age: 22, nat: 'ENG', q: 66 },
     ],
   },
   {

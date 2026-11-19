@@ -574,6 +574,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         // `gen`, so nothing in the men's world moves.
         p.real = !rp.gen
         state.players[p.id] = p
+        // a player the club's own 2026-27 list leaves out opens as a free
+        // agent (RawPlayer.released); no men's file carries the flag
+        if (rp.released) { p.clubId = null; continue }
         club.players.push(p.id)
       }
       state.clubs[club.id] = club
