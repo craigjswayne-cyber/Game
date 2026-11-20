@@ -137,3 +137,32 @@ Men: Samoa, Tonga, USA, Canada; then the corrections listed above.
 Women (owner, 22:12): every squad announced for WXV 1, 2 and 3 in 2026. Then the PWR club squads for 2026-27.
 Women: England, France, Ireland, Scotland, Wales, Italy, New Zealand,
 Australia, USA, Canada (check `testNationsIn` for the ten in a women's world).
+
+## Women: the 2026 WXV Global Series (owner asked for "WXV 1, 2 and 3")
+
+FACT CHECK: there is no WXV 1/2/3 in 2026. Those tiers ran in 2023 and 2024.
+From 2026 it is the WXV Global Series: the top 12 unions play home and away in
+a September to October window (World Rugby, Scottish Rugby). The game's
+women's world already has exactly twelve Test unions: ENG FRA IRE ITA SCO WAL
+NZL CAN USA AUS JPN RSA. So the job is those twelve squads, with caps.
+
+The women's world holds real players for ENG 340, FRA 457, NZL 132, AUS 115,
+WAL 76, SCO 75, IRE 71, FIJ 36, CAN 12, USA 11, ITA 5, ESP 5, JPN 4 and none
+for RSA: Italy, Japan, South Africa, Canada and USA squads will mostly be
+missing from the world and will report as thin.
+
+Sources a search returned on 20 Nov 2026 (fetch these; all carry caps):
+- Scotland: scottishrugby.org/news-and-features/scotland-womens-32-player-squad-announced-for-vodafone-scotland-wxv-series/ (4 Aug 2026)
+- Australia: www.rugby.com.au/news/wallaroos-recall-stars-for-wxv-global-series-2026827 (32 players, caps)
+- South Africa: www.rugbypass.com/news/springbok-women-unveil-wxv-squad-as-wider-plan-revealed/ (caps)
+- USA: eagles.rugby/news/usa-womens-eagles-roster-named-for-wxv-global-series-with-usa-finale-202693
+- England: www.planetrugby.com/news/red-roses-squad-25-world-cup-winners-included-in-extended-wxv-group-as-three-uncapped-players-named (36 players)
+- All teams, opening weekend: www.world.rugby/wxv/en/news/1046220/wxv-global-series-squads-england-go-strong-on-opening-weekend-as-canada-rotate-and-france-turn-to-sevens-stars
+- Wikipedia's "2026 Women's Six Nations Championship squads" gives caps for six unions as of spring 2026.
+Still to find: France, Ireland, Wales, Italy, New Zealand, Canada, Japan.
+
+## PWR club squads, 2026-27 (owner, 22:13)
+
+Not started. The PWR clubs are in src/data/leagues/w_pwr.ts. Take each club's
+own announced 2026-27 squad and compare it with the file (players in, players
+out, positions, nationality).
