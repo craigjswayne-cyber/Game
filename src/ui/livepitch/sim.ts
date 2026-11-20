@@ -1462,6 +1462,18 @@ export class PitchSim {
     // ... AND ON ANY CARRY THE NEAREST TWO COME UP AND MEET HIM (owner, 19 Nov
     // 2026: "Gallagher running with ball the defenders dont move forward").
     // The line used to hold where it stood and let him run at it.
+    // AND WHEN HIS RUN IS OVER HE HAS BEEN CAUGHT, NOT STOPPED (owner, 19 Nov
+    // 2026: "player broke through but then randomly stopped and turned
+    // sideways, he would have been in for a score"). A carry ended with the
+    // man standing in open grass until the next line. The two nearest
+    // defenders run him down and hold him where his run ended.
+    const stood = !runTo && this.mode === 'carry' && this.holder >= 0 && this.si >= this.steps.length && !this.tryRun && !!this.phase && this.phase.kind === 'carry' && (this.holder < 15) === this.phase.homeBall
+    if (stood) {
+      const h = this.holder, hb = this.b[h], d0 = h < 15 ? 15 : 0
+      const men = [...Array(15).keys()].map(k => d0 + k).filter(i => this.down[i] <= 0 && !this.off[i])
+        .map(i => ({ i, d: hyp(this.b[i], hb) })).sort((a, c) => a.d - c.d).slice(0, 2)
+      men.forEach((m, j) => { this.over.set(m.i, { x: hb.x + (h < 15 ? 0.9 : -0.9), y: hb.y + (j ? 0.8 : -0.8) }); this.hunt.push(m.i) })
+    }
     if (!this.tryRun && this.holder >= 0 && this.mode === 'carry' && runTo && !this.strike && !this.trk && this.phase && (this.holder < 15) === this.phase.homeBall) {
       const h = this.holder, hb = this.b[h], d0 = h < 15 ? 15 : 0
       const men = [...Array(15).keys()].map(k => d0 + k).filter(i => this.down[i] <= 0 && !this.off[i] && i % 15 !== 14)
