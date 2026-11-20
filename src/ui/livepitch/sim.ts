@@ -326,8 +326,21 @@ export class PitchSim {
       const lim = p.kind === 'scrum' ? 10 : 14
       E.x = clamp(B.x + clamp(E.x - B.x, -lim, lim), 2, 98)
       E.y = clamp(B.y + clamp(E.y - B.y, -18, 18), 4, 66)
-      // (a man put into touch goes all the way to the line, and over it)
-      if (beat.kind === 'intotouch') E.y = p.y < 35 ? -0.6 : 70.6
+      // THE MAN WITH THE BALL RUNS AT THEM (owner, 20 Nov 2026: "player ran
+      // sideways with the ball then backwards"; measured the same night: with
+      // the ball in hand he was going backwards 7.8% of the time and dead
+      // sideways 10.5%). The engine's place for a line can be behind where the
+      // ball has got to, and he used to run back to it. A carry now always
+      // ends in front of where it started, and no more across the field than
+      // it goes up it.
+      if (p.kind === 'carry' || p.kind === 'ruck') {
+        const g = (E.x - B.x) * dir, min = p.kind === 'carry' ? 4 : 1.5
+        if (g < min) E.x = clamp(B.x + dir * min, 2, 98)
+        const up = Math.abs(E.x - B.x), across = Math.max(5, up * 1.2)
+        if (beat.kind !== 'intotouch') E.y = clamp(B.y + clamp(E.y - B.y, -across, across), 4, 66)
+      }
+      // (a man put into touch goes all the way to the line, and over it, running up the field as he goes)
+      if (beat.kind === 'intotouch') { E.y = p.y < 35 ? -0.6 : 70.6; E.x = clamp(B.x + dir * Math.max(4, Math.abs(E.y - B.y) * 0.6), 2, 98) }
     }
     const d = hyp(E, B)
     const holderAtt = this.holder >= 0 && (this.holder < 15) === p.homeBall
