@@ -574,6 +574,21 @@ function buildSummerTests(rng: Rng, state: GameState, rounds: number) {
 }
 
 /** Northern Championship & Southern Championship (played by national teams, engine-lite). */
+/**
+ * WHO HOSTS WHOM IN THE NORTHERN CHAMPIONSHIP (QA, 1.9.15). The draw picked
+ * venues at random every year; the real one alternates, so a side away at
+ * Twickenham this year is at home to England next. Around a fixed circle each
+ * union hosts the two after it and the one opposite if it is in the first
+ * half (two or three home games each), and every venue swaps in odd years.
+ */
+export function snVenue(circle: string[], [x, y]: [string, string], season: number): [string, string] {
+  const i = circle.indexOf(x), j = circle.indexOf(y), n = circle.length
+  const d = (j - i + n) % n
+  const iHosts = d === n / 2 ? i < n / 2 : d <= n / 2 - 1
+  const flip = season % 2 === 1
+  return iHosts !== flip ? [x, y] : [y, x]
+}
+
 export function buildInternationals(rng: Rng, state: GameState, worldCup = false) {
   if (worldCup) buildWorldCup(rng, state)
   if (!worldCup) buildSummer(rng, state)
@@ -585,7 +600,8 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
     weeksByRound: SIX_NATIONS_WEEKS, koWeeks: [], isNational: true,
   }
   snRounds.forEach((pairs, r) => {
-    for (const [h, a] of pairs) {
+    for (const pair of pairs) {
+      const [h, a] = snVenue(sn, pair, state.season)
       state.fixtures.push({
         id: state.nextId++, compId: 'sn', round: r, week: SIX_NATIONS_WEEKS[r],
         homeId: h, awayId: a, played: false,
@@ -796,7 +812,8 @@ export function buildWomensInternationals(rng: Rng, state: GameState, worldCup =
     weeksByRound: W_SIX_NATIONS_WEEKS, koWeeks: [], isNational: true,
   }
   roundRobin(sn, rng, false).forEach((pairs, r) => {
-    for (const [h, a] of pairs) {
+    for (const pair of pairs) {
+      const [h, a] = snVenue(sn, pair, state.season)
       state.fixtures.push({
         id: state.nextId++, compId: W + 'sn', round: r, week: W_SIX_NATIONS_WEEKS[r],
         homeId: h, awayId: a, played: false,
