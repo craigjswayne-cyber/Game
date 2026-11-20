@@ -281,7 +281,8 @@
   min-width: 0; overflow: hidden; text-overflow: ellipsis;
 }
 .last10 .l10-bar {
-  position: relative; flex: 1; height: 8px; border-radius: 4px;
+  /* at least a readable strip: at 320px the label took all but 10px (1.9.15) */
+  position: relative; flex: 1; min-width: 72px; height: 8px; border-radius: 4px;
   /* CLIPPED ACROSS, OPEN UP AND DOWN (release audit 1.7.1). The needle's
      .momo-track is the whole bar wide and slides up to 94% of it sideways, so
      unclipped its box ran off the phone and the match page scrolled sideways

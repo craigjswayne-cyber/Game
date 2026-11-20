@@ -94,7 +94,7 @@ export default function Training() {
       {tab === 'camp' && <div style={{ padding: '12px 14px 0' }}><CampFocus /></div>}
       {tab === 'training' && <>
       <SectionTitle sub={t('training.weeklyFocusSub')}>{t('training.weeklyFocus')}</SectionTitle>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 4, padding: '0 14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 4, padding: '0 14px' }}>
         {FOCUSES.map(f => (
           <button key={f.id} className={`club-pick${game.training === f.id ? ' sel' : ''}`} style={{ margin: 0 }}
             onClick={() => { if (game.training !== f.id) noteUse('training'); game.training = f.id; touch() }}>
@@ -106,7 +106,7 @@ export default function Training() {
       </div>
       {/* THE LOAD (1.9.10, retrain.ts): the trade the focus never had */}
       <SectionTitle sub={t('training.loadSub')}>{t('training.loadTitle')}</SectionTitle>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 4, padding: '0 14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 4, padding: '0 14px' }}>
         {LOADS.map(l => (
           <button key={l.id} className={`club-pick${loadOf(game) === l.id ? ' sel' : ''}`} style={{ margin: 0 }}
             onClick={() => { if (loadOf(game) !== l.id) noteUse('training'); game.trainLoad = l.id; touch() }}>
@@ -226,17 +226,17 @@ function StaffPanel() {
                     </>
                   )}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                   {/* the seat can be emptied without a replacement lined up
                       (owner, v1.2.7): eight weeks of his wage, asked twice */}
                   {p && !p.course && (
-                    <TwoStep className="btn ghost" style={{ padding: '4px 8px', fontSize: '0.6875rem', lineHeight: 1.25 }}
+                    <TwoStep className="btn ghost" style={{ padding: '4px 8px', fontSize: '0.6875rem', lineHeight: 1.25, minHeight: 40 }}
                       label={t('training.sack')} confirm={t('training.sackConfirm', { g: p.g ?? 'm', cost: fmtMoney(sackCost(game, role)) })}
                       title={t('training.sackTitle', { g: p.g ?? 'm', cost: fmtMoney(sackCost(game, role)) })}
                       onConfirm={() => { setMsg({ role, text: sackStaff(game, role) }); touch() }} />
                   )}
                   {p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
-                    <button className="btn gold" style={{ padding: '4px 8px', fontSize: '0.6875rem', lineHeight: 1.25 }}
+                    <button className="btn gold" style={{ padding: '4px 8px', fontSize: '0.6875rem', lineHeight: 1.25, minHeight: 40 }}
                       disabled={!!courseNo} title={courseNo?.long}
                       onClick={() => { setMsg({ role, text: sendToCourse(game, role) }); touch() }}>
                       {t('training.assess')}<br /><span style={{ fontSize: '0.6875rem', fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>

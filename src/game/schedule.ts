@@ -259,7 +259,9 @@ export function resultsParam(compId: string, week: number): string {
   return `${compId}:${week}`
 }
 
-export function parseResultsParam(param: string): { compId: string; week: number } {
+export function parseResultsParam(param: string | undefined): { compId: string; week: number } {
+  // opened with no param the round-up has nothing to show, not a crash (1.9.15)
+  if (!param) return { compId: '', week: NaN }
   // the week is what follows the LAST colon; everything before it is the id
   const cut = param.lastIndexOf(':')
   if (cut <= 0) return { compId: param, week: NaN }
