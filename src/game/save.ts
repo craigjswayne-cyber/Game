@@ -579,6 +579,8 @@ function migrateCollections(s: GameState): void {
   // THE NATION BY NAME (1.9.15). These letters printed the code ("SACKED: ENG
   // relieve you") and now read {nation_k}; one filed before carries only nat.
   const NAT_KEYS = ['news.youWonIntl', 'news.natSacked', 'news.natReview']
+  // the annual review gained the union's terms (term_k): one filed before says nothing of them
+  for (const n of s.news) if (n?.k === 'news.natReview' && n.v && n.v.term_k == null) n.v.term_k = 'common.nothing'
   // and the appointment letter, which carried nat_k ('nation.ENG') and now
   // reads the nation's forms with their articles
   for (const n of s.news) {
