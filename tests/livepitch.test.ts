@@ -79,7 +79,8 @@ describe('the live pitch', () => {
       // a sprint is 8.2 m/s, the man with the ball a touch more
       expect(top).toBeLessThan(9.5)
       // nothing is teleported after the first picture: the match never cuts
-      expect(S.cuts).toBe(1)
+      // (but the sides are in their places for the second-half kick-off: one more, behind the half-time panel)
+      expect(S.cuts).toBeLessThanOrEqual(2)
       // a full match at Normal, on the screen's clock (quiet play is wound
       // on): long enough to watch, short enough to finish
       void total

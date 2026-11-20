@@ -269,6 +269,11 @@ export class PitchSim {
         to: { x: 50 + d * 22, y: clamp(p.y, 13, 57) } }
       this.queued = { p, c: carrierIdx }
       this.start(K, null)
+      // (the sides come back out and are in their places for it: they were
+      // standing in two lines at halfway and the receivers ran backwards as it was kicked)
+      { const T = this.targets(); for (let i = 0; i < 30; i++) { this.b[i].x = T.pts[i].x; this.b[i].y = T.pts[i].y; this.b[i].vx = this.b[i].vy = 0 } this.cuts++
+        const kk = (home ? 0 : 15) + 9, ki = this.steps.findIndex(st => st.k === 'kick' && !(st as { silent?: boolean }).silent)
+        if (ki > 0) { this.si = ki - 1; this.st = 0; this.entered = false; this.holder = kk; this.flight = null; this.grounded = false; this.ball.x = this.b[kk].x; this.ball.y = this.b[kk].y } }
       return
     }
     // AND ANY BALL KICKED INTO TOUCH IS A LINEOUT, THE OTHER SIDE'S THROW
