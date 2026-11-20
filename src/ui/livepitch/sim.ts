@@ -256,6 +256,10 @@ export class PitchSim {
         this.ball.x = clamp(this.ball.x + fd * 2.2, 1, 99); this.ball.lift = 0
         this.holder = -1; this.grounded = true
       }
+      // THE SCRUM IS WHERE IT WAS KNOCKED ON (20 Nov 2026, seen in the 1pm
+      // recording: the knock-on was on the 35 and the scrum formed twenty
+      // metres upfield, where the engine's field position had got to).
+      if (!this.flight) p = { ...p, x: clamp(this.ball.x, 5, 95), y: clamp(this.ball.y, 5, 65) }
     }
     // NOBODY BOUND IN A SCRUM RUNS OFF IT WITH THE BALL (owner, 19 Nov 2026:
     // "from a scrum the prop randomly runs forward with the ball, this
@@ -268,6 +272,22 @@ export class PitchSim {
       this.queued = { p, c: carrierIdx }
       this.start(P8, 7)
       return
+    }
+    // A LINEOUT A LONG WAY OFF WAS KICKED THERE (20 Nov 2026, measured: nine
+    // of fourteen lineouts in a match formed more than twelve metres from
+    // where the ball was, with nothing to say how it got there: a penalty
+    // kicked to the corner, a clearance the engine did not write). The side
+    // that had the ball is seen to kick it to touch, and then the lineout
+    // forms where it went out.
+    if (p.kind === 'lineout' && last && p.at !== last.at && !this.queued && !this.flight && last.kind !== 'kick' && last.kind !== 'lineout' && last.kind !== 'kickoff' && last.kind !== 'break' && this.mode !== 'kick') {
+      const kd = last.homeBall ? 1 : -1, gain = (p.x - this.ball.x) * kd
+      if (gain > 12) {
+        const K: Phase = { kind: 'kick', homeBall: last.homeBall, x: clamp(this.ball.x, 2, 98), y: clamp(this.ball.y, 2, 68), at: p.at, hang: 10,
+          label: 'lp.kickTouch', to: { x: p.x, y: p.y < 35 ? -1 : 71 } }
+        this.queued = { p, c: carrierIdx }
+        this.start(K, null)
+        return
+      }
     }
     // THE SECOND HALF STARTS WITH A KICK-OFF (owner, 19 Nov 2026: "second
     // half didnt start with a kick off"). The engine writes no line for it,
