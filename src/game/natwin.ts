@@ -30,7 +30,11 @@ export type NatWin = NonNullable<GameState['natWin']>
 /** The coach's nation's window, if it is this one. */
 export function natWinNow(state: GameState): NatWin | null {
   const w = state.natWin
-  return w && state.natTeam && w.nat === state.natTeam && w.season === state.season && state.week >= w.start && state.week <= w.end + 1 ? w : null
+  if (!w || !state.natTeam || w.nat !== state.natTeam || w.season !== state.season || state.week < w.start - 1) return null
+  // open from the camp week (it opens a week early, 1.9.15) to the week after,
+  // and after that for as long as its review has not been read: the review is
+  // filed while the week after is settled, so it used to vanish unread
+  return state.week <= w.end + 1 || (w.review && !w.review.seen) ? w : null
 }
 
 /** The fixtures of the coach's nation inside a window. */
@@ -56,6 +60,8 @@ export function openNatWindow(state: GameState, w: { id?: string; start: number;
   const nat = state.natTeam
   if (!nat) return
   if (state.natWin && state.natWin.nat === nat && state.natWin.season === state.season && state.natWin.start === w.start) return
+  // a review not yet read stays readable under the new window
+  if (state.natWin?.review && !state.natWin.review.seen) state.natLastReview = { ...state.natWin }
   const { tests, target } = windowTarget(state, nat, w.start, w.end)
   state.natWin = {
     nat, season: state.season, start: w.start, end: w.end, comp: w.id ?? '',
@@ -152,7 +158,7 @@ function campEvent(state: GameState, w: NatWin, squad: number[]): NatWin['event'
 export function answerCampEvent(state: GameState, answer: CampAnswer, floor: number): boolean {
   const w = natWinNow(state)
   const e = w?.event
-  if (!w || !e || e.answer) return false
+  if (!w || !e || e.answer || state.week > w.end) return false
   const p = state.players[e.playerId]
   if (!p) return false
   const squad = state.natSquads[w.nat] ?? []

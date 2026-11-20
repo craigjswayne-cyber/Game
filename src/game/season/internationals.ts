@@ -57,6 +57,10 @@ export function manageInternationals(state: GameState, rng: Rng) {
       const returnedMine: string[] = []
       const lionsHome: Player[] = []
       for (const nat of w.nations) {
+        // the coach's next camp already opened a week early on top of this
+        // one (openUserCampAhead): the list on the desk is the new window's,
+        // and this window's men were released when it opened
+        if (nat === state.natTeam && state.natWin && state.natWin.nat === nat && state.natWin.season === state.season && state.natWin.start > w.end) continue
         for (const id of state.natSquads[nat] ?? []) {
           const p = state.players[id]
           if (p) {
@@ -215,26 +219,10 @@ export function manageInternationals(state: GameState, rng: Rng) {
         // this same pool if the coach has not named it by the time a Test
         // arrives, so a Test is never played with twelve men.
         if (nat === state.natTeam) {
-          state.natSquads[nat] = []
-          state.natSent = []
-          // the federation's own list, taken once as an AI federation takes it:
-          // the yardstick the two-jobs rule measures him against all window
-          state.natFed = { nat, ids: federationPick(state, nat, w.size).map(p => p.id) }
-          // ...except for his own club's men the federation would take, when he
-          // runs a club as well: they are released to camp as they would be to
-          // any AI federation, so leaving them home is not his to decide (9.10)
-          releaseClubDuty(state, nat, w.size)
-          // THE SUMMONS, not an announcement. The federation is waiting on him
-          // rather than handing him a team sheet, and it says so in the inbox
-          // as well as holding Continue - one of those is a reminder and the
-          // other is a wall, and a job this big deserves both.
-          const v = { ...nationVars(nat), n: NAT_SQUAD_FLOOR }
-          state.news.push({
-            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-            subject: tIn('en', 'news.natNameSubj', v),
-            body: tIn('en', 'news.natName', v),
-            k: 'news.natName', v,
-          })
+          // opened a week early (openUserCampAhead, 1.9.15): the coach has
+          // already been naming it, so it is not emptied again here
+          if (userCampOpen(state, w)) continue
+          openUserCamp(state, nat, w)
           continue
         }
         // the front row may come from below the depth cut: a third hooker is
@@ -346,6 +334,73 @@ export function manageInternationals(state: GameState, rng: Rng) {
  * because until then the empty sheet IS the job and filling it would be the
  * auto-pick the owner asked us to stop doing.
  */
+/** The coach's camp for this window is already open (natWin for this window,
+ *  and a squad list on the desk). */
+function userCampOpen(state: GameState, w: Window): boolean {
+  const nat = state.natTeam
+  return !!nat && !!state.natSquads[nat] && !!state.natWin && state.natWin.nat === nat &&
+    state.natWin.season === state.season && state.natWin.start === w.start
+}
+
+/** The coach's nation's camp opens EMPTY and waits for the coach (v1.1.17):
+ *  the federation's own list kept as the yardstick, his own club's men the
+ *  federation would take released to it, and the summons in the inbox. */
+function openUserCamp(state: GameState, nat: string, w: Window): void {
+  state.natSquads[nat] = []
+  state.natSent = []
+  state.natFed = { nat, ids: federationPick(state, nat, w.size).map(p => p.id) }
+  releaseClubDuty(state, nat, w.size)
+  const v = { ...nationVars(nat), n: NAT_SQUAD_FLOOR }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', 'news.natNameSubj', v),
+    body: tIn('en', 'news.natName', v),
+    k: 'news.natName', v,
+  })
+}
+
+/**
+ * THE CAMP OPENS THE WEEK BEFORE IT IS NEEDED (QA, 1.9.15).
+ *
+ * The call-ups run while a window's first week is settled, which is AFTER the
+ * coach has played that week. For the summer windows, whose first week is
+ * already a Test week (the tour, the Isles tour, the women's summer series
+ * and Pacific Four), the coach's Test was played with nobody in the camp: all
+ * twenty-three shirts empty and uncontested scrums from the first minute, and
+ * still booked against the ranking. The autumn and the Northern
+ * Championship had a camp week on paper that the coach never saw.
+ *
+ * So the COACH's camp opens at the end of the week before: after that week's
+ * fixtures (a club final is never robbed of its players), and for his nation
+ * only, which draws nothing from the world's random stream. `ahead` is 1 at
+ * the end of a week, and 0 for the first week of a new season, which has no
+ * week before it.
+ */
+export function openUserCampAhead(state: GameState, ahead: 0 | 1): void {
+  const nat = state.natTeam
+  if (!nat) return
+  for (const w of activeWindows(state)) {
+    if (w.start !== state.week + ahead || !w.nations.includes(nat)) continue
+    if (userCampOpen(state, w)) continue
+    // a window ending this week (the women's summer series into the Pacific
+    // Four): review it and send its players home now, before the new camp
+    // takes the desk, or the review and the release are lost under it
+    const old = state.natWin
+    if (old && old.nat === nat && old.season === state.season && old.end < w.start && !old.review) reviewNatWindow(state, old.start)
+    if (state.natSquads[nat]) {
+      for (const id of state.natSquads[nat]) {
+        const p = state.players[id]
+        if (!p) continue
+        p.natSquad = false
+        p.cond = clamp(p.cond - 10, 20, 100)
+      }
+    }
+    if (!state.natTeam) return // the review can end the job
+    openNatWindow(state, w)
+    openUserCamp(state, nat, w)
+  }
+}
+
 export function fillShortNatSquad(state: GameState) {
   // not gated on employment: a coach between club jobs still has a country,
   // and its camp opens empty for him like anyone's (see natSquadHold)

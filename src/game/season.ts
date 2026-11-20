@@ -70,7 +70,7 @@ import { flushMemoryNews, memoryWeek, rememberPromise } from './memory'
 import { natTwin, savedShort, weekRng } from './season/dice'
 import { boardReaction, boardReadsTheTable, honeymoonEnd } from './season/board'
 import { applyToTable, maybeCreateKnockouts, resolveKnockoutDraw, winnerOf } from './season/tables'
-import { fillShortNatSquad, manageInternationals } from './season/internationals'
+import { fillShortNatSquad, manageInternationals, openUserCampAhead } from './season/internationals'
 import { weeklyTraining } from './season/training'
 import { weeklyFinance } from './season/finance'
 import { afterClubMatch, leagueRoundUp, matchReport, mgrMilestones, milestones } from './season/news'
@@ -2375,6 +2375,9 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     if (age >= 3) { n.read = true; n.cleared = true }
   }
 
+  // the coach's camp opens the week before its window (1.9.15): a Test is
+  // never played before the squad exists
+  if (state.week < SEASON_WEEKS) openUserCampAhead(state, 1)
   // advance
   if (state.week >= SEASON_WEEKS) {
     // the summer cap audit happens on the old season's wage bill, before the
@@ -2382,6 +2385,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     auditCaps(state)
     yield
     rebuildSeason(state)
+    // a window in the new season's first week has no week before it
+    openUserCampAhead(state, 0)
     // and the new season's ceiling is measured from the league as it now stands
     refreshCaps(state)
   } else {
