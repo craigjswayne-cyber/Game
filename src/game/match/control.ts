@@ -71,9 +71,14 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   // the dials the second half kicks off with, against the half-time read
   if (ctx.tick === 10 && ctx.htEv && !ctx.shDials) ctx.shDials = userDials(state, ctx)
   simTick(state, ctx, ctx.tick)
-  flushAsk(state, ctx)
   ctx.tick += 1
   aiTacticShift(state, ctx)
+  // THE ASK IS THE LAST LINE OF THE TICK (1.9.15). It was written before the
+  // other dugout's late change and the hour mark, so a call asked around the
+  // hour had "the coach shuts up shop" or the 60' line after it, and the
+  // ticker played on while the manager was still deciding. Words only: no
+  // dice are drawn here, and the order of the lines is all that moves.
+  if (ctx.tick !== 15) flushAsk(state, ctx)
   if (ctx.tick === 10) {
     ctx.seg = 1
     // THE WHISTLE WAITS FOR THE KICK. A penalty awarded in the closing minutes
@@ -89,6 +94,7 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
     ctx.seg = 2
     ctx.awaiting = 'BRK'
     pushLine(state, ctx, 60, 'BRK', null, 'comm.hourMark')
+    flushAsk(state, ctx)
     return 'BRK'
   }
   if (ctx.tick === 20) {

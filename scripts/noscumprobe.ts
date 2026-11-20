@@ -307,9 +307,23 @@ async function dieDuringPlayOut(seed: number): Promise<void> {
 
 const reached: Record<Point, number> = { kickoff: 0, mid1: 0, decision: 0, inj: 0, ht: 0, ft: 0 }
 
-// 34 has five touchline calls; seed 1 has an injured man waiting for his pick
-// on the 2026-27 squads (1.9.2: 4242, the old first seed, no longer has one)
-for (const seed of [1, 34]) {
+// 34 has five touchline calls; seed 1 had an injured man waiting for his pick
+// on the 2026-27 squads (1.9.2: 4242, the old first seed, no longer has one).
+// FOUND, NOT HAND-PICKED (1.9.15): the Nations Trophy moved the world's dice
+// and seed 1's match lost its injury, as 4242's did before it. The first seed
+// from 1 whose match does reach one is used, so the next move of the dice
+// does not silently drop the reopen this probe exists for.
+async function reaches(seed: number, at: Point): Promise<boolean> {
+  await fresh(seed)
+  st.getState().kickOff('calm', 'full')
+  const got = drive(p => p === at) === at
+  st.setState({ liveMatch: null, matchRec: null })
+  return got
+}
+let injSeed = 1
+for (let s2 = 1; s2 <= 40; s2++) if (await reaches(s2, 'inj')) { injSeed = s2; break }
+console.log(`  the injured-man seed: ${injSeed}`)
+for (const seed of [...new Set([injSeed, 34])]) {
   console.log(`\nseed ${seed}: straight through, no interruptions`)
   const base = await play(seed, null)
   const again = await play(seed, null)
