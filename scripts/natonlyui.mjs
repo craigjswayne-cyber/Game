@@ -47,8 +47,10 @@ try {
   ok(await page.locator('.bottom-nav button', { hasText: /^Jobs/ }).count() === 0, 'no Job Centre button on the bottom bar')
   ok(await page.locator('.bottom-nav button', { hasText: /Country/ }).count() === 1, 'the Country button is there')
 
-  const tw = await walk('return g.fixtures.some(f => !f.played && f.week === g.week && (f.homeId === g.natTeam || f.awayId === g.natTeam))')
-  ok(tw > 0, `a Test week (${tw})`)
+  // the camp opens the week before its window, empty, and the week waits for
+  // the coach to name it (1.9.15): stop there, as he would
+  const tw = await walk('return (g.natSquads?.[g.natTeam]?.length ?? -1) === 0')
+  ok(tw > 0, `the camp opens, empty, for the coach to name (week ${tw})`)
   await S(() => { const st = window.rugbyStore.getState(); st.go('country'); st.touch() }); await page.waitForTimeout(400)
   await page.locator('button:has-text("Take the coaches")').click()
   await page.waitForTimeout(300)
