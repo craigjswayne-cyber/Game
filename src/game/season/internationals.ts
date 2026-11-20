@@ -5,7 +5,7 @@ import { W, genderOf } from '../gender'
 import { islesCoach, isleTour } from '../isles'
 import { windowSpan } from '../calendar'
 import { buildPlayer } from '../attributes'
-import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from '../nations'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, squadSizeOf, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from '../nations'
 import { isMyClub } from '../model'
 import { clamp, hashString, mulberry32, type Rng } from '../rng'
 import { tIn } from '../i18n'
@@ -39,7 +39,7 @@ export function activeWindows(state: GameState): Window[] {
     if (!comp) continue
     const span = windowSpan(id, gender)
     if (!span) continue
-    out.push({ id, start: span[0], end: span[1], nations: (nationsOf[id] ?? (c => c.teamIds))(comp), size: NAT_SQUAD_SIZE })
+    out.push({ id, start: span[0], end: span[1], nations: (nationsOf[id] ?? (c => c.teamIds))(comp), size: squadSizeOf(id, gender) })
   }
   return out
 }

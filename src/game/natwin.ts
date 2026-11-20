@@ -22,7 +22,8 @@ import { clamp, hashString } from './rng'
 import { closeNatTenure } from './model'
 import { tIn } from './i18n'
 import { natRankOrder } from './natrank'
-import { clubQuotaLeft, conflictedClub, federationList, homeBased, nationNameIn, NAT_SQUAD_SIZE } from './nations'
+import { clubQuotaLeft, conflictedClub, federationList, homeBased, nationNameIn, squadSizeOf } from './nations'
+import { genderOf } from './gender'
 
 export type CampEventKind = 'rest' | 'curfew' | 'scare' | 'bolter'
 export type CampAnswer = 'a' | 'b' | 'c'
@@ -133,7 +134,7 @@ export function announceSquad(state: GameState, eligibleTop: Player[]): NatWin['
     if (!(w.nat === 'LIO' ? ['ENG', 'IRE', 'SCO', 'WAL'].includes(p.nat) : p.nat === w.nat)) return false
     if (!homeBased(state, p, w.nat)) return false
     if ((state.natSent ?? []).includes(id)) return false
-    if (conflictedClub(state) && clubQuotaLeft(state, w.nat, NAT_SQUAD_SIZE, squad, p.clubId) <= 0) return false
+    if (conflictedClub(state) && clubQuotaLeft(state, w.nat, squadSizeOf(w.comp, genderOf(state)), squad, p.clubId) <= 0) return false
     return true
   }
   const omitted = (prev
@@ -201,7 +202,7 @@ export function answerCampEvent(state: GameState, answer: CampAnswer, floor: num
     // the own-club rule natDrop keeps (country.ts): his club's men on the
     // federation's list stay in camp, whatever the camp's story (QA, 1.9.14)
     const mine = conflictedClub(state)
-    if (mine && p.clubId === mine && !p.injury && federationList(state, w.nat, NAT_SQUAD_SIZE).some(q => q.id === p.id)) return false
+    if (mine && p.clubId === mine && !p.injury && federationList(state, w.nat, squadSizeOf(w.comp, genderOf(state))).some(q => q.id === p.id)) return false
     ;(state.natSent ??= []).push(p.id)
     const i = squad.indexOf(p.id)
     if (i >= 0) squad.splice(i, 1)

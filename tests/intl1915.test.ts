@@ -177,3 +177,27 @@ describe('appointed mid-window', () => {
     expect(g.natWin?.start).toBe(w.start)
   })
 })
+
+describe('a men\'s World Cup squad is thirty-three', () => {
+  it('the World Cup window names 33, every other window 32, and the desk holds 33', () => {
+    const g = newGame('leicester', 'WC33', 62)
+    g.season = 2027 - BASE_YEAR
+    buildInternationals(mulberry32(62), g, true)
+    const wins = activeWindows(g)
+    const wc = wins.find(w => w.id === 'wc')!
+    expect(wc.size).toBe(33)
+    expect(wins.filter(w => w.id !== 'wc').every(w => w.size === 32)).toBe(true)
+    // the coach's desk at the World Cup takes a 33rd man and no 34th
+    g.natTeam = 'ENG'
+    g.unemployed = true
+    g.week = wc.start
+    g.natSquads['ENG'] = []
+    g.natSent = []
+    const eng = Object.values(g.players).filter(p => p.nat === 'ENG' && p.clubId && !p.injury).sort((a, b) => b.ca - a.ca)
+    for (const p of eng) { if (g.natSquads['ENG'].length >= 33) break; natCallUp(g, p.id) }
+    expect(g.natSquads['ENG'].length).toBe(33)
+    const next = eng.find(p => !g.natSquads['ENG'].includes(p.id))!
+    expect(natCallUp(g, next.id)).not.toBeNull()
+    expect(g.natSquads['ENG'].length).toBe(33)
+  })
+})
