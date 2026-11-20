@@ -186,7 +186,7 @@ export class PitchSim {
   /** where a kick made between lines is going, so both sides chase that and not straight ahead */
   private kickTo: Pt | null = null
   /** where and when the last kick was struck: the chase comes up from there as one line */
-  private kickAt: { x: number; t: number; home: boolean; ty: number } | null = null
+  private kickAt: { x: number; t: number; home: boolean; ty: number; on: Set<number> } | null = null
   /** the two defenders standing post at this ruck (side-relative), fixed when the ruck forms */
   private posts: number[] = []
   /** seconds since the mode last changed */
@@ -913,9 +913,17 @@ export class PitchSim {
     // nobody in it gets ahead of it; the three who contest the ball are let go.
     if (this.kickAt && this.kicked && (this.mode === 'kick' || this.mode === 'kickoff' || this.mode === 'dropout')) {
       const a0 = this.kickAt.home ? 0 : 15, dr = this.kickAt.home ? 1 : -1
-      const lim = this.kickAt.x + dr * (3 + 6.1 * (this.clock - this.kickAt.t))
+      const lim = this.kickAt.x + dr * (6.1 * (this.clock - this.kickAt.t))
       for (let k = 0; k < 15; k++) {
-        if (k === 5 || k === 6 || k === 10 || k === 13 || this.over.has(a0 + k) || a0 + k === this.holder) continue
+        // OFFSIDE IN FRONT OF THE KICKER (owner, 19 Nov 2026: "check offsides at
+        // kicking rule and implement"; World Rugby law 10.1 and 10.4: a man in
+        // front of the team-mate who kicked is offside, must not go forward
+        // and must make to retire until he is put onside). The men let go to
+        // contest it are only the ones who were behind the kicker when he
+        // struck it. Anyone in front waits for the line, which starts level
+        // with the kick, to reach him.
+        const let0 = (k === 5 || k === 6 || k === 10 || k === 13) && this.kickAt.on.has(a0 + k)
+        if (let0 || this.over.has(a0 + k) || a0 + k === this.holder) continue
         const q = pts[a0 + k]
         if ((q.x - lim) * dr > 0) q.x = lim
       }
@@ -1300,7 +1308,10 @@ export class PitchSim {
           if (first) {
             this.kicked = true
             const from = { x: this.ball.x, y: this.ball.y }
-            this.kickAt = { x: from.x, t: this.clock, home: this.phase.homeBall, ty: s.to.y }
+            // (who is onside: level with or behind the ball when it is kicked)
+            const kh = this.phase.homeBall, kd = kh ? 1 : -1, on = new Set<number>()
+            for (let k = 0; k < 15; k++) { const i = (kh ? 0 : 15) + k; if ((this.b[i].x - from.x) * kd <= 0.6) on.add(i) }
+            this.kickAt = { x: from.x, t: this.clock, home: kh, ty: s.to.y, on }
             // a high ball hangs: that is what lets the chase get under it
             const T = clamp(Math.max(hyp(from, s.to) / 16, s.hang >= 14 && !s.silent ? 3.5 : s.hang >= 15 ? 3.9 : 0), 1.1, 4)
             this.flight = { from, to: s.to, toIdx: -1, T, t: 0, hang: s.hang, silent: s.silent }
