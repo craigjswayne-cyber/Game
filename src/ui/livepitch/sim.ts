@@ -245,6 +245,13 @@ export class PitchSim {
     // so before the scrum is set.
     if (p.kind === 'scrum' && last && p.at !== last.at && (last.kind === 'carry' || last.kind === 'ruck' || last.kind === 'catch' || last.kind === 'kick' || last.kind === 'heldup' || last.kind === 'kickoff' || last.kind === 'dropout')) {
       this.flash = { label: 'lp.knockOn', home: !p.homeBall, n: ++this.flashN }
+      // ... and it is seen: the ball is out of his hands and on the grass a
+      // couple of metres in front of him, where the scrum will be.
+      if (this.holder >= 0 && (this.holder < 15) !== p.homeBall && !this.flight) {
+        const fd = this.holder < 15 ? 1 : -1
+        this.ball.x = clamp(this.ball.x + fd * 2.2, 1, 99); this.ball.lift = 0
+        this.holder = -1; this.grounded = true
+      }
     }
     // NOBODY BOUND IN A SCRUM RUNS OFF IT WITH THE BALL (owner, 19 Nov 2026:
     // "from a scrum the prop randomly runs forward with the ball, this
