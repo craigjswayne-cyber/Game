@@ -25,7 +25,7 @@ function match(seed: number) {
 }
 
 const beatLaw = (b: Beat): LawEvent | null =>
-  b.kind === 'knockon' ? 'STOP' : b.kind === 'intotouch' ? 'TOUCH' : lawOf(b as unknown as Phase)
+  b.law ?? (b.kind === 'knockon' ? 'STOP' : b.kind === 'intotouch' ? 'TOUCH' : lawOf(b as unknown as Phase))
 
 describe('the director', () => {
   for (const seed of [4242, 777, 11, 2024, 31337, 9]) {
@@ -46,7 +46,8 @@ describe('the director', () => {
         const law = beatLaw(b)
         if (!law) continue
         if (!L.go(law)) { illegal++; L.jump(law); L.go(law) }
-        if (law === 'PENALTY') pen = b.homeBall
+        if (b.then && !L.go(b.then)) illegal++
+        if (law === 'PENALTY') pen = b.law === 'PENALTY' ? !b.homeBall : b.homeBall
         if (law === 'TOUCH') {
           const by = b.kind === 'intotouch' ? b.byHome! : b.homeBall
           out = { by, own: b.label === 'lp.fifty22' || (b.kind === 'kick' && pen === b.homeBall) }

@@ -38,6 +38,10 @@ export interface Beat extends Omit<Phase, 'kind'> {
   stolen?: boolean
   /** words for the commentary feed, as an i18n key: said when the beat is played */
   say?: string
+  /** the move under the laws this beat makes, when the words say more than the picture's kind does
+   *  (a try ruled out for a forward pass is a stoppage; a grubber that runs dead is a kick, then a dead ball) */
+  law?: LawEvent
+  then?: LawEvent
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -129,7 +133,14 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
       }
       out.push([]); continue
     }
-    const law = lawOf(p)
+    let law = lawOf(p)
+    // WHAT THE REFEREE GAVE (20 Nov 2026, read against the picture: "NO TRY...
+    // Offside, and a penalty to the defence" was followed by a lineout). The
+    // line says how play restarts, and the director takes it at its word.
+    const noTry = /^tmoNoTry/.test(key)
+    if (noTry) law = /^tmoNoTry(5|6|7)$/.test(key) ? 'PENALTY' : key === 'tmoNoTry1' ? 'DEAD' : key === 'tmoNoTry4' ? 'TOUCH' : 'STOP'
+    /** a kick the words say went dead: the defence restarts with a drop-out */
+    const deadKick = key === 'kickPin2' || key === 'kickPin4'
     // colour about the side that does not have the ball: one such line is left out. A second
     // in a row means the engine really has them playing, and that is shown as the turnover it is.
     if (law === 'PLAY' && COLOUR.test(key) && p.homeBall !== poss && !kicked && L.state === 'open') {
@@ -140,7 +151,15 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
     cur = p
     const row: Beat[] = []
     const add = (b: Beat) => { row.push(b); if (b.supplied) supplied++ }
-    if (!law) { out.push([{ ...p, src: i }]); continue }
+    // THEY HAVE TO HAVE THE BALL TO SCORE WITH IT (20 Nov 2026, seen: one side
+    // was through four phases and the next line had the other side over the
+    // line). A try, or a try under review, by the side that did not have the
+    // ball is preceded by the turnover that gave it to them.
+    if ((law === 'TRY' || p.label === 'lp.tmo') && !noTry && p.homeBall !== poss && !kicked && L.state === 'open') {
+      add({ src: i, at: i, supplied: true, kind: 'carry', homeBall: p.homeBall, x: clamp(ball.x, 3, 97), y: clamp(ball.y, 5, 65), label: 'lp.turnover', say: 'lp.say.turnover' })
+      poss = p.homeBall; lastKind = 'carry'
+    }
+    if (!law) { row.push({ ...p, src: i }); out.push(row); continue }
 
     // A PENALTY AT THE BREAKDOWN HAS A BREAKDOWN (owner, 20 Nov 2026: "penalty
     // for a breakdown without a breakdown ever taking place"). The side with
@@ -240,9 +259,12 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
       }
     }
     L.go(law)
+    if (deadKick) L.go('DEAD')
 
     // ---- the engine's own line, put where the laws say it is ----
     const b: Beat = { ...p, src: i }
+    if (noTry) b.law = law
+    if (deadKick) b.then = 'DEAD'
     // PLAY GOES ON FROM WHERE THE BALL IS. The engine's place for a line is
     // where its own count of the field had got to; after a step it did not
     // write (a kick-off, a drop-out, a lineout) the ball is somewhere else.
@@ -293,7 +315,14 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
         if (p.homeBall !== poss && !kicked && p.label !== 'lp.turnover' && !path.length) { b.label = 'lp.turnover'; b.say = 'lp.say.turnover' }
         ball.x = p.x; ball.y = p.y; poss = p.homeBall; kicked = false; penSide = null
         break
-      case 'PENALTY': penSide = p.homeBall; mark = { x: p.x, y: p.y }; ball.x = p.x; ball.y = p.y; poss = p.homeBall; kicked = false; break
+      case 'PENALTY': {
+        // (a try ruled out for an offence is a penalty to the side that was defending)
+        const to: boolean = noTry ? !p.homeBall : p.homeBall
+        const px = noTry ? clamp(p.x, 6, 94) : p.x
+        penSide = to; mark = { x: px, y: p.y }; ball.x = px; ball.y = p.y; poss = to; kicked = false
+        break
+      }
+      case 'STOP': b.byHome = p.homeBall; mark = { x: clamp(p.x, 5, 95), y: clamp(p.y, 5, 65) }; putIn = !p.homeBall; ball.x = mark.x; ball.y = mark.y; kicked = false; penSide = null; break
       case 'GOAL': case 'DROPGOAL': koSide = !p.homeBall; penSide = null; break
       case 'GOALMISS': case 'DROPMISS': doSide = !p.homeBall; doGoalLine = false; penSide = null; break
       case 'DEAD': doSide = !p.homeBall; doGoalLine = true; penSide = null; break
@@ -301,6 +330,11 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
       case 'CON': koSide = !p.homeBall; break
       case 'HALF': koSide = firstKO == null ? null : !firstKO; penSide = null; break
       default: break
+    }
+    if (deadKick) {
+      // it goes dead over the line it was kicked at: a goal-line drop-out when the defence touches it down, a 22 when it simply runs out
+      b.to = { x: p.homeBall ? 104 : -4, y: b.to?.y ?? b.y }
+      doSide = !p.homeBall; doGoalLine = key === 'kickPin2'; kicked = false; lastKick = null
     }
     if (law !== 'KICK') lastKick = null
     add(b)
