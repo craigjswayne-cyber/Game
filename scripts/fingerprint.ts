@@ -24,6 +24,11 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED again 20 Nov 2026, for the ENGINE, deliberately: a strict
+  // referee blows a little more and a lenient one a little less (begin.ts
+  // WHISTLE; owner: "Yes if they are strict. Not so much that it kills the
+  // game"). Penalties a match over 1,500: strict 6.4 to 6.8, fair 6.1 to 5.8,
+  // lenient 5.5 to 4.9, all referees 6.10 to 6.02. One of the six moved.
   // REBASELINED 20 Nov 2026, for the ENGINE, deliberately: a kick out on the
   // full is 0.033 a kick, not 0.012 (kickplay.ts OUT_FULL_P; owner: "fairly
   // low I'd say maybe 1 or 2 a game"; measured 0.44 a match before, 1.29
@@ -721,7 +726,7 @@ export const EXPECTED: string[] = [
   // Four of six moved; sale-bristol and harlequins-leicester held.
   'bristol 10-27 sale',
   'newcastle 13-21 gloucester',
-  'northampton 43-30 exeter',
+  'northampton 52-24 exeter',
   'saracens 36-12 bath',
   'harlequins 12-33 leicester',
   'newcastle 12-44 bristol',

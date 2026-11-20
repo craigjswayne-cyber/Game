@@ -23,6 +23,9 @@ import { type SideCtx, type SideMods, layer, refPenPrice } from './side'
 import { mkSide, weatherUnits } from './setup'
 import { type LiveCtx, pushLine, userDials } from './live'
 
+/** how much more or less often a referee of each kind blows, on top of his breakdown dial */
+const WHISTLE = { strict: 1.07, fair: 0.98, lenient: 0.92 } as const
+
 export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean, userTeamId: string | null = state.userClubId): LiveCtx {
   const derby = isDerby(fx.homeId, fx.awayId)
   // a big day: a knockout tie or a derby - the matches with an atmosphere
@@ -71,7 +74,13 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // claimed this since the panel shipped, and the penalty rate never read
     // the referee at all. A fussy whistle (breakdown 0.90) now blows a tenth
     // more penalties; a lenient one (1.10) a tenth fewer (audit 16D)
-    side.refPenF = 2 - ref.breakdown
+    // A STRICT REFEREE BLOWS A LITTLE MORE (owner, 19 Nov 2026: "Yes if they
+    // are strict. Not so much that it kills the game and not too far away
+    // from averages"). The breakdown dial alone made a strict man +5% on a
+    // fair one in penalties and a lenient one -10%. The whistle term widens
+    // that modestly and averages 1.004 over the panel of fifteen (six
+    // strict, six fair, three lenient), so the world's penalty count stays put.
+    side.refPenF = (2 - ref.breakdown) * WHISTLE[ref.style]
     // SWAPPED IN AS A RATIO, NOT ASSIGNED. The first version of this wrote
     // `side.penRisk = aggPenRisk(...)` outright, which was wrong in a way only
     // splitprobe caught: by the time we get here the dial block has already
