@@ -90,6 +90,9 @@ let SIDE = SIDE_MIN, END = END_MIN
 let FIELD_L = 100 + GOAL * 2 + END * 2, FIELD_W = 70 + SIDE * 2
 
 /** the verdict's type size: full size for TRY, smaller the longer the word */
+/** the bar under the name on the plate: the kit colour, or its trim when the kit is too dark to show on the plate */
+function barInk(kit: string[]): string { return darkTrim(kit[0]) ? (kit[1] && !darkTrim(kit[1]) ? kit[1] : 'var(--prop-ink)') : kit[0] }
+
 /** the plays that are said on the bottom plate as well as on the label */
 const NOTE = new Set(['lp.turnover', 'lp.outFull', 'lp.fifty22', 'lp.penalty', 'lp.dropout22', 'lp.dropout', 'lp.tmo', 'lp.notBackTen', 'lp.chargeDown', 'lp.heldUp', 'lp.quickTap', 'lp.scrum', 'lp.lineout'])
 
@@ -1048,7 +1051,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       {!banner && NOTE.has(now.label) && (
         <div className="lp-banner note" key={`n${now.at}${now.label}`} data-testid="lp-note">
           <b style={bannerSize(tr(now.label), false)}>{tr(now.label)}</b>
-          <span><i style={{ background: (now.homeBall ? home : away).kit[0], borderColor: (now.homeBall ? home : away).kit[1] }} />{now.homeBall ? teams.home : teams.away}</span>
+          <span>{now.homeBall ? teams.home : teams.away}<i style={{ background: barInk((now.homeBall ? home : away).kit) }} /></span>
         </div>
       )}
       {banner && bSide && (
@@ -1056,8 +1059,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           {pts != null && <em>+{pts}</em>}
           {/* a long verdict (PENALTY GOAL, CARTELLINO GIALLO) is set smaller so it stays inside the touchlines */}
           <b style={bannerSize(tr(`lp.b.${banner.kind}`), !!good)}>{tr(`lp.b.${banner.kind}`)}</b>
-          <span><i style={{ background: bSide.kit[0], borderColor: bSide.kit[1] }} />
-            {banner.teamId === homeId ? teams.home : teams.away}{banner.name ? ` · ${banner.name}` : ''} · {Math.min(80, banner.min)}'</span>
+          <span>{banner.teamId === homeId ? teams.home : teams.away}{banner.name ? ` · ${banner.name}` : ''} · {Math.min(80, banner.min)}'
+            <i style={{ background: barInk(bSide.kit) }} /></span>
         </div>
       )}
     </div>
