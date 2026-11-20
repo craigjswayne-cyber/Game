@@ -1,6 +1,6 @@
 # The match simulation: specification (2.0.0)
 
-Status: DRAFT, stage 0. Nothing in `src/game` has been changed. This goes to the owner for approval before any engine code is written.
+Status: DRAFT for approval, stage 0 complete in outline. Nothing in `src/game` has been changed. This goes to the owner for approval before any engine code is written.
 
 Owner's decisions, 20 November 2026: "2.0.0 is the next iteration of the game. Hold until new engine. Every managed match, other games don't. I want this doing proper."
 
@@ -106,12 +106,62 @@ Rules the record must keep, each one a test:
 - The ball only changes hands through a kick, a set piece won against the feed, a turnover with a named player, a penalty or a score.
 - Every entry starts where the last one ended, unless a kick moved the ball.
 
-## 3. Still to write in stage 0
+## 3. How the match is played
 
-3. The decision model (what the side with the ball does next) and the contest model (who wins a carry, a ruck, a kick chase, a scrum, a lineout), as formulas with named constants, and where each input in 1.2 enters.
-4. Club-level target numbers for the leagues in the game, with sources. The Test-level numbers are in section 4.
-5. Parity: managed matches run on the new engine and every other fixture on the current one, so the same side must win at the same rate and score the same on both. The design of that test, and what is tuned to meet it.
-6. Saves, speed and the test plan.
+### 3.1 The loop
+
+1. A restart puts the ball in play (kick-off, drop-out, scrum, lineout, tap).
+2. The side with the ball makes a DECISION.
+3. The decision is a CONTEST between named players.
+4. The contest has a RESULT, which moves the ball and the clock and writes one entry.
+5. The laws machine says what may come next: another phase, or a stoppage and a restart.
+
+The clock is real. Each kind of play costs seconds of ball in play (a phase about 6 to 9, a kick and chase about 8), and each stoppage costs dead time (a scrum about 70, a lineout about 35, a kick at goal about 60, a try and conversion about 90). The constants are tuned until ball in play lands near 35 minutes of the 80.
+
+### 3.2 The decision
+
+The side with the ball chooses one of: pick and go, carry off nine, carry off ten, go wide, kick (box, up-and-under, grubber, cross-field, clearance, touch), drop at goal.
+
+The choice is weighted, never fixed. The weights come from things the game already has:
+
+| What moves the weights | Where it comes from today |
+| --- | --- |
+| The manager's style, tempo and kicking setting | Club tactics, `SideCtx.tempoF`, `aggF`, the zone plan and `styles.ts` |
+| Where on the field | The record's `x`: own 22, own half, their half, their 22 |
+| The phase count | Long possessions kick more and force more |
+| Score and time | Chasing a game late plays more; protecting a lead kicks more (`TRAIL_FROM`, `lateHold` lines today) |
+| Weather and surface | Rain and wind raise kicking and tight carries |
+| Who is on the field | A side with 14 narrows up; a side against 14 goes wide |
+| A penalty | The manager's own call when it is his side (posts, corner, tap), as now; the AI's call from `aiPenaltyCall` |
+
+### 3.3 The contests
+
+Every contest is one roll between two strengths, with named constants to tune. The strengths are built from what the engine already computes, so selection and tactics keep their meaning.
+
+| Contest | Attack strength | Defence strength | Results |
+| --- | --- | --- | --- |
+| Carry | The carrier's own carrying and power, lifted by the side's `units.attack` | The nearest tacklers' tackling, lifted by `units.defence` | Dominant carry, gain line, held, dominant tackle, line break, offload, knock-on, turnover in the tackle |
+| Ruck | Support arriving, `units.breakdown`, `ruckSecure` | The jackal, `units.breakdown`, `ruckContest` | Quick ball, slow ball, turnover, penalty either way, unplayable |
+| Pass and wide play | Handling of the men in the line, `units.attack`, weather | Line speed and drift from the defence's tactics | Clean, behind the man, knock-on, forward pass, intercept |
+| Kick | The kicker's kicking, `units.kicking`, wind | The back three's positioning and catching | Distance, bounce or on the full, touch, dead, caught, contested, charged down |
+| Chase and catch | Chasers' pace and aerial skill | The catcher's aerial skill under pressure | Caught, knocked on, regathered by the kicking side |
+| Scrum | `units.scrum`, front-row fatigue | The same | Clean ball, penalty either way, free kick, against the head, reset |
+| Lineout | `units.lineout`, the thrower | The other side's jumpers | Won clean, won scrappy, stolen, not straight, penalty |
+| Maul | The pack's weight and `units.lineout` | The other pack | Metres, try, held up, pulled down (penalty or card), stopped |
+| Kick at goal | The kicker's goal kicking, `units.goal`, distance and angle from the record's real spot, wind | none | Over, wide, post |
+
+Every strength is multiplied by the same things as now: the player's energy (`energy.ts`, with `LATE_FLOOR` for an empty tank), the team talk (`talkF`, `talkShift`), home advantage (`hfa`), morale and chemistry already folded into `ratings` and `units`.
+
+Discipline: each contest has a small chance of a penalty, scaled by the referee (`refPenF`, strict 1.07, fair 0.98, lenient 0.92), the side's aggression (`aggF`) and its count so far (`consPens`, which already drives warnings and cards). Cards come from the offence, the place on the field and the count, as `discipline.ts` does now.
+
+Injuries: a small chance on every tackle and ruck, by position and fatigue, feeding the existing `injuries.ts` so the squad screens are unchanged.
+
+### 3.4 What is new for the manager
+
+Nothing is taken away. Two things appear because the match is now real:
+
+- More penalty decisions. The game counts about 6 penalties a match today (both sides together; `scripts/tmp/refp.ts`), where Test rugby has about 17 penalties and free kicks. The new engine produces the real number. Most are routine (kick to touch from your own half) and the game takes those itself; the manager is asked only when it is a real choice, as now.
+- Real player numbers. Carries, metres, tackles made and missed, turnovers won, lineouts taken, all counted from what happened.
 
 ## 4. Real rugby numbers (Test level, verified)
 
@@ -148,4 +198,46 @@ Still to find for club level: rucks, scrums, lineouts, penalties and cards per m
 
 Scoring: the game's band of 48 to 53 points and 6.0 to 6.6 tries sits between Test rugby (40 points, 6.3 tries) and the Premiership (56 points, 8.0 tries). It is defensible as it stands.
 
-Penalties: Its own count this week was about 6 penalties a match (4.9 to 6.8 by referee), where Test rugby has about 17 penalties and free kicks. Whether the game's figure is per side or per match is to be confirmed in the code before anything is tuned to it; either way the engine only counts penalties that matter to its score.
+Penalties: the game counts about 6 penalties a match, both sides together (4.9 with a lenient referee to 6.8 with a strict one), where Test rugby has about 17 penalties and free kicks. The block engine only counts penalties that matter to its score. The new engine produces the real number (section 3.4).
+
+## 5. Two engines, one set of odds
+
+Owner's decision: every match the manager is in charge of runs on the new engine. Every other fixture stays on the current block engine.
+
+That is only fair if the two agree. The rule: the same two sides, with the same team sheets and tactics, must win at the same rate and score the same on both engines.
+
+The test (`scripts/paritycheck.ts`, to be written in stage 2):
+
+- 200 pairings spread across every league in the game, strong against weak and evenly matched.
+- 2,000 matches of each pairing on each engine, with nobody managing.
+- Compared: home win rate, draw rate, mean points for each side, mean tries, and the spread of winning margins.
+- Tolerance: win rate within 1.5 points, points within 1.0, tries within 0.2, per pairing band (close, comfortable, mismatch).
+
+What is tuned to meet it: the contest constants in 3.3 only. The block engine is not touched, so the rest of the world and every existing check script stay exactly as they are.
+
+A managed match with the manager's hand on it (talks, substitutions, plan, live calls) must then be worth what it is worth today. Those sizes are in section 1.4 and each has its own script already.
+
+## 6. Saves, speed and tests
+
+Saves:
+- `MatchEvent` stays. Old saved matches keep their events and every screen that reads them keeps working.
+- A managed match on the new engine stores its record on the fixture beside the events, and its commentary lines are still written as `MatchEvent`s (one per entry worth saying), so the match report, news, media and evidence code read what they read today.
+- The save version goes up once, at the switch-over. The existing save tests cover loading older careers.
+
+Speed (measured 20 November 2026, `scripts/tmp/speed.ts`): the current engine takes 7.8 ms a match silent and 8.5 ms watched, and a whole week of the world takes about 0.4 seconds. The new engine only runs the manager's own matches, so it has room: the budget is 150 ms a match, which nobody will notice.
+
+Tests, each one a script or a unit test that fails the build:
+1. Laws: no whole match contains an illegal sequence (the machine in 2.3).
+2. Shape: over 1,000 matches the averages land on the targets in section 4, within a stated tolerance each.
+3. Balance: `bandcheck` bands hold for managed matches.
+4. Parity: section 5.
+5. Levers: selection, talks, substitutions, plan, referee each move results by the sizes in 1.4.
+6. Words: every commentary line shown in 100 matches is checked against the entry it was written for (side, player, place, result). None may contradict it.
+7. Determinism: the same seed gives the same match, on replay and after a reload.
+8. Everything that exists today still passes: `npm test`, `fingerprint` (rebaselined once at the switch-over, with every changed result listed), and the check scripts.
+
+## 7. Open questions for the owner
+
+1. The target length of an Extended match. A real match has about 174 rucks. Either Extended runs longer than four minutes, or it plays chosen passages (every score, every entry into a 22, every turnover, every set piece near a line) and sums up the rest in a line each.
+2. Penalties: is he happy for the count to rise to the real figure, with the routine ones handled for him?
+3. Player match stats: which of the new numbers he wants on the match report.
