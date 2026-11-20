@@ -1023,6 +1023,8 @@
 .live-pitch .lp-banner em { position: absolute; top: 6px; right: 12px; margin: 0; font-size: .75rem; }
 .live-pitch .lp-banner.good b { padding: 0 28px; }
 .live-pitch .lp-banner span { margin-top: 2px; padding: 0; background: none; font-size: .625rem; letter-spacing: .4px; white-space: nowrap; flex-wrap: nowrap; }
+/* (play is on the near touchline: the note plate sits on the far side instead, so it never covers what it names) */
+.live-pitch .lp-banner.note.up { inset: 27% auto auto 50%; }
 @keyframes lp-banner-low { from { opacity: 0; transform: translate(-50%, 8px); } }
 @media (prefers-reduced-motion: reduce) { .live-pitch .lp-banner { animation: none; } }
 /* (the note plate: quieter than a score, and gone after two seconds) */

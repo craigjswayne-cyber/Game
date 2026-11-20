@@ -326,6 +326,8 @@ export class PitchSim {
       const lim = p.kind === 'scrum' ? 10 : 14
       E.x = clamp(B.x + clamp(E.x - B.x, -lim, lim), 2, 98)
       E.y = clamp(B.y + clamp(E.y - B.y, -18, 18), 4, 66)
+      // (a man put into touch goes all the way to the line, and over it)
+      if (beat.kind === 'intotouch') E.y = p.y < 35 ? -0.6 : 70.6
     }
     const d = hyp(E, B)
     const holderAtt = this.holder >= 0 && (this.holder < 15) === p.homeBall

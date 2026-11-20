@@ -159,6 +159,11 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
    *  is played before its line is shown, and the label has to match the grass */
   const [onGrass, setOnGrass] = useState<Phase | null>(null)
   const [flash, setFlash] = useState<{ label: string; home: boolean; n: number } | null>(null)
+  // THE PLATE KEEPS OUT OF THE WAY (20 Nov 2026, seen: a man was put into
+  // touch on the near touchline behind the plate that said so). When play
+  // is in the near third the plate goes to the far side of the pitch.
+  const [plateUp, setPlateUp] = useState(false)
+  const plateUpRef = useRef(false)
   /** the banner on screen, once its moment has landed */
   const [banner, setBanner] = useState<Banner | null>(null)
   const bannerRef = useRef<{ want: Banner | null; shownAt: number }>({ want: null, shownAt: -1 })
@@ -727,6 +732,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       // the banner lands with the moment, not with the line
       while (S.says.length) io.current.onSay?.(S.says.shift()!)
+      { const by = S.ball.y, up = plateUpRef.current ? by > 38 : by > 47; if (up !== plateUpRef.current) { plateUpRef.current = up; setPlateUp(up) } }
       const bw = bannerRef.current
       if (bw.want && S.landed && !S.pending && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at) {
         bw.shownAt = bw.want.at
@@ -957,7 +963,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       for (const [a0, side] of [[0, H], [15, A]] as [number, PitchSide][]) {
         let n = 0; for (let k = 0; k < 15; k++) if (S.off[a0 + k]) n++
         if (!n) continue
-        const px = SX(50 + (a0 === 0 ? -15 : 15), 1.5), py = SY(50, 1.5)
+        // (off the grass, in front of the stand: it sat on the touchline and covered play there, seen 20 Nov 2026)
+        const px = SX(50 + (a0 === 0 ? -15 : 15), -4.2), py = SY(50, -4.2)
         // (a size up, with the rest of the text on the pitch: owner, 19 Nov 2026)
         const tw = 60, th = 26
         g.fillStyle = 'rgba(10,14,20,.86)'; g.beginPath(); g.roundRect(px - tw / 2, py - th / 2, tw, th, 13); g.fill()
@@ -1063,13 +1070,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           label on the far stand. It is also said on the plate at the bottom,
           with the side that now has the ball. */}
       {!banner && flash && (
-        <div className="lp-banner note" key={`f${flash.n}`} data-testid="lp-flash">
+        <div className={`lp-banner note${plateUp ? ' up' : ''}`} key={`f${flash.n}`} data-testid="lp-flash">
           <b style={bannerSize(tr(flash.label), false)}>{tr(flash.label)}</b>
           <span>{flash.home ? teams.home : teams.away}<i style={{ background: barInk((flash.home ? home : away).kit) }} /></span>
         </div>
       )}
       {!banner && !flash && NOTE.has(now.label) && (
-        <div className="lp-banner note" key={`n${now.at}${now.label}`} data-testid="lp-note">
+        <div className={`lp-banner note${plateUp ? ' up' : ''}`} key={`n${now.at}${now.label}`} data-testid="lp-note">
           <b style={bannerSize(tr(now.label), false)}>{tr(now.label)}</b>
           <span>{now.homeBall ? teams.home : teams.away}<i style={{ background: barInk((now.homeBall ? home : away).kit) }} /></span>
         </div>
