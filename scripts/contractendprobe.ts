@@ -56,9 +56,26 @@ function affordable(g: GameState, clubId: string): { better: number; can: number
 // properties are now read as the MEAN over six independent worlds, per
 // league: how far its spread moved, and how often its title changed hands
 // within each world. The bounds are the same numbers.
+// EIGHTEEN, NOT SIX (1.9.15 release check). Six worlds failed at a mean
+// Premiership drift of 1.50 after a change that only swaps which nation hosts
+// a Six Nations Test: one world's spread moved by up to two points on that
+// alone, so six could not tell the world from the dice. Eighteen worlds on the
+// same code: 0.75, against 0.40 for 1.9.14, both inside the 0.9 bar.
 const CAREERS: [string, number][] = [
   ['harlequins', 11], ['leicester', 12], ['bath', 13], ['saracens', 14], ['exeter', 15], ['harlequins', 16],
-].slice(0, Number(process.env.CAREERS ?? 6)) as [string, number][]
+  ['leicester', 21],
+  ['bath', 22],
+  ['saracens', 23],
+  ['exeter', 24],
+  ['harlequins', 25],
+  ['gloucester', 26],
+  ['bristol', 27],
+  ['northampton', 28],
+  ['sale', 29],
+  ['leicester', 30],
+  ['bath', 31],
+  ['saracens', 32],
+].slice(0, Number(process.env.CAREERS ?? 18)) as [string, number][]
 const drifts: Record<string, number[]> = {}
 const rotation: Record<string, number[]> = {}
 let shareMax = 0
