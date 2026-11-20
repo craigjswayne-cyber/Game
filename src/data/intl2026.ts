@@ -306,5 +306,18 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Amy Du Plessis', 25), r('Alena Saili', 5), r('Maia Davis', 0), r("Ayesha Leti-I'iga", 33),
       r('Mererangi Paul', 17), r('Braxton Sorensen-McGee', 9), r("Shyrah Tuliau-Tua'a", 0),
     ],
+    // Ireland: 36 named by the IRFU on 24 Aug 2026. The page prints no caps:
+    // the seven uncapped women are 0, the rest still to be checked.
+    IRE: [
+      r('Jemima Adams-Verling', 0), r('Sophie Barrett', 0), r('Beth Buttimer', 0), r('Eilís Cahill', null),
+      r('Ruth Campbell', null), r('Jane Clohessy', null), r('Linda Djougang', null), r('Brittany Hogan', null),
+      r('Neve Jones', null), r('Kate Jordan', 0), r('Erin King', null), r('Sadhbh McGrath', null),
+      r('Cliodhna Moloney-MacDonald', null), r('Sam Monaghan', null), r('Grace Moore', null), r("Niamh O'Dowd", null),
+      r("Fiona Tuite O'Sullivan", null), r('Ailish Quinn', null), r('Aoife Wafer', null), r('Dorothy Wall', null),
+      r('Enya Breen', null), r('Aoife Dalton', null), r('Vicky Elmes Kinlan', null), r('Caitríona Finn', 0),
+      r('Stacey Flood', null), r('Niamh Gallagher', null), r('Eve Higgins', null), r('Emily Lane', null),
+      r('Lucia Linn', 0), r('Anna McGann', null), r('Alana McInerney', 0), r("Robyn O'Connor", null),
+      r("Dannah O'Brien", null), r('Béibhinn Parsons', null), r('Aoibheann Reilly', null), r('Katie Whelan', null),
+    ],
   },
 }

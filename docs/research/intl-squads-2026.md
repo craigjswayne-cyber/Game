@@ -183,3 +183,7 @@ The 36 Red Roses, 14 Scotland and 2 South Africa internationals who play in the 
 with the women's world (tool: /home/claude/tools/pwrclubs.ts, WANT env as JSON name->club). All 52 are at the
 club the 2026-27 announcements give. So the PWR's international core is right for 2026-27. NOT yet checked:
 each club's full announced squad (non-internationals, new signings, leavers).
+- New Zealand women: 31, all caps (allblacks.com, "Black Ferns End of Year squad named", 9 Aug 2026).
+- Ireland women: 36 named (irishrugby.ie, 24 Aug 2026), no caps on the page. RugbyPass's Ireland match-day
+  articles print caps beside each name ("Scott Bemand names back-row debutant for Ireland's WXV opener").
+- Still to find: France, Wales, Italy, Canada, Japan; caps for Ireland and USA.
