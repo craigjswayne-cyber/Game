@@ -33,7 +33,7 @@ type Step = ({ rate?: number }) & (
   /** the man goes to the ball and picks it up */
   | { k: 'pick'; who: number; max?: number; re?: boolean }
   /** everybody gets to his place (most of them), or `max` seconds pass */
-  | { k: 'settle'; max: number }
+  | { k: 'settle'; max: number; need?: number }
   /** a called move: its men to their marks, then the move as it is drawn */
   | { k: 'trackset' }
   | { k: 'track' }
@@ -689,7 +689,10 @@ export class PitchSim {
           const atGoal = p.kind === 'con' || p.kind === 'goal'
           // (it is lobbed to the mark and he walks out to it there: it was one flat fifty-metre pass to a man on the move)
           if (atGoal && init >= 0) pre.push({ k: 'kick', to: { ...anchor }, hang: 7, silent: true, rate: 2.5 }, { k: 'pick', who: init, max: 9, rate: FF })
-          pre.push({ k: 'settle', max: atGoal ? 9 : 3.6, rate: FF })
+          // (a restart is not kicked until its kicker is on halfway: the settle
+          // ran out after 3.6 seconds and the kick-off was struck from his own 22)
+          const restart = p.kind === 'kickoff' || p.kind === 'dropout'
+          pre.push({ k: 'settle', max: atGoal ? 9 : restart ? 14 : 3.6, rate: FF, ...(restart && init >= 0 ? { need: init } : {}) })
           if (!atGoal && init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
           steps.unshift(...pre)
           begin()
@@ -1219,7 +1222,7 @@ export class PitchSim {
           const T = this.targets()
           let there = 0
           for (let i = 0; i < 30; i++) if (hyp(this.b[i], T.pts[i]) < 5) there++
-          over = there >= 25 || this.st >= s.max
+          over = (there >= 25 && (s.need == null || hyp(this.b[s.need], T.pts[s.need]) < 2)) || this.st >= s.max
           // (a kick at goal goes once the kicker is on his mark and most are in place)
           if (!over && (this.mode === 'con' || this.mode === 'goal') && this.holder >= 0 && this.st > 2.5 && there >= 18 && hyp(this.b[this.holder], T.pts[this.holder]) < 1.2) over = true
           break
