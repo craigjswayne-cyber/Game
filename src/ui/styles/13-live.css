@@ -1040,3 +1040,6 @@
 .live-pitch .lp-banner span { display: block; width: 100%; max-width: none; text-align: center; gap: 0; }
 .live-pitch .lp-banner span i { display: block; width: 26px; height: 3px; border: 0; border-radius: 2px; margin: 4px auto 0; }
 .live-pitch .lp-banner.yc b, .live-pitch .lp-banner.rc b { display: flex; justify-content: center; }
+/* (20 Nov 2026: a DROP GOAL plate filled the whole pitch. Its kind class is "dg", and the tactics
+   board has a .dg rule of its own: full width, three by two. The plate is sized by what is in it.) */
+.live-pitch .lp-banner { display: flex; width: auto; height: auto; aspect-ratio: auto; }

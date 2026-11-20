@@ -231,7 +231,9 @@ function kickChase(landU: number, landV: number, kind: 'contest' | 'long' | 'tou
  * u is metres beyond the kick, v across from it (positive: the side it goes).
  */
 const RECV: UV[] = [
-  [18.3, 16], [12, 9], [21.7, 16], [20, 16], [21, 2], [19.3, 2], [22.7, 2], [26, -12],
+  // (20 Nov 2026, seen at readable size: the two pods and the men gathering on the catch were one
+  // huddle of eight. A disc is drawn wider than a man, so the pods and the gather are opened out.)
+  [16.4, 16], [12, 9], [23.6, 16], [20, 16], [21, 2], [17.4, 2], [24.6, 2], [26, -12],
   [27, 8], [34, -4], [33, -27], [30, -14], [27, -22], [32, 28], [42, 3],
 ]
 /** ... and once it is in the air: THE NEAREST MAN TAKES IT, where he is or a
@@ -254,11 +256,11 @@ function restartReceive(landU: number, landV: number): UV[] {
   const def = at.map(q => [q[0], q[1]] as UV)
   def[c] = [landU, landV]
   const lifters = c === 3 ? [0, 2] : c === 4 ? [5, 6] : []
-  lifters.forEach((k, j) => { def[k] = [landU + (j ? 2.6 : -2.6), landV] })
+  lifters.forEach((k, j) => { def[k] = [landU + (j ? 3.2 : -3.2), landV] })
   // the other forwards arrive behind him, on their own side of the ball
   // (spread, not stacked: a man is drawn far wider than he is, and six of
   // them a stride apart are one blob)
-  const gather: UV[] = [[6, -6], [6, 6], [10, 0], [10, -11], [10, 11], [14, 6], [14, -6], [18, 0]]
+  const gather: UV[] = [[7, -8], [7, 8], [12, 0], [13, -15], [13, 15], [19, 8], [19, -8], [24, 0]]
   let j = 0
   for (let k = 0; k < 8; k++) {
     if (k === c || lifters.includes(k)) continue

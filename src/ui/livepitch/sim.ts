@@ -211,7 +211,7 @@ export class PitchSim {
   /** a stoppage dissolves to the formed set piece instead of being wound on (20 Nov 2026) */
   static dissolveResets = true
   /** the speed play is watched at when stoppages dissolve; the quickest anything is wound on is 1.18 times this */
-  static base = 1.9
+  static base = 2.05
   constructor() {
     for (let i = 0; i < 30; i++) this.b.push({ x: 50 + (i < 15 ? -8 : 8), y: 6 + (i % 15) * 4, vx: 0, vy: 0 })
   }
@@ -395,8 +395,18 @@ export class PitchSim {
         }
         break
       case 'con': case 'goal':
+        // A DROP GOAL IS KICKED OUT OF PLAY (20 Nov 2026, seen: it was set up
+        // like a conversion, the defence standing on its goal line and the
+        // kicker alone with the ball on a tee). The fly-half is in the pocket
+        // behind a ruck, the ball comes back to him and he drops it over.
+        if (p.label === 'lp.drop') {
+          cut = true; mode = 'ruck'; cIdx = null; init = att0 + 8
+          anchor = { x: clamp(E.x + dir * 7, 3, 97), y: clamp(E.y + (E.y < 35 ? 5 : -5), 6, 64) }
+          steps.push({ k: 'wait', t: 0.7 }, { k: 'pass', to: att0 + 9 }, { k: 'wait', t: 0.25 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 7 }, { k: 'wait', t: 0.5 })
+          break
+        }
         cut = true; cIdx = carrierIdx ?? 9; init = att0 + cIdx
-        steps.push({ k: 'wait', t: 0.9 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 9 }, { k: 'wait', t: 0.7 })
+        steps.push({ k: 'wait', t: 0.9 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 7 }, { k: 'wait', t: 0.5 })
         break
       case 'break':
         cut = true; steps.push({ k: 'wait', t: 2 })
@@ -407,7 +417,7 @@ export class PitchSim {
         init = att0 + 8
         // the put-in, the hook, the ball worked back to the number 8's feet
         // while the pack goes forward, and the 9 away from the base
-        steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'heel', by: -dir * 4.2 }, { k: 'run', to: { x: E.x + dir * 1.5, y: E.y }, v: 0.6 },
+        steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'heel', by: -dir * 4.2 }, { k: 'run', to: { x: E.x + dir * 1.5, y: E.y }, v: 1.0 },
           { k: 'pick', who: att0 + 8 }, { k: 'wait', t: 0.3 })
         // one scrum in four the number 8 picks up from the base himself and feeds his 9 (the 8-9)
         if (p.at % 4 === 0) steps.splice(steps.length - 2, 2, { k: 'pick', who: att0 + 7 }, { k: 'wait', t: 0.5 }, { k: 'pass', to: att0 + 8, hang: 0.2 }, { k: 'wait', t: 0.2 })
@@ -555,7 +565,7 @@ export class PitchSim {
           void strike
           // he goes for the line from where the move put him, not across the field
           steps.push({ k: 'run', to: { ...E }, v, straight: true })
-          if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 2.6 : 1.2 })
+          if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 1.7 : 1.0 })
           else steps.push({ k: 'wait', t: 0.2 })
           break
         }
