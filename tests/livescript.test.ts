@@ -12,7 +12,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import type { Fixture, MatchEvent } from '../src/game/model'
-import { Laws, type LawEvent } from '../src/ui/livepitch/law'
+import { Laws, type LawEvent } from '../src/game/sim/law'
 import { direct, lawOf, type Beat } from '../src/ui/livepitch/script'
 import type { Phase } from '../src/ui/livepitch/phase'
 

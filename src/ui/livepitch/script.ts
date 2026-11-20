@@ -18,7 +18,7 @@
 // result, score, card or penalty count can move. A supplied step is never a
 // score, a card or a penalty; those are the engine's alone.
 import type { MatchEvent } from '../../game/model'
-import { Laws, type LawEvent } from './law'
+import { Laws, type LawEvent } from '../../game/sim/law'
 import { readLine, type Phase, type PhaseKind } from './phase'
 
 /** what a beat shows: a phase of play, or one of the stoppages the engine does not write */
