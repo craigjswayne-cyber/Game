@@ -981,9 +981,10 @@ const INTL_1916: Record<string, RawPlayer[]> = {
     { name: 'Mattia Midena', pos: 'LK', age: 21, nat: 'ITA', q: 64 },
     { name: 'Federico Zanandrea', pos: 'WG', age: 21, nat: 'ITA', q: 64 },
   ],
-  bath: [
-    { name: 'Enoch Opoku-Gyamfi', pos: 'LK', age: 20, nat: 'ITA', q: 62, intl: true },
-  ],
+  // NOT ADDED: Enoch Opoku-Gyamfi (Bath lock, 20, one Italy cap). Bath's squad
+  // is the club's own published 2026/27 list (prem2526.ts) and he is not on
+  // it, so he is academy there; adding him also filled Bath's senior squad to
+  // its limit and shut the user's own free-agent door (freeagenttalks test).
 }
 
 /** The two tables as one: a club's earlier additions first, then its 2026-27

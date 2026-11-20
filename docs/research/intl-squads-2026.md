@@ -104,8 +104,10 @@ union. A figure goes in the data file only when a source here gives it.
   de Klerk, Luan Giliomee, Markus Muller, Riley Norton, Emmanuel Tshituka.
 - Injured and absent: Cheslin Kolbe, Eben Etzebeth (later recalled), Andre
   Esterhuizen, Handre Pollard.
-- Caps: none found yet. Search "South Africa national rugby union team" so the
-  Wikipedia page comes back as a result, then fetch its Current squad table.
+- Caps: none found yet. A standard search for the Wikipedia page returned only
+  mirrors dated March 2026 (no en.wikipedia.org address), so it could not be
+  fetched. Try an extended search naming a player and "caps updated", or the
+  SA Rugby team announcements, which print caps beside each name.
 
 ## Argentina (men) - done, caps one Test late
 

@@ -4,7 +4,7 @@
 import type { GameState, Player, Pos } from '../model'
 import { XV_SLOTS } from '../model'
 import { tIn } from '../i18n'
-import { clamp } from '../rng'
+import { clamp, type Rng } from '../rng'
 import { isForward } from '../bench'
 import { teamShort } from './selection'
 import { refFor } from './referee'
@@ -256,6 +256,8 @@ export function tmoFoulTick(state: GameState, ctx: LiveCtx, side: SideCtx, opp: 
  * tight finish, and between sides with short fuses. Once a tick, not per side.
  */
 const SCUFFLE_P = 0.011
+/** the share of derby and grudge scuffles that become a bust-up */
+const BUST_UP_P = 0.2
 export function scuffleTick(state: GameState, ctx: LiveCtx, tick: number, min: number) {
   const r = incRng(ctx, tick, null, 0x5C0F)
   const margin = Math.abs(ctx.home.score - ctx.away.score)
@@ -270,6 +272,24 @@ export function scuffleTick(state: GameState, ctx: LiveCtx, tick: number, min: n
   const v = { team: teamShort(state, inst.teamId), opp: teamShort(state, other.teamId), player: man.name }
   pushLine(state, ctx, min, 'SUB', inst, `comm.scuffle${1 + Math.floor(r() * 3)}`, v, man.id)
   const o = r()
+  // ---- THE BUST-UP (owner, 1.9.16) ----
+  //
+  // "The one thing that is missing from the game is the occasional bust up in
+  //  a derby or intense rivalry - occasional yellow cards and with a strict
+  //  ref the odd red card from a fight. This shouldn't be too often but
+  //  should be part of the game."
+  //
+  // In a derby or a grudge match, about one scuffle in five does not blow
+  // over: it becomes a proper set-to, and the referee has to deal with it.
+  // What he does is his own character (the card dial he already carries): a
+  // lenient man warns the captains, a fair one bins who started it, a strict
+  // one bins a man from each side and now and then sends the puncher off.
+  // Decided on a stream of its own, so a scuffle that does not escalate is
+  // exactly the scuffle it was before this existed.
+  if (ctx.derby || ctx.grudge) {
+    const b = incRng(ctx, tick, null, 0xB057)
+    if (b() < BUST_UP_P) return bustUp(state, ctx, inst, other, man, min, b, v)
+  }
   if (o < 0.55) {
     pushLine(state, ctx, min, 'SUB', null, 'comm.scuffleNothing', v)
   } else {
@@ -281,6 +301,35 @@ export function scuffleTick(state: GameState, ctx: LiveCtx, tick: number, min: n
     backTowards(ctx, inst, 10)
     other.pressure = clamp(other.pressure + 10, 0, 100)
   }
+}
+
+/** A scuffle that did not blow over. The penalty goes against the side that
+ *  started it either way; the cards are the referee's. */
+function bustUp(state: GameState, ctx: LiveCtx, inst: SideCtx, other: SideCtx, man: Player, min: number, b: Rng,
+  v: Record<string, string | number>) {
+  const dial = refFor(ctx.fx.id).cards
+  const strict = dial >= 1.15, lenient = dial <= 0.8
+  const foe = manFor(b, onField(state, other), { LK: 2, FL: 2, HK: 2, LP: 1.5, TP: 1.5, N8: 1, CE: 1 }, 1.2)
+  const roll = b()
+  withRng(ctx, b, () => {
+    pushLine(state, ctx, min, 'SUB', null, `comm.bustUp${1 + Math.floor(b() * 3)}`, v, man.id)
+    concedePenalty(state, ctx, inst, min, null)
+    if (lenient) {
+      // a talking-to, and only the worst of it earns a card
+      if (roll < 0.25) giveYellow(state, ctx, inst, man, min, 'comm.ycBustUp')
+      else pushLine(state, ctx, min, 'SUB', null, 'comm.bustUpWarn', v)
+    } else if (strict) {
+      // the odd red: a punch seen by a referee who does not let one go
+      if (roll < 0.18) giveRed(state, ctx, inst, man, min, 'comm.rcBustUp')
+      else giveYellow(state, ctx, inst, man, min, 'comm.ycBustUp')
+      if (foe && roll < 0.7) giveYellow(state, ctx, other, foe, min, 'comm.ycBustUpToo')
+    } else {
+      giveYellow(state, ctx, inst, man, min, 'comm.ycBustUp')
+      if (foe && roll < 0.3) giveYellow(state, ctx, other, foe, min, 'comm.ycBustUpToo')
+    }
+  })
+  backTowards(ctx, inst, 10)
+  other.pressure = clamp(other.pressure + 10, 0, 100)
 }
 
 /** THE WATER BREAK (item 31): a hot afternoon stops at the quarters */

@@ -51,8 +51,15 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 
 ## Stage 3: match feel (changes results: measure before and after)
 
-- [ ] Tests lower scoring, set against real Test averages.
-- [ ] Bust-ups in derbies and rivalries: rare yellows, the odd red under a strict referee.
+- [!] Tests lower scoring: NOT DONE, on the evidence. Measured over 3 worlds x 2 seasons the game gives
+      50.5 points and 6.56 tries a Test (club league 49.0 and 6.40). The 2026 Six Nations had 111 tries in
+      15 matches, 7.4 a game (Opta via The Analyst; Planet Rugby). Real Tests are higher scoring than the
+      game's, so lowering them would be wrong. Owner told 22:12; waiting for what he saw.
+- [x] Bust-ups: in a derby or grudge match one scuffle in five escalates (`incidents.ts bustUp`); lenient
+      referee warns, fair one bins the instigator, strict one bins one from each side and sends the puncher
+      off 18% of the time. Own random stream, so other scuffles are unchanged. Measured on 4 worlds,
+      6,708 matches: points 49.95 to 50.03, yellows 1.45 a game unchanged, reds 303 to 330. Six languages.
+- [ ] Bust-ups: check `ctx.derby` is set for Test rivalries (ENG v SCO etc.), and add a test.
 - [ ] Pre-match rituals in formation for every nation that has one (only NZ has a line today).
 
 ## Stage 4: full club player audit (owner: do it all)
@@ -72,3 +79,11 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   Gonzalo Garcia only exist as namesakes of other unions). NEXT: add the missing internationals to
   `src/data/additions.ts` at their real 2026-27 clubs (rules at the top of that file), fix the wrong unions
   (Sela, Janse van Rensburg, Tatafu, Benson, Burke, Kane James, Hennessey), then carry on with Fiji and Japan.
+- 22:15 Owner (22:10 to 22:13): use https://nationschampionshiprugby.com/en/the-championship for the top 12 men's
+  squads (team pages at /en/teams/<code>; /en/teams/aus/squad lists position, caps, age, club; caps there are
+  CURRENT, i.e. after the autumn Tests so far). Also wants: all squads announced for WXV 1, 2 and 3 (women's),
+  and the PWR club squads for 2026-27 ("they should all have been announced now with the opening weekend").
+- 22:15 `tests/fingerprint.test.ts` fails as expected (real caps, new players, bust-ups all move results).
+  REBASELINE in scripts/fingerprint.ts with a note ONCE, when the data work is finished, not before.
+- 22:15 Bath's squad is the club's published list: adding a man there filled the senior squad and broke the
+  free-agent tests, so Opoku-Gyamfi was taken back out. Check squad room before adding to any club.
