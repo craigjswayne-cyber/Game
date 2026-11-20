@@ -188,7 +188,7 @@ each club's full announced squad (non-internationals, new signings, leavers).
   articles print caps beside each name ("Scott Bemand names back-row debutant for Ireland's WXV opener").
 - Still to find: France, Wales, Italy, Canada, Japan; caps for Ireland and USA.
 
-### Women, second pass (23:40 UTC, 20 Nov)
+### Women, second pass (23:33 UTC, 20 Nov)
 
 - Wales 39 (RugbyPass, 1 Sep 2026). Caps for the 23 named v South Africa on 18 Sep, as printed before that Test; 11 open.
 - France 38 (RugbyPass, 30 Jul 2026). Caps only for the four printed before the first Test (Bourdon Sansus 76, Vernier 60,
@@ -207,3 +207,13 @@ each club's full announced squad (non-internationals, new signings, leavers).
   generated Championship player; the real one, Leicester, is missing), men's Gonzalo Garcia / Virimi Vakatawa / Opeti Helu.
 - Still missing from the club files (PWR and Elite 1 audit): Wales 9, Canada 17, Italy 25, Japan 28, South Africa 28, USA 25.
 - All twelve WXV Global Series unions now have a squad in.
+
+### Men, cap corrections (23:45 UTC, 20 Nov)
+
+- South Africa: CORRECTED. One cap off for each of the Italy (7 Nov) and France (13 Nov) match-day 23s a man was in
+  (rugby365 team announcements). 21 men two off, Grant Williams, Mostert and Reinach one off. Cross-check: the page had
+  Etzebeth on 147 and EWN (17 Nov) says the Ireland Test takes him to 148; he played neither November Test. Assumes every
+  replacement came on. Moerat still open.
+- Fiji: the squad is now the 35 named for November (RugbyPass, 30 Oct 2026); the other 33 on the season list are capped
+  players outside the squad. Japan: the 35 named for November (RugbyPass, 26 Oct 2026); the other 21 likewise.
+- STILL TO DO for Fiji and Japan: take off the two November Tests played before 20 Nov (team sheets not yet read).
