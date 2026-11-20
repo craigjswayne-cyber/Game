@@ -100,7 +100,7 @@ export default function Offers({ focus }: { focus?: number }) {
               {over > 0 ? t('world.ofOver', { amount: fmtMoney(over) }) : over < 0 ? t('world.ofUnder', { amount: fmtMoney(-over) }) : t('world.ofExactly')}
             </b>{t('world.ofTheValuation')}
             <b>{t(`squad.status${st[0].toUpperCase()}${st.slice(1)}`).toLowerCase()}</b>
-            {t('world.ofOnWage', { wage: fmtWage(p.wage), year: 2026 + p.contractEnds - game.season - 1 })}
+            {t('world.ofOnWage', { wage: fmtWage(p.wage), year: 2026 + p.contractEnds })}
           </div>
           <div className="meta">
             {cover.length === 0
