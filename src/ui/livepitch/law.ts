@@ -61,7 +61,7 @@ const machine = createMachine({
     // a penalty or free kick has been given: kick at goal, kick to touch, tap, or take the scrum
     penalty: { on: {
       GOAL: 'kickoff', GOALMISS: 'dropout', TOUCH: 'touch', PLAY: 'open', KICK: 'open', SCRUM: 'open',
-      PENALTY: 'penalty', TRY: 'try', HALF: 'kickoff',
+      PENALTY: 'penalty', TRY: 'try', DEAD: 'dropout', HALF: 'kickoff',
     } },
     // a try has been scored: the conversion, then a kick-off
     try: { on: { CON: 'kickoff', KICKOFF: 'open', HALF: 'kickoff' } },
@@ -101,5 +101,14 @@ export class Laws {
       frontier = next
     }
     return null
+  }
+  /** a line the laws cannot reach from here in three steps: start again from
+   *  the nearest state that allows it. Counted by the test, which holds it at zero. */
+  jump(e: LawEvent): void {
+    for (const path of [['KICKOFF'], ['KICKOFF', 'TOUCH'], ['KICKOFF', 'STOP'], ['KICKOFF', 'PENALTY'], ['KICKOFF', 'TRY'], ['KICKOFF', 'DEAD'], []] as LawEvent[][]) {
+      let s: Snap = getInitialSnapshot(machine)
+      for (const b of path) s = getNextSnapshot(machine, s, { type: b })
+      if (s.can({ type: e })) { this.snap = s; return }
+    }
   }
 }
