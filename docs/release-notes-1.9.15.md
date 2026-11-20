@@ -130,4 +130,18 @@ Version 1.9.15, Play versionCode 78. Baseline: 1.9.14, code 77.
 
 ## Checks
 
-To be filled in at the release run.
+Run on 20 Nov 2026 (local, then CI on PR #114):
+
+- Unit tests: 431 passed. Typecheck, lint, text lint, token lint, CSS audit,
+  orphan check, i18n probe and language parity pass.
+- Engine fingerprint unchanged after every change.
+- Engine probes: all passed locally after fixes (chaosprobe re-seeded, wsoak,
+  talkprobe, newsprobe, readslike and countryprobe updated or fixed for the
+  new calendar), with the rest covered by CI's eight shards.
+- Browser harnesses: all passed locally (natonlyui and dualroleui updated
+  for the camp opening a week early and the automatic announcement).
+- Calendar invariant passes in both worlds, every kind of year, with the
+  World Championship on its new dates.
+- Probes written tonight: the 2027 World Championship plays through to a
+  champion with no pool rematch in the last sixteen; the Isles tour hosts are
+  New Zealand 2029, South Africa 2033, Australia 2037.
