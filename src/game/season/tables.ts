@@ -12,8 +12,14 @@ import { tIn } from '../i18n'
 // Tables & knockouts
 // ------------------------------------------------------------------
 
+const SERIES_COMPS = new Set(['lions', 'w:lions'])
+const SERIES_TESTS = new Set(['1st Test', '2nd Test', '3rd Test'])
 export function applyToTable(comp: Competition, fx: Fixture) {
-  if (fx.stage) return // knockout games don't affect tables
+  // knockout games don't affect tables. The Isles tour's three Tests DO: the
+  // tour's table is the Test series, and with the Tests skipped the table
+  // stayed 0-0 and the side listed first, the Isles XV, was crowned whatever
+  // the scores (QA, 1.9.15). Its midweek provincial games stay out.
+  if (fx.stage && !(SERIES_COMPS.has(fx.compId) && SERIES_TESTS.has(fx.stage))) return
   const h = comp.table.find(r => r.teamId === fx.homeId)
   const a = comp.table.find(r => r.teamId === fx.awayId)
   if (!h || !a) return

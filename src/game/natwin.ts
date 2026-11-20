@@ -225,8 +225,9 @@ export function reviewNatWindow(state: GameState, start: number): void {
   }
   const conf = clamp((state.natConfidence ?? 60) + delta, 0, 100)
   state.natConfidence = conf
-  const sacked = conf < 20
-  const warned = !sacked && conf < 35
+  // judged on the figure the letter prints: "now 20 ... below 20" sacked a coach on 19.6 (QA, 1.9.15)
+  const sacked = Math.round(conf) < 20
+  const warned = !sacked && Math.round(conf) < 35
   w.review = { met, delta, conf: Math.round(conf), warned, sacked, broken, seen: false }
   state.natPrevSquad = (state.natSquads[nat] ?? []).slice()
   const v = {

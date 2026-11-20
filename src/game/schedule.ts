@@ -452,18 +452,22 @@ function buildWorldCup(rng: Rng, state: GameState, women = false) {
   state.comps['wc'] = comp
 }
 
-/** Tour seasons: 2029-30, 2033-34, ... (every 4th season, offset from the
- *  World Championship, which puts the tour two seasons off a World Cup - what
- *  the owner asked for: "2 away from a world cup"). The tour closes its season,
- *  so the calendar prints it in the June and July at the end of it: the
- *  2029-30 tour is played in 2030, a year after the real cycle's 2029.
+/** Tour seasons: 2028-29, 2032-33, ... (every 4th season; the tour closes
+ *  its season, so it is played in the June and July of 2029, 2033 and 2037,
+ *  the real cycle, two years off a World Cup as the owner asked: "2 away from
+ *  a world cup"). Until 1.9.15 this was the season after, and every tour came
+ *  a year late.
  *
  *  The FUNCTION and the competition id still say "lions" because both are
  *  written into every save ever made and neither is ever shown to a player. The
  *  display name is the British & Irish Isles XV (owner, 7 Sep: "we shouldn't
  *  say Lions... should just be british and irish isles xv tour"). */
 export function isLionsSeason(season: number): boolean {
-  return (BASE_YEAR + season) % 4 === 1 && season > 0
+  // ON THE REAL YEAR (QA, 1.9.15). A tour is played in the June and July at
+  // the END of its season, so the 2029 tour belongs to the 2028-29 season.
+  // This read the season's first year, and every tour came a year late:
+  // 2030, 2034, 2038 against the real 2029 (New Zealand), 2033, 2037.
+  return (BASE_YEAR + season) % 4 === 0 && season > 0
 }
 
 /** Summer theatre: either an Isles XV series or north-south tours close the season. */
@@ -471,7 +475,9 @@ function buildSummer(rng: Rng, state: GameState) {
   const season = state.season
   if (isLionsSeason(season)) {
     const hosts = ['NZL', 'RSA', 'AUS']
-    const host = hosts[Math.floor((BASE_YEAR + season - 2029) / 4) % 3]
+    // by the year the tour is played (the season's second year): 2029 New
+    // Zealand, 2033 South Africa, 2037 Australia
+    const host = hosts[Math.floor((BASE_YEAR + season + 1 - 2029) / 4) % 3]
     // ---- TEN MATCHES, AND A THREE-TEST SERIES AT THE END ----
     //
     // Owner, 7 Sep: "a fixture list of 10 fixtures with a 3 test series at the
@@ -698,7 +704,9 @@ export function isWomensTourSeason(season: number): boolean {
   // on the men's tour years (2029, 2033), so a women's tour in 2031 and 2035
   // sits exactly in the gap between two World Cups - which is where the men's
   // tour sits in their calendar too.
-  return (BASE_YEAR + season) % 4 === 3 && BASE_YEAR + season >= 2031
+  // played at the season's end, like the men's: the 2031 tour is the
+  // 2030-31 season's (1.9.15, the men's off-by-one fixed with it)
+  return (BASE_YEAR + season) % 4 === 2 && BASE_YEAR + season + 1 >= 2031
 }
 
 /**
@@ -874,7 +882,7 @@ export function leaguePos(table: TableRow[] | undefined, clubId: string): number
  *  the owner asked for the same tour rather than a smaller version of it. */
 function buildWomensTour(state: GameState) {
   const hosts = ['NZL', 'CAN', 'FRA']
-  const host = hosts[Math.floor((BASE_YEAR + state.season - 2031) / 4) % 3]
+  const host = hosts[Math.floor((BASE_YEAR + state.season + 1 - 2031) / 4) % 3]
   const hostName = host === 'NZL' ? 'New Zealand' : host === 'CAN' ? 'Canada' : 'France'
   // provincial opposition from the host's own clubs first, then the rest of the
   // women's world. Canada has no club league in this game, so a Canadian tour

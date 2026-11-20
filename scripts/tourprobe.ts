@@ -23,7 +23,8 @@ import { ok, failures } from './lib/probe'
 // ---- 1. the cycle -------------------------------------------------------
 console.log('--- 1. every fourth year, two off a World Championship')
 const tourYears: number[] = []
-for (let s = 0; s < 20; s++) if (isLionsSeason(s)) tourYears.push(BASE_YEAR + s)
+// the year the tour is PLAYED: June and July at the end of its season (1.9.15)
+for (let s = 0; s < 20; s++) if (isLionsSeason(s)) tourYears.push(BASE_YEAR + s + 1)
 console.log(`     tours: ${tourYears.join(', ')}`)
 ok(tourYears.includes(2029) && tourYears.includes(2033) && tourYears.includes(2037),
   'the real cycle: 2029, 2033, 2037')
@@ -78,10 +79,10 @@ ok(!comp.table.some(r => g.clubs[r.teamId ?? '']),
 // ---- 5. the women's tour ------------------------------------------------
 console.log('\n--- 5. the women tour too, two years later')
 const wYears: number[] = []
-for (let s2 = 0; s2 < 20; s2++) if (isWomensTourSeason(s2)) wYears.push(BASE_YEAR + s2)
+for (let s2 = 0; s2 < 20; s2++) if (isWomensTourSeason(s2)) wYears.push(BASE_YEAR + s2 + 1)
 console.log(`     women's tours: ${wYears.join(', ')}`)
 ok(wYears[0] === 2031, `the first is 2031, two years after the men's first (${wYears[0]})`)
-ok(wYears.every(y => isLionsSeason(y - BASE_YEAR - 2) || y - 2 < BASE_YEAR),
+ok(wYears.every(y => isLionsSeason(y - 1 - BASE_YEAR - 2) || y - 2 < BASE_YEAR),
   'every one of them falls two years after a men\'s tour')
 ok(!wYears.some(y => tourYears.includes(y)), 'and the two games never tour in the same summer')
 
@@ -105,9 +106,9 @@ ok(!wg.comps['lions'], 'the men\'s tour does not exist in a women\'s world')
 {
   const cg = newGame(wClub, 'Test', 31, undefined, 'coach', 'w')
   cg.season = [...Array(40).keys()].find(s2 => isWomensTourSeason(s2) &&
-    ['NZL', 'CAN', 'FRA'][Math.floor((BASE_YEAR + s2 - 2031) / 4) % 3] === 'CAN')!
+    ['NZL', 'CAN', 'FRA'][Math.floor((BASE_YEAR + s2 + 1 - 2031) / 4) % 3] === 'CAN')!
   buildWomensInternationals(mulberry32(cg.seed), cg)
-  ok(cg.comps[W + 'lions']?.teamIds.includes('CAN'), `a Canadian tour in ${BASE_YEAR + cg.season}`)
+  ok(cg.comps[W + 'lions']?.teamIds.includes('CAN'), `a Canadian tour in ${BASE_YEAR + cg.season + 1}`)
   const opp = cg.fixtures.filter(f => f.compId === W + 'lions' && f.tourMatch).map(f => cg.clubs[f.homeId])
   const home4 = opp.filter(c => ['ENG', 'IRE', 'SCO', 'WAL'].includes(c?.country ?? ''))
   ok(opp.length === TOUR_PROVINCIAL && home4.length === 0,

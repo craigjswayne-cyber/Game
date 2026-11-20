@@ -2000,6 +2000,9 @@ export interface GameState {
   /** A nation whose coach left mid-window: the federation tops its camp up
    *  to the floor for its Tests (QA, 1.9.14). Cleared when the window closes. */
   natOrphan?: string | null
+  /** `season:windowId` of an Isles tour whose call-ups ran the week before
+   *  its first match (internationals.ts callUpsAhead, 1.9.15). */
+  natEarly?: string
   /** a window whose review ended the tenure, kept so the screen can say so */
   natLastReview?: GameState['natWin']
   /** the federation's own list for the user's nation, snapshotted when the

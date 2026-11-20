@@ -23,7 +23,11 @@ export function NatCampaign() {
   const { persist } = useStore.getState()
   useStore(s => s.tick)
   const w = natWinNow(game)
-  if (!game.natTeam || !w) return null
+  const save = () => { void persist(); touch() }
+  // the last window's review, when a new window opened before it was read
+  const last = game.natLastReview && game.natLastReview.review && !game.natLastReview.review.seen && game.natLastReview.nat === game.natTeam ? game.natLastReview : null
+  const lastCard = last ? <ReviewCard w={last} onSeen={() => { last.review!.seen = true; save() }} /> : null
+  if (!game.natTeam || !w) return lastCard
   const nat = w.nat
   const named = (game.natSquads[nat] ?? []).length
   const played = w.w + w.d + w.l
@@ -37,9 +41,9 @@ export function NatCampaign() {
   const ev = w.event
   const p = ev ? game.players[ev.playerId] : null
   const evVars = { name: p?.name ?? '', club: p?.clubId ? teamShort(game, p.clubId) : '' }
-  const save = () => { void persist(); touch() }
   return (
     <>
+      {lastCard}
       <div className="card nat-campaign" data-nat-campaign style={{ ...acc('var(--gold)') }}>
         <div className="fact-label">{compLabel(game.comps[w.comp]?.name) ?? t('natwin.title')} · {(() => {
           // the window's first Test, on the day it is played: the Saturday the
@@ -95,19 +99,7 @@ export function NatCampaign() {
         </div>
       )}
 
-      {w.review && !w.review.seen && (
-        <div className="card nat-review" data-nc-review={w.review.met ? 'met' : 'missed'}
-          style={{ ...acc(w.review.met ? 'var(--text-positive)' : 'var(--text-negative)') }}>
-          <div className="fact-label">{t('natwin.reviewTitle')}</div>
-          <h3 style={{ margin: '4px 0' }}>{t(w.review.met ? 'natwin.reviewMet' : 'natwin.reviewMissed')}</h3>
-          <div className="meta">{t('natwin.progress', { w: w.w, d: w.d, l: w.l })} {t('natwin.target', { target: w.target, tests: w.tests })}</div>
-          <div className="meta">{t('natwin.reviewConf', { delta: (w.review.delta > 0 ? '+' : '') + w.review.delta, conf: w.review.conf })}</div>
-          {w.review.broken && <div className="meta">{t('natwin.reviewBroken')}</div>}
-          {w.review.warned && <div className="meta" style={{ color: 'var(--text-negative)', fontWeight: 700 }}>{t('natwin.reviewWarned')}</div>}
-          <button type="button" className="btn ghost tiny" style={{ marginTop: 6 }}
-            onClick={() => { w.review!.seen = true; save() }}>{t('natwin.gotIt')}</button>
-        </div>
-      )}
+      {w.review && !w.review.seen && <ReviewCard w={w} onSeen={() => { w.review!.seen = true; save() }} />}
 
       {w.reveal && !w.reveal.seen && (
         <Veil onClose={() => { w.reveal!.seen = true; save() }}>
@@ -155,5 +147,24 @@ export function NatCampaign() {
         </Veil>
       )}
     </>
+  )
+}
+
+/** The union's verdict on a window: on the campaign card, and kept on its own
+ *  until read when the next window has already opened (1.9.15). */
+function ReviewCard({ w, onSeen }: { w: NonNullable<ReturnType<typeof natWinNow>>; onSeen: () => void }) {
+  if (!w.review) return null
+  return (
+        <div className="card nat-review" data-nc-review={w.review.met ? 'met' : 'missed'}
+          style={{ ...acc(w.review.met ? 'var(--text-positive)' : 'var(--text-negative)') }}>
+          <div className="fact-label">{t('natwin.reviewTitle')}</div>
+          <h3 style={{ margin: '4px 0' }}>{t(w.review.met ? 'natwin.reviewMet' : 'natwin.reviewMissed')}</h3>
+          <div className="meta">{t('natwin.progress', { w: w.w, d: w.d, l: w.l })} {t('natwin.target', { target: w.target, tests: w.tests })}</div>
+          <div className="meta">{t('natwin.reviewConf', { delta: (w.review.delta > 0 ? '+' : '') + w.review.delta, conf: w.review.conf })}</div>
+          {w.review.broken && <div className="meta">{t('natwin.reviewBroken')}</div>}
+          {w.review.warned && <div className="meta" style={{ color: 'var(--text-negative)', fontWeight: 700 }}>{t('natwin.reviewWarned')}</div>}
+          <button type="button" className="btn ghost tiny" style={{ marginTop: 6 }}
+            onClick={onSeen}>{t('natwin.gotIt')}</button>
+        </div>
   )
 }

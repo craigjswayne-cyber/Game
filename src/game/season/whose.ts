@@ -34,8 +34,11 @@ export function natFixtureThisWeek(state: GameState): Fixture | undefined {
   // Test to be simmed with the rest of the world.
   const order = islesCoach(state) ? ['LIO', state.natTeam] : teams
   for (const t of order) {
-    const fx = state.fixtures.find(f =>
+    const mine = state.fixtures.filter(f =>
       f.week === state.week && !f.played && (f.homeId === t || f.awayId === t))
+    // a tour week holds a midweek provincial game AND the Saturday Test: the
+    // coach takes the Test (QA, 1.9.15: the Tests were all simmed)
+    const fx = mine.find(f => !f.tourMatch) ?? mine[0]
     if (fx) return fx
   }
   return undefined

@@ -5,7 +5,7 @@ import { noteWindowResult } from './natwin'
 import { dressingRoomAlerts } from './alerts'
 import { settleStartPledge } from './handshake'
 import type { Fixture, GameState, Player, Pos } from './model'
-import { genderOf, subjectVar } from './gender'
+import { W, genderOf, subjectVar } from './gender'
 import { islesCoach, isleTour, offerIsles } from './isles'
 import { telling } from './tellings'
 import { aiCloseSeason } from './closeseason'
@@ -70,7 +70,7 @@ import { flushMemoryNews, memoryWeek, rememberPromise } from './memory'
 import { natTwin, savedShort, weekRng } from './season/dice'
 import { boardReaction, boardReadsTheTable, honeymoonEnd } from './season/board'
 import { applyToTable, maybeCreateKnockouts, resolveKnockoutDraw, winnerOf } from './season/tables'
-import { fillShortNatSquad, manageInternationals, openUserCampAhead } from './season/internationals'
+import { callUpsAhead, fillShortNatSquad, manageInternationals, openUserCampAhead } from './season/internationals'
 import { weeklyTraining } from './season/training'
 import { weeklyFinance } from './season/finance'
 import { afterClubMatch, leagueRoundUp, matchReport, mgrMilestones, milestones } from './season/news'
@@ -1626,7 +1626,15 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
     if (!comp.champion && (comp.type === 'intl' || (comp.type === 'league' && !comp.playoffTeams)) && comp.table.length) {
       const all = state.fixtures.filter(f => f.compId === comp.id)
       if (all.length && all.every(f => f.played)) {
-        comp.champion = sortTable(comp.table)[0].teamId
+        // an Isles tour is won on the Test series, never on the provincial
+        // games or bonus points: most Tests won takes it, and a drawn series
+        // is not a series won by the tourists (QA, 1.9.15)
+        if (comp.id === 'lions' || comp.id === W + 'lions') {
+          const tests = all.filter(f => f.stage && /^(1st|2nd|3rd) Test$/.test(f.stage))
+          const won = (t: string) => tests.filter(f => (f.homeId === t ? f.homeScore > f.awayScore : f.awayId === t && f.awayScore > f.homeScore)).length
+          const host = comp.teamIds.find(t => t !== 'LIO') ?? comp.teamIds[0]
+          comp.champion = won('LIO') > won(host) ? 'LIO' : host
+        } else comp.champion = sortTable(comp.table)[0].teamId
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
         if (comp.type === 'league' && comp.champion === state.userClubId && !state.unemployed) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
@@ -2377,7 +2385,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
 
   // the coach's camp opens the week before its window (1.9.15): a Test is
   // never played before the squad exists
-  if (state.week < SEASON_WEEKS) openUserCampAhead(state, 1)
+  if (state.week < SEASON_WEEKS) { callUpsAhead(state, rng); openUserCampAhead(state, 1) }
   // advance
   if (state.week >= SEASON_WEEKS) {
     // the summer cap audit happens on the old season's wage bill, before the

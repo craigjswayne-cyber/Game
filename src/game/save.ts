@@ -669,6 +669,7 @@ function migrateCollections(s: GameState): void {
   }
   s.natSquads = asMap(s.natSquads)
   if (s.natOrphan != null && typeof s.natOrphan !== 'string') delete s.natOrphan
+  if (s.natEarly != null && typeof s.natEarly !== 'string') delete s.natEarly
   s.players = asMap(s.players)
   // A MAN IS FILED UNDER HIS OWN ID (1.9.4 audit). A null left by a bad
   // write threw later in this function and cost the whole career; a key
