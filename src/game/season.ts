@@ -2400,6 +2400,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     yield
     rebuildSeason(state)
     // a window in the new season's first week has no week before it
+    callUpsAhead(state, rng, 0)
     openUserCampAhead(state, 0)
     // and the new season's ceiling is measured from the league as it now stands
     refreshCaps(state)

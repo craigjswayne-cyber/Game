@@ -74,6 +74,9 @@ export function eraOf(state: GameState): NonNullable<GameState['natEra']> | null
 /** How a Test moves the union's confidence: the one rule, read by the week's
  *  settle (which applies it) and the full-time card (which says it). */
 export function testConfDelta(state: GameState, mySide: string, oppId: string, us: number, them: number): number {
-  const better = (state.natRank?.[oppId] ?? 70) > (state.natRank?.[mySide] ?? 70)
-  return us > them ? (better ? 4 : 2.5) : us < them ? (better ? -3.5 : -5.5) : 0.5
+  const opp = state.natRank?.[oppId] ?? 70, me = state.natRank?.[mySide] ?? 70
+  const better = opp > me
+  // a draw with a weaker side is a result the union counts against you, and a
+  // defeat by one well below you (five points or more) is a story (1.9.15)
+  return us > them ? (better ? 4 : 2.5) : us < them ? (better ? -3.5 : opp <= me - 5 ? -7 : -5.5) : better ? 0.5 : -1
 }

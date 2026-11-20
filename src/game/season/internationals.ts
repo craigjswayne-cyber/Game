@@ -126,7 +126,7 @@ export function manageInternationals(state: GameState, rng: Rng) {
     // the coach's window as a campaign (1.9.14, natwin.ts): the union's
     // target when camp opens, its review when the window closes (above)
     if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.start) openNatWindow(state, w)
-    if (state.week === w.start && !(state.natEarly === `${state.season}:${w.id}`)) callUps(state, w, rng)
+    if (state.week === w.start && !(state.natEarly ?? '').split(',').includes(`${state.season}:${w.id}`)) callUps(state, w, rng)
   }
 }
 
@@ -353,13 +353,26 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
  * party (49-0). For the coach's tour only, the call-ups run at the end of the
  * week before, after that week's fixtures (the club finals keep their men).
  */
-export function callUpsAhead(state: GameState, rng: Rng): void {
-  if (!islesCoach(state)) return
+export function callUpsAhead(state: GameState, rng: Rng, ahead: 0 | 1 = 1): void {
+  // THE OTHER SIDE NEEDS A SQUAD TOO (QA, 1.9.15). A window that opens on its
+  // first Test (the summer tours, the Isles tour, the women's World Cup) had
+  // its call-ups made while that week was settled, but the screen plays the
+  // coach's match BEFORE the week settles: England met a Fiji with nobody in
+  // it and won 71-0. Such a window, when it holds the coach's side, is called
+  // up the week before instead, after that week's club games.
+  const mine = state.natTeam
+  const isles = islesCoach(state)
+  const early: string[] = []
   for (const w of activeWindows(state)) {
-    if (w.start !== state.week + 1 || !w.nations.includes('LIO')) continue
-    state.natEarly = `${state.season}:${w.id}`
+    if (w.start !== state.week + ahead) continue
+    const side = isles && w.nations.includes('LIO') ? 'LIO' : mine && w.nations.includes(mine) ? mine : null
+    if (!side) continue
+    const opensOnATest = state.fixtures.some(f => f.week === w.start && (f.homeId === side || f.awayId === side))
+    if (side !== 'LIO' && !opensOnATest) continue
+    early.push(`${state.season}:${w.id}`)
     callUps(state, w, rng)
   }
+  if (early.length) state.natEarly = early.join(',')
 }
 
 /**

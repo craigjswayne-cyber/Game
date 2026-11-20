@@ -108,10 +108,10 @@ describe('the window campaign', () => {
     miss.g.week = miss.w.end + 1
     reviewNatWindow(miss.g, miss.w.start)
     expect(miss.g.natWin!.review!.met).toBe(false)
-    expect(miss.g.natConfidence).toBe(53)
+    expect(miss.g.natConfidence).toBe(52) // missed by two: -8 (1.9.15)
     // once
     reviewNatWindow(miss.g, miss.w.start)
-    expect(miss.g.natConfidence).toBe(53)
+    expect(miss.g.natConfidence).toBe(52)
   })
 
   it('below 20 the union ends it, and the era goes into the history', () => {

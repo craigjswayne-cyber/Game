@@ -21,6 +21,7 @@ import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { closeNatTenure } from './model'
 import { tIn } from './i18n'
+import { natRankOrder } from './natrank'
 import { clubQuotaLeft, conflictedClub, federationList, homeBased, nationNameIn, NAT_SQUAD_SIZE } from './nations'
 
 export type CampEventKind = 'rest' | 'curfew' | 'scare' | 'bolter'
@@ -45,14 +46,25 @@ function windowTests(state: GameState, nat: string, start: number, end: number) 
 
 /** The union's target: one win for each side on the list ranked below us,
  *  less one when that would ask for a clean sweep of three or more, and never
- *  less than one. */
-export function windowTarget(state: GameState, nat: string, start: number, end: number): { tests: number; target: number } {
+ *  less than one.
+ *
+ *  HARDER AT THE TOP (owner, 1.9.15: "internationals should be harder than
+ *  the club coaching... nobody should be able to breeze it"). A world top-five
+ *  side gets no clean-sweep relief, and a window against nobody within eight
+ *  ranking points is every Test. `underdog` marks a window with nobody ranked
+ *  below us: the one win is still asked, but missing it costs less, so a
+ *  thin union is a hard job and not a sacking on a timer. */
+export function windowTarget(state: GameState, nat: string, start: number, end: number): { tests: number; target: number; underdog: boolean } {
   const tests = windowTests(state, nat, start, end)
+  const order = natRankOrder(state) // seeds the table first, so both reads agree
   const me = state.natRank?.[nat] ?? 70
-  const favoured = tests.filter(f => (state.natRank?.[f.homeId === nat ? f.awayId : f.homeId] ?? 70) < me).length
+  const opp = (f: { homeId: string; awayId: string }) => state.natRank?.[f.homeId === nat ? f.awayId : f.homeId] ?? 70
+  const favoured = tests.filter(f => opp(f) < me).length
   const n = tests.length
-  const target = n === 0 ? 0 : Math.min(n, favoured >= 3 ? favoured - 1 : Math.max(1, favoured))
-  return { tests: n, target }
+  const top5 = order.includes(nat) && order.indexOf(nat) < 5
+  const mismatch = n > 0 && tests.every(f => opp(f) <= me - 8)
+  const target = n === 0 ? 0 : mismatch ? n : Math.min(n, favoured >= 3 && !top5 ? favoured - 1 : Math.max(1, favoured))
+  return { tests: n, target, underdog: n > 0 && favoured === 0 }
 }
 
 /** Camp opens: the window's ledger, with the union's target. */
@@ -62,10 +74,10 @@ export function openNatWindow(state: GameState, w: { id?: string; start: number;
   if (state.natWin && state.natWin.nat === nat && state.natWin.season === state.season && state.natWin.start === w.start) return
   // a review not yet read stays readable under the new window
   if (state.natWin?.review && !state.natWin.review.seen) state.natLastReview = { ...state.natWin }
-  const { tests, target } = windowTarget(state, nat, w.start, w.end)
+  const { tests, target, underdog } = windowTarget(state, nat, w.start, w.end)
   state.natWin = {
     nat, season: state.season, start: w.start, end: w.end, comp: w.id ?? '',
-    tests, target, w: 0, d: 0, l: 0, announced: false,
+    tests, target, w: 0, d: 0, l: 0, announced: false, ...(underdog ? { underdog } : {}),
   }
   if (tests > 0) {
     const v = { nat: nationNameIn('en', nat), nat_n: nat, target, tests, comp: state.comps[w.id ?? '']?.name ?? '' }
@@ -233,7 +245,8 @@ export function reviewNatWindow(state: GameState, start: number): void {
   const nat = state.natTeam
   if (!w || !nat || w.nat !== nat || w.season !== state.season || w.start !== start || w.review || w.tests === 0) return
   const met = w.w >= w.target
-  const delta = met ? (w.w > w.target ? 6 : 4) : (w.target - w.w === 1 ? -3 : -7)
+  // a miss costs more than it did (1.9.15), except for an underdog's window
+  const delta = met ? (w.w > w.target ? 6 : 4) : w.underdog ? -2 : (w.target - w.w === 1 ? -4 : -8)
   // a debut promised in camp and never given
   let broken = false
   const e = w.event

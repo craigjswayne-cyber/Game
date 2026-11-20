@@ -1996,6 +1996,8 @@ export interface GameState {
     nat: string; season: number; start: number; end: number; comp: string
     tests: number; target: number; w: number; d: number; l: number
     announced: boolean
+    /** nobody on the fixture list ranked below us (natwin.ts windowTarget) */
+    underdog?: boolean
     reveal?: { debuts: number[]; recalls: number[]; omitted: number[]; tone: 'bold' | 'experience' | 'shock' | 'settled'; seen: boolean }
     event?: { kind: 'rest' | 'curfew' | 'scare' | 'bolter'; playerId: number; caps: number; answer?: 'a' | 'b' | 'c' }
     review?: { met: boolean; delta: number; conf: number; warned: boolean; sacked: boolean; broken: boolean; seen: boolean }

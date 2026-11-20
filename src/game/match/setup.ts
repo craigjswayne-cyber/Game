@@ -10,6 +10,7 @@ import { EXPLOITED_BY } from '../analyst'
 import { clamp, wpick, type Rng } from '../rng'
 import { KNOCK_ENERGY } from '../knock'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, routineEffect } from '../playbook'
+import { islesCoach } from '../isles'
 import { moveTempoF } from '../moves'
 import { actualSplit } from '../bench'
 import { styleDrain, styleFitsRel, stylesOf } from '../styles'
@@ -118,6 +119,17 @@ export function applyModifiers(state: GameState, side: SideCtx, weather: Weather
       const bF = bondCohesion(state, club.id, shirts)
       side.units.attack *= bF
       side.units.defence *= bF
+    }
+  } else if (side.teamId === state.natTeam || (side.teamId === 'LIO' && islesCoach(state))) {
+    // THE COACH'S TEST SIDE FEELS IT TOO (QA, 1.9.15). Morale was read for
+    // clubs only, so nothing a national coach did to a dressing room (a
+    // star left out, a curfew, a promise kept or broken) reached the pitch.
+    // His side only: a world with nobody coaching a nation plays as before.
+    const xv = shirts.map(id => id != null ? state.players[id] : null).filter(Boolean)
+    if (xv.length) {
+      const mF = 1 + (xv.reduce((s, p) => s + p!.morale, 0) / xv.length - 6.5) * 0.009
+      side.units.attack *= mF
+      side.units.defence *= mF
     }
   }
   if (club) {
