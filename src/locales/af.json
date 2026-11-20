@@ -9942,6 +9942,8 @@
   "intoTouch": "Oor die kantlyn",
   "kickAhead": "Skop vorentoe",
   "forwardPass": "Vorentoe-aangee",
+  "lineoutStolen": "Lynstaan gesteel",
+  "againstHead": "Teen die kop",
   "say": {
     "restart": "{team} hervat van die middellyn.",
     "dropout22": "22-uitskop vir {team}.",

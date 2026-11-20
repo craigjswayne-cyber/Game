@@ -9420,6 +9420,8 @@
   "intoTouch": "タッチへ",
   "kickAhead": "前方へキック",
   "forwardPass": "スローフォワード",
+  "lineoutStolen": "ラインアウトスチール",
+  "againstHead": "スクラムスチール",
   "say": {
     "restart": "{team}がハーフウェイからリスタート。",
     "dropout22": "{team}の22メートルドロップアウト。",

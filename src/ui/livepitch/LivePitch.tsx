@@ -95,7 +95,7 @@ let FIELD_L = 100 + GOAL * 2 + END * 2, FIELD_W = 70 + SIDE * 2
 function barInk(kit: string[]): string { return darkTrim(kit[0]) ? (kit[1] && !darkTrim(kit[1]) ? kit[1] : 'var(--prop-ink)') : kit[0] }
 
 /** the plays that are said on the bottom plate as well as on the label */
-const NOTE = new Set(['lp.turnover', 'lp.outFull', 'lp.fifty22', 'lp.penalty', 'lp.dropout22', 'lp.dropout', 'lp.tmo', 'lp.notBackTen', 'lp.chargeDown', 'lp.heldUp'])
+const NOTE = new Set(['lp.intoTouch', 'lp.turnover', 'lp.outFull', 'lp.fifty22', 'lp.penalty', 'lp.dropout22', 'lp.dropout', 'lp.tmo', 'lp.notBackTen', 'lp.chargeDown', 'lp.heldUp'])
 // (a scrum and a lineout are named on the label only: with them the plate was up half the match, 20 Nov 2026)
 
 function bannerSize(label: string, good: boolean): { fontSize: string } {

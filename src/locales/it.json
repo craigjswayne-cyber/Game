@@ -9899,6 +9899,8 @@
   "intoTouch": "In touche",
   "kickAhead": "Calcio a seguire",
   "forwardPass": "Passaggio in avanti",
+  "lineoutStolen": "Touche rubata",
+  "againstHead": "Mischia rubata",
   "say": {
     "restart": "{team} riprende da centrocampo.",
     "dropout22": "Rinvio dai 22 per {team}.",

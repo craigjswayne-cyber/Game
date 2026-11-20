@@ -9899,6 +9899,8 @@
   "intoTouch": "Into touch",
   "kickAhead": "Kick ahead",
   "forwardPass": "Forward pass",
+  "lineoutStolen": "Lineout stolen",
+  "againstHead": "Against the head",
   "say": {
     "restart": "{team} restart from halfway.",
     "dropout22": "22 drop-out to {team}.",

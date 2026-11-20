@@ -9855,6 +9855,8 @@
   "intoTouch": "A la touche",
   "kickAhead": "Patada a seguir",
   "forwardPass": "Pase adelantado",
+  "lineoutStolen": "Touche robada",
+  "againstHead": "Melé robada",
   "say": {
     "restart": "{team} saca desde el centro.",
     "dropout22": "Saque de 22 para {team}.",

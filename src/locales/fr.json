@@ -10095,6 +10095,8 @@
     "intoTouch": "En touche",
     "kickAhead": "Coup de pied à suivre",
     "forwardPass": "Passe en avant",
+    "lineoutStolen": "Touche volée",
+    "againstHead": "Mêlée gagnée sur introduction adverse",
     "say": {
       "restart": "Renvoi de {team} au centre.",
       "dropout22": "Renvoi aux 22 mètres pour {team}.",

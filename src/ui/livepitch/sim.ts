@@ -291,6 +291,8 @@ export class PitchSim {
     // PUT INTO TOUCH: the man with the ball is taken over the touchline, or it
     // is knocked from his hands and out. Played as a carry to the line.
     this.tell(beat, p.homeBall)
+    // won against the throw or against the head: the plate names the side that took it
+    if (beat.stolen && (p.kind === 'lineout' || p.kind === 'scrum')) this.flash = { label: p.kind === 'lineout' ? 'lp.lineoutStolen' : 'lp.againstHead', home: !p.homeBall, n: ++this.flashN }
     if (beat.kind === 'intotouch') {
       p = { ...p, kind: 'carry' }
       // the man who has it is the man who goes out with it: nobody passes it across the field first
@@ -1366,7 +1368,20 @@ export class PitchSim {
               if ((this.b[s.to].x - this.ball.x) * d1 > -0.2) {
                 this.over.set(s.to, { x: this.ball.x - d1 * 0.8, y: this.ball.y })
                 this.st += dt
-                if (hyp(this.b[s.to], this.ball) < 1.9 || this.st > 1.6) { this.over.delete(s.to); this.holder = s.to; over = true }
+                if (hyp(this.b[s.to], this.ball) < 1.9) { this.over.delete(s.to); this.holder = s.to; over = true }
+                // HE NEVER GOT THERE: the ball is not put in his hands from seven
+                // metres away (20 Nov 2026, measured: the one ball jump left in a
+                // match). The man who has it keeps it and carries himself.
+                else if (this.st > 2.6) {
+                  this.over.delete(s.to)
+                  const keep = this.holder
+                  for (let q = this.si + 1; q < this.steps.length; q++) {
+                    const z = this.steps[q]
+                    if (z.k === 'mode' && z.anchorOn === s.to) { z.anchorOn = keep; z.cIdx = keep % 15 }
+                    if (z.k === 'pass' && z.to === s.to) z.to = keep
+                  }
+                  over = true
+                }
                 break
               }
             }
