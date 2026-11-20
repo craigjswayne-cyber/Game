@@ -282,7 +282,7 @@ export class PitchSim {
     if (p.kind === 'lineout' && last && p.at !== last.at && !this.queued && !this.flight && last.kind !== 'kick' && last.kind !== 'lineout' && last.kind !== 'kickoff' && last.kind !== 'break' && this.mode !== 'kick') {
       const kd = last.homeBall ? 1 : -1, gain = (p.x - this.ball.x) * kd
       if (gain > 12) {
-        const K: Phase = { kind: 'kick', homeBall: last.homeBall, x: clamp(this.ball.x, 2, 98), y: clamp(this.ball.y, 2, 68), at: p.at, hang: 10,
+        const K: Phase = { kind: 'kick', homeBall: last.homeBall, x: clamp(this.ball.x, 2, 98), y: clamp(this.ball.y, 2, 68), at: p.at, hang: 7,
           label: 'lp.kickTouch', to: { x: p.x, y: p.y < 35 ? -1 : 71 } }
         this.queued = { p, c: carrierIdx }
         this.start(K, null)
@@ -296,7 +296,7 @@ export class PitchSim {
     if (p.kind === 'kickoff' && p.at >= 0 && this.firstKO == null) this.firstKO = p.homeBall
     if (last && last.label === 'lp.halfTime' && !this.queued && p.at !== last.at && p.kind !== 'kickoff' && p.kind !== 'break') {
       const home = !(this.firstKO ?? true), d = home ? 1 : -1
-      const K: Phase = { kind: 'kickoff', homeBall: home, x: 50, y: 35, at: p.at, hang: 16, label: 'lp.kickoff',
+      const K: Phase = { kind: 'kickoff', homeBall: home, x: 50, y: 35, at: p.at, hang: 11, label: 'lp.kickoff',
         to: { x: 50 + d * 22, y: clamp(p.y, 13, 57) } }
       this.queued = { p, c: carrierIdx }
       this.start(K, null)
@@ -411,7 +411,7 @@ export class PitchSim {
           // is good, then randomly the ball moves and the players all freeze").
           // He caught it and everybody stood still until the next line. He
           // runs it back a few metres into the chase.
-          steps.push({ k: 'pick', who, max: 1.4 }, { k: 'wait', t: 0.2 }, { k: 'mode', mode: 'catch', anchorOn: who }, { k: 'run', to: { x: clamp(to.x - dir * 5, 2, 98), y: to.y }, v: 5 }, { k: 'wait', t: 0.15 })
+          steps.push({ k: 'pick', who, max: 1.4 }, { k: 'wait', t: 0.2 }, { k: 'mode', mode: 'catch', anchorOn: who }, { k: 'run', to: { x: clamp(to.x - dir * 3.5, 2, 98), y: to.y }, v: 5 }, { k: 'wait', t: 0.15 })
         }
         break
       case 'con': case 'goal':
@@ -422,11 +422,11 @@ export class PitchSim {
         if (p.label === 'lp.drop') {
           cut = true; mode = 'ruck'; cIdx = null; init = att0 + 8
           anchor = { x: clamp(E.x + dir * 7, 3, 97), y: clamp(E.y + (E.y < 35 ? 5 : -5), 6, 64) }
-          steps.push({ k: 'wait', t: 0.7 }, { k: 'pass', to: att0 + 9 }, { k: 'wait', t: 0.25 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 7 }, { k: 'wait', t: 0.5 })
+          steps.push({ k: 'wait', t: 0.7 }, { k: 'pass', to: att0 + 9 }, { k: 'wait', t: 0.25 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 5.5 }, { k: 'wait', t: 0.4 })
           break
         }
         cut = true; cIdx = carrierIdx ?? 9; init = att0 + cIdx
-        steps.push({ k: 'wait', t: 0.9 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 7 }, { k: 'wait', t: 0.5 })
+        steps.push({ k: 'wait', t: 0.9 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 5.5 }, { k: 'wait', t: 0.4 })
         break
       case 'break':
         cut = true; steps.push({ k: 'wait', t: 2 })
@@ -559,7 +559,7 @@ export class PitchSim {
         const gain = (E.x - B.x) * dir
         // a try from long range is the last forty metres of it; a held-up
         // drive is from close in
-        const reach = tk === 'close' ? 70 : p.kind === 'try' ? 42 : p.kind === 'heldup' ? 14 : 38
+        const reach = tk === 'close' ? 70 : p.kind === 'try' ? 42 : p.kind === 'heldup' ? 14 : 28
         cut = cut || (d > 16 && !(sameSide && gain > 0 && d <= reach))
         // A CALLED MOVE IS RUN AS IT IS DRAWN (owner: "I didnt see any of the
         // moves"). The line names the move; the Playbook's own keyframes
@@ -585,7 +585,7 @@ export class PitchSim {
           void strike
           // he goes for the line from where the move put him, not across the field
           steps.push({ k: 'run', to: { ...E }, v, straight: true })
-          if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 1.3 : 0.9 })
+          if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 1.0 : 0.8 })
           else steps.push({ k: 'wait', t: 0.2 })
           break
         }

@@ -197,18 +197,20 @@ export function openPlayTargets(w: OpenWorld): Pt[] {
   // short and cannot cover the width, so the attack stretches it: the
   // centres stand wider, the wing hugs the touchline, and the play goes
   // there (sim.ts sends it wide two phases in three).
+  // (20 Nov 2026, seen at readable size: the line stood so deep that the ball went fifteen metres
+  // backwards to reach the wing and he was tackled behind where it started. Flatter by a quarter.)
   const up1 = (w.overlap ?? 0) > 0
   const v13 = vB + (up1 ? 12 : 8), vW = far - (up1 ? 2.2 : 4)
-  if (!taken.has(9)) put(9, -8.5 + go * 1.5, 13.4)
+  if (!taken.has(9)) put(9, -6.5 + go * 1.5, 13.4)
   const centres = [11, 12].filter(k => !taken.has(k) && !gone(att0 + k))
-  const cSlots: [number, number][] = [[-10, up1 ? 23 : 19.4], [-11.5, v13]]
+  const cSlots: [number, number][] = [[-7.8, up1 ? 23 : 19.4], [-9, v13]]
   for (const [g, [u, v]] of deal(centres.map(k => att0 + k), vOf, cSlots.slice(0, centres.length))) { out[g] = P(u + go * 1.5, v); taken.add(g - att0) }
   const wOpen = wingOn(att0 === 0, !openHigh), wShort = wOpen === 10 ? 13 : 10
-  if (!taken.has(wOpen)) put(wOpen, -13.5 + go * 1.5, vW)
+  if (!taken.has(wOpen)) put(wOpen, -10.5 + go * 1.5, vW)
   // ... and the full-back comes into the line as the extra man, between the outside centre and the wing
-  if (up1 && !taken.has(14) && !gone(att0 + 14) && vW - v13 > 7) put(14, -13 + go * 1.5, (v13 + vW) / 2)
+  if (up1 && !taken.has(14) && !gone(att0 + 14) && vW - v13 > 7) put(14, -10 + go * 1.5, (v13 + vW) / 2)
   if (!taken.has(wShort)) put(wShort, near > 9 ? -4.5 : -7, -(near - 3.5))
-  if (!taken.has(14)) { if (vW - v13 > 13) put(14, -12.5 + go * 1.5, (v13 + vW) / 2); else put(14, -16, vB - 3) }
+  if (!taken.has(14)) { if (vW - v13 > 13) put(14, -10 + go * 1.5, (v13 + vW) / 2); else put(14, -13, vB - 3) }
 
   // ================= DEFENCE =================
   // A FLAT LINE ON THE OFFSIDE LINE. At the ruck it stands a stride beyond

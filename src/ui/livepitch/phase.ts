@@ -355,7 +355,7 @@ function kickoff(base: { homeBall: boolean; x: number; at: number; carrier?: num
   const far = nx != null && (nx - 50) * d > 10 ? (nx - 50) * d : 14 + Math.abs(wob(i, 4)) % 1 * 14
   const tx = 50 + d * clamp(far, 12, 30)
   return { ...base, homeBall: kickerHome, kind: 'kickoff', x: 50, y: 35,
-    to: { x: tx, y: clamp(35 + ((Math.abs(wob(i, 5)) % 1) - 0.5) * 44, 13, 57) }, hang: 16, label }
+    to: { x: tx, y: clamp(35 + ((Math.abs(wob(i, 5)) % 1) - 0.5) * 44, 13, 57) }, hang: 11, label }
 }
 
 /** the shape after the first `upto` lines: the latest phase, the banner that
