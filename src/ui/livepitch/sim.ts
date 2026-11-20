@@ -675,7 +675,17 @@ export class PitchSim {
       } else {
         // OPEN PLAY: it is played there. Carry, tackle, quick ball, the next
         // man on to it, until the ruck is where this line picks it up.
-        if (!holderAtt) { this.holder = -1; this.grounded = false }
+        // A TURNOVER IS SEEN TO HAPPEN (owner, 19 Nov 2026: "ball randomly
+        // pinging around? ... Suddenly northampton have the ball?"). The ball
+        // was simply let go and the other side had it. The man with it is
+        // brought down, and the nearest of the other side is over him and
+        // comes away with it, watched at life speed; then play goes on.
+        if (!holderAtt) {
+          const h = this.holder
+          if (h >= 0) this.down[h] = 1.8
+          this.holder = -1; this.grounded = false
+          pre.push({ k: 'pick', who: this.nearest(att0, B), max: 1.6, rate: 1.6 }, { k: 'wait', t: 0.35, rate: 1.6 })
+        }
         pre.push({ k: 'advance', to: { ...anchor }, join: init >= 0 ? init : undefined, rate: p.kind === 'try' ? 1.6 : ADV })
         if (init >= 0) pre.push({ k: 'pick', who: att0 + 8, max: 1.2, rate: ADV }, { k: 'pass', to: init, rate: ADV },
           { k: 'mode', mode, cIdx, anchorOn: init, clear: true })
