@@ -232,5 +232,67 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Yoshitaka Yazaki', 11), r('Shunsuke Uenobo', 3),
     ],
   },
-  w: {},
+  // THE WOMEN: the twelve unions of the 2026 WXV Global Series (September and
+  // October 2026), which are the twelve Test unions of a women's world.
+  w: {
+    // England: 36 named by the RFU on 7 Sep 2026 (Planet Rugby list). The
+    // three uncapped women are 0; every other count is still to be checked.
+    ENG: [
+      r('Bryony Field', 0), r('Sarah Bern', null), r('Hannah Botterman', null), r('Delaney Burns', null),
+      r('Abi Burton', null), r('May Campbell', null), r('Mackenzie Carson', null), r('Kelsey Clifford', null),
+      r('Amy Cokayne', null), r('Maddie Feaunati', null), r('Haidee Head', null), r('Lilli Ives Campion', null),
+      r('Hayley Jones', 0), r('Sadia Kabeya', null), r('Haineala Lutui', null), r('Alex Matthews', null),
+      r('Sophie McQueen', 0), r('Maud Muir', null), r('Marlie Packer', null), r('Demelza Short', null),
+      r('Morwenna Talling', null), r('Holly Aitchison', null), r('Jess Breach', null), r('Millie David', null),
+      r('Zoe Harrison', null), r('Tatyana Heard', null), r('Natasha Hunt', null), r('Megan Jones', null),
+      r('Ellie Kildunne', null), r('Claudia Moloney-MacDonald', null), r('Lucy Packer', null), r('Flo Robinson', null),
+      r('Helena Rowland', null), r('Emma Sing', null), r('Mia Venner', null), r('Bo Westcombe-Evans', null),
+    ],
+    // Scotland: 32 named by Scottish Rugby on 4 Aug 2026, caps beside each name.
+    SCO: [
+      r('Leah Bartlett', 54), r('Holland Bogan', 5), r('Sarah Bonar', 51), r('Hollie Cunningham', 7),
+      r('Elliann Clarke', 29), r('Eva Donaldson', 26), r('Evie Gallagher', 40), r('Rachel Malcolm', 64),
+      r('Elis Martin', 30), r('Rachel McLachlan', 59), r('Molly Poolman', 12), r('Imogen Spence', 0),
+      r('Lana Skeldon', 87), r('Alex Stewart', 20), r('Aicha Sutcliffe', 2), r('Demi Swann', 5),
+      r('Emma Wassell', 78), r('Anne Young', 22), r('Ceitidh Ainsworth', 0), r('Leia Brebner-Holden', 20),
+      r('Katie Buchanan', 0), r('Shona Campbell', 14), r('Rhea Clarke', 4), r('Nicole Flynn', 0),
+      r('Rhona Lloyd', 66), r('Helen Nelson', 80), r('Rachel Philipps', 4), r('Hannah Ramsay', 2),
+      r('Chloe Rollie', 86), r('Lucia Scott', 12), r('Meryl Smith', 27), r('Evie Wills', 10),
+    ],
+    // Australia: 32 named by Rugby Australia on 28 Aug 2026, caps beside each name.
+    AUS: [
+      r('Jemma Bemrose', 0), r('Lily Bone', 4), r('Emily Chancellor', 38), r('Piper Duck', 27),
+      r('Waiaria Ellis', 7), r('Piper Flynn', 0), r('Georgina Friedrichs', 42), r('Martha Fua', 4),
+      r('Caitlyn Halse', 15), r('Tia Hinds', 11), r('Brianna Hoy', 14), r('Eva Karpani', 46),
+      r('Kaitlan Leaney', 40), r('Michaela Leonard', 47), r('Hera-Barb Malcolm Heke', 3), r('Brittany Merlo', 4),
+      r('Desiree Miller', 28), r('Tiarah Minns', 6), r('Faitala Moleka', 31), r('Tania Naden', 30),
+      r("Bridie O'Gorman", 42), r('Siokapesi Palu Sekona', 28), r('Faliki Pohiva', 11), r('Ella Ryan', 1),
+      r('Allana Sikimeti', 4), r('Piper Simons', 2), r('Cecilia Smith', 30), r('Pia Tapsell', 1),
+      r('Tabua Tuinakauvadra', 22), r('Ava Wereta', 2), r('Amelia Whitaker', 0), r('Samantha Wood', 16),
+    ],
+    // South Africa: 30 named by SA Rugby on 11 Sep 2026 (RugbyPass list), caps beside each name.
+    RSA: [
+      r('Byrhandré Dolf', 30), r('Jakkie Cilliers', 26), r('Alichia Arries', 10), r('Maceala Samboya', 11),
+      r('Aphiwe Ngwevu', 36), r('Shiniqwa Lamprecht', 3), r('Naima Hlatshwayo', 3), r('Patience Mokone', 5),
+      r('Maria Tshiremba', 1), r('Ayanda Malinga', 20), r('Libbie Janse van Rensburg', 35), r('Unam Tose', 32),
+      r('Anacadia Minnaar', 9), r('Xoliswa Khuzwayo', 14), r('Sanelisiwe Charlie', 33), r('Yonela Ngxingolo', 47),
+      r('Nombuyekezo Mdliki', 16), r('Babalwa Latsha', 44), r('Lindelwa Gwala', 41), r('Anushka Groenewald', 11),
+      r('Micke Gunter', 18), r('Danelle Lochner', 25), r('Vainah Ubisi', 27), r('Nomsa Mokwai', 20),
+      r('Catha Jacobs', 31), r('Sizophila Solontsi', 36), r('Sinelitha Noxeke', 9), r('Lerato Makua', 20),
+      r('Logan Welman', 6), r('Aseza Hele', 35),
+    ],
+    // USA: 36 named by USA Rugby on 3 Sep 2026 (eagles.rugby). No caps on
+    // the page: every count is still to be checked.
+    USA: [
+      r('Hope Rogers', null), r('Alivia Leatherman', null), r('Lauryn Carlton', null), r('Kathryn Treder', null),
+      r('Chloe Hill-Huse', null), r('Sam Brackett', null), r('Keia Mae Sagapolu Sanele', null), r('Reece Woods', null),
+      r('Mona Lisa Topu', null), r('Hallie Taufoou', null), r('Rachel Ehrecke', null), r('Erica Jarrell-Searcy', null),
+      r('Malia Isaacs', null), r('Hann Humphreys', null), r('Georgie Perris-Redding', null), r('Ina Bailey', null),
+      r('Freda Tafuna', null), r('Kennedy Feasby', null), r('Kate Zackary', null), r('Abigail Paton', null),
+      r('Cassidy Bargell', null), r('Sadie Schier', null), r('Taina Tukuafu', null), r('Bella Vogel', null),
+      r('Nina Mason', null), r('Kayla Canett', null), r('Katana Howard', null), r('Alev Kelter', null),
+      r('Emily Henrich', null), r('Tessa Hann', null), r('Telesi Uhatafe', null), r('Karina Gauto', null),
+      r('Bulou Mataitoga', null), r('Erica Coulibaly', null), r('Tahna Wilfley', null), r('Ashley Cowdrey', null),
+    ],
+  },
 }

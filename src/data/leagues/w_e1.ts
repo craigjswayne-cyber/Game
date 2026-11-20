@@ -410,7 +410,7 @@ export const W_E1: RawClub[] = [
       { name: 'Celia Caroff', pos: 'HK', age: 27, nat: 'FRA', q: 71 },
       { name: 'Cloe Da Costa', pos: 'CE', age: 25, nat: 'FRA', q: 61 },
       { name: 'Amelie Derrey', pos: 'WG', age: 25, nat: 'FRA', q: 68 },
-      { name: 'Chloe Rollie', pos: 'FB', age: 32, nat: 'FRA', q: 51 },
+      { name: 'Chloe Rollie', pos: 'FB', age: 32, nat: 'SCO', q: 51, intl: true },
       { name: 'Clémence Rypen', pos: 'FL', age: 20, nat: 'FRA', q: 53 },
       { name: 'Marie Schall', pos: 'WG', age: 27, nat: 'FRA', q: 68 },
       { name: 'Daisy Shackley', pos: 'LK', age: 24, nat: 'FRA', q: 64 },

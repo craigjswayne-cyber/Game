@@ -41,8 +41,10 @@ for (const gender of ['m', 'w'] as const) {
     // names; Fiji's page is the whole season's 65). Reported loudly, not
     // failed, until the club audit reaches them. Remove a code from this list
     // the moment its count clears the bar.
-    const THIN = new Set(['FIJ', 'JPN'])
-    if (THIN.has(nat) && gender === 'm') console.log(`  THIN  ${nat}: only ${foundSquad}/${squad.length} of the named squad are in the world (club audit to do)`)
+    // the women's world holds almost no South African, American, Canadian,
+    // Italian or Japanese players at all (their leagues are not in the game)
+    const THIN = gender === 'm' ? new Set(['FIJ', 'JPN']) : new Set(['RSA', 'USA', 'CAN', 'ITA', 'JPN'])
+    if (THIN.has(nat)) console.log(`  THIN  ${nat}: only ${foundSquad}/${squad.length} of the named squad are in the world (club audit to do)`)
     else ok(foundSquad >= Math.ceil(squad.length * 0.75), `${nat}: at least three-quarters of the named squad are in the world (${foundSquad}/${squad.length})`)
     const wrong = rows.filter(r => r.caps != null && find(r.name) && find(r.name)!.caps !== r.caps)
     ok(wrong.length === 0, `${nat}: every found man carries his real caps${wrong.length ? ` (not: ${wrong.map(r => r.name).join(', ')})` : ''}`)
