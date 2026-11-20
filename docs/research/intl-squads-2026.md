@@ -208,7 +208,7 @@ each club's full announced squad (non-internationals, new signings, leavers).
 - Still missing from the club files (PWR and Elite 1 audit): Wales 9, Canada 17, Italy 25, Japan 28, South Africa 28, USA 25.
 - All twelve WXV Global Series unions now have a squad in.
 
-### Men, cap corrections (23:45 UTC, 20 Nov)
+### Men, cap corrections (23:37 UTC, 20 Nov)
 
 - South Africa: CORRECTED. One cap off for each of the Italy (7 Nov) and France (13 Nov) match-day 23s a man was in
   (rugby365 team announcements). 21 men two off, Grant Williams, Mostert and Reinach one off. Cross-check: the page had
