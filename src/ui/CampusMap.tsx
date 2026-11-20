@@ -110,6 +110,15 @@ export default function CampusMap({ game, onPick }: {
                 width: `${p.w}%`, height: `${p.h}%`,
                 background: 'transparent', border: 0, padding: 0, cursor: 'pointer',
               }}>
+              {/* A THUMB'S WORTH AT 320px (1.9.15 geosweep): a plot is 12% of
+                  the map, 33px on the smallest phone. This invisible square is
+                  centred on it and never smaller than 44px; the nearest two
+                  plots are 70px apart there, so no tap can land on a neighbour.
+                  The art and the pill do not move. */}
+              <span aria-hidden="true" style={{
+                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+                width: 'max(100%, 44px)', height: 'max(100%, 44px)',
+              }} />
               {/* THE BUILDERS' MARK, across the plot itself (owner, v1.6.6:
                   "a little building icon across it like a hammer or building
                   hat"). The site tile alone reads as bare ground at map scale

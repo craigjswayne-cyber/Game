@@ -150,7 +150,7 @@ export default function Infrastructure() {
             <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>
           )}
           {groundLevel(club.capacity) < GROUND_TIERS.length - 1 && (
-          <button className="btn gold" style={{ padding: '5px 10px', fontSize: '0.75rem', lineHeight: 1.25 }}
+          <button className="btn gold" style={{ padding: '5px 10px', fontSize: '0.75rem', lineHeight: 1.25, minHeight: 44 }}
             disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || plan.seats < 100 || busy}
             onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
             {t('world.infAskExpand')}<br />
@@ -171,7 +171,7 @@ export default function Infrastructure() {
           save, so the map is the estate rather than a picture of one. */}
       <CampusMap game={game} onPick={pick} />
       <SectionTitle sub={t('world.infFacilitiesSub')}>{t('world.infFacilities')}</SectionTitle>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 6 }}>
         {ids.map(fid => {
           const info = FACILITY_INFO[fid]
           const lvl = club.facilities?.[fid] ?? 0
@@ -194,7 +194,7 @@ export default function Infrastructure() {
                   {building && <div className="meta" style={{ fontSize: '0.6875rem', color: 'var(--gold)', fontWeight: 700 }}>{t(weeksLeft === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: weeksLeft })}</div>}
                 </div>
                 {!building && lvl < MAX_FACILITY && (
-                  <button className="btn gold" style={{ padding: '5px 9px', fontSize: '0.6875rem', lineHeight: 1.25, flexShrink: 0 }}
+                  <button className="btn gold" style={{ padding: '5px 9px', fontSize: '0.6875rem', lineHeight: 1.25, flexShrink: 0, minHeight: 44 }}
                     disabled={busy}
                     onClick={() => { setMsg({ key: fid, text: requestFacility(game, fid) }); touch() }}>
                     {t('world.infAskBoard')}<br />

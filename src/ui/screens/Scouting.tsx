@@ -307,7 +307,7 @@ function ScoutAssignment() {
       <div className="chips" style={{ padding: 0 }}>
         {scoutLeagues(game).map(c => (
           <button key={c.id} className="chip" onClick={() => { game.scoutFocus = game.scoutFocus === c.id ? null : c.id; touch() }}
-            style={game.scoutFocus === c.id ? { borderColor: 'var(--gold)', color: 'var(--info)', fontWeight: 700 } : undefined}>
+            style={{ minHeight: 38, ...(game.scoutFocus === c.id ? { borderColor: 'var(--gold)', color: 'var(--info)', fontWeight: 700 } : {}) }}>
             {game.scoutFocus === c.id && <><Glyph name="scout" /> </>}{compLabel(c.short)}
           </button>
         ))}

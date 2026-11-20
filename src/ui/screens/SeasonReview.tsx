@@ -26,7 +26,7 @@ export default function SeasonReview() {
     return (
       <div className="title-screen">
         <div>{t('legacy.srNoSeason')}</div>
-        <button className="btn gold" style={{ marginTop: 16 }} onClick={back}>{t('legacy.srBack')}</button>
+        <button className="btn gold" style={{ marginTop: 16, minHeight: 44 }} onClick={back}>{t('legacy.srBack')}</button>
       </div>
     )
   }
@@ -206,7 +206,7 @@ export default function SeasonReview() {
           </>
         )}
 
-        <button className="btn gold block" style={{ marginTop: 12, fontSize: '1rem' }} onClick={back}>
+        <button className="btn gold block" style={{ marginTop: 12, fontSize: '1rem', minHeight: 44 }} onClick={back}>
           {t('legacy.srFileAway')}
         </button>
         <div className="spacer" />
