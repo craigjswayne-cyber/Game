@@ -221,7 +221,15 @@ function readLine0(e: MatchEvent, i: number, homeId: string, prev: Phase | null,
     const x = clamp(fld, isHome ? 50 : 8, isHome ? 92 : 50)
     // (a penalty that is missed was a hard one: out towards the touchline.
     // One that goes over is from in front or nearly so.)
-    const y = drop ? drift(16, 18, 52) : good ? clamp(35 + (prevY - 35) * 0.55, 14, 56) : clamp(35 + (prevY < 35 ? -1 : 1) * (20 + Math.abs(wob(i, 6)) % 1 * 8), 8, 62)
+    // NO KICK AT GOAL FROM A SILLY ANGLE (owner, 19 Nov 2026: "Smith kicks a
+    // penalty from an odd angle, in a real game he would have gone for the
+    // corner here"). Close to the line and out wide is a kick to the corner,
+    // not a shot. How far off centre a shot can be grows with how far out it
+    // is: a few metres from 10 out, the 15-metre line from 30 out.
+    const out = isHome ? 100 - x : x
+    const wideMax = clamp(4 + out * 0.42, 5, 17)
+    const y0 = drop ? drift(16, 18, 52) : good ? clamp(35 + (prevY - 35) * 0.55, 14, 56) : clamp(35 + (prevY < 35 ? -1 : 1) * (20 + Math.abs(wob(i, 6)) % 1 * 8), 8, 62)
+    const y = clamp(y0, 35 - (good || drop ? wideMax : wideMax + 6), 35 + (good || drop ? wideMax : wideMax + 6))
     return { ...base, homeBall: isHome, kind: 'goal', x, y, good, label: drop ? 'lp.drop' : 'lp.goalKick',
       to: { x: isHome ? 104 : -4, y: good ? 35 : 35 + (wob(i, 3) < 0.5 ? -7 : 7) }, hang: drop ? 7 : 10,
       banner: { kind: drop ? (good ? 'dg' : 'dgMiss') : (good ? 'pen' : 'penMiss'), teamId: e.teamId, name: e.playerName, min: e.min, at: i } }
