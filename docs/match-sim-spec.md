@@ -134,4 +134,18 @@ https://resources.world.rugby/worldrugby/document/2022/01/26/9106cf21-9a5f-4b99-
 From Stats Perform, RWC 2023: ball in play 34 min 18 s.
 https://www.statsperform.com/resource/revolutionising-rugby-a-statistical-analysis-on-how-the-game-has-evolved/
 
-Two things these numbers say about the current game. Its own count this week was about 6 penalties a match (4.9 to 6.8 by referee), where Test rugby has about 17 penalties and free kicks. Whether the game's figure is per side or per match is to be confirmed in the code before anything is tuned to it; either way the engine only counts penalties that matter to its score. And it scores 48 to 53 points a match where the 2019 World Cup averaged 40. The owner decides in stage 0 whether the new engine keeps the game's scoring as it is or moves toward the real figure.
+### Club level
+
+Gallagher Premiership 2024-25, regular season, from the final table (10 clubs, 18 matches each, 90 matches): 5,067 points and 716 tries, which is 56.3 points and 8.0 tries a match.
+https://africa.espn.com/rugby/table/_/league/267979/season/2025
+
+Across the professional leagues tracked by Oval Insights, as reported by Sam Larner: 26.24 points per team per match in the current season (52.5 a match), up from 23.27 in 2021-22 (46.5 a match). Ball in play 33.4 minutes in 2021-22, 35.3 in 2023-24, 33.5 now.
+https://samlarner.substack.com/p/points-of-order
+
+Still to find for club level: rucks, scrums, lineouts, penalties and cards per match, and figures for the URC, Top 14, Super Rugby and the women's leagues in the game.
+
+### What this says about the game today
+
+Scoring: the game's band of 48 to 53 points and 6.0 to 6.6 tries sits between Test rugby (40 points, 6.3 tries) and the Premiership (56 points, 8.0 tries). It is defensible as it stands.
+
+Penalties: Its own count this week was about 6 penalties a match (4.9 to 6.8 by referee), where Test rugby has about 17 penalties and free kicks. Whether the game's figure is per side or per match is to be confirmed in the code before anything is tuned to it; either way the engine only counts penalties that matter to its score.
