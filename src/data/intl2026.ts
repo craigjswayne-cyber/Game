@@ -235,18 +235,18 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
   // THE WOMEN: the twelve unions of the 2026 WXV Global Series (September and
   // October 2026), which are the twelve Test unions of a women's world.
   w: {
-    // England: 36 named by the RFU on 7 Sep 2026 (Planet Rugby list). The
-    // three uncapped women are 0; every other count is still to be checked.
+    // England: 36 named by the RFU on 7 Sep 2026, with the caps RugbyPass
+    // printed beside each name that day (Planet Rugby's list agrees on names).
     ENG: [
-      r('Bryony Field', 0), r('Sarah Bern', null), r('Hannah Botterman', null), r('Delaney Burns', null),
-      r('Abi Burton', null), r('May Campbell', null), r('Mackenzie Carson', null), r('Kelsey Clifford', null),
-      r('Amy Cokayne', null), r('Maddie Feaunati', null), r('Haidee Head', null), r('Lilli Ives Campion', null),
-      r('Hayley Jones', 0), r('Sadia Kabeya', null), r('Haineala Lutui', null), r('Alex Matthews', null),
-      r('Sophie McQueen', 0), r('Maud Muir', null), r('Marlie Packer', null), r('Demelza Short', null),
-      r('Morwenna Talling', null), r('Holly Aitchison', null), r('Jess Breach', null), r('Millie David', null),
-      r('Zoe Harrison', null), r('Tatyana Heard', null), r('Natasha Hunt', null), r('Megan Jones', null),
-      r('Ellie Kildunne', null), r('Claudia Moloney-MacDonald', null), r('Lucy Packer', null), r('Flo Robinson', null),
-      r('Helena Rowland', null), r('Emma Sing', null), r('Mia Venner', null), r('Bo Westcombe-Evans', null),
+      r('Bryony Field', 0), r('Sarah Bern', 84), r('Hannah Botterman', 62), r('Delaney Burns', 6),
+      r('Abi Burton', 9), r('May Campbell', 5), r('Mackenzie Carson', 28), r('Kelsey Clifford', 25),
+      r('Amy Cokayne', 94), r('Maddie Feaunati', 27), r('Haidee Head', 1), r('Lilli Ives Campion', 8),
+      r('Hayley Jones', 0), r('Sadia Kabeya', 32), r('Haineala Lutui', 4), r('Alex Matthews', 82),
+      r('Sophie McQueen', 0), r('Maud Muir', 53), r('Marlie Packer', 116), r('Demelza Short', 4),
+      r('Morwenna Talling', 29), r('Holly Aitchison', 49), r('Jess Breach', 57), r('Millie David', 1),
+      r('Zoe Harrison', 70), r('Tatyana Heard', 36), r('Natasha Hunt', 89), r('Megan Jones', 38),
+      r('Ellie Kildunne', 62), r('Claudia Moloney-MacDonald', 40), r('Lucy Packer', 44), r('Flo Robinson', 5),
+      r('Helena Rowland', 51), r('Emma Sing', 17), r('Mia Venner', 4), r('Bo Westcombe-Evans', 2),
     ],
     // Scotland: 32 named by Scottish Rugby on 4 Aug 2026, caps beside each name.
     SCO: [

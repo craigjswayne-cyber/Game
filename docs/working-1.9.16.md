@@ -41,7 +41,9 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - [x] South Africa caps, Fiji (65) and Japan (54) from the Nations Championship squad pages (current caps: to
       correct for autumn appearances; Fiji and Japan are whole-season squads, autumn party to narrow).
 - [ ] Men still to do: Samoa, Tonga, USA, Canada; the 23 open caps in ENG/FRA/WAL/RSA (use the championship site).
-- [ ] WOMEN (owner 22:12): every squad announced for WXV 1, 2 and 3; then PWR club squads for 2026-27.
+- [~] WOMEN: 2026 is the WXV Global Series (12 unions), not WXV 1/2/3. In: ENG, SCO, AUS, RSA (all caps), USA (no caps).
+      To do: FRA, IRE, WAL, ITA, NZL, CAN, JPN, USA caps. 7 nationalities corrected.
+- [~] PWR 2026-27: all 52 internationals checked are at the right club. Full club lists still to check.
 - [ ] BIG FINDING: only 4 of Japan's 54 internationals exist in the game. The Japanese league's 'real' players are
       mostly invented names (e.g. no Dylan Riley, Jack Cornelsen, Naoto Saito). Fiji: 34 of 65. This is Stage 4
       work (rebuild the JL1 squads from each club's real list). Also Boan Venter is SCO in the game, a Springbok in fact. Then the ten women's unions.

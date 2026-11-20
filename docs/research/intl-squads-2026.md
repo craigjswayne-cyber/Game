@@ -166,3 +166,20 @@ Still to find: France, Ireland, Wales, Italy, New Zealand, Canada, Japan.
 Not started. The PWR clubs are in src/data/leagues/w_pwr.ts. Take each club's
 own announced 2026-27 squad and compare it with the file (players in, players
 out, positions, nationality).
+
+### Women done so far (22:40)
+
+- England: 36, all caps (RugbyPass, 7 Sep 2026: "John Mitchell names highly experienced Red Roses squad").
+- Scotland: 32, all caps (Scottish Rugby, 4 Aug 2026). Australia: 32, all caps (rugby.com.au, 28 Aug 2026).
+- South Africa: 30, all caps (RugbyPass, 11 Sep 2026); none of them are in the women's world except the two
+  PWR players. USA: 36 named (eagles.rugby, 3 Sep 2026), no caps on the page; 8 in the world.
+- Nationalities corrected: Hollie Cunningham, Eva Donaldson, Demi Swann, Katie Buchanan, Chloe Rollie (SCO);
+  Micke Gunter, Danelle Lochner (RSA).
+- Still to find: France, Ireland, Wales, Italy, New Zealand, Canada, Japan; USA caps.
+
+### PWR check, first pass (22:40)
+
+The 36 Red Roses, 14 Scotland and 2 South Africa internationals who play in the PWR were compared, club by club,
+with the women's world (tool: /home/claude/tools/pwrclubs.ts, WANT env as JSON name->club). All 52 are at the
+club the 2026-27 announcements give. So the PWR's international core is right for 2026-27. NOT yet checked:
+each club's full announced squad (non-internationals, new signings, leavers).
