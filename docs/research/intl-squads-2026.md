@@ -119,9 +119,9 @@ union. A figure goes in the data file only when a source here gives it.
 - Squad and caps: Wikipedia, Argentina national rugby union team: "On 30
   October 2026, Argentina named a 33-player squad", "Caps updated: 6 November
   2026 (after Ireland v Argentina)". Santiago Carreras is injured and absent.
-- TO CORRECT: take one cap off each of the 23 who played Ireland on 6 Nov
-  (team in The 42, "Contepomi names powerful Pumas side", and the replacements'
-  caps in periodismo-rugby.com.ar's France team sheet of 19 Nov).
+- CORRECTED 22:30: one cap taken off each of the 23 named against Ireland
+  (The 42, "Contepomi names powerful Pumas side"). Assumes every replacement
+  came on.
 
 ## Fiji and Japan (men) - season squads in, autumn party to narrow
 

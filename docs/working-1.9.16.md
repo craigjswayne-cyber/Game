@@ -65,7 +65,11 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
       referee warns, fair one bins the instigator, strict one bins one from each side and sends the puncher
       off 18% of the time. Own random stream, so other scuffles are unchanged. Measured on 4 worlds,
       6,708 matches: points 49.95 to 50.03, yellows 1.45 a game unchanged, reds 303 to 330. Six languages.
-- [ ] Bust-ups: check `ctx.derby` is set for Test rivalries (ENG v SCO etc.), and add a test.
+- [x] Test rivalries are now derbies (12 pairs in rivalries.ts), so bust-ups and derby heat reach Tests. Tests added.
+      Measured: 41 of 400 derbies had a bust-up (10%), 49 yellows and 1 red from them.
+- [ ] Bust-up ANIMATION: none (commentary and cards only). Owner asked 22:23. Belongs on the 2.0.0 live pitch.
+- [ ] TIGHTER, TENSER TESTS (owner 22:15): not fewer points. Measure real margins between top sides, then tune
+      close Tests: smaller margins, fewer runaways, more kicks at goal, more games alive late. Show before/after.
 - [ ] Pre-match rituals in formation for every nation that has one (only NZ has a line today).
 
 ## Stage 4: full club player audit (owner: do it all)
@@ -94,3 +98,9 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - 22:15 Bath's squad is the club's published list: adding a man there filled the senior squad and broke the
   free-agent tests, so Opoku-Gyamfi was taken back out. Check squad room before adding to any club.
 - 22:24 Twelve Nations Championship unions in the file: 538 men named. intlaudit passes, with FIJ and JPN reported as THIN.
+- 22:30 Owner 22:23: "use real names to fill teams if you have that data" and "let's get the things that aren't right".
+  Done: 31 real Japan internationals now replace generated men in their League One clubs (jl1.ts REAL; JPN 35/54),
+  Doge and Rabitu (Drua), Sowakula (Clermont), Boan Venter RSA. Argentina caps corrected to pre-autumn.
+  LESSON: the championship page's club column can be stale (Saito, Nasilasila); verified.ts wins on clubs.
+  STILL NOT RIGHT: RSA/FIJ/JPN caps are current (take off autumn appearances: need SA v ITA 7 Nov, v FRA 13 Nov,
+  and the Fiji and Japan November team sheets); Fiji and Japan autumn parties not narrowed; fingerprint rebaseline.
