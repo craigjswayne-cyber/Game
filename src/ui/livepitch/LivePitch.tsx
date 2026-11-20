@@ -117,6 +117,8 @@ function h2(a: number, b: number): number {
 }
 
 try { const c = Number(new URLSearchParams(window.location.search).get('lpcap')); if (c >= 1) PitchSim.cap = c } catch { /* no window: tests */ }
+// (?lpbase=1 plays the match at life speed, for looking hard at the movement: owner, 20 Nov 2026)
+try { const b = Number(new URLSearchParams(window.location.search).get('lpbase')); if (b >= 0.5 && b <= 3) PitchSim.base = b } catch { /* no window: tests */ }
 
 export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false, onReached }: {
   /** snow on the ground */
