@@ -307,6 +307,20 @@ export class PitchSim {
         if (ki > 0) { this.si = ki - 1; this.st = 0; this.entered = false; this.holder = kk; this.flight = null; this.grounded = false; this.ball.x = this.b[kk].x; this.ball.y = this.b[kk].y } }
       return
     }
+    // AFTER A SCORE PLAY RESTARTS WITH A KICK-OFF BY THE SIDE THAT CONCEDED
+    // (law 12; 20 Nov 2026, seen in the 5pm recording: a converted try was
+    // followed at once by a lineout near halfway). The engine writes a
+    // restart line for about three scores in four; for the rest the pitch
+    // plays the kick-off before the line that follows.
+    if (last && (last.kind === 'con' || (last.kind === 'goal' && last.good !== false) || (last.kind === 'try' && p.kind !== 'con')) && !this.queued && p.at !== last.at
+      && p.kind !== 'kickoff' && p.kind !== 'dropout' && p.kind !== 'con' && p.kind !== 'goal' && p.kind !== 'try' && p.kind !== 'break') {
+      const home = !last.homeBall, d = home ? 1 : -1
+      const K: Phase = { kind: 'kickoff', homeBall: home, x: 50, y: 35, at: p.at, hang: 11, label: 'lp.restart',
+        to: { x: 50 + d * 22, y: clamp(p.y, 13, 57) } }
+      this.queued = { p, c: carrierIdx }
+      this.start(K, null)
+      return
+    }
     // AND ANY BALL KICKED INTO TOUCH IS A LINEOUT, THE OTHER SIDE'S THROW
     // (owner, 19 Nov 2026: "If a team kicks it out unless its a penalty or a
     // 50/22 it should be the other sides throw in"; "no lineout suddenly").
