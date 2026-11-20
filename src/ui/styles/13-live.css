@@ -871,3 +871,15 @@
 .app.tablet .tab-stats .live-stats .ls-row + .ls-row { border-top: 1px solid var(--border); }
 .mpanels.tele-mode { gap: 6px; padding: 8px 10px 10px; box-shadow: 0 -10px 30px rgba(0, 0, 0, .45); }
 .tele tr.binned td { background: color-mix(in srgb, var(--prop-yellow) 12%, transparent); }
+
+/* ONE SCORE IN IT (1.9.16): the marker under the clock in a close Test. Gold
+   on the hero gradient (the -fill form, as the penalty counts above use), and
+   a slow pulse that stops for anyone who has asked for less motion. */
+.tense-tag {
+  align-self: center; margin: 4px auto 0; padding: 2px 12px; border-radius: 999px;
+  font-family: var(--cond); font-weight: 800; font-size: 0.8125rem; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--gold-fill); border: 1px solid var(--gold-fill); width: fit-content;
+  animation: tense-pulse 1.2s ease-in-out infinite;
+}
+@keyframes tense-pulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .tense-tag { animation: none; } }

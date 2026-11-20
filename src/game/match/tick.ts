@@ -23,6 +23,7 @@ import { SP_PEN_W, cynicalIncident, heldUpTick, interceptTick, reversedPenalty, 
 import { pickInjury } from './injuries'
 import { TACKLE_LINES, cameOn, countTackles, fieldChanged } from './field'
 import { BREAK_P, type SideCtx, evOf, evTick, layer, zoneIdx } from './side'
+import { lastTenCall, tenseLine } from './tension'
 import { FLAVOR, FLAVOR_DERBY, FLAVOR_FUN, FLAVOR_GRASSROOTS, FLAVOR_PACIFIC, FLAVOR_WET, FLAVOR_WIND, SCRUM_CONTEST_FLAV, TIRED_LINES } from './lines'
 import { type LiveCtx, binUntil, pushLine, styledKick } from './live'
 import { drainEnergy, sideEnergy } from './energy'
@@ -648,6 +649,8 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // and when nothing came of the tick, a word for the side that stopped it
     if (side.score + opp.score === scores0) describeDefence(state, ctx, opp, side, contest)
 
+    // a one-score Test going into its last ten says so, once (tension.ts)
+    lastTenCall(state, ctx, min)
     // atmosphere lines for the live ticker
     if (detail && ctx.crng() < 0.3) {
       const ids = [...side.onPitch]
@@ -659,7 +662,10 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushLine(state, ctx, min, 'SUB', side, TIRED_LINES[Math.floor(ctx.crng() * TIRED_LINES.length)], { player: p.name }, p.id)
         } else {
           const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow'
-          const pool = ctx.crng() < 0.035 ? FLAVOR_FUN
+          // a Test on a knife edge talks about the knife edge (tension.ts)
+          const tense = tenseLine(state, ctx, side, opp, min)
+          const pool = tense ? [tense]
+            : ctx.crng() < 0.035 ? FLAVOR_FUN
             : derby && ctx.crng() < 0.3 ? FLAVOR_DERBY
             : ctx.fx.compId === 'natl1' && ctx.crng() < 0.3 ? FLAVOR_GRASSROOTS
             : ctx.fx.compId === 'pnc' && ctx.crng() < 0.3 ? FLAVOR_PACIFIC

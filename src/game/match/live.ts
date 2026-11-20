@@ -38,6 +38,8 @@ export interface LiveCtx {
    *  them, so a bank of ten does not repeat itself inside a quarter. Words
    *  only, never read by the simulation. */
   recent?: string[]
+  /** the last-ten call of a one-score Test has been made (tension.ts) */
+  tenseSaid?: boolean
   /** EVERY KICK AT GOAL, in the order of the commentary (1.8.0): [the index
    *  of the line it belongs to, 0 home / 1 away, 1 made / 0 missed]. The
    *  engine runs a tick ahead of the ticker, so the live stats count only

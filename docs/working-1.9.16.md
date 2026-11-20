@@ -111,3 +111,9 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   LESSON: the championship page's club column can be stale (Saito, Nasilasila); verified.ts wins on clubs.
   STILL NOT RIGHT: RSA/FIJ/JPN caps are current (take off autumn appearances: need SA v ITA 7 Nov, v FRA 13 Nov,
   and the Fiji and Japan November team sheets); Fiji and Japan autumn parties not narrowed; fingerprint rebaseline.
+- 22:55 Owner 22:48: "Yes to those features. Internationals need to feel the tension." BUILT (src/game/match/tension.ts):
+  a Test in its last quarter with 7 or fewer in it gets stakes commentary (leading, chasing, level), crowd lines,
+  a once-only last-ten call, pressure-kick lines before shots at goal, and a pulsing ONE SCORE IN IT / ALL SQUARE
+  tag under the clock (Live.tsx, .tense-tag). Commentary stream only: tests prove a Test scores the same watched
+  or silent. Six languages. Sampled on a real Test week: 31 of 90 Tests carried tension lines (20 finished within 7).
+  NOT YET SEEN ON SCREEN: the scoreboard tag needs a browser look at 384x832.

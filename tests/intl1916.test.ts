@@ -121,3 +121,47 @@ describe('the bust-up', () => {
     expect(isDerby('ENG', 'JPN')).toBe(false)
   })
 })
+
+/**
+ * ---- A CLOSE TEST FEELS CLOSE (1.9.16) ----
+ *
+ * Words and a marker only: the match itself must be the same match.
+ */
+import { tensionOf } from '../src/game/match/tension'
+import { beginMatch } from '../src/game/matchEngine'
+
+describe('the tension of a close Test', () => {
+  const testFx = (g: GameState) => g.fixtures.find(f => g.comps[f.compId]?.isNational && !f.played)!
+
+  it('is read off the score and the clock, in a Test only', () => {
+    const g = newGame('leicester', 'Tense', 9)
+    const ctx = beginMatch(g, { ...testFx(g), id: 700001 } as Fixture, mulberry32(3), true)
+    ctx.home.score = 20; ctx.away.score = 16
+    expect(tensionOf(g, ctx, 59)).toBeNull()
+    expect(tensionOf(g, ctx, 60)).toBe('one')
+    ctx.away.score = 20
+    expect(tensionOf(g, ctx, 75)).toBe('level')
+    ctx.away.score = 12
+    expect(tensionOf(g, ctx, 75)).toBeNull()
+    const league = g.fixtures.find(f => g.comps[f.compId]?.type === 'league')!
+    const club = beginMatch(g, { ...league, id: 700002 } as Fixture, mulberry32(3), true)
+    club.home.score = 20; club.away.score = 16
+    expect(tensionOf(g, club, 75)).toBeNull()
+  })
+
+  it('never changes a result: a Test scores the same watched or silent', () => {
+    const g = newGame('leicester', 'Tense', 9)
+    const tests = g.fixtures.filter(f => g.comps[f.compId]?.isNational).slice(0, 12)
+    let said = 0
+    tests.forEach((base, i) => {
+      const a = { ...base, id: 600000 + i, played: false } as Fixture
+      const b = { ...base, id: 600000 + i, played: false } as Fixture
+      const g2 = newGame('leicester', 'Tense', 9)
+      const loud = simMatch(g, a, mulberry32(77 + i), true)
+      simMatch(g2, b, mulberry32(77 + i), false)
+      expect([a.homeScore, a.awayScore]).toEqual([b.homeScore, b.awayScore])
+      if (loud.events.some(e => /^comm\.(tense|pressKick)/.test(e.k ?? ''))) said++
+    })
+    expect(said).toBeGreaterThan(0)
+  })
+})

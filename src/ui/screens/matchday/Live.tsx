@@ -1,6 +1,7 @@
 // The match as it is played: the ticker, the pitch, the controls and the sheets.
 
 import { TestVerdict } from '../../TestVerdict'
+import { tensionOf } from '../../../game/match/tension'
 import { natKit } from '../../../data/natcolours'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../../store'
@@ -481,6 +482,15 @@ export function Live() {
           {/* say so, or a ticker that skips the quiet minutes looks broken (F5) */}
           {live.mode === 'highlights' && !done ? t('matchday.highlightsTag') : ''}
         </div>
+        {/* ONE SCORE IN IT (owner, 1.9.16: "internationals need to feel the
+            tension"). A Test in its last quarter with a converted try or less
+            between the sides says so under the clock, and pulses once a
+            second. Read off the score and the minute: nothing in the match
+            knows it is here. */}
+        {!done && (() => {
+          const tn = tensionOf(game, ctx, min)
+          return tn ? <div className="tense-tag" data-tense={tn} role="status">{t(tn === 'level' ? 'matchday.allSquare' : 'matchday.oneScore')}</div> : null
+        })()}
         {!done && (() => {
           const win = (ctx.momoHist ?? []).slice(-3)
           // no history yet means no measurement: a half-filled bar at 0' reads
