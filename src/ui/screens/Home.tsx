@@ -587,7 +587,7 @@ export default function Home() {
                   <span className="muted dl-wk">{t('common.wk', { n: f.week })}</span>
                   <span className="dl-t">{teamShort(game, f.homeId === club.id ? f.awayId : f.homeId)}</span>
                   <span>{t(f.homeId === club.id ? 'common.h' : 'common.a')}</span>
-                  <span className="muted">{game.comps[f.compId] ? f.compId.toUpperCase() : 'FR'}</span>
+                  <span className="muted">{game.comps[f.compId] ? f.compId.replace(/^w:/, '').toUpperCase() : 'FR'}</span>
                 </div>
               ))}
             </button>
@@ -713,7 +713,7 @@ function BlankWeek({ hook }: { hook: ReturnType<typeof weekHook> }) {
 /** Shared with Tables, Fixtures and MatchDay, which is why it lives in the
  *  common namespace rather than under home. */
 export function stageName(s: string): string {
-  const key = { QF: 'common.stageQF', SF: 'common.stageSF', F: 'common.stageF', BAR: 'common.stageBAR' }[s]
+  const key = { R16: 'common.stageR16', QF: 'common.stageQF', SF: 'common.stageSF', BRZ: 'common.stageBRZ', F: 'common.stageF', BAR: 'common.stageBAR' }[s]
   return key ? t(key) : s
 }
 
@@ -730,7 +730,7 @@ export function stageName(s: string): string {
  * a semi-final should be called a semi-final. This is only for the list.
  */
 export function stageShort(s: string): string {
-  const key = { QF: 'common.stageQFShort', SF: 'common.stageSFShort', F: 'common.stageFShort', BAR: 'common.stageBARShort' }[s]
+  const key = { R16: 'common.stageR16Short', QF: 'common.stageQFShort', SF: 'common.stageSFShort', BRZ: 'common.stageBRZShort', F: 'common.stageFShort', BAR: 'common.stageBARShort' }[s]
   return key ? t(key) : s
 }
 

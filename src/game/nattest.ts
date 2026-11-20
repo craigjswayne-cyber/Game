@@ -78,5 +78,6 @@ export function testConfDelta(state: GameState, mySide: string, oppId: string, u
   const better = opp > me
   // a draw with a weaker side is a result the union counts against you, and a
   // defeat by one well below you (five points or more) is a story (1.9.15)
-  return us > them ? (better ? 4 : 2.5) : us < them ? (better ? -3.5 : opp <= me - 5 ? -7 : -5.5) : better ? 0.5 : -1
+  // and beating a side eight or more below is what you are paid for: +1
+  return us > them ? (better ? 4 : opp <= me - 8 ? 1 : 2.5) : us < them ? (better ? -3.5 : opp <= me - 5 ? -7 : -5.5) : better ? 0.5 : -1
 }

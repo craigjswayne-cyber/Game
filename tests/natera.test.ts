@@ -67,6 +67,7 @@ describe('the appointment and the era', () => {
     const g = newGame('leicester', 'Era', 54)
     g.natRank = { ...(g.natRank ?? {}), ITA: 60, NZL: 90 }
     expect(testConfDelta(g, 'ITA', 'NZL', 20, 10)).toBe(4)
+    expect(testConfDelta(g, 'NZL', 'ITA', 20, 10)).toBe(1) // the expected win
     // 1.9.15: a defeat by a side five or more below is -7, a draw with a
     // weaker side -1; a draw with a better one still +0.5
     expect(testConfDelta(g, 'NZL', 'ITA', 10, 20)).toBe(-7)

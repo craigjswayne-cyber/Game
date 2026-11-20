@@ -10,8 +10,9 @@
 import { describe, expect, it } from 'vitest'
 import { newGame } from '../src/game/newgame'
 import { activeWindows } from '../src/game/season'
-import { applyToTable } from '../src/game/season/tables'
-import { emptyRow, isLionsSeason, isWomensTourSeason } from '../src/game/schedule'
+import { applyToTable, wcRoundOf16 } from '../src/game/season/tables'
+import { buildInternationals, emptyRow, isLionsSeason, isWomensTourSeason } from '../src/game/schedule'
+import { mulberry32 } from '../src/game/rng'
 import { BASE_YEAR, type Competition, type Fixture, type GameState } from '../src/game/model'
 import { natCallUp, natDrop } from '../src/game/country'
 import { announceSquad, noteWindowResult, openNatWindow } from '../src/game/natwin'
@@ -103,5 +104,37 @@ describe('the announcement', () => {
     noteWindowResult(g, 20, 10)
     expect(g.natWin!.announced).toBe(true)
     expect(g.natWin!.w).toBe(1)
+  })
+})
+
+describe('the World Championship, the real 2027 format', () => {
+  it('twenty-four nations in the six pools that were drawn, three rounds each', () => {
+    const g = newGame('leicester', 'WC', 61)
+    g.season = 2027 - BASE_YEAR
+    buildInternationals(mulberry32(61), g, true)
+    const wc = g.comps['wc']
+    expect(wc.teamIds.length).toBe(24)
+    expect(wc.pools).toEqual([
+      ['NZL', 'AUS', 'CHL', 'HKG'], ['RSA', 'ITA', 'GEO', 'ROU'], ['ARG', 'FIJ', 'ESP', 'CAN'],
+      ['IRE', 'SCO', 'URU', 'POR'], ['FRA', 'JPN', 'USA', 'SAM'], ['ENG', 'WAL', 'TGA', 'ZIM'],
+    ])
+    expect(wc.playoffTeams).toBe(16)
+    expect(g.fixtures.filter(f => f.compId === 'wc' && !f.stage).length).toBe(36)
+  })
+
+  it('the last sixteen: two from each pool and the four best thirds, no pool rematch', () => {
+    const row = (teamId: string, pts: number) => ({ ...emptyRow(teamId), pts })
+    const rows = [...Array(6).keys()].map(p => [0, 1, 2, 3].map(i => row(`P${p}T${i}`, 15 - i * 4 - p)))
+    const ties = wcRoundOf16(rows)
+    expect(ties.length).toBe(8)
+    const teams = ties.flat()
+    expect(new Set(teams).size).toBe(16)
+    for (let p = 0; p < 6; p++) {
+      expect(teams).toContain(`P${p}T0`)
+      expect(teams).toContain(`P${p}T1`)
+      expect(teams).not.toContain(`P${p}T3`)
+    }
+    expect(teams.filter(t => t.endsWith('T2')).length).toBe(4)
+    expect(ties.every(([h, a]) => h.slice(0, 2) !== a.slice(0, 2))).toBe(true)
   })
 })

@@ -2,8 +2,11 @@ import { useStore } from '../../store'
 import { seasonLabel } from '../../game/model'
 import { SectionTitle } from '../components'
 import { t, compLabel } from '../../game/i18n'
+import { nationName } from '../../game/nations'
 import { Glyph } from '../glyphs'
 import { acc } from '../accent'
+
+const NATION_CODE = /^[A-Z]{3}$/
 
 /**
  * The Annual: the forced page between seasons (user: "when a season is
@@ -23,6 +26,18 @@ export default function Annual() {
   const touch = useStore(s => s.touch)
   const season = game.annual?.season ?? game.season - 1
   const honours = game.history.filter(h => h.season === season)
+  // A COMPETITION BY ITS NAME, EVEN AFTER ROLLOVER (QA, 1.9.15). The season's
+  // competitions are rebuilt before the Annual is read, so a Test series or a
+  // tour no longer in state.comps printed its code ("PNC", "LIONS") and a
+  // nation champion its three letters ("JPN").
+  const compTitle = (id: string): string => {
+    const c = game.comps[id]
+    if (c) return compLabel(c.name)
+    if (id === 'lions' || id === 'w:lions') return nationName('LIO')
+    const k = 'compName.' + id.replace(':', '_')
+    const s = t(k)
+    return s === k ? id.toUpperCase() : s
+  }
   const myPots = game.mgr.trophies.filter(t => t.season === season)
   const label = seasonLabel(season)
 
@@ -52,9 +67,9 @@ export default function Annual() {
           <div className="card" style={{ padding: '6px 12px' }}>
             {honours.map((h, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '4px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
-                <span className="meta">{compLabel(game.comps[h.compId]?.name) ?? h.compId.toUpperCase()}</span>
+                <span className="meta">{compTitle(h.compId)}</span>
                 <b style={{ fontSize: '0.8125rem', color: (game.clubs[h.champion]?.id ?? h.champion) === game.userClubId ? 'var(--info)' : undefined }}>
-                  {game.clubs[h.champion]?.name ?? h.champion}
+                  {game.clubs[h.champion]?.name ?? (NATION_CODE.test(h.champion) ? nationName(h.champion) : h.champion)}
                 </b>
               </div>
             ))}

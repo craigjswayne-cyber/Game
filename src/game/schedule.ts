@@ -382,7 +382,6 @@ export function buildMrcCup(clubIds: readonly string[], state: GameState): Compe
 export const TOUR_PROVINCIAL = 7
 export const TEST_NAMES = ['1st Test', '2nd Test', '3rd Test'] as const
 
-/** World Championship: 20 nations, 4 pools of 5, then QF/SF/Final. */
 /** The women's tournament (1.6.4): sixteen nations, four pools of four, played
  *  in August and September as the real one is (weeks 1 to 6, calendar.ts).
  *  The 2025 field, which is the best guess anyone has for 2029 until
@@ -391,10 +390,21 @@ const W_WC_NATIONS = [
   'ENG', 'NZL', 'CAN', 'FRA', 'IRE', 'AUS', 'SCO', 'ITA',
   'USA', 'WAL', 'JPN', 'RSA', 'ESP', 'FIJ', 'SAM', 'POR',
 ]
-const M_WC_NATIONS = [
-  'RSA', 'NZL', 'IRE', 'FRA', 'ENG', 'ARG', 'SCO', 'AUS', 'FIJ', 'ITA',
-  'WAL', 'GEO', 'JPN', 'SAM', 'TGA', 'USA', 'URU', 'POR', 'ESP', 'CHL',
+/** The men's tournament (1.9.15): twenty-four nations in six pools of four,
+ *  the two from each pool and the four best thirds into a round of sixteen,
+ *  then quarter-finals, semi-finals, a bronze final and the final. The real
+ *  2027 format, with the real 2027 field and, for 2027, the real draw
+ *  (World Rugby, December 2025). Later tournaments are drawn from the live
+ *  rankings. It was twenty in four pools of five, the old format. */
+const WC_2027_POOLS = [
+  ['NZL', 'AUS', 'CHL', 'HKG'],
+  ['RSA', 'ITA', 'GEO', 'ROU'],
+  ['ARG', 'FIJ', 'ESP', 'CAN'],
+  ['IRE', 'SCO', 'URU', 'POR'],
+  ['FRA', 'JPN', 'USA', 'SAM'],
+  ['ENG', 'WAL', 'TGA', 'ZIM'],
 ]
+const M_WC_NATIONS = WC_2027_POOLS.flat()
 
 function buildWorldCup(rng: Rng, state: GameState, women = false) {
   const nations = women ? W_WC_NATIONS : M_WC_NATIONS
@@ -406,17 +416,20 @@ function buildWorldCup(rng: Rng, state: GameState, women = false) {
   const seeded = [...nations].sort((a, b) => (state.natRank![b] ?? 0) - (state.natRank![a] ?? 0))
   const comp: Competition = {
     id: 'wc', name: 'World Championship', short: 'Worlds', type: 'intl',
-    teamIds: nations, table: nations.map(emptyRow), rounds: poolWeeks.length, playoffTeams: 8,
+    teamIds: nations, table: nations.map(emptyRow), rounds: poolWeeks.length, playoffTeams: women ? 8 : 16,
     weeksByRound: poolWeeks, koWeeks, isNational: true,
     seeds: seeded,
   }
-  // seeded pools: snake the top seeds so pools are balanced
-  const pools: string[][] = [[], [], [], []]
+  // seeded pools: snake the top seeds so pools are balanced, or for 2027 the
+  // draw that was actually made
+  const np = women ? 4 : 6
+  const pools: string[][] = Array.from({ length: np }, () => [])
   seeded.forEach((n, i) => {
-    const row = Math.floor(i / 4)
-    const idx = row % 2 === 0 ? i % 4 : 3 - (i % 4)
+    const row = Math.floor(i / np)
+    const idx = row % 2 === 0 ? i % np : np - 1 - (i % np)
     pools[idx].push(n)
   })
+  if (!women && BASE_YEAR + state.season === 2027) WC_2027_POOLS.forEach((p, i) => { pools[i] = [...p] })
   comp.pools = pools
   const top4 = seeded.slice(0, 4).map(c => nationNameIn('en', c))
   // the seeds are countries, so the list travels as fragment keys
@@ -428,7 +441,7 @@ function buildWorldCup(rng: Rng, state: GameState, women = false) {
     body: [
       `The World Championship pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
       userSeed > 0 ? `${nationNameIn('en', state.natTeam!)} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
-        : women ? `Four pools, four nations each, and somewhere in there a group of death.` : `Four pools, five nations each, and somewhere in there a group of death.`,
+        : women ? `Four pools, four nations each, and somewhere in there a group of death.` : `Six pools of four, the top two and the four best thirds into a round of sixteen, and somewhere in there a group of death.`,
     ].join('\n'),
     k: userSeed > 0 ? 'news.wcDrawSeeded' : women ? 'news.wcDrawW' : 'news.wcDraw',
     v: {

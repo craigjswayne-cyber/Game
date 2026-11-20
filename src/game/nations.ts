@@ -35,6 +35,9 @@ export const NATIONS: Nation[] = [
   { code: 'ROU', name: 'Romania', rep: 55 },
   { code: 'NAM', name: 'Namibia', rep: 52 },
   { code: 'CHL', name: 'Chile', rep: 54 },
+  // the 2027 World Championship's two debutants (1.9.15)
+  { code: 'HKG', name: 'Hong Kong China', rep: 50 },
+  { code: 'ZIM', name: 'Zimbabwe', rep: 50 },
   { code: 'LIO', name: 'British & Irish Isles XV', rep: 93 },
 ]
 
@@ -165,6 +168,11 @@ const N: Record<string, [string[], string[]]> = {
   // took an English name
   USA: [['Tyler', 'Chase', 'Cole', 'Brock', 'Dillon', 'Gavin', 'Heath', 'Jace', 'Kellan', 'Levi', 'Mason', 'Parker', 'Ryder', 'Shane', 'Trent', 'Weston', 'Asher', 'Bryce', 'Cash', 'Dane', 'Ford', 'Gage', 'Holt', 'Jett', 'Lane', 'Nash', 'Rhett', 'Silas', 'Tate', 'Wade', 'Brooks', 'Crew', 'Duke', 'Hayes', 'Kade', 'Rowdy'], ['Anderson', 'Mitchell', 'Carter', 'Hayes', 'Sullivan', 'Reynolds', 'Brennan', 'Kowalski', 'Novak', 'Ortega', 'Pratt', 'Quinlan', 'Rasmussen', 'Stafford', 'Tolliver', 'Underhill', 'Vasquez', 'Wilder', 'Yates', 'Zimmer', 'Ashcroft', 'Bledsoe', 'Coburn', 'Dorsey', 'Ellison', 'Faircloth', 'Gentry', 'Harlan', 'Ingram', 'Jessup', 'Kilbride', 'Lomax', 'McCready', 'Northcutt', 'Pickering', 'Radcliffe']],
   GEO: [['Giorgi', 'Levan', 'Davit', 'Luka', 'Nika', 'Irakli', 'Sandro', 'Beka', 'Vano', 'Tornike', 'Zurab', 'Aleksandre', 'Gela', 'Ilia', 'Mikheil', 'Otar', 'Rezo', 'Shalva', 'Vasil', 'Zviad', 'Akaki', 'Dachi', 'Guram', 'Konstantine', 'Merab', 'Paata', 'Saba', 'Temur'], ['Lomidze', 'Kvirikashvili', 'Gorgadze', 'Abuladze', 'Tabutsadze', 'Sharikadze', 'Nariashvili', 'Mamukashvili', 'Chkhaidze', 'Javakhia', 'Kutateladze', 'Beridze', 'Dzagnidze', 'Elizbarashvili', 'Gvaramadze', 'Iashvili', 'Kharaishvili', 'Lomtadze', 'Metreveli', 'Ninidze', 'Pirtskhalava', 'Rekhviashvili', 'Shubitidze', 'Tsiklauri', 'Ubilava', 'Vashadze', 'Zedginidze', 'Chelidze']],
+  // 1.9.15: the World Championship's debutants. Shona and Ndebele names with
+  // the English ones the game there has always carried; for Hong Kong, the
+  // Cantonese names of the local game and the expatriate ones of its clubs.
+  ZIM: [['Tendai', 'Takudzwa', 'Tinashe', 'Farai', 'Tafadzwa', 'Kudakwashe', 'Tatenda', 'Simbarashe', 'Munyaradzi', 'Ngoni', 'Tonderai', 'Rufaro', 'Panashe', 'Tanaka', 'Shingai', 'Nyasha', 'Brian', 'Godfrey', 'Hilton', 'Prince', 'Liberty', 'Blessing', 'Kuda', 'Tapiwa', 'Sipho', 'Bongani', 'Thulani', 'Lindani'], ['Moyo', 'Ncube', 'Sibanda', 'Dube', 'Ndlovu', 'Mlambo', 'Gumbo', 'Zhou', 'Marufu', 'Makoni', 'Mutasa', 'Chikwanha', 'Mangena', 'Mushonga', 'Chiwanza', 'Mudzingwa', 'Nyamayaro', 'Chimuka', 'Mapfumo', 'Matanga', 'Nkomo', 'Khumalo', 'Mpofu', 'Hove', 'Chari', 'Musoni', 'Tshuma', 'Banda']],
+  HKG: [['Ka Ho', 'Ho Yin', 'Chun Hei', 'Ka Lok', 'Tsz Chun', 'Wai Kit', 'Chi Fung', 'Man Lok', 'Kenny', 'Marcus', 'Max', 'Josh', 'Liam', 'Ben', 'Kai', 'Matt', 'Harry', 'Ryan', 'Jamie', 'Callum', 'Alex', 'Toby', 'Lewis', 'Jack', 'Ethan', 'Dylan', 'Jordan', 'Sam'], ['Chan', 'Wong', 'Leung', 'Cheung', 'Lau', 'Ng', 'Lee', 'Ho', 'Tam', 'Yip', 'Fung', 'Chow', 'Kwok', 'Lam', 'Mak', 'Tsang', 'Hughes', 'Stapleton', 'Holloway', 'Pritchard', 'Carver', 'Mason', 'Ashworth', 'Dempsey', 'Fairley', 'Gallagher', 'Kerr', 'Ramsden']],
 }
 
 /** Every name already spoken for in one world, lowercased.

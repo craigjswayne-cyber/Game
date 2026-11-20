@@ -91,7 +91,7 @@ export function applyAdminPenalties(comp: Competition, state?: GameState) {
  * Test match, which is a perfectly ordinary result and sometimes a famous one,
  * had three points added to one side by a coin weighted on squad strength.
  */
-export const KO_STAGES = new Set(['QF', 'SF', 'F', 'BAR'])
+export const KO_STAGES = new Set(['R16', 'QF', 'SF', 'BRZ', 'F', 'BAR'])
 export function isKnockoutTie(fx: Fixture): boolean {
   return !!fx.stage && KO_STAGES.has(fx.stage)
 }
@@ -195,6 +195,51 @@ function autoLineup(state: GameState, teamId: string) {
   return autoSelect(state, pool)
 }
 
+function poolRows(state: GameState, comp: Competition): TableRow[][] {
+  const pools = comp.pools ?? [comp.teamIds]
+  return pools.map(pool => {
+    const rows: TableRow[] = pool.map(emptyRow)
+    for (const fx of state.fixtures) {
+      if (fx.compId !== comp.id || !fx.played || fx.stage) continue
+      if (!pool.includes(fx.homeId)) continue
+      applyToTable({ ...comp, table: rows, pools: undefined }, fx)
+    }
+    return sortTable(rows)
+  })
+}
+
+/**
+ * THE WORLD CHAMPIONSHIP'S ROUND OF SIXTEEN (1.9.15, the real 2027 format).
+ *
+ * Six pools of four. The two from each pool and the four best third-placed
+ * sides go through: sixteen. They are ranked winners first, then runners-up,
+ * then the thirds, each group on its pool record, and drawn 1 v 16, 8 v 9 and
+ * so on in bracket order, so the top two seeds can only meet in the final.
+ * No tie is a pool rematch: a clash is repaired by swapping the lower seed
+ * with the next tie's, deterministically and with no draw of the dice.
+ */
+export function wcRoundOf16(rows: TableRow[][]): [string, string][] {
+  const rank = (xs: TableRow[]) => sortTable(xs).map(r => r.teamId)
+  const thirds = rank(rows.map(p => p[2]).filter(Boolean)).slice(0, 4)
+  const seeds = [...rank(rows.map(p => p[0])), ...rank(rows.map(p => p[1])), ...thirds]
+  const poolOf = new Map<string, number>()
+  rows.forEach((p, i) => p.forEach(r => poolOf.set(r.teamId, i)))
+  // bracket order: adjacent ties meet in the quarter-finals
+  const ORDER: [number, number][] = [[1, 16], [8, 9], [4, 13], [5, 12], [2, 15], [7, 10], [3, 14], [6, 11]]
+  const ties = ORDER.map(([h, a]) => [seeds[h - 1], seeds[a - 1]] as [string, string])
+  for (let i = 0; i < ties.length; i++) {
+    if (poolOf.get(ties[i][0]) !== poolOf.get(ties[i][1])) continue
+    for (let k = 1; k < ties.length; k++) {
+      const j = (i + k) % ties.length
+      const ok = poolOf.get(ties[i][0]) !== poolOf.get(ties[j][1]) && poolOf.get(ties[j][0]) !== poolOf.get(ties[i][1])
+      if (ok) { const x = ties[i][1]; ties[i][1] = ties[j][1]; ties[j][1] = x; break }
+    }
+  }
+  return ties
+}
+
+const loserOf = (fx: Fixture) => (winnerOf(fx) === fx.homeId ? fx.awayId : fx.homeId)
+
 function poolStandings(state: GameState, comp: Competition): string[][] {
   const pools = comp.pools ?? [comp.teamIds]
   return pools.map(pool => {
@@ -243,7 +288,7 @@ export function maybeCreateKnockouts(state: GameState, comp: Competition, rng: R
     if (mine.includes(home) || mine.includes(away)) {
       const us = mine.includes(home) ? home : away
       const opp = us === home ? away : home
-      const stgKey = { QF: 'news.stgQF', SF: 'news.stgSF', F: 'news.stgF', BAR: 'news.stgBAR', R16: 'news.stgR16' }[stage]
+      const stgKey = { QF: 'news.stgQF', SF: 'news.stgSF', F: 'news.stgF', BAR: 'news.stgBAR', R16: 'news.stgR16', BRZ: 'news.stgBRZ' }[stage]
       const stg = stgKey ? tIn('en', stgKey) : stage
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
@@ -299,7 +344,29 @@ export function maybeCreateKnockouts(state: GameState, comp: Competition, rng: R
   // never lazily on their own match week, or the user's tie would be
   // simmed away before the MatchDay screen ever saw it.
   const ko = comp.koWeeks
-  if (cupLike && comp.pools?.length === 2) {
+  if (cupLike && comp.pools?.length === 6) {
+    // the men's World Championship: R16 ko[0], QF ko[1], SF ko[2], the
+    // bronze final and the final ko[3] (Friday and Saturday of one weekend)
+    if (koFx('R16').length === 0) {
+      for (const [h, a] of wcRoundOf16(poolRows(state, comp))) mkFx('R16', ko[0], h, a)
+    }
+    const r16 = koFx('R16')
+    if (koFx('QF').length === 0 && r16.length === 8 && r16.every(f => f.played)) {
+      const w = r16.map(winnerOf)
+      for (let i = 0; i < 8; i += 2) mkFx('QF', ko[1], w[i], w[i + 1])
+    }
+    const qf = koFx('QF')
+    if (koFx('SF').length === 0 && qf.length === 4 && qf.every(f => f.played)) {
+      const w = qf.map(winnerOf)
+      mkFx('SF', ko[2], w[0], w[1])
+      mkFx('SF', ko[2], w[2], w[3])
+    }
+    const sf = koFx('SF')
+    if (koFx('F').length === 0 && sf.length === 2 && sf.every(f => f.played)) {
+      mkFx('BRZ', ko[3], loserOf(sf[0]), loserOf(sf[1]))
+      mkFx('F', ko[3], winnerOf(sf[0]), winnerOf(sf[1]))
+    }
+  } else if (cupLike && comp.pools?.length === 2) {
     // two pools (the MRC Cup, schedule.ts): each winner hosts the other
     // pool's runner-up in the semi-finals, SF ko[0], F ko[1]. A winner never
     // meets its own pool again before the final.
@@ -387,6 +454,8 @@ export function maybeCreateKnockouts(state: GameState, comp: Competition, rng: R
     }
     const sf = koFx('SF')
     if (koFx('F').length === 0 && sf.length === 2 && sf.every(f => f.played)) {
+      // a World Championship plays for third too (the women's, 1.9.15)
+      if (comp.id === 'wc') mkFx('BRZ', ko[2], loserOf(sf[0]), loserOf(sf[1]))
       mkFx('F', ko[2], winnerOf(sf[0]), winnerOf(sf[1]))
     }
   } else {

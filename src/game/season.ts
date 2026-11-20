@@ -892,20 +892,26 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       const seed = seeds.indexOf(nat) + 1
       const won = tieWinner(wcFinal) === nat
       const wcFx = state.fixtures.filter(f => f.compId === 'wc' && f.played && (f.homeId === nat || f.awayId === nat))
+      const field = state.comps['wc']?.teamIds.length ?? 20
       const deepest = wcFx.some(f => f.stage === 'F') ? (won ? 1 : 2)
         : wcFx.some(f => f.stage === 'SF') ? 4
         : wcFx.some(f => f.stage === 'QF') ? 8
-        : 16
+        : wcFx.some(f => f.stage === 'R16') ? 16
+        : field
+      // THE BAR IS THE ROUND THE SEEDING EARNS (QA, 1.9.15). Comparing the
+      // round reached with the seed itself called a third seed in the semis
+      // "short of the seeding": seeds 3 and 4 are semi-final seeds.
+      const band = seed <= 0 ? 0 : [1, 2, 4, 8, 16].find(b => seed <= b) ?? field
       const name = nationNameIn('en', nat)
       const finishWord = deepest === 1 ? 'WORLD CHAMPIONS' : deepest === 2 ? 'beaten finalists'
-        : deepest === 4 ? 'semi-finalists' : deepest === 8 ? 'quarter-finalists' : 'out in the pools'
-      const parWord = seed > 0 && deepest < seed ? 'You over-delivered on the seeding, and the country knows it.'
-        : seed > 0 && deepest === seed ? 'Par on the seeding. The review will be fair, if unsentimental.'
+        : deepest === 4 ? 'semi-finalists' : deepest === 8 ? 'quarter-finalists' : deepest === 16 ? 'out in the last sixteen' : 'out in the pools'
+      const parWord = seed > 0 && deepest < band ? 'You over-delivered on the seeding, and the country knows it.'
+        : seed > 0 && deepest === band ? 'Par on the seeding. The review will be fair, if unsentimental.'
         : seed > 0 ? 'Short of the seeding - expect the post-mortem to use your name.'
         : ''
       if (wcFx.length) {
         if (state.natConfidence != null) {
-          const swing = deepest === 1 ? 20 : deepest === 2 ? 8 : seed > 0 && deepest < seed ? 6 : seed > 0 && deepest > seed ? -8 : 0
+          const swing = deepest === 1 ? 20 : deepest === 2 ? 8 : seed > 0 && deepest < band ? 6 : seed > 0 && deepest > band ? -8 : 0
           state.natConfidence = clamp(state.natConfidence + swing, 0, 100)
         }
         state.news.push({
@@ -913,15 +919,15 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           subject: deepest === 1 ? `${name}: CHAMPIONS OF THE WORLD` : `World Championship post-mortem: ${name}`,
           k: deepest === 1 ? 'news.wcWon' : seed > 0 ? 'news.wcOutSeeded' : 'news.wcOut',
           v: {
-            ...nationVars(nat), seed,
+            ...nationVars(nat), seed, field,
             finish_k: deepest === 1 ? 'news.wcFinChamps' : deepest === 2 ? 'news.wcFinBeaten'
-              : deepest === 4 ? 'news.wcFinSemi' : deepest === 8 ? 'news.wcFinQuarter' : 'news.wcFinPools',
-            par_k: seed > 0 && deepest < seed ? 'news.wcParOver'
-              : seed > 0 && deepest === seed ? 'news.wcParEven'
+              : deepest === 4 ? 'news.wcFinSemi' : deepest === 8 ? 'news.wcFinQuarter' : deepest === 16 ? 'news.wcFinR16' : 'news.wcFinPools',
+            par_k: seed > 0 && deepest < band ? 'news.wcParOver'
+              : seed > 0 && deepest === band ? 'news.wcParEven'
               : seed > 0 ? 'news.wcParUnder' : 'common.nothing',
           },
           body: [
-            `${name} finish the World Championship as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of 20` : ''}.`,
+            `${name} finish the World Championship as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of ${field}` : ''}.`,
             deepest === 1 ? `Whatever else happens in your career, they can never take this away.` : parWord,
           ].filter(Boolean).join(' '),
         })
@@ -1684,6 +1690,10 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
             body: `A nation celebrates. Your name goes into the record books as the coach who delivered the ${comp.name}.`,
             k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion, ...nationVars(comp.champion!) },
           })
+          // A TITLE IS WHAT A UNION HIRES FOR (QA, 1.9.15). Only a Grand Slam
+          // or a clean sweep moved its confidence, so a Southern Championship
+          // won on five of six was worth nothing at the review weeks later
+          if (comp.champion === state.natTeam && state.natConfidence != null) state.natConfidence = clamp(state.natConfidence + 5, 0, 100)
         }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,

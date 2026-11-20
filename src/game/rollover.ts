@@ -229,11 +229,13 @@ export function rebuildSeason(state: GameState) {
   // his home pre-season friendly becomes the testimonial he plays in
   announceFarewell(state)
   if (wcYear) {
+    const women = genderOf(state) === 'w'
     state.news.push({
       id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
       subject: `A WORLD CHAMPIONSHIP season`,
-      body: `The ${BASE_YEAR + state.season} World Championship kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
-      k: 'news.wcSeason', v: { year: BASE_YEAR + state.season },
+      body: `The ${BASE_YEAR + state.season} World Championship kicks off in the opening weeks of the season. ${women ? 'Sixteen nations, four pools' : 'Twenty-four nations, six pools'}, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
+      // the women's sixteen in four pools, the men's twenty-four in six (1.9.15)
+      k: women ? 'news.wcSeasonW' : 'news.wcSeason', v: { year: BASE_YEAR + state.season },
     })
   }
 

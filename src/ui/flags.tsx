@@ -162,6 +162,21 @@ const DRAW: Record<string, () => ReactNode> = {
     <rect width="8" height="8" fill="#0039A6" />
     <Star x={4} y={4.2} r={2} />
   </>,
+  // a white bauhinia of five petals on red, simplified to the size it is drawn
+  HKG: () => <>
+    <rect width={W} height={H} fill="#DE2910" />
+    {[0, 72, 144, 216, 288].map(a => (
+      <ellipse key={a} cx="12" cy="5.6" rx="1.7" ry="2.7" fill="#fff" transform={`rotate(${a} 12 8)`} />
+    ))}
+  </>,
+  // seven stripes, the white triangle at the hoist and its red star
+  ZIM: () => <>
+    {['#319208', '#FFD200', '#DE2010', '#000', '#DE2010', '#FFD200', '#319208'].map((c, i) => (
+      <rect key={i} y={(i * H) / 7} width={W} height={H / 7 + 0.05} fill={c} />
+    ))}
+    <polygon points={`0,0 ${W * 0.4},${H / 2} 0,${H}`} fill="#fff" stroke="#000" strokeWidth=".4" />
+    <Star x={3.4} y={8} r={1.8} fill="#DE2010" />
+  </>,
   // The touring Isles XV is an invitational side, not a union, and has no
   // flag. A neutral crest: a red field with a quartered red and white shield,
   // borrowing no union's marks.

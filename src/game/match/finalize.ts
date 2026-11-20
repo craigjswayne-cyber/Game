@@ -557,7 +557,7 @@ export function settleForfeit(state: GameState, fx: Fixture, side: 'home' | 'awa
   return { events, motmId: null }
 }
 
-const KO_STAGE = new Set(['QF', 'SF', 'F', 'BAR'])
+const KO_STAGE = new Set(['R16', 'QF', 'SF', 'BRZ', 'F', 'BAR'])
 function koRecords(state: GameState, ctx: LiveCtx) {
   const fx = ctx.fx
   if (!fx.stage || !KO_STAGE.has(fx.stage)) return

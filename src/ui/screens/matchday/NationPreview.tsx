@@ -103,7 +103,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
         <div className="masthead-row">
           <button className="back-btn" onClick={back} aria-label={t('common.backLabel')}><span aria-hidden="true">‹</span></button>
           <div style={{ flex: 1 }}>
-            <h1>{t('matchday.testMatch', { nat: nationName(nat) })}</h1>
+            <h1>{t(fx.tourMatch ? 'matchday.tourMatch' : 'matchday.testMatch', { nat: nationName(nat) })}</h1>
             <div className="date">{compLabel(comp?.name) ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)}</div>
           </div>
         </div>

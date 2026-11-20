@@ -185,8 +185,11 @@ export function weeksToSquad(state: GameState): number | null {
   if (!nat || natWindow(state)) return null
   const teams = nat === 'LIO' ? [nat] : [nat, ...(HOME4.includes(nat) ? ['LIO'] : [])]
   const starts = activeWindows(state)
-    .filter(w => w.nations.some(n => teams.includes(n)) && w.start > state.week)
-    .map(w => w.start)
+    // a window already running but not yet opened for him (QA, 1.9.15: the
+    // World Championship's first week skipped to the next window, "Squad
+    // named in 161 days") counts as this week
+    .filter(w => w.nations.some(n => teams.includes(n)) && w.end >= state.week)
+    .map(w => Math.max(state.week, w.start))
     .sort((a, b) => a - b)
   return starts.length ? starts[0] - state.week : null
 }

@@ -65,7 +65,10 @@ function season(club: string, gender: 'm' | 'w', target: number, seed: number, l
   const hist = g.history.filter(h => h.season === startSeason && h.compId === 'wc')
   if (label.includes('World')) {
     ok(hist.length === 1 && !!hist[0].champion, `${label} seed ${seed}: a champion is recorded (${hist[0]?.champion ?? 'none'})`)
-    ok(koPlayed === 7, `${label} seed ${seed}: the bracket is complete, 4 + 2 + 1 ties all played (${koPlayed})`)
+    // 1.9.15: the men's last sixteen, quarters, semis, bronze final and final
+    // (8 + 4 + 2 + 1 + 1); the women's quarters, semis, bronze and final
+    const want = gender === 'm' ? 16 : 8
+    ok(koPlayed === want, `${label} seed ${seed}: the bracket is complete, ${gender === 'm' ? '8 + 4 + 2 + 1 + 1' : '4 + 2 + 1 + 1'} ties all played (${koPlayed})`)
   }
   return g
 }
