@@ -1287,7 +1287,7 @@ export class PitchSim {
             // ball he drops back behind it first, and it is held until he has
             if (this.holder >= 0 && (this.holder < 15) === (s.to < 15) && this.mode !== 'lineout' && this.mode !== 'con' && this.mode !== 'goal') {
               const d1 = s.to < 15 ? 1 : -1
-              if ((this.b[s.to].x - this.ball.x) * d1 > -0.4 && this.st < 2.5) {
+              if ((this.b[s.to].x - this.ball.x) * d1 > -0.4 && this.st < 1.0) {
                 this.over.set(s.to, { x: this.ball.x - d1 * 3, y: this.b[s.to].y })
                 this.st += dt
                 break
@@ -1297,7 +1297,7 @@ export class PitchSim {
               if ((this.b[s.to].x - this.ball.x) * d1 > -0.2) {
                 this.over.set(s.to, { x: this.ball.x - d1 * 0.8, y: this.ball.y })
                 this.st += dt
-                if (hyp(this.b[s.to], this.ball) < 1.9 || this.st > 2.2) { this.over.delete(s.to); this.holder = s.to; over = true }
+                if (hyp(this.b[s.to], this.ball) < 1.9 || this.st > 1.6) { this.over.delete(s.to); this.holder = s.to; over = true }
                 break
               }
             }
