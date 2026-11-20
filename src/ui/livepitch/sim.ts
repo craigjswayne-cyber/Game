@@ -367,7 +367,11 @@ export class PitchSim {
           const to = p.to ?? E
           const who = (p.homeBall ? 15 : 0) + restartCatcher((to.x - p.x) * dir, (to.y - p.y) * (p.y <= 35 ? 1 : -1))
           this.jumper = who
-          steps.push({ k: 'pick', who, max: 1.4 }, { k: 'wait', t: 0.45 })
+          // ... AND HE BRINGS IT BACK AT THEM (owner, 19 Nov 2026: "the kick off
+          // is good, then randomly the ball moves and the players all freeze").
+          // He caught it and everybody stood still until the next line. He
+          // runs it back a few metres into the chase.
+          steps.push({ k: 'pick', who, max: 1.4 }, { k: 'wait', t: 0.2 }, { k: 'mode', mode: 'catch', anchorOn: who }, { k: 'run', to: { x: clamp(to.x - dir * 5, 2, 98), y: to.y }, v: 5 }, { k: 'wait', t: 0.15 })
         }
         break
       case 'con': case 'goal':
