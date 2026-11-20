@@ -211,7 +211,7 @@ export class PitchSim {
   /** a stoppage dissolves to the formed set piece instead of being wound on (20 Nov 2026) */
   static dissolveResets = true
   /** the speed play is watched at when stoppages dissolve; the quickest anything is wound on is 1.18 times this */
-  static base = 2.05
+  static base = 1.9
   constructor() {
     for (let i = 0; i < 30; i++) this.b.push({ x: 50 + (i < 15 ? -8 : 8), y: 6 + (i % 15) * 4, vx: 0, vy: 0 })
   }
