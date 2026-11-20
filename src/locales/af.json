@@ -7914,6 +7914,7 @@
   "boardPushedAgain": "Die antwoord is steeds nee. Elke keer as jy vra, vertrou die Raad jou oordeel 'n bietjie minder.",
   "boardPushedWarn": "Die vertrek word yskoud. \"Ons het jou ons antwoord gegee.\" 'n Formele waarskuwing volg binne die uur, en die Raad se respek vir jou word gehalveer. Vra weer en dit kos jou meer.",
   "notHomeBased": "{player} speel sy klubrugby in die buiteland. {nat} kies net uit hul eie liga, so hy sal eers moet huis toe kom.",
+  "notHomeBasedFree": "{player} het tans geen klub nie, en {nat} kies net uit hul eie liga.",
   "wontDropDown": "{club} aanvaar jou bod, maar {name} sal nie so ver afsak nie. Net 'n speler wat ongelukkig is, uitgedruk word of agter die geld aan is, praat met 'n klub wat soveel kleiner is.",
   "overCapNoMarquee": "Daardie voorwaardes sal die klub {over}/wk oor die {cap}/wk-salarisperk sit, en albei hoofspeler-plekke is al gevul. Maak plek.",
   "windowShut": "Die oordragvenster is toe. Aankope teen 'n fooi wag tot die Januarie-venster op {date} oopgaan; vrye agente en leenooreenkomste is steeds oop.",

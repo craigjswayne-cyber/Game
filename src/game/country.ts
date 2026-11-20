@@ -11,7 +11,7 @@
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { activeWindows } from './season'
-import { NAT_SQUAD_FLOOR, clubQuotaLeft, conflictedClub, federationList, homeBased } from './nations'
+import { NAT_SQUAD_FLOOR, clubQuotaLeft, conflictedClub, federationList, homeBased, nationName } from './nations'
 import { t } from './i18n'
 import { CAMP_FOCI, type CampFocus } from './natcamp'
 import { clubManLeftOut } from './natwin'
@@ -103,7 +103,8 @@ export function natCallUp(state: GameState, playerId: number): string | null {
   if (!p) return t('reply.noSuchPlayer')
   if (squad.includes(playerId) || p.natSquad) return t('reply.alreadyInTestSquad', { player: p.name })
   if (!(nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat)) return t('reply.notQualified', { player: p.name })
-  if (!homeBased(state, p, nat)) return t('reply.notHomeBased', { player: p.name, nat })
+  // the country's name, not its code; a player with no club is not abroad
+  if (!homeBased(state, p, nat)) return t(p.clubId ? 'reply.notHomeBased' : 'reply.notHomeBasedFree', { player: p.name, nat: nationName(nat) })
   if (p.injury) return t('reply.injuredNotPassed', { player: p.name })
   if (squad.length >= w.size) return t('reply.squadCapped', { n: w.size })
   // ONE MAN, TWO JOBS (9.10, nations.ts): while he also runs a club, no more
@@ -123,7 +124,11 @@ export function natCallUp(state: GameState, playerId: number): string | null {
   const back = sent.indexOf(playerId)
   if (back >= 0) {
     sent.splice(back, 1)
-    p.morale = clamp(p.morale + 0.7, 1, 10)
+    // back what the drop took and no more: at the morale floor the drop took
+    // nothing, and a flat +0.7 made drop-and-recall a gain (QA, 1.9.15)
+    const lost = state.natSentLoss?.[playerId] ?? 0.7
+    if (state.natSentLoss) delete state.natSentLoss[playerId]
+    p.morale = clamp(p.morale + lost, 1, 10)
   } else p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
   // the 23 is picked from the squad - a changed squad voids the old teamsheet
   if (state.natLineup?.team === nat) state.natLineup = null
@@ -152,11 +157,14 @@ export function natDrop(state: GameState, playerId: number): string | null {
   squad.splice(idx, 1)
   if (p) {
     p.natSquad = false
+    const before = p.morale
     p.morale = clamp(p.morale - 0.7, 1, 10) // being sent home from camp stings
+    ;(state.natSentLoss ??= {})[playerId] = before - p.morale
     // and sent home by your own club's coach is personal, on top (1.9.14,
     // natwin.ts clubManLeftOut). On top, so a recall (which gives back the
-    // 0.7) can never make a drop-and-recall a morale gain.
-    clubManLeftOut(state, p)
+    // sting) can never make a drop-and-recall a morale gain. Not for an
+    // injured man: sending him home is the physio's call, not a snub (1.9.15)
+    if (!p.injury) clubManLeftOut(state, p)
     ;(state.natSent ??= []).push(playerId)
   }
   if (state.natLineup?.team === nat) state.natLineup = null

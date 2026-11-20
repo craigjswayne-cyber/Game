@@ -74,6 +74,9 @@ describe('the window campaign', () => {
     g.players[out].natSquad = false
     g.players[out].caps = 40
     g.natPrevSquad = [...g.natSquads.ENG, out]
+    // a coach with no club: no two-jobs quota decides it for him (1.9.15,
+    // a man the rule keeps out is not "left out")
+    g.unemployed = true
     const m = g.players[out].morale
     const r = announceSquad(g, [])!
     expect(r.omitted).toContain(out)

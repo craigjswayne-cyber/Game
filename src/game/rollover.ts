@@ -120,6 +120,7 @@ export function rebuildSeason(state: GameState) {
   state.natOrphan = null
   state.natSquads = {}
   delete state.natSent
+  delete state.natSentLoss
   delete state.natFed
   state.natLineup = null
 

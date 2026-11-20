@@ -7848,6 +7848,7 @@
   "boardPushedAgain": "La respuesta sigue siendo no. Cada vez que insistes, la junta confía un poco menos en tu criterio.",
   "boardPushedWarn": "La sala se queda helada. «Ya te dimos nuestra respuesta». Antes de una hora llega una amonestación formal, y el respeto de la junta por ti se reduce a la mitad. Vuelve a preguntar y te costará más.",
   "notHomeBased": "{player} juega su rugby de clubes en el extranjero. {nat} solo convoca de su propia liga, así que primero tendría que volver a casa.",
+  "notHomeBasedFree": "{player} está sin club ahora mismo, y {nat} solo convoca de su propia liga.",
   "wontDropDown": "{club} acepta tu oferta, pero {name} no piensa bajar tantos escalones. Solo un jugador descontento, al que empujan hacia la salida o que va detrás del dinero negocia con un club tan inferior.",
   "overCapNoMarquee": "Esas condiciones dejarían al club {over}/sem. por encima del tope salarial de {cap}/sem., y las dos plazas de jugador franquicia están ocupadas. Libera espacio.",
   "windowShut": "La ventana de fichajes está cerrada. Los fichajes con traspaso esperan a que abra el mercado de invierno, el {date}; los fichajes libres y las cesiones siguen abiertos.",

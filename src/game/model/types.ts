@@ -2003,6 +2003,9 @@ export interface GameState {
   /** `season:windowId` of an Isles tour whose call-ups ran the week before
    *  its first match (internationals.ts callUpsAhead, 1.9.15). */
   natEarly?: string
+  /** What a drop this window took off each player's morale, so a recall
+   *  gives back exactly that (country.ts, 1.9.15). */
+  natSentLoss?: Record<number, number>
   /** a window whose review ended the tenure, kept so the screen can say so */
   natLastReview?: GameState['natWin']
   /** the federation's own list for the user's nation, snapshotted when the

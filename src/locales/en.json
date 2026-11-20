@@ -7878,6 +7878,7 @@
   "boardPushedAgain": "The answer is still no. Every time you ask, the board thinks a little less of your judgement.",
   "boardPushedWarn": "The room goes cold. \"We gave you our answer.\" A formal warning follows within the hour, and the board's respect for you is cut in half. Ask again and it costs you more.",
   "notHomeBased": "{player} plays his club rugby abroad. {nat} only pick from their own league, so he would have to come home first.",
+  "notHomeBasedFree": "{player} has no club at the moment, and {nat} only pick from their own league.",
   "wontDropDown": "{club} accept your bid, but {name} will not drop this far down. Only a player who is unhappy, being pushed out or chasing the money talks to a club this much smaller.",
   "overCapNoMarquee": "Those terms would put the club {over}/wk over the {cap}/wk salary cap, and both marquee slots are taken. Free up room.",
   "windowShut": "The transfer window is shut. Signings for a fee wait until the January window opens on {date}; free agents and loans are still open to you.",

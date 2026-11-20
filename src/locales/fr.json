@@ -8035,6 +8035,7 @@
     "boardPushedAgain": "La réponse est toujours non. Chaque fois que vous insistez, le conseil a un peu moins confiance en votre jugement.",
     "boardPushedWarn": "Le silence se fait. « Nous vous avons donné notre réponse. » Un avertissement formel suit dans l'heure, et le respect du conseil à votre égard est réduit de moitié. Insistez encore et cela vous coûtera davantage.",
     "notHomeBased": "{player} joue en club à l'étranger. {nat} ne sélectionne que dans son propre championnat, donc il devrait d'abord rentrer.",
+    "notHomeBasedFree": "{player} est sans club en ce moment, et {nat} ne sélectionne que dans son propre championnat.",
     "wontDropDown": "{club} acceptent votre offre, mais {name} ne descendra pas si bas. Seul un joueur malheureux, poussé vers la sortie ou qui court après l'argent parle à un club aussi petit.",
     "overCapNoMarquee": "Ces conditions mettraient le club {over}/sem. au-dessus du plafond salarial de {cap}/sem., et les deux places de joueur vedette sont prises. Libérez de la marge.",
     "windowShut": "Le mercato est fermé. Les transferts payants attendent l'ouverture du mercato de janvier, le {date} ; les arrivées libres et les prêts restent possibles.",

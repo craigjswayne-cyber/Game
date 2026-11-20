@@ -21,7 +21,7 @@ import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { closeNatTenure } from './model'
 import { tIn } from './i18n'
-import { conflictedClub, federationList, nationNameIn, NAT_SQUAD_SIZE } from './nations'
+import { clubQuotaLeft, conflictedClub, federationList, homeBased, nationNameIn, NAT_SQUAD_SIZE } from './nations'
 
 export type CampEventKind = 'rest' | 'curfew' | 'scare' | 'bolter'
 export type CampAnswer = 'a' | 'b' | 'c'
@@ -81,6 +81,11 @@ export function openNatWindow(state: GameState, w: { id?: string; start: number;
 export function noteWindowResult(state: GameState, us: number, them: number): void {
   const w = natWinNow(state)
   if (!w || state.week > w.end) return
+  // A SQUAD THAT PLAYS HAS BEEN ANNOUNCED (QA, 1.9.15). Never pressing
+  // Announce spared every left-out player his reaction and the camp its
+  // event, with the review none the wiser: the federation names it for him
+  // at the first Test, and the papers react all the same.
+  if (!w.announced) announceSquad(state, [])
   if (us > them) w.w++
   else if (us < them) w.l++
   else w.d++
@@ -106,9 +111,22 @@ export function announceSquad(state: GameState, eligibleTop: Player[]): NatWin['
   const prev = state.natPrevSquad && state.natPrevSquad.length ? state.natPrevSquad : null
   const debuts = squad.filter(id => caps(state.players[id]) === 0)
   const recalls = prev ? squad.filter(id => !prev.includes(id) && caps(state.players[id]) > 0) : []
+  // LEFT OUT means the coach could have picked him and chose not to (QA,
+  // 1.9.15). Not a man playing abroad or without a club, not one the
+  // two-jobs rule kept at his club, not one in another camp, and not one
+  // already sent home this window (the drop stung him once already).
+  const couldPick = (id: number) => {
+    const p = state.players[id]
+    if (!p || p.injury || !p.clubId || p.natSquad || squad.includes(id)) return false
+    if (!(w.nat === 'LIO' ? ['ENG', 'IRE', 'SCO', 'WAL'].includes(p.nat) : p.nat === w.nat)) return false
+    if (!homeBased(state, p, w.nat)) return false
+    if ((state.natSent ?? []).includes(id)) return false
+    if (conflictedClub(state) && clubQuotaLeft(state, w.nat, NAT_SQUAD_SIZE, squad, p.clubId) <= 0) return false
+    return true
+  }
   const omitted = (prev
-    ? prev.filter(id => !squad.includes(id) && state.players[id] && !state.players[id].injury && caps(state.players[id]) >= 5)
-    : eligibleTop.filter(p => caps(p) >= 10 && !squad.includes(p.id)).map(p => p.id))
+    ? prev.filter(id => couldPick(id) && caps(state.players[id]) >= 5)
+    : eligibleTop.filter(p => caps(p) >= 10 && couldPick(p.id)).map(p => p.id))
     .sort((a, b) => caps(state.players[b]) - caps(state.players[a])).slice(0, 4)
   for (const id of omitted) {
     const p = state.players[id]
