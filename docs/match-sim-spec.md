@@ -1,6 +1,6 @@
 # The match simulation: specification (2.0.0)
 
-Status: DRAFT for approval, stage 0 complete in outline. Nothing in `src/game` has been changed. This goes to the owner for approval before any engine code is written.
+Status: APPROVED by the owner, 20 November 2026, 23:16 ("1. Approved. 2. Aim between 6-17. 3. I'd include last gasp tackles to stop a try or interception score"). Stage 1 may start. Nothing in `src/game` has been changed. This goes to the owner for approval before any engine code is written.
 
 Owner's decisions, 20 November 2026: "2.0.0 is the next iteration of the game. Hold until new engine. Every managed match, other games don't. I want this doing proper."
 
@@ -250,10 +250,15 @@ What Extended means in numbers. A match has about 35 minutes of ball in play (se
 
 This is not the fast-forward that was removed on 20 November. That one hurried thirty men between two unrelated places. Here every man is doing what he really did, one phase after another, so wound on it reads as a real match played quickly. The winding-on speed is set by eye in stage 5, with the owner.
 
-Key moments, to be confirmed with the owner: tries, kicks at goal, cards, line breaks, turnovers in either 22, tries held up or ruled out, and the manager's own penalty calls.
+Key moments (see section 8 for the owner's final list): tries, kicks at goal, cards, line breaks, turnovers in either 22, tries held up or ruled out, and the manager's own penalty calls.
 
-## 8. Open questions for the owner
+## 8. Decided by the owner, 20 November 2026
 
-1. Penalties: is he happy for the count to rise to the real figure (about 17 a match against about 6 now), with the routine ones handled for him?
-2. Player match stats: which of the new numbers he wants on the match report.
-3. Which moments count as key in Extended (the list in section 7).
+1. The specification is approved.
+2. Penalties: "Aim between 6-17." The target is 11 to 12 penalties and free kicks a match, both sides together, between the game's 6 today and Test rugby's 17. Routine ones (a kick to touch from a side's own half) are taken by the game; the manager is asked only when it is a real choice.
+3. Key moments in Extended and in Key moments mode: tries, kicks at goal, cards, line breaks, turnovers in either 22, tries held up or ruled out, the manager's own penalty calls, and, added by the owner, a last-gasp tackle that stops a try and an interception that leads to a score.
+
+## 9. Still open
+
+1. Which of the new player numbers go on the match report.
+2. Club-level figures for rucks, scrums, lineouts, penalties and cards, and for the URC, Top 14, Super Rugby and the women's leagues (to be found during stage 1).
