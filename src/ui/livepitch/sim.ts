@@ -214,6 +214,8 @@ export class PitchSim {
 
   /** a line held back while a restart the engine does not write is played first */
   private queued: { p: Phase; c: number | null } | null = null
+  /** who kicked the match off: the other side kicks off the second half */
+  private firstKO: boolean | null = null
   /** the next line's play: plan it from where everything is now */
   start(p: Phase, carrierIdx: number | null) {
     // A MISSED KICK AT GOAL IS A 22 DROP-OUT (owner, 19 Nov 2026; World Rugby
@@ -233,6 +235,31 @@ export class PitchSim {
     // OUT ON THE FULL IS THEIR LINEOUT, BACK WHERE IT WAS KICKED (law 18). The
     // engine's line says so and then moves on, so the pitch plays the throw
     // unless the next line is already a lineout.
+    // NOBODY BOUND IN A SCRUM RUNS OFF IT WITH THE BALL (owner, 19 Nov 2026:
+    // "from a scrum the prop randomly runs forward with the ball, this
+    // wouldn't happen from a scrum"). When the next line's carrier is one of
+    // the front five, the number 8 picks up from the base and is tackled
+    // first, and the forward carries off that ruck.
+    if (this.mode === 'scrum' && last && last.kind === 'scrum' && p.kind === 'carry' && carrierIdx != null && carrierIdx <= 4 && !this.queued && p.at !== last.at && p.homeBall === last.homeBall) {
+      const d = p.homeBall ? 1 : -1
+      const P8: Phase = { kind: 'carry', homeBall: p.homeBall, x: clamp(this.anchor.x + d * 4, 2, 98), y: clamp(this.anchor.y + (this.anchor.y < 35 ? 4 : -4), 4, 66), at: p.at, label: 'lp.carry' }
+      this.queued = { p, c: carrierIdx }
+      this.start(P8, 7)
+      return
+    }
+    // THE SECOND HALF STARTS WITH A KICK-OFF (owner, 19 Nov 2026: "second
+    // half didnt start with a kick off"). The engine writes no line for it,
+    // so play simply resumed somewhere. The side that did not kick off the
+    // match kicks off the second half (law 12).
+    if (p.kind === 'kickoff' && p.at >= 0 && this.firstKO == null) this.firstKO = p.homeBall
+    if (last && last.label === 'lp.halfTime' && !this.queued && p.at !== last.at && p.kind !== 'kickoff' && p.kind !== 'break') {
+      const home = !(this.firstKO ?? true), d = home ? 1 : -1
+      const K: Phase = { kind: 'kickoff', homeBall: home, x: 50, y: 35, at: p.at, hang: 16, label: 'lp.kickoff',
+        to: { x: 50 + d * 22, y: clamp(p.y, 13, 57) } }
+      this.queued = { p, c: carrierIdx }
+      this.start(K, null)
+      return
+    }
     // AND ANY BALL KICKED INTO TOUCH IS A LINEOUT, THE OTHER SIDE'S THROW
     // (owner, 19 Nov 2026: "If a team kicks it out unless its a penalty or a
     // 50/22 it should be the other sides throw in"; "no lineout suddenly").
@@ -341,6 +368,8 @@ export class PitchSim {
         break
       case 'scrum':
         cut = cut || d > 10
+        // (the scrum-half fetches the ball and puts it in: it was whoever stood nearest, often a wing)
+        init = att0 + 8
         // the put-in, the hook, the ball worked back to the number 8's feet
         // while the pack goes forward, and the 9 away from the base
         steps.push({ k: 'ground' }, { k: 'wait', t: cut ? 1.3 : 2.8 }, { k: 'heel', by: -dir * 4.2 }, { k: 'run', to: { x: E.x + dir * 1.5, y: E.y }, v: 0.6 },
@@ -617,7 +646,7 @@ export class PitchSim {
         } else if (flows && this.holder >= 0) {
           const m0 = this.mode, c0 = this.cIdx, a0 = this.anchor
           pre.push({ k: 'kick', to: { ...anchor }, hang: 9, silent: true, rate: 2.2 }, { k: 'mode', mode, cIdx, at: { ...anchor }, clear: true },
-            { k: 'pick', who: this.nearest(att0, anchor), max: 2, rate: ADV }, { k: 'settle', max: 2.2, rate: ADV })
+            { k: 'pick', who: p.kind === 'scrum' ? att0 + 8 : this.nearest(att0, anchor), max: 2, rate: ADV }, { k: 'settle', max: 2.2, rate: ADV })
           if (init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
           steps.unshift(...pre)
           mode = m0; cIdx = c0; anchor = a0
