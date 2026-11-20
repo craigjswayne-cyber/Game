@@ -939,12 +939,59 @@ const ROUND3: Record<string, RawPlayer[]> = {
   ],
 }
 
+// ---- 1.9.16: internationals the world did not have ----------------------
+// Every man here was named in his union's autumn 2026 Test squad and was not
+// in the squad files at all (scripts/intlaudit.ts listed them). Club, position
+// and date of birth are from the union's dated squad table on Wikipedia
+// (Argentina 30 Oct 2026, France and Italy 21 Oct 2026, England 18 Jul 2026);
+// docs/research/intl-squads-2026.md has the trail. A prop's side is not in
+// those tables: where it is not known he is listed at one with the other as
+// cover, and the side is to be checked.
+const INTL_1916: Record<string, RawPlayer[]> = {
+  force: [
+    { name: 'Leonel Oviedo', pos: 'HK', age: 28, nat: 'ARG', q: 72, intl: true },
+  ],
+  dragons: [
+    { name: 'Rodrigo Martínez', pos: 'LP', alt: ['TP'], age: 28, nat: 'ARG', q: 70, intl: true },
+  ],
+  toulouse: [
+    { name: 'Tomas Rapetti', pos: 'TP', alt: ['LP'], age: 21, nat: 'ARG', q: 70, intl: true },
+    { name: 'Efraín Elías', pos: 'LK', age: 22, nat: 'ARG', q: 70, intl: true },
+  ],
+  highlanders: [
+    { name: 'Tomás Lavanini', pos: 'LK', age: 33, nat: 'ARG', q: 78, intl: true },
+  ],
+  stade_francais: [
+    { name: 'Juan Martín Scelzo', pos: 'FL', alt: ['N8'], age: 24, nat: 'ARG', q: 68, intl: true },
+  ],
+  newcastle: [
+    { name: 'Simón Benítez Cruz', pos: 'SH', age: 27, nat: 'ARG', q: 74, intl: true },
+  ],
+  montpellier: [
+    { name: 'Justo Piccardo', pos: 'CE', age: 24, nat: 'ARG', q: 74, intl: true },
+    { name: 'Tyler Duguid', pos: 'LK', age: 26, nat: 'FRA', q: 74, intl: true },
+  ],
+  pau: [
+    { name: 'Axel Desperes', pos: 'FH', age: 22, nat: 'FRA', q: 70, gk: true },
+  ],
+  saracens: [
+    { name: 'Noah Caluori', pos: 'WG', age: 20, nat: 'ENG', q: 72, intl: true },
+  ],
+  benetton: [
+    { name: 'Mattia Midena', pos: 'LK', age: 21, nat: 'ITA', q: 64 },
+    { name: 'Federico Zanandrea', pos: 'WG', age: 21, nat: 'ITA', q: 64 },
+  ],
+  bath: [
+    { name: 'Enoch Opoku-Gyamfi', pos: 'LK', age: 20, nat: 'ITA', q: 62, intl: true },
+  ],
+}
+
 /** The two tables as one: a club's earlier additions first, then its 2026-27
  *  ones. Keyed tables cannot repeat a key, which is why the window is its own
  *  table rather than a second `leinster:` inside the first. */
 export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = (() => {
   const out: Record<string, RawPlayer[]> = {}
-  for (const table of [EARLIER, WINDOW_2627, ROUND3]) {
+  for (const table of [EARLIER, WINDOW_2627, ROUND3, INTL_1916]) {
     for (const [club, rows] of Object.entries(table)) out[club] = [...(out[club] ?? []), ...rows]
   }
   return out

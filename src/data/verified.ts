@@ -476,9 +476,12 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'isaia walker-leawere@hurricanes': 'benetton',
   'josh flook@reds': 'benetton',
   'louis werchon@reds': 'benetton',
-  'juan ignacio brex@benetton': GONE,
+  // 1.9.16: both are at Toulon, a club in the game, so they move rather than
+  // vanish. Brex: Italy's June 2026 squad list (RugbyPass) has him at Toulon.
+  // Albornoz: Argentina's 30 Oct 2026 squad table (Wikipedia) has him at Toulon.
+  'juan ignacio brex@benetton': 'toulon',
   'toa halafihi@benetton': GONE,
-  'tomas albornoz@benetton': GONE,
+  'tomas albornoz@benetton': 'toulon',
   // bulls: Irish Examiner / RugbyPass / Rugby365 'seven confirmed Bulls signings'; Joined Bulls from Stormers mid-2025 (SA Rugby Mag 'Stormers star...
   'kurt-lee arendse@bulls': 'dynaboars',
   'paul de wet@stormers': 'bulls',

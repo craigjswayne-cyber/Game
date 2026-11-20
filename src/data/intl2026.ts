@@ -58,7 +58,7 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Esteban Capilla', 0), r('Guillaume Cramont', 1), r('François Cros', 44), r('Tyler Duguid', 1),
       r('Sipili Falatea', 15), r('Alexandre Fischer', 3), r('Marko Gazzotti', null), r('Jean-Baptiste Gros', 45),
       r('Mickaël Guillard', 19), r('Oscar Jégou', 15), r('Maxime Lamothe', 6), r('Peato Mauvaka', 48),
-      r('Charles Ollivon', 53), r('Jefferson Poirot', 39), r('Karl Sorin', 0), r('Thomas Staniforth', 3),
+      r('Charles Ollivon', 53), r('Jefferson Poirot', 39), r('Karl Sorin', 0), r('Tom Staniforth', 3),
       r('Tevita Tatafu', 3), r('Reda Wardi', 18), r('Cameron Woki', 32),
       r('Théo Attissogbe', 16), r('Léo Barré', 9), r('Louis Bielle-Biarrey', 27), r('Fabien Brau-Boirie', null),
       r('Axel Desperes', 0), r('Antoine Dupont', 64), r('Mathis Ferté', 0), r('Théo Forner', 0),
