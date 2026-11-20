@@ -14,7 +14,7 @@ import { applyToTable, wcRoundOf16 } from '../src/game/season/tables'
 import { buildInternationals, emptyRow, isLionsSeason, isWomensTourSeason } from '../src/game/schedule'
 import { mulberry32 } from '../src/game/rng'
 import { BASE_YEAR, type Competition, type Fixture, type GameState } from '../src/game/model'
-import { natCallUp, natDrop } from '../src/game/country'
+import { deskNat, natCallUp, natDrop, natWindow } from '../src/game/country'
 import { announceSquad, noteWindowResult, openNatWindow } from '../src/game/natwin'
 
 function camp(seed: number, nat = 'ENG'): GameState {
@@ -136,5 +136,30 @@ describe('the World Championship, the real 2027 format', () => {
     }
     expect(teams.filter(t => t.endsWith('T2')).length).toBe(4)
     expect(ties.every(([h, a]) => h.slice(0, 2) !== a.slice(0, 2))).toBe(true)
+  })
+})
+
+describe('the Isles tour party is the coach\'s to pick', () => {
+  it('on tour the desk is the four unions\' squad: drop and call up work on it', () => {
+    const g = newGame('bath', 'Isles', 71)
+    g.season = [...Array(20).keys()].find(s => isLionsSeason(s))!
+    buildInternationals(mulberry32(71), g, false)
+    g.natTeam = 'ENG'
+    g.isles = { season: g.season, answer: 'yes' }
+    g.unemployed = true // no two-jobs quota in this one
+    const tour = activeWindows(g).find(w => w.nations.includes('LIO'))!
+    g.week = tour.start
+    const home4 = Object.values(g.players).filter(p => ['ENG', 'IRE', 'SCO', 'WAL'].includes(p.nat) && p.clubId && !p.injury)
+      .sort((a, b) => b.ca - a.ca)
+    g.natSquads['LIO'] = home4.slice(0, 32).map(p => { p.natSquad = true; return p.id })
+    expect(deskNat(g)).toBe('LIO')
+    expect(natWindow(g)).not.toBeNull()
+    const out = g.natSquads['LIO'][31]
+    expect(natDrop(g, out)).toBeNull()
+    expect(g.natSquads['LIO']).not.toContain(out)
+    expect(natCallUp(g, out)).toBeNull()
+    expect(g.natSquads['LIO']).toContain(out)
+    // and his own country is not the desk while he is away
+    expect(g.natSquads['ENG'] ?? []).not.toContain(out)
   })
 })

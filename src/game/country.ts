@@ -15,6 +15,7 @@ import { NAT_SQUAD_FLOOR, clubQuotaLeft, conflictedClub, federationList, homeBas
 import { t } from './i18n'
 import { CAMP_FOCI, type CampFocus } from './natcamp'
 import { clubManLeftOut } from './natwin'
+import { islesCoach } from './isles'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
 
@@ -24,12 +25,23 @@ const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
 // so season.ts cannot import back from here
 export { NAT_SQUAD_SIZE, NAT_SQUAD_FLOOR, homeBased } from './nations'
 
+/** THE SIDE ON THE DESK (QA, 1.9.15). On an Isles tour it is the tour party:
+ *  the coach names it, drops from it and calls into it as he does his own
+ *  country's, which the assistant runs for the summer. Otherwise his nation. */
+export function deskNat(state: GameState): string | null {
+  if (islesCoach(state) && state.natSquads['LIO']) {
+    const w = activeWindows(state).find(w => w.nations.includes('LIO') && state.week >= w.start - 1 && state.week <= w.end)
+    if (w) return 'LIO'
+  }
+  return state.natTeam ?? null
+}
+
 /** The open call-up window for the user's nation, or null between windows.
  *  Open means the squad exists AND the calendar says the window is running -
  *  after w.end the squad list lingers one week for the release housekeeping,
  *  and that week is not a week to be making calls. */
 export function natWindow(state: GameState): { size: number } | null {
-  const nat = state.natTeam
+  const nat = deskNat(state)
   if (!nat || !state.natSquads[nat]) return null
   const w = activeWindows(state).find(w =>
     w.nations.includes(nat) && state.week >= w.start && state.week <= w.end)
@@ -44,7 +56,7 @@ export function natWindow(state: GameState): { size: number } | null {
  *  already being in a camp are the only bars. Age, rating, loan status and
  *  even holding a club contract are the COACH's judgement, not the game's. */
 function callable(state: GameState, p: Player): boolean {
-  const nat = state.natTeam
+  const nat = deskNat(state)
   if (!nat) return false
   const natMatch = nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat
   return natMatch && homeBased(state, p, nat) && !p.injury && !p.natSquad
@@ -66,7 +78,7 @@ export const NAT_SHAPE: Record<string, number> = { LP: 3, HK: 3, TP: 3, LK: 4, F
 
 /** The shirts the named squad is short of, in the order of the team sheet. */
 export function natShort(state: GameState): string[] {
-  const nat = state.natTeam
+  const nat = deskNat(state)
   if (!nat) return []
   const named = (state.natSquads[nat] ?? []).map(id => state.players[id]).filter((p): p is Player => !!p)
   return Object.keys(NAT_SHAPE).filter(pos => named.filter(p => p.pos === pos).length < NAT_SHAPE[pos])
@@ -76,7 +88,7 @@ export function natShort(state: GameState): string[] {
  *  then the best of the rest, in the order given, up to the window's size.
  *  Calls up through natCallUp, so every rule the coach obeys still holds. */
 export function suggestNatSquad(state: GameState, order: Player[], size: number): void {
-  const nat = state.natTeam
+  const nat = deskNat(state)
   if (!nat) return
   const count = (pos: string) => (state.natSquads[nat] ?? []).filter(id => state.players[id]?.pos === pos).length
   for (const pos of Object.keys(NAT_SHAPE)) {
@@ -94,7 +106,7 @@ export function suggestNatSquad(state: GameState, order: Player[], size: number)
 /** Call a player into the window squad. Returns null on success, or the
  *  refusal the screen prints. */
 export function natCallUp(state: GameState, playerId: number): string | null {
-  const nat = state.natTeam
+  const nat = deskNat(state)
   if (!nat) return t('reply.noNationalJob')
   const w = natWindow(state)
   const squad = state.natSquads[nat]
@@ -138,7 +150,7 @@ export function natCallUp(state: GameState, playerId: number): string | null {
 /** Drop a player from the window squad. Returns null on success, or the
  *  refusal the screen prints. */
 export function natDrop(state: GameState, playerId: number): string | null {
-  const nat = state.natTeam
+  const nat = deskNat(state)
   if (!nat) return t('reply.noNationalJob')
   const w = natWindow(state)
   const squad = state.natSquads[nat]
@@ -208,7 +220,7 @@ export function natSquadHold(state: GameState): { n: number } | null {
   // does not end a national tenure), and the camp still opens empty for him in
   // manageInternationals. With the hold switched off for him, nothing named his
   // squad and his country played its Tests with nobody in the camp at all.
-  const nat = state.natTeam
+  const nat = deskNat(state)
   if (!nat) return null
   if (!natWindow(state)) return null
   const named = (state.natSquads[nat] ?? []).length

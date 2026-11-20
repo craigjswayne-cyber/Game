@@ -6,7 +6,7 @@ import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { natFixtureThisWeek } from '../../game/season'
 import { NAT_SQUAD_SIZE } from '../../game/nations'
-import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natShort, natWindow, suggestNatSquad, weeksToSquad } from '../../game/country'
+import { NAT_SQUAD_FLOOR, deskNat, natCallUp, natDrop, natEligible, natShort, natWindow, suggestNatSquad, weeksToSquad } from '../../game/country'
 import { ClubLink, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
 import { posName, t } from '../../game/i18n'
@@ -187,7 +187,8 @@ export function NatSquad() {
   // census.
   const [posFilter, setPosFilter] = useState<Pos | 'ALL'>('ALL')
 
-  const natId = game.natTeam
+  // on an Isles tour the desk is the tour party's (country.ts deskNat)
+  const natId = deskNat(game)
   if (!natId) return null
   const club = game.unemployed ? null : game.clubs[game.userClubId]
   const w = natWindow(game)
@@ -307,6 +308,14 @@ export function NatSquad() {
               filters the pool below to that shirt, so seeing a hole and
               filling it is one gesture rather than a scroll through two
               thousand qualified names. */}
+          {/* the tour party, named as such: on an Isles tour this desk is
+              the four unions' squad, not the coach's own country's */}
+          {natId === 'LIO' && (
+            <div className="card" style={{ ...acc('var(--primary)') }}>
+              <h3 style={{ fontSize: '0.875rem' }}>{nationName('LIO')}</h3>
+              <div className="meta">{t('isles.deskSub')}</div>
+            </div>
+          )}
           <SectionTitle sub={t('legacy.coShapeSub')}>{t('legacy.coShape')}</SectionTitle>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, padding: '0 14px 8px' }}>
             <button className="chip" onClick={() => setPosFilter('ALL')}
