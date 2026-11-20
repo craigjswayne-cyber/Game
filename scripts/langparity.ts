@@ -28,7 +28,9 @@ const ok = (c: boolean, what: string) => {
 const load = (l: string) => JSON.parse(readFileSync(`src/locales/${l}.json`, 'utf8')) as Record<string, unknown>
 const EN = load('en')
 const PH = /\{(\w+)\}/g
-const phs = (s: string) => [...s.matchAll(PH)].map(m => m[1]).sort().join(',')
+// a nation's three forms (nationVars) are one slot: each language picks the
+// one its grammar needs (1.9.15, as scripts/i18nprobe.ts)
+const phs = (s: string) => [...s.matchAll(PH)].map(m => (/^nation(The|Cap)?_k$/.test(m[1]) ? 'nation_k' : m[1])).sort().join(',')
 const isPlural = (v: unknown): v is Record<string, string> =>
   !!v && typeof v === 'object' && 'other' in (v as object) && Object.values(v as object).every(x => typeof x === 'string')
 
