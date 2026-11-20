@@ -572,7 +572,8 @@ export class PitchSim {
         if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 5.5 : 2.4 })
         // FROM CLOSE IN it is worked up to the line first: the pack carries it
         // to within a few metres, and he goes over from there
-        if (tk === 'close' && !cut && d > 10) steps.unshift({ k: 'advance', to: { x: clamp(E.x - dir * 7.5, 3, 97), y: E.y }, rate: ADV })
+        // (and that is WATCHED, not wound on: owner, 19 Nov 2026, "suddenly jumped forward 5m to score. It needs to be fluid")
+        if (tk === 'close' && !cut && d > 10) steps.unshift({ k: 'advance', to: { x: clamp(E.x - dir * 7.5, 3, 97), y: E.y }, rate: 1.6 })
         break
       }
       default:
@@ -636,7 +637,7 @@ export class PitchSim {
         const flows = d > 8 && d <= 70 && (p.kind === 'scrum' || p.kind === 'maul' || p.kind === 'lineout')
         if (flows && p.kind !== 'lineout' && gain > -8) {
           if (!holderAtt) { this.holder = -1; this.grounded = false }
-          pre.push({ k: 'advance', to: { ...anchor }, rate: ADV }, { k: 'mode', mode, cIdx, at: { ...anchor }, clear: true },
+          pre.push({ k: 'advance', to: { ...anchor }, rate: p.kind === 'try' ? 1.6 : ADV }, { k: 'mode', mode, cIdx, at: { ...anchor }, clear: true },
             { k: 'pick', who: att0 + 8, max: 1, rate: ADV }, { k: 'settle', max: 2.2, rate: ADV })
           if (init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
           steps.unshift(...pre)
@@ -675,7 +676,7 @@ export class PitchSim {
         // OPEN PLAY: it is played there. Carry, tackle, quick ball, the next
         // man on to it, until the ruck is where this line picks it up.
         if (!holderAtt) { this.holder = -1; this.grounded = false }
-        pre.push({ k: 'advance', to: { ...anchor }, join: init >= 0 ? init : undefined, rate: ADV })
+        pre.push({ k: 'advance', to: { ...anchor }, join: init >= 0 ? init : undefined, rate: p.kind === 'try' ? 1.6 : ADV })
         if (init >= 0) pre.push({ k: 'pick', who: att0 + 8, max: 1.2, rate: ADV }, { k: 'pass', to: init, rate: ADV },
           { k: 'mode', mode, cIdx, anchorOn: init, clear: true })
         else pre.push({ k: 'mode', mode, cIdx, at: { ...anchor }, clear: true })
