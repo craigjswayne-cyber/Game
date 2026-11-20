@@ -687,7 +687,8 @@ export class PitchSim {
           // carried it forty metres back to halfway, and the kick was struck
           // from wherever the kicker had got to, twenty metres off the mark).
           const atGoal = p.kind === 'con' || p.kind === 'goal'
-          if (atGoal && init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
+          // (it is lobbed to the mark and he walks out to it there: it was one flat fifty-metre pass to a man on the move)
+          if (atGoal && init >= 0) pre.push({ k: 'kick', to: { ...anchor }, hang: 7, silent: true, rate: 2.5 }, { k: 'pick', who: init, max: 9, rate: FF })
           pre.push({ k: 'settle', max: atGoal ? 9 : 3.6, rate: FF })
           if (!atGoal && init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
           steps.unshift(...pre)
