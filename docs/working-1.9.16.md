@@ -117,3 +117,8 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   tag under the clock (Live.tsx, .tense-tag). Commentary stream only: tests prove a Test scores the same watched
   or silent. Six languages. Sampled on a real Test week: 31 of 90 Tests carried tension lines (20 finished within 7).
   NOT YET SEEN ON SCREEN: the scoreboard tag needs a browser look at 384x832.
+
+### 23:23 UTC: the close-Test marker, seen on a phone-sized screen
+- Found while checking: the game has had a close-game band on the scoreboard since 1.1.1 ("A kick in it, 14 minutes left"). The tag built at 22:50 would have sat on top of it in a Test, two messages for one thing, and it read the match's running score, not the score on screen. Removed the tag and its two wording keys in all six languages.
+- Now one band. A Test wears it from the 60th minute whenever seven or fewer are in it, and it pulses. Club games are as they were.
+- Checked in a browser at 384x832 with a staged 16-13 at 66 minutes: one band, marked as a Test, pulsing, inside the screen. Walk now 19 of 19. The walk's fly-half picks were also fixed to England-based men (the real squads moved who was next in line).
