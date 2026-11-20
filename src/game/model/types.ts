@@ -171,6 +171,9 @@ export interface Player {
   injury: Injury | null
   bans: number      // matches suspended
   natSquad: boolean // currently called up
+  /** Generated for a thin nation's Test pool, with no club: kept in that
+   *  nation's pool for the next window rather than generated afresh (1.9.15). */
+  natGen?: boolean
   // contract
   wage: number      // weekly £
   contractEnds: number // season index when contract expires (end of)

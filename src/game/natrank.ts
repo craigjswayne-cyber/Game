@@ -43,6 +43,11 @@ const seedOf = (code: string, world: Gender = 'm'): number => {
 }
 
 
+/** A nation's ranking points in this world, live where they exist. */
+export function natStrength(state: GameState, code: string): number {
+  return state.natRank?.[code] ?? seedOf(code, genderOf(state))
+}
+
 /** Make sure every nation has a rating (new games and old saves alike). */
 export function seedNatRank(state: GameState) {
   state.natRank ??= {}

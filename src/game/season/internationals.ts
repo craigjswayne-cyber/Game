@@ -9,6 +9,7 @@ import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, homeBased, clubQuotaLeft, c
 import { isMyClub } from '../model'
 import { clamp, type Rng } from '../rng'
 import { tIn } from '../i18n'
+import { natStrength } from '../natrank'
 import { openNatWindow, reviewNatWindow } from '../natwin'
 
 // ------------------------------------------------------------------
@@ -145,15 +146,22 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       const usersNat = nat === state.natTeam || (nat === 'LIO' && islesCoach(state))
       // the squad, plus the next men in behind it
       const target = w.size + NAT_DEPTH
-      const ranked = Object.values(state.players)
+      const real = Object.values(state.players)
         .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
           // England and France pick from their own leagues, and the
           // federation's own list obeys the rule the coach obeys
           // (country.ts homeBased) - one predicate, or the announcement
-          // names men the screen then refuses to keep
-          p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
-          (usersNat || p.ca >= 68))
+          // names men the screen then refuses to keep. A player generated
+          // for an earlier window stays in the pool (1.9.15): he had no
+          // club, so every window used to generate fifty strangers afresh.
+          (p.clubId || p.natGen) && homeBased(state, p, nat) && !p.injury && !p.onLoan)
         .sort((a, b) => b.ca - a.ca)
+      const ranked = real.filter(p => usersNat || p.ca >= 68)
+      // REAL PLAYERS BEFORE INVENTED ONES (QA, 1.9.15). The AI bar of 68 left
+      // 333 American club players at home and called up twenty-nine
+      // strangers rated about 42 in their place: a thin pool is topped up
+      // from the nation's real players below the bar first.
+      if (!usersNat && ranked.length < w.size + NAT_DEPTH) ranked.push(...real.filter(p => p.ca < 68).slice(0, w.size + NAT_DEPTH - ranked.length))
         // READ THE POOL DEEPER THAN THE SQUAD. This used to cut at w.size,
         // which made the count below useless as a test of a country's depth:
         // every nation on earth, England included, looked exactly 32 men
@@ -186,7 +194,10 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       // and had exactly two players outside a 32-man camp. Thin is thin
       // whether you are two short of a squad or two short of a contest.
       if (nat !== 'LIO' && pool.length < target) {
-        const natRep = nationByCode(nat)?.rep ?? 55
+        // the WOMEN's strength for a women's nation (QA, 1.9.15): this read
+        // the men's reputation, so women's Canada, third in the world, was
+        // topped up with players rated 40 and women's Fiji with 64s
+        const natRep = genderOf(state) === 'w' ? natStrength(state, nat) + 3 : nationByCode(nat)?.rep ?? 55
         const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
         let i = 0
         while (pool.length < target && i < target + 12) {
@@ -198,6 +209,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
               gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
             },
             null, state.seed + state.week * 131 + i * 17, state.season)
+          hp.natGen = true
           state.players[hp.id] = hp
           pool.push(hp)
           i++
