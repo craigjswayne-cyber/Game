@@ -211,7 +211,7 @@ export class PitchSim {
   /** a stoppage dissolves to the formed set piece instead of being wound on (20 Nov 2026) */
   static dissolveResets = true
   /** the speed play is watched at when stoppages dissolve; the quickest anything is wound on is 1.18 times this */
-  static base = 1.9
+  static base = 2.05
   constructor() {
     for (let i = 0; i < 30; i++) this.b.push({ x: 50 + (i < 15 ? -8 : 8), y: 6 + (i % 15) * 4, vx: 0, vy: 0 })
   }
@@ -585,7 +585,7 @@ export class PitchSim {
           void strike
           // he goes for the line from where the move put him, not across the field
           steps.push({ k: 'run', to: { ...E }, v, straight: true })
-          if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 1.7 : 1.0 })
+          if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 1.3 : 0.9 })
           else steps.push({ k: 'wait', t: 0.2 })
           break
         }
@@ -1205,10 +1205,10 @@ export class PitchSim {
     // Everything else is wound on, with the chevrons up while it is.
     {
       const r = this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1
-      this.rate = PitchSim.dissolveResets ? (r <= 1.6 ? PitchSim.base : r <= 2.6 ? PitchSim.base * 1.08 : PitchSim.base * 1.18) : (r <= 1.6 ? 1.85 : r <= 2.6 ? 4.2 : 6.6)
+      this.rate = PitchSim.dissolveResets ? (r <= 1.6 ? PitchSim.base : r <= 2.6 ? PitchSim.base : PitchSim.base) : (r <= 1.6 ? 1.85 : r <= 2.6 ? 4.2 : 6.6)
     }
     // a ball in the air from a restart or a kick at goal is not watched at life speed
-    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, PitchSim.dissolveResets ? PitchSim.base * 1.18 : 6.6)
+    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, PitchSim.dissolveResets ? PitchSim.base : 6.6)
     // (a ceiling on the wind-on, for trying a slower, longer match: see PitchSim.cap)
     if (this.rate > PitchSim.cap) this.rate = PitchSim.cap
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
@@ -1693,7 +1693,9 @@ export class PitchSim {
       const brisk = !urgent && dist > 6 && !calm
       const vmax = urgent ? (fwd ? V_FWD : V_BACK) * (i === this.holder ? 1.08 : 1) * this.pace[i] : brisk ? (fwd ? V_FWD : V_BACK) * 0.72 : (fwd ? JOG_FWD : JOG_BACK) * (calm ? 0.7 : 1)
       // (a man with a couple of metres to go does not bother: he is where he should be)
-      const want = !urgent && dist < 1.6 ? 0 : Math.min(vmax, dist * (urgent ? 2.6 : 1.4))
+      // (nobody is shown above 8.25 m/s: the match is watched at about twice life speed, and a
+      // quick back with a tail wind was 9.7, which is over 18 on the screen)
+      const want = !urgent && dist < 1.6 ? 0 : Math.min(vmax, 8.25, dist * (urgent ? 2.6 : 1.4))
       let wx = dist > 1e-6 ? dx / dist * want : 0, wy = dist > 1e-6 ? dy / dist * want : 0
       // SEPARATION (18 Nov 2026, from the research: Reynolds' steering
       // behaviours, "do not get too close"). Men in open play keep a couple of
@@ -1713,7 +1715,7 @@ export class PitchSim {
           if (e > 0.05) { sx += ex / e * f; sy += ey / e * f } else { sx += ((i * 7) % 3 - 1) * f; sy += ((i * 5) % 3 - 1) * f }
         }
         wx += sx; wy += sy
-        const wl = Math.hypot(wx, wy), cap = Math.max(vmax, 3)
+        const wl = Math.hypot(wx, wy), cap = Math.min(8.25, Math.max(vmax, 3))
         if (wl > cap) { wx *= cap / wl; wy *= cap / wl }
       }
       const ax = wx - bd.vx, ay = wy - bd.vy
