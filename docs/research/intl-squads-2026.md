@@ -187,3 +187,23 @@ each club's full announced squad (non-internationals, new signings, leavers).
 - Ireland women: 36 named (irishrugby.ie, 24 Aug 2026), no caps on the page. RugbyPass's Ireland match-day
   articles print caps beside each name ("Scott Bemand names back-row debutant for Ireland's WXV opener").
 - Still to find: France, Wales, Italy, Canada, Japan; caps for Ireland and USA.
+
+### Women, second pass (23:40 UTC, 20 Nov)
+
+- Wales 39 (RugbyPass, 1 Sep 2026). Caps for the 23 named v South Africa on 18 Sep, as printed before that Test; 11 open.
+- France 38 (RugbyPass, 30 Jul 2026). Caps only for the four printed before the first Test (Bourdon Sansus 76, Vernier 60,
+  Jacquet 22, Arbey 11) and the uncapped; 23 open. RugbyPass's v Canada team sheet (26 Sep) prints all 23 but two Tests in.
+- Italy 38, every cap (RugbyPass, 2 Sep 2026). Canada 36 (RugbyPass, 27 Aug); caps for the 23 named v Scotland, 12 Sep; 11 open.
+- Japan 30 (RugbyPass, 14 Sep); caps for the 23 named v Fiji on 4 Sep (JRFU); 8 open. Ireland: caps for the 23 named v USA, 20 Sep; 7 open.
+- Wikipedia's 2026 Women's Six Nations squads page counts caps to 11 April 2026, five Tests before the autumn: not used.
+- 34 nationalities corrected. The files held these squad players as English (PWR) or French (Elite 1):
+  Wales: Maisie Davies, Donna Rose, Kate Williams, Jorja Aiono, Megan Davey, Kayleigh Powell, Courtney Keight, Hannah Dallavalle, Nel Metcalfe.
+  Canada: Brooke Rempel, Cassandra Tuffnail, Gabrielle Senft, Julia Omokhuale, Rachel Smith, Claire Gallagher, Fancy Bermudez, Flo Symonds,
+  Fabiola Forteza, Aurora Bowie, Sarah Maude Lachance. Italy: Cavina, Pilani, Ranuccini, Sgorbini, Veronese, Zanette, D'Inca, Muzzo, Stefan.
+  USA: Rachel Ehrecke, Hallie Taufoou, Emily Henrich. Ireland: Niamh Gallagher.
+- Six positions corrected from the shirt numbers on those team sheets: Flo Symonds CE, Nel Metcalfe FB, Hannah Dallavalle CE,
+  Rachel Smith LK, Julia Omokhuale FL, Claire Gallagher FB.
+- NOT changed, to check: Abigail Paton (file: New Zealand, capped; USA squad has the name), Lisa Neumann (the file's one is a
+  generated Championship player; the real one, Leicester, is missing), men's Gonzalo Garcia / Virimi Vakatawa / Opeti Helu.
+- Still missing from the club files (PWR and Elite 1 audit): Wales 9, Canada 17, Italy 25, Japan 28, South Africa 28, USA 25.
+- All twelve WXV Global Series unions now have a squad in.

@@ -122,3 +122,10 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - Found while checking: the game has had a close-game band on the scoreboard since 1.1.1 ("A kick in it, 14 minutes left"). The tag built at 22:50 would have sat on top of it in a Test, two messages for one thing, and it read the match's running score, not the score on screen. Removed the tag and its two wording keys in all six languages.
 - Now one band. A Test wears it from the 60th minute whenever seven or fewer are in it, and it pulses. Club games are as they were.
 - Checked in a browser at 384x832 with a staged 16-13 at 66 minutes: one band, marked as a Test, pulsing, inside the screen. Walk now 19 of 19. The walk's fly-half picks were also fixed to England-based men (the real squads moved who was next in line).
+
+### 23:40 UTC: women's squads complete (12 of 12 unions), 34 nationalities and 6 positions corrected
+- See docs/research/intl-squads-2026.md, "Women, second pass". Audit passes; Wales added to the thin list (30 of 39 in the world).
+- tests/records.test.ts failed on the branch: the fixed-seed league match now has a penalty try (7 points, no scorer). The test now
+  allows for penalty tries. Not a game bug.
+- Owner asked for a tick-box list of 1.9.14 and 1.9.15 changes: published as an artifact (134 checks).
+- Full unit suite: 444 of 445; the one failure is the fingerprint, to be rebaselined once at the end.
