@@ -73,7 +73,10 @@ export function updateNatRank(state: GameState, fx: Fixture) {
   else if (fx.homeScore < fx.awayScore) pts = -(1 + d / 10)
   else pts = -d / 10
   let k = Math.abs(fx.homeScore - fx.awayScore) > 15 ? 1.5 : 1
-  if (fx.stage) k *= fx.compId === 'wc' ? 2 : 1.5
+  // World Rugby doubles EVERY World Cup match, pool games included, and
+  // weights nothing else up: this doubled only the knockouts, and took a
+  // summer Test's '1st Test' label for a knockout (x1.5) (QA, 1.9.15)
+  if (fx.compId === 'wc') k *= 2
   // An exchange: what one side gains the other loses. The 40 to 100 bounds
   // used to be applied to each side AFTER the exchange, so a side at the
   // ceiling took nothing while its opponent still lost the full amount, and
