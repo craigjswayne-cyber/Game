@@ -14,7 +14,7 @@ import { activeWindows } from './season'
 import { NAT_SQUAD_FLOOR, clubQuotaLeft, conflictedClub, federationList, homeBased, nationName, nationVars } from './nations'
 import { t } from './i18n'
 import { CAMP_FOCI, type CampFocus } from './natcamp'
-import { clubManLeftOut } from './natwin'
+import { clubManLeftOut, natWinNow } from './natwin'
 import { islesCoach } from './isles'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
@@ -68,6 +68,28 @@ export function natEligible(state: GameState): Player[] {
   if (!state.natTeam) return []
   return Object.values(state.players)
     .filter(p => callable(state, p))
+    .sort((a, b) => b.ca - a.ca)
+}
+
+/** WHY A QUALIFIED MAN IS NOT ON THE LIST (owner, 1.9.16).
+ *
+ *  "Marcus Smith isn't available for England team?" He was injured, and the
+ *  list simply left him off: a first-choice fly-half vanished with no word.
+ *  The desk now shows these men too, greyed, with the reason beside them. One
+ *  predicate again: a man is here exactly when `callable` refuses him for a
+ *  reason the coach cannot change this week. */
+export type NatBar = 'injured' | 'abroad' | 'noclub'
+export function natBarOf(state: GameState, p: Player): NatBar | null {
+  const nat = deskNat(state)
+  if (!nat) return null
+  if (!(nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat)) return null
+  if (!homeBased(state, p, nat)) return p.clubId ? 'abroad' : 'noclub'
+  return p.injury ? 'injured' : null
+}
+export function natUnavailable(state: GameState): Player[] {
+  if (!state.natTeam) return []
+  return Object.values(state.players)
+    .filter(p => !p.natSquad && natBarOf(state, p) != null)
     .sort((a, b) => b.ca - a.ca)
 }
 
@@ -141,7 +163,11 @@ export function natCallUp(state: GameState, playerId: number): string | null {
     const lost = state.natSentLoss?.[playerId] ?? 0.7
     if (state.natSentLoss) delete state.natSentLoss[playerId]
     p.morale = clamp(p.morale + lost, 1, 10)
-  } else p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
+  } else {
+    const before = p.morale
+    p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
+    ;(state.natCallGain ??= {})[playerId] = p.morale - before
+  }
   // the 23 is picked from the squad - a changed squad voids the old teamsheet
   if (state.natLineup?.team === nat) state.natLineup = null
   return null
@@ -165,8 +191,26 @@ export function natDrop(state: GameState, playerId: number): string | null {
       federationList(state, nat, w.size).some(q => q.id === playerId)) {
     return t('reply.ownClubKept', { player: p.name, club: state.clubs[mine]?.short ?? '' })
   }
-  if (squad.length <= NAT_SQUAD_FLOOR) return t('reply.squadFloor', { n: NAT_SQUAD_FLOOR })
+  // THE FLOOR IS FOR A NAMED SQUAD (owner, 1.9.16: "I accidentally picked a
+  // wrong player when selecting my 32, you should be able to remove anyone
+  // until you submit"). Until the announcement the sheet is a draft: a man
+  // named by mistake comes off it whatever the count (Continue is held until
+  // the sheet is legal, so a short draft cannot reach a Test). Once the squad
+  // is announced, 23 dress on the day and it cannot be trimmed below that.
+  const named = natWinNow(state)?.announced ?? true
+  if (named && squad.length <= NAT_SQUAD_FLOOR) return t('reply.squadFloor', { n: NAT_SQUAD_FLOOR })
   squad.splice(idx, 1)
+  // A DRAFT CORRECTION IS NOT A SNUB (1.9.16). Before the announcement nobody
+  // outside the room has seen the sheet: the man comes off it, the lift the
+  // call gave him goes back, and that is all. No sting, no "sent home", no
+  // club grievance - those belong to a squad that was named.
+  if (p && !named) {
+    p.natSquad = false
+    const gain = state.natCallGain?.[playerId]
+    if (gain != null) { p.morale = clamp(p.morale - gain, 1, 10); delete state.natCallGain![playerId] }
+    if (state.natLineup?.team === nat) state.natLineup = null
+    return null
+  }
   if (p) {
     p.natSquad = false
     const before = p.morale

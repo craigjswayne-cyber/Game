@@ -705,6 +705,7 @@ function migrateCollections(s: GameState): void {
   if (s.natOrphan != null && typeof s.natOrphan !== 'string') delete s.natOrphan
   if (s.natEarly != null && typeof s.natEarly !== 'string') delete s.natEarly
   if (s.natSentLoss != null && (typeof s.natSentLoss !== 'object' || Array.isArray(s.natSentLoss))) delete s.natSentLoss
+  if (s.natCallGain != null && (typeof s.natCallGain !== 'object' || Array.isArray(s.natCallGain))) delete s.natCallGain
   s.players = asMap(s.players)
   // A MAN IS FILED UNDER HIS OWN ID (1.9.4 audit). A null left by a bad
   // write threw later in this function and cost the whole career; a key

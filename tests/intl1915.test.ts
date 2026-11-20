@@ -60,17 +60,36 @@ describe('the Isles XV tour', () => {
 })
 
 describe('fair reactions to selection', () => {
-  it('a dropped player is not punished again at the announcement', () => {
+  // 1.9.16: the sheet is a draft until it is named, so a man taken off it
+  // before the announcement feels nothing then. He was in the last squad and
+  // is not in this one: that is one reaction, at the announcement, not two.
+  it('a man taken off the draft gets one reaction, at the announcement', () => {
     const g = camp(51)
     fill(g, 30)
     const id = g.natSquads.ENG[29]
     g.players[id].caps = 40
     g.natPrevSquad = [...g.natSquads.ENG]
+    const called = g.players[id].morale
     expect(natDrop(g, id)).toBeNull()
     const after = g.players[id].morale
+    expect(after).toBeLessThanOrEqual(called)
+    expect(called - after).toBeLessThanOrEqual(0.5 + 1e-9)
+    expect(g.natSent ?? []).not.toContain(id)
     const r = announceSquad(g, [])!
-    expect(r.omitted).not.toContain(id)
-    expect(g.players[id].morale).toBe(after)
+    expect(r.omitted).toContain(id)
+    expect(g.players[id].morale).toBeLessThan(after)
+    expect(after - g.players[id].morale).toBeLessThanOrEqual(1)
+  })
+
+  it('a player sent home after the announcement is not punished twice', () => {
+    const g = camp(54)
+    fill(g, 30)
+    announceSquad(g, [])
+    const id = g.natSquads.ENG[29]
+    const before = g.players[id].morale
+    expect(natDrop(g, id)).toBeNull()
+    expect(g.natSent).toContain(id)
+    expect(before - g.players[id].morale).toBeLessThanOrEqual(0.7 + 1.5)
   })
 
   it('a player the coach could not pick (playing abroad) is not "left out"', () => {
@@ -89,6 +108,7 @@ describe('fair reactions to selection', () => {
   it('a drop and a recall at the morale floor is not a gain', () => {
     const g = camp(53)
     fill(g, 30)
+    announceSquad(g, []) // the sting and its refund belong to a named squad (1.9.16)
     const id = g.natSquads.ENG[29]
     g.players[id].morale = 1
     expect(natDrop(g, id)).toBeNull()

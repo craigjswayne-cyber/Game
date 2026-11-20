@@ -81,7 +81,7 @@ export function manageInternationals(state: GameState, rng: Rng) {
           }
         }
         delete state.natSquads[nat]
-        if (nat === state.natTeam) { delete state.natSent; delete state.natFed; delete state.natSentLoss }
+        if (nat === state.natTeam) { delete state.natSent; delete state.natFed; delete state.natSentLoss; delete state.natCallGain }
         if (nat === state.natOrphan) state.natOrphan = null
       }
       if (lionsHome.length) {
@@ -410,6 +410,7 @@ function openUserCamp(state: GameState, nat: string, w: Window): void {
   state.natSquads[nat] = []
   state.natSent = []
   state.natSentLoss = {}
+  state.natCallGain = {}
   state.natFed = { nat, ids: federationPick(state, nat, w.size).map(p => p.id) }
   releaseClubDuty(state, nat, w.size)
   const v = { ...nationVars(nat), n: NAT_SQUAD_FLOOR }

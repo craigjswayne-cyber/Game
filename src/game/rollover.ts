@@ -121,6 +121,7 @@ export function rebuildSeason(state: GameState) {
   state.natSquads = {}
   delete state.natSent
   delete state.natSentLoss
+  delete state.natCallGain
   delete state.natFed
   state.natLineup = null
 

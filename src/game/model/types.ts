@@ -2013,6 +2013,9 @@ export interface GameState {
   /** What a drop this window took off each player's morale, so a recall
    *  gives back exactly that (country.ts, 1.9.15). */
   natSentLoss?: Record<number, number>
+  /** What each call-up in the DRAFT sheet added to a man's morale, so taking
+   *  him off again before the announcement gives back exactly that (1.9.16). */
+  natCallGain?: Record<number, number>
   /** a window whose review ended the tenure, kept so the screen can say so */
   natLastReview?: GameState['natWin']
   /** the federation's own list for the user's nation, snapshotted when the
