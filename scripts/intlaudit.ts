@@ -18,7 +18,7 @@ import { INTL_2026 } from '../src/data/intl2026'
 import { federationPick } from '../src/game/nations'
 import { ok, done } from './lib/probe'
 
-const plain = (x: string) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const plain = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[’'`]/g, '').replace(/-/g, ' ').toLowerCase()
 
 for (const gender of ['m', 'w'] as const) {
   const table = INTL_2026[gender]

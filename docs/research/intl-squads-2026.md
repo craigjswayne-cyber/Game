@@ -42,9 +42,30 @@ union. A figure goes in the data file only when a source here gives it.
 - Greg Fisilau (Exeter), Emmanuel Iyogun (Northampton), Arthur Clark and
   Will Joseph (Gloucester), Kepu Tuipulotu, Archie McParland: confirm present.
 
+## France (men) - done, 3 caps to confirm
+
+- Squad: 42 named 21 Oct 2026 (Reuters via The Star, 21 Oct 2026). Jeremy Ward
+  is a training partner only (eligible 2027) and is left out: 41 in the file.
+- Caps: Wikipedia, France national rugby union team, "Caps updated: 21 October
+  2026 (ahead of November tests)".
+- To confirm: Marko Gazzotti, Fabien Brau-Boirie, Antoine Hastoy.
+- Injured and absent: Matthieu Jalibert, Thomas Ramos. Also absent: Thibaud
+  Flament, Emmanuel Meafou, Pierre-Louis Barassi, Julien Marchand, Demba Bamba
+  (caps for these still to add as `squad: false`).
+- For the player audit: Tevita Tatafu is in the world as TGA (3 France caps);
+  not in the world: Tyler Duguid (Montpellier), Karl Sorin, Thomas Staniforth
+  (Castres; check "Tom Staniforth"), Axel Desperes (Pau).
+
+## Ireland (men) - done
+
+- Squad and caps: IRFU announcement of 21 Oct 2026 as carried by WLR FM, 36
+  players, caps printed beside each name.
+- For the player audit: Jamie Benson is in the world as ENG at Harlequins; he
+  moved to Ulster and was named by Ireland (uncapped).
+
 ## To do, in this order
 
-Men: France, Ireland, Scotland, Wales, Italy, South Africa, New Zealand,
+Men: Scotland, Wales, Italy, South Africa, New Zealand,
 Australia, Argentina, Fiji, Japan, then Samoa, Tonga, USA, Canada.
 Women: England, France, Ireland, Scotland, Wales, Italy, New Zealand,
 Australia, USA, Canada (check `testNationsIn` for the ten in a women's world).

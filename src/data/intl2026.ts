@@ -50,6 +50,38 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('George Kloska', 2, false), r('Vilikesa Sela', 0, false), r('Benhard Janse van Rensburg', 2, false),
       r('Noah Caluori', 2, false),
     ],
+    // France: 42 named by the FFR on 21 Oct 2026 (Reuters list). Caps as of
+    // 21 Oct 2026, ahead of the November Tests. Jeremy Ward was named as a
+    // training partner only (not eligible until 2027) and is left out.
+    FRA: [
+      r('Grégory Alldritt', 58), r('Hugo Auradou', 14), r('Paul Boudehent', 21), r('Joshua Brennan', 3),
+      r('Esteban Capilla', 0), r('Guillaume Cramont', 1), r('François Cros', 44), r('Tyler Duguid', 1),
+      r('Sipili Falatea', 15), r('Alexandre Fischer', 3), r('Marko Gazzotti', null), r('Jean-Baptiste Gros', 45),
+      r('Mickaël Guillard', 19), r('Oscar Jégou', 15), r('Maxime Lamothe', 6), r('Peato Mauvaka', 48),
+      r('Charles Ollivon', 53), r('Jefferson Poirot', 39), r('Karl Sorin', 0), r('Thomas Staniforth', 3),
+      r('Tevita Tatafu', 3), r('Reda Wardi', 18), r('Cameron Woki', 32),
+      r('Théo Attissogbe', 16), r('Léo Barré', 9), r('Louis Bielle-Biarrey', 27), r('Fabien Brau-Boirie', null),
+      r('Axel Desperes', 0), r('Antoine Dupont', 64), r('Mathis Ferté', 0), r('Théo Forner', 0),
+      r('Émilien Gailleton', 13), r('Kalvin Gourgues', 4), r('Aaron Grandidier-Nkanang', 2), r('Antoine Hastoy', null),
+      r('Nolann Le Garrec', 16), r('Maxime Lucu', 33), r('Yoram Moefana', 42), r('Romain Ntamack', 45),
+      r('Damian Penaud', 50), r('Tani Vili', 0),
+      // capped, not in the 21 Oct squad (called in later, or hurt)
+      r('Thomas Laclayat', 3, false), r('Anthony Jelonch', 39, false), r('Nicolas Depoortère', 9, false),
+    ],
+    // Ireland: 36 named by the IRFU on 21 Oct 2026 (19 forwards, 17 backs),
+    // with the caps the union printed beside each name that day.
+    IRE: [
+      r('Ryan Baird', 33), r('Tadhg Beirne', 73), r('Billy Bohan', 1), r('Thomas Clarkson', 16),
+      r('Tadhg Furlong', 88), r('Sam Illo', 1), r('Sean Jansen', 2), r('Rónan Kelleher', 51),
+      r('Joe McCarthy', 26), r('James McNabney', 0), r('Darragh Murray', 3), r("Tom O'Toole", 24),
+      r('Andrew Porter', 79), r('Cian Prendergast', 11), r('James Ryan', 83), r('Dan Sheehan', 41),
+      r('Tom Stewart', 6), r('Nick Timoney', 14), r('Josh van der Flier', 81),
+      r('Bundee Aki', 72), r('Rob Baloucoune', 9), r('Jamie Benson', 0), r('Craig Casey', 30),
+      r('Nathan Doak', 2), r('Ciaran Frawley', 15), r('Jamison Gibson-Park', 53), r('Mack Hansen', 30),
+      r('Robbie Henshaw', 85), r('Hugo Keenan', 48), r('Stuart McCloskey', 31), r("Jimmy O'Brien", 14),
+      r("Tommy O'Brien", 9), r('Jamie Osborne', 17), r('Sam Prendergast', 17), r('Garry Ringrose', 76),
+      r('Jacob Stockdale', 43),
+    ],
   },
   w: {},
 }

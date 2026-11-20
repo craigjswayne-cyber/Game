@@ -1210,7 +1210,7 @@ function squadAssessment(state: GameState): NewsItem {
  *  man named in the squad is marked for the federation's first season. */
 export function applyIntl2026(state: GameState): void {
   const table = INTL_2026[state.gender ?? 'm']
-  const plain = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const plain = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[’'`]/g, '').replace(/-/g, ' ').toLowerCase()
   for (const [nat, rows] of Object.entries(table)) {
     const byName = new Map<string, Player[]>()
     for (const p of Object.values(state.players)) {
