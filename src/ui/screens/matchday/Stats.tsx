@@ -8,6 +8,11 @@ import { t } from '../../../game/i18n'
 import { CrestT } from '../../components'
 import { tokenColor } from '../../HighlightClip'
 import { kitColours, pageSpares } from '../../kit'
+import { natKit } from '../../../data/natcolours'
+import type { GameState } from '../../../game/model'
+
+/** A side's colours: the club's, or the union's kit for a Test side. */
+const sideKit = (g: GameState, id: string): string[] | undefined => g.clubs[id]?.colors ?? natKit(id) ?? undefined
 
 // VISITS TO THE 22, and what each side came away with (1.8.0). Owner-led
 // research: the "we were robbed" feeling comes from stats that show
@@ -63,9 +68,13 @@ export function LiveStats({ shown }: { shown: MatchEvent[] }) {
   const live = useStore(s => s.liveMatch)!
   const st = matchStats(live.ctx)
   const homeId = live.fixture.homeId
-  const kits = kitColours(pageSpares(tokenColor), game.clubs[homeId]?.colors, game.clubs[live.fixture.awayId]?.colors)
+  // A TEST HAS COLOURS TOO (owner, 1.9.16: "colours on the in game stats
+  // aren't of the teams?"). A nation is not a club, so both bars fell back to
+  // grey: England against Australia read as one long grey line. The union's
+  // kit is asked for when there is no club, as the scoreboard already does.
+  const kits = kitColours(pageSpares(tokenColor), sideKit(game, homeId), sideKit(game, live.fixture.awayId))
   const col = (id: string) => {
-    if (!game.clubs[id]?.colors) return 'var(--text-muted)'
+    if (!sideKit(game, id)) return 'var(--text-muted)'
     return (id === homeId ? kits.home : kits.away)[0]
   }
   // TERRITORY is where the ball has been on average: 50 is halfway, and the
@@ -132,7 +141,7 @@ export function StatsPanel() {
   const [hv, hp] = visitStats(shown, homeId, true), [av, ap] = visitStats(shown, homeId, false)
   const shownSt = shownStats(live, shown, homeId, st.goalKicks)
   const [gk0, gk1] = shownSt.kicks
-  const kits = kitColours(pageSpares(tokenColor), game.clubs[homeId]?.colors, game.clubs[live.fixture.awayId]?.colors)
+  const kits = kitColours(pageSpares(tokenColor), sideKit(game, homeId), sideKit(game, live.fixture.awayId))
   const colour = (id: string) => (id === homeId ? kits.home : kits.away)[0]
   // Each row carries a split bar in the two clubs' colours, and the bars fill
   // in one after another as the panel opens (idea 5: "the match stats panel

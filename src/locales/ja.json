@@ -2898,6 +2898,8 @@
   "suspendedChipOne": "出場停止{n}試合",
   "academySquad": "アカデミー所属",
   "onIntlDuty": "代表帯同中",
+  "natDeskIn": "あなたのスコッドに選出中",
+  "natDeskOut": "あなたのスコッド外",
   "awayOnLoan": "シーズンローンで不在",
   "transferListed": "移籍リスト入り",
   "theOffice": "監督室",

@@ -3020,6 +3020,8 @@
   "suspendedChipOne_f": "Sancionada {n} partido",
   "academySquad": "Equipo de cantera",
   "onIntlDuty": "Con su selección",
+  "natDeskIn": "En tu convocatoria",
+  "natDeskOut": "Fuera de tu convocatoria",
   "awayOnLoan": "Cedido toda la temporada",
   "awayOnLoan_f": "Cedida toda la temporada",
   "transferListed": "Transferible",

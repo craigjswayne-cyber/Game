@@ -45,7 +45,9 @@ export function ViewPicker({ view, onPick }: {
   onPick: (v: 'full' | 'highlights' | 'instant') => void
 }) {
   return (
-    <>
+    // its own gutter (1.9.16): on the Test match-day page this sat outside any
+    // card and ran hard against the left edge of the screen
+    <div className="view-picker">
       <div className="set-label">{t('matchday.howWatch')}</div>
       <div className="preset-row">
         {VIEW_MODES.map(v => (
@@ -56,6 +58,6 @@ export function ViewPicker({ view, onPick }: {
       <div className="meta" style={{ marginTop: 4 }}>
         {t(VIEW_MODES.find(v => v.id === view)?.desc ?? '')}
       </div>
-    </>
+    </div>
   )
 }

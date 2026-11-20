@@ -783,6 +783,11 @@
 .hl-banner.miss { color: var(--hl-miss); }
 @keyframes hl-banner { from { opacity: 0; transform: translate(-50%, 10px) scale(.9); } }
 
+/* THE LAST ROW STAYS ON THE SCREEN (owner's S25 Ultra, 1.9.16). The panel is
+   ten rows tall and the column it sits in does not scroll, so on a phone
+   where the commentary took the room the Cards row ran out under the system
+   buttons. It may now give up height and scroll inside itself instead. */
+.live-wrap > .live-stats { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin-bottom: 8px; }
 .live-stats {
   margin: 8px 10px 0; padding: 6px 12px 8px; border-radius: 12px;
   background: var(--surface-1); border: 1px solid var(--border);

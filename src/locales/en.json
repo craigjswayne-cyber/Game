@@ -2973,6 +2973,8 @@
   "suspendedChipOne": "Suspended {n} match",
   "academySquad": "Academy squad",
   "onIntlDuty": "On international duty",
+  "natDeskIn": "In your Test squad",
+  "natDeskOut": "Not in your Test squad",
   "awayOnLoan": "Away on season loan",
   "transferListed": "Transfer listed",
   "theOffice": "The Office",
