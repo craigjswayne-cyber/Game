@@ -43,7 +43,8 @@ export function AnalystReport({ nat, opp, mine, theirs, oppLineup }: {
   return (
     <div className="card test-analyst" data-test-analyst>
       <div className="fact-label">{t('testday.analysts')}</div>
-      {!club && <div className="meta" style={{ marginTop: 3 }}>
+      {/* and the Isles XV is not ranked either: no "world no. -" */}
+      {!club && rk(nat) > 0 && rk(opp) > 0 && <div className="meta" style={{ marginTop: 3 }}>
         {t('testday.ranks', { nat: nationName(nat), n: rk(nat) || '-', opp: nationName(opp), m: rk(opp) || '-' })}
       </div>}
       <ul className="test-reads">

@@ -1357,6 +1357,7 @@
   "injuredFlag": "Beseer",
   "instantResult": "Kitsuitslag",
   "intlLine": "Internasionale rugby. Die hele land kyk, afrigter.",
+  "tourLine": "'n Provinsiale span op toer. Plekke in die toetsspan is op die spel.",
   "keepsShirt": "{player} hou die trui.",
   "kickOff": "Afskop",
   "kickOffHighlights": "Afskop (groot oomblikke)",
@@ -1942,6 +1943,7 @@
  "natera": {
   "headCoach": "Nasionale hoofafrigter",
   "testDay": "Toetsdag",
+  "tourDay": "Toerwedstryd",
   "worldNo": "Wêreld nr. {n}",
   "unveilKicker": "Aangestel",
   "unveilTitle": "Hoofafrigter van {nat}",

@@ -1359,6 +1359,7 @@
   "injuredFlag": "Injured",
   "instantResult": "Instant Result",
   "intlLine": "International rugby. The whole country is watching, coach.",
+  "tourLine": "A provincial side on tour. Places in the Test team are on the line.",
   "keepsShirt": "{player} keeps the shirt.",
   "kickOff": "Kick Off",
   "kickOffHighlights": "Kick Off (Big moments)",
@@ -1944,6 +1945,7 @@
  "natera": {
   "headCoach": "National head coach",
   "testDay": "Test day",
+  "tourDay": "Tour match",
   "worldNo": "World no. {n}",
   "unveilKicker": "Appointed",
   "unveilTitle": "Head coach of {nat}",

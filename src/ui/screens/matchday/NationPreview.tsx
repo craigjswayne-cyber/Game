@@ -109,7 +109,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
         </div>
       </header>
       <main className="content">
-        <NatBand nat={nat} sub={t('natera.testDay')} />
+        <NatBand nat={nat} sub={t(fx.tourMatch ? 'natera.tourDay' : 'natera.testDay')} />
         <div className="card center">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={40} />
@@ -117,7 +117,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
             <CrestT g={game} teamId={fx.awayId} size={40} />
           </div>
           <h3 style={{ fontSize: '1.125rem' }}>{t('matchday.vsLine', { home: teamShort(game, fx.homeId), away: teamShort(game, fx.awayId) })}</h3>
-          <div className="meta">{t('matchday.intlLine')}</div>
+          <div className="meta">{t(fx.tourMatch ? 'matchday.tourLine' : 'matchday.intlLine')}</div>
         </div>
         {/* THE OTHER SATURDAY, NAMED. The club fixture does not vanish because
             the manager is with his country - it is played by the assistant and

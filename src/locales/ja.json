@@ -1343,6 +1343,7 @@
   "injuredFlag": "負傷",
   "instantResult": "即時結果",
   "intlLine": "国際舞台だ。国中が見ているぞ、監督。",
+  "tourLine": "ツアー中の地方チームとの一戦。テストマッチの先発の座がかかっている。",
   "keepsShirt": "{player}がそのまま出続ける。",
   "kickOff": "キックオフ",
   "kickOffHighlights": "キックオフ（重要場面）",
@@ -1905,6 +1906,7 @@
  "natera": {
   "headCoach": "代表ヘッドコーチ",
   "testDay": "テストマッチ当日",
+  "tourDay": "ツアーマッチ",
   "worldNo": "世界{n}位",
   "unveilKicker": "就任",
   "unveilTitle": "{nat}代表ヘッドコーチ",
