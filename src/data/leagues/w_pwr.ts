@@ -137,7 +137,7 @@ export const W_PWR: RawClub[] = [
       { name: 'Licia MacCutchan', pos: 'FL', age: 31, nat: 'ENG', q: 82 },
       { name: 'Liz Crake', pos: 'LP', age: 33, nat: 'ENG', q: 77 },
       { name: 'Lotte Sharp', pos: 'WG', age: 34, nat: 'ENG', q: 75 },
-      { name: 'Louise McMillan', pos: 'LK', age: 30, nat: 'ENG', q: 82 },
+      { name: 'Louise McMillan', pos: 'LK', age: 29, nat: 'SCO', q: 82, intl: true },
       { name: 'Lucy Lawford-Wilby', pos: 'FL', age: 24, nat: 'ENG', q: 78 },
       { name: 'Macey Twine', pos: 'FH', age: 32, nat: 'ENG', q: 82 },
       { name: 'Maisy Herbert', pos: 'SH', age: 20, nat: 'ENG', q: 74 },

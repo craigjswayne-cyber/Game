@@ -5,6 +5,7 @@ import { NatUnveiling } from './NatOccasion'
 import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
+import { nationName } from '../game/nations'
 import { t } from '../game/i18n'
 import { dayLine, inInbox, nextStep } from '../game/days'
 import { continueHold } from '../game/desk'
@@ -659,7 +660,8 @@ export default function App() {
   const otherClub = cur.screen === 'club' && typeof cur.param === 'string' && cur.param !== game.userClubId
     ? game.clubs[cur.param] : undefined
   const mastheadTitle = cur.screen === 'home' || (cur.screen === 'supporter' && !tillOpen())
-    ? (game.unemployed ? t('titles.unemployed') : club.name)
+    // a national coach with no club wears the nation, not "Unemployed" (QA, 1.9.15)
+    ? (game.unemployed ? (game.natTeam ? nationName(game.natTeam) : t('titles.unemployed')) : club.name)
     : otherClub ? otherClub.name
     // the season review's own header was a second masthead under this one
     : cur.screen === 'seasonreview' && game.review ? t('legacy.srTitle', { label: seasonLabel(game.review.season) })

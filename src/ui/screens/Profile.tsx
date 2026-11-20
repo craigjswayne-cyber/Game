@@ -126,7 +126,7 @@ export default function Profile() {
       <div className="card" style={{ textAlign: 'center' }}>
         <div style={{ fontSize: '2.75rem', lineHeight: 1, color: badge.color }}><Glyph name={badge.icon} /></div>
         <h3 style={{ fontSize: '1.125rem', marginTop: 6 }}>{game.managerName}</h3>
-        <div className="meta">{game.unemployed ? t('profile.unemployed') : t('profile.directorOfRugby', { club: club.name })}</div>
+        <div className="meta">{game.unemployed ? (game.natTeam ? t('profile.natHeadCoach', { nat: nationName(game.natTeam) }) : t('profile.unemployed')) : t('profile.directorOfRugby', { club: club.name })}</div>
         <div style={{ marginTop: 8, fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1, color: badge.color, textTransform: 'uppercase' }}>
           {badge.name}
         </div>

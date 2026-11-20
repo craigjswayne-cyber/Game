@@ -579,6 +579,14 @@ function migrateCollections(s: GameState): void {
   // THE NATION BY NAME (1.9.15). These letters printed the code ("SACKED: ENG
   // relieve you") and now read {nation_k}; one filed before carries only nat.
   const NAT_KEYS = ['news.youWonIntl', 'news.natSacked', 'news.natReview']
+  // and the appointment letter, which carried nat_k ('nation.ENG') and now
+  // reads the nation's forms with their articles
+  for (const n of s.news) {
+    if (n?.k && /^news\.natAppointed(Only)?$/.test(n.k) && n.v && typeof n.v.nat_k === 'string' && n.v.nation_k == null) {
+      const c = n.v.nat_k.replace(/^nation\./, '')
+      Object.assign(n.v, { nation_k: `nation.${c}`, nationThe_k: `nationThe.${c}`, nationCap_k: `nationCap.${c}` })
+    }
+  }
   for (const n of s.news) {
     if (n?.k && NAT_KEYS.includes(n.k) && n.v && typeof n.v.nat === 'string' && n.v.nation_k == null) {
       Object.assign(n.v, { nation_k: `nation.${n.v.nat}`, nationThe_k: `nationThe.${n.v.nat}`, nationCap_k: `nationCap.${n.v.nat}` })
