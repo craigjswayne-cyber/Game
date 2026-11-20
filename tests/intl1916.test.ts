@@ -68,3 +68,56 @@ describe('dropping from the draft sheet', () => {
     expect(squad.length).toBe(NAT_SQUAD_FLOOR)
   })
 })
+
+/**
+ * ---- THE BUST-UP (1.9.16) ----
+ *
+ * Owner: "the occasional bust up in a derby or intense rivalry - occasional
+ * yellow cards and with a strict ref the odd red card from a fight. This
+ * shouldn't be too often but should be part of the game."
+ */
+import { simMatch } from '../src/game/matchEngine'
+import { mulberry32 } from '../src/game/rng'
+import { isDerby } from '../src/game/rivalries'
+import type { Fixture } from '../src/game/model'
+
+describe('the bust-up', () => {
+  const play = (derby: boolean, n: number) => {
+    const g = newGame('leicester', 'Heat', 5)
+    const league = g.fixtures.filter(f => g.comps[f.compId]?.type === 'league' && isDerby(f.homeId, f.awayId) === derby)
+    let bust = 0, games = 0
+    for (let i = 0; i < n; i++) {
+      const base = league[i % league.length]
+      const fx = { ...base, id: 900000 + i, played: false } as Fixture
+      const r = simMatch(g, fx, mulberry32(1000 + i), true)
+      games++
+      if (r.events.some(e => (e.k ?? '').startsWith('comm.bustUp') && !(e.k ?? '').endsWith('Warn'))) bust++
+    }
+    return { bust, games }
+  }
+
+  it('happens in a derby, and not often', () => {
+    const { bust, games } = play(true, 120)
+    expect(bust).toBeGreaterThan(0)
+    expect(bust / games).toBeLessThan(0.5)
+  })
+
+  it('never happens in an ordinary league match with no bad blood', () => {
+    const g = newGame('leicester', 'Heat', 5)
+    const plain = g.fixtures.filter(f => g.comps[f.compId]?.type === 'league' && !isDerby(f.homeId, f.awayId)).slice(0, 60)
+    let bust = 0
+    plain.forEach((base, i) => {
+      const fx = { ...base, id: 800000 + i, played: false } as Fixture
+      const r = simMatch(g, fx, mulberry32(50 + i), true)
+      // a grudge can still light one: only count matches the engine did not call heated
+      if (!fx.derby && r.events.some(e => (e.k ?? '').startsWith('comm.bustUp')) && !(fx as { grudge?: boolean }).grudge) bust++
+    })
+    expect(bust).toBe(0)
+  })
+
+  it('the old Test rivalries are derbies', () => {
+    expect(isDerby('ENG', 'SCO')).toBe(true)
+    expect(isDerby('NZL', 'RSA')).toBe(true)
+    expect(isDerby('ENG', 'JPN')).toBe(false)
+  })
+})
