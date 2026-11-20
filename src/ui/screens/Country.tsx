@@ -1,12 +1,12 @@
 import { Fragment, useState } from 'react'
 import { useStore } from '../../store'
-import { POS_ORDER, weekDate, type Pos } from '../../game/model'
+import { POS_ORDER, fxDate, type Pos } from '../../game/model'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { natFixtureThisWeek } from '../../game/season'
 import { NAT_SQUAD_SIZE } from '../../game/nations'
-import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow, weeksToSquad } from '../../game/country'
+import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natShort, natWindow, suggestNatSquad, weeksToSquad } from '../../game/country'
 import { ClubLink, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
 import { posName, t } from '../../game/i18n'
@@ -106,7 +106,7 @@ export default function Country() {
       <div className="tblwrap"><table className="dtable"><tbody>
         {upcoming.map(f => (
           <tr key={f.id}>
-            <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
+            <td className="muted">{fxDate(game.season, f)}</td>
             <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
             <td className="num muted">-</td>
           </tr>
@@ -116,7 +116,7 @@ export default function Country() {
           const them = f.homeId === natId ? f.awayScore : f.homeScore
           return (
             <tr key={f.id}>
-              <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
+              <td className="muted">{fxDate(game.season, f)}</td>
               <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
               <td className="num" style={{ fontWeight: 700, color: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }}>
                 {f.homeScore}-{f.awayScore}
@@ -212,6 +212,9 @@ export function NatSquad() {
     const refusal = fn(game, p.id)
     setMsg({ key: p.id, text: refusal ?? '' })
     if (!refusal) void persist()
+    // the campaign card and the Continue button read the squad too: touch
+    // the store, or Announce waits for some other screen to redraw (1.9.15)
+    useStore.getState().touch()
     redraw(n => n + 1)
   }
 
@@ -219,7 +222,7 @@ export function NatSquad() {
     <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
       <td style={{ width: 34 }}><PosBadge pos={p.pos} /></td>
       <td className="name" style={p.clubId === game.userClubId ? { fontWeight: 800 } : undefined}>
-        {p.name}{(p.caps ?? 0) > 0 ? <span className="muted">{t('legacy.coCaps', { n: p.caps ?? 0 })}</span> : <span className="muted">{t('legacy.coUncapped')}</span>}
+        {p.name}{(p.caps ?? 0) === 0 && <span className="muted">{t('legacy.coUncapped')}</span>}
         {/* the reason he is near the top, said out loud rather than implied by
             the sort order (owner: "recommended/in form at top") */}
         {!inSquad && inForm(p) && <span style={{ color: 'var(--text-positive)', fontWeight: 700 }}> {t('legacy.coInForm')}</span>}
@@ -271,11 +274,9 @@ export function NatSquad() {
               <div className="meta" style={{ marginTop: 2 }}>{t('legacy.coNameItSub', { floor: NAT_SQUAD_FLOOR, max: w.size })}</div>
               <button className="btn gold block" style={{ marginTop: 8 }}
                 onClick={() => {
-                  for (const p of pool) {
-                    if ((game.natSquads[natId] ?? []).length >= w.size) break
-                    natCallUp(game, p.id)
-                  }
+                  suggestNatSquad(game, pool, w.size)
                   void persist()
+                  useStore.getState().touch()
                   redraw(n => n + 1)
                 }}>
                 {t('legacy.coTakeSuggestion')}
@@ -284,6 +285,12 @@ export function NatSquad() {
           ) : (
             <div className="meta" style={{ padding: '0 16px 4px' }}>
               {t('legacy.coWindowOpen')}
+            </div>
+          )}
+          {/* every shirt covered before the squad is announced (owner, 1.9.15) */}
+          {squad.length > 0 && natShort(game).length > 0 && (
+            <div className="meta" data-nat-short style={{ padding: '0 16px 4px', color: 'var(--gold)', fontWeight: 700 }}>
+              {t('legacy.coShort', { list: natShort(game).map(pos => posName(pos as Pos)).join(', ') })}
             </div>
           )}
           {/* two jobs, no favours (9.10): the rule the call-up buttons now

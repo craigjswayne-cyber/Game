@@ -102,7 +102,7 @@ export default function Infrastructure() {
           a sign pointing at it. */}
       {tillOpen() && !estateBuiltHere(game) && (
         <button className="card" onClick={() => go('supporter')}
-          style={{ ...acc('var(--gold)'), padding: '10px 12px', width: '100%', textAlign: 'left', display: 'block' }}>
+          style={{ ...acc('var(--gold)'), padding: '10px 12px', width: 'calc(100% - 24px)', boxSizing: 'border-box', textAlign: 'left', display: 'block' }}>
           <div className="fact-label">{t('store.estate')}</div>
           <div className="meta" style={{ marginTop: 2 }}>{t('store.estateLine')}</div>
           <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>

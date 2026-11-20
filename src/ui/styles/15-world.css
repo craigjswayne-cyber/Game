@@ -176,6 +176,11 @@
 .nc-answers .btn { width: 100%; margin: 0; min-height: 44px; text-align: left; justify-content: flex-start; }
 .nc-reveal { padding: 0 4px 6px; }
 .nc-reveal-row { padding: 6px 12px; }
+.nc-social { margin: 8px 12px 0; display: grid; gap: 6px; }
+.nc-post { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; background: var(--surface-2); }
+.nc-post-who { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-secondary); }
+.nc-post-text { margin: 2px 0 4px; overflow-wrap: anywhere; }
+.nc-post-likes { font-size: 0.6875rem; color: var(--text-muted); }
 
 /* ---- the nation's colours, the unveiling, the era (1.9.14, NatOccasion.tsx) ---- */
 .nat-band { margin: 10px 14px 6px; }

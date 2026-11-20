@@ -9,6 +9,7 @@ import { t } from '../game/i18n'
 import { dayLine, inInbox, nextStep } from '../game/days'
 import { continueHold } from '../game/desk'
 import { natSquadHold } from '../game/country'
+import { natFixtureThisWeek } from '../game/season'
 import { TOUR_WEEKS } from '../game/schedule'
 import { islesCoach } from '../game/isles'
 import { tillOpen } from '../game/monetise'
@@ -578,8 +579,12 @@ export default function App() {
     if (!game?.unemployed) return
     const DESK: Set<string> = new Set(['squad', 'report', 'tactics', 'academy',
       'training', 'scouting', 'medical', 'fixtures', 'finances', 'transfers', 'infra', 'matchday', 'offers'])
+    // a coach between club jobs who still holds a country has a Test to pick:
+    // the match day screen is the Test's, not the club's (owner, 1.9.15: "I
+    // can't select my XV and subs" as a national coach only)
+    if (cur.screen === 'matchday' && game.natTeam && natFixtureThisWeek(game)) return
     if (DESK.has(cur.screen)) home()
-  }, [game?.unemployed, cur.screen, home])
+  }, [game?.unemployed, game?.natTeam, game, cur.screen, home])
 
   if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /><Overlays /></div>
   if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /><Overlays /></div>
@@ -588,7 +593,7 @@ export default function App() {
   if (cur.screen === 'matchday') {
     const mdClub = game.clubs[game.userClubId]
     return (
-      <div className={`${appClass} no-rail`} style={{ '--club1': mdClub.colors[0], '--club2': mdClub.colors[1] } as CSSProperties}>
+      <div className={`${appClass} no-rail`} style={mdClub ? { '--club1': mdClub.colors[0], '--club2': mdClub.colors[1] } as CSSProperties : undefined}>
         <MatchDay />
         <Overlays />
       </div>
@@ -918,12 +923,14 @@ export default function App() {
                 got in 14B, and it matters more now that turning a job down takes it
                 off the pile. A badge counting jobs that are no longer in the list is
                 a red dot with nothing behind it. */}
-            {navBtn('jobs', <IcoClipboard />, t('nav.jobs'), openJobs)}
+            {/* a national coach between club jobs has a job: the Job Centre
+                is under World, not a button of its own (owner, 1.9.15) */}
+            {!game.natTeam && navBtn('jobs', <IcoClipboard />, t('nav.jobs'), openJobs)}
             {/* a nation-only coach still holds a job: the Country button is
                 for the Test job, club or no club (QA, 1.9.14) */}
             {game.natTeam && navBtn('country', <IcoGlobe />, t('nav.country'), campToDo)}
             {groupBtn('manager', <IcoPress />, t('nav.manager'))}
-            {groupBtn('world', <IcoTrophy />, t('nav.world'))}
+            {groupBtn('world', <IcoTrophy />, t('nav.world'), game.natTeam ? openJobs : 0)}
           </>
         ) : (
           <>

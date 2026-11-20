@@ -59,6 +59,38 @@ export function natEligible(state: GameState): Player[] {
     .sort((a, b) => b.ca - a.ca)
 }
 
+/** A Test squad's shape: the fewest of each shirt a matchday 23 can be
+ *  picked from, with cover (owner, 1.9.15: "if you dont have any lp for
+ *  example in the squad, make sure more lps are in the call up"). */
+export const NAT_SHAPE: Record<string, number> = { LP: 3, HK: 3, TP: 3, LK: 4, FL: 3, N8: 2, SH: 3, FH: 2, CE: 3, WG: 3, FB: 2 }
+
+/** The shirts the named squad is short of, in the order of the team sheet. */
+export function natShort(state: GameState): string[] {
+  const nat = state.natTeam
+  if (!nat) return []
+  const named = (state.natSquads[nat] ?? []).map(id => state.players[id]).filter((p): p is Player => !!p)
+  return Object.keys(NAT_SHAPE).filter(pos => named.filter(p => p.pos === pos).length < NAT_SHAPE[pos])
+}
+
+/** The coaches' squad: every shirt covered first (best first within it),
+ *  then the best of the rest, in the order given, up to the window's size.
+ *  Calls up through natCallUp, so every rule the coach obeys still holds. */
+export function suggestNatSquad(state: GameState, order: Player[], size: number): void {
+  const nat = state.natTeam
+  if (!nat) return
+  const count = (pos: string) => (state.natSquads[nat] ?? []).filter(id => state.players[id]?.pos === pos).length
+  for (const pos of Object.keys(NAT_SHAPE)) {
+    for (const p of order) {
+      if ((state.natSquads[nat] ?? []).length >= size || count(pos) >= NAT_SHAPE[pos]) break
+      if (p.pos === pos) natCallUp(state, p.id)
+    }
+  }
+  for (const p of order) {
+    if ((state.natSquads[nat] ?? []).length >= size) break
+    natCallUp(state, p.id)
+  }
+}
+
 /** Call a player into the window squad. Returns null on success, or the
  *  refusal the screen prints. */
 export function natCallUp(state: GameState, playerId: number): string | null {

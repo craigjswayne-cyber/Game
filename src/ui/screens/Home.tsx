@@ -16,7 +16,7 @@ import { matchStakes, seasonTentpoles } from '../../game/stakes'
 import { huntLine } from '../../game/living'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
-import { formGuide, grudgeBetween, grudgeReason, fxDate, weekDate, type Fixture, type GameState } from '../../game/model'
+import { formGuide, grudgeBetween, grudgeReason, fxDate, type Fixture, type GameState } from '../../game/model'
 import { natRankOrder } from '../../game/natrank'
 import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
@@ -170,7 +170,7 @@ export default function Home() {
                   <Flag code={next.homeId} size={17} /> {nationName(next.homeId)} {t('common.v')} <Flag code={next.awayId} size={17} /> {nationName(next.awayId)}
                 </span>
                 <span className="ht-s">
-                  {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}
+                  {testWeek ? t(game.unemployed ? 'home.testWeekNatOnly' : 'home.testWeek') : t('home.nextTest', { date: fxDate(game.season, next) })}
                 </span>
                 {/* DAYS UNTIL THE SQUAD (owner: "could we have days til squad
                     work"). The window calendar always knew this and never said

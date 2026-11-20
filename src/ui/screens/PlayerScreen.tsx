@@ -120,6 +120,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const mine = p.clubId === game.userClubId
   const avg = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
   const ask = club && !mine ? askingPrice(game, p) : 0
+  const natOnly = !!game.unemployed && !!game.natTeam
   const know = knowledge(game, p)
   const shortlisted = game.shortlist.includes(p.id)
   const toggleShortlist = useStore(s => s.toggleShortlist)
@@ -390,14 +391,16 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {/* what the staff believe (recruit.ts): strengths, fit, agent, rival talk */}
       {!mine && <ScoutReportCard game={game} p={p} onMsg={setMsg} />}
       <div className="chips">
-        <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(seenValue(game, p))}</b>{!mine && know < 95 && <span className="muted"> ?</span>}</span>
+        {/* a national coach with no club deals in caps, not fees: the money
+            is a club desk's business (owner, 1.9.15) */}
+        {!natOnly && <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(seenValue(game, p))}</b>{!mine && know < 95 && <span className="muted"> ?</span>}</span>}
         {/* the ceiling as the scouts read it (1.8.2): a band that narrows as
             they watch him, nothing at all before they have */}
         {!mine && p.age <= 23 && (() => {
           const r = paRange(game, p)
           return <span className="chip" title={t('player.ceilingTitle')}>{t('player.ceiling')} <b>{r ? (r[0] === r[1] ? r[0] : `${r[0]}-${r[1]}`) : '?'}</b></span>
         })()}
-        <span className="chip" title={t('player.wageTitle')}>{t('player.wage')} <b>{fmtWage(p.wage)}{t('common.perWeek')}</b></span>
+        {!natOnly && <span className="chip" title={t('player.wageTitle')}>{t('player.wage')} <b>{fmtWage(p.wage)}{t('common.perWeek')}</b></span>}
         <span className="chip" title={t('player.contractToTitle')}>{t('player.contractTo')} <b>{2026 + p.contractEnds}</b></span>
         {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 }}>
           {t('player.agentWantsTerms')}</span>}
@@ -887,7 +890,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           conversation system now: two chats a week, squad-wide, and the words
           keep their value (v1.1.4). */}
       <div id="deal-desk" />
-      {mine ? (
+      {natOnly ? null : mine ? (
         <>
           {negotiating && (
             <div className="card">

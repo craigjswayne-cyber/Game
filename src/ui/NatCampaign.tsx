@@ -4,7 +4,7 @@ import { nationName } from '../game/nations'
 import { NAT_SQUAD_FLOOR, natEligible } from '../game/country'
 import { announceSquad, answerCampEvent, canAnnounce, natWinNow, type CampAnswer } from '../game/natwin'
 import { teamShort } from '../game/matchEngine'
-import { weekDate } from '../game/model'
+import { fxDate, weekDate } from '../game/model'
 import { Veil } from './Veil'
 import { SectionTitle } from './components'
 import { acc } from './accent'
@@ -41,7 +41,12 @@ export function NatCampaign() {
   return (
     <>
       <div className="card nat-campaign" data-nat-campaign style={{ ...acc('var(--gold)') }}>
-        <div className="fact-label">{compLabel(game.comps[w.comp]?.name) ?? t('natwin.title')} · {weekDate(game.season, w.start).slice(0, -5)}</div>
+        <div className="fact-label">{compLabel(game.comps[w.comp]?.name) ?? t('natwin.title')} · {(() => {
+          // the window's first Test, on the day it is played: the Saturday the
+          // week was anchored to read as a date already gone (owner, 1.9.15)
+          const first = game.fixtures.filter(f => (f.homeId === w.nat || f.awayId === w.nat) && f.week >= w.start && f.week <= w.end).sort((a, b) => a.week - b.week)[0]
+          return first ? fxDate(game.season, first) : weekDate(game.season, w.start).slice(0, -5)
+        })()}</div>
         <ol className="nc-steps" aria-label={t('natwin.title')}>
           {steps.map(s => (
             <li key={s.k} className={s.done ? 'done' : s.now ? 'now' : ''} data-step={s.k}>
@@ -115,6 +120,35 @@ export function NatCampaign() {
                 <div className="meta">{w.reveal![k].length ? w.reveal![k].map(id => game.players[id]?.name ?? '?').join(', ') : t('natwin.none')}</div>
               </div>
             ))}
+            {/* THE REACTION ONLINE (owner, 1.9.15: "media should react to each
+                squad announcement with a social media update of responses").
+                Read from the reveal itself, and drawn without the world's
+                random stream: the same squad always gets the same posts. */}
+            {(() => {
+              const r = w.reveal!
+              const name = (id: number | undefined) => (id != null ? game.players[id]?.name : undefined)
+              const likes = (seed: number) => 120 + ((seed * 2654435761) >>> 0) % 4800
+              const posts: { who: string; text: string; seed: number }[] = [
+                { who: 'natwin.socPundit', text: t(`natwin.socTone_${r.tone}`), seed: game.season * 31 + w.start },
+              ]
+              if (r.debuts.length) posts.push({ who: 'natwin.socFan', text: t('natwin.socDebut', { player: name(r.debuts[0]) ?? '' }), seed: r.debuts[0] })
+              if (r.omitted.length) posts.push({ who: 'natwin.socFormer', text: t('natwin.socOmit', { player: name(r.omitted[0]) ?? '' }), seed: r.omitted[0] })
+              if (r.recalls.length) posts.push({ who: 'natwin.socFan', text: t('natwin.socRecall', { player: name(r.recalls[0]) ?? '' }), seed: r.recalls[0] })
+              else if (r.debuts.length > 1) posts.push({ who: 'natwin.socFan', text: t('natwin.socDebut2', { player: name(r.debuts[1]) ?? '' }), seed: r.debuts[1] })
+              else if (r.omitted.length > 1) posts.push({ who: 'natwin.socPundit', text: t('natwin.socOmit2', { player: name(r.omitted[1]) ?? '' }), seed: r.omitted[1] })
+              return (
+                <div className="nc-social" data-nc-social>
+                  <div className="fact-label">{t('natwin.socTitle')}</div>
+                  {posts.map((po, i) => (
+                    <div key={i} className="nc-post">
+                      <div className="nc-post-who">{t(po.who)}</div>
+                      <div className="nc-post-text">{po.text}</div>
+                      <div className="nc-post-likes">{t('natwin.socLikes', { n: likes(po.seed).toLocaleString() })}</div>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
             <button type="button" className="btn gold block" style={{ marginTop: 12 }}
               onClick={() => { w.reveal!.seen = true; save() }}>{t('natwin.revealDone')}</button>
           </div>
