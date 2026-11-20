@@ -91,6 +91,9 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
   let throwSide: boolean = true, putIn: boolean = true, doSide: boolean = true, doGoalLine: boolean = false
   /** the side a penalty was given to, while it is still to be taken */
   let penSide: boolean | null = null
+  /** the kick the ball is still in the air from, so the director can say where it came down */
+  let lastKick: Beat | null = null
+  let lastKickPen = false
 
   for (let i = 0; i < events.length; i++) {
     const e = events[i]
@@ -128,7 +131,16 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
           const Y: boolean = p.homeBall, X: boolean = poss, top = p.y < 35
           const edge = top ? -1 : 71, lx = clamp(p.x, 6, 94)
           const gain = (lx - ball.x) * (X ? 1 : -1)
-          if (before === 'penalty' && penSide === Y) {
+          let ownThrow = false
+          if (kicked && lastKick && Y !== X) {
+            // their kick was the one that went out: it is that kick, finding touch
+            lastKick.to = { x: lx, y: edge }; lastKick.label = 'lp.kickTouch'; lastKick.say = 'lp.say.kickTouch'
+            // (a penalty kicked to touch is the kicker's own throw: the side the line names then took it against the throw)
+            if (lastKickPen) ownThrow = true
+          } else if (kicked && lastKick) {
+            // their kick is fielded by a defender who is taken into touch with it: the kicking side's throw
+            add({ ...sup, kind: 'intotouch', homeBall: !X, x: lx, y: top ? 1 : 69, who: 'carrier', byHome: !X, label: 'lp.intoTouch', say: 'lp.say.defOut' })
+          } else if (before === 'penalty' && penSide === Y) {
             // a penalty kicked to touch: their own throw (law 18.8)
             add({ ...sup, kind: 'kick', homeBall: Y, x: ball.x, y: ball.y, to: { x: lx, y: edge }, hang: 7, label: 'lp.kickTouch', say: 'lp.say.penTouch' })
           } else if (Y !== X && gain > 8) {
@@ -145,7 +157,7 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
             // the tackler knocks it out of his hands and into touch: the carrying side's throw
             add({ ...sup, kind: 'intotouch', homeBall: X, x: clamp(lx, 2, 98), y: top ? 1 : 69, who: 'tackler', byHome: !X, label: 'lp.intoTouch', say: 'lp.say.knockedOut' })
           }
-          mark = { x: lx, y: top ? 0 : 70 }; throwSide = Y; ball.x = lx; ball.y = mark.y; kicked = false; penSide = null
+          mark = { x: lx, y: top ? 0 : 70 }; throwSide = ownThrow ? X : Y; ball.x = lx; ball.y = mark.y; kicked = false; penSide = null
           break
         }
         case 'LINEOUT': {
@@ -179,6 +191,19 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
 
     // ---- the engine's own line, put where the laws say it is ----
     const b: Beat = { ...p, src: i }
+    // PLAY GOES ON FROM WHERE THE BALL IS. The engine's place for a line is
+    // where its own count of the field had got to; after a step it did not
+    // write (a kick-off, a drop-out, a lineout) the ball is somewhere else.
+    // Open play is put within a carry of where the ball really is, and the
+    // reader carries on from there.
+    if ((law === 'PLAY' || law === 'KICK' || law === 'TOUCH' || law === 'PENALTY') && path.length) {
+      const lim = law === 'PLAY' ? 12 : 8
+      const nx = clamp(ball.x + clamp(b.x - ball.x, -lim, lim), 1, 99), dx = nx - b.x
+      const ny = clamp(ball.y + clamp(b.y - ball.y, -16, 16), 3, 67)
+      b.x = nx; b.y = ny
+      if (b.to) b.to = { x: clamp(b.to.x + dx, law === 'TOUCH' ? 6 : 1, law === 'TOUCH' ? 94 : 99), y: b.to.y }
+      p.x = b.x; p.y = b.y; if (p.to && b.to) p.to = { ...b.to }
+    }
     switch (law) {
       case 'KICKOFF':
         if (firstKO == null && p.at >= 0) firstKO = p.homeBall
@@ -209,7 +234,8 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
       case 'KICK':
         // a kick by the side that did not have it: they won it back first, and that is said
         if (p.homeBall !== poss && !kicked && !path.length) b.say = 'lp.say.turnover'
-        ball.x = p.to?.x ?? p.x; ball.y = p.to?.y ?? p.y; poss = p.homeBall; kicked = true; penSide = null
+        lastKickPen = penSide === p.homeBall
+        ball.x = p.to?.x ?? p.x; ball.y = p.to?.y ?? p.y; poss = p.homeBall; kicked = true; penSide = null; lastKick = b
         break
       case 'PLAY':
         if (p.homeBall !== poss && !kicked && p.label !== 'lp.turnover' && !path.length) { b.label = 'lp.turnover'; b.say = 'lp.say.turnover' }
@@ -224,6 +250,7 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
       case 'HALF': koSide = firstKO == null ? null : !firstKO; penSide = null; break
       default: break
     }
+    if (law !== 'KICK') lastKick = null
     add(b)
     out.push(row)
   }

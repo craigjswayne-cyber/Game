@@ -13,6 +13,7 @@ import { beginMatch, simMatch } from '../src/game/matchEngine'
 import type { Fixture, MatchEvent } from '../src/game/model'
 import { readLine, type Phase } from '../src/ui/livepitch/phase'
 import { PitchSim } from '../src/ui/livepitch/sim'
+import { direct } from '../src/ui/livepitch/script'
 import en from '../src/locales/en.json'
 
 function match(seed: number) {
@@ -37,6 +38,7 @@ describe('the live pitch', () => {
         { style: 15, tempo: 25, commit: 80, defLine: 10, defWidth: 20, contest: 20 },
       ]
       const lp = (en as unknown as { lp: Record<string, unknown> }).lp
+      const D = direct(events, homeId)
       let cur: Phase | null = null, total = 0, top = 0, plays = 0, wall = 0
       // the laws the pitch must keep: passes go backwards
       let passes = 0, forward = 0
@@ -49,7 +51,10 @@ describe('the live pitch', () => {
         expect(lp[p.label.replace(/^lp\./, '')], `words for ${p.label}`).toBeTypeOf('string')
         const side = p.homeBall ? lineups.home : lineups.away
         const ci = p.carrier != null ? side.indexOf(p.carrier) : -1
-        S.start(p, ci >= 0 ? ci : null)
+        // the pitch plays what the director gives it: the line's own play and the steps the laws require before it
+        const row = D.beats[i]
+        for (const b of row) expect(lp[b.label.replace(/^lp\./, '')], `words for ${b.label}`).toBeTypeOf('string')
+        S.playLine(row.length ? row : [{ ...p, src: i }], b => (b.src === i && !b.supplied && ci >= 0 ? ci : null))
         let t = 0, prev = S.b.map(b => ({ x: b.x, y: b.y }))
         let had: unknown = null
         while (!S.done && t < 30) {

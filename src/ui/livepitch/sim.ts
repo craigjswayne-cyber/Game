@@ -22,6 +22,7 @@
 // Reads phases only; no rng, nothing written back.
 
 import type { Phase, PhaseKind } from './phase'
+import type { Beat } from './script'
 import { shapeOf, restartCatcher, type Pt } from './shapes'
 import { FLIGHT, TRACKS, trackAt, type Track } from '../clipPlays'
 import { openPlayTargets, MID_TAC, type PitchTac } from './agents'
@@ -50,6 +51,7 @@ type Step = ({ rate?: number }) & (
   | { k: 'heel'; by: number }
   /** the ball goes to ground at the anchor */
   | { k: 'ground' }
+  | { k: 'newball'; who: number }
   | { k: 'mode'; mode: PhaseKind; cIdx?: number | null; anchorOn?: number; at?: Pt; clear?: boolean }
 )
 
@@ -221,118 +223,78 @@ export class PitchSim {
   /** something to say on the plate that is not a line of its own: what, which side, and a count so the same thing said twice is shown twice */
   flash: { label: string; home: boolean; n: number } | null = null
   private flashN = 0
-  /** who kicked the match off: the other side kicks off the second half */
-  private firstKO: boolean | null = null
+  /** THE REST OF THIS LINE (2.0.0 rebuild, 20 Nov 2026). The director
+   *  (script.ts) gives each engine line as one or more beats: the steps the
+   *  laws require that the engine did not write (the knock-on before a
+   *  scrum, the ball into touch before a lineout, the kick-off after a
+   *  score), then the line's own play. They are played in order, and the
+   *  line is done when the last of them is. The pitch decides none of it. */
+  private line: { p: Phase; c: number | null }[] = []
+  /** a stoppage has just been shown: the scrum forms where the ball is lying */
+  private stopped = false
+  /** more of this line is still to come */
+  get pending(): boolean { return this.line.length > 0 }
+  playLine(beats: Beat[], carrier: (b: Beat) => number | null) {
+    if (!beats.length) return
+    this.line = beats.slice(1).map(b => ({ p: b as unknown as Phase, c: b.supplied ? null : carrier(b) }))
+    this.start(beats[0] as unknown as Phase, beats[0].supplied ? null : carrier(beats[0]))
+  }
   /** the next line's play: plan it from where everything is now */
   start(p: Phase, carrierIdx: number | null) {
-    // A MISSED KICK AT GOAL IS A 22 DROP-OUT (owner, 19 Nov 2026; World Rugby
-    // law 12.11 and the exception in 21.11: an unsuccessful penalty goal or
-    // drop goal made dead in in-goal restarts with a 22-metre drop-out to the
-    // defending side). The engine writes no line for it, so the pitch plays
-    // it before the line that follows.
     const last = this.phase
-    if (last && last.kind === 'goal' && last.good === false && !this.queued && p.at !== last.at && p.kind !== 'kickoff' && p.kind !== 'dropout' && p.kind !== 'goal' && p.kind !== 'con') {
-      const home = !last.homeBall, x = home ? 21 : 79, d = home ? 1 : -1
-      const D: Phase = { kind: 'dropout', homeBall: home, x, y: 35, at: p.at, label: 'lp.dropout22', hang: 14,
-        to: { x: clamp(x + d * 30, 3, 97), y: clamp(p.y, 14, 56) } }
-      this.queued = { p, c: carrierIdx }
-      this.start(D, null)
-      return
-    }
-    // OUT ON THE FULL IS THEIR LINEOUT, BACK WHERE IT WAS KICKED (law 18). The
-    // engine's line says so and then moves on, so the pitch plays the throw
-    // unless the next line is already a lineout.
-    // WHY THERE IS A SCRUM (owner, 19 Nov 2026: "a line break happens then
-    // suddenly the players reset? No explainer in commentary - if he knocks
-    // it on it must be clear"). A scrum out of open play is a knock-on or a
-    // forward pass by the side that does not get the put-in. The plate says
-    // so before the scrum is set.
-    if (p.kind === 'scrum' && last && p.at !== last.at && (last.kind === 'carry' || last.kind === 'ruck' || last.kind === 'catch' || last.kind === 'kick' || last.kind === 'heldup' || last.kind === 'kickoff' || last.kind === 'dropout')) {
-      this.flash = { label: 'lp.knockOn', home: !p.homeBall, n: ++this.flashN }
-      // ... and it is seen: the ball is out of his hands and on the grass a
-      // couple of metres in front of him, where the scrum will be.
-      if (this.holder >= 0 && (this.holder < 15) !== p.homeBall && !this.flight) {
-        const fd = this.holder < 15 ? 1 : -1
-        this.ball.x = clamp(this.ball.x + fd * 2.2, 1, 99); this.ball.lift = 0
+    const beat = p as unknown as Beat
+    // A KNOCK-ON OR A FORWARD PASS (owner, 19 and 20 Nov 2026: "if he knocks
+    // it on it must be clear"; "how did Northampton knock on when no
+    // Northampton player was near the ball?"). The director says which side
+    // did it and whether it was the man with the ball or the man tackling
+    // him. The plate names that side, the ball goes to ground in front of
+    // the man who lost it, and the scrum that follows forms there.
+    if (beat.kind === 'knockon') {
+      const byHome = beat.byHome ?? !p.homeBall
+      this.flash = { label: p.label, home: byHome, n: ++this.flashN }
+      if (!this.flight) {
+        const off0 = byHome ? 0 : 15
+        // the man it came off: the carrier when it is his side, else the nearest of the side that did it
+        const h = this.holder >= 0 && (this.holder < 15) === byHome ? this.holder : this.nearest(off0, this.ball)
+        const fd = byHome ? 1 : -1
+        const from = this.holder >= 0 ? this.b[this.holder] : this.ball
+        // (when the tackler knocks it on he has to be at the man: the carrier
+        // is first seen to run into the tackle, and it comes loose there)
+        if (h !== this.holder && this.holder >= 0 && hyp(this.b[h], from) > 2.5 && !(beat as { met?: boolean }).met) {
+          const cd = this.holder < 15 ? 1 : -1
+          this.flash = null
+          this.line.unshift({ p: { ...p, met: true } as unknown as Phase, c: null })
+          this.start({ kind: 'carry', homeBall: this.holder < 15, x: clamp(from.x + cd * 3, 2, 98), y: clamp(from.y, 4, 66), at: p.at, label: 'lp.carry' }, this.holder % 15)
+          return
+        }
+        this.ball.x = clamp(from.x + fd * 2.2, 1, 99); this.ball.y = clamp(from.y, 1, 69); this.ball.lift = 0
         this.holder = -1; this.grounded = true
       }
-      // THE SCRUM IS WHERE IT WAS KNOCKED ON (20 Nov 2026, seen in the 1pm
-      // recording: the knock-on was on the 35 and the scrum formed twenty
-      // metres upfield, where the engine's field position had got to).
-      if (!this.flight) p = { ...p, x: clamp(this.ball.x, 5, 95), y: clamp(this.ball.y, 5, 65) }
+      this.stopped = true
+      const q = this.line.shift()
+      if (q) this.start(q.p, q.c)
+      return
     }
+    // PUT INTO TOUCH: the man with the ball is taken over the touchline, or it
+    // is knocked from his hands and out. Played as a carry to the line.
+    if (beat.kind === 'intotouch') {
+      p = { ...p, kind: 'carry' }
+      // the man who has it is the man who goes out with it: nobody passes it across the field first
+      const s0 = p.homeBall ? 0 : 15
+      carrierIdx = this.holder >= 0 && (this.holder < 15) === p.homeBall ? this.holder - s0 : this.nearest(s0, this.ball) - s0
+    }
+    if (p.kind === 'scrum' && this.stopped && !this.flight) p = { ...p, x: clamp(this.ball.x, 5, 95), y: clamp(this.ball.y, 5, 65) }
+    this.stopped = false
     // NOBODY BOUND IN A SCRUM RUNS OFF IT WITH THE BALL (owner, 19 Nov 2026:
     // "from a scrum the prop randomly runs forward with the ball, this
     // wouldn't happen from a scrum"). When the next line's carrier is one of
     // the front five, the number 8 picks up from the base and is tackled
     // first, and the forward carries off that ruck.
-    if (this.mode === 'scrum' && last && last.kind === 'scrum' && p.kind === 'carry' && carrierIdx != null && carrierIdx <= 4 && !this.queued && p.at !== last.at && p.homeBall === last.homeBall) {
+    if (this.mode === 'scrum' && last && last.kind === 'scrum' && p.kind === 'carry' && carrierIdx != null && carrierIdx <= 4 && !this.queued && p.homeBall === last.homeBall) {
       const d = p.homeBall ? 1 : -1
       const P8: Phase = { kind: 'carry', homeBall: p.homeBall, x: clamp(this.anchor.x + d * 4, 2, 98), y: clamp(this.anchor.y + (this.anchor.y < 35 ? 4 : -4), 4, 66), at: p.at, label: 'lp.carry' }
       this.queued = { p, c: carrierIdx }
       this.start(P8, 7)
-      return
-    }
-    // A LINEOUT A LONG WAY OFF WAS KICKED THERE (20 Nov 2026, measured: nine
-    // of fourteen lineouts in a match formed more than twelve metres from
-    // where the ball was, with nothing to say how it got there: a penalty
-    // kicked to the corner, a clearance the engine did not write). The side
-    // that had the ball is seen to kick it to touch, and then the lineout
-    // forms where it went out.
-    if (p.kind === 'lineout' && last && p.at !== last.at && !this.queued && !this.flight && last.kind !== 'kick' && last.kind !== 'lineout' && last.kind !== 'kickoff' && last.kind !== 'break' && this.mode !== 'kick') {
-      const kd = last.homeBall ? 1 : -1, gain = (p.x - this.ball.x) * kd
-      if (gain > 12) {
-        const K: Phase = { kind: 'kick', homeBall: last.homeBall, x: clamp(this.ball.x, 2, 98), y: clamp(this.ball.y, 2, 68), at: p.at, hang: 7,
-          label: 'lp.kickTouch', to: { x: p.x, y: p.y < 35 ? -1 : 71 } }
-        this.queued = { p, c: carrierIdx }
-        this.start(K, null)
-        return
-      }
-    }
-    // THE SECOND HALF STARTS WITH A KICK-OFF (owner, 19 Nov 2026: "second
-    // half didnt start with a kick off"). The engine writes no line for it,
-    // so play simply resumed somewhere. The side that did not kick off the
-    // match kicks off the second half (law 12).
-    if (p.kind === 'kickoff' && p.at >= 0 && this.firstKO == null) this.firstKO = p.homeBall
-    if (last && last.label === 'lp.halfTime' && !this.queued && p.at !== last.at && p.kind !== 'kickoff' && p.kind !== 'break') {
-      const home = !(this.firstKO ?? true), d = home ? 1 : -1
-      const K: Phase = { kind: 'kickoff', homeBall: home, x: 50, y: 35, at: p.at, hang: 11, label: 'lp.kickoff',
-        to: { x: 50 + d * 22, y: clamp(p.y, 13, 57) } }
-      this.queued = { p, c: carrierIdx }
-      this.start(K, null)
-      // (the sides come back out and are in their places for it: they were
-      // standing in two lines at halfway and the receivers ran backwards as it was kicked)
-      { const T = this.targets(); for (let i = 0; i < 30; i++) { this.b[i].x = T.pts[i].x; this.b[i].y = T.pts[i].y; this.b[i].vx = this.b[i].vy = 0 } this.cuts++
-        const kk = (home ? 0 : 15) + 9, ki = this.steps.findIndex(st => st.k === 'kick' && !(st as { silent?: boolean }).silent)
-        if (ki > 0) { this.si = ki - 1; this.st = 0; this.entered = false; this.holder = kk; this.flight = null; this.grounded = false; this.ball.x = this.b[kk].x; this.ball.y = this.b[kk].y } }
-      return
-    }
-    // AFTER A SCORE PLAY RESTARTS WITH A KICK-OFF BY THE SIDE THAT CONCEDED
-    // (law 12; 20 Nov 2026, seen in the 5pm recording: a converted try was
-    // followed at once by a lineout near halfway). The engine writes a
-    // restart line for about three scores in four; for the rest the pitch
-    // plays the kick-off before the line that follows.
-    if (last && (last.kind === 'con' || (last.kind === 'goal' && last.good !== false) || (last.kind === 'try' && p.kind !== 'con')) && !this.queued && p.at !== last.at
-      && p.kind !== 'kickoff' && p.kind !== 'dropout' && p.kind !== 'con' && p.kind !== 'goal' && p.kind !== 'try' && p.kind !== 'break') {
-      const home = !last.homeBall, d = home ? 1 : -1
-      const K: Phase = { kind: 'kickoff', homeBall: home, x: 50, y: 35, at: p.at, hang: 11, label: 'lp.restart',
-        to: { x: 50 + d * 22, y: clamp(p.y, 13, 57) } }
-      this.queued = { p, c: carrierIdx }
-      this.start(K, null)
-      return
-    }
-    // AND ANY BALL KICKED INTO TOUCH IS A LINEOUT, THE OTHER SIDE'S THROW
-    // (owner, 19 Nov 2026: "If a team kicks it out unless its a penalty or a
-    // 50/22 it should be the other sides throw in"; "no lineout suddenly").
-    // The engine often goes straight to what came of the lineout, so the
-    // ball was simply in the other side's hands. The throw is played where
-    // it went out; a 50:22 is the kicking side's own throw.
-    const outAt = last && last.kind === 'kick' && last.to && (last.to.y < 0 || last.to.y > 70)
-    if (last && (last.label === 'lp.outFull' || outAt) && !this.queued && p.at !== last.at && p.kind !== 'lineout' && p.kind !== 'kickoff' && p.kind !== 'break') {
-      const full = last.label === 'lp.outFull', own = last.label === 'lp.fifty22'
-      const L: Phase = { kind: 'lineout', homeBall: own ? last.homeBall : !last.homeBall, x: clamp(full ? last.x : last.to!.x, 6, 94), y: (last.to?.y ?? 0) < 35 ? 0 : 70, at: p.at, label: 'lp.lineout' }
-      this.queued = { p, c: carrierIdx }
-      this.start(L, null)
       return
     }
     const att0 = p.homeBall ? 0 : 15
@@ -713,7 +675,13 @@ export class PitchSim {
       // dead time: on television it is cut away from. The picture dissolves
       // to the sides in their places and nothing is seen at a speed nobody
       // can move at. Play that is live still flows without a cut.
-      if (reset && PitchSim.dissolveResets && p.kind !== 'break') {
+      // ONLY A LINEOUT FADES (owner, 20 Nov 2026: "it's meant to be one fluid
+      // game? I dont mind the fades when it's a line out. Scrums shouldn't
+      // fade they should just form up in position to start the play again,
+      // same as kickoffs and 22s"). A kick at goal still dissolves to the
+      // kicker over the ball, and the sides come back out after half-time.
+      const fades = p.kind === 'lineout' || p.kind === 'con' || p.kind === 'goal' || (last != null && last.label === 'lp.halfTime')
+      if (reset && PitchSim.dissolveResets && p.kind !== 'break' && fades) {
         this.over.clear(); this.done = false; this.hit = false
         this.cut = { t: 0, apply: () => {
           begin()
@@ -755,7 +723,9 @@ export class PitchSim {
           mode = m0; cIdx = c0; anchor = a0
           begin()
         } else {
-          if (!holderAtt) { this.holder = -1; this.grounded = false; pre.push({ k: 'pick', who: this.nearest(att0, B), max: 1.5, rate: FF }) }
+          const newBall = p.kind === 'kickoff' && init >= 0
+          if (newBall) { this.holder = -1; this.grounded = true }
+          else if (!holderAtt) { this.holder = -1; this.grounded = false; pre.push({ k: 'pick', who: this.nearest(att0, B), max: 1.5, rate: FF }) }
           // (a kick at goal waits for both sides to get to their places: it was being taken with thirty men still in a heap)
           // FOR A KICK AT GOAL THE BALL IS THROWN TO THE KICKER FIRST, and he
           // walks to his mark with it (19 Nov 2026, traced: the try scorer
@@ -768,7 +738,8 @@ export class PitchSim {
           // ran out after 3.6 seconds and the kick-off was struck from his own 22)
           const restart = p.kind === 'kickoff' || p.kind === 'dropout'
           pre.push({ k: 'settle', max: atGoal ? 9 : restart ? 14 : 3.6, rate: FF, ...(restart && init >= 0 ? { need: init } : {}) })
-          if (!atGoal && init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
+          if (newBall) pre.push({ k: 'newball', who: init })
+          else if (!atGoal && init >= 0) pre.push({ k: 'pass', to: init, rate: 2.5 })
           steps.unshift(...pre)
           begin()
         }
@@ -1249,6 +1220,15 @@ export class PitchSim {
           if (s.mode === 'carry' && this.phase) this.mark(this.anchor, this.phase.homeBall ? 0 : 15, this.holder)
           if (s.clear) this.over.clear()
           over = true; break
+        case 'newball': {
+          // A NEW BALL AT HALFWAY. After a kick at goal the match ball is
+          // behind the posts; the kicker is handed another on halfway. It is
+          // in his hands once he is on his mark, and nothing is thrown fifty metres.
+          this.flight = null; this.holder = s.who; this.grounded = false
+          this.ball.x = this.b[s.who].x; this.ball.y = this.b[s.who].y; this.ball.lift = 0
+          over = true
+          break
+        }
         case 'ground': {
           const was = this.holder
           if (was >= 0 && this.mode === 'ruck') {
@@ -1297,7 +1277,7 @@ export class PitchSim {
           const T = this.targets()
           let there = 0
           for (let i = 0; i < 30; i++) if (hyp(this.b[i], T.pts[i]) < 5) there++
-          over = (there >= 25 && (s.need == null || hyp(this.b[s.need], T.pts[s.need]) < 2)) || this.st >= s.max
+          over = (s.need == null ? there >= 25 : there >= 19 && hyp(this.b[s.need], T.pts[s.need]) < 2.5) || this.st >= s.max
           // (a kick at goal goes once the kicker is on his mark and most are in place)
           if (!over && (this.mode === 'con' || this.mode === 'goal') && this.holder >= 0 && this.st > 2.5 && there >= 18 && hyp(this.b[this.holder], T.pts[this.holder]) < 1.2) over = true
           break
@@ -1539,7 +1519,8 @@ export class PitchSim {
       this.si++; this.st = 0; this.entered = false
     }
     if (this.si >= this.steps.length) {
-      if (this.queued) { const q = this.queued; this.start(q.p, q.c); this.queued = null }
+      if (this.queued) { const q = this.queued; this.queued = null; this.start(q.p, q.c) }
+      else if (this.line.length) { const q = this.line.shift()!; this.start(q.p, q.c) }
       else { this.done = true; this.rate = 1 }
     }
     this.ruckT += dt

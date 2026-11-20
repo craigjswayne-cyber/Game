@@ -22,6 +22,7 @@ import artNightSnow from './stadium-night-snow.webp'
 import type { MatchEvent } from '../../game/model'
 import { readInk, isLight, refereeColour, tokenColor } from '../highlight/draw'
 import { manUpAt, phaseAt, readLine, type Banner, type Phase } from './phase'
+import { direct, type Beat } from './script'
 import { PitchSim } from './sim'
 import type { PitchTac } from './agents'
 
@@ -161,6 +162,10 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const bannerRef = useRef<{ want: Banner | null; shownAt: number }>({ want: null, shownAt: -1 })
   const canvas = useRef<HTMLCanvasElement>(null)
   const phase = useMemo(() => phaseAt(events, cursor, homeId), [events, cursor, homeId])
+  // THE DIRECTOR (2.0.0 rebuild): every line as the beats the laws require,
+  // worked out once for the whole match. The pitch plays these and nothing else.
+  const directed = useMemo(() => direct(events, homeId, i => manUpAt(events, i)), [events.length, events[0], homeId])
+  const beatsOf = (p: Phase): Beat[] => { const r = directed.beats[p.at]; return r && r.length ? r : [{ ...p, src: p.at }] }
   bannerRef.current.want = phase.banner ?? null
   /** the shirt index of the man a phase names, if he plays for the side with the ball */
   const carrierOf = (p: Phase): number | null => {
@@ -188,13 +193,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     seen.current.moved = phase.at !== seen.current.at
     if (phase.at !== seen.current.at) {
       seen.current.at = phase.at
-      sim.current.start(phase, carrierOf(phase))
+      sim.current.playLine(beatsOf(phase), b => carrierOf(b as unknown as Phase))
     }
     seen.current.told = false
     seen.current.pre = false
   }
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
-  const io = useRef({ home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null })
+  const io = useRef({ home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf })
   if (tactics) sim.current.tac = tactics
   // a quick man is up to a tenth quicker than average and a slow one a tenth slower
   const tank = (f: number | undefined) => 0.9 + 0.1 * Math.min(100, Math.max(0, f ?? 100)) / 100
@@ -218,7 +223,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     if (typeof location !== 'undefined' && location.pathname.includes('lp-preview')) for (const v of (new URLSearchParams(location.search).get('off') ?? '').split(',')) if (v) off[Number(v)] = true
     sim.current.off = off
   }
-  io.current = { home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadIdx: ahead ? carrierOf(ahead) : null }
+  io.current = { home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf }
 
   useEffect(() => {
     const cv = canvas.current
@@ -720,7 +725,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       // the banner lands with the moment, not with the line
       const bw = bannerRef.current
-      if (bw.want && S.landed && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at) {
+      if (bw.want && S.landed && !S.pending && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at) {
         bw.shownAt = bw.want.at
         setBanner(bw.want)
         if ((bw.want.kind === 'try' || bw.want.kind === 'pentry') && !reduce) burst(S.ball.x, S.ball.y, bw.want.teamId === homeId)
@@ -733,7 +738,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         if (nx && nx.at !== sn.at) {
           // a score is next: play it now, and tell them when it lands
           sn.at = nx.at; sn.pre = true
-          S.start(nx, io.current.aheadIdx)
+          S.playLine(io.current.aheadBeats ?? [{ ...nx, src: nx.at }], b => io.current.carrierOf(b as unknown as Phase))
         } else { sn.told = true; io.current.onPlayed?.(sn.moved) }
       } else if (sn.pre && !sn.told && S.landed && !S.done) { sn.told = true; io.current.onPlayed?.(true) }
       draw()
