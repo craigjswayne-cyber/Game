@@ -28,6 +28,8 @@ export interface Col<R> {
   /** extra classes for every cell, not the heading (e.g. 'name': a heading
    *  carrying it read as a row's name to anything that looks for one) */
   className?: string
+  /** hidden on phones 360px wide or narrower, heading and cells (1.9.15) */
+  narrowHide?: boolean
   /** a sortable heading: the key handed to onSort */
   sort?: string
   /** the key sorts A-Z / low-high first (for aria-sort) */
@@ -83,12 +85,12 @@ export function DataTable<R>({ cols, rows, rowKey, rowProps, className, sort, fo
             {cols.map(c => {
               const align = ALIGN[c.align ?? 'left']
               if (!c.sort || !sort) {
-                return <th key={c.id} className={classes(align, c.wrapHead && 'th-wrap')}>{c.head}</th>
+                return <th key={c.id} className={classes(align, c.wrapHead && 'th-wrap', c.narrowHide && 'narrow-hide')}>{c.head}</th>
               }
               const active = sort.key === c.sort
               const fk = `${focusKey}-${c.sort}`
               return (
-                <th key={c.id} className={classes('th-sort', active && 'active', align, c.wrapHead && 'th-wrap')}
+                <th key={c.id} className={classes('th-sort', active && 'active', align, c.wrapHead && 'th-wrap', c.narrowHide && 'narrow-hide')}
                   aria-sort={ariaSort(active, sort.desc, !!c.ascFirst)}>
                   <button type="button" className="th-btn" data-focus-key={fk}
                     onClick={e => { refocus(fk, document.activeElement === e.currentTarget); sort.onSort(c.sort!) }}>
@@ -106,7 +108,7 @@ export function DataTable<R>({ cols, rows, rowKey, rowProps, className, sort, fo
             {cols.map(c => {
               const extra = c.td?.(r)
               return (
-                <td key={c.id} {...extra} className={classes(ALIGN[c.align ?? 'left'], c.className, extra?.className)}>
+                <td key={c.id} {...extra} className={classes(ALIGN[c.align ?? 'left'], c.className, extra?.className, c.narrowHide && 'narrow-hide')}>
                   {c.cell(r)}
                 </td>
               )

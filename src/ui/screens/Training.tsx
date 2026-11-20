@@ -137,7 +137,7 @@ export default function Training() {
               <td className="name">{p.name}</td>
               <td className="num" style={{ color: p.cond < 70 ? 'var(--text-negative)' : undefined }}>{Math.round(p.cond)}%</td>
               <td className="num">{Math.round(p.sharp)}%</td>
-              <td className="muted">{p.injury ? t('training.statusInjured', { desc: injuryDesc(p.injury), n: Math.max(1, p.injury.until - game.week) })
+              <td className="muted" style={{ whiteSpace: 'normal', lineHeight: 1.2 }}>{p.injury ? t('training.statusInjured', { desc: injuryDesc(p.injury), n: Math.max(1, p.injury.until - game.week) })
                 : p.natSquad ? t('training.statusIntl') : p.bans > 0 ? t('training.statusBanned', { n: p.bans }) : t('training.statusAvailable')}</td>
             </tr>
           ))}
