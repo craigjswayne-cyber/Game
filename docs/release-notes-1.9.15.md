@@ -159,6 +159,17 @@ Version 1.9.15, Play versionCode 78. Baseline: 1.9.14, code 77.
   fits 320px. News is dated the day it is filed. Older saves name every nation
   with its article in French, Spanish and Italian.
 
+### Matches
+
+- **Starve them of ball works.** The plan kicked so little (kicking 10) that
+  it gave the other side territory: over 1,120 matches their tries went up and
+  the plan cost 2.45 points a match. It now kicks at 30, with tempo 30 and ruck
+  numbers 75: their tries fall 0.17 a match, the fewest of the plans, it is
+  worth +0.60 a match, and it is still the only plan that cuts the kicking.
+- **A touchline call is the last thing said.** A penalty call around the hour
+  had the 60-minute line or the other coach's late change after it, so the
+  commentary ran on while you decided.
+
 ### Checks that could not tell the versions apart
 
 - Two release-check probes failed on 1.9.15 and on 1.9.14 alike. The autopilot

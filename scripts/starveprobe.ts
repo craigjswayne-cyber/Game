@@ -129,7 +129,10 @@ for (const id of ids) {
 const others = ids.filter(id => id !== 'starve')
 ok(ids.includes('starve') && others.length >= 2, `starve measured beside ${others.join(', ')}`)
 const sk = m(dKicks, 'starve'), sg = m(gain, 'starve')
-ok(sk <= -0.15 && others.every(id => m(dKicks, id) > -0.08), `distinct: the only plan that stops kicking it to them (${sgn(sk * 100, 0)}% kicks from hand; ${others.map(id => `${id} ${sgn(m(dKicks, id) * 100, 0)}%`).join(', ')})`)
+// a cut of 8%, not 15% (1.9.15): kicking 10 cut 18% and lost the plan the
+// match (oppreport.ts STARVE); at 30 it cuts 9% and is the only plan that
+// cuts at all, which is what makes it a plan of its own
+ok(sk <= -0.08 && others.every(id => m(dKicks, id) > -0.03), `distinct: the only plan that stops kicking it to them (${sgn(sk * 100, 0)}% kicks from hand; ${others.map(id => `${id} ${sgn(m(dKicks, id) * 100, 0)}%`).join(', ')})`)
 // (their back three's own tries are reported, not held: a tenth of a try a
 // match either way is inside the noise of 80 fixtures, and the engine names
 // a try's scorer after the try, so the back three are the side's tries
