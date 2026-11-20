@@ -172,6 +172,9 @@ console.log('--- 4. the knocks')
   const mover = squad(m).find(q => q.alt.length > 0 && q.age >= 21 && q.age <= 31 && q.status !== 'key' && !q.injury)
   if (mover) {
     mover.stats.apps = 0
+    // he is the one man not getting on (1.9.15): with half the squad also
+    // eligible, which of them knocks was the dice's choice, and the dice moved
+    for (const q of squad(m)) if (q.id !== mover.id) q.stats.apps = Math.max(q.stats.apps, 4)
     const ml = m.clubs[m.userClubId]
     ml.tactic.lineup = ml.tactic.lineup.map(x => (x === mover.id ? null : x))
     let pos = false
