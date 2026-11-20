@@ -208,6 +208,10 @@ export class PitchSim {
    *  minutes a match); 3 is about six minutes and nothing looks sped up beyond
    *  recognition. Set from ?lpcap= while the owner decides (19 Nov 2026). */
   static cap = Infinity
+  /** a stoppage dissolves to the formed set piece instead of being wound on (20 Nov 2026) */
+  static dissolveResets = true
+  /** the speed play is watched at when stoppages dissolve; the quickest anything is wound on is 1.18 times this */
+  static base = 1.9
   constructor() {
     for (let i = 0; i < 30; i++) this.b.push({ x: 50 + (i < 15 ? -8 : 8), y: 6 + (i % 15) * 4, vx: 0, vy: 0 })
   }
@@ -367,6 +371,10 @@ export class PitchSim {
       : in22 ? 1.25 : 3.2
     const open = (y: number) => (y < 35 ? 1 : -1)
 
+    // (a set piece always dissolves in, unless it is already formed here:
+    // the sides were seen jogging to a lineout for five seconds after the
+    // ball had gone out beside it)
+    if (PitchSim.dissolveResets && (p.kind === 'scrum' || p.kind === 'lineout' || p.kind === 'kickoff' || p.kind === 'dropout') && !(this.mode === p.kind && d < 4)) cut = true
     switch (p.kind) {
       case 'kickoff': case 'dropout':
         cut = true; init = att0 + 9; cIdx = null
@@ -652,7 +660,30 @@ export class PitchSim {
         || d > 70
       const gain = (anchor.x - B.x) * dir
       const pre: Step[] = []
-      if (reset) {
+      // A STOPPAGE DISSOLVES TO THE SET PIECE (owner, 20 Nov 2026: "players
+      // jumping around the pitch randomly - the ball not moving correctly").
+      // Measured over a whole match: three or more men were moving faster
+      // than a man can run for 61% of the time watched, and 105 of the 139
+      // seconds wound on were thirty men being hurried to a kick-off, a
+      // conversion, a lineout or a scrum at six times life speed. That is
+      // dead time: on television it is cut away from. The picture dissolves
+      // to the sides in their places and nothing is seen at a speed nobody
+      // can move at. Play that is live still flows without a cut.
+      if (reset && PitchSim.dissolveResets && p.kind !== 'break') {
+        this.over.clear(); this.done = false; this.hit = false
+        this.cut = { t: 0, apply: () => {
+          begin()
+          this.cuts++
+          this.tg = []; this.tgv = []
+          this.flight = null; this.holder = init; this.grounded = init < 0
+          this.down.fill(0); this.kickAt = null
+          const T = this.targets()
+          for (let i = 0; i < 30; i++) { this.b[i].x = T.pts[i].x; this.b[i].y = T.pts[i].y; this.b[i].vx = this.b[i].vy = 0 }
+          this.ref.x = T.ref.x; this.ref.y = T.ref.y
+          const at = init >= 0 ? this.b[init] : this.anchor
+          this.ball.x = at.x; this.ball.y = at.y; this.ball.lift = 0
+        } }
+      } else if (reset) {
         // A RESET: the nearest man gathers it and brings it with him while
         // both sides jog to the mark
         // IT FLOWS INTO THE SET PIECE (18 Nov 2026, owner: "still jumping
@@ -1144,10 +1175,10 @@ export class PitchSim {
     // Everything else is wound on, with the chevrons up while it is.
     {
       const r = this.si < this.steps.length ? (this.steps[this.si].rate ?? this.baseRate) : 1
-      this.rate = r <= 1.6 ? 1.85 : r <= 2.6 ? 4.2 : 6.6
+      this.rate = PitchSim.dissolveResets ? (r <= 1.6 ? PitchSim.base : r <= 2.6 ? PitchSim.base * 1.08 : PitchSim.base * 1.18) : (r <= 1.6 ? 1.85 : r <= 2.6 ? 4.2 : 6.6)
     }
     // a ball in the air from a restart or a kick at goal is not watched at life speed
-    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, 6.6)
+    if (this.flight && this.flight.toIdx < 0 && (this.mode === 'kickoff' || this.mode === 'dropout' || this.mode === 'con' || this.mode === 'goal')) this.rate = Math.max(this.rate, PitchSim.dissolveResets ? PitchSim.base * 1.18 : 6.6)
     // (a ceiling on the wind-on, for trying a slower, longer match: see PitchSim.cap)
     if (this.rate > PitchSim.cap) this.rate = PitchSim.cap
     for (let guard = 0; guard < 12 && this.si < this.steps.length; guard++) {
@@ -1348,14 +1379,15 @@ export class PitchSim {
           // (18 Nov 2026: a ruck was over in a quarter of a second, so nobody ever
           // stood still. Fewer phases, each with a ruck long enough to see
           // both sides re-form round it.)
-          const tackle: Step[] = [{ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: 2.6 }]
+          // (20 Nov 2026: now that this is WATCHED and not wound on, it is one or two carries, not four)
+          const tackle: Step[] = [{ k: 'mode', mode: 'ruck' }, { k: 'ground' }, { k: 'wait', t: PitchSim.dissolveResets ? 0.9 : 2.6 }]
           // how far this carry goes: a few phases, however far it is
           // a forward makes a few metres, a back a few more: nobody runs the length of the field
           const carrierIsFwd = mine ? this.holder - att0 < 8 : true
-          const len = carrierIsFwd ? clamp(rem / 1.4, 10, 18) : clamp(rem / 1.15, 14, 30)
+          const len = PitchSim.dissolveResets ? (carrierIsFwd ? clamp(rem / 1.2, 12, 22) : clamp(rem, 16, 34)) : carrierIsFwd ? clamp(rem / 1.4, 10, 18) : clamp(rem / 1.15, 14, 30)
           // it has gone on long enough: the next man goes all the way
           s.t0 ??= this.clock
-          const late = this.clock - s.t0 > 7
+          const late = this.clock - s.t0 > (PitchSim.dissolveResets ? 4 : 7)
           const P: Pt = late || rem - len < 4 ? { ...s.to } : { x: B.x + (s.to.x - B.x) / rem * len, y: clamp(B.y + (s.to.y - B.y) / rem * len, 4, 66) }
           if (n > 14) { over = true; break }
           // the man this line is about comes with the play: he is on the

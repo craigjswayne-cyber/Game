@@ -80,7 +80,10 @@ describe('the live pitch', () => {
       expect(top).toBeLessThan(9.5)
       // nothing is teleported after the first picture: the match never cuts
       // (but the sides are in their places for the second-half kick-off: one more, behind the half-time panel)
-      expect(S.cuts).toBeLessThanOrEqual(2)
+      // (20 Nov 2026, owner: "players jumping around the pitch randomly". A stoppage now
+      // dissolves to the formed set piece instead of thirty men being wound on to it at six
+      // times life speed. Live play still never cuts; a match has thirty-odd stoppages.)
+      expect(S.cuts).toBeLessThanOrEqual(60)
       // a full match at Normal, on the screen's clock (quiet play is wound
       // on): long enough to watch, short enough to finish
       void total
