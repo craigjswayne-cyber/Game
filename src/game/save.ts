@@ -638,6 +638,7 @@ function migrateCollections(s: GameState): void {
     sn: ['Northern Championship', 'Northern'],
     trc: ['Southern Championship', 'Southern'],
     pnc: ['Pacific Islands Cup', 'Islands Cup'],
+    nc: ['Nations Trophy', 'Nations Trophy'],
   }
   // 'cc' IS TWO DIFFERENT COMPETITIONS, one per world, and this map is keyed on
   // id alone. Left as it was, a women's save would be walked back to the men's

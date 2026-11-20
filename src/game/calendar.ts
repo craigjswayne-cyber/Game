@@ -90,6 +90,14 @@ export const PNC_WEEKS = [5, 6, 7, 9, 10]
 export const WC_POOL_WEEKS = [8, 9, 10]
 export const WC_KO_WEEKS = [11, 12, 13, 14]
 export const SUMMER_TEST_WEEKS = [44, 45]
+// THE NATIONS TROPHY (owner, 1.9.15: the tier-two nations had no Tests between
+// World Championships). World Rugby's second-tier Nations Cup, renamed as every
+// competition here is: twelve nations in two pools, each playing the six of
+// the other pool, three in November and three in July. Ours plays both legs in
+// one season (the real one runs July then November of a calendar year, which
+// straddles two of ours), and not in a World Championship season.
+export const NC_AUTUMN_WEEKS = AUTUMN_WEEKS
+export const NC_SUMMER_WEEKS = [44, 45, 46]
 export const TOUR_WEEKS = [44, 45, 46, 47, 48]
 
 // ---- the women's year -------------------------------------------------------
@@ -219,22 +227,32 @@ const WINDOW_SPANS: Record<string, [number, number]> = {
   [W + 'p4']: [W_PAC4_WEEKS[0], W_PAC4_WEEKS[W_PAC4_WEEKS.length - 1]],
   [W + 'lions']: [TOUR_WEEKS[0], TOUR_WEEKS[TOUR_WEEKS.length - 1]],
 }
+/** The Nations Trophy is away twice a season: November, with a camp week
+ *  before it as the autumn has, and July, from the week after the finals. */
+const NC_SPANS: [number, number][] = [
+  [NC_AUTUMN_WEEKS[0] - 1, NC_AUTUMN_WEEKS[NC_AUTUMN_WEEKS.length - 1]],
+  [NC_SUMMER_WEEKS[0], NC_SUMMER_WEEKS[NC_SUMMER_WEEKS.length - 1]],
+]
 /** The women's World Championship shares the men's competition id. */
 const W_WC_SPAN: [number, number] = [1, W_WC_KO_WEEKS[W_WC_KO_WEEKS.length - 1]]
 
 export function windowSpan(compId: string, gender: Gender): [number, number] | null {
-  if (compId === 'wc' && gender === 'w') return W_WC_SPAN
-  return WINDOW_SPANS[compId] ?? null
+  return windowSpans(compId, gender)[0] ?? null
+}
+
+/** Every window a competition is away for: one each, the Nations Trophy two. */
+export function windowSpans(compId: string, gender: Gender): [number, number][] {
+  if (compId === 'wc' && gender === 'w') return [W_WC_SPAN]
+  if (compId === 'nc' && gender === 'm') return NC_SPANS
+  const s = WINDOW_SPANS[compId]
+  return s ? [s] : []
 }
 
 /** Does a Test window in this world cover the week? The competition ids are
  *  the ones present in the season (a tour year has a tour, a World
  *  Championship year has no autumn). */
 function windowsCovering(week: number, compIds: string[], gender: Gender): string[] {
-  return compIds.filter(id => {
-    const span = windowSpan(id, gender)
-    return !!span && week >= span[0] && week <= span[1]
-  })
+  return compIds.filter(id => windowSpans(id, gender).some(span => week >= span[0] && week <= span[1]))
 }
 
 // ---- the invariant ----------------------------------------------------------

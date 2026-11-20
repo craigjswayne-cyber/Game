@@ -1,6 +1,9 @@
 # PHASE: Rugby Manager 1.9.15: release notes
 
-**DRAFT, not merged, not uploaded.** Started 19 Nov 2026 from the owner's
+**Not uploaded.** The first part was merged on 20 Nov 2026 (PR #114); the
+owner then asked for the rest in the same version ("Fix everything in
+1.9.15"), so a second pull request adds the section "Added on 20 November"
+below. Started 19 Nov 2026 from the owner's
 international list, then an overnight QA of the international game (owner:
 "test all features, all teams for multiple seasons ... internationals should
 be harder than the club coaching ... nobody should be able to breeze it").
@@ -73,6 +76,8 @@ Version 1.9.15, Play versionCode 78. Baseline: 1.9.14, code 77.
   and the final. The women's tournament also plays a bronze final.
 - On the real dates: from the weekend of 2 October to the final on Saturday
   13 November 2027.
+- **A men's World Championship squad is 33**, as World Rugby names it. Every
+  other window, and the women's tournament, stays at 32.
 - **Hong Kong China and Zimbabwe** join the game: names in six languages,
   flags, kits, anthems, name pools and world ranking points.
 - The Nations screen shows **the pools and the bracket**; the women's Test
@@ -118,15 +123,55 @@ Version 1.9.15, Play versionCode 78. Baseline: 1.9.14, code 77.
 - Small fixes: the Annual and Home no longer print codes, the Offers contract
   year, New Zealand's Star Player tag, "Squad named in 161 days".
 
+## Added on 20 November (owner: "Fix everything in 1.9.15")
+
+### The Nations Trophy
+
+- **The tier-two nations play Tests between World Championships.** World
+  Rugby's Nations Cup (2026), renamed as every competition here is: twelve
+  nations in its real pools. Americas & Pacific: Canada, Chile, USA, Uruguay,
+  Tonga, Samoa. Europe, Africa & Asia: Georgia, Portugal, Spain, Romania,
+  Hong Kong China, Zimbabwe.
+- Every nation plays the six of the other pool: three in November (Europe,
+  Africa and Asia at home), three in July (the Americas and the Pacific at
+  home). A champion in each pool, with a title, a celebration and the union's
+  credit for the coach whose nation wins one.
+- Its own tab on the Nations screen, with both pools; the November and July
+  windows each have a camp, a union target and a review.
+- Not played in a World Championship season. **One difference from the real
+  one:** the real Nations Cup plays July then November of one calendar year,
+  which spans two of our seasons, so ours plays November then July within one.
+- Namibia is not in the real Nations Cup and is not in ours.
+
+### Screens
+
+- **Four tables fit a 320px phone**: Fixtures, a club's Squad tab, the
+  Transfer list and Training's Condition tab scrolled sideways. At 360px and
+  narrower the Form column steps aside (it is on every player's page) and long
+  competition and injury names wrap.
+- **Rival Watch** on Home: the rival's name has a line of its own, not
+  "Northampto...".
+- **Buttons big enough to tap** at 320px: Season Review's Back, the two board
+  requests and the campus map's plots on Infrastructure, Scouting's league
+  chips. A crash on an empty results page had hidden them from the checks.
+- Native phrasing in French, Spanish, Italian, Japanese and Afrikaans. A
+  coach with no club no longer sees their old club's desk on a player's page. Training
+  fits 320px. News is dated the day it is filed. Older saves name every nation
+  with its article in French, Spanish and Italian.
+
+### Checks that could not tell the versions apart
+
+- Two release-check probes failed on 1.9.15 and on 1.9.14 alike. The autopilot
+  probe now plays 72 seasons, not 36 (1.9.14: 28 crises sleepwalking, 10
+  engaged; 1.9.15: 25 and 8). The contract-end probe reads each world's worst
+  affordable share and takes the mean of 18 worlds (1.9.14 29.1%, 1.9.15 26.8%,
+  bar 35%).
+
 ## For the owner to decide
 
 - **Upset rate.** Favourites win close Tests less often than in real rugby
   (about 70% where real rugby is nearer 90%). This is the match engine, which
   is not changed without your say.
-- **Tier-two nations** (Georgia, Portugal, Spain, Uruguay, Chile, Romania,
-  Namibia, Hong Kong China, Zimbabwe) play the World Championship but have no
-  Test programme in between.
-- **Squad size** is 32 for every window; a real World Cup squad is 33.
 
 ## Checks
 

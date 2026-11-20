@@ -60,7 +60,7 @@ export default function Nations() {
   // ids only, so a women's career saw its World Championship and nothing else
   const tabs = ([
     ['wc', 'world.natWc'], ['sn', 'world.natSn'], ['w:sn', 'world.natSn'], ['trc', 'world.natTrc'], ['w:p4', 'world.natP4'],
-    ['pnc', 'world.natPnc'], ['aut', 'world.natAut'], ['w:aut', 'world.natAut'], ['tour', 'world.natTour'], ['w:sum', 'world.natTour'],
+    ['pnc', 'world.natPnc'], ['nc', 'world.natNc'], ['aut', 'world.natAut'], ['w:aut', 'world.natAut'], ['tour', 'world.natTour'], ['w:sum', 'world.natTour'],
     ['lions', 'world.natLions'], ['w:lions', 'world.natLions'],
   ] as const).filter(([id]) => game.comps[id])
   // a provincial side on the Isles tour is a club, not a nation (QA, 1.9.15:
@@ -145,24 +145,32 @@ export default function Nations() {
         <button className={compId === 'rank' ? 'active' : ''} onClick={() => setCompId('rank')}>{t('world.agTestNations')}</button>
       </div>
       {compId === 'rank' && <TestRankings game={game} />}
-      {comp?.pools && comp.pools.length > 2 && (() => {
+      {comp?.pools && comp.pools.length >= 2 && (() => {
         // A WORLD CHAMPIONSHIP IS POOLS AND A BRACKET (QA, 1.9.15), not one
         // table of twenty-four: a pool each, the two going through marked,
         // and the knockouts as they are drawn
         const rows = (pool: string[]) => sortTable(comp.table.filter(r => pool.includes(r.teamId)))
         const ko = game.fixtures.filter(f => f.compId === comp.id && f.stage).sort((a, b) => a.week - b.week || a.id - b.id)
         const through = new Set(ko.filter(f => f.stage === ko[0]?.stage).flatMap(f => [f.homeId, f.awayId]))
+        // THE NATIONS TROPHY (1.9.15): two pools that only play each other, a
+        // champion in each, so the pools are named for where they are and the
+        // leader of each is the one marked
+        const nc = comp.id === 'nc'
+        const ncChamps = game.history.filter(h => h.season === game.season && h.compId === 'nc').map(h => h.champion)
+        const sub = nc
+          ? (ncChamps.length ? t('world.natNcChamps', { a: nationName(ncChamps[0]), b: nationName(ncChamps[1] ?? ncChamps[0]) }) : t('world.natPoolFootNc'))
+          : comp.champion ? t('fixtures.champions', { club: nationName(comp.champion) }) : t(comp.pools.length === 6 ? 'world.natPoolFoot6' : 'world.natPoolFoot4')
         return (
           <>
-            <SectionTitle sub={comp.champion ? t('fixtures.champions', { club: nationName(comp.champion) }) : t(comp.pools.length === 6 ? 'world.natPoolFoot6' : 'world.natPoolFoot4')}>{compLabel(comp.name)}</SectionTitle>
+            <SectionTitle sub={sub}>{compLabel(comp.name)}</SectionTitle>
             {comp.pools.map((pool, pi) => (
               <div key={pi}>
-                <div className="meta" style={{ padding: '6px 16px 2px', fontWeight: 700 }}>{t('world.natPool', { p: String.fromCharCode(65 + pi) })}</div>
+                <div className="meta" style={{ padding: '6px 16px 2px', fontWeight: 700 }}>{nc ? t(pi === 0 ? 'world.natNcPoolA' : 'world.natNcPoolB') : t('world.natPool', { p: String.fromCharCode(65 + pi) })}</div>
                 <div className="tblwrap"><table className="dtable">
                   <thead><tr><th className="num">{t('tables.colRank')}</th><th>{t('world.natColNation')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th><th className="num">{t('tables.colDiff')}</th><th className="num">{t('tables.colBP')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
                   <tbody>
                     {rows(pool).map((r, i) => {
-                      const q = through.size ? through.has(r.teamId) : i < 2
+                      const q = through.size ? through.has(r.teamId) : i < (nc ? 1 : 2)
                       return (
                         <tr key={r.teamId} style={game.natTeam === r.teamId ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
                           <td className="num muted" style={q ? { color: 'var(--text-positive)', fontWeight: 700 } : undefined}>{i + 1}</td>
@@ -194,7 +202,7 @@ export default function Nations() {
           </>
         )
       })()}
-      {comp && comp.table.length > 0 && !(comp.pools && comp.pools.length > 2) && (
+      {comp && comp.table.length > 0 && !(comp.pools && comp.pools.length >= 2) && (
         <>
           <SectionTitle sub={comp.champion ? t('fixtures.champions', { club: nationName(comp.champion) }) : undefined}>{compLabel(comp.name)}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
@@ -218,7 +226,7 @@ export default function Nations() {
       {compId !== 'rank' && <>
       <SectionTitle>{t('world.natResults')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
-        {game.fixtures.filter(f => f.compId === compId && !(comp?.pools && comp.pools.length > 2 && f.stage)).sort((a, b) => a.week - b.week).map(f => (
+        {game.fixtures.filter(f => f.compId === compId && !(comp?.pools && comp.pools.length >= 2 && f.stage)).sort((a, b) => a.week - b.week).map(f => (
           <tr key={f.id}>
             <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}{f.stage ? ` · ${stageShort(f.stage)}` : ''}</td>
             <td className="name">{side(f.homeId)} {t('common.v')} {sideR(f.awayId)}</td>

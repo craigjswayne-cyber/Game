@@ -9,9 +9,9 @@
  */
 import { describe, expect, it } from 'vitest'
 import { newGame } from '../src/game/newgame'
-import { activeWindows } from '../src/game/season'
+import { activeWindows, processWeekAndAdvance } from '../src/game/season'
 import { applyToTable, wcRoundOf16 } from '../src/game/season/tables'
-import { buildInternationals, emptyRow, isLionsSeason, isWomensTourSeason } from '../src/game/schedule'
+import { NC_POOLS, buildInternationals, emptyRow, isLionsSeason, isWomensTourSeason } from '../src/game/schedule'
 import { mulberry32 } from '../src/game/rng'
 import { BASE_YEAR, type Competition, type Fixture, type GameState } from '../src/game/model'
 import { deskNat, natCallUp, natDrop, natWindow } from '../src/game/country'
@@ -200,4 +200,50 @@ describe('a men\'s World Cup squad is thirty-three', () => {
     expect(natCallUp(g, next.id)).not.toBeNull()
     expect(g.natSquads['ENG'].length).toBe(33)
   })
+})
+
+describe('the Nations Trophy: the tier-two nations play between World Championships', () => {
+  const [A, B] = NC_POOLS
+  it('twelve nations, the real pools, each meets the six of the other pool once', () => {
+    const g = newGame('leicester', 'NT', 63)
+    const nc = g.comps['nc']
+    expect(nc).toBeDefined()
+    expect(nc.pools).toEqual([A, B])
+    const fx = g.fixtures.filter(f => f.compId === 'nc')
+    expect(fx.length).toBe(36)
+    for (const n of [...A, ...B]) {
+      const mine = fx.filter(f => f.homeId === n || f.awayId === n)
+      const opp = mine.map(f => (f.homeId === n ? f.awayId : f.homeId))
+      const other = A.includes(n) ? B : A
+      expect(new Set(opp)).toEqual(new Set(other))
+      expect(new Set(mine.map(f => f.week)).size).toBe(6)
+    }
+    // November in Europe, Africa and Asia; July in the Americas and the Pacific
+    expect(fx.filter(f => f.week <= 15).every(f => B.includes(f.homeId))).toBe(true)
+    expect(fx.filter(f => f.week >= 44).every(f => A.includes(f.homeId))).toBe(true)
+  })
+
+  it('is away twice: the November window with its camp week, and July', () => {
+    const g = newGame('leicester', 'NT', 64)
+    const spans = activeWindows(g).filter(w => w.id === 'nc').map(w => [w.start, w.end])
+    expect(spans).toEqual([[12, 15], [44, 46]])
+  })
+
+  it('is not played in a World Championship season', () => {
+    const g = newGame('leicester', 'NT', 65)
+    g.season = 2027 - BASE_YEAR
+    g.fixtures = g.fixtures.filter(f => f.compId !== 'nc')
+    delete g.comps['nc']
+    buildInternationals(mulberry32(65), g, true)
+    expect(g.comps['nc']).toBeUndefined()
+  })
+
+  it('a season played through crowns a champion in each pool', () => {
+    const g = newGame('leicester', 'NT', 66)
+    let guard = 0
+    while (!g.history.filter(h => h.compId === 'nc').length && guard++ < 60) processWeekAndAdvance(g)
+    const champs = g.history.filter(h => h.compId === 'nc').map(h => h.champion)
+    expect(champs.length).toBe(2)
+    expect(A.includes(champs[0]) !== A.includes(champs[1])).toBe(true)
+  }, 120_000)
 })
