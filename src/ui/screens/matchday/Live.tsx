@@ -401,6 +401,7 @@ export function Live() {
   const fullMatch = prefs.highlights === 'extended' && highlightsOn && live.mode !== 'highlights'
   const [pitchPlayed, setPitchPlayed] = useState<{ at: number; moved: boolean } | null>(null)
   const [pitchReached, setPitchReached] = useState(0)
+  const [said, setSaid] = useState<{ k: string; home: boolean; src: number; n: number }[]>([])
 
   useEffect(() => {
     if (!playing || clip) return
@@ -482,8 +483,21 @@ export function Live() {
   // The newest line is now held back until the pitch has got to it.
   const feedN = fullMatch && !panelActive && !clip && pitchReached < cursor ? Math.max(0, cursor - 1) : cursor
   const feedShown = feedN === cursor ? shown : events.slice(0, feedN)
-  const feedRows = feedShown.slice(-FEED_ROWS).map((e, j) => ({ e, i: Math.max(0, feedShown.length - FEED_ROWS) + j }))
-  useFeedGlide(feedRef, panelActive ? -1 : feedShown.length)
+  // THE STEPS THE ENGINE DID NOT WRITE ARE SAID TOO (owner, 20 Nov 2026:
+  // "commentary, graphics and animation are all doing different things -
+  // they need to be in harmony"). The pitch plays a knock-on before a scrum,
+  // the ball into touch before a lineout, the kick-off after a score; the
+  // director's words for each go in the feed as it is played, just above the
+  // engine line it leads into.
+  const saidHere = fullMatch ? said.filter(x => x.src <= feedShown.length) : []
+  const feedAll: ({ e: MatchEvent; i: number; say?: undefined } | { say: { k: string; home: boolean; src: number; n: number }; i: number; e?: undefined })[] = []
+  { let q = 0
+    for (let i = 0; i <= feedShown.length; i++) {
+      while (q < saidHere.length && saidHere[q].src <= i) { feedAll.push({ say: saidHere[q], i: -1 - saidHere[q].n }); q++ }
+      if (i < feedShown.length) feedAll.push({ e: feedShown[i], i })
+    } }
+  const feedRows = feedAll.slice(-FEED_ROWS)
+  useFeedGlide(feedRef, panelActive ? -1 : feedAll.length)
   useFeedGlide(tabRef, panelActive || !tablet ? -1 : shown.length)
 
   // the two sides for the live pitch: who is in which shirt, the number on
@@ -781,8 +795,20 @@ export function Live() {
               current line keeps the now-line class the probes read. */}
           <div className="comm-feed" aria-live="off">
             <div className="comm-list" ref={feedRef}>
-              {feedRows.map(({ e, i }) => {
-                const age = feedShown.length - 1 - i
+              {feedRows.map((row, j) => {
+                const age = feedRows.length - 1 - j
+                if (row.say) {
+                  const sy = row.say, tid = sy.home ? fixture.homeId : fixture.awayId
+                  return (
+                    <div key={`s${sy.n}`} data-k={`s${sy.n}`} data-testid="feed-say"
+                      className={`comm-line kit${age === 0 ? ' cur now-line fresh' : ` old a${Math.min(3, age)}`}`}
+                      style={{ borderLeftColor: (sy.home ? kits.home : kits.away)[0] }}>
+                      <span className="min">{Math.min(80, events[Math.min(sy.src, events.length - 1)]?.min ?? 0)}'</span>
+                      <span className="txt">{t(sy.k, { team: teamShort(game, tid) })}</span>
+                    </div>
+                  )
+                }
+                const { e, i } = row
                 return (
                   <div key={i} data-k={i}
                     className={`comm-line ${cls(e)}${e.teamId ? ' kit' : ''}${age === 0 ? ` cur now-line fresh` : ` old a${Math.min(3, age)}`}${i === flash ? ' try-flash' : ''}`}
@@ -818,6 +844,7 @@ export function Live() {
           paused={!playing} speed={[0.85, 1, 1.6][speedIdx] ?? 1}
           boards={pitchBoards} tactics={pitchTactics} night={pitchNight} wet={fixture.weather === 'Rain'} snow={fixture.weather === 'Snow'}
           onReached={c => setPitchReached(c)}
+          onSay={x => setSaid(a => (a.some(y => y.src === x.src && y.k === x.k) ? a : [...a, { ...x, n: a.length }].sort((p, q) => p.src - q.src || p.n - q.n)))}
           onPlayed={moved => setPitchPlayed({ at: useStore.getState().liveMatch?.cursor ?? cursor, moved })}
           tr={(k, v) => t(k, v)} teams={{ home: teamShort(game, fixture.homeId), away: teamShort(game, fixture.awayId) }}
           names={pid => game.players[pid]?.name} />

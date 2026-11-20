@@ -121,7 +121,7 @@ try { const c = Number(new URLSearchParams(window.location.search).get('lpcap'))
 // (?lpbase=1 plays the match at life speed, for looking hard at the movement: owner, 20 Nov 2026)
 try { const b = Number(new URLSearchParams(window.location.search).get('lpbase')); if (b >= 0.5 && b <= 3) PitchSim.base = b } catch { /* no window: tests */ }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false, onReached }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false, onReached, onSay }: {
   /** snow on the ground */
   snow?: boolean
   /** rain or snow: the wet ground */
@@ -140,6 +140,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   names: (playerId: number) => string | undefined
   /** the newest line has been played out on the grass */
   onPlayed?: (moved: boolean) => void
+  /** a step the engine did not write is being played: the words for it (an i18n key) and the side it is about */
+  onSay?: (s: { k: string; home: boolean; src: number }) => void
   /** the pitch has got to the play the line at this cursor describes */
   onReached?: (cursor: number) => void
   /** 1 is real time; the Fast setting plays it quicker, Slow a little slower */
@@ -199,7 +201,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     seen.current.pre = false
   }
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
-  const io = useRef({ home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf })
+  const io = useRef({ home, away, names, onPlayed, onSay, onReached, cursor, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf })
   if (tactics) sim.current.tac = tactics
   // a quick man is up to a tenth quicker than average and a slow one a tenth slower
   const tank = (f: number | undefined) => 0.9 + 0.1 * Math.min(100, Math.max(0, f ?? 100)) / 100
@@ -223,7 +225,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     if (typeof location !== 'undefined' && location.pathname.includes('lp-preview')) for (const v of (new URLSearchParams(location.search).get('off') ?? '').split(',')) if (v) off[Number(v)] = true
     sim.current.off = off
   }
-  io.current = { home, away, names, onPlayed, onReached, cursor, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf }
+  io.current = { home, away, names, onPlayed, onSay, onReached, cursor, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf }
 
   useEffect(() => {
     const cv = canvas.current
@@ -724,6 +726,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         if (reachedSent !== rc && (S.phase?.at !== rc - 1 || S.reached)) { reachedSent = rc; io.current.onReached?.(rc) }
       }
       // the banner lands with the moment, not with the line
+      while (S.says.length) io.current.onSay?.(S.says.shift()!)
       const bw = bannerRef.current
       if (bw.want && S.landed && !S.pending && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at) {
         bw.shownAt = bw.want.at

@@ -232,6 +232,18 @@ export class PitchSim {
   private line: { p: Phase; c: number | null }[] = []
   /** a stoppage has just been shown: the scrum forms where the ball is lying */
   private stopped = false
+  /** WHAT THE COMMENTARY SAYS ABOUT A STEP THE ENGINE DID NOT WRITE: the
+   *  screen takes these as the beat is played, so the words and the picture
+   *  are the same account (owner, 20 Nov 2026: "they need to be in harmony") */
+  says: { k: string; home: boolean; src: number }[] = []
+  private saidKey = ''
+  private tell(b: Beat, homeBall: boolean) {
+    if (!b.say || b.src == null) return
+    const key = `${b.src}:${b.say}:${b.kind}`
+    if (key === this.saidKey) return
+    this.saidKey = key
+    this.says.push({ k: b.say, home: b.stolen ? !homeBall : (b.byHome ?? homeBall), src: b.src })
+  }
   /** more of this line is still to come */
   get pending(): boolean { return this.line.length > 0 }
   playLine(beats: Beat[], carrier: (b: Beat) => number | null) {
@@ -270,6 +282,7 @@ export class PitchSim {
         this.ball.x = clamp(from.x + fd * 2.2, 1, 99); this.ball.y = clamp(from.y, 1, 69); this.ball.lift = 0
         this.holder = -1; this.grounded = true
       }
+      this.tell(beat, p.homeBall)
       this.stopped = true
       const q = this.line.shift()
       if (q) this.start(q.p, q.c)
@@ -277,6 +290,7 @@ export class PitchSim {
     }
     // PUT INTO TOUCH: the man with the ball is taken over the touchline, or it
     // is knocked from his hands and out. Played as a carry to the line.
+    this.tell(beat, p.homeBall)
     if (beat.kind === 'intotouch') {
       p = { ...p, kind: 'carry' }
       // the man who has it is the man who goes out with it: nobody passes it across the field first
@@ -402,7 +416,7 @@ export class PitchSim {
           break
         }
         cut = true; cIdx = carrierIdx ?? 9; init = att0 + cIdx
-        steps.push({ k: 'wait', t: 0.9 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 5.5 }, { k: 'wait', t: 0.4 })
+        steps.push({ k: 'wait', t: 0.9 }, { k: 'kick', to: p.to ?? E, hang: p.hang ?? 5.5 }, { k: 'wait', t: 2 })
         break
       case 'break':
         cut = true; steps.push({ k: 'wait', t: 2 })
@@ -517,7 +531,7 @@ export class PitchSim {
           const who = att0 + (c < 8 ? c : 7)
           if (hyp(B, at) > 8) steps.push({ k: 'advance', to: { ...at }, rate: ADV })
           steps.push({ k: 'mode', mode: 'maul', at: { ...at }, clear: true }, { k: 'pick', who, max: 2.5 }, { k: 'wait', t: 1.4 },
-            { k: 'run', to: { ...E }, v: 1.7 }, { k: 'mode', mode: 'try' }, { k: 'wait', t: 5.5 })
+            { k: 'run', to: { ...E }, v: 1.7 }, { k: 'mode', mode: 'try' }, { k: 'wait', t: 4.2 })
           if (holderAtt) { mode = 'carry'; cIdx = this.holder - att0 } else { mode = 'ruck'; cIdx = null }
           anchor = B
           break
@@ -525,7 +539,7 @@ export class PitchSim {
         if (tk === 'long') {
           mode = 'carry'; cIdx = c; anchor = B
           steps.push({ k: 'pick', who: att0 + c, max: 2.5 }, { k: 'mode', mode: 'carry', cIdx: c, anchorOn: att0 + c, clear: true },
-            { k: 'run', to: E, v: 8.8 }, { k: 'mode', mode: 'try' }, { k: 'wait', t: 5.5 })
+            { k: 'run', to: E, v: 8.8 }, { k: 'mode', mode: 'try' }, { k: 'wait', t: 4.2 })
           break
         }
         // A GAP IN THE SAME ATTACK IS A BREAK, NOT A CUT: when the side that
@@ -606,11 +620,11 @@ export class PitchSim {
           for (const st of steps) if (st.k === 'mode' && st.anchorOn === att0 + c) { st.anchorOn = kicker; st.cIdx = kicker - att0 }
           this.over.delete(att0 + c)
           steps.push({ k: 'wait', t: 0.5 }, { k: 'kick', to: { x: E.x + dir * 2.5, y: E.y }, hang: 2 }, { k: 'pick', who: att0 + c, max: 5 },
-            { k: 'mode', mode: 'try' }, { k: 'wait', t: 5.5 })
+            { k: 'mode', mode: 'try' }, { k: 'wait', t: 4.2 })
           break
         }
         steps.push({ k: 'run', to: E, v })
-        if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 5.5 : 2.4 })
+        if (scoring) steps.push({ k: 'mode', mode: p.kind }, { k: 'wait', t: p.kind === 'try' ? 4.2 : 2.4 })
         // FROM CLOSE IN it is worked up to the line first: the pack carries it
         // to within a few metres, and he goes over from there
         // (and that is WATCHED, not wound on: owner, 19 Nov 2026, "suddenly jumped forward 5m to score. It needs to be fluid")
@@ -1277,7 +1291,7 @@ export class PitchSim {
           const T = this.targets()
           let there = 0
           for (let i = 0; i < 30; i++) if (hyp(this.b[i], T.pts[i]) < 5) there++
-          over = (s.need == null ? there >= 25 : there >= 19 && hyp(this.b[s.need], T.pts[s.need]) < 2.5) || this.st >= s.max
+          over = (s.need == null ? there >= 25 : there >= 12 && hyp(this.b[s.need], T.pts[s.need]) < 2.5) || this.st >= s.max
           // (a kick at goal goes once the kicker is on his mark and most are in place)
           if (!over && (this.mode === 'con' || this.mode === 'goal') && this.holder >= 0 && this.st > 2.5 && there >= 18 && hyp(this.b[this.holder], T.pts[this.holder]) < 1.2) over = true
           break
