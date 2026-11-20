@@ -376,7 +376,9 @@ console.log('--- 8. every line in six languages')
   }
   for (const l of LANGS) {
     ok(['bonds.gHome', 'bonds.gVets', 'bonds.gYoung'].every(k => !raw(tIn(l, 'news.bondClique', { group_k: k, names_l: '[]', n: 3 }))), `every clique group reads in ${l}`)
-    ok(!raw(tIn(l, 'news.bondClique', { group_k: 'bonds.gNat', nation_k: 'nation.TGA', names_l: '[]', n: 3 })), `a national clique reads in ${l}`)
+    // the vars bonds.ts groupVars sends (1.9.15): the nation's three forms, so
+    // French and Italian can put the article on the name
+    ok(!raw(tIn(l, 'news.bondClique', { group_k: 'bonds.gNat', nation_k: 'nation.TGA', nationThe_k: 'nationThe.TGA', nationCap_k: 'nationCap.TGA', names_l: '[]', n: 3 })), `a national clique reads in ${l}`)
     ok(['player.bondsLabel', 'player.bondsVoice'].every(k => !raw(tIn(l, k))) && !raw(tIn(l, 'player.bondsClose', { names: 'X' })) && !raw(tIn(l, 'player.bondsClash', { names: 'Y' })), `the profile lines read in ${l}`)
   }
 }
