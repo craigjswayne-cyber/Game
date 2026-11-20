@@ -842,8 +842,11 @@ export function buildWomensInternationals(rng: Rng, state: GameState, worldCup =
     teamIds: [...W_NORTH, ...W_SOUTH], table: [], rounds: W_SUMMER_TEST_WEEKS.length, playoffTeams: 0,
     weeksByRound: W_SUMMER_TEST_WEEKS, koWeeks: [], isNational: true,
   }
+  // rotated as the autumn is (QA, 1.9.15: Canada met Italy twice in one
+  // summer), with the same dice drawn
+  const wSumOrder = W_SUMMER_TEST_WEEKS.map(() => shuffled(rng, W_NORTH))[0]
   W_SUMMER_TEST_WEEKS.forEach((week, r) => {
-    const touring = shuffled(rng, W_NORTH)
+    const touring = W_SOUTH.map((_, i) => wSumOrder[(i + r) % wSumOrder.length])
     W_SOUTH.forEach((home, i) => {
       state.fixtures.push({
         id: state.nextId++, compId: W + 'sum', round: r, week,
