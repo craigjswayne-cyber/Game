@@ -107,8 +107,25 @@ union. A figure goes in the data file only when a source here gives it.
 - Caps: none found yet. Search "South Africa national rugby union team" so the
   Wikipedia page comes back as a result, then fetch its Current squad table.
 
+## Argentina (men) - done, caps one Test late
+
+- Squad and caps: Wikipedia, Argentina national rugby union team: "On 30
+  October 2026, Argentina named a 33-player squad", "Caps updated: 6 November
+  2026 (after Ireland v Argentina)". Santiago Carreras is injured and absent.
+- TO CORRECT: take one cap off each of the 23 who played Ireland on 6 Nov
+  (team in The 42, "Contepomi names powerful Pumas side", and the replacements'
+  caps in periodismo-rugby.com.ar's France team sheet of 19 Nov).
+
+## Fiji and Japan (men) - not usable yet
+
+- Fiji: Wikipedia's table is the June squad with caps dated 22 Nov 2025. Need
+  the November squad (Fiji Rugby / fijivillage) and current caps.
+- Japan: Wikipedia's table is the Pacific Nations Cup squad of 9 Sep 2026
+  (30 players, caps pre-PNC). Need the November tour squad (en.rugby-japan.jp
+  team announcements of 7, 13 and 20 Nov carry caps in the text).
+
 ## To do, in this order
 
-Men: South Africa caps, Argentina, Fiji, Japan, then Samoa, Tonga, USA, Canada.
+Men: South Africa caps, Argentina cap correction, Fiji, Japan, then Samoa, Tonga, USA, Canada.
 Women: England, France, Ireland, Scotland, Wales, Italy, New Zealand,
 Australia, USA, Canada (check `testNationsIn` for the ten in a women's world).

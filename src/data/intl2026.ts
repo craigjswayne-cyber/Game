@@ -168,6 +168,20 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Aphelele Fassi', null), r('Ethan Hooker', null), r('Edwill van der Merwe', null), r('Kurt-Lee Arendse', null),
       r('Damian Willemse', null),
     ],
+    // Argentina: 33 named by the UAR on 30 Oct 2026. Caps as of 6 Nov 2026,
+    // AFTER Ireland v Argentina: the 23 who played that night are one too
+    // high and are to be corrected (see the research log).
+    ARG: [
+      r('Julián Montoya', 121), r('Leonel Oviedo', 4), r('Rodrigo Martínez', 4), r('Francisco Moreno', 4),
+      r('Tomas Rapetti', 8), r('Joel Sclavi', 33), r('Mayco Vivas', 45), r('Boris Wenger', 12),
+      r('Efraín Elías', 7), r('Tomás Lavanini', 94), r('Guido Petti', 105), r('Pedro Rubiolo', 32),
+      r('Juan Martín González', 52), r('Facundo Isa', 53), r('Marcos Kremer', 84), r('Pablo Matera', 128),
+      r('Joaquín Moro', 8), r('Juan Martín Scelzo', 3),
+      r('Simón Benítez Cruz', 16), r('Gonzalo García', 20), r('Agustín Moyano', 11), r('Tomás Albornoz', 25),
+      r('Gerónimo Prisciantelli', 7), r('Santiago Chocobares', 36), r('Lucio Cinti', 46), r('Justo Piccardo', 14),
+      r('Faustino Sánchez Valarolo', 5), r('Mateo Carreras', 37), r('Bautista Delguy', 43), r('Rodrigo Isgró', 20),
+      r('Ignacio Mendy', 8), r('Juan Cruz Mallía', 52), r('Mateo Soler', 1),
+    ],
   },
   w: {},
 }
