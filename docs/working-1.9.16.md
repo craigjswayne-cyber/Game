@@ -38,7 +38,13 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - [x] Scotland men (37, all caps), Wales men (39, 10 caps to confirm), Italy men (34, all caps).
 - [x] New Zealand men (36, all caps), Australia men (33, all caps), South Africa men (37 named, 31 caps to find).
 - [x] Argentina men (33; caps are one Test late for the 23 who played Ireland, to correct).
-- [ ] Men still to do: Fiji, Japan, Samoa, Tonga, USA, Canada; South Africa caps; the 22 open caps in ENG/FRA/WAL. Then the ten women's unions.
+- [x] South Africa caps, Fiji (65) and Japan (54) from the Nations Championship squad pages (current caps: to
+      correct for autumn appearances; Fiji and Japan are whole-season squads, autumn party to narrow).
+- [ ] Men still to do: Samoa, Tonga, USA, Canada; the 23 open caps in ENG/FRA/WAL/RSA (use the championship site).
+- [ ] WOMEN (owner 22:12): every squad announced for WXV 1, 2 and 3; then PWR club squads for 2026-27.
+- [ ] BIG FINDING: only 4 of Japan's 54 internationals exist in the game. The Japanese league's 'real' players are
+      mostly invented names (e.g. no Dylan Riley, Jack Cornelsen, Naoto Saito). Fiji: 34 of 65. This is Stage 4
+      work (rebuild the JL1 squads from each club's real list). Also Boan Venter is SCO in the game, a Springbok in fact. Then the ten women's unions.
 - [ ] Player audit list so far (wrong union or not in the world): see the
       `missing:` lines of `npx vite-node scripts/intlaudit.ts` and the research log.
 - [ ] Every other union: see docs/research/intl-squads-2026.md for the order,
@@ -87,3 +93,4 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   REBASELINE in scripts/fingerprint.ts with a note ONCE, when the data work is finished, not before.
 - 22:15 Bath's squad is the club's published list: adding a man there filled the senior squad and broke the
   free-agent tests, so Opoku-Gyamfi was taken back out. Check squad room before adding to any club.
+- 22:24 Twelve Nations Championship unions in the file: 538 men named. intlaudit passes, with FIJ and JPN reported as THIN.

@@ -123,16 +123,17 @@ union. A figure goes in the data file only when a source here gives it.
   (team in The 42, "Contepomi names powerful Pumas side", and the replacements'
   caps in periodismo-rugby.com.ar's France team sheet of 19 Nov).
 
-## Fiji and Japan (men) - not usable yet
+## Fiji and Japan (men) - season squads in, autumn party to narrow
 
-- Fiji: Wikipedia's table is the June squad with caps dated 22 Nov 2025. Need
-  the November squad (Fiji Rugby / fijivillage) and current caps.
-- Japan: Wikipedia's table is the Pacific Nations Cup squad of 9 Sep 2026
-  (30 players, caps pre-PNC). Need the November tour squad (en.rugby-japan.jp
-  team announcements of 7, 13 and 20 Nov carry caps in the text).
+- Source: nationschampionshiprugby.com/en/teams/fij/squad and /jpn/squad, read
+  20 Nov 2026. These are each union's whole 2026 squad (Fiji 65, Japan 54)
+  with CURRENT caps, so after the autumn Tests played so far.
+- TO DO: mark only the November touring party as the squad (Fiji Rugby and
+  en.rugby-japan.jp team announcements), and take off autumn appearances.
 
 ## To do, in this order
 
-Men: South Africa caps, Argentina cap correction, Fiji, Japan, then Samoa, Tonga, USA, Canada.
+Men: Samoa, Tonga, USA, Canada; then the corrections listed above.
+Women (owner, 22:12): every squad announced for WXV 1, 2 and 3 in 2026. Then the PWR club squads for 2026-27.
 Women: England, France, Ireland, Scotland, Wales, Italy, New Zealand,
 Australia, USA, Canada (check `testNationsIn` for the ten in a women's world).

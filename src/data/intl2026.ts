@@ -190,6 +190,46 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Faustino Sánchez Valarolo', 5), r('Mateo Carreras', 37), r('Bautista Delguy', 43), r('Rodrigo Isgró', 20),
       r('Ignacio Mendy', 8), r('Juan Cruz Mallía', 52), r('Mateo Soler', 1),
     ],
+    // Fiji: the union's whole 2026 Nations Championship squad (65 men) from
+    // the championship's own squad page, read 20 Nov 2026, with CURRENT caps
+    // (after the autumn Tests so far). The November touring party is a part of
+    // this list; which part is still to be checked.
+    FIJ: [
+      r('Mesake Doge', 30), r('Tim Hoyt', 3), r('Eroni Mawi', 51), r('Vilikesa Nairau', 2),
+      r('Livai Natave', 6), r('Marika Parker', 0), r('Peni Ravai', 61), r('Inoke Ravuiwasa', 4),
+      r('Luke Tagi', 19), r('Samu Tawake', 19), r('Meli Tuni', 4), r('Penaia Cakobau', 1),
+      r('Tevita Ikanivere', 39), r('Sam Matavesi', 40), r('Peniami Narisia', 1), r('Kavaia Tagivetaua', 2),
+      r('Zuriel Togiatama', 14), r('Temo Mayanavanua', 37), r('Vilive Miramira', 6), r('Peni Naruma', 1),
+      r('Isoa Nasilasila', 35), r('Tevita Ratuva', 14), r('Setareki Turagacoke', 3), r('Mesake Vocevoce', 23),
+      r('Levani Botia', 31), r('Elia Canakaivata', 25), r('Motikiai Murray', 8), r('Kitione Salawa', 19),
+      r('Pita-Gus Sowakula', 7), r('Lekima Tagitagivalu', 14), r('Joe Tamani', 4), r('Isoa Tuwai', 2),
+      r('Aporosa Vuniyayawa', 1), r('Etonia Waqa', 4), r('Peceli Yato', 26), r('Nathan Hughes', 1),
+      r('Simione Kuruvoli', 27), r('Frank Lomani', 49), r('Terio Tamani', 3), r('Sam Wye', 8),
+      r('Isaiah Armstrong-Ravula', 23), r('Caleb Muntz', 27), r('Ben Volavola', 49), r('Iosefo Balewairiki', 11),
+      r('Kavekini Boselawa', 1), r('Vilimoni Botitu', 18), r('Sireli Maqala', 17), r('Isikeli Rabitu', 4),
+      r('Semi Radradra', 22), r('Isaac Ratumaitavuki-Kneepkens', 1), r('Kalaveti Ravouvou', 18), r('Tuidraki Samusamuvodre', 5),
+      r('Seta Tamanivalu', 6), r('Josua Tuisova', 35), r('Virimi Vakatawa', 3), r('Setareki Bituniyata', 1),
+      r('Nacani Boginisoko', 1), r('Vinaya Habosi', 12), r('Ponipati Loganimasi', 9), r('Manasa Mataele', 5),
+      r('Joji Nasova', 6), r('Selestino Ravutaumada', 14), r('Salesi Rayasi', 8), r('Jiuta Wainiqolo', 23),
+      r('Vuate Karawalevu', 8),
+    ],
+    // Japan: the whole 2026 squad (54 men), same page and same caveat.
+    JPN: [
+      r('Opeti Helu', 4), r('Kanato Hirano', 1), r('Takumi Inaba', 3), r('Ryosuke Iwaihara', 5),
+      r('Yota Kamimori', 5), r('Sanshiro Kihara', 1), r('Sena Kimura', 5), r('Takato Okabe', 14),
+      r('Sojiro Otsuka', 11), r('Izi Sword', 2), r('Shuhei Takeuchi', 33), r('Keijiro Tamefusa', 25),
+      r('Latu Taufa', 0), r('Hayate Era', 11), r('Mamoru Harada', 22), r('Kenji Sato', 15),
+      r('Ruan Botha', 1), r('Jack Cornelsen', 40), r('Warner Dearns', 40), r("Esei Ha'angana", 5),
+      r('Harry Hockings', 12), r('Mike Stolberg', 9), r('Tiennan Costley', 21), r('Ben Gunter', 28),
+      r('Michael Leitch', 96), r('Faulua Makisi', 29), r('Miuaustin Moriyama', 0), r('Kanji Shimokawa', 32),
+      r('Shinobu Fujiwara', 23), r('Kenta Fukuda', 10), r('Itsuki Kamimura', 3), r('Naoto Saito', 39),
+      r('Sam Greene', 10), r('Ryunosuke Ito', 9), r('Riku Kitahara', 2), r('Shinya Komura', 5),
+      r('Takuro Matsunaga', 12), r('Yuya Hirose', 10), r('Yuki Ikeda', 2), r('Charlie Lawrence', 10),
+      r('Jisu Lee', 3), r('Tomoki Osada', 27), r('Dylan Riley', 48), r('Samisoni Tua', 11),
+      r('Inoke Burua', 5), r('Kippei Ishida', 13), r('Haruto Kida', 4), r('Taira Main', 4),
+      r('Jone Naikabula', 17), r('Koga Nezuka', 3), r('Riku Tokito', 1), r('Kazuma Ueda', 11),
+      r('Yoshitaka Yazaki', 11), r('Shunsuke Uenobo', 3),
+    ],
   },
   w: {},
 }
