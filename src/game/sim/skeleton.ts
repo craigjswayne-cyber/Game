@@ -26,13 +26,13 @@ export const K = {
   // seconds of ball in play
   CARRY_S: 3.3, RUCK_S: 4.9, KICK_S: 6.2, CATCH_S: 2.2, SCRUM_S: 6, LINEOUT_S: 4, MAUL_S: 9, RESTART_S: 6.5, BREAK_S: 5,
   // seconds of dead time before a restart
-  SCRUM_DEAD: 61, SCRUM_RESET_DEAD: 28, LINEOUT_DEAD: 33, PENALTY_DEAD: 18, GOAL_DEAD: 58, TRY_DEAD: 48, CON_DEAD: 48, KICKOFF_DEAD: 22, DROPOUT_DEAD: 24,
+  SCRUM_DEAD: 58, SCRUM_RESET_DEAD: 28, LINEOUT_DEAD: 31, PENALTY_DEAD: 18, GOAL_DEAD: 55, TRY_DEAD: 48, CON_DEAD: 48, KICKOFF_DEAD: 22, DROPOUT_DEAD: 24,
   // the decision: how often the side with the ball kicks, by where it is
   KICK_OWN22: 0.45, KICK_OWNHALF: 0.245, KICK_OPPHALF: 0.085, KICK_OPP22: 0.02, KICK_PER_PHASE: 0.012, KICK_PHASE_FROM: 4,
   // the carry
   WIDE: 0.30, GAIN_TIGHT: 2.5, GAIN_TIGHT_SD: 2.4, GAIN_WIDE: 5.2, GAIN_WIDE_SD: 5.2,
-  P_BREAK: 0.042, BREAK_MIN: 14, BREAK_SPAN: 40,
-  P_KNOCK_ON: 0.042, P_FORWARD: 0.004, P_INTO_TOUCH: 0.011, P_HELD_UP: 0.12,
+  P_BREAK: 0.036, BREAK_MIN: 14, BREAK_SPAN: 40,
+  P_KNOCK_ON: 0.042, P_FORWARD: 0.004, P_INTO_TOUCH: 0.011, P_HELD_UP: 0.15,
   // the ruck
   P_TURNOVER: 0.034, P_PEN_ATTACK: 0.028, P_PEN_DEFENCE: 0.017, P_UNPLAYABLE: 0.004,
   // kicks
@@ -44,6 +44,10 @@ export const K = {
   // penalties
   GOAL_RANGE: 50, GOAL_TAKE: 0.66, PEN_TAP: 0.07, PEN_SCRUM: 0.05, FREE_TAP: 0.55, P_YELLOW_22: 0.13,
   CON_GOOD: 0.77,
+  // cards: a man in the bin for ten minutes, and what being a man down costs each contest
+  P_YELLOW: 0.05, P_RED: 0.006, BIN_S: 600, SHORT_COST: 0.09,
+  // a drop at goal, taken from in range when a possession has gone a few phases; and a kick charged down
+  DROP_RANGE: 36, DROP_PHASE: 3, P_DROP: 0.0045, DROP_GOOD: 0.45, P_CHARGE: 0.011,
 } as const
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -76,8 +80,14 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     const u = Math.max(1e-9, rng()), v = rng()
     return mean + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
   }
+  /** men in the bin (the clock second each comes back) and men sent off */
+  const bin: [number[], number[]] = [[], []]
+  const sentOff: [number, number] = [0, 0]
+  const short = (s: 0 | 1) => bin[s].filter(u => u > t).length + sentOff[s]
+  /** a side's strength now: a man down costs every contest */
+  const eff = (s: 0 | 1) => str[s] * Math.max(0.55, 1 - K.SHORT_COST * short(s))
   /** how much stronger a side is than the other, as a small lean on its contests */
-  const lean = (s: 0 | 1) => str[s] / str[other(s)]
+  const lean = (s: 0 | 1) => eff(s) / eff(other(s))
 
   const emit = (kind: PlayKind, side: 0 | 1, result: string, law: LawEvent | null, live: number, dead: number, more?: Partial<Play>) => {
     // (nobody is ever behind a dead-ball line: a man driven back over his own line is held on it)
@@ -205,7 +215,11 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     ball = to
     emit(free ? 'freeKick' : 'penalty', to, 'awarded', 'PENALTY', 0, K.PENALTY_DEAD)
     const d = toLine(to, x)
-    if (!free && d < 22 && rng() < K.P_YELLOW_22) emit('yellowCard', off, 'cynical', null, 0, 0)
+    if (!free) {
+      const c = rng()
+      if (c < K.P_RED) { sentOff[off]++; emit('redCard', off, 'foulPlay', null, 0, 20) }
+      else if (c < K.P_RED + K.P_YELLOW + (d < 22 ? K.P_YELLOW_22 : 0)) { bin[off].push(t + K.BIN_S); emit('yellowCard', off, d < 22 ? 'cynical' : 'foulPlay', null, 0, 12) }
+    }
     if (free) {
       phase = 1
       if (rng() < K.FREE_TAP) { emit('tap', to, 'tapped', 'PLAY', 2, 0); return { k: 'phase' } }
@@ -240,6 +254,14 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     else type = u < 0.45 ? 'grubber' : u < 0.80 ? 'upAndUnder' : 'touch'
     const dist = type === 'clearance' ? 28 + rng() * 18 : type === 'long' ? 34 + rng() * 18 : type === 'touch' ? 22 + rng() * 16
       : type === 'grubber' ? 11 + rng() * 10 : 17 + rng() * 11
+    // charged down: it comes off a defender's hands and they are on to it first
+    if (!fromFree && type !== 'grubber' && rng() < K.P_CHARGE) {
+      emit('kick', s, 'chargedDown', 'KICK', K.KICK_S * 0.4, 0, { kick: type })
+      x = adv(s, from, -(3 + rng() * 8)); ball = o2; phase = 1
+      if (toLine(o2, x) <= 0) return scoreTry(o2, 'chargeDown')
+      emit('catch', o2, 'chargeDownRegathered', 'PLAY', K.CATCH_S, 0)
+      return { k: 'phase' }
+    }
     x = adv(s, from, dist); y = clamp(y + (rng() - 0.5) * 40, 2, 68)
     // over their goal line: dead, or touched down. A 22 drop-out from a long kick, a goal-line one when a short kick is made dead.
     if (toLine(s, x) <= 0) {
@@ -276,7 +298,14 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
   const playPhase = (): Next => {
     const s = ball, o2 = other(s), d = toLine(s, x)
     const base = d > 78 ? K.KICK_OWN22 : d > 50 ? K.KICK_OWNHALF : d > 22 ? K.KICK_OPPHALF : K.KICK_OPP22
-    if (rng() < base + K.KICK_PER_PHASE * Math.max(0, phase - K.KICK_PHASE_FROM)) return kick()
+    if (d <= K.DROP_RANGE && d > 8 && phase >= K.DROP_PHASE && rng() < K.P_DROP) {
+      const good = rng() < K.DROP_GOOD - Math.max(0, d - 22) * 0.012
+      if (good) { score[s] += 3; emit('dropGoal', s, 'over', 'DROPGOAL', K.KICK_S, 30, { good }); return { k: 'kickoff', by: o2 } }
+      emit('dropGoal', s, 'wide', 'DROPMISS', K.KICK_S, 0, { good })
+      return { k: 'dropout', by: o2, goalLine: false }
+    }
+    // (nobody kicks it away on their line: inside ten metres they keep it in hand)
+    if (d > 10 && rng() < base + K.KICK_PER_PHASE * Math.max(0, phase - K.KICK_PHASE_FROM)) return kick()
     const wide = rng() < K.WIDE
     let gain = wide ? gauss(K.GAIN_WIDE * lean(s), K.GAIN_WIDE_SD) : gauss(K.GAIN_TIGHT * lean(s), K.GAIN_TIGHT_SD)
     gain = clamp(gain, -5, 22)

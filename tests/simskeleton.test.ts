@@ -37,7 +37,11 @@ describe('the match skeleton', () => {
         if (p.kind === 'try') expect(r.plays[k + 1].kind).toBe('conversion')
         if (p.kind === 'conversion' || (p.kind === 'penaltyGoal' && p.good)) expect(['kickoff', 'halfTime', 'fullTime']).toContain(r.plays[k + 1].kind)
         // a scrum has a reason before it
-        if (p.kind === 'scrum') expect(['knockOn', 'forwardPass', 'notStraight', 'unplayable', 'restartError', 'penalty', 'halfTime']).toContain(r.plays[k - 1].kind)
+        if (p.kind === 'scrum') {
+          let j = k - 1
+          while (r.plays[j].kind === 'yellowCard' || r.plays[j].kind === 'redCard') j--
+          expect(['knockOn', 'forwardPass', 'notStraight', 'unplayable', 'restartError', 'penalty', 'halfTime']).toContain(r.plays[j].kind)
+        }
         live += p.live
         if (p.kind === 'ruck' || p.kind === 'maul') rucks++
         if (p.kind === 'scrum') scrums++

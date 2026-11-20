@@ -12,11 +12,11 @@ const say = (p: Play): string | null => {
     case 'kickoff': return `${a} kick off.`
     case 'dropout22': return `22 drop-out, ${a}.`
     case 'goalLineDropout': return `Goal-line drop-out, ${a}.`
-    case 'catch': return p.result === 'regathered' ? `${a} win it back in the air.` : `${a} take it.`
+    case 'catch': return p.result === 'chargeDownRegathered' ? `${a} are on to the loose ball first, ${where(p, p.side)}.` : p.result === 'regathered' ? `${a} win it back in the air.` : `${a} take it.`
     case 'carry': return p.result === 'intoTouch' ? `${a} go wide and are bundled into touch.` : p.result === 'knockedOn' || p.result === 'forwardPass' ? null : p.result === 'overTheLine' ? `${a} carry over the line.` : null
     case 'ruck': return p.result === 'turnover' ? `Turnover: ${b} steal it at the ruck, ${where(p, p.ball)}.` : p.result === 'recycled' && p.phase && p.phase % 4 === 0 ? `${a} through ${p.phase} phases, ${where(p, p.side)}.` : null
     case 'lineBreak': return `Line break by ${a}! ${p.result === 'clean' ? 'Nobody near him.' : `Hauled down ${where(p, p.side)}.`}`
-    case 'kick': return p.result === 'touch' ? `${a} kick to touch.` : p.result === 'penaltyToTouch' ? `${a} kick the penalty to touch, ${where(p, p.side)}.` : p.result === 'outOnFull' ? `${a} kick it out on the full.` : p.result === 'fiftyTwentyTwo' ? `50:22 by ${a}!` : p.result === 'dead' ? `${a} kick, and it is too long.` : `${a} kick (${p.kick}).`
+    case 'kick': return p.result === 'chargedDown' ? `${a} kick... CHARGED DOWN by ${b}!` : p.result === 'touch' ? `${a} kick to touch.` : p.result === 'penaltyToTouch' ? `${a} kick the penalty to touch, ${where(p, p.side)}.` : p.result === 'outOnFull' ? `${a} kick it out on the full.` : p.result === 'fiftyTwentyTwo' ? `50:22 by ${a}!` : p.result === 'dead' ? `${a} kick, and it is too long.` : `${a} kick (${p.kick}).`
     case 'knockOn': return `Knock-on by ${a}.`
     case 'forwardPass': return `Forward pass by ${a}.`
     case 'notStraight': return `Not straight from ${a}.`
@@ -34,7 +34,9 @@ const say = (p: Play): string | null => {
     case 'try': return `TRY ${a}! (${p.result})  ${p.score[0]}-${p.score[1]}`
     case 'conversion': return p.good ? `Converted. ${p.score[0]}-${p.score[1]}` : `The conversion is missed.`
     case 'penaltyGoal': return p.good ? `${a} kick the penalty. ${p.score[0]}-${p.score[1]}` : `${a} miss the penalty.`
-    case 'yellowCard': return `YELLOW CARD, ${a}.`
+    case 'yellowCard': return `YELLOW CARD, ${a}. Ten minutes.`
+    case 'redCard': return `RED CARD, ${a}.`
+    case 'dropGoal': return p.good ? `DROP GOAL, ${a}! ${p.score[0]}-${p.score[1]}` : `${a} try a drop goal. Wide.`
     case 'halfTime': return `--- HALF-TIME ${p.score[0]}-${p.score[1]} ---`
     case 'fullTime': return `--- FULL TIME ${p.score[0]}-${p.score[1]} ---`
     default: return null

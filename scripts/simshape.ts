@@ -22,12 +22,24 @@ for (let i = 0; i < N; i++) {
     if (p.kind === 'penaltyGoal') { add('goalKicks'); if (p.good) add('penGoals') }
     if (p.kind === 'conversion' && p.good) add('cons')
     if (p.kind === 'yellowCard') add('yellows')
+    if (p.kind === 'redCard') add('reds')
+    if (p.kind === 'dropGoal') { add('drops'); if (p.good) add('dropsGood') }
+    if (p.kind === 'kick' && p.result === 'chargedDown') add('charges')
     if (p.kind === 'lineBreak') add('breaks')
     if (p.kind === 'knockOn' || p.kind === 'forwardPass') add('handling')
     if (p.kind === 'ruck' && p.result === 'turnover') add('turnovers')
     if (p.kind === 'lineout' && p.result === 'won') add('lineoutsWon')
     if (p.kind === 'carry') add('carries')
   }
+  // possessions: a run of entries with the ball in the same hands; how long each lasted in phases; where the match was played
+  { let cur = -1, ph = 0
+    for (const p of r.plays) {
+      if (p.kind === 'halfTime' || p.kind === 'fullTime') continue
+      if (p.ball !== cur) { if (cur >= 0) { add('poss'); add(ph <= 1 ? 'ph1' : ph <= 3 ? 'ph3' : ph <= 6 ? 'ph6' : 'ph7') } cur = p.ball; ph = 0 }
+      if (p.kind === 'ruck') ph++
+      add(p.x < 22 || p.x > 78 ? 'in22' : 'mid', p.live)
+      if (p.ball === 0) add('homeBall', p.live)
+    } }
   add('points', r.score[0] + r.score[1]); add('plays', r.plays.length)
   if (r.score[0] > r.score[1]) homeWins++; else if (r.score[0] === r.score[1]) draws++
 }
@@ -46,6 +58,7 @@ const rows: [string, number, number, number, string][] = [
 let bad = 0
 console.log(`${n} matches (${errors} threw an illegal sequence), up to ${maxPlays} entries a match\n`)
 for (const [name, v, lo, hi, src] of rows) { const ok = v >= lo && v <= hi; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'OFF '} ${name.padEnd(28)} ${v.toFixed(1).padStart(6)}   target ${lo} to ${hi}   (${src})`) }
-console.log(`\nalso: penalty goals ${a('penGoals').toFixed(1)} of ${a('goalKicks').toFixed(1)} kicks, conversions ${a('cons').toFixed(1)}, yellow cards ${a('yellows').toFixed(2)}, line breaks ${a('breaks').toFixed(1)}, knock-ons and forward passes ${a('handling').toFixed(1)}, ruck turnovers ${a('turnovers').toFixed(1)}, carries ${a('carries').toFixed(0)}, entries ${a('plays').toFixed(0)}`)
+console.log(`\nalso: penalty goals ${a('penGoals').toFixed(1)} of ${a('goalKicks').toFixed(1)} kicks, conversions ${a('cons').toFixed(1)}, yellow cards ${a('yellows').toFixed(2)}, red cards ${a('reds').toFixed(2)}, drop goals ${a('dropsGood').toFixed(2)} of ${a('drops').toFixed(2)}, charge-downs ${a('charges').toFixed(2)}, line breaks ${a('breaks').toFixed(1)}, knock-ons and forward passes ${a('handling').toFixed(1)}, ruck turnovers ${a('turnovers').toFixed(1)}, carries ${a('carries').toFixed(0)}, entries ${a('plays').toFixed(0)}`)
+console.log(`possessions ${a('poss').toFixed(0)} a match: ${(100 * a('ph1') / a('poss')).toFixed(0)}% end within one ruck, ${(100 * a('ph3') / a('poss')).toFixed(0)}% in 2 to 3, ${(100 * a('ph6') / a('poss')).toFixed(0)}% in 4 to 6, ${(100 * a('ph7') / a('poss')).toFixed(0)}% go 7 or more; ${(100 * a('in22') / a('live')).toFixed(0)}% of play is inside a 22; home has the ball ${(100 * a('homeBall') / a('live')).toFixed(0)}% of it`)
 console.log(`even sides: home wins ${(100 * homeWins / n).toFixed(1)}%, draws ${(100 * draws / n).toFixed(1)}%`)
 console.log(bad || errors ? `\nSHAPE OFF: ${bad} rows outside target, ${errors} illegal` : '\nSHAPE HOLDS: every row inside its target, no illegal sequence')
