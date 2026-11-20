@@ -82,6 +82,52 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r("Tommy O'Brien", 9), r('Jamie Osborne', 17), r('Sam Prendergast', 17), r('Garry Ringrose', 76),
       r('Jacob Stockdale', 43),
     ],
+    // Scotland: 37 named by Scottish Rugby on 26 Oct 2026 (21 forwards, 16
+    // backs), with the caps the union printed beside each name.
+    SCO: [
+      r('Ewan Ashman', 37), r('Josh Bayliss', 18), r('Gregor Brown', 19), r('Scott Cummings', 52),
+      r('Alex Craig', 7), r('Rory Darge', 41), r('Jack Dempsey', 35), r('Matt Fagerson', 66),
+      r('Zander Fagerson', 84), r('Jonny Gray', 83), r('Gregor Hiddleston', 3), r('Will Hurd', 11),
+      r('Ollie Leatherbarrow', 0), r('Nathan McBeth', 8), r('Liam McConnell', 2), r('Elliot Millar Mills', 15),
+      r('Jamie Ritchie', 63), r('Pierre Schoeman', 52), r('Rory Sutherland', 51), r('Seb Stephen', 1),
+      r('Max Williamson', 15),
+      r('Fergus Burke', 5), r('Jamie Dobie', 22), r('Darcy Graham', 57), r('George Horne', 47),
+      r('Rory Hutchinson', 13), r('Huw Jones', 63), r('Tom Jordan', 20), r('Blair Kinghorn', 65),
+      r('Stafford McDowall', 18), r('Kyle Rowe', 19), r('Finn Russell', 95), r('Ollie Smith', 13),
+      r('Kyle Steyn', 35), r('Sione Tuipulotu', 41), r('Duhan van der Merwe', 54), r('Ben White', 38),
+    ],
+    // Wales: 39 named by the WRU on 20 Oct 2026 (Planet Rugby list). Caps as
+    // of 18 July 2026 where the summer squad table has the man.
+    WAL: [
+      r('Rhys Barratt', 0), r('Taine Basham', null), r('Adam Beard', 68), r('Liam Belcher', null),
+      r('James Botham', 24), r('Rhys Carré', 31), r('Ben Carter', 21), r('Ryan Elias', 51),
+      r('Seb Davies', null), r('Tomas Francis', null), r('Archie Griffin', null), r('Kane James', 1),
+      r('Dafydd Jenkins', null), r('Dewi Lake', 34), r('Dillon Lewis', 60), r('Alex Mann', 18),
+      r('Jac Morgan', 27), r('Taine Plumtree', 15), r('Nicky Smith', 66), r('Gareth Thomas', 44),
+      r('Aaron Wainwright', 70), r('Teddy Williams', 10),
+      r('Josh Adams', 72), r('Sam Costelow', 22), r('Rio Dyer', null), r('Dan Edwards', 13),
+      r('Gabe Hamer-Webb', null), r('Joe Hawkins', 14), r('Louie Hennessey', null), r('Che Hope', 0),
+      r('Eddie James', 11), r('Max Llewellyn', 13), r('Ellis Mee', 11), r('Reuben Morgan-Williams', 3),
+      r('Blair Murray', 19), r('Aneurin Owen', 0), r('Louis Rees-Zammit', 43), r('Tom Rogers', null),
+      r('Tomos Williams', 75),
+      // capped, not in the autumn squad
+      r('Evan Lloyd', 8, false), r('Sam Wainwright', 4, false), r('Ben Warren', 3, false),
+      r('Tommy Reffell', 30, false), r('Kieran Hardy', 32, false), r('Mason Grady', 17, false),
+      r('Ben Thomas', 19, false),
+    ],
+    // Italy: 34 named by the FIR on 21 Oct 2026. Caps as of 21 Oct 2026, ahead
+    // of the November Tests.
+    ITA: [
+      r('Tommaso Di Bartolomeo', 12), r('Gianmarco Lucchesi', 36), r('Giacomo Nicotera', 41), r('Simone Ferrari', 73),
+      r('Danilo Fischetti', 66), r('Muhamed Hasa', 11), r('Ion Neculai', 4), r('Ivan Nemer', 16),
+      r('Marco Riccioni', 39), r('Niccolò Cannone', 65), r('Mattia Midena', 0), r('Enoch Opoku-Gyamfi', 1),
+      r('Federico Ruzza', 74), r('Lorenzo Cannone', 40), r('Samuele Locatelli', 0), r('Alessandro Ortombina', 2),
+      r('Ross Vintcent', 22), r('Manuel Zuliani', 43),
+      r('Alessandro Fusco', 27), r('Alessandro Garbisi', 25), r('Stephen Varney', 39), r('Tommaso Allan', 91),
+      r('Paolo Garbisi', 57), r('Leonardo Marin', 25), r('Damiano Mazza', 0), r('Federico Mori', 17),
+      r('Paolo Odogwu', 10), r('Mirko Belloni', 3), r('Monty Ioane', 49), r('Louis Lynagh', 16),
+      r('Federico Zanandrea', 0), r('Ange Capuozzo', 32), r('Matt Gallagher', 3), r('Giovanni Montemauri', 0),
+    ],
   },
   w: {},
 }

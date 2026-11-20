@@ -35,6 +35,9 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
       checks it and lists names the world cannot find.
 - [x] England men: squad of 36 in, 27 caps checked, 9 to confirm.
 - [x] France men (41, 3 caps to confirm) and Ireland men (36, all caps checked).
+- [x] Scotland men (37, all caps), Wales men (39, 10 caps to confirm), Italy men (34, all caps).
+- [ ] Player audit list so far (wrong union or not in the world): see the
+      `missing:` lines of `npx vite-node scripts/intlaudit.ts` and the research log.
 - [ ] Every other union: see docs/research/intl-squads-2026.md for the order,
       the sources that work here and what is still open.
 - [ ] Decide: old saves keep estimated caps (only new careers get the real ones).
@@ -58,3 +61,4 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - 21:29 start. 21:40 Stage 1 screens built and checked in the browser walk (17 of 17).
 - 21:45 Stage 2 mechanism in, England men done (36/36 found). WebFetch only takes addresses a search returned; RFU news pages refuse.
 - 21:46 France and Ireland men in. Next: Scotland, Wales, Italy.
+- Six Nations unions all in. Next: South Africa, New Zealand, Australia, Argentina, Fiji, Japan.

@@ -63,9 +63,31 @@ union. A figure goes in the data file only when a source here gives it.
 - For the player audit: Jamie Benson is in the world as ENG at Harlequins; he
   moved to Ulster and was named by Ireland (uncapped).
 
+## Scotland (men) - done
+
+- Squad and caps: Scottish Rugby, "Scotland squad named for Nations
+  Championship home games", 26 Oct 2026. 37 players, caps beside each name.
+
+## Wales (men) - done, 10 caps to confirm
+
+- Squad: 39 named 20 Oct 2026 (Planet Rugby, 20 Oct 2026). Uncapped: Rhys
+  Barratt (Cardiff), Che Hope and Aneurin Owen (Dragons).
+- Caps: Wikipedia, Wales national rugby union team, "Caps updated: 18 July
+  2026" (the summer squad table).
+- To confirm: Taine Basham, Liam Belcher, Seb Davies, Tomas Francis, Archie
+  Griffin, Dafydd Jenkins, Rio Dyer, Gabe Hamer-Webb, Louie Hennessey, Tom
+  Rogers.
+
+## Italy (men) - done
+
+- Squad and caps: Wikipedia, Italy national rugby union team: "On 21 October,
+  Italy named a 34-player squad", "Caps updated: 21 October 2026 (ahead of
+  November tests)". Cross-check the 34 names against the FIR list when a
+  fetchable copy turns up. Tommaso Menoncello is injured and absent.
+
 ## To do, in this order
 
-Men: Scotland, Wales, Italy, South Africa, New Zealand,
+Men: South Africa, New Zealand,
 Australia, Argentina, Fiji, Japan, then Samoa, Tonga, USA, Canada.
 Women: England, France, Ireland, Scotland, Wales, Italy, New Zealand,
 Australia, USA, Canada (check `testNationsIn` for the ten in a women's world).
