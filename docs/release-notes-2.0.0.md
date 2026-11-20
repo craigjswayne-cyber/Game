@@ -179,3 +179,35 @@ Measured on screen over a whole match (scripts/tmp/screen.ts): three or more men
 - A drop goal is kicked out of play (ruck, pass to the fly-half, drop kick), and its plate no longer fills the pitch (its class collided with a tactics-board rule).
 - At a restart only the three nearest forwards come in behind the catch; the receiving pods are opened out.
 - Match length: about 2.2 to 2.7 seconds a line in the real game.
+
+## The live pitch, 20 November 2026 (afternoon)
+
+Owner, 09:38: "The movement still isnt accurate - players jumping around the pitch randomly - the ball not moving correctly."
+
+Cause: between plays the pitch wound on at 4 to 6.6 times speed, so players crossed the field faster than anyone can run.
+
+Changes:
+- Stoppages (scrum, lineout, kick-off, drop-out, kicks at goal) dissolve to the formed set piece. Nobody is fast-forwarded into place.
+- One watching speed throughout (2.05). Player top speed capped at 8.25 m/s.
+- A scrum forms where the knock-on happened.
+- A lineout more than 12 m upfield of the ball is preceded by a visible kick to touch.
+- Attacking back line stands a quarter flatter, so a pass wide no longer travels about 15 m backwards.
+- Dead time cut: shorter hang on kick-offs and goal kicks, shorter wait after a try.
+- A kick-off is shown after every score. The engine writes a restart line for about three scores in four; the pitch plays the rest.
+- `?lpbase=` sets the watching speed for review (1 is life speed).
+
+Measured on the same test match, per watched second (the probe used at 1pm under-read speeds; these are the corrected figures):
+
+| | 7am build | Now |
+|---|---|---|
+| 3+ players over 22 m/s | 40.9% | 0% |
+| 3+ players over 17 m/s | 44.9% | 4.2% |
+| 10+ players over 12 m/s | 49.0% | 21.1% |
+| Frames with the ball over 45 m/s | 1313 | 29 |
+| Ball jumps | 3 | 0 |
+
+Real match length: 385 s for 144 lines including about 65 s of pause screens, about 2.2 s a line (7am build about 2.0).
+
+No engine change this afternoon: results and scoring odds are unchanged (fingerprint passes).
+
+Known and not fixed: at a penalty kick at goal the defence stands on the goal line as at a conversion; both sides stand in one flat column for a moment after a turnover; the pack is tight at the first ruck after a kick-off; drop goal staging is untested; 5 of 14 lineouts still dissolve more than 12 m from the ball.
