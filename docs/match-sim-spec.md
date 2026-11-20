@@ -236,8 +236,24 @@ Tests, each one a script or a unit test that fails the build:
 7. Determinism: the same seed gives the same match, on replay and after a reload.
 8. Everything that exists today still passes: `npm test`, `fingerprint` (rebaselined once at the switch-over, with every changed result listed), and the check scripts.
 
-## 7. Open questions for the owner
+## 7. How a match is watched (owner, 20 November 2026, 22:51)
 
-1. The target length of an Extended match. A real match has about 174 rucks. Either Extended runs longer than four minutes, or it plays chosen passages (every score, every entry into a 22, every turnover, every set piece near a line) and sums up the rest in a line each.
-2. Penalties: is he happy for the count to rise to the real figure, with the routine ones handled for him?
-3. Player match stats: which of the new numbers he wants on the match report.
+"The modes you should get: skip the whole match; key moments (scoring, red cards, yellow cards); extended (show the whole game but on fast forward but slow down for the key moments) so its not super long."
+
+| Mode | What is shown |
+| --- | --- |
+| Skip | The result and the report. The match is still played in full by the engine. |
+| Key moments | Every score and every card, each with the play that led to it. |
+| Extended | The whole match from the record, wound on, at life speed for the key moments. |
+
+What Extended means in numbers. A match has about 35 minutes of ball in play (section 4). Dead time (walking to a lineout, a scrum setting, a kicker lining up) is not shown at length. If open play is wound on about eight times, 35 minutes takes about four and a half minutes; key moments at life speed add about a minute. So an Extended match is about five to six minutes.
+
+This is not the fast-forward that was removed on 20 November. That one hurried thirty men between two unrelated places. Here every man is doing what he really did, one phase after another, so wound on it reads as a real match played quickly. The winding-on speed is set by eye in stage 5, with the owner.
+
+Key moments, to be confirmed with the owner: tries, kicks at goal, cards, line breaks, turnovers in either 22, tries held up or ruled out, and the manager's own penalty calls.
+
+## 8. Open questions for the owner
+
+1. Penalties: is he happy for the count to rise to the real figure (about 17 a match against about 6 now), with the routine ones handled for him?
+2. Player match stats: which of the new numbers he wants on the match report.
+3. Which moments count as key in Extended (the list in section 7).
