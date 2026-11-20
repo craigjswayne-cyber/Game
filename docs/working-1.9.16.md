@@ -54,5 +54,5 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 
 ## Log
 
-- 21:29 start. 21:55 Stage 1 screens built and checked in the browser walk (17 of 17).
-- 22:35 Stage 2 mechanism in, England men done (36/36 found). WebFetch only takes addresses a search returned; RFU news pages refuse.
+- 21:29 start. 21:40 Stage 1 screens built and checked in the browser walk (17 of 17).
+- 21:45 Stage 2 mechanism in, England men done (36/36 found). WebFetch only takes addresses a search returned; RFU news pages refuse.
