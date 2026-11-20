@@ -66,3 +66,9 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - 21:46 France and Ireland men in. Next: Scotland, Wales, Italy.
 - Six Nations unions all in. Next: South Africa, New Zealand, Australia, Argentina, Fiji, Japan.
 - 21:50 Ten of sixteen men's unions in (ENG FRA IRE SCO WAL ITA NZL AUS RSA ARG): 382 players, 329 with checked caps.
+- 21:51 `scripts/intlaudit.ts` FAILS on Argentina on purpose: only 20 of the 33 named Pumas are in the world
+  (missing: Leonel Oviedo, Rodrigo Martinez, Tomas Rapetti, Efrain Elias, Tomas Lavanini, Juan Martin Scelzo,
+  Simon Benitez Cruz, Tomas Albornoz, Justo Piccardo, Faustino Sanchez Valarolo, Mateo Soler; Boris Wenger and
+  Gonzalo Garcia only exist as namesakes of other unions). NEXT: add the missing internationals to
+  `src/data/additions.ts` at their real 2026-27 clubs (rules at the top of that file), fix the wrong unions
+  (Sela, Janse van Rensburg, Tatafu, Benson, Burke, Kane James, Hennessey), then carry on with Fiji and Japan.
