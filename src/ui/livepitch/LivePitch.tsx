@@ -90,6 +90,9 @@ let SIDE = SIDE_MIN, END = END_MIN
 let FIELD_L = 100 + GOAL * 2 + END * 2, FIELD_W = 70 + SIDE * 2
 
 /** the verdict's type size: full size for TRY, smaller the longer the word */
+/** the plays that are said on the bottom plate as well as on the label */
+const NOTE = new Set(['lp.turnover', 'lp.outFull', 'lp.fifty22', 'lp.penalty', 'lp.dropout22', 'lp.dropout', 'lp.tmo', 'lp.notBackTen', 'lp.chargeDown', 'lp.heldUp', 'lp.quickTap', 'lp.scrum', 'lp.lineout'])
+
 function bannerSize(label: string, good: boolean): { fontSize: string } {
   // (owner, 19 Nov 2026: the pop-up is small and sits at the bottom of the pitch)
   const full = good ? 1.25 : 1.0625
@@ -1037,6 +1040,17 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     <div className={`live-pitch${night ? '' : ' day'}`} data-testid="live-pitch" data-phase={phase.kind}>
       <canvas ref={canvas} className="lp-canvas" />
       {chip && <div className="lp-chip" key={`c${now.at}`}><i style={{ background: (now.homeBall ? home : away).kit[0] }} />{chip}</div>}
+      {/* WHAT JUST HAPPENED, AND WHOSE BALL IT IS (owner, 19 Nov 2026: "Suddenly
+          northampton have the ball? Everything needs to be clear and explained
+          visually"). A change of possession or a stoppage was only the small
+          label on the far stand. It is also said on the plate at the bottom,
+          with the side that now has the ball. */}
+      {!banner && NOTE.has(now.label) && (
+        <div className="lp-banner note" key={`n${now.at}${now.label}`} data-testid="lp-note">
+          <b style={bannerSize(tr(now.label), false)}>{tr(now.label)}</b>
+          <span><i style={{ background: (now.homeBall ? home : away).kit[0], borderColor: (now.homeBall ? home : away).kit[1] }} />{now.homeBall ? teams.home : teams.away}</span>
+        </div>
+      )}
       {banner && bSide && (
         <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}${(banner.teamId === homeId) ? ' low' : ' high'}`} key={`b${banner.at}`} data-testid="lp-banner">
           {pts != null && <em>+{pts}</em>}

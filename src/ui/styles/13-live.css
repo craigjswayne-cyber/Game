@@ -1025,3 +1025,7 @@
 .live-pitch .lp-banner span { margin-top: 2px; padding: 0; background: none; font-size: .625rem; letter-spacing: .4px; white-space: nowrap; flex-wrap: nowrap; }
 @keyframes lp-banner-low { from { opacity: 0; transform: translate(-50%, 8px); } }
 @media (prefers-reduced-motion: reduce) { .live-pitch .lp-banner { animation: none; } }
+/* (the note plate: quieter than a score, and gone after two seconds) */
+.live-pitch .lp-banner.note { animation: lp-banner-low .3s both, lp-note-out .35s 2s forwards; }
+.live-pitch .lp-banner.note b { text-transform: uppercase; color: var(--prop-ink); }
+@keyframes lp-note-out { to { opacity: 0; } }
