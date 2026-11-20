@@ -1,6 +1,6 @@
 import { useStore } from '../store'
 import { t } from '../game/i18n'
-import { nationName } from '../game/nations'
+import { nationName, nationVars } from '../game/nations'
 import { NAT_KIT_FALLBACK, natKit } from '../data/natcolours'
 import { natRankOrder } from '../game/natrank'
 import { eraOf } from '../game/nattest'
@@ -54,7 +54,7 @@ export function NatUnveiling() {
       <div className="nu-body">
         <div className="fact-label">{t('natera.unveilKicker')}</div>
         <h1>{t('natera.unveilTitle', { nat: nationName(nat), g: game.mgrGender ?? 'm' })}</h1>
-        <p>{t('natera.unveilLine', { manager: game.managerName, nat: nationName(nat), g: game.mgrGender ?? 'm' })}</p>
+        <p>{t('natera.unveilLine', { manager: game.managerName, nat: nationName(nat), ...nationVars(nat), g: game.mgrGender ?? 'm' })}</p>
         <div className="card nu-terms" style={{ ...acc('var(--gold)') }}>
           <div className="fact-label">{t('natera.termsTitle')}</div>
           <ol>

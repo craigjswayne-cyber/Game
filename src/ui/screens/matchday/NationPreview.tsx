@@ -9,7 +9,7 @@ import { effAt } from '../../../game/attributes'
 import { posName, t, compLabel } from '../../../game/i18n'
 import { CrestT, PosBadge, SectionTitle, Stars } from '../../components'
 import { stageName } from '../Home'
-import { nationName } from '../../../game/nations'
+import { nationName, nationVars } from '../../../game/nations'
 import { Glyph } from '../../glyphs'
 import { rowNavTr } from '../../rowNav'
 import { SPEECHES, type SpeechId, ViewPicker } from './prematch'
@@ -248,7 +248,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
               big for the screen". The club ready sheet has always had this
               wrapper and this centring; the Test one never did. */}
           <div style={{ padding: '0 18px 4px' }}>
-            <h3 style={{ fontSize: '1.125rem', margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyNation', { nat: nationName(nat) })}</h3>
+            <h3 style={{ fontSize: '1.125rem', margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyNation', { nat: nationName(nat), ...nationVars(nat) })}</h3>
             <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>{t('matchday.anthems')}</div>
           </div>
           <div className="btn-row" style={{ marginTop: 12 }}>

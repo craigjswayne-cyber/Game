@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { sortTable, tableRule } from '../../game/schedule'
-import { nationName } from '../../game/nations'
+import { nationName, nationVars } from '../../game/nations'
 import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { MoveCell, sinceLine } from './Agency'
@@ -120,7 +120,7 @@ export default function Nations() {
       )}
       {myNat && (
         <div className="card" style={{ ...acc('var(--gold)') }}>
-          <h3 style={{ fontSize: '0.875rem' }}>{t('world.natYouCoach', { nat: nationName(myNat) })}</h3>
+          <h3 style={{ fontSize: '0.875rem' }}>{t('world.natYouCoach', { nat: nationName(myNat), ...nationVars(myNat) })}</h3>
           <div className="meta">
             {mySquad.length
               ? t('world.natWindowOpen', { n: mySquad.length })

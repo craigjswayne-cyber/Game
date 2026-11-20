@@ -9,7 +9,7 @@
 import { useState } from 'react'
 import { useStore } from '../../../store'
 import { posName, t } from '../../../game/i18n'
-import { nationName } from '../../../game/nations'
+import { nationName, nationVars } from '../../../game/nations'
 import { natRankOrder } from '../../../game/natrank'
 import { NAT_DIALS, natPlanOf } from '../../../game/natcamp'
 import { NAT_KIT_FALLBACK, NAT_KIT_FALLBACK_OPP, natAnthem, natChallenge, natKit } from '../../../data/natcolours'
@@ -168,7 +168,7 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
       <div className="wo-body" key={beat}>
         {beat === 'out' && <>
           <h2>{t('walkout.outTitle')}</h2>
-          <p>{cap ? t('walkout.leadsOut', { captain: cap.name, nat: nationName(nat) }) : t('walkout.leadsOutNone', { nat: nationName(nat) })}</p>
+          <p>{cap ? t('walkout.leadsOut', { captain: cap.name, nat: nationName(nat), ...nationVars(nat) }) : t('walkout.leadsOutNone', { nat: nationName(nat), ...nationVars(nat) })}</p>
           <p className="muted">{t('walkout.crowd')}</p>
           <div className="wo-pitch wo-walk">{line(myKit, !!cap)}</div>
         </>}
@@ -197,7 +197,7 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
         {beat === 'challenge' && challenger && <>
           <h2>{t('walkout.challengeTitle')}</h2>
           <p>{challenger === nat
-            ? t('walkout.ourChallenge', { nat: nationName(nat), challenge: natChallenge(challenger)! })
+            ? t('walkout.ourChallenge', { nat: nationName(nat), ...nationVars(nat), challenge: natChallenge(challenger)! })
             : t('walkout.theirChallenge', { opp: nationName(challenger), challenge: natChallenge(challenger)! })}</p>
           <div className="wo-pitch wo-stand">
             {line(challenger === nat ? myKit : oppKit, false)}
@@ -207,7 +207,7 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
         </>}
         {beat === 'ko' && <>
           <h2>{t('walkout.koTitle')}</h2>
-          <p>{t('walkout.koLine', { nat: nationName(nat) })}</p>
+          <p>{t('walkout.koLine', { nat: nationName(nat), ...nationVars(nat) })}</p>
         </>}
       </div>
       <div className="wo-actions">

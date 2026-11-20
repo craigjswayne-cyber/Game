@@ -11,7 +11,7 @@
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { activeWindows } from './season'
-import { NAT_SQUAD_FLOOR, clubQuotaLeft, conflictedClub, federationList, homeBased, nationName } from './nations'
+import { NAT_SQUAD_FLOOR, clubQuotaLeft, conflictedClub, federationList, homeBased, nationName, nationVars } from './nations'
 import { t } from './i18n'
 import { CAMP_FOCI, type CampFocus } from './natcamp'
 import { clubManLeftOut } from './natwin'
@@ -116,7 +116,7 @@ export function natCallUp(state: GameState, playerId: number): string | null {
   if (squad.includes(playerId) || p.natSquad) return t('reply.alreadyInTestSquad', { player: p.name })
   if (!(nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat)) return t('reply.notQualified', { player: p.name })
   // the country's name, not its code; a player with no club is not abroad
-  if (!homeBased(state, p, nat)) return t(p.clubId ? 'reply.notHomeBased' : 'reply.notHomeBasedFree', { player: p.name, nat: nationName(nat) })
+  if (!homeBased(state, p, nat)) return t(p.clubId ? 'reply.notHomeBased' : 'reply.notHomeBasedFree', { player: p.name, nat: nationName(nat), ...nationVars(nat) })
   if (p.injury) return t('reply.injuredNotPassed', { player: p.name })
   if (squad.length >= w.size) return t('reply.squadCapped', { n: w.size })
   // ONE MAN, TWO JOBS (9.10, nations.ts): while he also runs a club, no more
