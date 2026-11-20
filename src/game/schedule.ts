@@ -588,7 +588,7 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
   const trc = ['NZL', 'RSA', 'AUS', 'ARG']
   const trcRounds = roundRobin(trc, rng, true)
   const trcComp: Competition = {
-    id: 'trc', name: 'The Southern Championship', short: 'Southern', type: 'intl',
+    id: 'trc', name: 'Southern Championship', short: 'Southern', type: 'intl',
     teamIds: trc, table: trc.map(emptyRow), rounds: 6, playoffTeams: 0,
     weeksByRound: TRC_WEEKS, koWeeks: [], isNational: true,
   }
@@ -761,7 +761,7 @@ export function buildWomensContinentalCup(rng: Rng, state: GameState): Competiti
     // called the Continental Cup with nothing on screen saying which game it
     // belonged to. The short name also earns its keep on the fixtures list,
     // where "Continental Cup Quarter-Final" pushed the score off the row.
-    { id: 'cc', name: 'The Hemispheric Championship', short: 'Hemispheric' },
+    { id: 'cc', name: 'Hemispheric Championship', short: 'Hemispheric' },
     W_CC_POOL_WEEKS, W_CC_KO_WEEKS)
 }
 

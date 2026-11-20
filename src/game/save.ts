@@ -576,6 +576,14 @@ function migrateCollections(s: GameState): void {
   for (const n of s.news) {
     if (home && n?.k && CITY_KEYS.includes(n.k) && n.v && n.v.city == null) n.v.city = home
   }
+  // THE NATION BY NAME (1.9.15). These letters printed the code ("SACKED: ENG
+  // relieve you") and now read {nation_k}; one filed before carries only nat.
+  const NAT_KEYS = ['news.youWonIntl', 'news.natSacked', 'news.natReview']
+  for (const n of s.news) {
+    if (n?.k && NAT_KEYS.includes(n.k) && n.v && typeof n.v.nat === 'string' && n.v.nation_k == null) {
+      Object.assign(n.v, { nation_k: `nation.${n.v.nat}`, nationThe_k: `nationThe.${n.v.nat}`, nationCap_k: `nationCap.${n.v.nat}` })
+    }
+  }
   for (const f of s.fixtures) {
     for (const [was, now] of RENAMED_VENUES) if (f?.venue?.name === was) f.venue.name = now
   }
@@ -606,7 +614,7 @@ function migrateCollections(s: GameState): void {
     chc: ['Continental Shield', 'Continental Shield'],
     wc: ['World Championship', 'Worlds'],
     sn: ['Northern Championship', 'Northern'],
-    trc: ['The Southern Championship', 'Southern'],
+    trc: ['Southern Championship', 'Southern'],
     pnc: ['Pacific Islands Cup', 'Islands Cup'],
   }
   // 'cc' IS TWO DIFFERENT COMPETITIONS, one per world, and this map is keyed on
@@ -614,7 +622,7 @@ function migrateCollections(s: GameState): void {
   // "Continental Cup" on every single load - the repair undoing the rename it
   // exists to deliver. The women's world is the only one that needs the
   // exception, because it is the only id the two games share.
-  if (s.gender === 'w') COMP_NAMES.cc = ['The Hemispheric Championship', 'Hemispheric']
+  if (s.gender === 'w') COMP_NAMES.cc = ['Hemispheric Championship', 'Hemispheric']
   for (const [id, [name, short]] of Object.entries(COMP_NAMES)) {
     const c = s.comps[id]
     if (c) { c.name = name; c.short = short }
@@ -637,7 +645,10 @@ function migrateCollections(s: GameState): void {
     ['Super Rugby Pacific', 'Pacific Championship'],
     ['Continental Champions Cup', 'Continental Cup'],
     ['European Challenge Cup', 'Continental Shield'],
-    ['The Rugby Championship', 'The Southern Championship'],
+    ['The Rugby Championship', 'Southern Championship'],
+    // no article in the name (1.9.15): "win the The Southern Championship"
+    ['The Southern Championship', 'Southern Championship'],
+    ['The Hemispheric Championship', 'Hemispheric Championship'],
     ['Pacific Nations Cup', 'Pacific Islands Cup'],
     ['British & Irish Lions', 'British & Irish Isles XV'],
     ['British and Irish Lions', 'British & Irish Isles XV'],
@@ -645,7 +656,7 @@ function migrateCollections(s: GameState): void {
     ['National League One', 'English National One'],
     ['Japan League One', 'Japan Division One'],
     ['Rugby World Cup', 'World Championship'],
-    ['Rugby Championship', 'The Southern Championship'],
+    ['Rugby Championship', 'Southern Championship'],
     ['Champions Cup', 'Continental Cup'],
     ['Challenge Cup', 'Continental Shield'],
     ['Premiership', 'English Premier Division'],

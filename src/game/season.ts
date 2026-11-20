@@ -1623,7 +1623,7 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
             body: `A nation celebrates. Your name goes into the record books as the coach who delivered the ${comp.name}.`,
-            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion },
+            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion, ...nationVars(comp.champion!) },
           })
         }
       }
@@ -1682,7 +1682,7 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
             body: `A nation celebrates. Your name goes into the record books as the coach who delivered the ${comp.name}.`,
-            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion },
+            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion, ...nationVars(comp.champion!) },
           })
         }
         state.news.push({
