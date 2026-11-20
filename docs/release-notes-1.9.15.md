@@ -57,6 +57,9 @@ Version 1.9.15, Play versionCode 78. Baseline: 1.9.14, code 77.
   costs more, and an expected win is worth +1, not +2.5.
 - Winning a title adds to the union's confidence; the summer no longer lifts a
   failing coach back up.
+- The union's terms are judged: from the first full season, a nation inside
+  the ranking it set at the appointment is a credit at the annual review, and
+  one well outside it a debit, and the letter says so.
 - Measured over 4 seasons on 38 careers: a top men's nation coached by
   someone who does nothing is now sacked in 6 of 10 runs, against 2 of 10 for
   an engaged coach (before: 2 and 2). The women's top sides now feel pressure
@@ -83,12 +86,13 @@ Version 1.9.15, Play versionCode 78. Baseline: 1.9.14, code 77.
   Saturday Tests, not the midweek provincial games.
 - The host keeps its squad for the whole series.
 - **The tour party is the coach's to pick**: drop and call up on the desk as
-  for his own country, which the assistant runs that summer.
+  for his own country. That summer his country really is the assistant's: no
+  camp to name, no target and no review of his.
 - Tours on the real years: 2029 New Zealand, 2033 South Africa, 2037
   Australia; women's 2031, 2035, 2039.
 - Provincial games show the club's name, with no anthems or world ranking,
-  under "Tour match". An unanswered invitation lapses two weeks before the
-  party leaves.
+  under "Tour match", and the Isles XV no longer shows "world no. -". An
+  unanswered invitation lapses two weeks before the party leaves.
 
 ### World and rankings
 
@@ -98,6 +102,9 @@ Version 1.9.15, Play versionCode 78. Baseline: 1.9.14, code 77.
 - Thin nations call up their real players before generating anyone, and a
   women's nation's generated players are rated from the women's game.
 - Autumn and women's summer Tests rotate opponents with no repeats.
+- Northern Championship venues alternate year to year, two or three home
+  games each.
+- Summer Tests are played in a World Championship season too.
 - Canadian names for Canadian players.
 
 ### Words
@@ -105,7 +112,8 @@ Version 1.9.15, Play versionCode 78. Baseline: 1.9.14, code 77.
 - Letters name the nation, not its code ("SACKED: ENG relieve you").
 - "Southern Championship", not "the The Southern Championship".
 - French, Spanish and Italian: a woman head coach is named as one, women
-  players are women, and "sélectionneur du Angleterre" is gone.
+  players are women, "sélectionneur du Angleterre" is gone, and the World
+  Championship verdict agrees with every nation.
 - A national coach with no club is not called "Unemployed".
 - Small fixes: the Annual and Home no longer print codes, the Offers contract
   year, New Zealand's Star Player tag, "Squad named in 161 days".
