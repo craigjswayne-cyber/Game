@@ -7,7 +7,7 @@ import { windowSpan } from '../calendar'
 import { buildPlayer } from '../attributes'
 import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from '../nations'
 import { isMyClub } from '../model'
-import { clamp, type Rng } from '../rng'
+import { clamp, hashString, mulberry32, type Rng } from '../rng'
 import { tIn } from '../i18n'
 import { natStrength } from '../natrank'
 import { openNatWindow, reviewNatWindow } from '../natwin'
@@ -130,6 +130,30 @@ export function manageInternationals(state: GameState, rng: Rng) {
   }
 }
 
+/** A thin nation's pool topped up to `target` with generated players
+ *  (natGen: they stay in the pool for later windows). Rated from the women's
+ *  ranking in a women's world, the men's reputation otherwise (QA, 1.9.15:
+ *  women's Canada, third in the world, was topped up with players rated 40). */
+function topUpPool(state: GameState, nat: string, pool: Player[], target: number, rng: Rng): void {
+  const natRep = genderOf(state) === 'w' ? natStrength(state, nat) + 3 : nationByCode(nat)?.rep ?? 55
+  const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
+  let i = 0
+  while (pool.length < target && i < target + 12) {
+    const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
+    const hp = buildPlayer(
+      {
+        name: regenName(rng, nat, worldNames(state), genderOf(state)), pos: POS_CYCLE[i % POS_CYCLE.length],
+        age: 22 + Math.floor(rng() * 9), nat, q,
+        gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
+      },
+      null, state.seed + state.week * 131 + i * 17, state.season)
+    hp.natGen = true
+    state.players[hp.id] = hp
+    pool.push(hp)
+    i++
+  }
+}
+
 /** One window's call-ups: every federation names its squad, the coach's
  *  nation's camp opens empty for the coach. */
 function callUps(state: GameState, w: Window, rng: Rng): void {
@@ -193,28 +217,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       // field 34 qualified men and not a soul more - never generated anybody
       // and had exactly two players outside a 32-man camp. Thin is thin
       // whether you are two short of a squad or two short of a contest.
-      if (nat !== 'LIO' && pool.length < target) {
-        // the WOMEN's strength for a women's nation (QA, 1.9.15): this read
-        // the men's reputation, so women's Canada, third in the world, was
-        // topped up with players rated 40 and women's Fiji with 64s
-        const natRep = genderOf(state) === 'w' ? natStrength(state, nat) + 3 : nationByCode(nat)?.rep ?? 55
-        const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
-        let i = 0
-        while (pool.length < target && i < target + 12) {
-          const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
-          const hp = buildPlayer(
-            {
-              name: regenName(rng, nat, worldNames(state), genderOf(state)), pos: POS_CYCLE[i % POS_CYCLE.length],
-              age: 22 + Math.floor(rng() * 9), nat, q,
-              gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
-            },
-            null, state.seed + state.week * 131 + i * 17, state.season)
-          hp.natGen = true
-          state.players[hp.id] = hp
-          pool.push(hp)
-          i++
-        }
-      }
+      if (nat !== 'LIO' && pool.length < target) topUpPool(state, nat, pool, target, rng)
       // THE BEST OF THEM TRAVEL; THE REST ARE THE NEXT MEN IN. Re-sorted
       // because the generated players were pushed on the end rather than
       // merged in rating order, and a squad that is not the best of its own
@@ -455,6 +458,14 @@ export function openUserCampAhead(state: GameState, ahead: 0 | 1): void {
       }
     }
     if (!state.natTeam) return // the review can end the job
+    // A THIN NATION'S POOL EXISTS BEFORE ITS CAMP (QA, 1.9.15). It was
+    // generated as the window began, a week after this camp opens, so a
+    // Canada coach named his squad from five men. Its own dice, so the
+    // world's stream is not moved.
+    const real = Object.values(state.players).filter(p => p.nat === nat && (p.clubId || p.natGen) &&
+      homeBased(state, p, nat) && !p.injury && !p.onLoan)
+    const want = w.size + NAT_DEPTH
+    if (nat !== 'LIO' && real.length < want) topUpPool(state, nat, real, want, mulberry32(hashString(`${state.seed}:${state.season}:${w.start}:${nat}:pool`)))
     openNatWindow(state, w)
     openUserCamp(state, nat, w)
   }
