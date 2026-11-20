@@ -9903,6 +9903,7 @@
   "againstHead": "Against the head",
   "say": {
     "restart": "{team} restart from halfway.",
+    "tackled": "{team} carry and are tackled.",
     "dropout22": "22 drop-out to {team}.",
     "goalLine": "Goal-line drop-out to {team}.",
     "penTouch": "{team} kick the penalty to touch. Their throw.",

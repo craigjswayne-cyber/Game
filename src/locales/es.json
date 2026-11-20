@@ -9859,6 +9859,7 @@
   "againstHead": "Melé robada",
   "say": {
     "restart": "{team} saca desde el centro.",
+    "tackled": "{team} carga y es placado.",
     "dropout22": "Saque de 22 para {team}.",
     "goalLine": "Saque de la línea de marca para {team}.",
     "penTouch": "{team} patea el golpe a touche y conserva el saque.",

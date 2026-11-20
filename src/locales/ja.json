@@ -9424,6 +9424,7 @@
   "againstHead": "スクラムスチール",
   "say": {
     "restart": "{team}がハーフウェイからリスタート。",
+    "tackled": "{team}が突進し、タックルされる。",
     "dropout22": "{team}の22メートルドロップアウト。",
     "goalLine": "{team}のゴールラインドロップアウト。",
     "penTouch": "{team}がペナルティをタッチへ。マイボールラインアウト。",

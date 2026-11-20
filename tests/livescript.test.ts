@@ -66,6 +66,14 @@ describe('the director', () => {
         if (law !== 'PENALTY' && law !== 'TOUCH') pen = null
       }
       expect(illegal).toBe(0)
+      // what is left out is colour or a summary, never something that happened, and never much of the match
+      const hid = d.hidden.map((h, i) => (h ? i : -1)).filter(i => i >= 0)
+      for (const i of hid) {
+        expect(events[i].type, `line ${i} (${events[i].k}) is an event and was hidden`).toBe('SUB')
+        expect((events[i].k ?? '').replace(/^comm\./, ''), `line ${i} hidden`).toMatch(/^(pbp|defSet|defHit|move|flav|styles\.|terr|day_)/)
+        expect(d.beats[i].length).toBe(0)
+      }
+      expect(hid.length / events.length).toBeLessThan(0.15)
       // the engine's own lines are all still there, in order
       expect(flat.filter(b => !b.supplied).map(b => b.src)).toEqual(d.beats.map((r, i) => r.some(b => !b.supplied) ? i : -1).filter(i => i >= 0))
     })

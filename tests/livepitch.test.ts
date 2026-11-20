@@ -54,7 +54,8 @@ describe('the live pitch', () => {
         // the pitch plays what the director gives it: the line's own play and the steps the laws require before it
         const row = D.beats[i]
         for (const b of row) expect(lp[b.label.replace(/^lp\./, '')], `words for ${b.label}`).toBeTypeOf('string')
-        S.playLine(row.length ? row : [{ ...p, src: i }], b => (b.src === i && !b.supplied && ci >= 0 ? ci : null))
+        if (!row.length) continue
+        S.playLine(row, b => (b.src === i && !b.supplied && ci >= 0 ? ci : null))
         let t = 0, prev = S.b.map(b => ({ x: b.x, y: b.y }))
         let had: unknown = null
         while (!S.done && t < 30) {

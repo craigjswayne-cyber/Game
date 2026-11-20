@@ -9903,6 +9903,7 @@
   "againstHead": "Mischia rubata",
   "say": {
     "restart": "{team} riprende da centrocampo.",
+    "tackled": "{team} avanza e viene placcato.",
     "dropout22": "Rinvio dai 22 per {team}.",
     "goalLine": "Drop dalla linea di meta per {team}.",
     "penTouch": "{team} calcia la punizione in touche e tiene il lancio.",

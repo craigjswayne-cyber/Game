@@ -9946,6 +9946,7 @@
   "againstHead": "Teen die kop",
   "say": {
     "restart": "{team} hervat van die middellyn.",
+    "tackled": "{team} dra die bal op en word gevat.",
     "dropout22": "22-uitskop vir {team}.",
     "goalLine": "Doellyn-uitskop vir {team}.",
     "penTouch": "{team} skop die strafskop uit en behou die ingooi.",

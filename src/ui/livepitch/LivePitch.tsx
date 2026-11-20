@@ -168,11 +168,19 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const [banner, setBanner] = useState<Banner | null>(null)
   const bannerRef = useRef<{ want: Banner | null; shownAt: number }>({ want: null, shownAt: -1 })
   const canvas = useRef<HTMLCanvasElement>(null)
-  const phase = useMemo(() => phaseAt(events, cursor, homeId), [events, cursor, homeId])
   // THE DIRECTOR (2.0.0 rebuild): every line as the beats the laws require,
   // worked out once for the whole match. The pitch plays these and nothing else.
   const directed = useMemo(() => direct(events, homeId, i => manUpAt(events, i)), [events.length, events[0], homeId])
   const beatsOf = (p: Phase): Beat[] => { const r = directed.beats[p.at]; return r && r.length ? r : [{ ...p, src: p.at }] }
+  // where the match has got to: the last line that shows something. A line the
+  // director left out (colour that contradicts the play) is not a phase.
+  const phase = useMemo(() => {
+    for (let i = Math.min(cursor, events.length) - 1; i >= 0; i--) {
+      const r = directed.beats[i]
+      if (r && r.length) return r[r.length - 1] as unknown as Phase
+    }
+    return phaseAt(events, 0, homeId)
+  }, [directed, events, cursor, homeId])
   bannerRef.current.want = phase.banner ?? null
   /** the shirt index of the man a phase names, if he plays for the side with the ball */
   const carrierOf = (p: Phase): number | null => {

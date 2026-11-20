@@ -10099,6 +10099,7 @@
     "againstHead": "Mêlée gagnée sur introduction adverse",
     "say": {
       "restart": "Renvoi de {team} au centre.",
+      "tackled": "{team} porte le ballon et se fait plaquer.",
       "dropout22": "Renvoi aux 22 mètres pour {team}.",
       "goalLine": "Renvoi d'en-but pour {team}.",
       "penTouch": "{team} tape la pénalité en touche et garde le lancer.",

@@ -33,6 +33,7 @@ import { WEATHER_ICON, weatherWord } from './weather'
 import { Veil } from '../../Veil'
 import type { PitchTac } from '../../livepitch/agents'
 import { LivePitch, type PitchSide } from '../../livepitch/LivePitch'
+import { direct } from '../../livepitch/script'
 import { NAMES as SPONSOR_NAMES } from '../../../game/commercial'
 
 // ------------------------------------------------------------------
@@ -402,13 +403,15 @@ export function Live() {
   const [pitchPlayed, setPitchPlayed] = useState<{ at: number; moved: boolean } | null>(null)
   const [pitchReached, setPitchReached] = useState(0)
   const [said, setSaid] = useState<{ k: string; home: boolean; src: number; n: number }[]>([])
+  // the engine's colour lines that contradict the play are not shown on Extended (script.ts)
+  const lineHidden = useMemo(() => (fullMatch ? direct(events, fixture.homeId).hidden : []), [fullMatch, events.length, events[0], fixture.homeId])
 
   useEffect(() => {
     if (!playing || clip) return
     if (fullMatch && !panelStops) {
       // wait for the pitch; a line that moved nobody still gets read
       if (pitchPlayed?.at !== cursor) return
-      const timer = setTimeout(advanceLive, pitchPlayed.moved ? 40 : Math.min(tickMs, 650))
+      const timer = setTimeout(advanceLive, pitchPlayed.moved || lineHidden[cursor - 1] ? 40 : Math.min(tickMs, 650))
       return () => clearTimeout(timer)
     }
     // `timer`, not `t`: t() is the translator
@@ -494,7 +497,7 @@ export function Live() {
   { let q = 0
     for (let i = 0; i <= feedShown.length; i++) {
       while (q < saidHere.length && saidHere[q].src <= i) { feedAll.push({ say: saidHere[q], i: -1 - saidHere[q].n }); q++ }
-      if (i < feedShown.length) feedAll.push({ e: feedShown[i], i })
+      if (i < feedShown.length && !lineHidden[i]) feedAll.push({ e: feedShown[i], i })
     } }
   const feedRows = feedAll.slice(-FEED_ROWS)
   useFeedGlide(feedRef, panelActive ? -1 : feedAll.length)

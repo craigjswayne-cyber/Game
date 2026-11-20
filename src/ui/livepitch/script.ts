@@ -70,11 +70,32 @@ export interface Directed {
   lost: number
   /** how many beats were supplied */
   supplied: number
+  /** engine lines that are not shown on Extended, pitch or feed: colour that contradicts the play */
+  hidden: boolean[]
 }
+
+/** THE ENGINE'S COLOUR LINES (owner, 20 Nov 2026, on the first rebuilt match:
+ *  "There is still no connection with players, commentary & graphics ... All
+ *  the territory is with Northampton - Northampton have only just kicked off
+ *  ... turnover again"). The engine draws these from a pool without looking
+ *  at who has the ball, so acting each one out made the ball change hands
+ *  fifteen times a match for no reason. They are colour, not events: one
+ *  that is about the side WITHOUT the ball is left out, and play stays with
+ *  the side that has it until something really changes hands. */
+const COLOUR = /^(pbp|defSet|defHit|moveShape|moveGain|flavWind|flavWet|styles\.cAtk_|flav(1|2|6|8|11|14|15|16|19|22|23|24|26)$)/
+/** a line that sums the match up: only said once there has been play to sum up, and only when it is true */
+const SUMMARY = /^(terr|day_|styles\.cDef_)/
+/** a penalty given at a breakdown: there has to have been one */
+const AT_RUCK = /^(off_(offFeet|notRoll|notRelease|offsideRuck|sideEntry|handsRuck|beyondRuck)|cyn_ruck)/
+const rawKey = (k?: string) => (k ?? '').replace(/^comm\./, '').replace(/_f$/, '')
 
 export function direct(events: MatchEvent[], homeId: string, up?: (i: number) => boolean): Directed {
   const L = new Laws()
   const out: Beat[][] = []
+  const hidden: boolean[] = events.map(() => false)
+  /** lines played since the half began; the last colour line left out, to tell one stray line from a real change of hands */
+  let played = 0, strays = 0
+  let lastKind: BeatKind | null = null
   let cur: Phase | null = null
   let lost = 0, supplied = 0
   // ---- what the director keeps, that the engine does not ----
@@ -98,13 +119,38 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
   for (let i = 0; i < events.length; i++) {
     const e = events[i]
     const p = readLine(e, i, homeId, cur, events[i + 1], e.type === 'TRY' && !!up?.(i))
-    if (!p) { out.push([]); continue }
-    cur = p
+    const key = rawKey(e.k)
+    if (!p) {
+      // a summary of the match so far is not said before there is a match to sum up, or when the ball is somewhere else
+      if (SUMMARY.test(key)) {
+        const home = e.teamId === homeId
+        const wrong = key.startsWith('terrCamped') ? (home ? ball.x < 55 : ball.x > 45) : key.startsWith('terrMiddle') ? (ball.x < 25 || ball.x > 75) : false
+        if (played < 10 || wrong) hidden[i] = true
+      }
+      out.push([]); continue
+    }
     const law = lawOf(p)
+    // colour about the side that does not have the ball: one such line is left out. A second
+    // in a row means the engine really has them playing, and that is shown as the turnover it is.
+    if (law === 'PLAY' && COLOUR.test(key) && p.homeBall !== poss && !kicked && L.state === 'open') {
+      if (strays++ === 0) { hidden[i] = true; out.push([]); continue }
+    }
+    if (law === 'PLAY') { if (p.homeBall === poss) strays = 0 } else if (law) strays = 0
+    if (law === 'HALF') played = 0; else if (law) played++
+    cur = p
     const row: Beat[] = []
     const add = (b: Beat) => { row.push(b); if (b.supplied) supplied++ }
     if (!law) { out.push([{ ...p, src: i }]); continue }
 
+    // A PENALTY AT THE BREAKDOWN HAS A BREAKDOWN (owner, 20 Nov 2026: "penalty
+    // for a breakdown without a breakdown ever taking place"). The side with
+    // the ball carries, is tackled, and the ruck forms; then the whistle.
+    if (law === 'PENALTY' && AT_RUCK.test(key) && L.state === 'open' && lastKind !== 'ruck' && lastKind !== 'maul') {
+      const d = poss ? 1 : -1
+      const at = { x: clamp(ball.x + d * 4, 3, 97), y: clamp(ball.y + (ball.y < 35 ? 3 : -3), 5, 65) }
+      add({ src: i, at: i, supplied: true, kind: 'ruck', homeBall: poss, x: at.x, y: at.y, label: 'lp.tackle', say: 'lp.say.tackled' })
+      ball.x = at.x; ball.y = at.y; kicked = false; lastKind = 'ruck'
+    }
     let path = L.bridge(law)
     if (path == null) { lost++; L.jump(law); path = [] }
     for (const step of path) {
@@ -258,7 +304,8 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
     }
     if (law !== 'KICK') lastKick = null
     add(b)
+    lastKind = b.kind
     out.push(row)
   }
-  return { beats: out, lost, supplied }
+  return { beats: out, lost, supplied, hidden }
 }
