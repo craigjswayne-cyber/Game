@@ -213,7 +213,7 @@ export const URC_A: RawClub[] = [
     rep: 77, budget: 2200000,
     players: [
       { name: 'Pierre Schoeman', pos: 'LP', age: 31, nat: 'SCO', q: 82, intl: true },
-      { name: 'Boan Venter', pos: 'LP', age: 28, nat: 'SCO', q: 70 },
+      { name: 'Boan Venter', pos: 'LP', age: 28, nat: 'RSA', q: 70, intl: true },
       { name: 'Ewan Ashman', pos: 'HK', age: 25, nat: 'SCO', q: 72, intl: true },
       { name: 'Dave Cherry', pos: 'HK', age: 34, nat: 'SCO', q: 67, intl: true },
       { name: 'Paddy Harrison', pos: 'HK', age: 23, nat: 'SCO', q: 61 },

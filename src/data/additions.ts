@@ -981,6 +981,18 @@ const INTL_1916: Record<string, RawPlayer[]> = {
     { name: 'Mattia Midena', pos: 'LK', age: 21, nat: 'ITA', q: 64 },
     { name: 'Federico Zanandrea', pos: 'WG', age: 21, nat: 'ITA', q: 64 },
   ],
+  // The championship page's club column can be behind: it has Naoto Saito at
+  // Toulouse and Isoa Nasilasila at the Drua, and verified.ts (checked) has
+  // Saito back at Sungoliath and Nasilasila released. verified.ts wins, so
+  // neither is added here.
+  drua: [
+    // Fiji's 2026 squad page (Nations Championship, 20 Nov 2026) has both at the Drua
+    { name: 'Mesake Doge', pos: 'TP', alt: ['LP'], age: 33, nat: 'FIJ', q: 74, intl: true },
+    { name: 'Isikeli Rabitu', pos: 'CE', alt: ['FH'], age: 21, nat: 'FIJ', q: 70, intl: true },
+  ],
+  clermont: [
+    { name: 'Pita-Gus Sowakula', pos: 'N8', alt: ['FL'], age: 32, nat: 'FIJ', q: 77, intl: true },
+  ],
   // NOT ADDED: Enoch Opoku-Gyamfi (Bath lock, 20, one Italy cap). Bath's squad
   // is the club's own published 2026/27 list (prem2526.ts) and he is not on
   // it, so he is academy there; adding him also filled Bath's senior squad to

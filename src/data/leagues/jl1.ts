@@ -27,6 +27,28 @@ const STARS: Record<string, RawPlayer[]> = {
   spears: [{ name: 'Malcolm Marx', pos: 'HK', age: 31, nat: 'RSA', q: 91, intl: true }],
 }
 
+/** JAPAN'S REAL INTERNATIONALS (owner, 1.9.16: "use real names to fill teams
+ *  if you have that data"). Only 4 of Japan's 54 Test players of 2026 were in
+ *  the world, because these squads are generated. Every man here is on the
+ *  Nations Championship's own Japan squad page (read 20 Nov 2026) with this
+ *  club and age; three clubs come from Japan's 9 Sep 2026 squad table where
+ *  the page gave none. Each takes the generated man's place in the same shirt,
+ *  so squads stay the same size. A prop's side is not in either source: they
+ *  are split loosehead and tighthead by turn and are to be checked. */
+const REAL: Record<string, RawPlayer[]> = {
+  spears: [{ name: 'Yota Kamimori', pos: 'LP', age: 27, nat: 'JPN', q: 74, intl: true }, { name: 'Izi Sword', pos: 'TP', age: 25, nat: 'JPN', q: 71, intl: true }, { name: 'Keijiro Tamefusa', pos: 'LP', age: 25, nat: 'JPN', q: 77, intl: true }, { name: 'Hayate Era', pos: 'HK', age: 25, nat: 'JPN', q: 74, intl: true }, { name: 'Shinobu Fujiwara', pos: 'SH', age: 27, nat: 'JPN', q: 77, intl: true }, { name: 'Yuya Hirose', pos: 'CE', age: 25, nat: 'JPN', q: 74, intl: true }, { name: 'Haruto Kida', pos: 'WG', age: 27, nat: 'JPN', q: 71, intl: true }],
+  canon: [{ name: 'Takato Okabe', pos: 'LP', age: 31, nat: 'JPN', q: 74, intl: true }, { name: 'Kippei Ishida', pos: 'WG', age: 26, nat: 'JPN', q: 74, intl: true }],
+  sungoliath: [{ name: 'Shuhei Takeuchi', pos: 'TP', age: 28, nat: 'JPN', q: 80, intl: true }, { name: 'Harry Hockings', pos: 'LK', age: 28, nat: 'JPN', q: 74, intl: true }, { name: 'Kanji Shimokawa', pos: 'FL', age: 27, nat: 'JPN', q: 80, intl: true }],
+  wildknights: [{ name: 'Kenji Sato', pos: 'HK', age: 23, nat: 'JPN', q: 77, intl: true }, { name: 'Jack Cornelsen', pos: 'LK', age: 32, nat: 'JPN', q: 80, intl: true }, { name: 'Ben Gunter', pos: 'FL', age: 29, nat: 'JPN', q: 77, intl: true }, { name: 'Dylan Riley', pos: 'CE', age: 29, nat: 'JPN', q: 80, intl: true }, { name: 'Tomoki Osada', pos: 'CE', age: 26, nat: 'JPN', q: 77, intl: true }],
+  bravelupus: [{ name: 'Mike Stolberg', pos: 'LK', age: 34, nat: 'JPN', q: 74, intl: true }, { name: 'Takuro Matsunaga', pos: 'FB', age: 28, nat: 'JPN', q: 74, intl: true }],
+  steelers: [{ name: 'Tiennan Costley', pos: 'FL', age: 26, nat: 'JPN', q: 77, intl: true }, { name: 'Itsuki Kamimura', pos: 'SH', age: 23, nat: 'JPN', q: 71, intl: true }, { name: 'Inoke Burua', pos: 'WG', age: 27, nat: 'JPN', q: 74, intl: true }, { name: 'Kazuma Ueda', pos: 'WG', age: 23, nat: 'JPN', q: 74, intl: true }, { name: 'Shunsuke Uenobo', pos: 'FB', age: 23, nat: 'JPN', q: 71, intl: true }],
+  bluerevs: [{ name: 'Sam Greene', pos: 'FH', age: 32, nat: 'JPN', q: 74, intl: true, gk: true }],
+  verblitz: [{ name: 'Shinya Komura', pos: 'FH', age: 24, nat: 'JPN', q: 74, intl: true, gk: true }],
+  blackrams: [{ name: 'Yuki Ikeda', pos: 'CE', age: 31, nat: 'JPN', q: 71, intl: true }, { name: 'Taira Main', pos: 'WG', age: 26, nat: 'JPN', q: 71, intl: true }],
+  drocks: [{ name: 'Samisoni Tua', pos: 'CE', age: 31, nat: 'JPN', q: 74, intl: true }],
+  hondaheat: [{ name: 'Kanato Hirano', pos: 'LP', age: 26, nat: 'JPN', q: 71, intl: true }, { name: 'Sena Kimura', pos: 'TP', age: 27, nat: 'JPN', q: 74, intl: true }],
+}
+
 // one name per man across the whole competition: a duplicate would cost the
 // second club a real shirt, since the world builder keeps only the first
 // Real men added by hand elsewhere (additions.ts) are reserved too: the pools
@@ -36,7 +58,8 @@ const usedNames = new Set<string>(['Atsushi Sakate'])
 
 function genSquad(clubId: string, rep: number): RawPlayer[] {
   const rng = mulberry32(0xa11e ^ clubId.split('').reduce((h, c) => (h * 33 + c.charCodeAt(0)) | 0, 5381))
-  const out: RawPlayer[] = [...(STARS[clubId] ?? [])]
+  const real = [...(REAL[clubId] ?? [])]
+  const out: RawPlayer[] = [...(STARS[clubId] ?? []), ...real]
   for (const p of out) usedNames.add(p.name)
   let gkGiven = out.some(p => p.gk) ? 1 : 0
   let imports = out.length
@@ -56,6 +79,10 @@ function genSquad(clubId: string, rep: number): RawPlayer[] {
     q = Math.max(48, Math.min(84, q))
     const gk = (pos === 'FH' || pos === 'FB') && gkGiven < 2 && rng() < 0.5
     if (gk) gkGiven++
+    // a real international takes this shirt: the generated man is still
+    // drawn (so every other name in the league stays as it was) and dropped
+    const taken = real.findIndex(r => r.pos === pos)
+    if (taken >= 0) { real.splice(taken, 1); continue }
     out.push({ name, pos, age, nat: isImport ? (['NZL', 'AUS', 'RSA', 'TGA', 'FIJ'] as const)[Math.floor(rng() * 5)] : 'JPN', q, gk })
   }
   return out
