@@ -591,7 +591,10 @@ export function snVenue(circle: string[], [x, y]: [string, string], season: numb
 
 export function buildInternationals(rng: Rng, state: GameState, worldCup = false) {
   if (worldCup) buildWorldCup(rng, state)
-  if (!worldCup) buildSummer(rng, state)
+  // the summer Tests are played in a World Championship season too (QA,
+  // 1.9.15): the tournament is in October and November, and the June and
+  // July at the end of the same season are an ordinary Test summer
+  buildSummer(rng, state)
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snRounds = roundRobin(sn, rng, false)
   const snComp: Competition = {
