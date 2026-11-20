@@ -6755,6 +6755,8 @@
   "friendlyBookedSubj": "Amistoso entre semana acordado: {short}",
   "islesOfferSubj": "Una invitación de las cuatro federaciones",
   "islesOffer": "Las cuatro federaciones te han escrito conjuntamente. Quieren que lleves al XV de las Islas a {host} este verano: siete partidos provinciales y una serie de tres tests.\n\nNi lista ni entrevista. Han elegido. Tu ayudante lleva tu selección mientras no estés.",
+  "islesLapsedSubj": "Las cuatro federaciones no podían esperar más",
+  "islesLapsed": "Tu respuesta nunca llegó, y la gira sale en quince días. Las cuatro federaciones han confiado el XV de las Islas Británicas e Irlandesas a otro entrenador.",
   "srPredBeat": "Los expertos te daban {pred_o} y acabaste {act_o}. Te deben una disculpa.",
   "srPredExact": "Los expertos te daban {pred_o}, y {act_o} fuiste. Leído como un libro.",
   "srPredMiss": "Los expertos te daban {pred_o} y acabaste {act_o}. Las tertulias van a ser brutales.",

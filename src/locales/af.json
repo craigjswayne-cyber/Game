@@ -6648,6 +6648,8 @@
   "friendlyBookedSubj": "Middeweekse vriendskaplike wedstryd ooreengekom: {short}",
   "islesOfferSubj": "'n Uitnodiging van die vier unies",
   "islesOffer": "Die vier unies het gesamentlik aan jou geskryf. Hulle wil hê jy moet die Britse en Ierse Eilande-XV vanjaar-somer na {host} toe neem: sewe provinsiale wedstryde en 'n drie-toetsreeks.\n\nDaar is geen kortlys en geen onderhoud nie. Hulle het gekies, en hulle vra. Jou assistent neem jou nasionale span oor terwyl jy weg is.",
+  "islesLapsedSubj": "Die vier unies kon nie langer wag nie",
+  "islesLapsed": "Jou antwoord het nooit gekom nie, en die toer vertrek oor twee weke. Die vier unies het die Britse en Ierse Eilande-XV aan 'n ander afrigter gegee.",
   "srPredBeat": "Die kenners het {pred_o} gesê en jy het {act_o} geëindig. Hulle skuld jou 'n verskoning.",
   "srPredExact": "Die kenners het {pred_o} gesê, en {act_o} was dit presies. Gelees soos 'n boek.",
   "srPredMiss": "Die kenners het {pred_o} gesê en jy het {act_o} geëindig. Die inbelprogramme gaan wreed wees.",

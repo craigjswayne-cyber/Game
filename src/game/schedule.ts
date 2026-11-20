@@ -643,8 +643,13 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
     teamIds: [...north, ...south], table: [], rounds: 3, playoffTeams: 0,
     weeksByRound: AUTUMN_WEEKS, koWeeks: [], isNational: true,
   }
+  // A ROTATION, NOT THREE SHUFFLES (QA, 1.9.15). A fresh shuffle each weekend
+  // could send the same visitor to the same ground twice in one November. The
+  // three shuffles are still drawn, so the season's dice are not moved: the
+  // first sets the order and each weekend turns it by one.
+  const autOrder = AUTUMN_WEEKS.map(() => shuffled(rng, south))[0]
   AUTUMN_WEEKS.forEach((week, r) => {
-    const s = shuffled(rng, south)
+    const s = north.map((_, i) => autOrder[(i + r) % autOrder.length])
     north.forEach((n, i) => {
       state.fixtures.push({
         id: state.nextId++, compId: 'aut', round: r, week,
@@ -815,10 +820,12 @@ export function buildWomensInternationals(rng: Rng, state: GameState, worldCup =
     teamIds: [...W_NORTH, ...W_SOUTH], table: [], rounds: W_AUTUMN_WEEKS.length, playoffTeams: 0,
     weeksByRound: W_AUTUMN_WEEKS, koWeeks: [], isNational: true,
   }
+  // a rotation of one drawn order (QA, 1.9.15): reshuffling each weekend could
+  // bring the same visitor back to the same country; the draws are kept so the
+  // season's dice do not move
+  const wAutOrder = W_AUTUMN_WEEKS.map(() => shuffled(rng, W_SOUTH))[0]
   W_AUTUMN_WEEKS.forEach((week, r) => {
-    // reshuffled each weekend, so a country does not host the same visitor
-    // three times and the fixture list reads like a real November
-    const visiting = shuffled(rng, W_SOUTH)
+    const visiting = W_NORTH.map((_, i) => wAutOrder[(i + r) % wAutOrder.length])
     W_NORTH.forEach((home, i) => {
       state.fixtures.push({
         id: state.nextId++, compId: W + 'aut', round: r, week,

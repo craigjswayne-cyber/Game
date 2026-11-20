@@ -33,6 +33,7 @@ import { mgrReputation } from './model'
 import { isLionsSeason, isWomensTourSeason } from './schedule'
 import { genderOf, W } from './gender'
 import type { Competition } from './model'
+import { TOUR_WEEKS } from './calendar'
 
 /** The four unions the touring side draws from. */
 const HOME_UNIONS = ['ENG', 'IRE', 'SCO', 'WAL'] as const
@@ -86,6 +87,14 @@ export function offerIsles(state: GameState): boolean {
   if (state.week !== ISLES_OFFER_WEEK) return false
   if (!islesEligible(state).ok) return false
   state.isles = { season: state.season, answer: 'open' }
+  return true
+}
+
+/** An invitation left unanswered lapses a fortnight before the party leaves. */
+export function lapseIsles(state: GameState): boolean {
+  if (state.isles?.season !== state.season || state.isles.answer !== 'open') return false
+  if (state.week !== TOUR_WEEKS[0] - 2) return false
+  state.isles.answer = 'no'
   return true
 }
 

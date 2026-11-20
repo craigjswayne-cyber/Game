@@ -6,7 +6,7 @@ import { dressingRoomAlerts } from './alerts'
 import { settleStartPledge } from './handshake'
 import type { Fixture, GameState, Player, Pos } from './model'
 import { W, genderOf, subjectVar } from './gender'
-import { islesCoach, isleTour, offerIsles } from './isles'
+import { islesCoach, isleTour, lapseIsles, offerIsles } from './isles'
 import { telling } from './tellings'
 import { aiCloseSeason } from './closeseason'
 import { talkingPoints } from './talkingpoints'
@@ -2196,6 +2196,16 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
   // Once a season, in a tour year, and only for a manager who has met every one
   // of the owner's four conditions. It arrives as an offer with no way to ask
   // for it, which is the whole point of it.
+  // AN INVITATION IS NOT OPEN FOREVER (QA, 1.9.15). Left unanswered, it sat
+  // on the Nations screen through the tour itself; a fortnight before the
+  // party leaves, the four unions take the silence as a no
+  if (lapseIsles(state)) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+      subject: tIn('en', 'news.islesLapsedSubj'), body: tIn('en', 'news.islesLapsed'),
+      k: 'news.islesLapsed', v: {},
+    })
+  }
   if (offerIsles(state)) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,

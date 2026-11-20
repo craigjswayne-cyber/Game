@@ -6634,6 +6634,8 @@
   "friendlyBookedSubj": "Midweek friendly agreed: {short}",
   "islesOfferSubj": "An invitation from the four unions",
   "islesOffer": "The four unions have written to you jointly. They want you to take the British & Irish Isles XV to {host} this summer: seven provincial games and a three-Test series.\n\nThere is no shortlist and no interview: they have chosen you and are asking. Your assistant takes your national side while you are away.",
+  "islesLapsedSubj": "The four unions could wait no longer",
+  "islesLapsed": "Your answer never came, and the tour leaves in a fortnight. The four unions have given the British & Irish Isles XV to another coach.",
   "srPredBeat": "The pundits said {pred_o} and you finished {act_o}. They owe you an apology.",
   "srPredExact": "The pundits said {pred_o}, and {act_o} it was. Read like a book.",
   "srPredMiss": "The pundits said {pred_o} and you finished {act_o}. The phone-ins will be brutal.",
