@@ -70,8 +70,13 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - [x] Test rivalries are now derbies (12 pairs in rivalries.ts), so bust-ups and derby heat reach Tests. Tests added.
       Measured: 41 of 400 derbies had a bust-up (10%), 49 yellows and 1 red from them.
 - [ ] Bust-up ANIMATION: none (commentary and cards only). Owner asked 22:23. Belongs on the 2.0.0 live pitch.
-- [ ] TIGHTER, TENSER TESTS (owner 22:15): not fewer points. Measure real margins between top sides, then tune
-      close Tests: smaller margins, fewer runaways, more kicks at goal, more games alive late. Show before/after.
+- [!] TIGHTER, TENSER TESTS (owner 22:15): MEASURED, NOT CHANGED. Real 2026 Six Nations (15 results, Wikipedia):
+      54.8 points a game, mean margin 15.9, median 11, 33% decided by 7 or fewer, 40% by 21 or more.
+      The game's Six Nations Tests (136 games, 4 worlds x 2 seasons, /home/claude/tools/sixn.ts): 46.9 points,
+      mean margin 15.1, median 14, 35% within 7, 33% by 21+. Top-eight v top-eight: 48.9 points, margin 15.3.
+      So the game's Tests are already as close as the real ones and lower scoring. Tightening the numbers would
+      move away from reality. If Tests do not FEEL tense, that is presentation (commentary, crowd, late-game
+      cues), not margins. Owner told; waiting for his call.
 - [ ] Pre-match rituals in formation for every nation that has one (only NZ has a line today).
 
 ## Stage 4: full club player audit (owner: do it all)
