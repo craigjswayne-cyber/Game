@@ -262,8 +262,12 @@ function restartReceive(landU: number, landV: number): UV[] {
   // them a stride apart are one blob)
   const gather: UV[] = [[7, -8], [7, 8], [12, 0], [13, -15], [13, 15], [19, 8], [19, -8], [24, 0]]
   let j = 0
-  for (let k = 0; k < 8; k++) {
-    if (k === c || lifters.includes(k)) continue
+  // (20 Nov 2026, seen at readable size: all eight came to the ball and were one
+  // huddle under it. The three nearest come in behind the catch; the rest of
+  // the pack hold where they stood, ready for the next phase.)
+  const order = [...Array(8).keys()].filter(k => k !== c && !lifters.includes(k))
+    .sort((a, b2) => Math.hypot(at[a][0] - landU, at[a][1] - landV) - Math.hypot(at[b2][0] - landU, at[b2][1] - landV))
+  for (const k of order.slice(0, 3)) {
     def[k] = [landU + gather[j][0], landV + gather[j][1]]
     j++
   }
