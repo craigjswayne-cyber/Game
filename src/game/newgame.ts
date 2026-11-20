@@ -25,6 +25,7 @@ import { W_CELT } from '../data/leagues/w_celt'
 import { W_E2 } from '../data/leagues/w_e2'
 import { W_CHAMP } from '../data/leagues/w_champ'
 import { W, type Gender, staffGender } from './gender'
+import { INTL_2026 } from '../data/intl2026'
 import type { Club, GameState, MgrOrigin, NewsItem, Player, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies, peekPid } from './attributes'
 import { regenName } from './nations'
@@ -1030,6 +1031,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   listOpeners(state)
   // the id counter travels with the save from here (GameState.pidNext, 1.6.4)
   state.pidNext = peekPid()
+  // THE REAL SQUADS AND CAPS (owner, 1.9.16; data/intl2026.ts). Last, on the
+  // finished world, and it draws nothing from `rng`: a seed keeps every other
+  // fact it had.
+  applyIntl2026(state)
   return state
 }
 
@@ -1198,3 +1203,32 @@ function squadAssessment(state: GameState): NewsItem {
     },
   }
 }
+
+/** Lay the real autumn 2026 squads and caps over the finished world. A name
+ *  is matched within its own nation, so two namesakes of different unions
+ *  never trade caps. A man with a checked figure takes it and is repriced; a
+ *  man named in the squad is marked for the federation's first season. */
+export function applyIntl2026(state: GameState): void {
+  const table = INTL_2026[state.gender ?? 'm']
+  const plain = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  for (const [nat, rows] of Object.entries(table)) {
+    const byName = new Map<string, Player[]>()
+    for (const p of Object.values(state.players)) {
+      if (p.nat !== nat) continue
+      const k = plain(p.name)
+      byName.set(k, [...(byName.get(k) ?? []), p])
+    }
+    for (const row of rows) {
+      // the senior man of that name, not an academy namesake
+      const p = (byName.get(plain(row.name)) ?? []).sort((a, b) => b.ca - a.ca)[0]
+      if (!p) continue
+      if (row.squad !== false) p.sq26 = true
+      if (row.caps != null) {
+        p.caps = row.caps
+        p.intl = row.caps > 0 || p.intl
+        p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
+      }
+    }
+  }
+}
+

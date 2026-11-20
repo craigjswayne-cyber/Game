@@ -21,7 +21,7 @@ uploaded until the owner says so. The 2.0.0 live pitch branch is not touched.
 - [x] Live stats panel scrolls inside itself, never under the system buttons.
 - [ ] Masthead button still says "NAME n MORE" (to the 23 minimum): decide wording.
 - [ ] Check `natSquad` flag clears at window end (test).
-- [ ] Run countryui / natonlyui / testsheet / dualroleui / intlstageui harnesses.
+- [x] countryui / natonlyui / testsheet / dualroleui / intlstageui harnesses pass (PW_CHROMIUM=/usr/bin/google-chrome).
 - [ ] Version bump to 1.9.16 (code 79), release notes, store text.
 
 Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
@@ -29,8 +29,17 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 
 ## Stage 2: real national squads and caps (research first)
 
-- [ ] Autumn 2026 squads, men's and women's, from each union's own announcement.
-- [ ] Real caps (replace `deriveCaps` for named internationals).
+- [x] The mechanism: `src/data/intl2026.ts` (squad + caps per union), laid over a
+      new world by `applyIntl2026` (newgame.ts); `sq26` men are picked first by
+      the federations in season one (`federationPick`); `scripts/intlaudit.ts`
+      checks it and lists names the world cannot find.
+- [x] England men: squad of 36 in, 27 caps checked, 9 to confirm.
+- [ ] Every other union: see docs/research/intl-squads-2026.md for the order,
+      the sources that work here and what is still open.
+- [ ] Decide: old saves keep estimated caps (only new careers get the real ones).
+- [ ] The coach's own desk could mark the real squad's men (not built).
+- [ ] Engine baselines: real caps move player values, so fixed-seed references
+      and balance probes need a run and a note before release.
 - [ ] Nationality and position checks for every international.
 
 ## Stage 3: match feel (changes results: measure before and after)
@@ -46,3 +55,4 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 ## Log
 
 - 21:29 start. 21:55 Stage 1 screens built and checked in the browser walk (17 of 17).
+- 22:35 Stage 2 mechanism in, England men done (36/36 found). WebFetch only takes addresses a search returned; RFU news pages refuse.

@@ -201,8 +201,12 @@ export interface Player {
   trait?: string | null
   /** estimated career before the game world began (2025-26) */
   hist?: { apps: number; tries: number; points: number }
-  /** Test caps, pre-2025 estimate plus every international played here */
+  /** Test caps: the real count where data/intl2026.ts has one, an estimate
+   *  otherwise, plus every international played here */
   caps?: number
+  /** Named in his union's real autumn 2026 squad (data/intl2026.ts): the
+   *  federations pick these men first in the opening season (1.9.16). */
+  sq26?: boolean
   /** Isles XV tours made - the honour of a career.
    *
    *  THE FIELD KEEPS ITS OLD NAME ON PURPOSE. It is written into every save

@@ -481,7 +481,11 @@ export function withFrontRow(pool: Player[], size: number, min = 3): Player[] {
 export function federationPick(state: GameState, nat: string, size: number): Player[] {
   return withFrontRow(Object.values(state.players)
     .filter(p => natQualifies(p, nat) && !!p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan)
-    .sort((a, b) => b.ca - a.ca || a.id - b.id), size)
+    // IN THE OPENING SEASON THE UNIONS NAME THE MEN THEY REALLY NAMED (owner,
+    // 1.9.16: "build our squads from the starting game from that"). The real
+    // autumn 2026 squad comes first, best first, and the rest fill what is
+    // left. From the second season form and ability decide, as before.
+    .sort((a, b) => (state.season === 0 ? +!!b.sq26 - +!!a.sq26 : 0) || b.ca - a.ca || a.id - b.id), size)
 }
 
 /** The federation's list for this window: the snapshot taken when the window
