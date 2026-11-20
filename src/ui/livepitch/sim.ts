@@ -243,7 +243,7 @@ export class PitchSim {
     // it on it must be clear"). A scrum out of open play is a knock-on or a
     // forward pass by the side that does not get the put-in. The plate says
     // so before the scrum is set.
-    if (p.kind === 'scrum' && last && p.at !== last.at && (last.kind === 'carry' || last.kind === 'ruck' || last.kind === 'catch' || last.kind === 'kick' || last.kind === 'heldup')) {
+    if (p.kind === 'scrum' && last && p.at !== last.at && (last.kind === 'carry' || last.kind === 'ruck' || last.kind === 'catch' || last.kind === 'kick' || last.kind === 'heldup' || last.kind === 'kickoff' || last.kind === 'dropout')) {
       this.flash = { label: 'lp.knockOn', home: !p.homeBall, n: ++this.flashN }
     }
     // NOBODY BOUND IN A SCRUM RUNS OFF IT WITH THE BALL (owner, 19 Nov 2026:
