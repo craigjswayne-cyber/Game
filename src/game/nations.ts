@@ -359,6 +359,16 @@ export function worldNames(state: { players: Record<number, { name: string }>; r
  *  thirty-two men, of whom 23 dress on the day. */
 export const NAT_SQUAD_SIZE = 32
 
+/** EXCEPT AT A MEN'S WORLD CUP, WHICH IS THIRTY-THREE (owner, 1.9.15). World
+ *  Rugby's tournament rules name 33 for the men's Rugby World Cup; the women's
+ *  tournament names 32, and so does every other window here. */
+export const WC_SQUAD_SIZE = 33
+
+/** The squad a window names: its id ('wc', 'aut', ...) and the world's game. */
+export function squadSizeOf(windowId: string | undefined, gender: 'm' | 'w'): number {
+  return windowId === 'wc' && gender === 'm' ? WC_SQUAD_SIZE : NAT_SQUAD_SIZE
+}
+
 /** The floor a Test squad can be trimmed to: a matchday 23 plus cover.
  *
  *  It lived in country.ts, which imports from season.ts - so season.ts could

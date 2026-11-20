@@ -165,7 +165,8 @@ export function groupsOf(club: Club, p: Player): string[] {
 }
 
 function groupVars(g: string): Vars {
-  return g.startsWith('nat:') ? { group_k: 'bonds.gNat', nation_k: `nation.${g.slice(4)}` }
+  // the nation's three forms, so a language can put its article on the name
+  return g.startsWith('nat:') ? { group_k: 'bonds.gNat', nation_k: `nation.${g.slice(4)}`, nationThe_k: `nationThe.${g.slice(4)}`, nationCap_k: `nationCap.${g.slice(4)}` }
     : { group_k: g === 'home' ? 'bonds.gHome' : g === 'vets' ? 'bonds.gVets' : 'bonds.gYoung' }
 }
 

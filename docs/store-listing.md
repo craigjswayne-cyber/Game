@@ -122,23 +122,23 @@ First release.
 
 ### What's new (500 max) - v1.9.15, Play version code 78 (confirm 77 is accepted on the Console first)
 
-**en-GB, Play and App Store** (473)
-New: the World Championship in its real 2027 format: 24 nations, six pools, a round of 16 and a bronze final, with Hong Kong China and Zimbabwe. The Isles XV tour party is yours to pick. Test camps open the week before every window, the dressing room's mood reaches the pitch, and unions expect more of top nations. A coach with only a country can pick the Test XV. Social media reacts to every squad. Many fixes to international letters and to French, Spanish and Italian.
+**en-GB, Play and App Store** (477)
+New: the World Championship in its real 2027 format: 24 nations, six pools, a round of 16 and a bronze final, squads of 33, with Hong Kong China and Zimbabwe. The new Nations Trophy gives twelve tier-two nations Tests every November and July. The Isles XV tour party is yours to pick. Camps open the week before every window, morale reaches the pitch, and unions expect more of top nations. A coach with only a country can pick the Test XV. Tables fit small phones. Many fixes.
 
-**fr-FR, Play and App Store** (436)
-Nouveau : le Championnat du monde au vrai format 2027 : 24 nations, six poules, huitièmes de finale et petite finale, avec Hong Kong Chine et le Zimbabwe. Vous choisissez le groupe de la tournée du XV des Îles. Le rassemblement ouvre la semaine avant chaque fenêtre, le moral du vestiaire compte sur le terrain et les fédérations exigent plus des grandes nations. Les réseaux sociaux réagissent à chaque annonce. Nombreuses corrections.
+**fr-FR, Play and App Store** (464)
+Nouveau : le Championnat du monde au vrai format 2027 : 24 nations, six poules, huitièmes et petite finale, groupes de 33, avec Hong Kong Chine et le Zimbabwe. Le nouveau Trophée des Nations offre des tests à douze nations du deuxième rang en novembre et en juillet. Vous choisissez le groupe du XV des Îles. Le rassemblement ouvre la semaine avant chaque fenêtre, le moral compte sur le terrain et les fédérations exigent plus des grandes. Nombreuses corrections.
 
-**es-ES, Play and App Store** (406)
-Nuevo: el Campeonato del Mundo con el formato real de 2027: 24 naciones, seis grupos, octavos de final y partido por el bronce, con Hong Kong China y Zimbabue. Eliges la expedición del XV de las Islas. La concentración abre la semana antes de cada ventana, el ánimo del vestuario cuenta en el campo y las federaciones exigen más a las grandes. Las redes reaccionan a cada convocatoria. Muchas correcciones.
+**es-ES, Play and App Store** (465)
+Nuevo: el Campeonato del Mundo con el formato real de 2027: 24 naciones, seis grupos, octavos y partido por el bronce, convocatorias de 33, con Hong Kong China y Zimbabue. El nuevo Trofeo de las Naciones da partidos a doce selecciones del segundo nivel en noviembre y julio. Eliges la expedición del XV de las Islas. La concentración abre la semana antes de cada ventana, el ánimo cuenta en el campo y las federaciones exigen más a las grandes. Muchas correcciones.
 
-**it-IT, Play and App Store** (407)
-Novità: il Campionato del Mondo nel vero formato 2027: 24 nazioni, sei gironi, ottavi di finale e finale per il terzo posto, con Hong Kong Cina e Zimbabwe. Il gruppo del tour del XV delle Isole lo scegli tu. Il raduno apre la settimana prima di ogni finestra, il morale dello spogliatoio conta in campo e le federazioni chiedono di più alle grandi. I social reagiscono a ogni convocazione. Molte correzioni.
+**it-IT, Play and App Store** (448)
+Novità: il Campionato del Mondo nel vero formato 2027: 24 nazioni, sei gironi, ottavi e finale per il terzo posto, gruppi da 33, con Hong Kong Cina e Zimbabwe. Il nuovo Trofeo delle Nazioni dà test a dodici nazionali di seconda fascia a novembre e luglio. Il gruppo del tour del XV delle Isole lo scegli tu. Il raduno apre la settimana prima di ogni finestra, il morale conta in campo e le federazioni chiedono di più alle grandi. Molte correzioni.
 
-**ja-JP, Play and App Store** (186)
-新機能：ワールドチャンピオンシップが2027年の実際の形式に。24か国・6プール、ラウンド16と3位決定戦、香港チャイナとジンバブエも参戦。アイルズXVのツアーメンバーを自分で選べるように。合宿は各ウィンドウの前の週に始まり、ロッカールームの士気が試合に影響し、強豪国への協会の要求も厳しく。代表のみの監督もテストのXVを選べるように。発表ごとにSNSが反応。多数の修正。
+**ja-JP, Play and App Store** (215)
+新機能：ワールドチャンピオンシップが2027年の実際の形式に。24か国・6プール、ラウンド16と3位決定戦、登録は33人、香港チャイナとジンバブエも参戦。新設の「ネーションズ・トロフィー」で、ティア2の12か国が毎年11月と7月にテストマッチを戦う。アイルズXVのツアーメンバーを自分で選べるように。合宿は各ウィンドウの前の週に始まり、士気が試合に影響し、強豪国への協会の要求も厳しく。小さな画面でも表が収まるように。多数の修正。
 
-**af, Play and App Store** (413)
-Nuut: die Wêreldkampioenskap in sy ware 2027-formaat: 24 nasies, ses poele, die laaste sestien en 'n bronsfinaal, met Hongkong China en Zimbabwe. Jy kies die Eilande-XV se toergroep. Die kamp open die week voor elke venster, die kleedkamer se moraal tel op die veld, en unies verwag meer van die topnasies. 'n Afrigter met net 'n land kan die toets-XV kies. Sosiale media reageer op elke groep. Baie regstellings.
+**af, Play and App Store** (404)
+Nuut: die Wêreldkampioenskap in sy ware 2027-formaat: 24 nasies, ses poele, die laaste sestien en 'n bronsfinaal, groepe van 33, met Hongkong China en Zimbabwe. Die nuwe Nasie-trofee gee twaalf tweedevlak-nasies toetse elke November en Julie. Jy kies die Eilande-XV se toergroep. Die kamp open die week voor elke venster, moraal tel op die veld, en unies verwag meer van die topnasies. Baie regstellings.
 
 ### What's new (500 max) - v1.9.14, Play version code 76 (confirm 75 is accepted on the Console first)
 

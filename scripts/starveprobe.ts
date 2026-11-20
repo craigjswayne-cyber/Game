@@ -129,7 +129,10 @@ for (const id of ids) {
 const others = ids.filter(id => id !== 'starve')
 ok(ids.includes('starve') && others.length >= 2, `starve measured beside ${others.join(', ')}`)
 const sk = m(dKicks, 'starve'), sg = m(gain, 'starve')
-ok(sk <= -0.15 && others.every(id => m(dKicks, id) > -0.08), `distinct: the only plan that stops kicking it to them (${sgn(sk * 100, 0)}% kicks from hand; ${others.map(id => `${id} ${sgn(m(dKicks, id) * 100, 0)}%`).join(', ')})`)
+// a cut of 8%, not 15% (1.9.15): kicking 10 cut 18% and lost the plan the
+// match (oppreport.ts STARVE); at 30 it cuts 9% and is the only plan that
+// cuts at all, which is what makes it a plan of its own
+ok(sk <= -0.08 && others.every(id => m(dKicks, id) > -0.03), `distinct: the only plan that stops kicking it to them (${sgn(sk * 100, 0)}% kicks from hand; ${others.map(id => `${id} ${sgn(m(dKicks, id) * 100, 0)}%`).join(', ')})`)
 // (their back three's own tries are reported, not held: a tenth of a try a
 // match either way is inside the noise of 80 fixtures, and the engine names
 // a try's scorer after the try, so the back three are the side's tries
@@ -138,7 +141,17 @@ ok(sk <= -0.15 && others.every(id => m(dKicks, id) > -0.08), `distinct: the only
 // tries move by more than that when nothing but the dice changes. The Law 3
 // front-row fix left starve at -0.15 exactly and re-dealt exploit from -0.06
 // to -0.19, which is the plan beside it moving, not this one.
-ok(m(dTheirs, 'starve') < 0 && others.every(id => m(dTheirs, 'starve') <= m(dTheirs, id) + 0.05), `and their side scores less: their tries ${sgn(m(dTheirs, 'starve'))} a match, the fewest of the plans`)
+// THEIR TRIES ARE JUDGED ON 140 WORLDS, NOT 10 (owner, 1.9.15). The plan's
+// effect on the other side's tries is small, and two equally fair samples of
+// 560 matches on the same engine read -0.19 and +0.07 (the Nations Trophy only
+// moved which dice each match drew; renumbered back, the old -0.25 returned).
+// Ten worlds cannot tell that from nothing, so this line is a verdict only in
+// the release check's starvewide (STARVE_FULL, 140 worlds, 1,120 matches) and
+// a reading here. Every other line in this probe is judged in both.
+const theirsOk = m(dTheirs, 'starve') < 0 && others.every(id => m(dTheirs, 'starve') <= m(dTheirs, id) + 0.05)
+const theirsLine = `and their side scores less: their tries ${sgn(m(dTheirs, 'starve'))} a match, the fewest of the plans (${fixtures} matches)`
+if (process.env.STARVE_FULL) ok(theirsOk, theirsLine)
+else console.log(`  (reading only, judged in starvewide) ${theirsOk ? 'holds' : 'does not hold on this sample'}: ${theirsLine}`)
 const bestOther = Math.max(...others.map(id => m(gain, id)))
 // NOT DOMINANT MEANS NOT CLEAR OF THE FIELD, not never a hair ahead of it
 // (1.8.12). Starve, counter and exploit sit within a fifth of a point of each

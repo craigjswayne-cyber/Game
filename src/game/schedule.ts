@@ -2,7 +2,7 @@ import type { Competition, GameState, TableRow } from './model'
 import { W, genderOf, type Gender } from './gender'
 import {BASE_YEAR, fixtureDayOff, worldCupSeasonFor } from './model'
 import {
-  AUTUMN_WEEKS, CC_KO_WEEKS, CC_POOL_WEEKS, MRC_CUP_KO_WEEKS, MRC_CUP_POOL_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS, TRC_WEEKS,
+  AUTUMN_WEEKS, NC_AUTUMN_WEEKS, NC_SUMMER_WEEKS, CC_KO_WEEKS, CC_POOL_WEEKS, MRC_CUP_KO_WEEKS, MRC_CUP_POOL_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS, TRC_WEEKS,
   WC_KO_WEEKS, WC_POOL_WEEKS, W_AUTUMN_WEEKS, W_CC_KO_WEEKS, W_CC_POOL_WEEKS, W_PAC4_WEEKS, W_SIX_NATIONS_WEEKS,
   W_SUMMER_TEST_WEEKS, W_WC_KO_WEEKS, W_WC_POOL_WEEKS, leagueWeeksFor, playoffWeeksFor, preseasonWeeksFor,
 } from './calendar'
@@ -259,7 +259,9 @@ export function resultsParam(compId: string, week: number): string {
   return `${compId}:${week}`
 }
 
-export function parseResultsParam(param: string): { compId: string; week: number } {
+export function parseResultsParam(param: string | undefined): { compId: string; week: number } {
+  // opened with no param the round-up has nothing to show, not a crash (1.9.15)
+  if (!param) return { compId: '', week: NaN }
   // the week is what follows the LAST colon; everything before it is the id
   const cut = param.lastIndexOf(':')
   if (cut <= 0) return { compId: param, week: NaN }
@@ -589,6 +591,43 @@ export function snVenue(circle: string[], [x, y]: [string, string], season: numb
   return iHosts !== flip ? [x, y] : [y, x]
 }
 
+/** The Nations Trophy's pools, as World Rugby drew the real Nations Cup (2026). */
+export const NC_POOLS: [string[], string[]] = [
+  ['CAN', 'CHL', 'USA', 'URU', 'TGA', 'SAM'], // Americas & Pacific
+  ['GEO', 'POR', 'ESP', 'ROU', 'HKG', 'ZIM'], // Europe, Africa & Asia
+]
+
+/**
+ * THE NATIONS TROPHY (owner, 1.9.15). Georgia, Portugal, Spain, Uruguay, Chile,
+ * Romania, Hong Kong China and Zimbabwe played a World Championship and nothing
+ * else: no Test between one tournament and the next. World Rugby's answer is
+ * the Nations Cup, and this is it, renamed: twelve nations in two pools, every
+ * nation playing the six of the other pool, three in November (the Europe,
+ * Africa and Asia pool at home) and three in July (the Americas and Pacific
+ * pool at home), a champion in each pool. No dice: each weekend turns the
+ * pairing by one, so all six meetings happen and none twice.
+ */
+function buildNationsTrophy(state: GameState) {
+  const [a, b] = NC_POOLS
+  const weeks = [...NC_AUTUMN_WEEKS, ...NC_SUMMER_WEEKS]
+  const comp: Competition = {
+    id: 'nc', name: 'Nations Trophy', short: 'Nations Trophy', type: 'intl',
+    teamIds: [...a, ...b], table: [...a, ...b].map(emptyRow), rounds: weeks.length, playoffTeams: 0,
+    weeksByRound: weeks, koWeeks: [], isNational: true, pools: [a.slice(), b.slice()],
+  }
+  weeks.forEach((week, r) => {
+    a.forEach((x, i) => {
+      const y = b[(i + r) % b.length]
+      const [homeId, awayId] = r < NC_AUTUMN_WEEKS.length ? [y, x] : [x, y]
+      state.fixtures.push({
+        id: state.nextId++, compId: 'nc', round: r, week, homeId, awayId, played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      })
+    })
+  })
+  state.comps['nc'] = comp
+}
+
 export function buildInternationals(rng: Rng, state: GameState, worldCup = false) {
   if (worldCup) buildWorldCup(rng, state)
   // the summer Tests are played in a World Championship season too (QA,
@@ -653,6 +692,8 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
     }
   })
   state.comps['pnc'] = pncComp
+
+  buildNationsTrophy(state)
 
   // Autumn tests: north v south pairings, 3 weekends
   const north = ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA']

@@ -14,13 +14,13 @@ import { openNatWindow } from './natwin'
 
 /** The round-robin title this nation contests, if the world has one. */
 export function natTitleComp(state: GameState, nat: string): string | null {
-  for (const id of ['sn', 'wsn', 'w:sn', 'trc', 'wp4', 'w:p4', 'pnc']) {
+  for (const id of ['sn', 'wsn', 'w:sn', 'trc', 'wp4', 'w:p4', 'pnc', 'nc']) {
     const c = state.comps[id]
     if (c && c.teamIds.includes(nat)) return id
   }
   // a women's world names its comps with its own prefix
   for (const [id, c] of Object.entries(state.comps)) {
-    if (c.type === 'intl' && /sn|p4|trc|pnc/.test(id) && c.teamIds.includes(nat)) return id
+    if (c.type === 'intl' && /sn|p4|trc|pnc|^nc$/.test(id) && c.teamIds.includes(nat)) return id
   }
   return null
 }

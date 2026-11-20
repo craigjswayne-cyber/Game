@@ -264,8 +264,13 @@ console.log('\nCHAOS 5: everything zeroed - morale, condition, form, confidence\
   // shifted with it, and the sack moved from inside twelve weeks to week 15 -
   // measured, not guessed. The board still does its job; the window was
   // measuring the calendar.
-  const weeks = advance(g, 20, 'all-zeroes world')
-  ok(weeks === 20, `twenty weeks simulate on a fully zeroed club (${weeks}/20)`)
+  // THIRTY, NOT TWENTY (1.9.15, the Nations Trophy). Its Tests moved the
+  // world's dice once more, and the sack for this seed moved to week 25.
+  // Measured on seeds 2005-2012: every one sacked, between week 13 and 25
+  // (16, 14, 13, 25, 13, 19, 21, 14). The window covers all of them, so
+  // the next change to the dice is not another re-seed.
+  const weeks = advance(g, 30, 'all-zeroes world')
+  ok(weeks === 30, `thirty weeks simulate on a fully zeroed club (${weeks}/30)`)
   ok(g.unemployed, 'and a board at zero does what a board at zero should: the sack arrives')
   saveHolds(g, 'all zeroes')
 }

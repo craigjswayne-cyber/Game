@@ -3,9 +3,9 @@
 import type { Competition, GameState, Player } from '../model'
 import { W, genderOf } from '../gender'
 import { islesCoach, isleTour } from '../isles'
-import { windowSpan } from '../calendar'
+import { windowSpans } from '../calendar'
 import { buildPlayer } from '../attributes'
-import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from '../nations'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, squadSizeOf, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from '../nations'
 import { isMyClub } from '../model'
 import { clamp, hashString, mulberry32, type Rng } from '../rng'
 import { tIn } from '../i18n'
@@ -34,12 +34,13 @@ export function activeWindows(state: GameState): Window[] {
     sn: () => ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'],
   }
   const out: Window[] = []
-  for (const id of ['wc', 'trc', 'pnc', 'aut', 'sn', W + 'sn', W + 'p4', W + 'aut', W + 'sum', 'tour', 'lions', W + 'lions']) {
+  for (const id of ['wc', 'trc', 'pnc', 'nc', 'aut', 'sn', W + 'sn', W + 'p4', W + 'aut', W + 'sum', 'tour', 'lions', W + 'lions']) {
     const comp = state.comps[id]
     if (!comp) continue
-    const span = windowSpan(id, gender)
-    if (!span) continue
-    out.push({ id, start: span[0], end: span[1], nations: (nationsOf[id] ?? (c => c.teamIds))(comp), size: NAT_SQUAD_SIZE })
+    // the Nations Trophy is away twice a season, November and July: two windows
+    for (const span of windowSpans(id, gender)) {
+      out.push({ id, start: span[0], end: span[1], nations: (nationsOf[id] ?? (c => c.teamIds))(comp), size: squadSizeOf(id, gender) })
+    }
   }
   return out
 }

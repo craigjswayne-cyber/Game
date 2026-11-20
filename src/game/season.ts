@@ -1649,7 +1649,26 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           const host = comp.teamIds.find(t => t !== 'LIO') ?? comp.teamIds[0]
           comp.champion = won('LIO') > won(host) ? 'LIO' : host
         } else comp.champion = sortTable(comp.table, tableRule(comp.id))[0].teamId
+        // A CHAMPION IN EACH POOL (the Nations Trophy, 1.9.15): the pools never
+        // meet each other's own members, so each crowns its top side. The
+        // coach's nation, if it is one of the two, is the one celebrated here;
+        // the other pool's champion has its own line in the record and the news.
+        let other: string | null = null
+        if (comp.pools?.length === 2 && comp.id === 'nc') {
+          const champs = comp.pools.map(p => sortTable(comp.table.filter(r => p.includes(r.teamId)), tableRule(comp.id))[0].teamId)
+          comp.champion = state.natTeam && champs.includes(state.natTeam) ? state.natTeam : champs[0]
+          other = champs.find(c => c !== comp.champion) ?? null
+        }
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
+        if (other) {
+          state.history.push({ season: state.season, compId: comp.id, champion: other })
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+            subject: `${savedShort(state, other)} win the ${comp.name}`,
+            body: `${savedShort(state, other)} have been crowned ${comp.name} champions.`,
+            k: 'news.leagueWon', v: { champ: savedShort(state, other), comp: comp.name, ...natTwin(state, 'champ', other) },
+          })
+        }
         if (comp.type === 'league' && comp.champion === state.userClubId && !state.unemployed) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
           const hv2 = { short: teamShort(state, state.userClubId).toUpperCase() }

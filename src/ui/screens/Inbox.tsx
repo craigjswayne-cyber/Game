@@ -3,9 +3,9 @@ import { TwoStep } from '../components'
 import { NewsBody, NewsGo, plainNews } from '../NewsBody'
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model'
+import { newsBody, newsSubject, type NewsItem } from '../../game/model'
 import { Byline, RuckMark } from '../Byline'
-import { RECALL_DAYS, inInbox, markRead } from '../../game/days'
+import { RECALL_DAYS, dayDate, dayOfStory, inInbox, markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 import { answerRequest, canAnswerRequest } from '../../game/chats'
 import { openBidFor } from '../../game/ai'
@@ -148,7 +148,7 @@ export function InboxList({ compact }: { compact?: boolean }) {
       {news.slice(0, compact ? 12 : 30).map(n => (
         <button key={n.id} className={`news-item${n.read ? '' : ' unread'}`}
           onClick={() => { markRead(game, n); touch() }}>
-          <div className="when">{newsGlyph(n.type)} <Byline n={n} sep />{weekDate(n.season, n.week)}</div>
+          <div className="when">{newsGlyph(n.type)} <Byline n={n} sep />{dayDate(n.season, n.week, dayOfStory(n))}</div>
           <div className="subj">{newsSubject(n)}</div>
           <div className="body">{plainNews(newsBody(n))}</div>
         </button>
@@ -248,7 +248,7 @@ export default function Inbox() {
           <button key={x.id} className={`inbox-li${x.id === n.id ? ' on' : ''}${x.read ? '' : ' unread'}`}
             aria-current={x.id === n.id}
             onClick={() => { markRead(game, x); useStore.setState(s => ({ inboxId: x.id, tick: s.tick + 1 })); void useStore.getState().persist() }}>
-            <span className="when">{newsGlyph(x.type)} <Byline n={x} sep />{weekDate(x.season, x.week)}</span>
+            <span className="when">{newsGlyph(x.type)} <Byline n={x} sep />{dayDate(x.season, x.week, dayOfStory(x))}</span>
             <span className="subj">{newsSubject(x)}</span>
           </button>
         ))}
@@ -256,7 +256,7 @@ export default function Inbox() {
       <div className="news-split">
       <article className="reader">
         {/* the source first, then the date: "RUCK.CO.UK · 22 AUG 2026" (1.8.7) */}
-        <div className="when">{newsGlyph(n.type)} <Byline n={n} sep />{weekDate(n.season, n.week)}</div>
+        <div className="when">{newsGlyph(n.type)} <Byline n={n} sep />{dayDate(n.season, n.week, dayOfStory(n))}</div>
         <h2>{newsSubject(n)}</h2>
         {/* Real paragraphs, no spacer divs. A blank line in the source used to
             render an empty 6px div, so the spacing between paragraphs depended on

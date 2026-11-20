@@ -47,7 +47,7 @@ REPORTERS="analysis leaguestrength gapreport icons shots qa-shots qa-shots2 news
 LONG="memoryloopprobe frliveprobe analystprobe"
 # runtimematrix (1.9.1, was scripts/qa2/matrix.ts): fifteen seasons on three
 # seeds in each world with every invariant checked every season.
-SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight optionsprobe autopilotprobe aiecon stackprobe distressprobe runtimematrix contractendprobe"
+SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight optionsprobe autopilotprobe aiecon stackprobe distressprobe runtimematrix contractendprobe starvewide"
 # THE PR SMOKE (1.9.1): the browser half only ran on main and overnight, so a
 # pull request that broke the wizard found out after it merged. These four
 # cover the whole flow end to end, the till, the way a career leaves the

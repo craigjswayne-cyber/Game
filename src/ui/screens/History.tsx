@@ -12,6 +12,7 @@ const GONE_BUT_NOT_FORGOTTEN: Record<string, string> = {
   tour: 'week.compTour',
   aut: 'week.compAut',
   pnc: 'week.compPnc',
+  nc: 'week.compNc',
 }
 
 export default function History() {

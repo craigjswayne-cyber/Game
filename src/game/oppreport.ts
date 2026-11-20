@@ -520,8 +520,18 @@ export function planOptions(state: GameState, fx: Fixture): PlanOption[] {
  * +0.9 there, +1.5 in scripts/starveprobe.ts (exploit +5.0, counter +4.5,
  * finish +2.2), the only plan that cuts the kicking, and the one their side
  * scores least against.
+ *
+ * KICKING 30, NOT 10 (owner, 1.9.15: "Fix it"). Measured on 140 worlds, 1,120
+ * paired matches, kicking at 10 gave away so much territory that their side
+ * scored MORE (+0.11 tries) and the plan cost 2.45 points a match. Settings
+ * tried on 30 worlds: kicking 20 or 25 still lose (their tries +0.01 to
+ * +0.06); kicking 30 works. Confirmed on 140 worlds at { 30, 30, 75 }: their
+ * tries -0.17 a match (the fewest of the plans), worth +0.60 (exploit +2.66),
+ * and still the only plan that cuts the kicking (-9%, the others +0 to +3%).
+ * Tempo 30 and ruck numbers 75: the slower, steadier game, without stripping
+ * the line of men.
  */
-export const STARVE = { kicking: 10, tempo: 35, ruckCommit: 85 }
+export const STARVE = { kicking: 30, tempo: 30, ruckCommit: 75 }
 function starveLevers(): PlanLevers {
   return { prep: 'defence', dials: { ...STARVE } }
 }

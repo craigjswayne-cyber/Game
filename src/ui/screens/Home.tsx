@@ -622,11 +622,16 @@ export default function Home() {
               return (
                 <button className="dash-panel home-tile" onClick={() => go('club', rival)}>
                   <div className="dash-head">{t('home.rivalWatch')}</div>
-                  <div className="dash-line">
-                    <span className="dl-t">{teamShort(game, rival)}</span>
-                    {rr && <b style={{ color: rr.c }}>{rr.txt}</b>}
-                    {rPos > 0 && <span className="muted">{ord(rPos)}</span>}
-                  </div>
+                  {/* the name on a line of its own: a half-width tile at 320px
+                      left it 59px beside the score and the place (UI sweep,
+                      1.9.15), and "Northampton" arrived cut */}
+                  <div className="dash-line"><span className="dl-t">{teamShort(game, rival)}</span></div>
+                  {(rr || rPos > 0) && (
+                    <div className="dash-line">
+                      {rr && <b style={{ color: rr.c, marginLeft: 0 }}>{rr.txt}</b>}
+                      {rPos > 0 && <span className="muted" style={{ marginLeft: 'auto' }}>{ord(rPos)}</span>}
+                    </div>
+                  )}
                 </button>
               )
             })()}

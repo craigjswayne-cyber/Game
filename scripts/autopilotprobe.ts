@@ -235,9 +235,18 @@ ok(posn('optimise') < posn('sleepwalk'),
 // engaged Bath went from 2 of 12 sacked to 0, and the crisis count read 3
 // against 6: one seed from the line on a count of a dozen. Three times the
 // seasons; every count below is scaled by K, the same rates as before.
+// SEVENTY-TWO, NOT THIRTY-SIX (1.9.15 release check). The sleepwalking giant
+// read 8 crises in 36 against a line of 9, on a build whose board code was not
+// touched. Over these 72 seeds 1.9.14 reads 28 crises sleepwalking and 10
+// engaged, 1.9.15 reads 25 and 8: the same game. On the first 36 alone, 1.9.14
+// read 15 and 1.9.15 read 8, so half the count was the dice. Twice the
+// seasons; the rates are unchanged.
 const STATURE_SEEDS = [9, 777, 101, 55, 2024, 4242, 31, 88, 2026, 515, 7, 1212,
   103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163,
-  167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229]
+  167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
+  233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293,
+  307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373,
+  379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443]
 const K = STATURE_SEEDS.length / 12
 
 function statureRun(clubId: string, seed: number, mode: Mode) {

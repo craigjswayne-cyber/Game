@@ -32,7 +32,7 @@ import { newGame } from '../src/game/newgame'
 import { activeWindows, natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import { natCallUp, natDrop, natEligible, natWindow, weeksToSquad, NAT_SQUAD_FLOOR } from '../src/game/country'
 import { NAT_TIERS } from '../src/game/nations'
-import { NAT_SQUAD_SIZE, clubQuotaLeft, homeBased, sharesClubComp } from '../src/game/nations'
+import { NAT_SQUAD_SIZE, squadSizeOf, clubQuotaLeft, homeBased, sharesClubComp } from '../src/game/nations'
 import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
@@ -237,10 +237,14 @@ console.log('\n--- 8. the pinnacle, v1.1.12: one squad size, a home-based rule, 
   // for most windows, 28 at a World Cup and 30 for a Lions tour - picked
   // window by window and never the same twice, so a coach never learned what
   // a squad was.
+  // A men's World Cup is the one exception, at 33 (owner, 1.9.15: World
+  // Rugby's number). The women's tournament stays at 32.
   const g8 = newGame('northampton', 'Country Probe', 8801)
-  const sizes = new Set(activeWindows(g8).map(w => w.size))
+  const sizes = new Set(activeWindows(g8).filter(w => w.id !== 'wc').map(w => w.size))
   ok(sizes.size === 1 && sizes.has(NAT_SQUAD_SIZE),
-    `every window names the same ${NAT_SQUAD_SIZE} (${[...sizes].join(', ')})`)
+    `every window but a World Cup names the same ${NAT_SQUAD_SIZE} (${[...sizes].join(', ')})`)
+  ok(squadSizeOf('wc', 'm') === 33 && squadSizeOf('wc', 'w') === NAT_SQUAD_SIZE && squadSizeOf('aut', 'm') === NAT_SQUAD_SIZE,
+    `a men's World Cup names 33, the women's ${squadSizeOf('wc', 'w')}`)
   ok(NAT_SQUAD_SIZE > NAT_SQUAD_FLOOR, 'and there is room above the matchday 23 to trim into')
 
   // ENGLAND AND FRANCE PICK AT HOME (owner: "players who dont play in England

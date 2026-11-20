@@ -515,7 +515,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
       </div>
       {shown.length === 0 && <div className="muted" style={{ padding: '4px 16px 10px' }}>{t('club.nobodyOnBooks')}</div>}
       <div className="tblwrap"><table className="dtable">
-        <thead><tr><th>{t('squad.colPos')}</th><th>{t('squad.colName')}</th><th>{t('squad.colAge')}</th><th>{t('squad.colNat')}</th><th>{t('transfers.colAbility')}</th><th>{t('transfers.colForm')}</th><th className="num">{t('squad.colValue')}</th></tr></thead>
+        <thead><tr><th>{t('squad.colPos')}</th><th>{t('squad.colName')}</th><th>{t('squad.colAge')}</th><th>{t('squad.colNat')}</th><th>{t('transfers.colAbility')}</th><th className="narrow-hide">{t('transfers.colForm')}</th><th className="num">{t('squad.colValue')}</th></tr></thead>
         <tbody>
           {shown.map(p => (
             <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
@@ -526,7 +526,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               {/* another club's squad is read through the scouts (1.8.2): the
                   academy tab here was a free list of true ratings and prices */}
               <td><Stars ca={shownCa(game, p)} />{shownCa(game, p) != null && knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
-              <td><FormPill v={p.form} trend={formTrend(p)} /></td>
+              <td className="narrow-hide"><FormPill v={p.form} trend={formTrend(p)} /></td>
               <td className="num">{fmtMoney(seenValue(game, p))}</td>
             </tr>
           ))}

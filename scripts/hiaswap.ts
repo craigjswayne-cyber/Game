@@ -48,7 +48,10 @@ for (let i = 0; i < 600 && tested < 12; i++) {
     stepTick(g, ctx)
     maxOn = Math.max(maxOn, mine.onPitch.size)
     for (const sd of [ctx.home, ctx.away]) if (sd.hia && g.players[sd.hia.pid]?.real) realAssessed++
-    if (!swapped && mine.hia && mine.hia.atTick === ctx.tick && mine.onPitch.has(mine.hia.subId)) {
+    // an assessment called on the final whistle has no match left to swap in
+    // (control.ts answers "the match is over", rightly): it is not a swap to
+    // test (1.9.15, when the Nations Trophy's dice first put one there)
+    if (!swapped && ctx.seg < 3 && mine.hia && mine.hia.atTick === ctx.tick && mine.onPitch.has(mine.hia.subId)) {
       const standIn = mine.hia.subId
       const pick = mine.lineup.slice(15).find(id => id != null && id !== standIn && !mine.onPitch.has(id) && !mine.ratings.has(id) && !g.players[id]?.injury)
       if (pick == null) continue

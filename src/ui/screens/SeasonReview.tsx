@@ -26,7 +26,7 @@ export default function SeasonReview() {
     return (
       <div className="title-screen">
         <div>{t('legacy.srNoSeason')}</div>
-        <button className="btn gold" style={{ marginTop: 16 }} onClick={back}>{t('legacy.srBack')}</button>
+        <button className="btn gold" style={{ marginTop: 16, minHeight: 44 }} onClick={back}>{t('legacy.srBack')}</button>
       </div>
     )
   }
@@ -88,10 +88,9 @@ export default function SeasonReview() {
           )}
         </div>
 
-        <div className="card center" style={{ ...acc('var(--gold)') }}>
-          {/* the record under the verdict said the season card's W D L again */}
-          <h3 style={{ fontSize: '1.125rem' }}>{headline}</h3>
-        </div>
+        {/* the verdict on its own: a card holding only a heading left an empty
+            strip under it (UI sweep, 1.9.15) */}
+        <h3 className="center" style={{ fontSize: '1.125rem', margin: '10px 16px' }}>{headline}</h3>
 
         {/* THE TURNING POINT (1.8.4, turning.ts): at most one a season, and
             only when something changed the club. A plain title or cup is the
@@ -207,7 +206,7 @@ export default function SeasonReview() {
           </>
         )}
 
-        <button className="btn gold block" style={{ marginTop: 12, fontSize: '1rem' }} onClick={back}>
+        <button className="btn gold block" style={{ marginTop: 12, fontSize: '1rem', minHeight: 44 }} onClick={back}>
           {t('legacy.srFileAway')}
         </button>
         <div className="spacer" />

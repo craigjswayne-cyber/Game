@@ -30,6 +30,9 @@ const page = await browser.newPage({ viewport: { width: 412, height: 860 }, loca
 // Math.random draw, so some runs met a match with none in a half and failed
 // on the dice (CI on main after #35). Math.random is seeded, so the career,
 // and with it the match, is the same every run: TF_SEED picks another.
+// SEED 1, NOT 3 (1.9.15). The Nations Trophy moved the world's dice and seed
+// 3's match has no try in the opening minutes now. Measured on the branch:
+// seeds 1, 2, 4, 5 and 6 all pass (TF_SEED=n picks one).
 await page.addInitScript(seed => {
   let a = seed >>> 0
   Math.random = () => {
@@ -38,7 +41,7 @@ await page.addInitScript(seed => {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
-}, Number(process.env.TF_SEED ?? 3))
+}, Number(process.env.TF_SEED ?? 1))
 page.setDefaultTimeout(15000)
 await page.addInitScript(() => {
   localStorage.setItem('phase.matchPrefs', JSON.stringify({ highlights: 'key', bigText: true, speed: 2 }))

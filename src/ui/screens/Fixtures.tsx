@@ -156,7 +156,7 @@ export default function Fixtures({ initial }: { initial?: string } = {}) {
                     {f.played && f.events?.length ? <span className="muted" style={{ fontSize: '0.6875rem' }}>▸</span> : null}
                   </span>
                 </td>
-                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{compLabel(game.comps[f.compId]?.short) ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
+                <td className="muted" style={{ whiteSpace: 'normal', lineHeight: 1.2 }}>{compLabel(game.comps[f.compId]?.short) ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{res(f)}</td>
               </tr>
             )

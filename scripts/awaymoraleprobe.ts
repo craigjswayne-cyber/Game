@@ -30,10 +30,30 @@ const club = base.clubs[base.userClubId]
 // a fit senior man with a game or more, outside the 23 the side is named
 // from (so he stays out without touching the sheet), not a key player
 const sheet = new Set(club.tactic.lineup)
-const pick = (g: GameState): Player => club.players.map(id => g.players[id])
+const candidates = club.players.map(id => base.players[id])
   .filter(p => p && !sheet.has(p.id) && !p.acad && !p.injury && !p.natSquad && p.bans === 0 && !p.onLoan && p.stats.apps >= 1 && p.status !== 'key')
-  .sort((a, b) => a.id - b.id)[0]
-const who = pick(base)
+  .sort((a, b) => a.id - b.id)
+/** Two weeks of the scenario under test, on a copy of the world. */
+const scenario = (id: number, injured: boolean) => {
+  const g = structuredClone(base)
+  const p = g.players[id]
+  p.lastWk = g.week - 9
+  p.outWk = injured ? g.week - 1 : undefined
+  if (injured) p.avail = Math.max(0, (p.avail ?? 0) - 8)
+  p.morale = 7
+  // the manager's own sheet (autopilotprobe's note): a sheet the game chose
+  // is re-picked every week
+  g.clubs[g.userClubId].tactic.userPicked = true
+  const before = p.morale
+  for (let w = 0; w < 2; w++) processWeekAndAdvance(g)
+  return { drop: before - p.morale, stayedOut: (p.lastWk ?? -9) < g.week - 2 }
+}
+// THE MAN MUST REALLY BE LEFT OUT (1.9.15). Outside the 23 is not enough: a
+// gap at kick-off sends the game to the squad for cover, and the man it found
+// played both weeks, so the probe compared a man who played with a man who
+// played. It now takes the first candidate who stays out in both versions.
+const who = candidates.find(p => scenario(p.id, false).stayedOut && scenario(p.id, true).stayedOut) ?? candidates[0]
+const pick = (_g: GameState): Player => who
 console.log(`  week ${base.week}, ${who.name}: ${who.stats.apps} apps, available for ${who.avail}`)
 
 // ---- 1. back from injury: the first weeks back are not a grievance
@@ -41,18 +61,10 @@ console.log(`  week ${base.week}, ${who.name}: ${who.stats.apps} apps, available
   // the same man, the same nine weeks without a game: once because he was
   // injured for eight of them (just back), once because he was fit and left
   // out (the grievance the drag is for)
-  const run = (injured: boolean) => {
-    const g = structuredClone(base)
-    const p = g.players[who.id]
-    p.lastWk = g.week - 9
-    p.outWk = injured ? g.week - 1 : undefined
-    if (injured) p.avail = Math.max(0, (p.avail ?? 0) - 8)
-    p.morale = 7
-    const before = p.morale
-    for (let w = 0; w < 2; w++) processWeekAndAdvance(g)
-    return before - p.morale
-  }
+  const stayedOut: boolean[] = []
+  const run = (injured: boolean) => { const r = scenario(who.id, injured); stayedOut.push(r.stayedOut); return r.drop }
   const back = run(true), leftOut = run(false)
+  ok(stayedOut.every(Boolean), `the man under test really stayed out both weeks (${stayedOut.join(', ')})`)
   console.log(`  two weeks unpicked: just back from injury -${back.toFixed(2)}, fit and left out -${leftOut.toFixed(2)}`)
   ok(leftOut > back + 0.2, `a fit man left out for weeks still feels it (-${leftOut.toFixed(2)})`)
   ok(back < 0.15, `a man just back from injury does not (-${back.toFixed(2)}, the ordinary weekly drift only)`)

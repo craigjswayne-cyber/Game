@@ -10,7 +10,7 @@ import {
 } from '../../game/monetise'
 import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
-import { NAT_TIERS, pickableNations, nationName } from '../../game/nations'
+import { NAT_TIERS, pickableNations, nationName, nationVars } from '../../game/nations'
 import { t } from '../../game/i18n'
 import { endingText, spendCredit } from '../purchase'
 import { Glyph } from '../glyphs'
@@ -473,7 +473,7 @@ export default function Supporter() {
               ))}
             </select>
             <button className="btn gold" style={{ flexShrink: 0 }}
-              onClick={() => { say(PINNACLE_SKU, makeTheCall(natPick) ? t('store.callMade', { nat: nationName(natPick) }) : t('store.callRefused')) }}>
+              onClick={() => { say(PINNACLE_SKU, makeTheCall(natPick) ? t('store.callMade', { nat: nationName(natPick), ...nationVars(natPick) }) : t('store.callRefused')) }}>
               {t('store.makeCall')}
             </button>
           </div>

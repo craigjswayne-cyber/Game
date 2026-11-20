@@ -117,7 +117,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   if (!p) return <div className="muted" style={{ padding: 14 }}>{t('player.gone')}</div>
 
   const club = p.clubId ? game.clubs[p.clubId] : null
-  const mine = p.clubId === game.userClubId
+  // a manager out of a club job manages nobody's players (QA, 1.9.15: a
+  // nation-only coach could still demote and talk to his old club's squad)
+  const mine = !game.unemployed && p.clubId === game.userClubId
   const avg = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
   const ask = club && !mine ? askingPrice(game, p) : 0
   const natOnly = !!game.unemployed && !!game.natTeam
