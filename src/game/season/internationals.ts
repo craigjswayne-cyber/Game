@@ -52,7 +52,7 @@ export function manageInternationals(state: GameState, rng: Rng) {
   // release wiped the squads the earlier one had just named, and the review
   // missed its window once the next one opened. Every close now runs first.
   for (const w of wins) {
-    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.end + 1) reviewNatWindow(state, w.start)
+    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.end + 1 && !assistantWindow(state, w)) reviewNatWindow(state, w.start)
     if (state.week === w.end + 1) {
       if (state.natLineup && w.nations.includes(state.natLineup.team)) state.natLineup = null
       const returnedMine: string[] = []
@@ -125,7 +125,7 @@ export function manageInternationals(state: GameState, rng: Rng) {
   for (const w of wins) {
     // the coach's window as a campaign (1.9.14, natwin.ts): the union's
     // target when camp opens, its review when the window closes (above)
-    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.start) openNatWindow(state, w)
+    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.start && !assistantWindow(state, w)) openNatWindow(state, w)
     if (state.week === w.start && !(state.natEarly ?? '').split(',').includes(`${state.season}:${w.id}`)) callUps(state, w, rng)
   }
 }
@@ -143,7 +143,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       // stand-in gets generated (user: "there should be no age limits or
       // restrictions on who should be picked"). AI nations keep the floor
       // so the wider Test world's squad quality is untouched.
-      const usersNat = nat === state.natTeam || (nat === 'LIO' && islesCoach(state))
+      const usersNat = (nat === state.natTeam && !assistantWindow(state, w)) || (nat === 'LIO' && islesCoach(state))
       // the squad, plus the next men in behind it
       const target = w.size + NAT_DEPTH
       const real = Object.values(state.players)
@@ -240,7 +240,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       // The camp cannot stay empty forever: nameNatSquad below fills it from
       // this same pool if the coach has not named it by the time a Test
       // arrives, so a Test is never played with twelve men.
-      if (nat === state.natTeam) {
+      if (nat === state.natTeam && !assistantWindow(state, w)) {
         // opened a week early (openUserCampAhead, 1.9.15): the coach has
         // already been naming it, so it is not emptied again here
         if (userCampOpen(state, w)) continue
@@ -274,7 +274,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
         } else if (isMyClub(state, p.clubId)) userCalls.push(p)
       }
       // the national coach announces HIS squad - a proper occasion
-      if (nat === state.natTeam || (nat === 'LIO' && islesCoach(state))) {
+      if ((nat === state.natTeam && !assistantWindow(state, w)) || (nat === 'LIO' && islesCoach(state))) {
         const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
         // the squad sheet is the men who TRAVEL - the pool now runs deeper
         // than the squad, and the next men in are not in the announcement
@@ -383,6 +383,14 @@ export function callUpsAhead(state: GameState, rng: Rng, ahead: 0 | 1 = 1): void
  * because until then the empty sheet IS the job and filling it would be the
  * auto-pick the owner asked us to stop doing.
  */
+/** THE ASSISTANT'S WINDOW (QA, 1.9.15). While the coach is away with the
+ *  Isles XV, his own country's window that summer is his assistant's: the
+ *  federation picks it, and it carries no campaign, target or review of his. */
+export function assistantWindow(state: GameState, w: Window): boolean {
+  if (!islesCoach(state) || w.nations.includes('LIO')) return false
+  return activeWindows(state).some(o => o.nations.includes('LIO') && o.start <= w.end && w.start <= o.end)
+}
+
 /** The coach's camp for this window is already open (natWin for this window,
  *  and a squad list on the desk). */
 function userCampOpen(state: GameState, w: Window): boolean {
@@ -431,6 +439,7 @@ export function openUserCampAhead(state: GameState, ahead: 0 | 1): void {
   if (!nat) return
   for (const w of activeWindows(state)) {
     if (w.start !== state.week + ahead || !w.nations.includes(nat)) continue
+    if (assistantWindow(state, w)) continue
     if (userCampOpen(state, w)) continue
     // a window ending this week (the women's summer series into the Pacific
     // Four): review it and send its players home now, before the new camp

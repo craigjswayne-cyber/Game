@@ -197,6 +197,9 @@ export function Flag({ code, size = 12 }: { code: string; size?: number }) {
   const clip = `flag${useId().replace(/:/g, '')}`
   const name = nationByCode(code) ? nationName(code) : code
   const draw = DRAW[code]
+  // a club on tour has no flag (QA, 1.9.15): nothing, not an empty box
+  // labelled with its id
+  if (!draw && !nationByCode(code)) return null
   return (
     <svg className="flag" width={(size * W) / H} height={size} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={name}
       style={{ verticalAlign: '-0.1em', flexShrink: 0, overflow: 'hidden' }}>

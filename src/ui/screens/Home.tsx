@@ -273,7 +273,7 @@ export default function Home() {
             </div>
           </div>
           <h3 className="fx-line">
-            <Flag code={testFx.homeId} size={20} /> {nationName(testFx.homeId)} {t('common.v')} <Flag code={testFx.awayId} size={20} /> {nationName(testFx.awayId)}
+            <Flag code={testFx.homeId} size={20} /> {game.clubs[testFx.homeId]?.name ?? nationName(testFx.homeId)} {t('common.v')} <Flag code={testFx.awayId} size={20} /> {game.clubs[testFx.awayId]?.name ?? nationName(testFx.awayId)}
           </h3>
           <div className="meta">
             {fxDate(game.season, testFx)}{testFx.venue ? t('home.atNeutral') : testFx.homeId === game.natTeam || testFx.homeId === 'LIO' ? t('home.atHome') : t('home.atAway')}
@@ -349,7 +349,7 @@ export default function Home() {
             <span className="ht-l fact-label">{t('home.snLabel', { comp: (compLabel(game.comps[snId]?.name) ?? t('home.theChampionship')).toUpperCase() })}</span>
             {thisWk.map(f => (
               <span key={f.id} className="ht-v">
-                <Flag code={f.homeId} /> {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} />
+                <Flag code={f.homeId} /> {game.clubs[f.homeId]?.name ?? nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {game.clubs[f.awayId]?.name ?? nationName(f.awayId)} <Flag code={f.awayId} />
               </span>
             ))}
             {rows.length > 0 && rows[0].p > 0 && (

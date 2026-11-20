@@ -83,8 +83,8 @@ export default function Country() {
         {testFx && (
           <div className="muted" style={{ marginTop: 8, fontWeight: 700 }}>
             {t('legacy.coTestWeek', {
-              home: nationName(testFx.homeId),
-              away: nationName(testFx.awayId),
+              home: game.clubs[testFx.homeId]?.name ?? nationName(testFx.homeId),
+              away: game.clubs[testFx.awayId]?.name ?? nationName(testFx.awayId),
             })}
           </div>
         )}
