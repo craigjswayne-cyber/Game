@@ -1,68 +1,125 @@
 # PHASE: Rugby Manager 1.9.15: release notes
 
-Owner's round of 20 Nov 2026, from playing 1.9.14 as a national coach.
+**DRAFT, not merged, not uploaded.** Started 19 Nov 2026 from the owner's
+international list, then an overnight QA of the international game (owner:
+"test all features, all teams for multiple seasons ... internationals should
+be harder than the club coaching ... nobody should be able to breeze it").
+The store "What's new" text is in `docs/store-listing.md`.
+
 Version 1.9.15, Play versionCode 78. Baseline: 1.9.14, code 77.
 
 ## What changed for players
 
-- **A national coach without a club can pick the Test side (urgent).**
-  Owner: "ive picked my squad but i cant select my xv and subs for my game
-  in international mode". A manager who holds only a country was sent back to
-  Home every time the match day screen opened: the guard that keeps an
-  out-of-work manager off the club's desk screens counted the match day as one
-  of them. In a week with a Test, the match day screen is now the Test's, and
-  the XV, the bench, the captain and the game plan can all be picked. A
-  manager with a club and a country was not affected.
-- **The coaches' squad covers every position.** Owner: "if you dont have any
-  lp for example in the squad, make sure more lps are in the call up". "Take
-  the coaches' squad" took the best players in order, so it could name a
-  squad with no loosehead. It now names three props on each side, three
-  hookers, four locks, three flankers, two number 8s, three scrum-halves, two
-  fly-halves, three centres, three wings and two full-backs first, then the
-  best of the rest. The squad desk also says which shirts are short of cover.
-- **Social media reacts to each squad announcement.** Owner: "media should
-  react to each squad announcement with a social media update of responses".
-  The announcement shows posts from a pundit, supporters and a former
-  international on the debuts, the recalls and the names left out. The same
-  squad always gets the same posts; nothing in the world's random stream moves.
-- **The Job Centre leaves a national coach's bottom bar.** Owner: "the job
-  centre keeps coming up when im an international coach only". It is under
-  World, with its badge.
-- **No fees for the international game.** Owner: "fees etc should be nothing
-  to do with the international game". For a manager who holds only a country,
-  a player's page no longer shows value, wage or the transfer and contract
-  desk.
-- **No caps count on the squad desk.** Owner: "remove the number of caps the
-  internationals have". The call-up list keeps the "uncapped" marker, which
-  the debuts depend on.
-- **Test dates on the day they are played.** Owner: "said squad is open to
-  pick on international but it changed date?". The campaign card, the Home
-  tile and the Tests list printed the Saturday the game week is counted from,
-  which for a Test week is a day already gone, while the Test itself is played
-  Friday to Sunday. Each now prints the Test's own date. A national coach with
-  no club is no longer told an assistant takes the club match.
-- **The Board Funding box fits the screen.** Owner: "Board Funding box goes off
-  the screen". The box (and the Infrastructure store box beside it) was 100%
-  wide plus a card's margins, 24px past the right edge.
-- **The Announce button appears as soon as the squad is legal.** Calling a
-  player up or taking the coaches' squad did not redraw the campaign card or
-  the "Name N more" button until another screen did.
+### The owner's list
 
-## Answered, no change needed
+- **A national coach with no club can pick the Test XV and bench.** The
+  match-day screen sent an out-of-work manager back to Home, so a coach with
+  only a country could never pick the side (urgent).
+- **The squad covers every position.** The coaches' squad fills every shirt
+  first (three looseheads, three hookers, and so on) and the desk names the
+  positions still short.
+- **The media reacts to every squad announcement**, with social posts in six
+  languages.
+- **No Job Centre on a national coach's bottom bar** (it is under World).
+- **No value, wage or deal desk** on a player's page for a nation-only coach,
+  and **no caps count** on the squad desk (the uncapped marker stays).
+- **Test dates** are printed for the day the Test is played.
+- **Board Funding and Infrastructure** boxes fit the screen.
+- **No transfer requests from the international stage.** A club player left
+  out by his own club's coach is still unhappy, but does not ask to leave.
 
-- **Do players retire and leave the call-ups?** Owner: "does the game evolve
-  enough so that Owen farrell retires and he cant be called up again". Yes:
-  every summer players of 34 and over may retire (a fifth to nearly a half each summer
-  at 34 and 35, three in five at 36 and 37, all at 38), and a retired player
-  is removed from the world, so the call-up list moves on with the years.
-  Young players develop into it.
+### The camp, the squad and the Tests
 
-## Tests
+- **The camp opens the week before every window**, so no Test is played
+  before the squad exists. The autumn and the Northern Championship get the
+  camp week they had on paper. The other side has a full squad for the first
+  Test too (England had met an empty Fiji and won 71-0).
+- **The window review stays until read**, and a coach appointed mid-window
+  gets that window's target and review.
+- **Fair reactions to selection.** "Left out" means the coach could have
+  picked them: not someone playing abroad, without a club, kept at the club
+  by the two-jobs rule, or already sent home. A recall gives back exactly what
+  the drop took. A squad that plays a Test has been announced.
+- **The dressing room reaches the pitch.** The coach's own Test side now
+  plays with its morale, as a club side does, so the announcement, the camp
+  decisions and promises kept or broken matter on the day. Only the coach's
+  side: a world with no national coach plays as before.
+- **Full-time advice in Test terms**: the Test XV, the national plan's dials
+  and the camp focus, not the club's Roles tab or infrastructure.
+- **Camp events vary** from window to window (one kind repeated all season).
 
-- New: `scripts/natonlyui.mjs` (browser: a coach with only England and no
-  club reaches a Test, picks a shirt from the squad, has no Jobs button on the
-  bar, sees no value or wage on a player's page, the coaches' squad covers
-  every shirt, the announcement shows social media posts). It fails on 1.9.14.
-- Run here: typecheck, lint, text and token lints, CSS audit, orphan check,
-  421 unit tests, the engine fingerprint (unchanged), the country probe, the
-  international stage and country browser harnesses.
+### Harder at the top
+
+- A world top-five side gets no relief on a clean-sweep target, and a window
+  against sides all well below it asks for every Test.
+- A missed target costs more (-4 or -8); an underdog's miss costs less (-2).
+- A draw with a weaker side counts against you, a defeat by a side well below
+  costs more, and an expected win is worth +1, not +2.5.
+- Winning a title adds to the union's confidence; the summer no longer lifts a
+  failing coach back up.
+- Measured over 4 seasons on 38 careers: a top men's nation coached by
+  someone who does nothing is now sacked in 6 of 10 runs, against 2 of 10 for
+  an engaged coach (before: 2 and 2). The women's top sides now feel pressure
+  (lowest union confidence 22 to 57; it was 53 to 89).
+
+### The World Championship, as it will really be played
+
+- **24 nations, six pools of four**, the real 2027 draw for 2027 (World
+  Rugby). The top two in each pool and the four best third-placed sides go to
+  a **round of sixteen**, then quarter-finals, semi-finals, a **bronze final**
+  and the final. The women's tournament also plays a bronze final.
+- On the real dates: from the weekend of 2 October to the final on Saturday
+  13 November 2027.
+- **Hong Kong China and Zimbabwe** join the game: names in six languages,
+  flags, kits, anthems, name pools and world ranking points.
+- The Nations screen shows **the pools and the bracket**; the women's Test
+  competitions have their own tabs.
+- The post-tournament verdict judges a seed against the round it should
+  reach; the celebration names the nation.
+
+### The British & Irish Isles XV
+
+- The series is decided on the three Tests, and the Isles coach coaches the
+  Saturday Tests, not the midweek provincial games.
+- The host keeps its squad for the whole series.
+- **The tour party is the coach's to pick**: drop and call up on the desk as
+  for his own country, which the assistant runs that summer.
+- Tours on the real years: 2029 New Zealand, 2033 South Africa, 2037
+  Australia; women's 2031, 2035, 2039.
+- Provincial games show the club's name, with no anthems or world ranking,
+  under "Tour match". An unanswered invitation lapses two weeks before the
+  party leaves.
+
+### World and rankings
+
+- Rankings weight every World Championship match double and nothing else.
+- Northern Championship: a Grand Slam is worth 3 bonus points and ties are
+  split on points difference.
+- Thin nations call up their real players before generating anyone, and a
+  women's nation's generated players are rated from the women's game.
+- Autumn and women's summer Tests rotate opponents with no repeats.
+- Canadian names for Canadian players.
+
+### Words
+
+- Letters name the nation, not its code ("SACKED: ENG relieve you").
+- "Southern Championship", not "the The Southern Championship".
+- French, Spanish and Italian: a woman head coach is named as one, women
+  players are women, and "sélectionneur du Angleterre" is gone.
+- A national coach with no club is not called "Unemployed".
+- Small fixes: the Annual and Home no longer print codes, the Offers contract
+  year, New Zealand's Star Player tag, "Squad named in 161 days".
+
+## For the owner to decide
+
+- **Upset rate.** Favourites win close Tests less often than in real rugby
+  (about 70% where real rugby is nearer 90%). This is the match engine, which
+  is not changed without your say.
+- **Tier-two nations** (Georgia, Portugal, Spain, Uruguay, Chile, Romania,
+  Namibia, Hong Kong China, Zimbabwe) play the World Championship but have no
+  Test programme in between.
+- **Squad size** is 32 for every window; a real World Cup squad is 33.
+
+## Checks
+
+To be filled in at the release run.

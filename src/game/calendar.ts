@@ -84,9 +84,11 @@ export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
 export const PNC_WEEKS = [5, 6, 7, 9, 10]
 // six pools of four play three rounds; then the last sixteen, the quarters,
-// the semis, and the bronze final with the final on one weekend (1.9.15)
-export const WC_POOL_WEEKS = [6, 7, 8]
-export const WC_KO_WEEKS = [9, 10, 11, 12]
+// the semis, and the bronze final with the final on one weekend (1.9.15).
+// The real 2027 dates: 1 October to 13 November (World Rugby), which is the
+// weekends of weeks 8 to 14 here.
+export const WC_POOL_WEEKS = [8, 9, 10]
+export const WC_KO_WEEKS = [11, 12, 13, 14]
 export const SUMMER_TEST_WEEKS = [44, 45]
 export const TOUR_WEEKS = [44, 45, 46, 47, 48]
 
@@ -200,9 +202,11 @@ export function playoffWeeksFor(playoffTeams: number, leagueId = ''): number[] {
 /** [first week away, last week away] for an international competition, by
  *  competition id. A window with a camp week starts the week before its first
  *  fixture; the summer ones do not - the squads leave after the finals. The
- *  men's World Championship camp opens in week 1, the pre-season. */
+ *  men's World Championship camp opens three weeks before its first match
+ *  (1.9.15: the tournament moved to October, its real dates, and a camp from
+ *  week 1 would have taken the players from their clubs for seven weeks). */
 const WINDOW_SPANS: Record<string, [number, number]> = {
-  wc: [1, WC_KO_WEEKS[WC_KO_WEEKS.length - 1]],
+  wc: [WC_POOL_WEEKS[0] - 3, WC_KO_WEEKS[WC_KO_WEEKS.length - 1]],
   trc: [TRC_WEEKS[0] - 1, TRC_WEEKS[TRC_WEEKS.length - 1]],
   pnc: [PNC_WEEKS[0] - 1, PNC_WEEKS[PNC_WEEKS.length - 1]],
   aut: [AUTUMN_WEEKS[0] - 1, AUTUMN_WEEKS[AUTUMN_WEEKS.length - 1]],

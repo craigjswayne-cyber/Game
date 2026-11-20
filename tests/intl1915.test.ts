@@ -16,6 +16,7 @@ import { mulberry32 } from '../src/game/rng'
 import { BASE_YEAR, type Competition, type Fixture, type GameState } from '../src/game/model'
 import { deskNat, natCallUp, natDrop, natWindow } from '../src/game/country'
 import { announceSquad, noteWindowResult, openNatWindow } from '../src/game/natwin'
+import { startTenure } from '../src/game/natera'
 
 function camp(seed: number, nat = 'ENG'): GameState {
   const g = newGame('leicester', 'Window', seed)
@@ -161,5 +162,18 @@ describe('the Isles tour party is the coach\'s to pick', () => {
     expect(g.natSquads['LIO']).toContain(out)
     // and his own country is not the desk while he is away
     expect(g.natSquads['ENG'] ?? []).not.toContain(out)
+  })
+})
+
+describe('appointed mid-window', () => {
+  it('inherits the squad and the window\'s campaign', () => {
+    const g = newGame('leicester', 'Mid', 81)
+    const w = activeWindows(g).filter(x => x.nations.includes('ENG')).sort((a, b) => a.start - b.start)[0]
+    g.week = w.start + 1
+    g.natSquads.ENG = Object.values(g.players).filter(p => p.nat === 'ENG' && p.clubId).slice(0, 32).map(p => p.id)
+    g.natTeam = 'ENG'
+    startTenure(g)
+    expect(g.natWin?.nat).toBe('ENG')
+    expect(g.natWin?.start).toBe(w.start)
   })
 })
