@@ -152,6 +152,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   /** the play on the grass right now: usually the newest line's, but a score
    *  is played before its line is shown, and the label has to match the grass */
   const [onGrass, setOnGrass] = useState<Phase | null>(null)
+  const [flash, setFlash] = useState<{ label: string; home: boolean; n: number } | null>(null)
   /** the banner on screen, once its moment has landed */
   const [banner, setBanner] = useState<Banner | null>(null)
   const bannerRef = useRef<{ want: Banner | null; shownAt: number }>({ want: null, shownAt: -1 })
@@ -240,6 +241,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // the last frame before a cut, dissolved out over the new one
     const ghost = document.createElement('canvas')
     let grassSeen: Phase | null = null
+    let flashSeen = 0
     let reachedSent = -1
     let seenCuts = S.cuts, dissolve = 0
     /** 0..1: how much the fast-forward mark is showing */
@@ -708,6 +710,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       if (dissolve > 0) dissolve = Math.max(0, dissolve - dt / 0.45)
       if (S.phase && S.phase !== grassSeen) { grassSeen = S.phase; setOnGrass(S.phase) }
+      if (S.flash && S.flash.n !== flashSeen) { flashSeen = S.flash.n; const f = S.flash; setFlash(f); window.setTimeout(() => setFlash(c => (c && c.n === f.n ? null : c)), 2300) }
       {
         const rc = io.current.cursor
         if (reachedSent !== rc && (S.phase?.at !== rc - 1 || S.reached)) { reachedSent = rc; io.current.onReached?.(rc) }
@@ -1048,7 +1051,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           visually"). A change of possession or a stoppage was only the small
           label on the far stand. It is also said on the plate at the bottom,
           with the side that now has the ball. */}
-      {!banner && NOTE.has(now.label) && (
+      {!banner && flash && (
+        <div className="lp-banner note" key={`f${flash.n}`} data-testid="lp-flash">
+          <b style={bannerSize(tr(flash.label), false)}>{tr(flash.label)}</b>
+          <span>{flash.home ? teams.home : teams.away}<i style={{ background: barInk((flash.home ? home : away).kit) }} /></span>
+        </div>
+      )}
+      {!banner && !flash && NOTE.has(now.label) && (
         <div className="lp-banner note" key={`n${now.at}${now.label}`} data-testid="lp-note">
           <b style={bannerSize(tr(now.label), false)}>{tr(now.label)}</b>
           <span>{now.homeBall ? teams.home : teams.away}<i style={{ background: barInk((now.homeBall ? home : away).kit) }} /></span>

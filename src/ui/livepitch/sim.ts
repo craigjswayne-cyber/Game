@@ -214,6 +214,9 @@ export class PitchSim {
 
   /** a line held back while a restart the engine does not write is played first */
   private queued: { p: Phase; c: number | null } | null = null
+  /** something to say on the plate that is not a line of its own: what, which side, and a count so the same thing said twice is shown twice */
+  flash: { label: string; home: boolean; n: number } | null = null
+  private flashN = 0
   /** who kicked the match off: the other side kicks off the second half */
   private firstKO: boolean | null = null
   /** the next line's play: plan it from where everything is now */
@@ -235,6 +238,14 @@ export class PitchSim {
     // OUT ON THE FULL IS THEIR LINEOUT, BACK WHERE IT WAS KICKED (law 18). The
     // engine's line says so and then moves on, so the pitch plays the throw
     // unless the next line is already a lineout.
+    // WHY THERE IS A SCRUM (owner, 19 Nov 2026: "a line break happens then
+    // suddenly the players reset? No explainer in commentary - if he knocks
+    // it on it must be clear"). A scrum out of open play is a knock-on or a
+    // forward pass by the side that does not get the put-in. The plate says
+    // so before the scrum is set.
+    if (p.kind === 'scrum' && last && p.at !== last.at && (last.kind === 'carry' || last.kind === 'ruck' || last.kind === 'catch' || last.kind === 'kick' || last.kind === 'heldup')) {
+      this.flash = { label: 'lp.knockOn', home: !p.homeBall, n: ++this.flashN }
+    }
     // NOBODY BOUND IN A SCRUM RUNS OFF IT WITH THE BALL (owner, 19 Nov 2026:
     // "from a scrum the prop randomly runs forward with the ball, this
     // wouldn't happen from a scrum"). When the next line's carrier is one of
