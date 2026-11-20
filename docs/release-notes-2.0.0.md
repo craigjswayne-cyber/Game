@@ -166,3 +166,16 @@ Engine, deliberately, fingerprint rebaselined (three of the six fixed results ch
 
 - A kick out on the full about once a match: 0.44 a match before, 1.29 after, over 300 matches.
 - A strict referee blows a little more and a lenient one a little less. Penalties a match over 1,500: strict 6.4 to 6.8, fair 6.1 to 5.8, lenient 5.5 to 4.9, all referees 6.10 to 6.02.
+
+## The live pitch, 20 November 2026 (morning)
+
+Owner: "The movement still isnt accurate - players jumping around the pitch randomly - the ball not moving correctly".
+
+Measured on screen over a whole match (scripts/tmp/screen.ts): three or more men moving faster than 17 m/s for 42.7% of the time watched, and the ball over 45 m/s for about 40 seconds. The cause was the wind-on: 139 seconds a match shown at four to 6.6 times life speed, 105 of them thirty men being hurried to a set piece.
+
+- A stoppage dissolves to the formed set piece (kick-off, drop-out, lineout, scrum, conversion, penalty goal). Live play never cuts.
+- Nothing is wound on faster than 1.18 times watching speed. A gap in open play is crossed in one or two carries.
+- After: three or more men over 17 m/s 0% of the time; ten or more men over 12 m/s 8.6% (42.1% before); the ball over 45 m/s under half a second a match.
+- A drop goal is kicked out of play (ruck, pass to the fly-half, drop kick), and its plate no longer fills the pitch (its class collided with a tactics-board rule).
+- At a restart only the three nearest forwards come in behind the catch; the receiving pods are opened out.
+- Match length: about 2.2 to 2.7 seconds a line in the real game.
