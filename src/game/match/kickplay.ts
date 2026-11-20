@@ -105,7 +105,8 @@ export function kicksFromHand(state: GameState, ctx: LiveCtx, side: SideCtx, opp
 
 /** a kick that goes out on the full, a 50:22 found, and the share of those
  *  the referee voids because the ball was taken back into the half (1.8.16) */
-const OUT_FULL_P = 0.012
+// (0.012 until 20 Nov 2026: that was 0.44 a match in the commentary. Owner: "fairly low I'd say maybe 1 or 2 a game".)
+const OUT_FULL_P = 0.033
 const VOID_5022 = 0.15
 const OUT_FULL = ['comm.outFull1', 'comm.outFull2', 'comm.outFull3']
 const FIFTY22 = ['comm.fifty22_1', 'comm.fifty22_2', 'comm.fifty22_3']

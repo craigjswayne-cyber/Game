@@ -24,6 +24,10 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED 20 Nov 2026, for the ENGINE, deliberately: a kick out on the
+  // full is 0.033 a kick, not 0.012 (kickplay.ts OUT_FULL_P; owner: "fairly
+  // low I'd say maybe 1 or 2 a game"; measured 0.44 a match before, 1.29
+  // after, over 300 matches). Two of the six results moved.
   // REBASELINED for 2.0.0 (17 Nov 2026), for the ENGINE, deliberately: the
   // quick tap in open field and the penalty for not being back ten (owner:
   // "Yes to quick taps and penalties for not being back 10m which each team
@@ -716,8 +720,8 @@ export const EXPECTED: string[] = [
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
   'bristol 10-27 sale',
-  'newcastle 15-17 gloucester',
-  'northampton 46-24 exeter',
+  'newcastle 13-21 gloucester',
+  'northampton 43-30 exeter',
   'saracens 36-12 bath',
   'harlequins 12-33 leicester',
   'newcastle 12-44 bristol',
