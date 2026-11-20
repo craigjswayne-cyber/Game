@@ -132,6 +132,8 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
           const edge = top ? -1 : 71, lx = clamp(p.x, 6, 94)
           const gain = (lx - ball.x) * (X ? 1 : -1)
           let ownThrow = false
+          // (a man is only run or bundled into touch when he is near it: from the middle of the field it is kicked there)
+          const far = Math.abs(ball.y - (top ? 0 : 70)) > 16
           if (kicked && lastKick && Y !== X) {
             // their kick was the one that went out: it is that kick, finding touch
             lastKick.to = { x: lx, y: edge }; lastKick.label = 'lp.kickTouch'; lastKick.say = 'lp.say.kickTouch'
@@ -143,13 +145,17 @@ export function direct(events: MatchEvent[], homeId: string, up?: (i: number) =>
           } else if (before === 'penalty' && penSide === Y) {
             // a penalty kicked to touch: their own throw (law 18.8)
             add({ ...sup, kind: 'kick', homeBall: Y, x: ball.x, y: ball.y, to: { x: lx, y: edge }, hang: 7, label: 'lp.kickTouch', say: 'lp.say.penTouch' })
-          } else if (Y !== X && gain > 8) {
+          } else if (before === 'penalty' && penSide === X && Y !== X) {
+            // their penalty, kicked to touch: their own throw, and the other side then takes it against the throw
+            add({ ...sup, kind: 'kick', homeBall: X, x: ball.x, y: ball.y, to: { x: lx, y: edge }, hang: 7, label: 'lp.kickTouch', say: 'lp.say.penTouch' })
+            ownThrow = true
+          } else if (Y !== X && (gain > 8 || far)) {
             // the side with the ball kicks it out: the other side's throw
             add({ ...sup, kind: 'kick', homeBall: X, x: ball.x, y: ball.y, to: { x: lx, y: edge }, hang: 7, label: 'lp.kickTouch', say: 'lp.say.kickTouch' })
           } else if (Y !== X) {
             // the man with the ball is put into touch: the other side's throw
             add({ ...sup, kind: 'intotouch', homeBall: X, x: clamp(lx, 2, 98), y: top ? 1 : 69, who: 'carrier', byHome: X, label: 'lp.intoTouch', say: 'lp.say.carriedOut' })
-          } else if (gain > 8) {
+          } else if (gain > 8 || far) {
             // they kick ahead and a defender plays it into touch: the kicking side's throw
             add({ ...sup, kind: 'kick', homeBall: X, x: ball.x, y: ball.y, to: { x: lx, y: top ? 3 : 67 }, hang: 6, label: 'lp.kickAhead', say: 'lp.say.kickAhead' })
             add({ ...sup, kind: 'intotouch', homeBall: !X, x: lx, y: top ? 1 : 69, who: 'carrier', byHome: !X, label: 'lp.intoTouch', say: 'lp.say.defOut' })
