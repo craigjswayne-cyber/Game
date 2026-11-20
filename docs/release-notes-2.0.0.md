@@ -145,3 +145,24 @@ Owner's notes on the full-match video, and the day's list.
 - A trial ceiling on the wind-on speed (`?lpcap=`), off by default.
 
 Measured, not changed: selection (best XV wins 48.0%, three stars rested 31.5%, second XV 14.0%), team talks (51.6% best, 45.7% none, 40.1% worst in even games), substitutions (+1.3 points from four fresh men), game plan (+4.9 points), referees (strict 2.04 yellows a match, lenient 0.76).
+
+## The live pitch, 19 to 20 November 2026 (night)
+
+Owner's notes on the 5pm full-match video.
+
+- The pop-up for a score or a card is a small plate at the bottom centre of the pitch, every row centred, with a bar in the side's colour. The same plate names what needs explaining, with the side whose ball it is: turnover, knock-on, penalty, out on the full, 50:22, drop-outs, held up, charged down, TMO check.
+- A card a side is carrying sits under its name in the top bar.
+- A kick to touch bounces in the field before it goes out. Any kick into touch is followed by the other side's lineout where it went out (the kicking side's after a 50:22).
+- A scrum out of open play says why: "Knock-on." in the scrum commentary (six languages, words only) and on the plate, and the ball is seen spilled forward.
+- A turnover is seen: the carrier goes down and the other side's nearest man comes away with the ball.
+- The second half starts with a kick-off, taken by the side that did not start the match, both sides in their places.
+- The kick-off catcher runs the ball back; nobody stands still after the catch. A restart after a score is kicked from halfway, not from wherever the kicker had got to.
+- From a scrum the scrum-half puts the ball in, and a front-five forward does not run off it: the number 8 picks up first.
+- The run-in to a try is watched, not wound on. A carrier whose run ends in open grass is run down by the two nearest defenders.
+- Offside at kicks (law 10): only players behind the kicker chase; those in front wait for the line.
+- No kick at goal from a silly angle. The ball is lobbed to the kicking mark and the kicker walks out to it.
+
+Engine, deliberately, fingerprint rebaselined (three of the six fixed results changed):
+
+- A kick out on the full about once a match: 0.44 a match before, 1.29 after, over 300 matches.
+- A strict referee blows a little more and a lenient one a little less. Penalties a match over 1,500: strict 6.4 to 6.8, fair 6.1 to 5.8, lenient 5.5 to 4.9, all referees 6.10 to 6.02.
