@@ -85,9 +85,30 @@ union. A figure goes in the data file only when a source here gives it.
   November tests)". Cross-check the 34 names against the FIR list when a
   fetchable copy turns up. Tommaso Menoncello is injured and absent.
 
+## New Zealand (men) - done
+
+- Squad and caps: allblacks.com, "All Blacks name squad for Nations
+  Championship Northern Tour", 26 Oct 2026. 36 players, Test caps beside each.
+- Injured and absent: Ardie Savea, Leroy Carter, Billy Proctor, Tyrel Lomax,
+  Luke Jacobson (caps still to add as `squad: false`).
+
+## Australia (men) - done
+
+- Squad and caps: rugby.com.au, "Wilson, Lambert named in first Wallabies
+  squads for Spring Tour", 23 Oct 2026. 33 players. Kurtley Beale, James Ramm
+  and Kalani Thomas joined later (not in the file).
+
+## South Africa (men) - squad done, 31 caps to find
+
+- Squad: 37 named 28 Oct 2026 (rugby365). Uncapped: Yaqeen Ahmed, Sebastian
+  de Klerk, Luan Giliomee, Markus Muller, Riley Norton, Emmanuel Tshituka.
+- Injured and absent: Cheslin Kolbe, Eben Etzebeth (later recalled), Andre
+  Esterhuizen, Handre Pollard.
+- Caps: none found yet. Search "South Africa national rugby union team" so the
+  Wikipedia page comes back as a result, then fetch its Current squad table.
+
 ## To do, in this order
 
-Men: South Africa, New Zealand,
-Australia, Argentina, Fiji, Japan, then Samoa, Tonga, USA, Canada.
+Men: South Africa caps, Argentina, Fiji, Japan, then Samoa, Tonga, USA, Canada.
 Women: England, France, Ireland, Scotland, Wales, Italy, New Zealand,
 Australia, USA, Canada (check `testNationsIn` for the ten in a women's world).

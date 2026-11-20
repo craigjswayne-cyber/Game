@@ -128,6 +128,46 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Paolo Odogwu', 10), r('Mirko Belloni', 3), r('Monty Ioane', 49), r('Louis Lynagh', 16),
       r('Federico Zanandrea', 0), r('Ange Capuozzo', 32), r('Matt Gallagher', 3), r('Giovanni Montemauri', 0),
     ],
+    // New Zealand: 36 named by NZR on 26 Oct 2026 (20 forwards, 16 backs),
+    // with the Test caps the union printed beside each name.
+    NZL: [
+      r('Codie Taylor', 114), r('Asafo Aumua', 27), r('George Bell', 4), r('Ethan de Groot', 46),
+      r('George Bower', 31), r('Xavier Numia', 6), r('Fletcher Newell', 43), r('Pasilio Tosi', 19),
+      r("Saula Ma'u", 0), r('Scott Barrett', 91), r('Josh Lord', 18), r('Fabian Holland', 16),
+      r('Jamie Hannah', 1), r("Tupou Vaa'i", 53), r('Anton Segner', 3), r("Leicester Fainga'anuku", 12),
+      r('Ethan Blackadder', 15), r('Christian Lio-Willie', 3), r('Peter Lakai', 16), r('Wallace Sititi', 25),
+      r('Cam Roigard', 26), r('Kyle Preston', 6), r('Cortez Ratima', 25), r("Richie Mo'unga", 57),
+      r('Damian McKenzie', 83), r('Josh Jacomb', 0), r('Jordie Barrett', 86), r('Quinn Tupaea', 31),
+      r('Timoci Tavatavanawai', 3), r('Anton Lienert-Brown', 94), r('Rieko Ioane', 91), r('Chay Fihaki', 1),
+      r('Fehi Fineanganofo', 1), r('Josh Moorby', 7), r('Will Jordan', 63), r('Beauden Barrett', 147),
+    ],
+    // Australia: 33 named by Rugby Australia on 23 Oct 2026 (19 forwards, 14
+    // backs), with the caps the union printed beside each name.
+    AUS: [
+      r('Allan Alaalatoa', 96), r('Miles Amatosero', 2), r('Angus Bell', 60), r('Josh Canham', 9),
+      r('Massimo De Lutiis', 5), r('Tom Hooper', 25), r('Isaac Kailea', 9), r('Tom Lambert', 0),
+      r('Fraser McReight', 49), r('Josh Nasser', 18), r('Brandon Paenga-Amosa', 32), r('Billy Pollard', 26),
+      r('Lukhan Salakaia-Loto', 50), r('Lachlan Shaw', 6), r('Carlo Tizzano', 18), r('Taniela Tupou', 74),
+      r('Rob Valetini', 71), r('Jeremy Williams', 35), r('Harry Wilson', 45),
+      r('Filipo Daugunu', 25), r('Ben Donaldson', 27), r('Carter Gordon', 13), r('Isaac Henry', 6),
+      r('Len Ikitau', 56), r('Max Jorgensen', 30), r('Ryan Lonergan', 15), r('Tate McDermott', 57),
+      r('Declan Meredith', 5), r('Hunter Paisami', 39), r('Harry Potter', 18), r('Joseph-Aukuso Suaalii', 27),
+      r('Teddy Wilson', 0), r('Tom Wright', 53),
+    ],
+    // South Africa: 37 named by SA Rugby on 28 Oct 2026 (rugby365 list). The
+    // six uncapped men are 0; every other count is still to be checked.
+    RSA: [
+      r('Thomas du Toit', null), r('Ox Nche', null), r('Wilco Louw', null), r('Ntuthuko Mchunu', null),
+      r('Zachary Porthen', null), r('Gerhard Steenekamp', null), r('Malcolm Marx', null), r('Jan-Hendrik Wessels', null),
+      r('Lood de Jager', null), r('Salmaan Moerat', null), r('Ruan Nortje', null), r('Riley Norton', 0),
+      r('Franco Mostert', null), r('Paul de Villiers', null), r('Siya Kolisi', null), r('Cameron Hanekom', null),
+      r('Emmanuel Tshituka', 0), r('Jasper Wiese', null), r('Pieter-Steph du Toit', null), r('Marco van Staden', null),
+      r('Cobus Reinach', null), r('Morne van den Berg', null), r('Grant Williams', null), r('Yaqeen Ahmed', 0),
+      r('Sacha Feinberg-Mngomezulu', null), r('Luan Giliomee', 0), r('Manie Libbok', null), r('Damian de Allende', null),
+      r('Jesse Kriel', null), r('Markus Muller', 0), r('Canan Moodie', null), r('Sebastian de Klerk', 0),
+      r('Aphelele Fassi', null), r('Ethan Hooker', null), r('Edwill van der Merwe', null), r('Kurt-Lee Arendse', null),
+      r('Damian Willemse', null),
+    ],
   },
   w: {},
 }

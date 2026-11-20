@@ -36,6 +36,8 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - [x] England men: squad of 36 in, 27 caps checked, 9 to confirm.
 - [x] France men (41, 3 caps to confirm) and Ireland men (36, all caps checked).
 - [x] Scotland men (37, all caps), Wales men (39, 10 caps to confirm), Italy men (34, all caps).
+- [x] New Zealand men (36, all caps), Australia men (33, all caps), South Africa men (37 named, 31 caps to find).
+- [ ] Men still to do: Argentina, Fiji, Japan, Samoa, Tonga, USA, Canada. Then the ten women's unions.
 - [ ] Player audit list so far (wrong union or not in the world): see the
       `missing:` lines of `npx vite-node scripts/intlaudit.ts` and the research log.
 - [ ] Every other union: see docs/research/intl-squads-2026.md for the order,
@@ -62,3 +64,4 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - 21:45 Stage 2 mechanism in, England men done (36/36 found). WebFetch only takes addresses a search returned; RFU news pages refuse.
 - 21:46 France and Ireland men in. Next: Scotland, Wales, Italy.
 - Six Nations unions all in. Next: South Africa, New Zealand, Australia, Argentina, Fiji, Japan.
+- 21:52 Nine of sixteen men's unions in (ENG FRA IRE SCO WAL ITA NZL AUS RSA). 300+ players named, about 250 with checked caps.
