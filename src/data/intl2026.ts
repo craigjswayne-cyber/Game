@@ -154,19 +154,27 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Declan Meredith', 5), r('Hunter Paisami', 39), r('Harry Potter', 18), r('Joseph-Aukuso Suaalii', 27),
       r('Teddy Wilson', 0), r('Tom Wright', 53),
     ],
-    // South Africa: 37 named by SA Rugby on 28 Oct 2026 (rugby365 list). The
-    // six uncapped men are 0; every other count is still to be checked.
+    // South Africa: 37 named by SA Rugby on 28 Oct 2026 (rugby365 list). Caps
+    // from the Nations Championship's own squad page, read 20 Nov 2026: that
+    // is AFTER the Italy and France Tests, so a man who played both is two
+    // too high. To be corrected from the two team sheets (research log).
     RSA: [
-      r('Thomas du Toit', null), r('Ox Nche', null), r('Wilco Louw', null), r('Ntuthuko Mchunu', null),
-      r('Zachary Porthen', null), r('Gerhard Steenekamp', null), r('Malcolm Marx', null), r('Jan-Hendrik Wessels', null),
-      r('Lood de Jager', null), r('Salmaan Moerat', null), r('Ruan Nortje', null), r('Riley Norton', 0),
-      r('Franco Mostert', null), r('Paul de Villiers', null), r('Siya Kolisi', null), r('Cameron Hanekom', null),
-      r('Emmanuel Tshituka', 0), r('Jasper Wiese', null), r('Pieter-Steph du Toit', null), r('Marco van Staden', null),
-      r('Cobus Reinach', null), r('Morne van den Berg', null), r('Grant Williams', null), r('Yaqeen Ahmed', 0),
-      r('Sacha Feinberg-Mngomezulu', null), r('Luan Giliomee', 0), r('Manie Libbok', null), r('Damian de Allende', null),
-      r('Jesse Kriel', null), r('Markus Muller', 0), r('Canan Moodie', null), r('Sebastian de Klerk', 0),
-      r('Aphelele Fassi', null), r('Ethan Hooker', null), r('Edwill van der Merwe', null), r('Kurt-Lee Arendse', null),
-      r('Damian Willemse', null),
+      r('Thomas du Toit', 37), r('Ox Nche', 53), r('Wilco Louw', 36), r('Ntuthuko Mchunu', 4),
+      r('Zachary Porthen', 8), r('Gerhard Steenekamp', 23), r('Malcolm Marx', 94), r('Jan-Hendrik Wessels', 15),
+      r('Lood de Jager', 78), r('Salmaan Moerat', null), r('Ruan Nortje', 24), r('Riley Norton', 0),
+      r('Franco Mostert', 85), r('Paul de Villiers', 5), r('Siya Kolisi', 107), r('Cameron Hanekom', 6),
+      r('Emmanuel Tshituka', 0), r('Jasper Wiese', 50), r('Pieter-Steph du Toit', 102), r('Marco van Staden', 38),
+      r('Cobus Reinach', 57), r('Morne van den Berg', 11), r('Grant Williams', 31), r('Yaqeen Ahmed', 0),
+      r('Sacha Feinberg-Mngomezulu', 25), r('Luan Giliomee', 0), r('Manie Libbok', 34), r('Damian de Allende', 103),
+      r('Jesse Kriel', 94), r('Markus Muller', 0), r('Canan Moodie', 26), r('Sebastian de Klerk', 0),
+      r('Aphelele Fassi', 19), r('Ethan Hooker', 14), r('Edwill van der Merwe', 8), r('Kurt-Lee Arendse', 35),
+      r('Damian Willemse', 55),
+      // capped, not in the 28 Oct squad
+      r('Eben Etzebeth', 147, false), r('Cheslin Kolbe', 53, false), r('Handre Pollard', 88, false),
+      r('Andre Esterhuizen', 36, false), r('Faf de Klerk', 60, false), r('Elrigh Louw', 16, false),
+      r('Evan Roos', 9, false), r('Ben-Jason Dixon', 11, false), r('Johan Grobbelaar', 11, false),
+      r('Boan Venter', 10, false), r('Herschel Jantjies', 26, false), r('Embrose Papier', 8, false),
+      r('Cobus Wiese', 6, false), r('Quan Horn', 3, false),
     ],
     // Argentina: 33 named by the UAR on 30 Oct 2026. Caps as of 6 Nov 2026,
     // AFTER Ireland v Argentina: the 23 who played that night are one too

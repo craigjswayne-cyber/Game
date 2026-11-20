@@ -104,10 +104,15 @@ union. A figure goes in the data file only when a source here gives it.
   de Klerk, Luan Giliomee, Markus Muller, Riley Norton, Emmanuel Tshituka.
 - Injured and absent: Cheslin Kolbe, Eben Etzebeth (later recalled), Andre
   Esterhuizen, Handre Pollard.
-- Caps: none found yet. A standard search for the Wikipedia page returned only
-  mirrors dated March 2026 (no en.wikipedia.org address), so it could not be
-  fetched. Try an extended search naming a player and "caps updated", or the
-  SA Rugby team announcements, which print caps beside each name.
+- Caps: nationschampionshiprugby.com/en/teams/rsa/squad (the owner's source),
+  read 20 Nov 2026. It is the whole 2026 squad (52 names) with CURRENT caps,
+  so after Italy (7 Nov) and France (13 Nov). TO CORRECT: take off the autumn
+  appearances from those two team sheets. Salmaan Moerat is not on that page
+  (still null). The same site has every one of the twelve unions at
+  /en/teams/<arg|aus|eng|fij|fra|ire|ita|jpn|nzl|sco|rsa|wal>/squad: open the
+  team page first so the squad address comes back as a link, then fetch it.
+  Use it next for Fiji and Japan, the open caps in ENG/FRA/WAL, and a
+  cross-check of the other unions.
 
 ## Argentina (men) - done, caps one Test late
 
