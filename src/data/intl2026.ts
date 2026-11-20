@@ -294,5 +294,17 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Emily Henrich', null), r('Tessa Hann', null), r('Telesi Uhatafe', null), r('Karina Gauto', null),
       r('Bulou Mataitoga', null), r('Erica Coulibaly', null), r('Tahna Wilfley', null), r('Ashley Cowdrey', null),
     ],
+    // New Zealand: 31 named by NZR on 9 Aug 2026 for the rest of the year
+    // (the WXV Global Series included), with Test caps beside each name.
+    NZL: [
+      r('Chryss Viliko', 22), r('Maddison Robinson', 3), r('Ngano Tavake', 0), r('Vici-Rose Green', 7),
+      r('Atlanta Lolohea', 11), r('Georgia Ponsonby', 40), r('Veisinia Mahutariki-Fakalelu', 6), r("Mo'omo'oga Palu", 1),
+      r('Santo Taumata', 7), r('Maiakawanakaulani Roos', 41), r('Laura Bayfield', 9), r("Maama Mo'onia Vaipulu", 10),
+      r('Amarante Sititi', 0), r('Mia Anderson', 3), r("Liana Mikaele-Tu'u", 38), r('Kaipo Olsen-Baker', 19),
+      r('Elinor-Plum King', 0), r('Layla Sae', 19), r('Maia Joseph', 19), r('Tara Turner', 3),
+      r('Ruahei Demant', 54), r('Hannah King', 13), r('Sylvia Brunt', 32), r('Justine McGregor', 3),
+      r('Amy Du Plessis', 25), r('Alena Saili', 5), r('Maia Davis', 0), r("Ayesha Leti-I'iga", 33),
+      r('Mererangi Paul', 17), r('Braxton Sorensen-McGee', 9), r("Shyrah Tuliau-Tua'a", 0),
+    ],
   },
 }
