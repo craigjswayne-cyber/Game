@@ -248,7 +248,7 @@ export function reviewNatWindow(state: GameState, start: number): void {
 // out by the coach you see every Monday at the club is personal. How it lands
 // depends on where his head is (morale) and on the man: a Professional takes
 // it on the chin, a Loyal man is hurt, an Ambitious or Temperamental one can
-// be angry enough to ask to leave.
+// be angry (no transfer request: 1.9.15, below).
 export type ClubDropReaction = 'fine' | 'hurt' | 'angry' | 'request'
 const PERS_F: Record<string, number> = { Professional: 0.6, Mercenary: 0.5, Leader: 0.8, Loyal: 1.2, Ambitious: 1.4, Temperamental: 1.6 }
 
@@ -257,11 +257,12 @@ export function clubManLeftOut(state: GameState, p: Player): ClubDropReaction | 
   const band = p.morale >= 7 ? 0.3 : p.morale >= 5 ? 0.7 : 1.2
   const hit = band * (PERS_F[p.pers] ?? 1)
   p.morale = clamp(p.morale - hit, 1, 10)
-  let r: ClubDropReaction = hit < 0.5 ? 'fine' : hit < 1.1 ? 'hurt' : 'angry'
-  if (r === 'angry' && (p.pers === 'Ambitious' || p.pers === 'Temperamental') && p.morale < 3.5 && !(p.wantsOut ?? 0)) {
-    p.wantsOut = Math.max(1, state.week)
-    r = 'request'
-  }
+  // NO TRANSFER REQUESTS FROM THE TEST STAGE (owner, 1.9.15: "Transfer
+  // requests shouldn't be a thing on the international stage"). Being left
+  // out still hurts, and the anger shows in his morale; it is never a
+  // request to leave the club. 'request' stays in the type so a letter filed
+  // by 1.9.14 still reads.
+  const r: ClubDropReaction = hit < 0.5 ? 'fine' : hit < 1.1 ? 'hurt' : 'angry'
   const v = { player: p.name, nat: nationNameIn('en', state.natTeam), nat_n: state.natTeam, react_k: `natwin.react_${r}` }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,

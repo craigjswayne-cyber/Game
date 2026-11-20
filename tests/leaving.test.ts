@@ -95,10 +95,11 @@ describe('the club man left out by the country\'s coach', () => {
     const { g, p } = setup('Loyal', 6)
     expect(clubManLeftOut(g, p)).toBe('hurt')
   })
-  it('an unhappy temperamental man can ask to leave', () => {
+  it('an unhappy temperamental player is angry, but never asks to leave (1.9.15)', () => {
     const { g, p } = setup('Temperamental', 4)
-    expect(clubManLeftOut(g, p)).toBe('request')
-    expect(p.wantsOut).toBeGreaterThan(0)
+    expect(clubManLeftOut(g, p)).toBe('angry')
+    expect(p.wantsOut ?? 0).toBe(0)
+    expect(p.morale).toBeLessThan(4)
     expect(g.news.some(n => n.k === 'news.natClubDrop')).toBe(true)
   })
   it('only for his own club, and only with a national job', () => {
