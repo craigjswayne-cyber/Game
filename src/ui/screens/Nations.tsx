@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { sortTable } from '../../game/schedule'
+import { sortTable, tableRule } from '../../game/schedule'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
@@ -139,7 +139,7 @@ export default function Nations() {
           <div className="tblwrap"><table className="dtable">
             <thead><tr><th className="num">{t('tables.colRank')}</th><th>{t('world.natColNation')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th><th className="num">{t('tables.colDiff')}</th><th className="num">{t('tables.colBP')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
             <tbody>
-              {sortTable(comp.table).map((r, i) => (
+              {sortTable(comp.table, tableRule(comp.id)).map((r, i) => (
                 <tr key={r.teamId}>
                   <td className="num muted">{i + 1}</td>
                   <td className="name"><Flag code={r.teamId} /> {nationName(r.teamId)}</td>

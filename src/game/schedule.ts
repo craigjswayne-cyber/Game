@@ -854,12 +854,20 @@ function buildPacFour(rng: Rng, state: GameState) {
   state.comps[W + 'p4'] = p4Comp
 }
 
-export function sortTable(table: TableRow[]): TableRow[] {
+export function sortTable(table: TableRow[], rule?: 'pd'): TableRow[] {
   // Wins before points difference (1.6.3): the Premiership, the URC and the
   // Pacific competitions all separate level clubs on matches won first, and
   // the table ranked a side with a better difference above one with more wins.
+  // The Northern Championship goes points, then points difference, then
+  // tries, as the real one does ('pd', QA 1.9.15).
+  if (rule === 'pd') return [...table].sort((a, b) => b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
   return [...table].sort((a, b) =>
     b.pts - a.pts || b.w - a.w || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
+}
+
+/** The table rule a competition is decided on. */
+export function tableRule(compId: string): 'pd' | undefined {
+  return compId === 'sn' || compId === 'w:sn' ? 'pd' : undefined
 }
 
 /**

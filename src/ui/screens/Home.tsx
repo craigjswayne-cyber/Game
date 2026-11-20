@@ -342,7 +342,7 @@ export default function Home() {
       // the international stage "should only appear when coaching"); everyone
       // else follows it on World > Nations
       !!game.natTeam && game.comps[snId] && game.week >= snWks[0] - 1 && game.week <= snWks[snWks.length - 1] && (() => {
-        const rows = sortTable(game.comps[snId].table).slice(0, 3)
+        const rows = sortTable(game.comps[snId].table, 'pd').slice(0, 3)
         const thisWk = game.fixtures.filter(f => f.compId === snId && f.week === game.week)
         return (
           <button className="home-tile wide" data-tile="nations" onClick={() => go('nations')}>

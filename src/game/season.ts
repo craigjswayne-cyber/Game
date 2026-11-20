@@ -23,7 +23,7 @@ import { upkeepWeek } from './upkeep'
 import { absWeek, addGrudge, careerRows, boardPatience, FACILITY_INFO, finalVenue, fmtMoney, formGuide, mgrReputation, RELEGATES, SEASON_WEEKS, seasonLabel, stamp100, mgrWinWeight, tieWinner } from './model'
 import { simMatch, teamShort } from './matchEngine'
 import { BARRAGE_WEEK } from './calendar'
-import { leaguePos, sortTable, snIdFor, snWeeksFor, TRC_WEEKS } from './schedule'
+import { leaguePos, sortTable, snIdFor, snWeeksFor, tableRule, TRC_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice, settlePendingDeals } from './ai'
 import { isDeadlineWeek, nextWeek, postWindowNotes, prevWeek } from './window'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress, isBoardroom } from './media'
@@ -748,8 +748,9 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
     const lastWk = snWks[snWks.length - 1]
     const penultWk = snWks[snWks.length - 2]
     if (sn && state.week === penultWk) {
-      const leader = sortTable(sn.table)[0]
-      if (leader && leader.w === 4 && leader.d === 0 && leader.l === 0) {
+      // any side four from four, wherever bonus points have put it
+      const leader = sn.table.find(r => r.w === 4 && r.d === 0 && r.l === 0)
+      if (leader) {
         const name = nationNameIn('en', leader.teamId)
         const yours = state.natTeam === leader.teamId
         state.news.push({
@@ -769,8 +770,13 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       // Spoon went unannounced while the eve-of story above ran every year
       const fx = state.fixtures.filter(f => f.compId === sn.id)
       if (fx.length && fx.every(f => f.played)) {
-        const rows = sortTable(sn.table)
-        const top = rows[0]
+        // THE GRAND SLAM IS WORTH THREE POINTS (QA, 1.9.15), as in the real
+        // championship, so a side that wins all five is never pipped by one
+        // with more bonus points. Once, before the champion is crowned below.
+        const slam = sn.table.find(r => r.w === 5)
+        if (slam && sn.slamBonus !== state.season) { slam.pts += 3; sn.slamBonus = state.season }
+        const rows = sortTable(sn.table, 'pd')
+        const top = slam ?? rows[0]
         const bottom = rows[rows.length - 1]
         if (top && top.w === 5) {
           const name = nationNameIn('en', top.teamId)
@@ -1634,7 +1640,7 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           const won = (t: string) => tests.filter(f => (f.homeId === t ? f.homeScore > f.awayScore : f.awayId === t && f.awayScore > f.homeScore)).length
           const host = comp.teamIds.find(t => t !== 'LIO') ?? comp.teamIds[0]
           comp.champion = won('LIO') > won(host) ? 'LIO' : host
-        } else comp.champion = sortTable(comp.table)[0].teamId
+        } else comp.champion = sortTable(comp.table, tableRule(comp.id))[0].teamId
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
         if (comp.type === 'league' && comp.champion === state.userClubId && !state.unemployed) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })

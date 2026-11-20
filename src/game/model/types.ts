@@ -733,6 +733,8 @@ export interface Competition {
   champion?: string
   isNational?: boolean
   pools?: string[][]
+  /** The season a Grand Slam's three bonus points were added (1.9.15). */
+  slamBonus?: number
   /** tournament seedings in order (1st seed first), fixed at the draw */
   seeds?: string[]
 }
