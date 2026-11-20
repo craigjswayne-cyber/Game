@@ -230,7 +230,7 @@ export function NatSquad() {
       <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>
       <td style={{ width: 64, textAlign: 'right' }}>
         {w && (
-          <button className="btn ghost" style={{ fontSize: '0.75rem', padding: '6px 10px', color: inSquad ? 'var(--text-negative)' : 'var(--text-positive)' }}
+          <button className="btn ghost tiny" style={{ fontSize: '0.75rem', padding: '6px 10px', color: inSquad ? 'var(--text-negative)' : 'var(--text-positive)' }}
             onClick={e => { e.stopPropagation(); act(p, inSquad ? natDrop : natCallUp) }}>
             {t(inSquad ? 'legacy.coDrop' : 'legacy.coCallUp')}
           </button>

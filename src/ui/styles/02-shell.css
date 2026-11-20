@@ -191,6 +191,14 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .bottom-nav .nbadge { position: relative; }
+/* SIX TABS ON A 320px PHONE (QA, 1.9.15). A coach with a club and a Test job
+   carries six, about 46px each, and "Manager", "Selección" and "Nazionale"
+   were cut to "Manag...". The bar gives back its own margin and padding there
+   rather than the label giving up its size. */
+@media (max-width: 340px) {
+  .bottom-nav { margin-left: 4px; margin-right: 4px; padding: 4px 3px; gap: 0; }
+  .bottom-nav button { padding-left: 1px; padding-right: 1px; letter-spacing: 0; }
+}
 
 .tab-bar {
   display: flex; overflow-x: auto;
