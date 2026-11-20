@@ -4604,6 +4604,18 @@
   },
   "lostHead": "Lost, and no one number explains it.",
   "lostHow": "Run one preset for a fortnight rather than a new plan every Saturday. Sides that know their own game win the tight ones.",
+  "nat_howScrum": "Pick a heavier front row in the Test XV. A dial cannot lift a light tight five, and a set-piece camp is the other answer.",
+  "nat_howLineout": "Get a second genuine jumper into the back five of the Test XV, and give the next camp a set-piece focus.",
+  "nat_howBreakdown": "A jackal flanker in the Test XV, or push Physicality up in the national plan. Contested ball is won by bodies arriving, not by shape.",
+  "nat_howBreakdownSel": "A jackal flanker in the Test XV. Contested ball is won by bodies arriving, not by shape, and Physicality is already costing us penalties.",
+  "nat_attHowWide": "Push Style up in the national plan and give the next camp an attack focus. We had the ball and never used the width.",
+  "nat_discHowLow": "Drop Physicality a notch in the national plan and give the armband to a calmer head. Cards come from habit more than luck.",
+  "nat_lateHowMany": "Drop Tempo in the national plan so the pack is not running on fumes at sixty, and use the bench at the hour.",
+  "nat_tankHow": "Lower Tempo, or give the next camp a fitness focus. This is a conditioning problem rather than a tactical one.",
+  "nat_teeHow": "Put your best goal-kicker in the Test XV. A slump is only yours to answer if you chose the kicker.",
+  "nat_terrHowElse": "Lower Tempo in the national plan so phases last, and keep the ball in hand rather than kicking it to their full-back.",
+  "nat_wonHow": "Leave the national plan alone and pick the same XV again. The strongest unit was the {unit}. Build the next Test around it.",
+  "nat_lostHow": "Keep one national plan for the whole window rather than a new one every Test. Sides that know their own game win the tight ones.",
   "num0": "zero",
   "num1": "one",
   "num10": "ten",
@@ -8119,7 +8131,8 @@
   "invinciblesSub": "{club} · a whole season unbeaten · {manager}",
   "champions": "{short} ARE CHAMPIONS",
   "championsOf": "CHAMPIONS OF THE {comp}",
-  "championsSub": "{comp} · {season} · {manager}"
+  "championsSub": "{comp} · {season} · {manager}",
+  "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
  },
  "nation": {
   "RSA": "South Africa",

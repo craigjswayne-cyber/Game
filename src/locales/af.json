@@ -4611,6 +4611,18 @@
   },
   "lostHead": "Verloor, en geen enkele syfer verklaar dit nie.",
   "lostHow": "Speel een voorinstelling vir twee weke eerder as 'n nuwe plan elke Saterdag. Spanne wat hul eie spel ken, wen die noue wedstryde.",
+  "nat_howScrum": "Kies 'n swaarder voorry in jou toets-XV. 'n Wyser kan nie 'n ligte stywe vyf optel nie, en 'n kamp wat op vaste fases fokus, is die ander antwoord.",
+  "nat_howLineout": "Kry 'n tweede ware springer in die agterste vyf van jou toets-XV, en laat die volgende kamp op vaste fases fokus.",
+  "nat_howBreakdown": "'n Jakkals-flank in jou toets-XV, of stoot Fisiekheid op in die nasionale plan. Betwiste bal word gewen deur liggame wat opdaag, nie deur vorm nie.",
+  "nat_howBreakdownSel": "'n Jakkals-flank in jou toets-XV. Betwiste bal word gewen deur liggame wat opdaag, nie deur vorm nie, en Fisiekheid kos ons reeds strafskoppe.",
+  "nat_attHowWide": "Stoot Styl op in die nasionale plan en laat die volgende kamp op aanval fokus. Ons het die bal gehad en nooit die breedte gebruik nie.",
+  "nat_discHowLow": "Verlaag Fisiekheid 'n kepie in die nasionale plan en gee die kapteinsband aan 'n koeler kop. Kaarte is 'n gewoonte, nie geluk nie.",
+  "nat_lateHowMany": "Verlaag Tempo in die nasionale plan sodat die pak nie op leë tenks teen sestig hardloop nie, en gebruik die bank op die uur.",
+  "nat_tankHow": "Verlaag Tempo, of laat die volgende kamp op fiksheid fokus. Dit is 'n kondisieprobleem eerder as 'n taktiese een.",
+  "nat_teeHow": "Sit jou beste doelskopper in jou toets-XV. 'n Insinking is net joune om voor verantwoording te doen as jy die skopper gekies het.",
+  "nat_terrHowElse": "Verlaag Tempo in die nasionale plan sodat fases langer hou, en hou die bal in die hand eerder as om dit na hul heelagter te skop.",
+  "nat_wonHow": "Los die nasionale plan uit en kies weer dieselfde XV. Die sterkste eenheid was die {unit}, so bou die volgende toets daar rondom.",
+  "nat_lostHow": "Hou een nasionale plan vir die hele venster eerder as 'n nuwe een elke toets. Spanne wat hul eie spel ken, wen die noue wedstryde.",
   "num0": "nul",
   "num1": "een",
   "num10": "tien",
@@ -8155,7 +8167,8 @@
   "invinciblesSub": "{club} · 'n hele seisoen ongeslaan · {manager}",
   "champions": "{short} IS KAMPIOENE",
   "championsOf": "KAMPIOENE VAN DIE {comp}",
-  "championsSub": "{comp} · {season} · {manager}"
+  "championsSub": "{comp} · {season} · {manager}",
+  "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
  },
  "nation": {
   "RSA": "Suid-Afrika",

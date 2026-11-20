@@ -4737,6 +4737,18 @@
     },
     "lostHead": "Battus, et aucun chiffre ne l'explique à lui seul.",
     "lostHow": "Tenez un même préréglage pendant quinze jours plutôt qu'un nouveau plan chaque samedi. Les équipes qui connaissent leur jeu gagnent les matchs serrés.",
+    "nat_howScrum": "Alignez une première ligne plus lourde dans votre XV international. Aucun curseur ne rendra lourde une première ligne légère, et un rassemblement axé sur les phases statiques est l'autre réponse.",
+    "nat_howLineout": "Faites entrer un second vrai sauteur en deuxième ou troisième ligne dans votre XV international, et axez le prochain rassemblement sur les phases statiques.",
+    "nat_howBreakdown": "Un flanker gratteur dans votre XV international, ou montez l'Engagement physique dans le plan national. Le ballon disputé se gagne par le nombre de corps qui arrivent, pas par la forme du jeu.",
+    "nat_howBreakdownSel": "Un flanker gratteur dans votre XV international. Le ballon disputé se gagne par le nombre de corps qui arrivent, pas par la forme du jeu, et l'Engagement physique nous coûte déjà des pénalités.",
+    "nat_attHowWide": "Montez le Style dans le plan national et axez le prochain rassemblement sur l'attaque. On avait le ballon et on n'a jamais utilisé la largeur.",
+    "nat_discHowLow": "Baissez d'un cran l'Engagement physique dans le plan national et confiez le brassard à une tête plus froide. Les cartons sont une habitude, pas de la malchance.",
+    "nat_lateHowMany": "Baissez le Rythme dans le plan national pour que le pack ne soit pas sur la réserve à la soixantième, et utilisez le banc à l'heure de jeu.",
+    "nat_tankHow": "Baissez le Rythme, ou axez le prochain rassemblement sur le physique. C'est un problème de condition plutôt que de tactique.",
+    "nat_teeHow": "Alignez votre meilleur buteur dans votre XV international. Une baisse de régime ne vous regarde que si vous avez choisi le buteur.",
+    "nat_terrHowElse": "Baissez le Rythme dans le plan national pour faire durer les temps de jeu, et gardez le ballon en main plutôt que de le taper sur leur arrière.",
+    "nat_wonHow": "Ne touchez pas au plan national et réalignez le même XV. Le secteur le plus fort a été {unit} : construisez le prochain test-match autour.",
+    "nat_lostHow": "Tenez un même plan national pendant toute la fenêtre plutôt qu'un nouveau à chaque test-match. Les équipes qui connaissent leur jeu gagnent les matchs serrés.",
     "num0": "zéro",
     "num1": "un",
     "num10": "dix",
@@ -8265,7 +8277,8 @@
     "invinciblesSub": "{club} · une saison entière sans défaite · {manager}",
     "champions": "{short} EST CHAMPION",
     "championsOf": "CHAMPIONS DE {comp}",
-    "championsSub": "{comp} · {season} · {manager}"
+    "championsSub": "{comp} · {season} · {manager}",
+    "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
   },
   "nation": {
     "RSA": "Afrique du Sud",

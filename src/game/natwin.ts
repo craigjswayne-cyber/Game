@@ -18,7 +18,7 @@
 // the window (seed, season, start), so the world a coach who never opens the
 // desk lives in is the world as it was.
 import type { GameState, Player } from './model'
-import { clamp } from './rng'
+import { clamp, hashString } from './rng'
 import { closeNatTenure } from './model'
 import { tIn } from './i18n'
 import { natRankOrder } from './natrank'
@@ -169,7 +169,10 @@ export function announceSquad(state: GameState, eligibleTop: Player[]): NatWin['
 function campEvent(state: GameState, w: NatWin, squad: number[]): NatWin['event'] {
   const ps = squad.map(id => state.players[id]).filter((p): p is Player => !!p && !p.injury)
   if (!ps.length) return undefined
-  const h = (Math.abs(state.seed) + state.season * 31 + w.start * 7) >>> 0
+  // A REAL HASH OF THE WINDOW (QA, 1.9.15). The sum it was had every window
+  // starting on a multiple of four (weeks 4, 12, 24, 44) land on the same
+  // kind, so a season threw up one story four times
+  const h = hashString(`${state.seed}:${state.season}:${w.start}:camp`) >>> 0
   const order: CampEventKind[] = ['rest', 'curfew', 'scare', 'bolter']
   const pick = <T,>(xs: T[]) => xs[h % xs.length]
   for (let k = 0; k < order.length; k++) {

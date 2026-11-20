@@ -1604,12 +1604,14 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
         const hv: Vars = mine
           ? { short: teamShort(state, state.userClubId).toUpperCase() }
           : { comp: comp.name.toUpperCase() }
-        const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
+        // the nation's name on its own celebration (QA, 1.9.15)
+        const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName, ...(mine ? {} : nationVars(comp.champion!)) }
+        const sk = mine ? 'cel.championsSub' : 'cel.championsSubNat'
         state.celebration = {
           headline: tIn('en', hk, hv),
-          sub: tIn('en', 'cel.championsSub', sv),
+          sub: tIn('en', sk, sv),
           icon: 'trophy',
-          hk, hv, sk: 'cel.championsSub', sv,
+          hk, hv, sk, sv,
         }
         state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
         if (mine) {
@@ -1676,12 +1678,12 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           // the biggest day of a national coach's year passed as an inbox line.
           {
             const hv: Vars = { comp: comp.name.toUpperCase() }
-            const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
+            const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName, ...nationVars(comp.champion!) }
             state.celebration = {
               headline: tIn('en', 'cel.championsOf', hv),
-              sub: tIn('en', 'cel.championsSub', sv),
+              sub: tIn('en', 'cel.championsSubNat', sv),
               icon: 'trophy',
-              hk: 'cel.championsOf', hv, sk: 'cel.championsSub', sv,
+              hk: 'cel.championsOf', hv, sk: 'cel.championsSubNat', sv,
             }
           }
           state.news.push({

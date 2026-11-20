@@ -4666,6 +4666,18 @@
   },
   "lostHead": "Derrota, y ningún número la explica por sí solo.",
   "lostHow": "Juega el mismo preajuste durante quince días en vez de estrenar plan cada sábado. Los equipos que conocen su propio juego ganan los partidos apretados.",
+  "nat_howScrum": "Elige una primera línea más pesada en tu XV del Test. Un dial no levanta a un cinco de delante ligero, y una concentración centrada en las fases estáticas es la otra respuesta.",
+  "nat_howLineout": "Mete un segundo saltador de verdad entre la segunda y la tercera línea de tu XV del Test, y centra la próxima concentración en las fases estáticas.",
+  "nat_howBreakdown": "Un flanker de rapiña en tu XV del Test, o sube la Dureza en el plan nacional. El balón disputado lo ganan los cuerpos que llegan, no el dibujo.",
+  "nat_howBreakdownSel": "Un flanker de rapiña en tu XV del Test. El balón disputado lo ganan los cuerpos que llegan, no el dibujo, y la Dureza ya nos está costando golpes de castigo.",
+  "nat_attHowWide": "Sube el Estilo en el plan nacional y centra la próxima concentración en el ataque. Tuvimos el balón y nunca usamos la anchura.",
+  "nat_discHowLow": "Baja un punto la Dureza en el plan nacional y dale el brazalete a una cabeza más fría. Las tarjetas son un hábito, no mala suerte.",
+  "nat_lateHowMany": "Baja el Ritmo en el plan nacional para que el pack no llegue al sesenta con el depósito vacío, y usa el banquillo a la hora de juego.",
+  "nat_tankHow": "Baja el Ritmo, o centra la próxima concentración en el físico. Esto es un problema de fondo físico más que táctico.",
+  "nat_teeHow": "Pon a tu mejor pateador en tu XV del Test. Una mala racha solo es tuya de responder si tú elegiste al pateador.",
+  "nat_terrHowElse": "Baja el Ritmo en el plan nacional para que las fases duren, y guarda el balón en la mano en vez de regalárselo al pie a su zaguero.",
+  "nat_wonHow": "Deja quieto el plan nacional y repite el mismo XV. La unidad más fuerte fue {unit}: construye el próximo Test a su alrededor.",
+  "nat_lostHow": "Mantén un mismo plan nacional toda la ventana en vez de estrenar uno en cada Test. Los equipos que conocen su propio juego ganan los partidos apretados.",
   "num0": "cero",
   "num1": "uno",
   "num10": "diez",
@@ -8065,7 +8077,8 @@
   "invinciblesSub": "{club} · toda una temporada sin perder · {manager}",
   "champions": "{short}, CAMPEÓN",
   "championsOf": "CAMPEÓN DE {comp}",
-  "championsSub": "{comp} · {season} · {manager}"
+  "championsSub": "{comp} · {season} · {manager}",
+  "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
  },
  "nation": {
   "RSA": "Sudáfrica",

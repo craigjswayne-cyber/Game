@@ -4688,6 +4688,18 @@
   },
   "lostHead": "Persa, e non c'è un numero che la spieghi.",
   "lostHow": "Tieni un solo preset per due settimane, invece di un piano nuovo ogni sabato. Le squadre che conoscono il proprio gioco vincono quelle tirate.",
+  "nat_howScrum": "Scegli una prima linea più pesante nel tuo XV del Test. Una manopola non può sollevare un tight five leggero, e un raduno dedicato alle fasi statiche è l'altra risposta.",
+  "nat_howLineout": "Porta un secondo saltatore vero in seconda o terza linea nel tuo XV del Test, e dedica il prossimo raduno alle fasi statiche.",
+  "nat_howBreakdown": "Un flanker jackal nel tuo XV del Test, o alza la Fisicità nel piano della nazionale. La palla contesa la vincono i corpi che arrivano, non lo schema.",
+  "nat_howBreakdownSel": "Un flanker jackal nel tuo XV del Test. La palla contesa la vincono i corpi che arrivano, non lo schema, e la Fisicità ci sta già costando calci di punizione.",
+  "nat_attHowWide": "Alza lo Stile nel piano della nazionale e dedica il prossimo raduno all'attacco. Avevamo il pallone e l'ampiezza non l'abbiamo mai usata.",
+  "nat_discHowLow": "Abbassa la Fisicità di una tacca nel piano della nazionale e da' la fascia a una testa più fredda. I cartellini sono un'abitudine, non sfortuna.",
+  "nat_lateHowMany": "Abbassa il Ritmo nel piano della nazionale, così il pacchetto non gira a vuoto al sessantesimo, e usa la panchina all'ora di gioco.",
+  "nat_tankHow": "Abbassa il Ritmo, o dedica il prossimo raduno alla condizione. È un problema atletico più che tattico.",
+  "nat_teeHow": "Metti il tuo miglior piazzatore nel XV del Test. Un periodo storto è affar tuo solo se il piazzatore l'hai scelto tu.",
+  "nat_terrHowElse": "Abbassa il Ritmo nel piano della nazionale perché le fasi durino, e tieni la palla in mano invece di calciarla al loro estremo.",
+  "nat_wonHow": "Lascia stare il piano della nazionale e riproponi lo stesso XV. Il reparto più forte è stato {unit}: costruisci il prossimo Test attorno a quello.",
+  "nat_lostHow": "Tieni un solo piano della nazionale per tutta la finestra, invece di uno nuovo a ogni Test. Le squadre che conoscono il proprio gioco vincono quelle tirate.",
   "num0": "zero",
   "num1": "una",
   "num10": "dieci",
@@ -8106,7 +8118,8 @@
   "invinciblesSub": "{club} · un'intera stagione senza sconfitte · {manager}",
   "champions": "{short} È CAMPIONE",
   "championsOf": "CAMPIONI: {comp}",
-  "championsSub": "{comp} · {season} · {manager}"
+  "championsSub": "{comp} · {season} · {manager}",
+  "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
  },
  "nation": {
   "RSA": "Sudafrica",
