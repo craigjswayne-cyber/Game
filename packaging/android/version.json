@@ -111,12 +111,13 @@
     "75 IS 1.9.13 (it was first written up as 72, before 1.9.12 shipped on 74). Every sheet drawn at the app root, He/She per career, the Stats tab, every match's MOTM, loan options, the Job Centre badge, three footer banners, the physio report, the fans breakdown, the Stats tab's season in the 22, Arm round the shoulder, character filters, dressing-room alerts, native haptics with a Settings switch, the Within my budget filter and last-year contracts a quarter cheaper. Needs npm install before scaffold.sh (the Haptics plugin). Check the Console's highest accepted code before building: 75 assumes 74 (1.9.12) was the last.",
     "76 IS 1.9.14: the season plan (a Training & Staff tab from the last game to the first league match), marquee players swappable when both slots are full, Game Time as tight as Stats, plainer leadership notes, the feedback report's STORE line, what the fans think hidden, the new Discord invite, and the privacy policy and in-app notice listing everything the adverts collect. Check the Console's highest accepted code is 75 before building.",
     "77 IS 1.9.14 AS IT SHIPS (19 Nov 2026). 76 was uploaded to Internal testing and Play refused to send it for review: the portrait lock made android.hardware.screen.portrait a required feature. scaffold.sh now declares it optional. 76 is spent; same version name, one code higher.",
+    "78 IS 1.9.15: the national coach without a club can pick the Test side (the match day screen had been sent back to Home), the coaches' squad covers every shirt, the squad announcement draws the social media's reaction, the Job Centre leaves a national coach's bottom bar, no fees or wages on a player's page for a national coach without a club, no caps count on the squad desk, Test dates on the day they are played, the Board Funding box inside the screen. Check the Console's highest accepted code is 77 before building.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026).",
     "reviewLibrary is the Play In-App Review library behind PhaseBilling.review() (1.9.3)."
   ],
-  "versionCode": 77,
+  "versionCode": 78,
   "billingLibrary": "8.0.0",
   "reviewLibrary": "2.0.2"
 }

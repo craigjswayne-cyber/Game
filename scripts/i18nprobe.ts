@@ -52,7 +52,10 @@ function slots(d: Dict, key: string): Set<string> {
     ? [node]
     : Object.values((node ?? {}) as Record<string, string>).filter(v => typeof v === 'string')
   const out = new Set<string>()
-  for (const s of texts) for (const m of s.matchAll(/\{(\w+)\}/g)) out.add(m[1])
+  // the three forms of one nation (nationVars: the name, with its article, and
+  // capitalised) are one slot: a language picks the form its grammar needs,
+  // "du Japon" and "de l'Angleterre" are not one pattern (1.9.15)
+  for (const s of texts) for (const m of s.matchAll(/\{(\w+)\}/g)) out.add(/^nation(The|Cap)?_k$/.test(m[1]) ? 'nation_k' : m[1])
   return out
 }
 

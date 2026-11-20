@@ -74,6 +74,9 @@ describe('the window campaign', () => {
     g.players[out].natSquad = false
     g.players[out].caps = 40
     g.natPrevSquad = [...g.natSquads.ENG, out]
+    // a coach with no club: no two-jobs quota decides it for him (1.9.15,
+    // a man the rule keeps out is not "left out")
+    g.unemployed = true
     const m = g.players[out].morale
     const r = announceSquad(g, [])!
     expect(r.omitted).toContain(out)
@@ -105,10 +108,10 @@ describe('the window campaign', () => {
     miss.g.week = miss.w.end + 1
     reviewNatWindow(miss.g, miss.w.start)
     expect(miss.g.natWin!.review!.met).toBe(false)
-    expect(miss.g.natConfidence).toBe(53)
+    expect(miss.g.natConfidence).toBe(52) // missed by two: -8 (1.9.15)
     // once
     reviewNatWindow(miss.g, miss.w.start)
-    expect(miss.g.natConfidence).toBe(53)
+    expect(miss.g.natConfidence).toBe(52)
   })
 
   it('below 20 the union ends it, and the era goes into the history', () => {

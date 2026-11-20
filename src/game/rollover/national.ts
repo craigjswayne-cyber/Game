@@ -4,6 +4,8 @@ import { tIn } from '../i18n'
 import { isleTour } from '../isles'
 import { closeNatTenure, type GameState, type Player } from '../model'
 import { clamp } from '../rng'
+import { nationVars } from '../nations'
+import { natRankOrder } from '../natrank'
 
 /** The Lions come home: the tour ends with the season itself, so the
  *  window's return week (end + 1) never exists on the calendar - the
@@ -53,6 +55,15 @@ export function unionReview(state: GameState) {
       if (us > them) w++
       else if (us < them) l++
     }
+    // THE UNION'S TERMS ARE JUDGED (QA, 1.9.15). The ranking it set at the
+    // appointment was printed and never read. From the first full season, a
+    // nation inside it is a credit, and one well outside it a debit.
+    const term = state.natTerm && state.natTerm.nat === nat && state.natTerm.since < state.season ? state.natTerm : null
+    const rankNow = natRankOrder(state).indexOf(nat) + 1
+    const termD = !term || rankNow <= 0 ? 0 : rankNow <= term.rank ? 3 : rankNow > term.rank + 2 ? -4 : 0
+    if (termD) state.natConfidence = clamp(state.natConfidence + termD, 0, 100)
+    const top = term?.rank === 1
+    const term_k = termD > 0 ? (top ? 'news.natTermMetTop' : 'news.natTermMet') : termD < 0 ? (top ? 'news.natTermMissedTop' : 'news.natTermMissed') : 'common.nothing'
     const conf = Math.round(state.natConfidence)
     if (conf < 28) {
       closeNatTenure(state) // the record moves to the profile's history, not the bin
@@ -60,9 +71,10 @@ export function unionReview(state: GameState) {
         id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
         subject: `SACKED: ${nat} relieve you of the national job`,
         body: `The union's annual review was short. ${w} Test wins against ${l} defeats was not the trajectory they hired you for, and the ${nat} job is no longer yours. The club work continues - and unions have short memories when results turn.`,
-        k: 'news.natSacked',
+        // a coach with no club is not told the club job is safe (1.9.15)
+        k: state.unemployed ? 'news.natSackedFree' : 'news.natSacked',
         v: {
-          nat, w, l,
+          nat, w, l, ...nationVars(nat),
           wins_k: w === 1 ? 'count.winOne' : 'count.winMany',
           defeats_k: l === 1 ? 'count.defeatOne' : 'count.defeatMany',
         },
@@ -79,7 +91,7 @@ export function unionReview(state: GameState) {
         ].join(' '),
         k: 'news.natReview',
         v: {
-          nat, w, l, conf,
+          nat, w, l, conf, ...nationVars(nat), term_k, rank: term?.rank ?? 0,
           wins_k: w === 1 ? 'count.winOne' : 'count.winMany',
           defeats_k: l === 1 ? 'count.defeatOne' : 'count.defeatMany',
           word_k: conf >= 70 ? 'news.natGlowing' : conf >= 45 ? 'news.natSatisfactory' : 'news.natConcerned',
@@ -88,7 +100,9 @@ export function unionReview(state: GameState) {
       })
       // summers soften opinions a little, in both directions - but they do
       // not launder a losing record
-      state.natConfidence = clamp(state.natConfidence * 0.9 + 55 * 0.1, 0, 100)
+      // (1.9.15: only downwards. A coach below 55 was lifted every summer,
+      // which is the laundering the line above says it does not do.)
+      if (state.natConfidence > 55) state.natConfidence = clamp(state.natConfidence * 0.9 + 55 * 0.1, 0, 100)
     }
   }
 }

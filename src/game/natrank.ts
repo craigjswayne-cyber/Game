@@ -26,6 +26,8 @@ const WR_MEN: Record<string, number> = {
   RSA: 93.09, NZL: 91.15, IRE: 88.08, FRA: 87.43, ENG: 85.68, AUS: 85.55, SCO: 84.78, ARG: 82.24,
   JPN: 77.28, FIJ: 76.81, WAL: 76.38, ITA: 76.30, GEO: 73.94, POR: 69.39, USA: 67.58,
   CHL: 66.94, ESP: 66.83, URU: 65.75, TGA: 65.14, SAM: 64.73, ROU: 62.45, CAN: 62.29, NAM: 56.96,
+  // FloRugby's table of the 24 World Cup sides, 9 November 2026
+  HKG: 59.55, ZIM: 58.02,
 }
 const WR_WOMEN: Record<string, number> = {
   ENG: 97.72, NZL: 91.44, CAN: 88.16, FRA: 86.74, IRE: 77.32, USA: 75.74, AUS: 75.58, ITA: 73.75,
@@ -42,6 +44,11 @@ const seedOf = (code: string, world: Gender = 'm'): number => {
   return Math.max(40, FLOOR[world] - 0.5 * (i < 0 ? rest.length + 1 : i + 1))
 }
 
+
+/** A nation's ranking points in this world, live where they exist. */
+export function natStrength(state: GameState, code: string): number {
+  return state.natRank?.[code] ?? seedOf(code, genderOf(state))
+}
 
 /** Make sure every nation has a rating (new games and old saves alike). */
 export function seedNatRank(state: GameState) {
@@ -68,7 +75,10 @@ export function updateNatRank(state: GameState, fx: Fixture) {
   else if (fx.homeScore < fx.awayScore) pts = -(1 + d / 10)
   else pts = -d / 10
   let k = Math.abs(fx.homeScore - fx.awayScore) > 15 ? 1.5 : 1
-  if (fx.stage) k *= fx.compId === 'wc' ? 2 : 1.5
+  // World Rugby doubles EVERY World Cup match, pool games included, and
+  // weights nothing else up: this doubled only the knockouts, and took a
+  // summer Test's '1st Test' label for a knockout (x1.5) (QA, 1.9.15)
+  if (fx.compId === 'wc') k *= 2
   // An exchange: what one side gains the other loses. The 40 to 100 bounds
   // used to be applied to each side AFTER the exchange, so a side at the
   // ceiling took nothing while its opponent still lost the full amount, and

@@ -107,7 +107,8 @@ export function MatchVerdict() {
                 be team unitials so NOR"). NOR and NEW, the same codes the crest and
                 the touchline use. */}
             <b>{star.name}</b>{' '}
-            <span className="muted">({clubCode(teamShort(game, starMine ? mine.teamId : opp.teamId))})</span>
+            {/* a nation's code is its own (QA, 1.9.15: New Zealand read "NEW") */}
+            <span className="muted">({(() => { const id = starMine ? mine.teamId : opp.teamId; return game.clubs[id] ? clubCode(teamShort(game, id)) : id })()})</span>
           </div>
           <span className="form-pill" style={{ background: 'var(--text-positive)', color: 'var(--on-positive)', fontSize: '1rem' }}>
             {/* the published mark, as the findings and the ratings table print it (1.8.15: this read the running in-match number, so one man was "8.5" here and "10.0" two lines below) */}

@@ -461,7 +461,9 @@ export function compLabel(name: string, lang?: Lang): string
 export function compLabel(name: string | undefined | null, lang?: Lang): string | undefined
 export function compLabel(name: string | undefined | null, lang: Lang = current): string | undefined {
   if (!name) return name ?? undefined
-  const key = compIndex().get(name)
+  // a story filed before 1.9.15 carries the name with its article ("The
+  // Southern Championship"): read it as the name without
+  const key = compIndex().get(name) ?? compIndex().get(name.replace(/^The /, ''))
   if (key) {
     const s = lookup(DICTS[lang], key) ?? lookup(DICTS.en, key)
     return typeof s === 'string' ? s : name

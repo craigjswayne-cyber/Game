@@ -16,7 +16,7 @@ import { matchStakes, seasonTentpoles } from '../../game/stakes'
 import { huntLine } from '../../game/living'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
-import { formGuide, grudgeBetween, grudgeReason, fxDate, weekDate, type Fixture, type GameState } from '../../game/model'
+import { formGuide, grudgeBetween, grudgeReason, fxDate, type Fixture, type GameState } from '../../game/model'
 import { natRankOrder } from '../../game/natrank'
 import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
@@ -170,7 +170,7 @@ export default function Home() {
                   <Flag code={next.homeId} size={17} /> {nationName(next.homeId)} {t('common.v')} <Flag code={next.awayId} size={17} /> {nationName(next.awayId)}
                 </span>
                 <span className="ht-s">
-                  {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}
+                  {testWeek ? t(game.unemployed ? 'home.testWeekNatOnly' : 'home.testWeek') : t('home.nextTest', { date: fxDate(game.season, next) })}
                 </span>
                 {/* DAYS UNTIL THE SQUAD (owner: "could we have days til squad
                     work"). The window calendar always knew this and never said
@@ -273,7 +273,7 @@ export default function Home() {
             </div>
           </div>
           <h3 className="fx-line">
-            <Flag code={testFx.homeId} size={20} /> {nationName(testFx.homeId)} {t('common.v')} <Flag code={testFx.awayId} size={20} /> {nationName(testFx.awayId)}
+            <Flag code={testFx.homeId} size={20} /> {game.clubs[testFx.homeId]?.name ?? nationName(testFx.homeId)} {t('common.v')} <Flag code={testFx.awayId} size={20} /> {game.clubs[testFx.awayId]?.name ?? nationName(testFx.awayId)}
           </h3>
           <div className="meta">
             {fxDate(game.season, testFx)}{testFx.venue ? t('home.atNeutral') : testFx.homeId === game.natTeam || testFx.homeId === 'LIO' ? t('home.atHome') : t('home.atAway')}
@@ -342,14 +342,14 @@ export default function Home() {
       // the international stage "should only appear when coaching"); everyone
       // else follows it on World > Nations
       !!game.natTeam && game.comps[snId] && game.week >= snWks[0] - 1 && game.week <= snWks[snWks.length - 1] && (() => {
-        const rows = sortTable(game.comps[snId].table).slice(0, 3)
+        const rows = sortTable(game.comps[snId].table, 'pd').slice(0, 3)
         const thisWk = game.fixtures.filter(f => f.compId === snId && f.week === game.week)
         return (
           <button className="home-tile wide" data-tile="nations" onClick={() => go('nations')}>
             <span className="ht-l fact-label">{t('home.snLabel', { comp: (compLabel(game.comps[snId]?.name) ?? t('home.theChampionship')).toUpperCase() })}</span>
             {thisWk.map(f => (
               <span key={f.id} className="ht-v">
-                <Flag code={f.homeId} /> {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} />
+                <Flag code={f.homeId} /> {game.clubs[f.homeId]?.name ?? nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {game.clubs[f.awayId]?.name ?? nationName(f.awayId)} <Flag code={f.awayId} />
               </span>
             ))}
             {rows.length > 0 && rows[0].p > 0 && (
@@ -587,7 +587,7 @@ export default function Home() {
                   <span className="muted dl-wk">{t('common.wk', { n: f.week })}</span>
                   <span className="dl-t">{teamShort(game, f.homeId === club.id ? f.awayId : f.homeId)}</span>
                   <span>{t(f.homeId === club.id ? 'common.h' : 'common.a')}</span>
-                  <span className="muted">{game.comps[f.compId] ? f.compId.toUpperCase() : 'FR'}</span>
+                  <span className="muted">{game.comps[f.compId] ? f.compId.replace(/^w:/, '').toUpperCase() : 'FR'}</span>
                 </div>
               ))}
             </button>
@@ -713,7 +713,7 @@ function BlankWeek({ hook }: { hook: ReturnType<typeof weekHook> }) {
 /** Shared with Tables, Fixtures and MatchDay, which is why it lives in the
  *  common namespace rather than under home. */
 export function stageName(s: string): string {
-  const key = { QF: 'common.stageQF', SF: 'common.stageSF', F: 'common.stageF', BAR: 'common.stageBAR' }[s]
+  const key = { R16: 'common.stageR16', QF: 'common.stageQF', SF: 'common.stageSF', BRZ: 'common.stageBRZ', F: 'common.stageF', BAR: 'common.stageBAR' }[s]
   return key ? t(key) : s
 }
 
@@ -730,7 +730,7 @@ export function stageName(s: string): string {
  * a semi-final should be called a semi-final. This is only for the list.
  */
 export function stageShort(s: string): string {
-  const key = { QF: 'common.stageQFShort', SF: 'common.stageSFShort', F: 'common.stageFShort', BAR: 'common.stageBARShort' }[s]
+  const key = { R16: 'common.stageR16Short', QF: 'common.stageQFShort', SF: 'common.stageSFShort', BRZ: 'common.stageBRZShort', F: 'common.stageFShort', BAR: 'common.stageBARShort' }[s]
   return key ? t(key) : s
 }
 

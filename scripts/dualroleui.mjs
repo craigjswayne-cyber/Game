@@ -39,12 +39,15 @@ const reached = await page.evaluate(async () => {
     const st = window.rugbyStore.getState(); const g = st.game
     if (g.fixtures.some(f => !f.played && f.week === g.week && (f.homeId === 'ENG' || f.awayId === 'ENG')) && g.fixtures.some(f => !f.played && f.week === g.week && (f.homeId === g.userClubId || f.awayId === g.userClubId))) {
       const screen = st.nav[st.nav.length - 1]?.screen
+      if (g.natWin?.reveal) g.natWin.reveal.seen = true
       if (screen === 'home' || !st.liveMatch) return g.week
     }
     const club = g.clubs[g.userClubId]; if (club) club.boardConfidence = 80
     for (const o of g.offers) if (o.status === 'pending' && o.forUser) o.status = 'rejected'
     for (const n of g.news) { n.read = true }
     for (const q of g.press) q.answered = true
+    // a squad that plays a Test is announced (1.9.15) and its reveal shows once: seen
+    if (g.natWin?.reveal) g.natWin.reveal.seen = true
     const camp = g.natSquads?.[g.natTeam]
     if (camp && camp.length < 23) {
       const spare = Object.values(g.players).filter(p => p.nat === g.natTeam && p.clubId && !p.injury && !p.natSquad).sort((a, b) => b.ca - a.ca).slice(0, 23 - camp.length)

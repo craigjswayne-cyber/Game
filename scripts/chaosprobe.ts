@@ -245,7 +245,10 @@ console.log('\nCHAOS 5: everything zeroed - morale, condition, form, confidence\
   // dice, and 2007 became the world that escapes (confidence 41 by week 35).
   // Seeds 2005-2012 over forty-four weeks: seven sacked between week 13 and
   // week 16, 2007 not at all.
-  const g = newGame('northampton', 'Chaos', 2009)
+  // SEED 2008, NOT 2009 (1.9.15). The international changes moved the world's
+  // dice again: seeds 2005-2012 over forty-four weeks, seven sacked between
+  // week 14 and 27, and 2009 the one that escapes (confidence 6 at week 44).
+  const g = newGame('northampton', 'Chaos', 2008)
   const club = g.clubs[g.userClubId]
   for (const id of club.players) {
     const p = g.players[id]

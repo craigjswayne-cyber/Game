@@ -382,7 +382,6 @@ export function buildMrcCup(clubIds: readonly string[], state: GameState): Compe
 export const TOUR_PROVINCIAL = 7
 export const TEST_NAMES = ['1st Test', '2nd Test', '3rd Test'] as const
 
-/** World Championship: 20 nations, 4 pools of 5, then QF/SF/Final. */
 /** The women's tournament (1.6.4): sixteen nations, four pools of four, played
  *  in August and September as the real one is (weeks 1 to 6, calendar.ts).
  *  The 2025 field, which is the best guess anyone has for 2029 until
@@ -391,10 +390,21 @@ const W_WC_NATIONS = [
   'ENG', 'NZL', 'CAN', 'FRA', 'IRE', 'AUS', 'SCO', 'ITA',
   'USA', 'WAL', 'JPN', 'RSA', 'ESP', 'FIJ', 'SAM', 'POR',
 ]
-const M_WC_NATIONS = [
-  'RSA', 'NZL', 'IRE', 'FRA', 'ENG', 'ARG', 'SCO', 'AUS', 'FIJ', 'ITA',
-  'WAL', 'GEO', 'JPN', 'SAM', 'TGA', 'USA', 'URU', 'POR', 'ESP', 'CHL',
+/** The men's tournament (1.9.15): twenty-four nations in six pools of four,
+ *  the two from each pool and the four best thirds into a round of sixteen,
+ *  then quarter-finals, semi-finals, a bronze final and the final. The real
+ *  2027 format, with the real 2027 field and, for 2027, the real draw
+ *  (World Rugby, December 2025). Later tournaments are drawn from the live
+ *  rankings. It was twenty in four pools of five, the old format. */
+const WC_2027_POOLS = [
+  ['NZL', 'AUS', 'CHL', 'HKG'],
+  ['RSA', 'ITA', 'GEO', 'ROU'],
+  ['ARG', 'FIJ', 'ESP', 'CAN'],
+  ['IRE', 'SCO', 'URU', 'POR'],
+  ['FRA', 'JPN', 'USA', 'SAM'],
+  ['ENG', 'WAL', 'TGA', 'ZIM'],
 ]
+const M_WC_NATIONS = WC_2027_POOLS.flat()
 
 function buildWorldCup(rng: Rng, state: GameState, women = false) {
   const nations = women ? W_WC_NATIONS : M_WC_NATIONS
@@ -406,17 +416,20 @@ function buildWorldCup(rng: Rng, state: GameState, women = false) {
   const seeded = [...nations].sort((a, b) => (state.natRank![b] ?? 0) - (state.natRank![a] ?? 0))
   const comp: Competition = {
     id: 'wc', name: 'World Championship', short: 'Worlds', type: 'intl',
-    teamIds: nations, table: nations.map(emptyRow), rounds: poolWeeks.length, playoffTeams: 8,
+    teamIds: nations, table: nations.map(emptyRow), rounds: poolWeeks.length, playoffTeams: women ? 8 : 16,
     weeksByRound: poolWeeks, koWeeks, isNational: true,
     seeds: seeded,
   }
-  // seeded pools: snake the top seeds so pools are balanced
-  const pools: string[][] = [[], [], [], []]
+  // seeded pools: snake the top seeds so pools are balanced, or for 2027 the
+  // draw that was actually made
+  const np = women ? 4 : 6
+  const pools: string[][] = Array.from({ length: np }, () => [])
   seeded.forEach((n, i) => {
-    const row = Math.floor(i / 4)
-    const idx = row % 2 === 0 ? i % 4 : 3 - (i % 4)
+    const row = Math.floor(i / np)
+    const idx = row % 2 === 0 ? i % np : np - 1 - (i % np)
     pools[idx].push(n)
   })
+  if (!women && BASE_YEAR + state.season === 2027) WC_2027_POOLS.forEach((p, i) => { pools[i] = [...p] })
   comp.pools = pools
   const top4 = seeded.slice(0, 4).map(c => nationNameIn('en', c))
   // the seeds are countries, so the list travels as fragment keys
@@ -428,7 +441,7 @@ function buildWorldCup(rng: Rng, state: GameState, women = false) {
     body: [
       `The World Championship pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
       userSeed > 0 ? `${nationNameIn('en', state.natTeam!)} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
-        : women ? `Four pools, four nations each, and somewhere in there a group of death.` : `Four pools, five nations each, and somewhere in there a group of death.`,
+        : women ? `Four pools, four nations each, and somewhere in there a group of death.` : `Six pools of four, the top two and the four best thirds into a round of sixteen, and somewhere in there a group of death.`,
     ].join('\n'),
     k: userSeed > 0 ? 'news.wcDrawSeeded' : women ? 'news.wcDrawW' : 'news.wcDraw',
     v: {
@@ -452,18 +465,22 @@ function buildWorldCup(rng: Rng, state: GameState, women = false) {
   state.comps['wc'] = comp
 }
 
-/** Tour seasons: 2029-30, 2033-34, ... (every 4th season, offset from the
- *  World Championship, which puts the tour two seasons off a World Cup - what
- *  the owner asked for: "2 away from a world cup"). The tour closes its season,
- *  so the calendar prints it in the June and July at the end of it: the
- *  2029-30 tour is played in 2030, a year after the real cycle's 2029.
+/** Tour seasons: 2028-29, 2032-33, ... (every 4th season; the tour closes
+ *  its season, so it is played in the June and July of 2029, 2033 and 2037,
+ *  the real cycle, two years off a World Cup as the owner asked: "2 away from
+ *  a world cup"). Until 1.9.15 this was the season after, and every tour came
+ *  a year late.
  *
  *  The FUNCTION and the competition id still say "lions" because both are
  *  written into every save ever made and neither is ever shown to a player. The
  *  display name is the British & Irish Isles XV (owner, 7 Sep: "we shouldn't
  *  say Lions... should just be british and irish isles xv tour"). */
 export function isLionsSeason(season: number): boolean {
-  return (BASE_YEAR + season) % 4 === 1 && season > 0
+  // ON THE REAL YEAR (QA, 1.9.15). A tour is played in the June and July at
+  // the END of its season, so the 2029 tour belongs to the 2028-29 season.
+  // This read the season's first year, and every tour came a year late:
+  // 2030, 2034, 2038 against the real 2029 (New Zealand), 2033, 2037.
+  return (BASE_YEAR + season) % 4 === 0 && season > 0
 }
 
 /** Summer theatre: either an Isles XV series or north-south tours close the season. */
@@ -471,7 +488,9 @@ function buildSummer(rng: Rng, state: GameState) {
   const season = state.season
   if (isLionsSeason(season)) {
     const hosts = ['NZL', 'RSA', 'AUS']
-    const host = hosts[Math.floor((BASE_YEAR + season - 2029) / 4) % 3]
+    // by the year the tour is played (the season's second year): 2029 New
+    // Zealand, 2033 South Africa, 2037 Australia
+    const host = hosts[Math.floor((BASE_YEAR + season + 1 - 2029) / 4) % 3]
     // ---- TEN MATCHES, AND A THREE-TEST SERIES AT THE END ----
     //
     // Owner, 7 Sep: "a fixture list of 10 fixtures with a 3 test series at the
@@ -555,9 +574,27 @@ function buildSummerTests(rng: Rng, state: GameState, rounds: number) {
 }
 
 /** Northern Championship & Southern Championship (played by national teams, engine-lite). */
+/**
+ * WHO HOSTS WHOM IN THE NORTHERN CHAMPIONSHIP (QA, 1.9.15). The draw picked
+ * venues at random every year; the real one alternates, so a side away at
+ * Twickenham this year is at home to England next. Around a fixed circle each
+ * union hosts the two after it and the one opposite if it is in the first
+ * half (two or three home games each), and every venue swaps in odd years.
+ */
+export function snVenue(circle: string[], [x, y]: [string, string], season: number): [string, string] {
+  const i = circle.indexOf(x), j = circle.indexOf(y), n = circle.length
+  const d = (j - i + n) % n
+  const iHosts = d === n / 2 ? i < n / 2 : d <= n / 2 - 1
+  const flip = season % 2 === 1
+  return iHosts !== flip ? [x, y] : [y, x]
+}
+
 export function buildInternationals(rng: Rng, state: GameState, worldCup = false) {
   if (worldCup) buildWorldCup(rng, state)
-  if (!worldCup) buildSummer(rng, state)
+  // the summer Tests are played in a World Championship season too (QA,
+  // 1.9.15): the tournament is in October and November, and the June and
+  // July at the end of the same season are an ordinary Test summer
+  buildSummer(rng, state)
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snRounds = roundRobin(sn, rng, false)
   const snComp: Competition = {
@@ -566,7 +603,8 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
     weeksByRound: SIX_NATIONS_WEEKS, koWeeks: [], isNational: true,
   }
   snRounds.forEach((pairs, r) => {
-    for (const [h, a] of pairs) {
+    for (const pair of pairs) {
+      const [h, a] = snVenue(sn, pair, state.season)
       state.fixtures.push({
         id: state.nextId++, compId: 'sn', round: r, week: SIX_NATIONS_WEEKS[r],
         homeId: h, awayId: a, played: false,
@@ -582,7 +620,7 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
   const trc = ['NZL', 'RSA', 'AUS', 'ARG']
   const trcRounds = roundRobin(trc, rng, true)
   const trcComp: Competition = {
-    id: 'trc', name: 'The Southern Championship', short: 'Southern', type: 'intl',
+    id: 'trc', name: 'Southern Championship', short: 'Southern', type: 'intl',
     teamIds: trc, table: trc.map(emptyRow), rounds: 6, playoffTeams: 0,
     weeksByRound: TRC_WEEKS, koWeeks: [], isNational: true,
   }
@@ -624,8 +662,13 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
     teamIds: [...north, ...south], table: [], rounds: 3, playoffTeams: 0,
     weeksByRound: AUTUMN_WEEKS, koWeeks: [], isNational: true,
   }
+  // A ROTATION, NOT THREE SHUFFLES (QA, 1.9.15). A fresh shuffle each weekend
+  // could send the same visitor to the same ground twice in one November. The
+  // three shuffles are still drawn, so the season's dice are not moved: the
+  // first sets the order and each weekend turns it by one.
+  const autOrder = AUTUMN_WEEKS.map(() => shuffled(rng, south))[0]
   AUTUMN_WEEKS.forEach((week, r) => {
-    const s = shuffled(rng, south)
+    const s = north.map((_, i) => autOrder[(i + r) % autOrder.length])
     north.forEach((n, i) => {
       state.fixtures.push({
         id: state.nextId++, compId: 'aut', round: r, week,
@@ -698,7 +741,9 @@ export function isWomensTourSeason(season: number): boolean {
   // on the men's tour years (2029, 2033), so a women's tour in 2031 and 2035
   // sits exactly in the gap between two World Cups - which is where the men's
   // tour sits in their calendar too.
-  return (BASE_YEAR + season) % 4 === 3 && BASE_YEAR + season >= 2031
+  // played at the season's end, like the men's: the 2031 tour is the
+  // 2030-31 season's (1.9.15, the men's off-by-one fixed with it)
+  return (BASE_YEAR + season) % 4 === 2 && BASE_YEAR + season + 1 >= 2031
 }
 
 /**
@@ -753,7 +798,7 @@ export function buildWomensContinentalCup(rng: Rng, state: GameState): Competiti
     // called the Continental Cup with nothing on screen saying which game it
     // belonged to. The short name also earns its keep on the fixtures list,
     // where "Continental Cup Quarter-Final" pushed the score off the row.
-    { id: 'cc', name: 'The Hemispheric Championship', short: 'Hemispheric' },
+    { id: 'cc', name: 'Hemispheric Championship', short: 'Hemispheric' },
     W_CC_POOL_WEEKS, W_CC_KO_WEEKS)
 }
 
@@ -770,7 +815,8 @@ export function buildWomensInternationals(rng: Rng, state: GameState, worldCup =
     weeksByRound: W_SIX_NATIONS_WEEKS, koWeeks: [], isNational: true,
   }
   roundRobin(sn, rng, false).forEach((pairs, r) => {
-    for (const [h, a] of pairs) {
+    for (const pair of pairs) {
+      const [h, a] = snVenue(sn, pair, state.season)
       state.fixtures.push({
         id: state.nextId++, compId: W + 'sn', round: r, week: W_SIX_NATIONS_WEEKS[r],
         homeId: h, awayId: a, played: false,
@@ -794,10 +840,12 @@ export function buildWomensInternationals(rng: Rng, state: GameState, worldCup =
     teamIds: [...W_NORTH, ...W_SOUTH], table: [], rounds: W_AUTUMN_WEEKS.length, playoffTeams: 0,
     weeksByRound: W_AUTUMN_WEEKS, koWeeks: [], isNational: true,
   }
+  // a rotation of one drawn order (QA, 1.9.15): reshuffling each weekend could
+  // bring the same visitor back to the same country; the draws are kept so the
+  // season's dice do not move
+  const wAutOrder = W_AUTUMN_WEEKS.map(() => shuffled(rng, W_SOUTH))[0]
   W_AUTUMN_WEEKS.forEach((week, r) => {
-    // reshuffled each weekend, so a country does not host the same visitor
-    // three times and the fixture list reads like a real November
-    const visiting = shuffled(rng, W_SOUTH)
+    const visiting = W_NORTH.map((_, i) => wAutOrder[(i + r) % wAutOrder.length])
     W_NORTH.forEach((home, i) => {
       state.fixtures.push({
         id: state.nextId++, compId: W + 'aut', round: r, week,
@@ -814,8 +862,11 @@ export function buildWomensInternationals(rng: Rng, state: GameState, worldCup =
     teamIds: [...W_NORTH, ...W_SOUTH], table: [], rounds: W_SUMMER_TEST_WEEKS.length, playoffTeams: 0,
     weeksByRound: W_SUMMER_TEST_WEEKS, koWeeks: [], isNational: true,
   }
+  // rotated as the autumn is (QA, 1.9.15: Canada met Italy twice in one
+  // summer), with the same dice drawn
+  const wSumOrder = W_SUMMER_TEST_WEEKS.map(() => shuffled(rng, W_NORTH))[0]
   W_SUMMER_TEST_WEEKS.forEach((week, r) => {
-    const touring = shuffled(rng, W_NORTH)
+    const touring = W_SOUTH.map((_, i) => wSumOrder[(i + r) % wSumOrder.length])
     W_SOUTH.forEach((home, i) => {
       state.fixtures.push({
         id: state.nextId++, compId: W + 'sum', round: r, week,
@@ -846,12 +897,20 @@ function buildPacFour(rng: Rng, state: GameState) {
   state.comps[W + 'p4'] = p4Comp
 }
 
-export function sortTable(table: TableRow[]): TableRow[] {
+export function sortTable(table: TableRow[], rule?: 'pd'): TableRow[] {
   // Wins before points difference (1.6.3): the Premiership, the URC and the
   // Pacific competitions all separate level clubs on matches won first, and
   // the table ranked a side with a better difference above one with more wins.
+  // The Northern Championship goes points, then points difference, then
+  // tries, as the real one does ('pd', QA 1.9.15).
+  if (rule === 'pd') return [...table].sort((a, b) => b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
   return [...table].sort((a, b) =>
     b.pts - a.pts || b.w - a.w || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
+}
+
+/** The table rule a competition is decided on. */
+export function tableRule(compId: string): 'pd' | undefined {
+  return compId === 'sn' || compId === 'w:sn' ? 'pd' : undefined
 }
 
 /**
@@ -874,7 +933,7 @@ export function leaguePos(table: TableRow[] | undefined, clubId: string): number
  *  the owner asked for the same tour rather than a smaller version of it. */
 function buildWomensTour(state: GameState) {
   const hosts = ['NZL', 'CAN', 'FRA']
-  const host = hosts[Math.floor((BASE_YEAR + state.season - 2031) / 4) % 3]
+  const host = hosts[Math.floor((BASE_YEAR + state.season + 1 - 2031) / 4) % 3]
   const hostName = host === 'NZL' ? 'New Zealand' : host === 'CAN' ? 'Canada' : 'France'
   // provincial opposition from the host's own clubs first, then the rest of the
   // women's world. Canada has no club league in this game, so a Canadian tour

@@ -390,7 +390,7 @@ export default function Finances() {
         if (left <= 0) return null
         return (
           <button className="card" onClick={() => go('supporter')}
-            style={{ ...acc('var(--gold)'), width: '100%', textAlign: 'left', display: 'block' }}>
+            style={{ ...acc('var(--gold)'), width: 'calc(100% - 24px)', boxSizing: 'border-box', textAlign: 'left', display: 'block' }}>
             <div className="fact-label">{t('store.funding')}</div>
             <div className="meta" style={{ marginTop: 2 }}>{t('store.fundingLine')}</div>
             <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>{t('store.title')}</div>

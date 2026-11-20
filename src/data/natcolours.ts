@@ -40,6 +40,8 @@ export const NAT_COLOURS: Record<string, NatColours> = {
   ROU: { kit: ['#fcd116', '#002b7f'], anthem: 'Deșteaptă-te, române!' },
   NAM: { kit: ['#003580', '#ffffff'], anthem: 'Namibia, Land of the Brave' },
   CHL: { kit: ['#d52b1e', '#0039a6'], anthem: 'Himno Nacional de Chile' },
+  HKG: { kit: ['#c8102e', '#ffffff'], anthem: 'March of the Volunteers' },
+  ZIM: { kit: ['#007a3d', '#ffffff'], anthem: 'Simudzai Mureza wedu WeZimbabwe' },
   // the touring XV of the four unions has no anthem of its own
   LIO: { kit: ['#c8102e', '#ffffff'], anthem: null },
 }

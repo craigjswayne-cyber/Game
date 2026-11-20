@@ -5,8 +5,8 @@ import { noteWindowResult } from './natwin'
 import { dressingRoomAlerts } from './alerts'
 import { settleStartPledge } from './handshake'
 import type { Fixture, GameState, Player, Pos } from './model'
-import { genderOf, subjectVar } from './gender'
-import { islesCoach, isleTour, offerIsles } from './isles'
+import { W, genderOf, subjectVar } from './gender'
+import { islesCoach, isleTour, lapseIsles, offerIsles } from './isles'
 import { telling } from './tellings'
 import { aiCloseSeason } from './closeseason'
 import { talkingPoints } from './talkingpoints'
@@ -23,7 +23,7 @@ import { upkeepWeek } from './upkeep'
 import { absWeek, addGrudge, careerRows, boardPatience, FACILITY_INFO, finalVenue, fmtMoney, formGuide, mgrReputation, RELEGATES, SEASON_WEEKS, seasonLabel, stamp100, mgrWinWeight, tieWinner } from './model'
 import { simMatch, teamShort } from './matchEngine'
 import { BARRAGE_WEEK } from './calendar'
-import { leaguePos, sortTable, snIdFor, snWeeksFor, TRC_WEEKS } from './schedule'
+import { leaguePos, sortTable, snIdFor, snWeeksFor, tableRule, TRC_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice, settlePendingDeals } from './ai'
 import { isDeadlineWeek, nextWeek, postWindowNotes, prevWeek } from './window'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress, isBoardroom } from './media'
@@ -70,7 +70,7 @@ import { flushMemoryNews, memoryWeek, rememberPromise } from './memory'
 import { natTwin, savedShort, weekRng } from './season/dice'
 import { boardReaction, boardReadsTheTable, honeymoonEnd } from './season/board'
 import { applyToTable, maybeCreateKnockouts, resolveKnockoutDraw, winnerOf } from './season/tables'
-import { fillShortNatSquad, manageInternationals } from './season/internationals'
+import { callUpsAhead, fillShortNatSquad, manageInternationals, openUserCampAhead } from './season/internationals'
 import { weeklyTraining } from './season/training'
 import { weeklyFinance } from './season/finance'
 import { afterClubMatch, leagueRoundUp, matchReport, mgrMilestones, milestones } from './season/news'
@@ -748,8 +748,9 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
     const lastWk = snWks[snWks.length - 1]
     const penultWk = snWks[snWks.length - 2]
     if (sn && state.week === penultWk) {
-      const leader = sortTable(sn.table)[0]
-      if (leader && leader.w === 4 && leader.d === 0 && leader.l === 0) {
+      // any side four from four, wherever bonus points have put it
+      const leader = sn.table.find(r => r.w === 4 && r.d === 0 && r.l === 0)
+      if (leader) {
         const name = nationNameIn('en', leader.teamId)
         const yours = state.natTeam === leader.teamId
         state.news.push({
@@ -769,8 +770,13 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       // Spoon went unannounced while the eve-of story above ran every year
       const fx = state.fixtures.filter(f => f.compId === sn.id)
       if (fx.length && fx.every(f => f.played)) {
-        const rows = sortTable(sn.table)
-        const top = rows[0]
+        // THE GRAND SLAM IS WORTH THREE POINTS (QA, 1.9.15), as in the real
+        // championship, so a side that wins all five is never pipped by one
+        // with more bonus points. Once, before the champion is crowned below.
+        const slam = sn.table.find(r => r.w === 5)
+        if (slam && sn.slamBonus !== state.season) { slam.pts += 3; sn.slamBonus = state.season }
+        const rows = sortTable(sn.table, 'pd')
+        const top = slam ?? rows[0]
         const bottom = rows[rows.length - 1]
         if (top && top.w === 5) {
           const name = nationNameIn('en', top.teamId)
@@ -886,20 +892,26 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       const seed = seeds.indexOf(nat) + 1
       const won = tieWinner(wcFinal) === nat
       const wcFx = state.fixtures.filter(f => f.compId === 'wc' && f.played && (f.homeId === nat || f.awayId === nat))
+      const field = state.comps['wc']?.teamIds.length ?? 20
       const deepest = wcFx.some(f => f.stage === 'F') ? (won ? 1 : 2)
         : wcFx.some(f => f.stage === 'SF') ? 4
         : wcFx.some(f => f.stage === 'QF') ? 8
-        : 16
+        : wcFx.some(f => f.stage === 'R16') ? 16
+        : field
+      // THE BAR IS THE ROUND THE SEEDING EARNS (QA, 1.9.15). Comparing the
+      // round reached with the seed itself called a third seed in the semis
+      // "short of the seeding": seeds 3 and 4 are semi-final seeds.
+      const band = seed <= 0 ? 0 : [1, 2, 4, 8, 16].find(b => seed <= b) ?? field
       const name = nationNameIn('en', nat)
       const finishWord = deepest === 1 ? 'WORLD CHAMPIONS' : deepest === 2 ? 'beaten finalists'
-        : deepest === 4 ? 'semi-finalists' : deepest === 8 ? 'quarter-finalists' : 'out in the pools'
-      const parWord = seed > 0 && deepest < seed ? 'You over-delivered on the seeding, and the country knows it.'
-        : seed > 0 && deepest === seed ? 'Par on the seeding. The review will be fair, if unsentimental.'
+        : deepest === 4 ? 'semi-finalists' : deepest === 8 ? 'quarter-finalists' : deepest === 16 ? 'out in the last sixteen' : 'out in the pools'
+      const parWord = seed > 0 && deepest < band ? 'You over-delivered on the seeding, and the country knows it.'
+        : seed > 0 && deepest === band ? 'Par on the seeding. The review will be fair, if unsentimental.'
         : seed > 0 ? 'Short of the seeding - expect the post-mortem to use your name.'
         : ''
       if (wcFx.length) {
         if (state.natConfidence != null) {
-          const swing = deepest === 1 ? 20 : deepest === 2 ? 8 : seed > 0 && deepest < seed ? 6 : seed > 0 && deepest > seed ? -8 : 0
+          const swing = deepest === 1 ? 20 : deepest === 2 ? 8 : seed > 0 && deepest < band ? 6 : seed > 0 && deepest > band ? -8 : 0
           state.natConfidence = clamp(state.natConfidence + swing, 0, 100)
         }
         state.news.push({
@@ -907,15 +919,15 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           subject: deepest === 1 ? `${name}: CHAMPIONS OF THE WORLD` : `World Championship post-mortem: ${name}`,
           k: deepest === 1 ? 'news.wcWon' : seed > 0 ? 'news.wcOutSeeded' : 'news.wcOut',
           v: {
-            ...nationVars(nat), seed,
+            ...nationVars(nat), seed, field,
             finish_k: deepest === 1 ? 'news.wcFinChamps' : deepest === 2 ? 'news.wcFinBeaten'
-              : deepest === 4 ? 'news.wcFinSemi' : deepest === 8 ? 'news.wcFinQuarter' : 'news.wcFinPools',
-            par_k: seed > 0 && deepest < seed ? 'news.wcParOver'
-              : seed > 0 && deepest === seed ? 'news.wcParEven'
+              : deepest === 4 ? 'news.wcFinSemi' : deepest === 8 ? 'news.wcFinQuarter' : deepest === 16 ? 'news.wcFinR16' : 'news.wcFinPools',
+            par_k: seed > 0 && deepest < band ? 'news.wcParOver'
+              : seed > 0 && deepest === band ? 'news.wcParEven'
               : seed > 0 ? 'news.wcParUnder' : 'common.nothing',
           },
           body: [
-            `${name} finish the World Championship as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of 20` : ''}.`,
+            `${name} finish the World Championship as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of ${field}` : ''}.`,
             deepest === 1 ? `Whatever else happens in your career, they can never take this away.` : parWord,
           ].filter(Boolean).join(' '),
         })
@@ -1592,12 +1604,14 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
         const hv: Vars = mine
           ? { short: teamShort(state, state.userClubId).toUpperCase() }
           : { comp: comp.name.toUpperCase() }
-        const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
+        // the nation's name on its own celebration (QA, 1.9.15)
+        const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName, ...(mine ? {} : nationVars(comp.champion!)) }
+        const sk = mine ? 'cel.championsSub' : 'cel.championsSubNat'
         state.celebration = {
           headline: tIn('en', hk, hv),
-          sub: tIn('en', 'cel.championsSub', sv),
+          sub: tIn('en', sk, sv),
           icon: 'trophy',
-          hk, hv, sk: 'cel.championsSub', sv,
+          hk, hv, sk, sv,
         }
         state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
         if (mine) {
@@ -1617,7 +1631,7 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
             body: `A nation celebrates. Your name goes into the record books as the coach who delivered the ${comp.name}.`,
-            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion },
+            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion, ...nationVars(comp.champion!) },
           })
         }
       }
@@ -1626,7 +1640,15 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
     if (!comp.champion && (comp.type === 'intl' || (comp.type === 'league' && !comp.playoffTeams)) && comp.table.length) {
       const all = state.fixtures.filter(f => f.compId === comp.id)
       if (all.length && all.every(f => f.played)) {
-        comp.champion = sortTable(comp.table)[0].teamId
+        // an Isles tour is won on the Test series, never on the provincial
+        // games or bonus points: most Tests won takes it, and a drawn series
+        // is not a series won by the tourists (QA, 1.9.15)
+        if (comp.id === 'lions' || comp.id === W + 'lions') {
+          const tests = all.filter(f => f.stage && /^(1st|2nd|3rd) Test$/.test(f.stage))
+          const won = (t: string) => tests.filter(f => (f.homeId === t ? f.homeScore > f.awayScore : f.awayId === t && f.awayScore > f.homeScore)).length
+          const host = comp.teamIds.find(t => t !== 'LIO') ?? comp.teamIds[0]
+          comp.champion = won('LIO') > won(host) ? 'LIO' : host
+        } else comp.champion = sortTable(comp.table, tableRule(comp.id))[0].teamId
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
         if (comp.type === 'league' && comp.champion === state.userClubId && !state.unemployed) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
@@ -1656,20 +1678,24 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           // the biggest day of a national coach's year passed as an inbox line.
           {
             const hv: Vars = { comp: comp.name.toUpperCase() }
-            const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
+            const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName, ...nationVars(comp.champion!) }
             state.celebration = {
               headline: tIn('en', 'cel.championsOf', hv),
-              sub: tIn('en', 'cel.championsSub', sv),
+              sub: tIn('en', 'cel.championsSubNat', sv),
               icon: 'trophy',
-              hk: 'cel.championsOf', hv, sk: 'cel.championsSub', sv,
+              hk: 'cel.championsOf', hv, sk: 'cel.championsSubNat', sv,
             }
           }
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
             body: `A nation celebrates. Your name goes into the record books as the coach who delivered the ${comp.name}.`,
-            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion },
+            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion, ...nationVars(comp.champion!) },
           })
+          // A TITLE IS WHAT A UNION HIRES FOR (QA, 1.9.15). Only a Grand Slam
+          // or a clean sweep moved its confidence, so a Southern Championship
+          // won on five of six was worth nothing at the review weeks later
+          if (comp.champion === state.natTeam && state.natConfidence != null) state.natConfidence = clamp(state.natConfidence + 5, 0, 100)
         }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
@@ -2170,6 +2196,16 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
   // Once a season, in a tour year, and only for a manager who has met every one
   // of the owner's four conditions. It arrives as an offer with no way to ask
   // for it, which is the whole point of it.
+  // AN INVITATION IS NOT OPEN FOREVER (QA, 1.9.15). Left unanswered, it sat
+  // on the Nations screen through the tour itself; a fortnight before the
+  // party leaves, the four unions take the silence as a no
+  if (lapseIsles(state)) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+      subject: tIn('en', 'news.islesLapsedSubj'), body: tIn('en', 'news.islesLapsed'),
+      k: 'news.islesLapsed', v: {},
+    })
+  }
   if (offerIsles(state)) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
@@ -2375,6 +2411,9 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     if (age >= 3) { n.read = true; n.cleared = true }
   }
 
+  // the coach's camp opens the week before its window (1.9.15): a Test is
+  // never played before the squad exists
+  if (state.week < SEASON_WEEKS) { callUpsAhead(state, rng); openUserCampAhead(state, 1) }
   // advance
   if (state.week >= SEASON_WEEKS) {
     // the summer cap audit happens on the old season's wage bill, before the
@@ -2382,6 +2421,9 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     auditCaps(state)
     yield
     rebuildSeason(state)
+    // a window in the new season's first week has no week before it
+    callUpsAhead(state, rng, 0)
+    openUserCampAhead(state, 0)
     // and the new season's ceiling is measured from the league as it now stands
     refreshCaps(state)
   } else {

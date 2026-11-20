@@ -8,7 +8,7 @@
 // predicted-finish chip are rules about how this league is read, and they should
 // read the same wherever the table appears.
 import { useStore } from '../store'
-import { sortTable } from '../game/schedule'
+import { sortTable, tableRule } from '../game/schedule'
 import { teamShort } from '../game/matchEngine'
 import { ClubLink, CrestT } from './components'
 import { ord, t } from '../game/i18n'
@@ -22,7 +22,7 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
   const comp = game.comps[compId]
   if (!comp) return null
 
-  const rows = sortTable(comp.table)
+  const rows = sortTable(comp.table, tableRule(comp.id))
   const playoffLine = comp.playoffTeams
   const relegates = RELEGATES.includes(compId)
 

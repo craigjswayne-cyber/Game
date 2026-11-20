@@ -9,6 +9,8 @@
 import type { GameState } from './model'
 import { natRankOrder } from './natrank'
 import { eraOf } from './nattest'
+import { activeWindows } from './season/internationals'
+import { openNatWindow } from './natwin'
 
 /** The round-robin title this nation contests, if the world has one. */
 export function natTitleComp(state: GameState, nat: string): string | null {
@@ -32,6 +34,12 @@ export function startTenure(state: GameState): void {
   termOf(state)
   eraOf(state)
   state.natUnveil = { nat, season: state.season, week: state.week }
+  // APPOINTED MID-WINDOW (QA, 1.9.15): the federation had already named the
+  // squad, and with no campaign opened there was no target, no announcement
+  // and no review for the rest of the window. He inherits the squad and the
+  // window's campaign from today.
+  const w = activeWindows(state).find(x => x.nations.includes(nat) && state.week >= x.start && state.week <= x.end)
+  if (w && (state.natSquads[nat] ?? []).length) openNatWindow(state, w)
 }
 
 /** The terms for the tenure held now; a coach appointed before they existed

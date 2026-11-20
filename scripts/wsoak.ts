@@ -93,7 +93,10 @@ console.log('--- 1. the trophies')
     const n = crowned.get(c.id) ?? 0
     // the Southern Four steps aside in a women's tour year (calendar.ts,
     // 1.6.5): its host is playing the Isles XV those weeks
-    const skipped = c.id === 'w:p4' ? Array.from({ length: SEASONS }, (_, i) => i).filter(i => isWomensTourSeason(i)).length : 0
+    const tourYears = Array.from({ length: SEASONS }, (_, i) => i).filter(i => isWomensTourSeason(i)).length
+    const skipped = c.id === 'w:p4' ? tourYears : 0
+    // the tour itself is played only in those years (2031, 2035, ... since 1.9.15)
+    if (c.id === 'w:lions') { ok(n >= tourYears - 1, `${c.name}: ${n} series in ${tourYears} tour years`); continue }
     ok(n >= SEASONS - 1 - skipped, `${c.name}: ${n} champions in ${SEASONS} seasons${skipped ? ` (${skipped} tour years stood down)` : ''}`)
   }
   for (const id of TOURS) ok(!crowned.has(id), `${g.comps[id]?.name ?? id} crowns nobody, like the men's tours`)
@@ -147,7 +150,8 @@ console.log('\n--- 4. the Test world')
     const live = g.fixtures.filter(f => g.comps[f.compId]?.isNational && f.played)
     if (live.length >= 20) break
   }
-  const thinNat = [...nats].filter(n => Object.values(g.players).filter(p => p.nat === n).length < 15)
+  // the touring Isles XV is drawn from four nations, and nobody's passport says LIO
+  const thinNat = [...nats].filter(n => n !== 'LIO' && Object.values(g.players).filter(p => p.nat === n).length < 15)
   ok(thinNat.length === 0,
     `by the time the Tests are on, all ${nats.size} nations have a squad to pick from (${thinNat.join(',') || 'none thin'})`)
   const tests = g.fixtures.filter(f => g.comps[f.compId]?.isNational)

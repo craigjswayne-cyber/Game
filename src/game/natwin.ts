@@ -18,10 +18,11 @@
 // the window (seed, season, start), so the world a coach who never opens the
 // desk lives in is the world as it was.
 import type { GameState, Player } from './model'
-import { clamp } from './rng'
+import { clamp, hashString } from './rng'
 import { closeNatTenure } from './model'
 import { tIn } from './i18n'
-import { conflictedClub, federationList, nationNameIn, NAT_SQUAD_SIZE } from './nations'
+import { natRankOrder } from './natrank'
+import { clubQuotaLeft, conflictedClub, federationList, homeBased, nationNameIn, NAT_SQUAD_SIZE } from './nations'
 
 export type CampEventKind = 'rest' | 'curfew' | 'scare' | 'bolter'
 export type CampAnswer = 'a' | 'b' | 'c'
@@ -30,7 +31,11 @@ export type NatWin = NonNullable<GameState['natWin']>
 /** The coach's nation's window, if it is this one. */
 export function natWinNow(state: GameState): NatWin | null {
   const w = state.natWin
-  return w && state.natTeam && w.nat === state.natTeam && w.season === state.season && state.week >= w.start && state.week <= w.end + 1 ? w : null
+  if (!w || !state.natTeam || w.nat !== state.natTeam || w.season !== state.season || state.week < w.start - 1) return null
+  // open from the camp week (it opens a week early, 1.9.15) to the week after,
+  // and after that for as long as its review has not been read: the review is
+  // filed while the week after is settled, so it used to vanish unread
+  return state.week <= w.end + 1 || (w.review && !w.review.seen) ? w : null
 }
 
 /** The fixtures of the coach's nation inside a window. */
@@ -41,14 +46,25 @@ function windowTests(state: GameState, nat: string, start: number, end: number) 
 
 /** The union's target: one win for each side on the list ranked below us,
  *  less one when that would ask for a clean sweep of three or more, and never
- *  less than one. */
-export function windowTarget(state: GameState, nat: string, start: number, end: number): { tests: number; target: number } {
+ *  less than one.
+ *
+ *  HARDER AT THE TOP (owner, 1.9.15: "internationals should be harder than
+ *  the club coaching... nobody should be able to breeze it"). A world top-five
+ *  side gets no clean-sweep relief, and a window against nobody within eight
+ *  ranking points is every Test. `underdog` marks a window with nobody ranked
+ *  below us: the one win is still asked, but missing it costs less, so a
+ *  thin union is a hard job and not a sacking on a timer. */
+export function windowTarget(state: GameState, nat: string, start: number, end: number): { tests: number; target: number; underdog: boolean } {
   const tests = windowTests(state, nat, start, end)
+  const order = natRankOrder(state) // seeds the table first, so both reads agree
   const me = state.natRank?.[nat] ?? 70
-  const favoured = tests.filter(f => (state.natRank?.[f.homeId === nat ? f.awayId : f.homeId] ?? 70) < me).length
+  const opp = (f: { homeId: string; awayId: string }) => state.natRank?.[f.homeId === nat ? f.awayId : f.homeId] ?? 70
+  const favoured = tests.filter(f => opp(f) < me).length
   const n = tests.length
-  const target = n === 0 ? 0 : Math.min(n, favoured >= 3 ? favoured - 1 : Math.max(1, favoured))
-  return { tests: n, target }
+  const top5 = order.includes(nat) && order.indexOf(nat) < 5
+  const mismatch = n > 0 && tests.every(f => opp(f) <= me - 8)
+  const target = n === 0 ? 0 : mismatch ? n : Math.min(n, favoured >= 3 && !top5 ? favoured - 1 : Math.max(1, favoured))
+  return { tests: n, target, underdog: n > 0 && favoured === 0 }
 }
 
 /** Camp opens: the window's ledger, with the union's target. */
@@ -56,10 +72,12 @@ export function openNatWindow(state: GameState, w: { id?: string; start: number;
   const nat = state.natTeam
   if (!nat) return
   if (state.natWin && state.natWin.nat === nat && state.natWin.season === state.season && state.natWin.start === w.start) return
-  const { tests, target } = windowTarget(state, nat, w.start, w.end)
+  // a review not yet read stays readable under the new window
+  if (state.natWin?.review && !state.natWin.review.seen) state.natLastReview = { ...state.natWin }
+  const { tests, target, underdog } = windowTarget(state, nat, w.start, w.end)
   state.natWin = {
     nat, season: state.season, start: w.start, end: w.end, comp: w.id ?? '',
-    tests, target, w: 0, d: 0, l: 0, announced: false,
+    tests, target, w: 0, d: 0, l: 0, announced: false, ...(underdog ? { underdog } : {}),
   }
   if (tests > 0) {
     const v = { nat: nationNameIn('en', nat), nat_n: nat, target, tests, comp: state.comps[w.id ?? '']?.name ?? '' }
@@ -75,6 +93,11 @@ export function openNatWindow(state: GameState, w: { id?: string; start: number;
 export function noteWindowResult(state: GameState, us: number, them: number): void {
   const w = natWinNow(state)
   if (!w || state.week > w.end) return
+  // A SQUAD THAT PLAYS HAS BEEN ANNOUNCED (QA, 1.9.15). Never pressing
+  // Announce spared every left-out player his reaction and the camp its
+  // event, with the review none the wiser: the federation names it for him
+  // at the first Test, and the papers react all the same.
+  if (!w.announced) announceSquad(state, [])
   if (us > them) w.w++
   else if (us < them) w.l++
   else w.d++
@@ -100,9 +123,22 @@ export function announceSquad(state: GameState, eligibleTop: Player[]): NatWin['
   const prev = state.natPrevSquad && state.natPrevSquad.length ? state.natPrevSquad : null
   const debuts = squad.filter(id => caps(state.players[id]) === 0)
   const recalls = prev ? squad.filter(id => !prev.includes(id) && caps(state.players[id]) > 0) : []
+  // LEFT OUT means the coach could have picked him and chose not to (QA,
+  // 1.9.15). Not a man playing abroad or without a club, not one the
+  // two-jobs rule kept at his club, not one in another camp, and not one
+  // already sent home this window (the drop stung him once already).
+  const couldPick = (id: number) => {
+    const p = state.players[id]
+    if (!p || p.injury || !p.clubId || p.natSquad || squad.includes(id)) return false
+    if (!(w.nat === 'LIO' ? ['ENG', 'IRE', 'SCO', 'WAL'].includes(p.nat) : p.nat === w.nat)) return false
+    if (!homeBased(state, p, w.nat)) return false
+    if ((state.natSent ?? []).includes(id)) return false
+    if (conflictedClub(state) && clubQuotaLeft(state, w.nat, NAT_SQUAD_SIZE, squad, p.clubId) <= 0) return false
+    return true
+  }
   const omitted = (prev
-    ? prev.filter(id => !squad.includes(id) && state.players[id] && !state.players[id].injury && caps(state.players[id]) >= 5)
-    : eligibleTop.filter(p => caps(p) >= 10 && !squad.includes(p.id)).map(p => p.id))
+    ? prev.filter(id => couldPick(id) && caps(state.players[id]) >= 5)
+    : eligibleTop.filter(p => caps(p) >= 10 && couldPick(p.id)).map(p => p.id))
     .sort((a, b) => caps(state.players[b]) - caps(state.players[a])).slice(0, 4)
   for (const id of omitted) {
     const p = state.players[id]
@@ -133,7 +169,10 @@ export function announceSquad(state: GameState, eligibleTop: Player[]): NatWin['
 function campEvent(state: GameState, w: NatWin, squad: number[]): NatWin['event'] {
   const ps = squad.map(id => state.players[id]).filter((p): p is Player => !!p && !p.injury)
   if (!ps.length) return undefined
-  const h = (Math.abs(state.seed) + state.season * 31 + w.start * 7) >>> 0
+  // A REAL HASH OF THE WINDOW (QA, 1.9.15). The sum it was had every window
+  // starting on a multiple of four (weeks 4, 12, 24, 44) land on the same
+  // kind, so a season threw up one story four times
+  const h = hashString(`${state.seed}:${state.season}:${w.start}:camp`) >>> 0
   const order: CampEventKind[] = ['rest', 'curfew', 'scare', 'bolter']
   const pick = <T,>(xs: T[]) => xs[h % xs.length]
   for (let k = 0; k < order.length; k++) {
@@ -152,7 +191,7 @@ function campEvent(state: GameState, w: NatWin, squad: number[]): NatWin['event'
 export function answerCampEvent(state: GameState, answer: CampAnswer, floor: number): boolean {
   const w = natWinNow(state)
   const e = w?.event
-  if (!w || !e || e.answer) return false
+  if (!w || !e || e.answer || state.week > w.end) return false
   const p = state.players[e.playerId]
   if (!p) return false
   const squad = state.natSquads[w.nat] ?? []
@@ -209,7 +248,8 @@ export function reviewNatWindow(state: GameState, start: number): void {
   const nat = state.natTeam
   if (!w || !nat || w.nat !== nat || w.season !== state.season || w.start !== start || w.review || w.tests === 0) return
   const met = w.w >= w.target
-  const delta = met ? (w.w > w.target ? 6 : 4) : (w.target - w.w === 1 ? -3 : -7)
+  // a miss costs more than it did (1.9.15), except for an underdog's window
+  const delta = met ? (w.w > w.target ? 6 : 4) : w.underdog ? -2 : (w.target - w.w === 1 ? -4 : -8)
   // a debut promised in camp and never given
   let broken = false
   const e = w.event
@@ -219,8 +259,9 @@ export function reviewNatWindow(state: GameState, start: number): void {
   }
   const conf = clamp((state.natConfidence ?? 60) + delta, 0, 100)
   state.natConfidence = conf
-  const sacked = conf < 20
-  const warned = !sacked && conf < 35
+  // judged on the figure the letter prints: "now 20 ... below 20" sacked a coach on 19.6 (QA, 1.9.15)
+  const sacked = Math.round(conf) < 20
+  const warned = !sacked && Math.round(conf) < 35
   w.review = { met, delta, conf: Math.round(conf), warned, sacked, broken, seen: false }
   state.natPrevSquad = (state.natSquads[nat] ?? []).slice()
   const v = {
@@ -248,7 +289,7 @@ export function reviewNatWindow(state: GameState, start: number): void {
 // out by the coach you see every Monday at the club is personal. How it lands
 // depends on where his head is (morale) and on the man: a Professional takes
 // it on the chin, a Loyal man is hurt, an Ambitious or Temperamental one can
-// be angry enough to ask to leave.
+// be angry (no transfer request: 1.9.15, below).
 export type ClubDropReaction = 'fine' | 'hurt' | 'angry' | 'request'
 const PERS_F: Record<string, number> = { Professional: 0.6, Mercenary: 0.5, Leader: 0.8, Loyal: 1.2, Ambitious: 1.4, Temperamental: 1.6 }
 
@@ -257,11 +298,12 @@ export function clubManLeftOut(state: GameState, p: Player): ClubDropReaction | 
   const band = p.morale >= 7 ? 0.3 : p.morale >= 5 ? 0.7 : 1.2
   const hit = band * (PERS_F[p.pers] ?? 1)
   p.morale = clamp(p.morale - hit, 1, 10)
-  let r: ClubDropReaction = hit < 0.5 ? 'fine' : hit < 1.1 ? 'hurt' : 'angry'
-  if (r === 'angry' && (p.pers === 'Ambitious' || p.pers === 'Temperamental') && p.morale < 3.5 && !(p.wantsOut ?? 0)) {
-    p.wantsOut = Math.max(1, state.week)
-    r = 'request'
-  }
+  // NO TRANSFER REQUESTS FROM THE TEST STAGE (owner, 1.9.15: "Transfer
+  // requests shouldn't be a thing on the international stage"). Being left
+  // out still hurts, and the anger shows in his morale; it is never a
+  // request to leave the club. 'request' stays in the type so a letter filed
+  // by 1.9.14 still reads.
+  const r: ClubDropReaction = hit < 0.5 ? 'fine' : hit < 1.1 ? 'hurt' : 'angry'
   const v = { player: p.name, nat: nationNameIn('en', state.natTeam), nat_n: state.natTeam, react_k: `natwin.react_${r}` }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,

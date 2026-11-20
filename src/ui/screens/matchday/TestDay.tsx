@@ -38,14 +38,17 @@ export function AnalystReport({ nat, opp, mine, theirs, oppLineup }: {
     .filter((x): x is { p: NonNullable<typeof x>['p']; pos: (typeof XV_SLOTS)[number]['pos'] } => !!x?.p)
     .sort((a, b) => effAt(b.p, b.pos) - effAt(a.p, a.pos))[0]
   const rk = (c: string) => order.indexOf(c) + 1
+  // a provincial side on tour has no world ranking (QA, 1.9.15: "world no. -")
+  const club = game.clubs[opp]
   return (
     <div className="card test-analyst" data-test-analyst>
       <div className="fact-label">{t('testday.analysts')}</div>
-      <div className="meta" style={{ marginTop: 3 }}>
+      {/* and the Isles XV is not ranked either: no "world no. -" */}
+      {!club && rk(nat) > 0 && rk(opp) > 0 && <div className="meta" style={{ marginTop: 3 }}>
         {t('testday.ranks', { nat: nationName(nat), n: rk(nat) || '-', opp: nationName(opp), m: rk(opp) || '-' })}
-      </div>
+      </div>}
       <ul className="test-reads">
-        {gap(theirBest) > 0.02 && <li>{t('testday.theirEdge', { opp: nationName(opp), unit: unitName(theirBest) })}</li>}
+        {gap(theirBest) > 0.02 && <li>{t('testday.theirEdge', { opp: club?.name ?? nationName(opp), unit: unitName(theirBest) })}</li>}
         {gap(ourBest) < -0.02 && <li>{t('testday.ourEdge', { unit: unitName(ourBest) })}</li>}
         {danger && <li>{t('testday.danger', { name: danger.p.name, pos: posName(danger.pos) })}</li>}
       </ul>
@@ -136,8 +139,12 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
   const cap = capId != null ? game.players[capId] : null
   // the ring on the captain's own shirt, not always on the 1 (QA, 1.9.14)
   const capAt = capId != null ? lineup.slice(0, 15).indexOf(capId) : 0
-  const challenger = [fx.homeId, fx.awayId].find(c => natChallenge(c))
-  const beats: ('out' | 'anthems' | 'challenge' | 'ko')[] = ['out', 'anthems', ...(challenger ? ['challenge' as const] : []), 'ko']
+  // A TOUR'S PROVINCIAL GAME IS NOT A TEST (QA, 1.9.15): a club has no
+  // anthem, no challenge and no flag, and its name is its own, not a code
+  const vsClub = !!game.clubs[fx.homeId] || !!game.clubs[fx.awayId]
+  const sideName = (id: string) => game.clubs[id]?.name ?? nationName(id)
+  const challenger = vsClub ? undefined : [fx.homeId, fx.awayId].find(c => natChallenge(c))
+  const beats: ('out' | 'anthems' | 'challenge' | 'ko')[] = ['out', ...(vsClub ? [] : ['anthems' as const]), ...(challenger ? ['challenge' as const] : []), 'ko']
   const [i, setI] = useState(0)
   const beat = beats[i]
   const myKit = natKit(nat) ?? NAT_KIT_FALLBACK
@@ -156,7 +163,7 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
       style={{ ['--wo-a' as string]: myKit[0], ['--wo-b' as string]: oppKit[0] }}>
       <div className="wo-band" aria-hidden="true" />
       <div className="wo-head">
-        <Flag code={fx.homeId} size={22} /> <b>{nationName(fx.homeId)}</b> <span className="muted">{t('common.v')}</span> <b>{nationName(fx.awayId)}</b> <Flag code={fx.awayId} size={22} />
+        {!game.clubs[fx.homeId] && <Flag code={fx.homeId} size={22} />} <b>{sideName(fx.homeId)}</b> <span className="muted">{t('common.v')}</span> <b>{sideName(fx.awayId)}</b> {!game.clubs[fx.awayId] && <Flag code={fx.awayId} size={22} />}
       </div>
       <div className="wo-body" key={beat}>
         {beat === 'out' && <>

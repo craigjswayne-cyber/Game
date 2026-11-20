@@ -7,8 +7,9 @@ import { windowSpan } from '../calendar'
 import { buildPlayer } from '../attributes'
 import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from '../nations'
 import { isMyClub } from '../model'
-import { clamp, type Rng } from '../rng'
+import { clamp, hashString, mulberry32, type Rng } from '../rng'
 import { tIn } from '../i18n'
+import { natStrength } from '../natrank'
 import { openNatWindow, reviewNatWindow } from '../natwin'
 
 // ------------------------------------------------------------------
@@ -51,12 +52,20 @@ export function manageInternationals(state: GameState, rng: Rng) {
   // release wiped the squads the earlier one had just named, and the review
   // missed its window once the next one opened. Every close now runs first.
   for (const w of wins) {
-    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.end + 1) reviewNatWindow(state, w.start)
+    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.end + 1 && !assistantWindow(state, w)) reviewNatWindow(state, w.start)
     if (state.week === w.end + 1) {
       if (state.natLineup && w.nations.includes(state.natLineup.team)) state.natLineup = null
       const returnedMine: string[] = []
       const lionsHome: Player[] = []
       for (const nat of w.nations) {
+        // the coach's next camp already opened a week early on top of this
+        // one (openUserCampAhead): the list on the desk is the new window's,
+        // and this window's men were released when it opened
+        if (nat === state.natTeam && state.natWin && state.natWin.nat === nat && state.natWin.season === state.season && state.natWin.start > w.end) continue
+        // still wanted by another window that is running (the Isles tour's
+        // host is also in the summer Tests, which close first): its squad
+        // stays, or the 2nd and 3rd Tests were played against nobody
+        if (wins.some(o => o !== w && o.nations.includes(nat) && state.week >= o.start && state.week <= o.end)) continue
         for (const id of state.natSquads[nat] ?? []) {
           const p = state.players[id]
           if (p) {
@@ -71,7 +80,7 @@ export function manageInternationals(state: GameState, rng: Rng) {
           }
         }
         delete state.natSquads[nat]
-        if (nat === state.natTeam) { delete state.natSent; delete state.natFed }
+        if (nat === state.natTeam) { delete state.natSent; delete state.natFed; delete state.natSentLoss }
         if (nat === state.natOrphan) state.natOrphan = null
       }
       if (lionsHome.length) {
@@ -116,226 +125,257 @@ export function manageInternationals(state: GameState, rng: Rng) {
   for (const w of wins) {
     // the coach's window as a campaign (1.9.14, natwin.ts): the union's
     // target when camp opens, its review when the window closes (above)
-    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.start) openNatWindow(state, w)
-    if (state.week === w.start) {
-      // call-ups
-      const userCalls: Player[] = []
-      const lionsCalls: Player[] = []
-      for (const nat of w.nations) {
-        const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
-        // the user's own federation names its best REAL players, whatever
-        // their age or rating - no floor keeps a young Scot at home while a
-        // stand-in gets generated (user: "there should be no age limits or
-        // restrictions on who should be picked"). AI nations keep the floor
-        // so the wider Test world's squad quality is untouched.
-        const usersNat = nat === state.natTeam || (nat === 'LIO' && islesCoach(state))
-        // the squad, plus the next men in behind it
-        const target = w.size + NAT_DEPTH
-        const ranked = Object.values(state.players)
-          .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
-            // England and France pick from their own leagues, and the
-            // federation's own list obeys the rule the coach obeys
-            // (country.ts homeBased) - one predicate, or the announcement
-            // names men the screen then refuses to keep
-            p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
-            (usersNat || p.ca >= 68))
-          .sort((a, b) => b.ca - a.ca)
-          // READ THE POOL DEEPER THAN THE SQUAD. This used to cut at w.size,
-          // which made the count below useless as a test of a country's depth:
-          // every nation on earth, England included, looked exactly 32 men
-          // deep. Cut at squad-plus-depth and the number means what the next
-          // line asks it to mean - how many men this country can actually put
-          // forward.
-        const pool = ranked.slice(0, target)
-        // EMERGING NATIONS NEED A SQUAD AND SOMEBODY TO FIGHT FOR IT.
-        //
-        // Our club world does not carry enough home-based Georgians or Uruguayans
-        // to field a Test squad, so they are generated. The first version stopped
-        // the moment the squad was full, and that is the whole of this bug: every
-        // qualified man in the country was IN the squad, natEligible came back
-        // empty, and the country desk said "Nobody left standing outside camp".
-        // Drop a man and he was instantly the only alternative to himself.
-        //
-        // Owner: "its saying nobody is fighting to get into the squad... if I drop
-        // one player then they are the only ones available - this shouldn't be the
-        // case."
-        //
-        // So it generates a POOL rather than a squad: the 32 who travel plus a
-        // further NAT_DEPTH who did not make it and are visible on the desk as the
-        // next men in. Only the best w.size are capped; the rest stay in the world
-        // uncapped and callable, which is what makes selection a decision.
-        // Big nations are untouched - their natural pool already runs to hundreds.
-        //
-        // The trigger is the POOL, not the squad. It used to fire only when a
-        // nation could not nearly fill its 23, which meant Argentina - who can
-        // field 34 qualified men and not a soul more - never generated anybody
-        // and had exactly two players outside a 32-man camp. Thin is thin
-        // whether you are two short of a squad or two short of a contest.
-        if (nat !== 'LIO' && pool.length < target) {
-          const natRep = nationByCode(nat)?.rep ?? 55
-          const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
-          let i = 0
-          while (pool.length < target && i < target + 12) {
-            const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
-            const hp = buildPlayer(
-              {
-                name: regenName(rng, nat, worldNames(state), genderOf(state)), pos: POS_CYCLE[i % POS_CYCLE.length],
-                age: 22 + Math.floor(rng() * 9), nat, q,
-                gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
-              },
-              null, state.seed + state.week * 131 + i * 17, state.season)
-            state.players[hp.id] = hp
-            pool.push(hp)
-            i++
-          }
-        }
-        // THE BEST OF THEM TRAVEL; THE REST ARE THE NEXT MEN IN. Re-sorted
-        // because the generated players were pushed on the end rather than
-        // merged in rating order, and a squad that is not the best of its own
-        // pool is not a selection.
-        pool.sort((a, b) => b.ca - a.ca)
-        // ---- THE COACH NAMES HIS OWN SQUAD ----
-        //
-        // Owner, v1.1.17: "dont auto pick the squad, it should be the coaches
-        // job to pick them."
-        //
-        // Every nation's squad was assembled here, the user's included, and the
-        // country desk was handed a finished list to fiddle with. That is the
-        // wrong way round for the one job the international game is FOR: the
-        // squad is the decision, and it was being made for him before he saw a
-        // name.
-        //
-        // So his nation's camp opens EMPTY and waits. Everybody else's is
-        // picked exactly as before - thirty other federations naming squads is
-        // world simulation, not a decision anybody is taking. The pool is still
-        // built either way, because it is what the desk offers him to pick
-        // from, and because the men in it need to exist.
-        //
-        // The camp cannot stay empty forever: nameNatSquad below fills it from
-        // this same pool if the coach has not named it by the time a Test
-        // arrives, so a Test is never played with twelve men.
-        if (nat === state.natTeam) {
-          state.natSquads[nat] = []
-          state.natSent = []
-          // the federation's own list, taken once as an AI federation takes it:
-          // the yardstick the two-jobs rule measures him against all window
-          state.natFed = { nat, ids: federationPick(state, nat, w.size).map(p => p.id) }
-          // ...except for his own club's men the federation would take, when he
-          // runs a club as well: they are released to camp as they would be to
-          // any AI federation, so leaving them home is not his to decide (9.10)
-          releaseClubDuty(state, nat, w.size)
-          // THE SUMMONS, not an announcement. The federation is waiting on him
-          // rather than handing him a team sheet, and it says so in the inbox
-          // as well as holding Continue - one of those is a reminder and the
-          // other is a wall, and a job this big deserves both.
-          const v = { ...nationVars(nat), n: NAT_SQUAD_FLOOR }
-          state.news.push({
-            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-            subject: tIn('en', 'news.natNameSubj', v),
-            body: tIn('en', 'news.natName', v),
-            k: 'news.natName', v,
-          })
-          continue
-        }
-        // the front row may come from below the depth cut: a third hooker is
-        // picked before a twentieth back, however far down the list he sits
-        // AND FROM BELOW THE RATING BAR (1.8.17). The pool only reads men rated
-        // 68 and up, so a week with two hookers hurt left a country with one
-        // fit hooker over the bar and a squad that could not name a legal 23
-        // (frontrowsquadprobe: 4 of 182, once tiredness weighed more and the
-        // knocks came a little more often). A federation calls up its next
-        // fit front-rower whatever his rating rather than play uncontested;
-        // they are only reached for when the squad is short.
-        const frCover = Object.values(state.players)
-          .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
-            p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
-            !ranked.includes(p) && ['LP', 'HK', 'TP'].some(f => p.pos === f || (p.alt as string[]).includes(f)))
-          .sort((a, b) => b.ca - a.ca || a.id - b.id)
-        const travelling = withFrontRow([...pool, ...ranked.slice(target), ...frCover], w.size)
-        state.natSquads[nat] = travelling.map(p => p.id)
-        for (const p of travelling) {
-          p.natSquad = true
-          p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
-          if (nat === 'LIO') {
-            // no - THIS is the proudest phone call in rugby
-            p.lions = (p.lions ?? 0) + 1
-            p.morale = clamp(p.morale + 0.5, 1, 10)
-            if (isMyClub(state, p.clubId)) lionsCalls.push(p)
-          } else if (isMyClub(state, p.clubId)) userCalls.push(p)
-        }
-        // the national coach announces HIS squad - a proper occasion
-        if (nat === state.natTeam || (nat === 'LIO' && islesCoach(state))) {
-          const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
-          // the squad sheet is the men who TRAVEL - the pool now runs deeper
-          // than the squad, and the next men in are not in the announcement
-          const fwd = travelling.filter(p => FWD.includes(p.pos))
-          const bks = travelling.filter(p => !FWD.includes(p.pos))
-          const line = (p: Player) => `${p.name}${(p.caps ?? 0) > 0 ? ` (${p.caps})` : ' (uncapped)'}${p.clubId ? ` - ${state.clubs[p.clubId]?.short ?? ''}` : ''}`
-          const newCaps = travelling.filter(p => (p.caps ?? 0) === 0).length
-          state.news.push({
-            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-            subject: `Your ${nationNameIn('en', nat)} squad is announced`,
-            k: 'news.natSquad',
-            v: {
-              ...nationVars(nat), n: travelling.length,
-              caps_k: newCaps ? 'news.natSquadNew' : 'news.natSquadCapped', newCaps,
-              fwd: fwd.map(line).join('; '), bks: bks.map(line).join('; '),
-            },
-            body: [
-              `The federation has published your ${travelling.length}-man squad for the window. ${newCaps ? `${newCaps} uncapped name${newCaps > 1 ? 's' : ''} in the room.` : 'A fully capped group.'}`,
-              `Forwards | ${fwd.map(line).join('; ')}`,
-              `Backs | ${bks.map(line).join('; ')}`,
-            ].join('\n'),
-          })
-        }
+    if (state.natTeam && w.nations.includes(state.natTeam) && state.week === w.start && !assistantWindow(state, w)) openNatWindow(state, w)
+    if (state.week === w.start && !(state.natEarly ?? '').split(',').includes(`${state.season}:${w.id}`)) callUps(state, w, rng)
+  }
+}
+
+/** A thin nation's pool topped up to `target` with generated players
+ *  (natGen: they stay in the pool for later windows). Rated from the women's
+ *  ranking in a women's world, the men's reputation otherwise (QA, 1.9.15:
+ *  women's Canada, third in the world, was topped up with players rated 40). */
+function topUpPool(state: GameState, nat: string, pool: Player[], target: number, rng: Rng): void {
+  const natRep = genderOf(state) === 'w' ? natStrength(state, nat) + 3 : nationByCode(nat)?.rep ?? 55
+  const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
+  let i = 0
+  while (pool.length < target && i < target + 12) {
+    const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
+    const hp = buildPlayer(
+      {
+        name: regenName(rng, nat, worldNames(state), genderOf(state)), pos: POS_CYCLE[i % POS_CYCLE.length],
+        age: 22 + Math.floor(rng() * 9), nat, q,
+        gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
+      },
+      null, state.seed + state.week * 131 + i * 17, state.season)
+    hp.natGen = true
+    state.players[hp.id] = hp
+    pool.push(hp)
+    i++
+  }
+}
+
+/** One window's call-ups: every federation names its squad, the coach's
+ *  nation's camp opens empty for the coach. */
+function callUps(state: GameState, w: Window, rng: Rng): void {
+    // call-ups
+    const userCalls: Player[] = []
+    const lionsCalls: Player[] = []
+    for (const nat of w.nations) {
+      const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
+      // the user's own federation names its best REAL players, whatever
+      // their age or rating - no floor keeps a young Scot at home while a
+      // stand-in gets generated (user: "there should be no age limits or
+      // restrictions on who should be picked"). AI nations keep the floor
+      // so the wider Test world's squad quality is untouched.
+      const usersNat = (nat === state.natTeam && !assistantWindow(state, w)) || (nat === 'LIO' && islesCoach(state))
+      // the squad, plus the next men in behind it
+      const target = w.size + NAT_DEPTH
+      const real = Object.values(state.players)
+        .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
+          // England and France pick from their own leagues, and the
+          // federation's own list obeys the rule the coach obeys
+          // (country.ts homeBased) - one predicate, or the announcement
+          // names men the screen then refuses to keep. A player generated
+          // for an earlier window stays in the pool (1.9.15): he had no
+          // club, so every window used to generate fifty strangers afresh.
+          (p.clubId || p.natGen) && homeBased(state, p, nat) && !p.injury && !p.onLoan)
+        .sort((a, b) => b.ca - a.ca)
+      const ranked = real.filter(p => usersNat || p.ca >= 68)
+      // REAL PLAYERS BEFORE INVENTED ONES (QA, 1.9.15). The AI bar of 68 left
+      // 333 American club players at home and called up twenty-nine
+      // strangers rated about 42 in their place: a thin pool is topped up
+      // from the nation's real players below the bar first.
+      if (!usersNat && ranked.length < w.size + NAT_DEPTH) ranked.push(...real.filter(p => p.ca < 68).slice(0, w.size + NAT_DEPTH - ranked.length))
+        // READ THE POOL DEEPER THAN THE SQUAD. This used to cut at w.size,
+        // which made the count below useless as a test of a country's depth:
+        // every nation on earth, England included, looked exactly 32 men
+        // deep. Cut at squad-plus-depth and the number means what the next
+        // line asks it to mean - how many men this country can actually put
+        // forward.
+      const pool = ranked.slice(0, target)
+      // EMERGING NATIONS NEED A SQUAD AND SOMEBODY TO FIGHT FOR IT.
+      //
+      // Our club world does not carry enough home-based Georgians or Uruguayans
+      // to field a Test squad, so they are generated. The first version stopped
+      // the moment the squad was full, and that is the whole of this bug: every
+      // qualified man in the country was IN the squad, natEligible came back
+      // empty, and the country desk said "Nobody left standing outside camp".
+      // Drop a man and he was instantly the only alternative to himself.
+      //
+      // Owner: "its saying nobody is fighting to get into the squad... if I drop
+      // one player then they are the only ones available - this shouldn't be the
+      // case."
+      //
+      // So it generates a POOL rather than a squad: the 32 who travel plus a
+      // further NAT_DEPTH who did not make it and are visible on the desk as the
+      // next men in. Only the best w.size are capped; the rest stay in the world
+      // uncapped and callable, which is what makes selection a decision.
+      // Big nations are untouched - their natural pool already runs to hundreds.
+      //
+      // The trigger is the POOL, not the squad. It used to fire only when a
+      // nation could not nearly fill its 23, which meant Argentina - who can
+      // field 34 qualified men and not a soul more - never generated anybody
+      // and had exactly two players outside a 32-man camp. Thin is thin
+      // whether you are two short of a squad or two short of a contest.
+      if (nat !== 'LIO' && pool.length < target) topUpPool(state, nat, pool, target, rng)
+      // THE BEST OF THEM TRAVEL; THE REST ARE THE NEXT MEN IN. Re-sorted
+      // because the generated players were pushed on the end rather than
+      // merged in rating order, and a squad that is not the best of its own
+      // pool is not a selection.
+      pool.sort((a, b) => b.ca - a.ca)
+      // ---- THE COACH NAMES HIS OWN SQUAD ----
+      //
+      // Owner, v1.1.17: "dont auto pick the squad, it should be the coaches
+      // job to pick them."
+      //
+      // Every nation's squad was assembled here, the user's included, and the
+      // country desk was handed a finished list to fiddle with. That is the
+      // wrong way round for the one job the international game is FOR: the
+      // squad is the decision, and it was being made for him before he saw a
+      // name.
+      //
+      // So his nation's camp opens EMPTY and waits. Everybody else's is
+      // picked exactly as before - thirty other federations naming squads is
+      // world simulation, not a decision anybody is taking. The pool is still
+      // built either way, because it is what the desk offers him to pick
+      // from, and because the men in it need to exist.
+      //
+      // The camp cannot stay empty forever: nameNatSquad below fills it from
+      // this same pool if the coach has not named it by the time a Test
+      // arrives, so a Test is never played with twelve men.
+      if (nat === state.natTeam && !assistantWindow(state, w)) {
+        // opened a week early (openUserCampAhead, 1.9.15): the coach has
+        // already been naming it, so it is not emptied again here
+        if (userCampOpen(state, w)) continue
+        openUserCamp(state, nat, w)
+        continue
       }
-      if (lionsCalls.length) {
-        // the honour of a career deserves better than the generic list
-        const tour = isleTour(state)?.name ?? 'the Isles tour'
-        const names = lionsCalls.map(p => `${p.name}${(p.lions ?? 0) > 1 ? ` (tour number ${p.lions})` : ''}`).join(', ')
+      // the front row may come from below the depth cut: a third hooker is
+      // picked before a twentieth back, however far down the list he sits
+      // AND FROM BELOW THE RATING BAR (1.8.17). The pool only reads men rated
+      // 68 and up, so a week with two hookers hurt left a country with one
+      // fit hooker over the bar and a squad that could not name a legal 23
+      // (frontrowsquadprobe: 4 of 182, once tiredness weighed more and the
+      // knocks came a little more often). A federation calls up its next
+      // fit front-rower whatever his rating rather than play uncontested;
+      // they are only reached for when the squad is short.
+      const frCover = Object.values(state.players)
+        .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
+          p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
+          !ranked.includes(p) && ['LP', 'HK', 'TP'].some(f => p.pos === f || (p.alt as string[]).includes(f)))
+        .sort((a, b) => b.ca - a.ca || a.id - b.id)
+      const travelling = withFrontRow([...pool, ...ranked.slice(target), ...frCover], w.size)
+      state.natSquads[nat] = travelling.map(p => p.id)
+      for (const p of travelling) {
+        p.natSquad = true
+        p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
+        if (nat === 'LIO') {
+          // no - THIS is the proudest phone call in rugby
+          p.lions = (p.lions ?? 0) + 1
+          p.morale = clamp(p.morale + 0.5, 1, 10)
+          if (isMyClub(state, p.clubId)) lionsCalls.push(p)
+        } else if (isMyClub(state, p.clubId)) userCalls.push(p)
+      }
+      // the national coach announces HIS squad - a proper occasion
+      if ((nat === state.natTeam && !assistantWindow(state, w)) || (nat === 'LIO' && islesCoach(state))) {
+        const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
+        // the squad sheet is the men who TRAVEL - the pool now runs deeper
+        // than the squad, and the next men in are not in the announcement
+        const fwd = travelling.filter(p => FWD.includes(p.pos))
+        const bks = travelling.filter(p => !FWD.includes(p.pos))
+        const line = (p: Player) => `${p.name}${(p.caps ?? 0) > 0 ? ` (${p.caps})` : ' (uncapped)'}${p.clubId ? ` - ${state.clubs[p.clubId]?.short ?? ''}` : ''}`
+        const newCaps = travelling.filter(p => (p.caps ?? 0) === 0).length
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
-          k: (state.season * 5 + state.week * 3) % 2 === 0 ? 'news.lionsCallA' : 'news.lionsCallB',
+          subject: `Your ${nationNameIn('en', nat)} squad is announced`,
+          k: 'news.natSquad',
           v: {
-            n: lionsCalls.length, names, tour,
-            who: lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : String(lionsCalls.length),
-            subj_k: lionsCalls.length === 1 ? 'news.lionsSubjOne' : 'news.lionsSubjMany',
-            is_k: lionsCalls.length === 1 ? 'news.isOne' : 'news.isMany',
-            he_k: lionsCalls.length === 1 ? 'news.heOne' : 'news.heMany',
+            ...nationVars(nat), n: travelling.length,
+            caps_k: newCaps ? 'news.natSquadNew' : 'news.natSquadCapped', newCaps,
+            fwd: fwd.map(line).join('; '), bks: bks.map(line).join('; '),
           },
           body: [
-            (state.season * 5 + state.week * 3) % 2 === 0
-              ? `The call every player in these islands dreams of: ${names} ${lionsCalls.length === 1 ? 'is' : 'are'} going on ${tour}. The whole club walks taller this morning.`
-              : `The ${tour} squad is out, and the club's name is on it: ${names}. Training stopped for the announcement. Nobody minded.`,
-            `${lionsCalls.length === 1 ? 'He' : 'They'} will be away for the tour window. Plan the run-in accordingly - and welcome back a Lion.`,
+            `The federation has published your ${travelling.length}-man squad for the window. ${newCaps ? `${newCaps} uncapped name${newCaps > 1 ? 's' : ''} in the room.` : 'A fully capped group.'}`,
+            `Forwards | ${fwd.map(line).join('; ')}`,
+            `Backs | ${bks.map(line).join('; ')}`,
           ].join('\n'),
-          playerId: lionsCalls[0].id,
         })
       }
-      if (userCalls.length) {
-        // several windows can open the same week - one combined item, not two
-        const names = userCalls.map(p => `${p.name} (${p.nat})`).join(', ')
-        const existing = state.news.find(n =>
-          n.week === state.week && n.season === state.season && n.subject === 'International call-ups')
-        if (existing) {
-          existing.body += ` Also called up: ${names}.`
-          // and the same names into the key's variables, or a French reader sees
-          // the first window's list and never the second. The engine finds this
-          // story by its English subject, which is why that stays put.
-          if (existing.v) existing.v.names = `${existing.v.names}, ${names}`
-        } else {
-          state.news.push({
-            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-            subject: `International call-ups`,
-            body: `The following players have been called up and will be unavailable during the international window: ${names}.`,
-            k: 'news.callUps',
-            v: { names },
-          })
-        }
+    }
+    if (lionsCalls.length) {
+      // the honour of a career deserves better than the generic list
+      const tour = isleTour(state)?.name ?? 'the Isles tour'
+      const names = lionsCalls.map(p => `${p.name}${(p.lions ?? 0) > 1 ? ` (tour number ${p.lions})` : ''}`).join(', ')
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+        subject: `LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
+        k: (state.season * 5 + state.week * 3) % 2 === 0 ? 'news.lionsCallA' : 'news.lionsCallB',
+        v: {
+          n: lionsCalls.length, names, tour,
+          who: lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : String(lionsCalls.length),
+          subj_k: lionsCalls.length === 1 ? 'news.lionsSubjOne' : 'news.lionsSubjMany',
+          is_k: lionsCalls.length === 1 ? 'news.isOne' : 'news.isMany',
+          he_k: lionsCalls.length === 1 ? 'news.heOne' : 'news.heMany',
+        },
+        body: [
+          (state.season * 5 + state.week * 3) % 2 === 0
+            ? `The call every player in these islands dreams of: ${names} ${lionsCalls.length === 1 ? 'is' : 'are'} going on ${tour}. The whole club walks taller this morning.`
+            : `The ${tour} squad is out, and the club's name is on it: ${names}. Training stopped for the announcement. Nobody minded.`,
+          `${lionsCalls.length === 1 ? 'He' : 'They'} will be away for the tour window. Plan the run-in accordingly - and welcome back a Lion.`,
+        ].join('\n'),
+        playerId: lionsCalls[0].id,
+      })
+    }
+    if (userCalls.length) {
+      // several windows can open the same week - one combined item, not two
+      const names = userCalls.map(p => `${p.name} (${p.nat})`).join(', ')
+      const existing = state.news.find(n =>
+        n.week === state.week && n.season === state.season && n.subject === 'International call-ups')
+      if (existing) {
+        existing.body += ` Also called up: ${names}.`
+        // and the same names into the key's variables, or a French reader sees
+        // the first window's list and never the second. The engine finds this
+        // story by its English subject, which is why that stays put.
+        if (existing.v) existing.v.names = `${existing.v.names}, ${names}`
+      } else {
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `International call-ups`,
+          body: `The following players have been called up and will be unavailable during the international window: ${names}.`,
+          k: 'news.callUps',
+          v: { names },
+        })
       }
     }
+}
+
+/**
+ * THE ISLES TOUR SQUAD LEAVES THE WEEK BEFORE ITS FIRST MATCH (QA, 1.9.15).
+ * The tour's first week is a match week, and its call-ups ran while that week
+ * settled: an Isles coach played the first provincial game with nobody in the
+ * party (49-0). For the coach's tour only, the call-ups run at the end of the
+ * week before, after that week's fixtures (the club finals keep their men).
+ */
+export function callUpsAhead(state: GameState, rng: Rng, ahead: 0 | 1 = 1): void {
+  // THE OTHER SIDE NEEDS A SQUAD TOO (QA, 1.9.15). A window that opens on its
+  // first Test (the summer tours, the Isles tour, the women's World Cup) had
+  // its call-ups made while that week was settled, but the screen plays the
+  // coach's match BEFORE the week settles: England met a Fiji with nobody in
+  // it and won 71-0. Such a window, when it holds the coach's side, is called
+  // up the week before instead, after that week's club games.
+  const mine = state.natTeam
+  const isles = islesCoach(state)
+  const early: string[] = []
+  for (const w of activeWindows(state)) {
+    if (w.start !== state.week + ahead) continue
+    const side = isles && w.nations.includes('LIO') ? 'LIO' : mine && w.nations.includes(mine) ? mine : null
+    if (!side) continue
+    const opensOnATest = state.fixtures.some(f => f.week === w.start && (f.homeId === side || f.awayId === side))
+    if (side !== 'LIO' && !opensOnATest) continue
+    early.push(`${state.season}:${w.id}`)
+    callUps(state, w, rng)
   }
+  if (early.length) state.natEarly = early.join(',')
 }
 
 /**
@@ -346,6 +386,91 @@ export function manageInternationals(state: GameState, rng: Rng) {
  * because until then the empty sheet IS the job and filling it would be the
  * auto-pick the owner asked us to stop doing.
  */
+/** THE ASSISTANT'S WINDOW (QA, 1.9.15). While the coach is away with the
+ *  Isles XV, his own country's window that summer is his assistant's: the
+ *  federation picks it, and it carries no campaign, target or review of his. */
+export function assistantWindow(state: GameState, w: Window): boolean {
+  if (!islesCoach(state) || w.nations.includes('LIO')) return false
+  return activeWindows(state).some(o => o.nations.includes('LIO') && o.start <= w.end && w.start <= o.end)
+}
+
+/** The coach's camp for this window is already open (natWin for this window,
+ *  and a squad list on the desk). */
+function userCampOpen(state: GameState, w: Window): boolean {
+  const nat = state.natTeam
+  return !!nat && !!state.natSquads[nat] && !!state.natWin && state.natWin.nat === nat &&
+    state.natWin.season === state.season && state.natWin.start === w.start
+}
+
+/** The coach's nation's camp opens EMPTY and waits for the coach (v1.1.17):
+ *  the federation's own list kept as the yardstick, his own club's men the
+ *  federation would take released to it, and the summons in the inbox. */
+function openUserCamp(state: GameState, nat: string, w: Window): void {
+  state.natSquads[nat] = []
+  state.natSent = []
+  state.natSentLoss = {}
+  state.natFed = { nat, ids: federationPick(state, nat, w.size).map(p => p.id) }
+  releaseClubDuty(state, nat, w.size)
+  const v = { ...nationVars(nat), n: NAT_SQUAD_FLOOR }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', 'news.natNameSubj', v),
+    body: tIn('en', 'news.natName', v),
+    k: 'news.natName', v,
+  })
+}
+
+/**
+ * THE CAMP OPENS THE WEEK BEFORE IT IS NEEDED (QA, 1.9.15).
+ *
+ * The call-ups run while a window's first week is settled, which is AFTER the
+ * coach has played that week. For the summer windows, whose first week is
+ * already a Test week (the tour, the Isles tour, the women's summer series
+ * and Pacific Four), the coach's Test was played with nobody in the camp: all
+ * twenty-three shirts empty and uncontested scrums from the first minute, and
+ * still booked against the ranking. The autumn and the Northern
+ * Championship had a camp week on paper that the coach never saw.
+ *
+ * So the COACH's camp opens at the end of the week before: after that week's
+ * fixtures (a club final is never robbed of its players), and for his nation
+ * only, which draws nothing from the world's random stream. `ahead` is 1 at
+ * the end of a week, and 0 for the first week of a new season, which has no
+ * week before it.
+ */
+export function openUserCampAhead(state: GameState, ahead: 0 | 1): void {
+  const nat = state.natTeam
+  if (!nat) return
+  for (const w of activeWindows(state)) {
+    if (w.start !== state.week + ahead || !w.nations.includes(nat)) continue
+    if (assistantWindow(state, w)) continue
+    if (userCampOpen(state, w)) continue
+    // a window ending this week (the women's summer series into the Pacific
+    // Four): review it and send its players home now, before the new camp
+    // takes the desk, or the review and the release are lost under it
+    const old = state.natWin
+    if (old && old.nat === nat && old.season === state.season && old.end < w.start && !old.review) reviewNatWindow(state, old.start)
+    if (state.natSquads[nat]) {
+      for (const id of state.natSquads[nat]) {
+        const p = state.players[id]
+        if (!p) continue
+        p.natSquad = false
+        p.cond = clamp(p.cond - 10, 20, 100)
+      }
+    }
+    if (!state.natTeam) return // the review can end the job
+    // A THIN NATION'S POOL EXISTS BEFORE ITS CAMP (QA, 1.9.15). It was
+    // generated as the window began, a week after this camp opens, so a
+    // Canada coach named his squad from five men. Its own dice, so the
+    // world's stream is not moved.
+    const real = Object.values(state.players).filter(p => p.nat === nat && (p.clubId || p.natGen) &&
+      homeBased(state, p, nat) && !p.injury && !p.onLoan)
+    const want = w.size + NAT_DEPTH
+    if (nat !== 'LIO' && real.length < want) topUpPool(state, nat, real, want, mulberry32(hashString(`${state.seed}:${state.season}:${w.start}:${nat}:pool`)))
+    openNatWindow(state, w)
+    openUserCamp(state, nat, w)
+  }
+}
+
 export function fillShortNatSquad(state: GameState) {
   // not gated on employment: a coach between club jobs still has a country,
   // and its camp opens empty for him like anyone's (see natSquadHold)

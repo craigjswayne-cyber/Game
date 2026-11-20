@@ -171,6 +171,9 @@ export interface Player {
   injury: Injury | null
   bans: number      // matches suspended
   natSquad: boolean // currently called up
+  /** Generated for a thin nation's Test pool, with no club: kept in that
+   *  nation's pool for the next window rather than generated afresh (1.9.15). */
+  natGen?: boolean
   // contract
   wage: number      // weekly £
   contractEnds: number // season index when contract expires (end of)
@@ -730,6 +733,8 @@ export interface Competition {
   champion?: string
   isNational?: boolean
   pools?: string[][]
+  /** The season a Grand Slam's three bonus points were added (1.9.15). */
+  slamBonus?: number
   /** tournament seedings in order (1st seed first), fixed at the draw */
   seeds?: string[]
 }
@@ -1991,6 +1996,8 @@ export interface GameState {
     nat: string; season: number; start: number; end: number; comp: string
     tests: number; target: number; w: number; d: number; l: number
     announced: boolean
+    /** nobody on the fixture list ranked below us (natwin.ts windowTarget) */
+    underdog?: boolean
     reveal?: { debuts: number[]; recalls: number[]; omitted: number[]; tone: 'bold' | 'experience' | 'shock' | 'settled'; seen: boolean }
     event?: { kind: 'rest' | 'curfew' | 'scare' | 'bolter'; playerId: number; caps: number; answer?: 'a' | 'b' | 'c' }
     review?: { met: boolean; delta: number; conf: number; warned: boolean; sacked: boolean; broken: boolean; seen: boolean }
@@ -2000,6 +2007,12 @@ export interface GameState {
   /** A nation whose coach left mid-window: the federation tops its camp up
    *  to the floor for its Tests (QA, 1.9.14). Cleared when the window closes. */
   natOrphan?: string | null
+  /** `season:windowId` of an Isles tour whose call-ups ran the week before
+   *  its first match (internationals.ts callUpsAhead, 1.9.15). */
+  natEarly?: string
+  /** What a drop this window took off each player's morale, so a recall
+   *  gives back exactly that (country.ts, 1.9.15). */
+  natSentLoss?: Record<number, number>
   /** a window whose review ended the tenure, kept so the screen can say so */
   natLastReview?: GameState['natWin']
   /** the federation's own list for the user's nation, snapshotted when the

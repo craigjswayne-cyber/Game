@@ -65,6 +65,8 @@ const PROPER = new Set([
   'world.natTrc', 'world.natWc', 'legacy.lgHallOfFame', 'matchday.testMatch',
   // the American league's own name, which it keeps abroad as its clubs do
   'compName.mrc',
+  // the union's own name, which World Rugby uses in every language (1.9.15)
+  'nation.HKG', 'nationThe.HKG', 'nationCap.HKG',
 ])
 
 // ---------------------------------------------------------------------------

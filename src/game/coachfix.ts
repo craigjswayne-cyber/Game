@@ -36,6 +36,7 @@ import type { GameState, Tactic } from './model'
 import { MAX_SUBS, matchStats } from './matchEngine'
 import type { LiveCtx, SideCtx } from './matchEngine'
 import { t } from './i18n'
+import { natPlanOf } from './natcamp'
 import { LEVERS, WHY_MIN, buildEvidence, htHurt, pointsAfter, possPct, sidesOf, significance, type Follow } from './evidence'
 
 /** MAX_SUBS as a word for prose, so the advice can never disagree with the
@@ -263,10 +264,31 @@ function benchOn(ctx: LiveCtx, mine: SideCtx): number {
   return Math.max(ctx.subsUsed, played)
 }
 
+const NAT_HOW: Record<string, string> = {
+  'coachfix.howScrum': 'coachfix.nat_howScrum',
+  'coachfix.howLineout': 'coachfix.nat_howLineout',
+  'coachfix.howBreakdown': 'coachfix.nat_howBreakdown',
+  'coachfix.howBreakdownSel': 'coachfix.nat_howBreakdownSel',
+  'coachfix.attHowWide': 'coachfix.nat_attHowWide',
+  'coachfix.discHowLow': 'coachfix.nat_discHowLow',
+  'coachfix.lateHowMany': 'coachfix.nat_lateHowMany',
+  'coachfix.tankHow': 'coachfix.nat_tankHow',
+  'coachfix.teeHow': 'coachfix.nat_teeHow',
+  'coachfix.terrHowElse': 'coachfix.nat_terrHowElse',
+  'coachfix.wonHow': 'coachfix.nat_wonHow',
+  'coachfix.lostHow': 'coachfix.nat_lostHow',
+}
+
 export function coachFixes(
   game: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, tactic: Tactic | null, want = 2,
 ): CoachFix[] {
   const c: Cand[] = []
+  // A TEST SIDE HAS NO ROLES TAB (QA, 1.9.15). The national coach has his
+  // XV, the national plan's four dials, a captain and a camp focus, so every
+  // fix that pointed at a club screen says the same thing in those terms
+  const national = !game.clubs[mine.teamId]
+  const H = (k: string) => (national ? NAT_HOW[k] ?? k : k)
+  const dials: { aggression: number; style: number; kicking: number } | null = tactic ?? (national ? natPlanOf(game) : null)
   const units = unitBattles(ctx, mine, opp)
   const poss = possPct(ctx, mine)
   const margin = mine.score - opp.score
@@ -295,7 +317,7 @@ export function coachFixes(
         unit: t(worst.label), pct: worst.pct,
         verdict: t(worst.verdict === 'bullied' ? 'coachfix.spBullied' : 'coachfix.spShaded'),
       }),
-      how: t(worst.key === 'breakdown' && physCosts ? 'coachfix.howBreakdownSel' : how[worst.key]),
+      how: t(H(worst.key === 'breakdown' && physCosts ? 'coachfix.howBreakdownSel' : how[worst.key])),
     })
   }
 
@@ -323,9 +345,9 @@ export function coachFixes(
         : yellows === 1
           ? (who ? t('coachfix.discYcWho', { player: who }) : t('coachfix.discYc'))
           : t('coachfix.discYcMany', { n: yellows, mins: yellows * 10 }),
-      how: tactic && tactic.aggression >= 55
-        ? t('coachfix.discHowHigh', { n: tactic.aggression })
-        : t('coachfix.discHowLow'),
+      how: dials && dials.aggression >= 55
+        ? t('coachfix.discHowHigh', { n: dials.aggression })
+        : t(H('coachfix.discHowLow')),
     })
   }
 
@@ -334,9 +356,9 @@ export function coachFixes(
     c.push({
       tag: 'attack', score: (poss - 50) * 1.4 + (2 - mine.tries) * 9,
       head: t(mine.tries === 1 ? 'coachfix.attHeadOne' : 'coachfix.attHeadNone', { poss }),
-      how: tactic && tactic.style <= 45
-        ? t('coachfix.attHowNarrow', { n: tactic.style })
-        : t('coachfix.attHowWide'),
+      how: dials && dials.style <= 45
+        ? t('coachfix.attHowNarrow', { n: dials.style })
+        : t(H('coachfix.attHowWide')),
     })
   }
 
@@ -347,9 +369,9 @@ export function coachFixes(
       head: t('coachfix.terrHead', { poss }),
       // kicking pushed up at the break to get out of our own 22, as the chip
       // asked: the trade is named, not undone
-      how: tactic && tactic.kicking >= 55
-        ? t(htLever?.dial === 'kicking' ? 'coachfix.terrHowTrade' : 'coachfix.terrHowKick', { n: tactic.kicking })
-        : t('coachfix.terrHowElse'),
+      how: dials && dials.kicking >= 55
+        ? t(htLever?.dial === 'kicking' ? 'coachfix.terrHowTrade' : 'coachfix.terrHowKick', { n: dials.kicking })
+        : t(H('coachfix.terrHowElse')),
     })
   }
 
@@ -364,7 +386,7 @@ export function coachFixes(
         ? t('coachfix.lateHowFew', {
           changes: fresh === 0 ? t('coachfix.lateNone') : t('coachfix.lateSome', { n: fresh }),
         })
-        : t('coachfix.lateHowMany'),
+        : t(H('coachfix.lateHowMany')),
     })
   }
 
@@ -376,7 +398,7 @@ export function coachFixes(
     c.push({
       tag: 'kicking', score: missed * 11 + (Math.abs(margin) <= 2 ? 12 : 0),
       head: missed === 1 ? t('coachfix.teeHeadOne') : t('coachfix.teeHeadMany', { n: missed }),
-      how: t('coachfix.teeHow'),
+      how: t(H('coachfix.teeHow')),
     })
   }
 
@@ -409,7 +431,7 @@ export function coachFixes(
     c.push({
       tag: 'fitness', score: (theirTank - tank) * 1.1,
       head: t('coachfix.tankHead', { subs: fresh, mine: Math.round(tank), theirs: Math.round(theirTank) }),
-      how: t('coachfix.tankHow'),
+      how: t(H('coachfix.tankHow')),
     })
   }
 
@@ -471,13 +493,13 @@ export function coachFixes(
   c.push(margin > 0 ? {
     tag: 'admin', score: 3,
     head: t('coachfix.wonHead'),
-    how: t('coachfix.wonHow', {
+    how: t(H('coachfix.wonHow'), {
       unit: t(UNIT_LOWER[units.slice().sort((a, b) => b.pct - a.pct)[0].key]),
     }),
   } : {
     tag: 'admin', score: 3,
     head: t('coachfix.lostHead'),
-    how: t('coachfix.lostHow'),
+    how: t(H('coachfix.lostHow')),
   })
 
   // best of each subject, then the two worst problems on the list

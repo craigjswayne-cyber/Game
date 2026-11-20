@@ -4,7 +4,7 @@ import { nationName } from '../game/nations'
 import { NAT_SQUAD_FLOOR, natEligible } from '../game/country'
 import { announceSquad, answerCampEvent, canAnnounce, natWinNow, type CampAnswer } from '../game/natwin'
 import { teamShort } from '../game/matchEngine'
-import { weekDate } from '../game/model'
+import { fxDate, weekDate } from '../game/model'
 import { Veil } from './Veil'
 import { SectionTitle } from './components'
 import { acc } from './accent'
@@ -23,7 +23,11 @@ export function NatCampaign() {
   const { persist } = useStore.getState()
   useStore(s => s.tick)
   const w = natWinNow(game)
-  if (!game.natTeam || !w) return null
+  const save = () => { void persist(); touch() }
+  // the last window's review, when a new window opened before it was read
+  const last = game.natLastReview && game.natLastReview.review && !game.natLastReview.review.seen && game.natLastReview.nat === game.natTeam ? game.natLastReview : null
+  const lastCard = last ? <ReviewCard w={last} onSeen={() => { last.review!.seen = true; save() }} /> : null
+  if (!game.natTeam || !w) return lastCard
   const nat = w.nat
   const named = (game.natSquads[nat] ?? []).length
   const played = w.w + w.d + w.l
@@ -37,11 +41,16 @@ export function NatCampaign() {
   const ev = w.event
   const p = ev ? game.players[ev.playerId] : null
   const evVars = { name: p?.name ?? '', club: p?.clubId ? teamShort(game, p.clubId) : '' }
-  const save = () => { void persist(); touch() }
   return (
     <>
+      {lastCard}
       <div className="card nat-campaign" data-nat-campaign style={{ ...acc('var(--gold)') }}>
-        <div className="fact-label">{compLabel(game.comps[w.comp]?.name) ?? t('natwin.title')} · {weekDate(game.season, w.start).slice(0, -5)}</div>
+        <div className="fact-label">{compLabel(game.comps[w.comp]?.name) ?? t('natwin.title')} · {(() => {
+          // the window's first Test, on the day it is played: the Saturday the
+          // week was anchored to read as a date already gone (owner, 1.9.15)
+          const first = game.fixtures.filter(f => (f.homeId === w.nat || f.awayId === w.nat) && f.week >= w.start && f.week <= w.end).sort((a, b) => a.week - b.week)[0]
+          return first ? fxDate(game.season, first) : weekDate(game.season, w.start).slice(0, -5)
+        })()}</div>
         <ol className="nc-steps" aria-label={t('natwin.title')}>
           {steps.map(s => (
             <li key={s.k} className={s.done ? 'done' : s.now ? 'now' : ''} data-step={s.k}>
@@ -90,19 +99,7 @@ export function NatCampaign() {
         </div>
       )}
 
-      {w.review && !w.review.seen && (
-        <div className="card nat-review" data-nc-review={w.review.met ? 'met' : 'missed'}
-          style={{ ...acc(w.review.met ? 'var(--text-positive)' : 'var(--text-negative)') }}>
-          <div className="fact-label">{t('natwin.reviewTitle')}</div>
-          <h3 style={{ margin: '4px 0' }}>{t(w.review.met ? 'natwin.reviewMet' : 'natwin.reviewMissed')}</h3>
-          <div className="meta">{t('natwin.progress', { w: w.w, d: w.d, l: w.l })} {t('natwin.target', { target: w.target, tests: w.tests })}</div>
-          <div className="meta">{t('natwin.reviewConf', { delta: (w.review.delta > 0 ? '+' : '') + w.review.delta, conf: w.review.conf })}</div>
-          {w.review.broken && <div className="meta">{t('natwin.reviewBroken')}</div>}
-          {w.review.warned && <div className="meta" style={{ color: 'var(--text-negative)', fontWeight: 700 }}>{t('natwin.reviewWarned')}</div>}
-          <button type="button" className="btn ghost tiny" style={{ marginTop: 6 }}
-            onClick={() => { w.review!.seen = true; save() }}>{t('natwin.gotIt')}</button>
-        </div>
-      )}
+      {w.review && !w.review.seen && <ReviewCard w={w} onSeen={() => { w.review!.seen = true; save() }} />}
 
       {w.reveal && !w.reveal.seen && (
         <Veil onClose={() => { w.reveal!.seen = true; save() }}>
@@ -115,11 +112,59 @@ export function NatCampaign() {
                 <div className="meta">{w.reveal![k].length ? w.reveal![k].map(id => game.players[id]?.name ?? '?').join(', ') : t('natwin.none')}</div>
               </div>
             ))}
+            {/* THE REACTION ONLINE (owner, 1.9.15: "media should react to each
+                squad announcement with a social media update of responses").
+                Read from the reveal itself, and drawn without the world's
+                random stream: the same squad always gets the same posts. */}
+            {(() => {
+              const r = w.reveal!
+              const name = (id: number | undefined) => (id != null ? game.players[id]?.name : undefined)
+              const likes = (seed: number) => 120 + ((seed * 2654435761) >>> 0) % 4800
+              const posts: { who: string; text: string; seed: number }[] = [
+                { who: 'natwin.socPundit', text: t(`natwin.socTone_${r.tone}`), seed: game.season * 31 + w.start },
+              ]
+              if (r.debuts.length) posts.push({ who: 'natwin.socFan', text: t('natwin.socDebut', { player: name(r.debuts[0]) ?? '' }), seed: r.debuts[0] })
+              if (r.omitted.length) posts.push({ who: 'natwin.socFormer', text: t('natwin.socOmit', { player: name(r.omitted[0]) ?? '' }), seed: r.omitted[0] })
+              if (r.recalls.length) posts.push({ who: 'natwin.socFan', text: t('natwin.socRecall', { player: name(r.recalls[0]) ?? '' }), seed: r.recalls[0] })
+              else if (r.debuts.length > 1) posts.push({ who: 'natwin.socFan', text: t('natwin.socDebut2', { player: name(r.debuts[1]) ?? '' }), seed: r.debuts[1] })
+              else if (r.omitted.length > 1) posts.push({ who: 'natwin.socPundit', text: t('natwin.socOmit2', { player: name(r.omitted[1]) ?? '' }), seed: r.omitted[1] })
+              return (
+                <div className="nc-social" data-nc-social>
+                  <div className="fact-label">{t('natwin.socTitle')}</div>
+                  {posts.map((po, i) => (
+                    <div key={i} className="nc-post">
+                      <div className="nc-post-who">{t(po.who)}</div>
+                      <div className="nc-post-text">{po.text}</div>
+                      <div className="nc-post-likes">{t('natwin.socLikes', { n: likes(po.seed).toLocaleString() })}</div>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
             <button type="button" className="btn gold block" style={{ marginTop: 12 }}
               onClick={() => { w.reveal!.seen = true; save() }}>{t('natwin.revealDone')}</button>
           </div>
         </Veil>
       )}
     </>
+  )
+}
+
+/** The union's verdict on a window: on the campaign card, and kept on its own
+ *  until read when the next window has already opened (1.9.15). */
+function ReviewCard({ w, onSeen }: { w: NonNullable<ReturnType<typeof natWinNow>>; onSeen: () => void }) {
+  if (!w.review) return null
+  return (
+        <div className="card nat-review" data-nc-review={w.review.met ? 'met' : 'missed'}
+          style={{ ...acc(w.review.met ? 'var(--text-positive)' : 'var(--text-negative)') }}>
+          <div className="fact-label">{t('natwin.reviewTitle')}</div>
+          <h3 style={{ margin: '4px 0' }}>{t(w.review.met ? 'natwin.reviewMet' : 'natwin.reviewMissed')}</h3>
+          <div className="meta">{t('natwin.progress', { w: w.w, d: w.d, l: w.l })} {t('natwin.target', { target: w.target, tests: w.tests })}</div>
+          <div className="meta">{t('natwin.reviewConf', { delta: (w.review.delta > 0 ? '+' : '') + w.review.delta, conf: w.review.conf })}</div>
+          {w.review.broken && <div className="meta">{t('natwin.reviewBroken')}</div>}
+          {w.review.warned && <div className="meta" style={{ color: 'var(--text-negative)', fontWeight: 700 }}>{t('natwin.reviewWarned')}</div>}
+          <button type="button" className="btn ghost tiny" style={{ marginTop: 6 }}
+            onClick={onSeen}>{t('natwin.gotIt')}</button>
+        </div>
   )
 }

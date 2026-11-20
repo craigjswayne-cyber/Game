@@ -225,7 +225,8 @@ const holes = (s: unknown): string => {
   const text = typeof s === 'string' ? s
     : s && typeof s === 'object' ? Object.values(s as Dict).filter(x => typeof x === 'string').join(' ')
     : ''
-  return [...new Set([...text.matchAll(/\{(\w+)\}/g)].map(m => m[1]))].sort().join(',')
+  // a nation's three forms are one hole: each language picks the one its grammar needs (1.9.15)
+  return [...new Set([...text.matchAll(/\{(\w+)\}/g)].map(m => (/^nation(The|Cap)?_k$/.test(m[1]) ? 'nation_k' : m[1])))].sort().join(',')
 }
 const enNews = (LANGS.en.news ?? {}) as Dict
 const bad: string[] = []
