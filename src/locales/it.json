@@ -13,6 +13,9 @@
   "loadCareer": "Carica carriera",
   "community": "Unisciti a noi su Discord",
   "ideasDiscord": "Condividi idee su Discord",
+  "intlStart": "Commissario tecnico",
+  "intlStartSub": "Inizia una carriera alla guida di una nazionale. Acquisto unico",
+  "intlStartOwned": "Inizia una carriera alla guida di una nazionale",
   "newCareer": "Nuova carriera",
   "savedAt": "{season}, settimana {week}",
   "matchLive": "Partita con {opp} in sospeso: si completa al caricamento",
@@ -1879,6 +1882,13 @@
   "challengeTitle": "La sfida",
   "ourChallenge": "Ecco {nationThe_k}, e la sfida: {challenge}.",
   "theirChallenge": "{opp} lancia la sua sfida: {challenge}. La tua squadra la affronta in piedi.",
+  "bothChallenge": "Entrambe le squadre lanciano una sfida, in formazione e faccia a faccia. {a}: {challengeA}. {b}: {challengeB}.",
+  "formNZL": "Una punta di freccia, guidata dal vertice.",
+  "formFIJ": "Un blocco serrato, fila dietro fila, che avanza compatto.",
+  "formSAM": "File sciolte, guidate da davanti.",
+  "formTGA": "Un blocco largo in file, spalla a spalla.",
+  "formOf": "{nat}: {form}",
+  "facing": "Di fronte, l'altra squadra resta abbracciata sulla linea di metà campo.",
   "koTitle": "Calcio d'inizio",
   "koLine": "Tutto ciò che hai fatto per {nationThe_k} si decide nei prossimi ottanta minuti.",
   "kickOff": "Calcio d'inizio",
@@ -10228,5 +10238,17 @@
   "hia": "HIA",
   "hiaTitle": "Fuori per la valutazione di un trauma cranico",
   "injured": "Uscito per infortunio"
+ },
+ "intl": {
+  "title": "Commissario tecnico",
+  "sub": "Una carriera che comincia alla guida di una nazionale",
+  "pick": "Scegli il tuo paese",
+  "blurb": "Cominci da commissario tecnico di una nazionale, senza club. Scegli i convocati, guidi i raduni e giochi i test. Un incarico in un club può arrivare più avanti dal Centro lavoro.",
+  "buyStart": "Acquista e inizia",
+  "start": "Inizia la carriera",
+  "owned": "È già tuo. Scegli un paese e inizia.",
+  "oneOff": "Acquisto unico. La carriera in un club resta gratuita.",
+  "needNation": "Scegli un paese per continuare.",
+  "failed": "Quel paese non gioca test in questo gioco. Scegline un altro."
  }
 }

@@ -192,46 +192,59 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Faustino Sánchez Valarolo', 5), r('Mateo Carreras', 36), r('Bautista Delguy', 42), r('Rodrigo Isgró', 20),
       r('Ignacio Mendy', 8), r('Juan Cruz Mallía', 51), r('Mateo Soler', 1),
     ],
-    // Fiji: the union's whole 2026 Nations Championship squad (65 men) from
-    // the championship's own squad page, read 20 Nov 2026, with CURRENT caps
-    // (after the autumn Tests so far). The November touring party is a part of
-    // this list; which part is still to be checked.
+    // Fiji: the 35 named for November (RugbyPass, 30 Oct 2026) are the squad;
+    // the rest of the union's 2026 Nations Championship list are capped men
+    // outside it. Caps from the championship's own squad page, read 20 Nov
+    // 2026, with one cap taken off for each of the France (7 Nov, Lyon) and
+    // Ireland (14 Nov, Dublin) match-day 23s a man was named in (rugby365 team
+    // announcements), so these are the caps before the autumn. Assumes every
+    // replacement came on. Check: the page had Nathan Hughes (first Fiji Test
+    // v France) and Setareki Bituniyata (debut v Ireland) on 1; both are now 0.
+    // 'Joe Tamani' and 'Ponipati Loganimasi' are the page's spellings of the
+    // Joseva Tamani and Ponipate Loganimasi who started v Ireland (one off).
     FIJ: [
-      r('Mesake Doge', 30, false), r('Tim Hoyt', 3, false), r('Eroni Mawi', 51), r('Vilikesa Nairau', 2),
-      r('Livai Natave', 6, false), r('Marika Parker', 0), r('Peni Ravai', 61), r('Inoke Ravuiwasa', 4),
-      r('Luke Tagi', 19), r('Samu Tawake', 19, false), r('Meli Tuni', 4, false), r('Penaia Cakobau', 1, false),
-      r('Tevita Ikanivere', 39), r('Sam Matavesi', 40, false), r('Peniami Narisia', 1), r('Kavaia Tagivetaua', 2, false),
-      r('Zuriel Togiatama', 14), r('Temo Mayanavanua', 37, false), r('Vilive Miramira', 6, false), r('Peni Naruma', 1, false),
-      r('Isoa Nasilasila', 35), r('Tevita Ratuva', 14, false), r('Setareki Turagacoke', 3), r('Mesake Vocevoce', 23),
-      r('Levani Botia', 31, false), r('Elia Canakaivata', 25), r('Motikiai Murray', 8, false), r('Kitione Salawa', 19),
-      r('Pita-Gus Sowakula', 7), r('Lekima Tagitagivalu', 14), r('Joe Tamani', 4, false), r('Isoa Tuwai', 2, false),
-      r('Aporosa Vuniyayawa', 1, false), r('Etonia Waqa', 4, false), r('Peceli Yato', 26), r('Nathan Hughes', 1),
-      r('Simione Kuruvoli', 27), r('Frank Lomani', 49), r('Terio Tamani', 3), r('Sam Wye', 8, false),
-      r('Isaiah Armstrong-Ravula', 23, false), r('Caleb Muntz', 27), r('Ben Volavola', 49), r('Iosefo Balewairiki', 11, false),
-      r('Kavekini Boselawa', 1, false), r('Vilimoni Botitu', 18), r('Sireli Maqala', 17), r('Isikeli Rabitu', 4),
+      r('Mesake Doge', 30, false), r('Tim Hoyt', 3, false), r('Eroni Mawi', 50), r('Vilikesa Nairau', 1),
+      r('Livai Natave', 6, false), r('Marika Parker', 0), r('Peni Ravai', 59), r('Inoke Ravuiwasa', 2),
+      r('Luke Tagi', 17), r('Samu Tawake', 19, false), r('Meli Tuni', 4, false), r('Penaia Cakobau', 1, false),
+      r('Tevita Ikanivere', 37), r('Sam Matavesi', 40, false), r('Peniami Narisia', 1), r('Kavaia Tagivetaua', 2, false),
+      r('Zuriel Togiatama', 12), r('Temo Mayanavanua', 37, false), r('Vilive Miramira', 6, false), r('Peni Naruma', 1, false),
+      r('Isoa Nasilasila', 33), r('Tevita Ratuva', 14, false), r('Setareki Turagacoke', 3), r('Mesake Vocevoce', 21),
+      r('Levani Botia', 31, false), r('Elia Canakaivata', 23), r('Motikiai Murray', 8, false), r('Kitione Salawa', 17),
+      r('Pita-Gus Sowakula', 6), r('Lekima Tagitagivalu', 13), r('Joe Tamani', 3, false), r('Isoa Tuwai', 2, false),
+      r('Aporosa Vuniyayawa', 1, false), r('Etonia Waqa', 4, false), r('Peceli Yato', 24), r('Nathan Hughes', 0),
+      r('Simione Kuruvoli', 26), r('Frank Lomani', 47), r('Terio Tamani', 2), r('Sam Wye', 8, false),
+      r('Isaiah Armstrong-Ravula', 23, false), r('Caleb Muntz', 26), r('Ben Volavola', 47), r('Iosefo Balewairiki', 11, false),
+      r('Kavekini Boselawa', 1, false), r('Vilimoni Botitu', 18), r('Sireli Maqala', 16), r('Isikeli Rabitu', 3),
       r('Semi Radradra', 22, false), r('Isaac Ratumaitavuki-Kneepkens', 1, false), r('Kalaveti Ravouvou', 18, false), r('Tuidraki Samusamuvodre', 5, false),
-      r('Seta Tamanivalu', 6, false), r('Josua Tuisova', 35), r('Virimi Vakatawa', 3, false), r('Setareki Bituniyata', 1),
-      r('Nacani Boginisoko', 1, false), r('Vinaya Habosi', 12), r('Ponipati Loganimasi', 9, false), r('Manasa Mataele', 5, false),
-      r('Joji Nasova', 6, false), r('Selestino Ravutaumada', 14), r('Salesi Rayasi', 8), r('Jiuta Wainiqolo', 23),
+      r('Seta Tamanivalu', 6, false), r('Josua Tuisova', 34), r('Virimi Vakatawa', 3, false), r('Setareki Bituniyata', 0),
+      r('Nacani Boginisoko', 1, false), r('Vinaya Habosi', 11), r('Ponipati Loganimasi', 8, false), r('Manasa Mataele', 5, false),
+      r('Joji Nasova', 6, false), r('Selestino Ravutaumada', 12), r('Salesi Rayasi', 7), r('Jiuta Wainiqolo', 21),
       r('Vuate Karawalevu', 8, false),
       // in the 30 Oct party, not on the championship's squad page
       r('Joseva Tamani', null), r('Iosefo Masi', null), r('Ponipate Loganimasi', null),
     ],
-    // Japan: the whole 2026 squad (54 men), same page and same caveat.
+    // Japan: the 35 named for November (RugbyPass, 26 Oct 2026) are the squad;
+    // the rest of the union's 2026 list are capped men outside it. Caps from
+    // the championship's own squad page, read 20 Nov 2026, with one cap taken
+    // off for each of the Wales (7 Nov, Cardiff) and England (14 Nov,
+    // Twickenham) match-day 23s a man was named in (JRFU team announcements),
+    // so these are the caps before the autumn. Assumes every replacement came
+    // on; the JRFU sheets print each man's caps before the Test, and all 23
+    // named v Wales carry exactly the figure this sum gives.
     JPN: [
-      r('Opeti Helu', 4, false), r('Kanato Hirano', 1), r('Takumi Inaba', 3, false), r('Ryosuke Iwaihara', 5),
-      r('Yota Kamimori', 5), r('Sanshiro Kihara', 1, false), r('Sena Kimura', 5), r('Takato Okabe', 14, false),
-      r('Sojiro Otsuka', 11), r('Izi Sword', 2, false), r('Shuhei Takeuchi', 33), r('Keijiro Tamefusa', 25),
-      r('Latu Taufa', 0, false), r('Hayate Era', 11, false), r('Mamoru Harada', 22), r('Kenji Sato', 15),
-      r('Ruan Botha', 1), r('Jack Cornelsen', 40), r('Warner Dearns', 40), r("Esei Ha'angana", 5),
-      r('Harry Hockings', 12), r('Mike Stolberg', 9, false), r('Tiennan Costley', 21), r('Ben Gunter', 28),
-      r('Michael Leitch', 96, false), r('Faulua Makisi', 29, false), r('Miuaustin Moriyama', 0, false), r('Kanji Shimokawa', 32),
-      r('Shinobu Fujiwara', 23), r('Kenta Fukuda', 10), r('Itsuki Kamimura', 3, false), r('Naoto Saito', 39),
-      r('Sam Greene', 10, false), r('Ryunosuke Ito', 9, false), r('Riku Kitahara', 2), r('Shinya Komura', 5),
+      r('Opeti Helu', 2, false), r('Kanato Hirano', 1), r('Takumi Inaba', 3, false), r('Ryosuke Iwaihara', 5),
+      r('Yota Kamimori', 3), r('Sanshiro Kihara', 1, false), r('Sena Kimura', 5), r('Takato Okabe', 14, false),
+      r('Sojiro Otsuka', 9), r('Izi Sword', 2, false), r('Shuhei Takeuchi', 31), r('Keijiro Tamefusa', 25),
+      r('Latu Taufa', 0, false), r('Hayate Era', 11, false), r('Mamoru Harada', 20), r('Kenji Sato', 13),
+      r('Ruan Botha', 1), r('Jack Cornelsen', 38), r('Warner Dearns', 38), r("Esei Ha'angana", 5),
+      r('Harry Hockings', 10), r('Mike Stolberg', 7, false), r('Tiennan Costley', 19), r('Ben Gunter', 26),
+      r('Michael Leitch', 96, false), r('Faulua Makisi', 29, false), r('Miuaustin Moriyama', 0, false), r('Kanji Shimokawa', 30),
+      r('Shinobu Fujiwara', 22), r('Kenta Fukuda', 9), r('Itsuki Kamimura', 3, false), r('Naoto Saito', 37),
+      r('Sam Greene', 10, false), r('Ryunosuke Ito', 9, false), r('Riku Kitahara', 0), r('Shinya Komura', 3),
       r('Takuro Matsunaga', 12), r('Yuya Hirose', 10, false), r('Yuki Ikeda', 2), r('Charlie Lawrence', 10),
-      r('Jisu Lee', 3), r('Tomoki Osada', 27, false), r('Dylan Riley', 48), r('Samisoni Tua', 11),
-      r('Inoke Burua', 5), r('Kippei Ishida', 13), r('Haruto Kida', 4, false), r('Taira Main', 4, false),
-      r('Jone Naikabula', 17, false), r('Koga Nezuka', 3), r('Riku Tokito', 1), r('Kazuma Ueda', 11),
+      r('Jisu Lee', 1), r('Tomoki Osada', 27, false), r('Dylan Riley', 46), r('Samisoni Tua', 9),
+      r('Inoke Burua', 4), r('Kippei Ishida', 11), r('Haruto Kida', 4, false), r('Taira Main', 4, false),
+      r('Jone Naikabula', 17, false), r('Koga Nezuka', 3), r('Riku Tokito', 0), r('Kazuma Ueda', 9),
       r('Yoshitaka Yazaki', 11, false), r('Shunsuke Uenobo', 3, false),
       // in the 26 Oct party, not on the championship's squad page
       r('Michael Stolberg', null), r('Miu Austin Moriyama', 0),

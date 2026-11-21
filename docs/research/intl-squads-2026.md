@@ -217,3 +217,114 @@ each club's full announced squad (non-internationals, new signings, leavers).
 - Fiji: the squad is now the 35 named for November (RugbyPass, 30 Oct 2026); the other 33 on the season list are capped
   players outside the squad. Japan: the 35 named for November (RugbyPass, 26 Oct 2026); the other 21 likewise.
 - STILL TO DO for Fiji and Japan: take off the two November Tests played before 20 Nov (team sheets not yet read).
+  DONE 21 Nov, next section.
+
+### Men, Fiji and Japan cap corrections (21 Nov 2026)
+
+Both blocks held the championship page's caps as read on 20 Nov, so after each side's first two November Tests. One
+cap is now off for each match-day 23 a man was named in. Assumes every named replacement came on. The third Test of
+each side is on 21 Nov (Japan v Scotland for certain, JRFU schedule) and is after the page was read, so not counted.
+
+Fiji, 30 figures changed:
+- France v Fiji, Sat 7 Nov 2026, Groupama Stadium, Lyon. 23 from
+  rugby365.com/countries/jake-white-picks-former-england-star-as-fiji-target-france (5 Nov) and
+  rugby365.com/countries/fiji/france-v-fiji-teams-and-prediction-3/, checked against
+  www.rugby.com.au/news/ntamack-to-partner-dupont-in-france-team-as-fiji-load-up-on-top-14-stars-for-clash-2026115.
+  Mawi, Ikanivere, Tagi, Vocevoce, Nasilasila, Sowakula, Salawa, Hughes, Kuruvoli, Rabitu, Wainiqolo, Habosi, Masi,
+  Ravutaumada, Rayasi; Togiatama, Ravai, Ravuiwasa, Yato, Canakaivata, Lomani, Volavola, Maqala.
+- Ireland v Fiji, Sat 14 Nov 2026, Aviva Stadium, Dublin (Ireland 43-15, Irish News). 23 from
+  rugby365.com/countries/fiji/jake-white-unveils-new-captain-and-debutant-for-ireland-clash/ (12 Nov) and
+  rugby365.com/countries/fiji/ireland-vs-fiji-teams-and-prediction/ (the same outlet twice, no second outlet read).
+  Ravai, Ikanivere, Tagi, Joseva Tamani, Nasilasila, Vocevoce, Tagitagivalu, Yato, Lomani, Volavola, Wainiqolo, Tuisova,
+  Bituniyata (debut), Ravutaumada, Ponipate Loganimasi; Togiatama, Nairau, Ravuiwasa, Salawa, Canakaivata, Terio Tamani,
+  Muntz, Masi.
+- Two off (14): Ikanivere 37, Tagi 17, Vocevoce 21, Nasilasila 33, Salawa 17, Wainiqolo 21, Ravutaumada 12, Togiatama 12,
+  Ravai 59, Ravuiwasa 2, Yato 24, Canakaivata 23, Lomani 47, Volavola 47.
+- One off (16): Mawi 50, Sowakula 6, Hughes 0, Kuruvoli 26, Rabitu 3, Habosi 11, Rayasi 7, Maqala 16 (France);
+  Tagitagivalu 13, Tuisova 34, Bituniyata 0, Nairau 1, Terio Tamani 2, Muntz 26, Joe Tamani 3, Ponipati Loganimasi 8 (Ireland).
+- Check: Hughes (first Fiji Test v France) and Bituniyata (debut v Ireland) were on 1 on the page and are now 0.
+- rugby365 prints the replacement prop as "Ratuwawasa" and "Ravuwasa"; rugby.com.au and the Irish News have Ravuiwasa.
+- NOT RESOLVED: Iosefo Masi is in both 23s but is not on the championship page, so he stays null. The page's "Joe
+  Tamani" (4) and "Ponipati Loganimasi" (9) are taken to be the Joseva Tamani and Ponipate Loganimasi who started v
+  Ireland: Planet Rugby's list of the union's 50-man squad has one Tamani forward, Joseva. That is an inference, not a
+  page that says so. Their caps sit on the page-spelling rows (squad false), which the world cannot find; the rows the
+  world does find, 'Joseva Tamani' and 'Ponipate Loganimasi', are still null. Moving 3 and 8 onto them is the owner's call.
+
+Japan, 25 figures changed:
+- Wales v Japan, Sat 7 Nov 2026, Principality Stadium, Cardiff:
+  en.rugby-japan.jp/2026/11/07/brave-blossoms-all-set-for-cardiff-showdown/
+  Kamimori, Harada, Takeuchi, Hockings, Dearns, Gunter, Shimokawa, Cornelsen, Saito, Kitahara (debut), Burua, Tua, Riley,
+  Ishida, Ueda; Sato, Otsuka, Helu, Stolberg, Costley, Fukuda, Komura, Lee.
+- England v Japan, Sat 14 Nov 2026, Twickenham:
+  en.rugby-japan.jp/2026/11/13/brave-blossoms-named-to-face-england-at-twickenham/
+  The same 23 but Tokito (debut) for the injured Burua and Fujiwara for Fukuda.
+- Two off (21): Kamimori 3, Harada 20, Takeuchi 31, Hockings 10, Dearns 38, Gunter 26, Shimokawa 30, Cornelsen 38,
+  Saito 37, Kitahara 0, Tua 9, Riley 46, Ishida 11, Ueda 9, Sato 13, Otsuka 9, Helu 2, Mike Stolberg 7, Costley 19,
+  Komura 3, Lee 1. One off (4): Burua 4, Fukuda 9 (Wales); Tokito 0, Fujiwara 22 (England).
+- Check: the JRFU sheets print each man's caps before the Test. All 23 figures before Wales equal the figure in the
+  file now, and each man named twice went up by one between the two sheets, so every replacement did come on v Wales.
+- NOT RESOLVED: 'Michael Stolberg' (the party's spelling, null) is the 'Mike Stolberg' of the page and of jl1.ts; the
+  JRFU sheet gives him 7 before Wales. Opeti Helu is squad false (not in the 26 Oct party) yet was on both benches, and
+  the world holds him as Tongan. Both left as they were.
+- Schedule: en.rugby-japan.jp/schedule/japan/
+
+### PWR club squads 2026-27, full check (21 Nov 2026)
+
+Source for every club: its squad list on the league's own site, thepwr.com/clubs/<club> (player links carry
+seasonId=202601; the lists hold the 2026/27 signings). Read 21 Nov 2026. The Harlequins list only came back at
+thepwr.com/clubs/harlequins-women?round=14. Others: RugbyPass's 2026-27 PWR preview
+(rugbypass.com/news/2026-27-jaecoo-premiership-womens-rugby-preview/), RugbyPass on Leicester's five releases (27 Oct),
+on Vecchini (31 Jul), O'Gorman (8 Oct) and Nina Mason (16 Nov), exeterchiefs.co.uk "Chiefs Women's young guns sign
+transition contracts" (17 Aug), and Wikipedia's "List of 2026-27 Premiership Women's Rugby transfers".
+
+WARNING: the thepwr.com lists are not clean. Bristol's still has Elliann Clarke, whom Scottish Rugby's own profile
+puts at Glasgow Warriors since summer 2026, and Rosie Carr, whom the club's own list (18 Nov) left off. So a name on
+a thepwr.com list alone is a weak source, and "not on the list" is not proof a player has left. Leavers were only
+marked where a second source names the move or release.
+
+Seniors = rows in w_pwr.ts plus additions.ts, less released. Nothing was added to a club at 46.
+
+- Gloucester-Hartpury (list 38; file 36 -> 39). Added Vittoria Vecchini (HK, Italy), Bridie O'Gorman (TP, Australia)
+  and Evelyn Clarke (moved from the Loughborough block, now a wing as listed). Nobody in the file is off the list
+  except Hannah Jones (additions.ts).
+- Saracens (list 46; file 50 -> 48). Deborah Wills moved to Exeter and Laetitia Royer to Trailfinders. On the list,
+  not in the file, NOT added (club over 46): Ellie Boatman, Beth Wilcock, Hannah Thornhill (a generated Championship
+  player has the name), Sophie Tansley, Leila Crick, Ruby Ross. In the file, not on the list, no source for a move,
+  left alone: Amelia Tutt, Chantelle Miell, Macey Twine, Maisy Herbert, May Goulding, Paige Farries, Roshini Turner,
+  Sydney Mead.
+- Bristol Bears (list 38; file 40 active, unchanged). Elliann Clarke is on the list but not added (see warning).
+  Rosie Carr is on the list but released in the file: left alone. In the file, not on the list: Izzy Jaques, Charlotte
+  Heath, Kirsty Hillier, Sophie Piper (all from the club's own list of 18 Nov).
+- Harlequins (list 46; file 44 -> 46). Added Nina Mason (USA, signed 16 Nov, not yet on the list) and Bee Leonard (FB,
+  list only). On the list, NOT added: Amelie Bleriot (SH), Chloe Benjamin (LK), Ailsa Merryweather (LK), and Alex
+  Wilkinson (SH; w_champ.ts has an Alex Wilkinson at Richmond, not confirmed as the same player). In the file, not on
+  the list, left alone: Millie Pearce, Rose Platt, Louisa Ward. The list spells Abby Middlebrook without the e.
+- Trailfinders (list 36; file 41 -> 43). Added Laetitia Royer (from Saracens, RugbyPass preview; she is not on the
+  thepwr.com list of either club) and Lilly Pereira dos Santos (WG, list only). In the file or additions.ts, not on
+  the list, left alone: Ellie Lennon, Maia Roos, Abby Dow, Alana Bremner, Bo Westcombe-Evans (RugbyPass's preview
+  has her signing). additions.ts has 'Megan Jones' and w_pwr.ts 'Meg Jones' at this club: one player, two rows.
+  additions.ts says Alana Borland is a misspelling of Alana Bremner, but the list has an Alana Borland, flanker.
+- Exeter Chiefs (list 46; file 44 -> 46). Added Deborah Wills (from Saracens) and Amelia Lambourn (TP, club and list).
+  On the list, NOT added (club at 46): Frankie Welsher (list: wing; club: centre), Izzy Newnes-Smith (back row),
+  Sammie Harris (centre). In the file, not on the list, left alone: Lucy Nye, Hannah Sams, Anna Woodman. The club's
+  transition-contract piece also names Izzy Firth, Meghan Crilly, Charlotte Coyle, Tara O'Neill, Tilly Pulfer.
+- Loughborough Lightning (list 47; file 37 -> 46). Evelyn Clarke out to Gloucester. "Kiki Ldowu" corrected to Kiki
+  Idowu, hooker, Canada (list; Canada's 2026 squad). Added ten from the list: Freya MacColl, Alice Bennett (WG), Izzy
+  Clist, Imogen Mockford (CE), Ella Barnes, Alice Redfern (FH), Sarah Shrestha, Emily Peters (FL), Sasha Roberts (LK),
+  Harli Stanton (HK). List only: no second source names them (Wikipedia's transfers page cites the club moving twelve
+  players up, unnamed). NOT added (club at 46): Emily Heaps (FH), Mary McDonagh (FL), Bayley Jurkowski (prop). In the
+  file, not on the list, left alone: Chloe Daniels, Bulou Mataitoga (Wikipedia's page cites her leaving; the article
+  itself was not read).
+- Leicester Tigers (list 38; file 45 -> 41 active). released: true on Phoebe Andrews, Freya Greensmith, Lauren Poole,
+  Summer Reeves, Jordan Russell (RugbyPass, 27 Oct: all five left with immediate effect). Added Caoimhe O'Sullivan
+  Roche (USA-qualified prop from the New York Exiles, same article; not on the list). Lisa Neumann (Wales wing) is on
+  the list and in RugbyPass's preview but NOT added: w_champ.ts has a generated Lisa Neumann. In the file, not on the
+  list, left alone: Wako Kitano, Kat Turner, Louisa Maynard. Positions that differ from the list, not changed: Coco
+  Lindelauf (file CE, list prop), Halley Derera (file TP, list wing).
+- Sale Sharks (list 50; file 46, unchanged). On the list, NOT added (club at 46): Sophie Hopkins (w_e1.ts has the
+  name), Honey Cockroft-Smith, Lizzie Goulden, Spencer Boldt, Georgina Holmes, Maggie Graham, Harriet Thompson-Ogden,
+  Lotte Peirsegaele. In the file, not on the list, left alone: Sophie Blakemore, Alicia Calton, Carmen Castellucci,
+  Scarlett Fielding.
+
+Assigned by the game, not sourced, for the 17 new rows: every rating; every age except Vecchini (24) and O'Gorman
+(27); the union of the twelve list-only players and Lambourn (ENG); loosehead for O'Sullivan Roche.

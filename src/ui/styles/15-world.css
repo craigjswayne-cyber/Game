@@ -143,7 +143,6 @@
 }
 .walkout .wo-line { display: flex; justify-content: center; gap: 1px; }
 .walkout .wo-fig { width: 6%; max-width: 22px; height: auto; }
-.walkout .wo-gap { height: 18px; border-bottom: 2px dashed rgba(255,255,255,.35); margin: 0 12px 18px; }
 .walkout .wo-anthems { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; font-size: 0.9375rem; color: var(--text-primary); }
 .walkout .wo-anthems li { padding: 8px 10px; border-radius: 8px; background: var(--surface-1); border: 1px solid var(--border); }
 .walkout .wo-actions { padding-top: 10px; }
@@ -156,6 +155,27 @@
 }
 @keyframes wo-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes wo-walk { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* THE CHALLENGE IN ITS SHAPE (1.9.16, TestDay.tsx RitualPitch, ui/ritual.ts):
+   a strip of the field either side of halfway, drawn in metres, so the SVG
+   scales to the phone and nothing in it is a pixel size. A man is 2.3 m
+   across: twenty-three in a line are 60 m of a 70 m field, 11 px each at
+   384 px wide. */
+.walkout .wo-ritual { padding: 6px; overflow: hidden; }
+.walkout .wo-ritual svg { display: block; width: 100%; height: auto; }
+.walkout .wo-ritual text { font-family: var(--cond); }
+.walkout .wo-rit-mark { stroke: rgba(255,255,255,.4); stroke-width: .3; }
+.walkout .wo-rit-ten { stroke: rgba(255,255,255,.25); stroke-dasharray: 1.4 1.4; }
+.walkout .wo-ritual-cap { display: grid; gap: 2px; }
+.walkout .wo-ritual-cap p { font-size: 0.8125rem; }
+@media (prefers-reduced-motion: no-preference) {
+  /* the shape steps up to its line as the beat opens; where motion is
+     reduced it is simply standing there */
+  .walkout .wo-rit-form { animation: wo-advance 1.6s ease-out .2s both; }
+  .walkout .wo-rit-side:not(.wo-rit-form) { animation: wo-face .6s ease-out both; }
+}
+@keyframes wo-advance { from { opacity: 0; transform: translateY(var(--wo-adv, 0px)); } to { opacity: 1; transform: none; } }
+@keyframes wo-face { from { opacity: 0; } to { opacity: 1; } }
 
 /* a Test's full time (1.9.14, TestVerdict.tsx) */
 .test-verdict .tv-score { font-family: var(--cond); font-size: 1.125rem; margin: 4px 0 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }

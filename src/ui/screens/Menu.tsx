@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
+import { PINNACLE_SKU, hasEntitlement, tillOpen } from '../../game/monetise'
 import { listSaves, loadGame, deleteSave, peekResumes, type SaveMeta } from '../../game/save'
 import type { LiveStamp } from '../../game/resume'
 import { seasonLabel } from '../../game/model'
@@ -88,6 +89,18 @@ export default function Menu() {
           <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: '1rem' }}
             onClick={() => setShowLoad(!showLoad)}>
             {t('menu.loadCareer')}
+          </button>
+        )}
+        {/* START AS AN INTERNATIONAL COACH (1.9.16). Owner: "there should be an
+            option on the first page - start as an international coach - this
+            should be a paid option on the main menu - the other route of
+            coaching a club should still be free. It should be the style of
+            the store button." Shown where there is a store to buy it from, or
+            to somebody who already owns it; the website has neither. */}
+        {(tillOpen() || hasEntitlement(PINNACLE_SKU)) && (
+          <button className="card store-card intl-start-card" data-intl-start onClick={() => go('newgame', 'intl')}>
+            <div className="store-word">{t('menu.intlStart')}</div>
+            <div className="store-sub">{t(hasEntitlement(PINNACLE_SKU) ? 'menu.intlStartOwned' : 'menu.intlStartSub')} ›</div>
           </button>
         )}
         {/* The Discord link lived here for a day and moved into the game

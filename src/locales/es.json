@@ -13,6 +13,9 @@
   "loadCareer": "Cargar carrera",
   "community": "Únete a nosotros en Discord",
   "ideasDiscord": "Comparte ideas en Discord",
+  "intlStart": "Seleccionador",
+  "intlStartSub": "Empieza una carrera al frente de una selección. Compra única",
+  "intlStartOwned": "Empieza una carrera al frente de una selección",
   "newCareer": "Nueva carrera",
   "savedAt": "{season}, semana {week}",
   "matchLive": "Partido sin terminar contra {opp}: se completará al cargar",
@@ -1880,6 +1883,13 @@
   "challengeTitle": "El desafío",
   "ourChallenge": "{nation_k} lanza su desafío: {challenge}.",
   "theirChallenge": "{opp} lanza su desafío: {challenge}. Tu equipo lo encara de pie.",
+  "bothChallenge": "Los dos equipos lanzan un desafío, en formación y cara a cara. {a}: {challengeA}. {b}: {challengeB}.",
+  "formNZL": "Una punta de flecha, guiada desde el vértice.",
+  "formFIJ": "Un bloque cerrado, fila tras fila, que avanza a una.",
+  "formSAM": "Filas sueltas, guiadas desde delante.",
+  "formTGA": "Un bloque ancho en filas, hombro con hombro.",
+  "formOf": "{nat}: {form}",
+  "facing": "Enfrente, el otro equipo aguarda abrazado sobre el medio campo.",
   "koTitle": "Saque inicial",
   "koLine": "Todo lo que has hecho por {nation_k} se decide en los próximos ochenta minutos.",
   "kickOff": "Sacar",
@@ -10167,5 +10177,17 @@
   "hia": "HIA",
   "hiaTitle": "Fuera para una evaluación de lesión en la cabeza",
   "injured": "Retirado por lesión"
+ },
+ "intl": {
+  "title": "Seleccionador",
+  "sub": "Una carrera que empieza al frente de una selección",
+  "pick": "Elige tu país",
+  "blurb": "Empiezas como seleccionador de un equipo nacional, sin club. Eliges la convocatoria, diriges las concentraciones y juegas los tests. Un puesto en un club puede llegar más adelante desde el Centro de empleo.",
+  "buyStart": "Comprar y empezar",
+  "start": "Empezar carrera",
+  "owned": "Ya es tuyo. Elige un país y empieza.",
+  "oneOff": "Compra única. La carrera en un club sigue siendo gratis.",
+  "needNation": "Elige un país para continuar.",
+  "failed": "Ese país no juega tests en este juego. Elige otro."
  }
 }

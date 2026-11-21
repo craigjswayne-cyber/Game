@@ -13,6 +13,9 @@
   "loadCareer": "Laai loopbaan",
   "community": "Sluit by ons Discord aan",
   "ideasDiscord": "Deel idees op Discord",
+  "intlStart": "Nasionale afrigter",
+  "intlStartSub": "Begin 'n loopbaan aan die stuur van 'n land. Eenmalige aankoop",
+  "intlStartOwned": "Begin 'n loopbaan aan die stuur van 'n land",
   "newCareer": "Nuwe loopbaan",
   "savedAt": "{season}, Week {week}",
   "matchLive": "Wedstryd teen {opp} onvoltooid: dit word klaargespeel wanneer jy inlaai",
@@ -1844,6 +1847,13 @@
   "challengeTitle": "Die uitdaging",
   "ourChallenge": "{nation_k} rig hulle uitdaging: {challenge}.",
   "theirChallenge": "{opp} rig hulle uitdaging: {challenge}. Jou span staan en kyk dit in die oë.",
+  "bothChallenge": "Albei spanne rig 'n uitdaging, in formasie en van aangesig tot aangesig. {a}: {challengeA}. {b}: {challengeB}.",
+  "formNZL": "'n Pylpunt, met die leier op die punt.",
+  "formFIJ": "'n Digte blok, ry agter ry, wat as een vorentoe beweeg.",
+  "formSAM": "Los rye, met die leier heel voor.",
+  "formTGA": "'n Breë blok in rye, skouer aan skouer.",
+  "formOf": "{nat}: {form}",
+  "facing": "Oorkant hulle staan die ander span arm in arm op die middellyn.",
   "koTitle": "Afskop",
   "koLine": "Alles wat jy vir {nation_k} gedoen het, kom neer op die volgende tagtig minute.",
   "kickOff": "Skop af",
@@ -10215,5 +10225,17 @@
   "hia": "HIA",
   "hiaTitle": "Af vir 'n kopbeseringsondersoek",
   "injured": "Beseer af"
+ },
+ "intl": {
+  "title": "Nasionale afrigter",
+  "sub": "'n Loopbaan wat in 'n nasionale pos begin",
+  "pick": "Kies jou land",
+  "blurb": "Jy begin as hoofafrigter van 'n nasionale span, sonder 'n klub. Jy kies die groep, lei die kampe en speel die toetse. 'n Klubpos kan later steeds deur die Werksentrum kom.",
+  "buyStart": "Koop en begin",
+  "start": "Begin loopbaan",
+  "owned": "Reeds joune. Kies 'n land en begin.",
+  "oneOff": "Eenmalige aankoop. Die klubloopbaan bly gratis.",
+  "needNation": "Kies 'n land om voort te gaan.",
+  "failed": "Daardie land speel geen toetse in hierdie spel nie. Kies 'n ander een."
  }
 }

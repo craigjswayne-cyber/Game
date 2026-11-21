@@ -1504,6 +1504,11 @@ export interface GameState {
    *  slot a season, so the gamble cannot be shopped round until it pays */
   dealEndedSeason?: Partial<Record<import('../commercial').SlotId, number>>
   /** a trophy moment waiting to be celebrated full-screen */
+  /** the rating card has been asked for on a high in this career (1.9.16,
+   *  reviewask.ts): once a career */
+  rateAsked?: boolean
+  /** the career began in a national job, with no club (1.9.16, intlstart.ts) */
+  intlStart?: boolean
   /** THE FULL-SCREEN MOMENT. Promotion, a title, an unbeaten season, a
    *  challenge finished - the rarest things the game has to show, and every
    *  one of them was English whatever language the manager had chosen.

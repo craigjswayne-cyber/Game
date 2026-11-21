@@ -13,6 +13,9 @@
   "loadCareer": "Load Career",
   "community": "Join us on Discord",
   "ideasDiscord": "Share ideas on Discord",
+  "intlStart": "International coach",
+  "intlStartSub": "Start a career in charge of a country. One-off purchase",
+  "intlStartOwned": "Start a career in charge of a country",
   "newCareer": "New Career",
   "savedAt": "{season}, Week {week}",
   "matchLive": "Match v {opp} unfinished: it plays out when you load",
@@ -1846,6 +1849,13 @@
   "challengeTitle": "The challenge",
   "ourChallenge": "{nation_k} lay down their challenge: {challenge}.",
   "theirChallenge": "{opp} lay down their challenge: {challenge}. Your side stands and faces it.",
+  "bothChallenge": "Both sides lay down a challenge, in formation and face to face. {a}: {challengeA}. {b}: {challengeB}.",
+  "formNZL": "An arrowhead, the leader at its point.",
+  "formFIJ": "A tight block, row behind row, moving forward as one.",
+  "formSAM": "Loose rows, the leader out in front.",
+  "formTGA": "A broad block in rows, shoulder to shoulder.",
+  "formOf": "{nat}: {form}",
+  "facing": "Facing it, the other side stand arm in arm on halfway.",
   "koTitle": "Kick-off",
   "koLine": "Everything you have done for {nation_k} comes down to the next eighty minutes.",
   "kickOff": "Kick off",
@@ -10171,5 +10181,17 @@
   "hia": "HIA",
   "hiaTitle": "Off for a head injury assessment",
   "injured": "Off injured"
+ },
+ "intl": {
+  "title": "International Coach",
+  "sub": "A career that begins in a national job",
+  "pick": "Choose your country",
+  "blurb": "You start as head coach of a national side, with no club. You name the squad, run the camps and take the Tests. Club jobs can still come later through the Job Centre.",
+  "buyStart": "Buy and start",
+  "start": "Start Career",
+  "owned": "Yours already. Choose a country and start.",
+  "oneOff": "One-off purchase. The club career stays free.",
+  "needNation": "Choose a country to carry on.",
+  "failed": "That country has no Tests in this game. Choose another."
  }
 }

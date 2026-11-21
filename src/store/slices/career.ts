@@ -5,7 +5,8 @@ import { noteWhere, readWhere, sameSession } from '../nav'
 import { tIn } from '../../game/i18n'
 import { dreamState, dreamsFor } from '../../game/dream'
 import { closeNatTenure, logDecision } from '../../game/model'
-import { newGame } from '../../game/newgame'
+import { LEAGUE_DEFS, newGame } from '../../game/newgame'
+import { beginInternational, hostClub } from '../../game/intlstart'
 import { applyForJob, resignJob, answerJobOffer } from '../../game/jobs'
 import { answerPress } from '../../game/media'
 import { nationNameIn } from '../../game/nations'
@@ -46,6 +47,20 @@ export const careerSlice = (set: SetState, get: GetState) => ({
     saveQueue.release()
     get().setGame(g, slot)
     set(s => ({ weekFailed: 1, tick: s.tick + 1 }))
+  },
+
+  /** START AS AN INTERNATIONAL COACH (1.9.16, game/intlstart.ts). The same
+   *  landing as start(): a new world, the Home screen, the first save at once.
+   *  The caller has already checked the purchase (IntlStart.tsx). */
+  startIntl: (nat, managerName) => {
+    const gender = get().newGender
+    const seed = (Math.random() * 2 ** 31) | 0
+    const g = newGame(hostClub(LEAGUE_DEFS(gender), nat), managerName, seed, undefined, undefined, gender, readMgrGender())
+    if (!beginInternational(g, nat)) return false
+    noteWhere(get().saveSlot, [{ screen: 'home' }])
+    set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1, tut: false, matchRec: null, liveMatch: null, weekFailed: 0 })
+    void get().persistNow()
+    return true
   },
 
   start: (clubId, managerName, challengeId, origin, gender, mgrGender, seedIn) => {

@@ -156,3 +156,16 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   - Bottom Kick Off: gap above it cut from 10 to 2.
 - 01:50 Owner: use multiple agents, ready to merge in the morning. Three agents running (caps and PWR; Pro challenge and pre-season probes;
   goal-kick placement and ritual formations). They do not commit; I check and commit their work.
+- 02:10 Rate-the-game ask on a high (reviewask.ts reviewHigh/highDue, ReviewAsk.tsx, GameState.rateAsked): once a career, after a derby win,
+  a final or knockout win, an upset or a 20-point win, on the next quiet screen; counts as one of the device's three asks. tests/reviewhigh.test.ts.
+- 02:10 Start as an international coach (owner's point 2): the EXISTING store product (PINNACLE_SKU, "Become an International Coach"), a second door.
+  game/intlstart.ts, store.startIntl, screens/IntlStart.tsx, store-card button on the title screen (only where there is a store, or already owned).
+  tests/intlstart.test.ts (10, including a full season from that start); scripts/intlstart.mjs in a browser with a stand-in store: no store no door,
+  cancelled payment starts nothing and prints the reason, bought lands as England head coach with no club, owned is not charged twice. PASSED.
+- 02:10 Agent work checked in: Fiji and Japan men's caps to before the autumn (France and Ireland Tests; Wales and England Tests), PWR 2026-27 squads
+  checked per club (17 added, 3 moved, 5 released), see docs/research/intl-squads-2026.md. Goal kicks: conversions were always drawn 15m out and missed
+  ones 22 to 42m out; now on the best-angle point (11m under the posts, about 25m for a try 10m in from touch), penalties at the mark
+  (ui/highlight/goalkick.ts). Pre-match challenges: NZL arrowhead, FIJ block, SAM leader and rows, TGA broad block, facing side in an arc on halfway
+  (ui/ritual.ts, TestDay.tsx RitualPitch). Engine fingerprint output identical before and after both. Full suite 513 of 514 (fingerprint, expected).
+  NOT YET SEEN IN A BROWSER: the ritual pitch and the kick clips.
+- 02:08 Three more agents started on the club audit (men FIJ JPN; women WAL CAN USA IRE; women ITA JPN RSA FRA). Log: docs/research/club-audit-1916.md.

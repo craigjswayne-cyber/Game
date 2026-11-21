@@ -95,6 +95,14 @@ export const W_PWR: RawClub[] = [
       { name: 'Ellie Wilson', pos: 'FL', age: 20, nat: 'ENG', q: 77 },
       { name: 'Roisin Maher', pos: 'HK', age: 30, nat: 'ENG', q: 72 },
       { name: 'Hannah Smyth', pos: 'WG', age: 34, nat: 'ENG', q: 69 },
+      // 21 Nov 2026, from the club's 2026/27 list on thepwr.com (see
+      // docs/research/intl-squads-2026.md). Vecchini: Italy hooker, 24, from
+      // Valsugana (RugbyPass, 31 Jul 2026). O'Gorman: Wallaroos tighthead, 27,
+      // from the Waratahs (RugbyPass, 8 Oct 2026). Clarke came from
+      // Loughborough and is listed as a wing. Ratings are the game's.
+      { name: 'Vittoria Vecchini', pos: 'HK', age: 24, nat: 'ITA', q: 79, intl: true },
+      { name: 'Bridie O\'Gorman', pos: 'TP', age: 27, nat: 'AUS', q: 78, intl: true },
+      { name: 'Evelyn Clarke', pos: 'WG', age: 22, nat: 'ENG', q: 61 },
     ],
   },
   {
@@ -103,7 +111,10 @@ export const W_PWR: RawClub[] = [
     stadium: 'Hendon Park', capacity: 5000,
     colors: ['#000000', '#141414'],
     rep: 87, budget: 375000,
-    // 50 players from the sheet; 11 carry a stated position and union
+    // 50 players from the sheet; 11 carry a stated position and union.
+    // 48 since 21 Nov 2026: Deborah Wills is in the Exeter block and Laetitia
+    // Royer in the Ealing one (RugbyPass's 2026-27 preview; neither is on the
+    // club's thepwr.com list).
     players: [
       { name: 'Akina Gondwe', pos: 'TP', age: 30, nat: 'ENG', q: 76 },
       { name: 'Alysha Corrigan', pos: 'WG', age: 29, nat: 'CAN', q: 83, intl: true },
@@ -115,7 +126,6 @@ export const W_PWR: RawClub[] = [
       { name: 'Charlotte Wright-Haley', pos: 'TP', age: 31, nat: 'ENG', q: 73 },
       { name: 'Chloe Flanagan', pos: 'LP', age: 28, nat: 'ENG', q: 82 },
       { name: 'Daisy Fitzgerald', pos: 'HK', age: 22, nat: 'ENG', q: 82 },
-      { name: 'Deborah Wills', pos: 'WG', age: 32, nat: 'ENG', q: 71 },
       { name: 'Donna Rose', pos: 'TP', age: 26, nat: 'WAL', q: 80 },
       { name: 'Ella Wyrwas', pos: 'SH', age: 27, nat: 'ENG', q: 82 },
       { name: 'Ellie Cunningham', pos: 'FH', age: 19, nat: 'ENG', q: 74 },
@@ -133,7 +143,6 @@ export const W_PWR: RawClub[] = [
       { name: 'Julia Omokhuale', pos: 'FL', age: 23, nat: 'CAN', q: 82 },
       { name: 'Kaylee McHugh', pos: 'TP', age: 24, nat: 'ENG', q: 77 },
       { name: 'Kelsey Clifford', pos: 'TP', age: 25, nat: 'ENG', q: 82, intl: true },
-      { name: 'Laetitia Royer', pos: 'LK', age: 35, nat: 'CAN', q: 85, intl: true },
       { name: 'Licia MacCutchan', pos: 'FL', age: 31, nat: 'ENG', q: 82 },
       { name: 'Liz Crake', pos: 'LP', age: 33, nat: 'ENG', q: 77 },
       { name: 'Lotte Sharp', pos: 'WG', age: 34, nat: 'ENG', q: 75 },
@@ -268,6 +277,12 @@ export const W_PWR: RawClub[] = [
       { name: 'Ruby Winstanley', pos: 'TP', age: 31, nat: 'ENG', q: 67 },
       { name: 'Nicole Wythe', pos: 'FL', age: 35, nat: 'ENG', q: 59 },
       { name: 'Eva Sterritt', pos: 'WG', age: 29, nat: 'ENG', q: 78 },
+      // 21 Nov 2026. Mason: USA fly-half or centre, signed from Life
+      // University (RugbyPass, 16 Nov 2026). Leonard is a full-back on the
+      // club's 2026/27 list on thepwr.com. Ages and ratings (and Leonard's
+      // union) are the game's.
+      { name: 'Nina Mason', pos: 'FH', alt: ['CE'], age: 22, nat: 'USA', q: 73, intl: true },
+      { name: 'Bee Leonard', pos: 'FB', age: 20, nat: 'ENG', q: 64 },
     ],
   },
   {
@@ -314,6 +329,12 @@ export const W_PWR: RawClub[] = [
       { name: 'Tanya Kalounivale', pos: 'TP', age: 27, nat: 'FIJ', q: 74, intl: true },
       { name: 'Vicky Laflin', pos: 'FB', age: 29, nat: 'ENG', q: 72 },
       { name: 'Teya Ashworth', pos: 'LK', age: 22, nat: 'ENG', q: 61 },
+      // 21 Nov 2026. Royer: from Saracens (RugbyPass's 2026-27 preview); her
+      // row is the one that stood in the Sarries block. Pereira dos Santos is
+      // a wing on the club's 2026/27 list on thepwr.com; her age, union and
+      // rating are the game's.
+      { name: 'Laetitia Royer', pos: 'LK', age: 35, nat: 'CAN', q: 85, intl: true },
+      { name: 'Lilly Pereira dos Santos', pos: 'WG', age: 20, nat: 'ENG', q: 60 },
     ],
   },
   {
@@ -371,6 +392,12 @@ export const W_PWR: RawClub[] = [
       { name: 'Anna Woodman', pos: 'FL', age: 24, nat: 'ENG', q: 70 },
       { name: 'Carys Phillips', pos: 'HK', age: 34, nat: 'WAL', q: 72, intl: true },
       { name: 'Honey Kerslake', pos: 'FL', age: 31, nat: 'ENG', q: 66 },
+      // 21 Nov 2026. Wills: from Saracens (RugbyPass; on the club's thepwr.com
+      // list); her row is the one that stood in the Sarries block. Lambourn: a
+      // tighthead on a 2026/27 transition contract (exeterchiefs.co.uk, 17 Aug
+      // 2026); her age, union and rating are the game's.
+      { name: 'Deborah Wills', pos: 'WG', age: 32, nat: 'ENG', q: 71 },
+      { name: 'Amelia Lambourn', pos: 'TP', age: 19, nat: 'ENG', q: 55 },
     ],
   },
   {
@@ -390,7 +417,6 @@ export const W_PWR: RawClub[] = [
       { name: 'Abbie Brown', pos: 'FB', age: 29, nat: 'ENG', q: 74 },
       { name: 'Pamphinette Buisa', pos: 'WG', age: 30, nat: 'CAN', q: 75, intl: true },
       { name: 'Lucy Calladine', pos: 'HK', age: 20, nat: 'ENG', q: 52 },
-      { name: 'Evelyn Clarke', pos: 'TP', age: 22, nat: 'ENG', q: 61 },
       { name: 'Grace Clifford', pos: 'TP', age: 23, nat: 'ENG', q: 56 },
       { name: 'Chloe Daniels', pos: 'FL', age: 26, nat: 'ENG', q: 74 },
       { name: 'Megan Davey', pos: 'SH', age: 24, nat: 'WAL', q: 69 },
@@ -401,7 +427,8 @@ export const W_PWR: RawClub[] = [
       { name: 'Aoibhe Kelly', pos: 'SH', age: 28, nat: 'IRE', q: 70 },
       { name: 'Alev Kelter', pos: 'CE', age: 35, nat: 'USA', q: 83, intl: true },
       { name: 'Churchy Knight', pos: 'FH', age: 23, nat: 'ENG', q: 61 },
-      { name: 'Kiki Ldowu', pos: 'FB', age: 25, nat: 'ENG', q: 66 },
+      // the sheet's "Ldowu" is Kiki Idowu, a hooker on the club's thepwr.com list and in Canada's 2026 squad
+      { name: 'Kiki Idowu', pos: 'HK', age: 25, nat: 'CAN', q: 66 },
       { name: 'Molly Luthayi', pos: 'LP', age: 30, nat: 'ENG', q: 63 },
       { name: 'Haineala Lutui', pos: 'N8', age: 20, nat: 'ENG', q: 70, intl: true },
       { name: 'Bulou Mataitoga', pos: 'FB', age: 32, nat: 'USA', q: 72, intl: true },
@@ -418,6 +445,21 @@ export const W_PWR: RawClub[] = [
       { name: 'Ellie May Tromans', pos: 'TP', age: 18, nat: 'ENG', q: 54 },
       { name: 'Catherine Wells', pos: 'LK', age: 25, nat: 'ENG', q: 74 },
       { name: 'Amelia Williams', pos: 'FL', age: 29, nat: 'ENG', q: 72 },
+      // 21 Nov 2026: ten of the thirteen on the club's 2026/27 list on
+      // thepwr.com who were not on the sheet (the club moved twelve players
+      // up to its senior squad). Names and positions are the list's; ages,
+      // unions and ratings are the game's. Evelyn Clarke is in the Gloucester
+      // block now. The other three are in docs/research/intl-squads-2026.md.
+      { name: 'Freya MacColl', pos: 'WG', age: 19, nat: 'ENG', q: 55 },
+      { name: 'Alice Bennett', pos: 'WG', age: 20, nat: 'ENG', q: 56 },
+      { name: 'Izzy Clist', pos: 'CE', age: 19, nat: 'ENG', q: 54 },
+      { name: 'Imogen Mockford', pos: 'CE', age: 20, nat: 'ENG', q: 56 },
+      { name: 'Ella Barnes', pos: 'FH', age: 19, nat: 'ENG', q: 55 },
+      { name: 'Alice Redfern', pos: 'FH', age: 20, nat: 'ENG', q: 54 },
+      { name: 'Sarah Shrestha', pos: 'FL', age: 20, nat: 'ENG', q: 56 },
+      { name: 'Emily Peters', pos: 'FL', age: 19, nat: 'ENG', q: 54 },
+      { name: 'Sasha Roberts', pos: 'LK', age: 20, nat: 'ENG', q: 55 },
+      { name: 'Harli Stanton', pos: 'HK', age: 19, nat: 'ENG', q: 53 },
     ],
   },
   {
@@ -428,7 +470,9 @@ export const W_PWR: RawClub[] = [
     rep: 67, budget: 200000,
     // 45 players from the sheet; 6 carry a stated position and union
     players: [
-      { name: 'Phoebe Andrews', pos: 'HK', age: 28, nat: 'ENG', q: 57 },
+      // released: true on five rows: the club let Andrews, Greensmith, Poole,
+      // Reeves and Russell go with immediate effect (RugbyPass, 27 Oct 2026)
+      { name: 'Phoebe Andrews', pos: 'HK', age: 28, nat: 'ENG', q: 57, released: true },
       { name: 'Amelie Anstead', pos: 'WG', age: 19, nat: 'ENG', q: 51 },
       { name: 'Alana Bainbridge', pos: 'HK', age: 29, nat: 'ENG', q: 56 },
       { name: 'Cara Brincat', pos: 'FL', age: 35, nat: 'ENG', q: 50 },
@@ -443,7 +487,7 @@ export const W_PWR: RawClub[] = [
       { name: 'Abbie Fleming', pos: 'FL', alt: ['LK'], age: 31, nat: 'WAL', q: 70, intl: true },
       { name: 'Grace Freeman', pos: 'FL', age: 27, nat: 'ENG', q: 66 },
       { name: 'Tiana Gordon', pos: 'N8', age: 30, nat: 'ENG', q: 61 },
-      { name: 'Freya Greensmith', pos: 'FL', age: 25, nat: 'ENG', q: 62 },
+      { name: 'Freya Greensmith', pos: 'FL', age: 25, nat: 'ENG', q: 62, released: true },
       { name: 'Micke Gunter', pos: 'HK', age: 21, nat: 'RSA', q: 55, intl: true },
       { name: 'Caitlyn Halse', pos: 'FB', age: 20, nat: 'AUS', q: 76, intl: true },
       { name: 'Karolina Kacirkova', pos: 'WG', age: 24, nat: 'ENG', q: 56 },
@@ -454,11 +498,11 @@ export const W_PWR: RawClub[] = [
       { name: 'Jemima McCalman', pos: 'FH', age: 29, nat: 'ENG', q: 63 },
       { name: 'Isobel McGuire-Evans', pos: 'FH', age: 23, nat: 'ENG', q: 56 },
       { name: 'Zara Pickwick', pos: 'SH', age: 30, nat: 'ENG', q: 52 },
-      { name: 'Lauren Poole', pos: 'LP', age: 18, nat: 'ENG', q: 48 },
+      { name: 'Lauren Poole', pos: 'LP', age: 18, nat: 'ENG', q: 48, released: true },
       { name: 'Abileigh Priestnall', pos: 'FL', age: 27, nat: 'ENG', q: 69 },
-      { name: 'Summer Reeves', pos: 'LK', age: 23, nat: 'ENG', q: 60 },
+      { name: 'Summer Reeves', pos: 'LK', age: 23, nat: 'ENG', q: 60, released: true },
       { name: 'Morgan Richardson', pos: 'FL', age: 22, nat: 'ENG', q: 55 },
-      { name: 'Jordan Russell', pos: 'FL', age: 21, nat: 'ENG', q: 51 },
+      { name: 'Jordan Russell', pos: 'FL', age: 21, nat: 'ENG', q: 51, released: true },
       { name: 'Rowann Sinclair', pos: 'WG', age: 20, nat: 'ENG', q: 53 },
       { name: 'Eve Slater', pos: 'HK', age: 26, nat: 'ENG', q: 63 },
       { name: 'Ellie Smith', pos: 'TP', age: 18, nat: 'ENG', q: 49 },
@@ -475,6 +519,10 @@ export const W_PWR: RawClub[] = [
       { name: 'Ashley Fernandez', pos: 'LK', age: 24, nat: 'AUS', q: 73, intl: true },
       { name: 'Charlotte Seale', pos: 'LK', age: 24, nat: 'ENG', q: 61 },
       { name: 'Louisa Maynard', pos: 'CE', age: 28, nat: 'ENG', q: 56 },
+      // 21 Nov 2026: a USA-qualified prop signed from the New York Exiles
+      // (RugbyPass, 27 Oct 2026). Which side of the scrum, her age and her
+      // rating are the game's.
+      { name: 'Caoimhe O\'Sullivan Roche', pos: 'LP', age: 25, nat: 'USA', q: 60 },
     ],
   },
   {

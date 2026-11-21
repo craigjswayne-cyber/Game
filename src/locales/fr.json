@@ -13,6 +13,9 @@
     "loadCareer": "Charger une carrière",
     "community": "Rejoignez-nous sur Discord",
     "ideasDiscord": "Partagez vos idées sur Discord",
+    "intlStart": "Sélectionneur",
+    "intlStartSub": "Commencez une carrière à la tête d'une sélection. Achat unique",
+    "intlStartOwned": "Commencez une carrière à la tête d'une sélection",
     "newCareer": "Nouvelle carrière",
     "savedAt": "{season}, semaine {week}",
     "matchLive": "Match contre {opp} inachevé : il se joue au chargement",
@@ -1887,6 +1890,13 @@
     "challengeTitle": "Le défi",
     "ourChallenge": "Défi lancé par {nationThe_k} : {challenge}.",
     "theirChallenge": "{opp} lance son défi : {challenge}. Votre équipe se tient debout et lui fait face.",
+    "bothChallenge": "Les deux équipes lancent un défi, en formation et face à face. {a} : {challengeA}. {b} : {challengeB}.",
+    "formNZL": "Une pointe de flèche, menée depuis son sommet.",
+    "formFIJ": "Un bloc serré, rang derrière rang, qui avance d'un même pas.",
+    "formSAM": "Des rangs lâches, menés de l'avant.",
+    "formTGA": "Un large bloc en rangs, épaule contre épaule.",
+    "formOf": "{nat} : {form}",
+    "facing": "En face, l'autre équipe se tient bras dessus, bras dessous sur la ligne médiane.",
     "koTitle": "Coup d'envoi",
     "koLine": "Tout ce que vous avez fait pour {nationThe_k} se joue dans les quatre-vingts prochaines minutes.",
     "kickOff": "Coup d'envoi",
@@ -10414,5 +10424,17 @@
     "hia": "PC",
     "hiaTitle": "Sorti pour le protocole commotion",
     "injured": "Sorti sur blessure"
+  },
+  "intl": {
+    "title": "Sélectionneur",
+    "sub": "Une carrière qui commence à la tête d'une sélection",
+    "pick": "Choisissez votre pays",
+    "blurb": "Vous commencez sélectionneur d'une équipe nationale, sans club. Vous composez le groupe, dirigez les stages et disputez les tests. Un poste en club peut toujours venir plus tard par le Centre des emplois.",
+    "buyStart": "Acheter et commencer",
+    "start": "Commencer la carrière",
+    "owned": "Déjà à vous. Choisissez un pays et commencez.",
+    "oneOff": "Achat unique. La carrière en club reste gratuite.",
+    "needNation": "Choisissez un pays pour continuer.",
+    "failed": "Ce pays ne joue aucun test dans ce jeu. Choisissez-en un autre."
   }
 }
