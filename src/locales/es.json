@@ -8179,6 +8179,8 @@
   "invinciblesSub": "{club} · toda una temporada sin perder · {manager}",
   "champions": "{short}, CAMPEÓN",
   "championsOf": "CAMPEÓN DE {comp}",
+  "islesOffer": "LAS CUATRO FEDERACIONES TE HAN ELEGIDO",
+  "islesOfferSub": "{tour} · Seleccionador, si lo quieres · Responde en la pestaña Mundo",
   "championsSub": "{comp} · {season} · {manager}",
   "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
  },

@@ -2237,6 +2237,18 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
     })
   }
   if (offerIsles(state)) {
+    // THE LETTER IS AN OCCASION (1.9.16). The biggest moment in a career
+    // arrived as one more line in the inbox. It takes the screen now, the way
+    // a title does, and says where the answer is given.
+    {
+      const sv = { tour: isleTour(state)?.name ?? '' }
+      const cel = {
+        headline: tIn('en', 'cel.islesOffer'), sub: tIn('en', 'cel.islesOfferSub', sv),
+        icon: 'trophy', hk: 'cel.islesOffer', hv: {}, sk: 'cel.islesOfferSub', sv,
+      }
+      if (state.celebration) state.celebrationNext = cel
+      else state.celebration = cel
+    }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
       subject: `An invitation from the four unions`,

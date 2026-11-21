@@ -7790,6 +7790,8 @@
   "invinciblesSub": "{club} · シーズン無敗 · {manager}",
   "champions": "{short}、王者に輝く",
   "championsOf": "{comp}王者",
+  "islesOffer": "4協会があなたを選んだ",
+  "islesOfferSub": "{tour} · 望むならヘッドコーチに · 返事はワールドタブで",
   "championsSub": "{comp} · {season} · {manager}",
   "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
  },

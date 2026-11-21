@@ -8203,6 +8203,8 @@
   "invinciblesSub": "{club} · a whole season unbeaten · {manager}",
   "champions": "{short} ARE CHAMPIONS",
   "championsOf": "CHAMPIONS OF THE {comp}",
+  "islesOffer": "THE FOUR UNIONS HAVE CHOSEN YOU",
+  "islesOfferSub": "{tour} · Head coach, if you want it · Answer on the World tab",
   "championsSub": "{comp} · {season} · {manager}",
   "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
  },

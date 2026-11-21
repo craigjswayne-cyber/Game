@@ -8239,6 +8239,8 @@
   "invinciblesSub": "{club} · 'n hele seisoen ongeslaan · {manager}",
   "champions": "{short} IS KAMPIOENE",
   "championsOf": "KAMPIOENE VAN DIE {comp}",
+  "islesOffer": "DIE VIER UNIES HET JOU GEKIES",
+  "islesOfferSub": "{tour} · Hoofafrigter, as jy dit wil hê · Antwoord op die Wêreld-oortjie",
   "championsSub": "{comp} · {season} · {manager}",
   "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
  },

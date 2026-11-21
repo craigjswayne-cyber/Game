@@ -8381,6 +8381,8 @@
     "invinciblesSub": "{club} · une saison entière sans défaite · {manager}",
     "champions": "{short} EST CHAMPION",
     "championsOf": "CHAMPIONS : {comp}",
+  "islesOffer": "LES QUATRE FÉDÉRATIONS VOUS ONT CHOISI",
+  "islesOfferSub": "{tour} · Sélectionneur, si vous le voulez · Répondez dans l'onglet Monde",
     "championsSub": "{comp} · {season} · {manager}",
     "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"
   },
