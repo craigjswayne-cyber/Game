@@ -24,6 +24,28 @@ export function fingerprint(): string[] {
 }
 
 export const EXPECTED: string[] = [
+  // REBASELINED ONCE for 1.9.16 (21 Nov 2026), for the world and for two
+  // deliberate engine changes, all measured:
+  //   DATA. Real 2026 national squads and caps laid over a new world
+  //   (intl2026.ts), the men's and women's club audits (additions.ts, jl1.ts,
+  //   verified.ts) and 33 senior free agents at the start (their own stream,
+  //   but their ids move the fixture ids the kick-off hash reads). The world
+  //   is dealt from the squads, so all six are different matches.
+  //   BUST-UPS (incidents.ts): in a derby or grudge match one scuffle in five
+  //   escalates, on its own random stream. Measured before it shipped on four
+  //   worlds, 6,708 matches: points 49.95 to 50.03, yellows 1.45 unchanged.
+  //   THE CAMP FLAG (season/internationals.ts): a man left out of the next
+  //   squad is released from the last one, so about 14 players a season who
+  //   were stuck unavailable play for their clubs again.
+  // The goal-kick drawing and the challenge formations were shown to leave
+  // this output byte for byte the same (run before and after, same six lines).
+  // bandcheck on the finished branch, four worlds, every band holds:
+  //   scoring is rugby-shaped 49.4 pts a game; tries hold their rate 6.47; home advantage is
+  //   real and not decisive 54.5%; draws stay rare 1.5%; blowouts are the exception 6.8%
+  // The six before this were:
+  //   bristol 3-34 sale, newcastle 15-17 gloucester, northampton 46-24 exeter,
+  //   saracens 36-12 bath, harlequins 12-33 leicester, newcastle 12-44 bristol
+  //
   // REBASELINED again for 1.9.12 (12 Nov 2026), for squad DATA, not the
   // engine: Zach Mercer to Toulon, Albert Tuisue to Provence and James Venter
   // to Gloucester (verified.ts), and Gloucester's ratings and reputation
@@ -708,12 +730,12 @@ export const EXPECTED: string[] = [
   // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
-  'bristol 3-34 sale',
-  'newcastle 15-17 gloucester',
-  'northampton 46-24 exeter',
-  'saracens 36-12 bath',
-  'harlequins 12-33 leicester',
-  'newcastle 12-44 bristol',
+  'bristol 21-24 bath',
+  'harlequins 24-27 leicester',
+  'sale 31-23 northampton',
+  'saracens 44-3 newcastle',
+  'exeter 14-34 gloucester',
+  'harlequins 15-37 bristol',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw

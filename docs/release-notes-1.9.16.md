@@ -77,12 +77,42 @@ Version 1.9.16, Play versionCode 79. Baseline: 1.9.15, code 78.
   longer makes its row taller than the rest.
 - **The bottom Kick Off button sits closer** to the last replacement.
 
+### Found by tonight's audits
+
+- **Players no longer get stuck away with their country.** When one Test
+  window opened the week another closed, anyone in the old squad but not the
+  new one was never released: about 14 players a season could not be picked by
+  their club or called up again until the summer.
+- **Fire Sale (Pro challenge): the sale money no longer comes back.** It was
+  banked, and the next summer's transfer budget is read off the bank balance,
+  so the budget roughly doubled a year later. The five empty shirts it left on
+  the team sheet are filled.
+- **Shoestring (Pro challenge): a takeover no longer opens wage room.**
+- **Academy Only (Pro challenge):** the option to buy a loaned player is shut
+  with the other doors (it could not be reached, but it was open).
+- **Season plan: each choice does what it says.** "Set pieces" trains the
+  lineout as well as the scrum (it was lowering the lineout). "Fitness" and
+  "Attack" also set the week's preparation of the same name.
+- **Season plan, "Backs": a drift defence behind the wide game**, not a blitz.
+  With the blitz it was the worst of the three choices at both clubs measured.
+- **A bid can go down to nothing**, and a Pro manager sees no "?" beside a
+  rating in the Transfer Centre or on another club's squad list.
+- Sale held one Fijian wing twice under two spellings. Caleb Muntz is at
+  Provence.
+
 ## Data
 
 - Men: caps for South Africa, Fiji, Japan and Argentina taken back to before
   the autumn Tests from the match-day 23s (assumes every named replacement
   came on). Fiji and Japan narrowed to their November parties. 31 real Japan
   internationals replace generated players in their League One clubs.
+- Men, club audit: Fiji 31 of 35 and Japan 33 of 35 of the autumn parties are
+  in the game (23 real players added at their 2026-27 clubs), and 21 open caps
+  filled for England, Wales, France and South Africa.
+- Women, club audit: 18 real players added at clubs in the game, 36 caps
+  filled, Wales 36 of 39. Italy, Canada, the USA, South Africa and Japan stay
+  short because their domestic clubs are not in the game; every such player
+  is listed with her club in the research doc.
 - Women: 34 nationalities and 6 positions corrected from the announced squads.
   The English top flight checked club by club against the 2026-27 lists: 17
   players added, 3 moved, 5 released.
@@ -98,7 +128,11 @@ Version 1.9.16, Play versionCode 79. Baseline: 1.9.15, code 78.
 
 ## Checked
 
-- Unit suite: see the final count in `docs/working-1.9.16.md`.
+- Unit suite: 558 of 558 in 74 files (21 Nov 2026, 03:10 UTC), with the type
+  check, lint, six-language parity, text lint, data audit, international audit
+  and provenance audit all passing.
+- Scoring bands on four worlds after every change: 49.4 points and 6.47 tries
+  a game, home wins 54.5%, draws 1.5%, blowouts 6.8%. Every band holds.
 - Engine fingerprint: rebaselined once for this version (real caps, new
   players and bust-ups all move fixed-seed results), with the reason noted in
   `scripts/fingerprint.ts`. The goal-kick and challenge drawings were shown to

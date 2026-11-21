@@ -29,7 +29,12 @@ export const PLAN_WORKS: PlanWork[] = ['fitness', 'setpiece', 'attack']
 export const STYLE_OF: Record<PlanStyle, { atk: AtkStyle; def: DefStyle }> = {
   forwards: { atk: 'direct', def: 'choke' },
   balanced: { atk: 'pods', def: 'drift' },
-  backs: { atk: 'width', def: 'blitz' },
+  // drift, not blitz, behind a wide game (1.9.16). With the blitz this answer was the
+  // worst of the three at both clubs measured: more tired, 3.5 more tries conceded in
+  // ten games, about 60 points of difference worse than Balanced and no more tries
+  // scored. With drift (12 seeds, Leicester) it is 33 behind Balanced, inside the noise,
+  // though still behind Forwards. The rest is the width style's own cost (styles.ts).
+  backs: { atk: 'width', def: 'drift' },
 }
 export const FOCUS_OF: Record<PlanWork, TrainingFocus> = {
   fitness: 'fitness',

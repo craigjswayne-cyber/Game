@@ -182,3 +182,20 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   every player listed with her club in docs/research/club-audit-1916.md). Open for the owner: 10 players whose club in the game differs
   from the 2026 squad lists (verified.ts), listed in that doc.
 - 02:27 genprobe counts and the w_pwr club comments updated for the 17 PWR additions (399 real, women's database 2134).
+- 02:41 Owner 02:30: the "?" is on transfers and squad lists; "have you added value starting at 0?". Done: no estimate mark beside a rating for a
+  Pro manager (Transfers, another club's squad list); a bid steps down to 0. Owner 02:33 asked whether money and commentary are multi-language.
+  Checked: commentary is fully translated (about 700 lines a language, none left in English). Money prints the English way in every language
+  (£1.5m); offered to localise the number format, waiting for his answer.
+- 02:45 Men's club audit (agent, checked): FIJ 31/35, JPN 33/35 (off the thin list), 23 players added, 21 caps filled (ENG, WAL, FRA, RSA).
+  From its notes: duplicate 'Ponepati Loganimasi' removed from Sale (additions.ts), Caleb Muntz to Provence (verified.ts).
+  LEFT OPEN: Iosefo Masi's club and caps, Sam Greene (club not in game), ages of Tamani and Helu.
+- 02:50 Pro challenge and season plan audit (agent; scripts/prochallengeprobe.ts, scripts/preseasonprobe.ts, tests/prochallenge1916.test.ts,
+  tests/preseason1916.test.ts). Fixed: Fire Sale fees returned as next summer's budget (balance now loses the fee) and left five empty shirts;
+  Shoestring takeover wage room (gossip.ts); loanBuy guard; season plan: set pieces train the lineout (season/training.ts), fitness and attack
+  set their preparation. tests/scoutrules.test.ts read the league after the rollover (promoted Ealing counted as unread): now reads the season's own clubs.
+- 03:00 Season plan, Backs: with blitz it was 60 to 69 points of difference worse than Balanced (24 seeds, two clubs). Measured with drift, 12 seeds,
+  Leicester: 33 behind Balanced, inside the noise; still 55 behind Forwards. Kept drift. The rest is the width style's own cost: engine tuning, not done.
+- 03:02 Fingerprint rebaselined once (reasons in scripts/fingerprint.ts). bandcheck four worlds: 49.4 points, 6.47 tries, home 54.5%, draws 1.5%,
+  blowouts 6.8%, every band holds. Version 1.9.16, Play code 79. Store text in six languages (docs/store-listing.md).
+  OWNER'S OPEN DECISIONS: number format per language; "clears the debts" wording; rename "Pre-season work"; Fire Sale difficulty; challenge-complete
+  card beside a trophy; 10 women at a club the 2026 lists do not give (docs/research/club-audit-1916.md).

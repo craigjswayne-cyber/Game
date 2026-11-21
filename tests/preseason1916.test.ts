@@ -42,10 +42,10 @@ describe('the Season plan: what the card says and what it writes', () => {
   })
 
   it('a way of playing is an attack style and a defence style, with their dials', () => {
-    expect(STYLE_OF).toEqual({ forwards: { atk: 'direct', def: 'choke' }, balanced: { atk: 'pods', def: 'drift' }, backs: { atk: 'width', def: 'blitz' } })
+    expect(STYLE_OF).toEqual({ forwards: { atk: 'direct', def: 'choke' }, balanced: { atk: 'pods', def: 'drift' }, backs: { atk: 'width', def: 'drift' } })
     const g = fresh('backs', 'fitness')
     const tac = g.clubs[g.userClubId].tactic
-    expect([tac.atkStyle, tac.defStyle, tac.style, tac.defLine]).toEqual(['width', 'blitz', 84, 88])
+    expect([tac.atkStyle, tac.defStyle, tac.style, tac.defLine]).toEqual(['width', 'drift', 84, 28])
   })
 
   it('the work is a training focus and, since 1.9.16, the week\'s match preparation of the same name', () => {
