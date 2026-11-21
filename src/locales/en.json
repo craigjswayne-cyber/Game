@@ -8239,7 +8239,7 @@
   "islesStaff": "YOUR COACHING TEAM",
   "islesStaffSub": "{a} · {b} · {c}",
   "islesParty": "THE TOUR PARTY IS NAMED",
-  "islesPartySub": "{n} players · England {eng} · Ireland {ire} · Scotland {sco} · Wales {wal}",
+  "islesPartySub": "A party of {n} · England {eng} · Ireland {ire} · Scotland {sco} · Wales {wal}",
   "islesCap": "{player} LEADS THE ISLES XV",
   "islesCapSub": "{tour} · Tour captain",
   "islesOfferSub": "{tour} · Head coach, if you want it · Answer on the World tab",
