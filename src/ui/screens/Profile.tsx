@@ -415,7 +415,7 @@ export default function Profile() {
             {m.trophies.map((t, i) => (
               <tr key={i}>
                 <td style={{ color: 'var(--gold)' }}><Glyph name="trophy" /></td>
-                <td className="name">{compLabel(game.comps[t.compId]?.name) ?? t.compId}</td>
+                <td className="name">{potName(game, t.compId)}</td>
                 <td className="num">{seasonLabel(t.season)}</td>
               </tr>
             ))}
@@ -452,4 +452,16 @@ export default function Profile() {
       <div className="spacer" />
     </>
   )
+}
+
+/** A trophy by its competition's name, even when that competition is not in
+ *  this season's list (1.9.16): a tour or a World Championship won two years
+ *  ago read "lions" or "wc" in the cabinet. The Annual's rule (Annual.tsx). */
+function potName(game: GameState, id: string): string {
+  const c = game.comps[id]
+  if (c) return compLabel(c.name) ?? id
+  if (id === 'lions' || id === 'w:lions') return nationName('LIO')
+  const k = 'compName.' + id.replace(':', '_')
+  const s = t(k)
+  return s === k ? id.toUpperCase() : s
 }

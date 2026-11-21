@@ -1693,8 +1693,11 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         }
-        const lionsWin = comp.id === isleTour(state)?.id && comp.champion === 'LIO' &&
-          state.natTeam != null && ['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)
+        // HIS, IF HE TOOK THE TOUR (1.9.16). This credited any coach of the
+        // four unions, so a man who was never asked, or who turned it down,
+        // got the trophy, the confetti and the reputation for a series his
+        // rival won.
+        const lionsWin = comp.id === isleTour(state)?.id && comp.champion === 'LIO' && islesCoach(state)
         if ((state.natTeam != null && comp.champion === state.natTeam) || lionsWin) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
           // A TABLE WON IS A TROPHY LIFTED (1.9.14). A knockout title (a World

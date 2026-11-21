@@ -363,7 +363,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       const names = lionsCalls.map(p => `${p.name}${(p.lions ?? 0) > 1 ? ` (tour number ${p.lions})` : ''}`).join(', ')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-        subject: `LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
+        subject: `THE TOUR: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
         k: (state.season * 5 + state.week * 3) % 2 === 0 ? 'news.lionsCallA' : 'news.lionsCallB',
         v: {
           n: lionsCalls.length, names, tour,
