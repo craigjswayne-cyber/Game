@@ -24,8 +24,11 @@ import type { GameState, Player } from '../src/game/model'
 import { ok, done } from './lib/probe'
 
 const base = newGame('leicester', 'Away Morale', 21)
-// into the season: past the ledger's six-match grace
-for (let i = 0; i < 70 && base.week < 14; i++) processWeekAndAdvance(base)
+// into the season: past the ledger's six-match grace, AND PAST THE AUTUMN
+// TESTS (1.9.16). Week 14 is in the window (13 to 15): with every national
+// squad now carrying a man for every shirt, enough of the club was in camp
+// that nobody left behind could be left out, and the probe had no man to test
+for (let i = 0; i < 70 && base.week < 17; i++) processWeekAndAdvance(base)
 const club = base.clubs[base.userClubId]
 // a fit senior man with a game or more, outside the 23 the side is named
 // from (so he stays out without touching the sheet), not a key player

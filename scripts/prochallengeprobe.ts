@@ -517,6 +517,11 @@ if (!QUICK) {
         b.kidsSenior.slice(0, 6).map(p => `${p.pos} ${p.age}y ca${p.ca}`).join(', '))
     }
     toNextSeason(g, watch)
+    // A TITLE IN SEASON ONE COMPLETES THE CHALLENGE (1.9.16: it did, once the
+    // national squads were re-dealt and the autumn took different men). It is
+    // taken on again so the rule is still under test in season two.
+    const retake = () => { if (!proActive(g) && !g.unemployed) startProChallenge(g, 'academy') }
+    retake()
     const afterOne = { season: g.season, seniors: seniors(g).length, acad: g.clubs[uid].players.length - seniors(g).length }
     // spring of season two: the first spring in which any contract in the world is in its last year
     runTo(g, g.season, 26, watch)
@@ -539,6 +544,7 @@ if (!QUICK) {
       if (!shown) line('FAIL', `A8 pre-contract: no control deal found among ${cands.length} expiring players at week ${g.week}`)
     }
     toNextSeason(g, watch)
+    retake()
     verdict(outsiders.size === 0 && !g.unemployed && proActive(g)?.id === 'academy',
       'A15 two full seasons and two summers on Continue: nobody from outside ever appears in the squad',
       `outside arrivals ${outsiders.size}${outsiders.size ? ': ' + [...outsiders.values()].slice(0, 5).join('; ') : ''}; generated at the club: ${generatedAcad} academy, ${generatedSenior} senior; now s${g.season}w${g.week}, seniors ${seniors(g).length}; challenge live=${!!proActive(g)}`)
