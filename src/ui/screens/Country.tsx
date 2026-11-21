@@ -10,7 +10,7 @@ import { NAT_SQUAD_FLOOR, deskNat, natBarOf, natCallUp, natDrop, natEligible, na
 import { ClubLink, InjuryMark, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
 import { posName, t, compLabel } from '../../game/i18n'
-import { natPlanOf } from '../../game/natcamp'
+import { TourOffice } from '../TourOffice'
 import { isleTour } from '../../game/isles'
 import { stageName } from './Home'
 import { Glyph } from '../glyphs'
@@ -67,6 +67,8 @@ export default function Country() {
 
   return (
     <>
+      {/* the tour office, from the day he says yes (1.9.16) */}
+      <TourOffice />
       {onTour ? <IslesHead /> : <>
       <NatBand nat={natId} sub={t('natera.headCoach', { g: game.mgrGender ?? 'm' })} />
       <div className="card" style={{ ...acc(natKit(natId)?.[0] ?? 'var(--text-positive)') }}>
@@ -187,13 +189,7 @@ export default function Country() {
  */
 function IslesHead() {
   const game = useStore(s => s.game)!
-  const touch = useStore(s => s.touch)
-  const { persist } = useStore.getState()
   const tour = isleTour(game)
-  const plan = natPlanOf(game)
-  const party = (game.natSquads['LIO'] ?? []).map(id => game.players[id]).filter((p): p is NonNullable<typeof p> => !!p)
-  const leaders = [...party].sort((a, b) => b.a.lea - a.a.lea || a.id - b.id).slice(0, 6)
-  const cap = plan?.captain != null ? party.find(p => p.id === plan.captain) ?? null : null
   const mine = game.fixtures.filter(f => f.played && tour && f.compId === tour.id)
   const won = (f: (typeof mine)[number]) => (f.homeId === 'LIO' ? f.homeScore > f.awayScore : f.awayScore > f.homeScore)
   const lost = (f: (typeof mine)[number]) => (f.homeId === 'LIO' ? f.homeScore < f.awayScore : f.awayScore < f.homeScore)
@@ -205,20 +201,6 @@ function IslesHead() {
         <h3 style={{ fontSize: '1.125rem' }}><Flag code="LIO" /> {nationName('LIO')}</h3>
         <div className="meta" style={{ marginTop: 2 }}>{t('isles.record', { tw: tests.filter(won).length, tl: tests.filter(lost).length, w: games.filter(won).length, l: games.filter(lost).length })}</div>
         <div className="meta" style={{ marginTop: 6 }}>{t('isles.took')}</div>
-        {plan && (
-          <div data-tour-captain style={{ marginTop: 10 }}>
-            <div className="fact-label">{t('isles.tourCaptain')}</div>
-            <div className="meta" style={{ margin: '3px 0 8px' }}>{cap ? t('isles.tourCaptainSet', { player: cap.name }) : t('isles.tourCaptainNone')}</div>
-            <div className="cap-chips">
-              {leaders.map(p => (
-                <button key={p.id} type="button" className={`chip cap-chip${cap?.id === p.id ? ' sel' : ''}`} aria-pressed={cap?.id === p.id} data-cap={p.id}
-                  onClick={() => { plan.captain = cap?.id === p.id ? null : p.id; void persist(); touch() }}>
-                  {p.name} <span className="muted">{t('testday.lea', { n: Math.round(p.a.lea) })}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </>
   )

@@ -2,7 +2,7 @@
 // re-exports the public parts.
 import type { Competition, GameState, Player } from '../model'
 import { W, genderOf } from '../gender'
-import { islesCoach, isleTour } from '../isles'
+import { closeTour, islesCoach, isleTour } from '../isles'
 import { windowSpans } from '../calendar'
 import { buildPlayer } from '../attributes'
 import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, squadSizeOf, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from '../nations'
@@ -80,6 +80,7 @@ export function manageInternationals(state: GameState, rng: Rng) {
             }
           }
         }
+        if (nat === 'LIO') closeTour(state)
         delete state.natSquads[nat]
         if (nat === state.natTeam) { delete state.natSent; delete state.natFed; delete state.natSentLoss; delete state.natCallGain }
         if (nat === state.natOrphan) state.natOrphan = null
@@ -267,6 +268,21 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
         openUserCamp(state, nat, w)
         continue
       }
+      // AND SO DOES HIS TOUR PARTY (owner, 21 Nov 2026: "yes it should open
+      // empty... all players"). The four unions hand him the sheet: every
+      // eligible man in the four countries, wherever he plays. It is held
+      // open by the same rule as his country's camp (country.ts natShortfall)
+      // and topped up by shirt if he never names it (fillShortNatSquad).
+      if (nat === 'LIO' && islesCoach(state)) {
+        if (state.natSquads['LIO']) continue
+        state.natSquads['LIO'] = []
+        const v = { n: NAT_SQUAD_FLOOR }
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: tIn('en', 'news.islesNameSubj', v), body: tIn('en', 'news.islesName', v), k: 'news.islesName', v,
+        })
+        continue
+      }
       // the front row may come from below the depth cut: a third hooker is
       // picked before a twentieth back, however far down the list he sits
       // AND FROM BELOW THE RATING BAR (1.8.17). The pool only reads men rated
@@ -284,27 +300,6 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
           !ranked.includes(p))
         .sort((a, b) => b.ca - a.ca || a.id - b.id)
       const travelling = withFrontRow([...pool, ...ranked.slice(target), ...frCover], w.size)
-      // FOUR UNIONS, AND ALL FOUR ON THE PLANE (1.9.16). By rating alone the
-      // party in the owner's walk-through was twenty English, eight Irish,
-      // three Welsh and a Scot. It is still picked on merit, but each union
-      // sends at least three: the best man they have for a shirt goes in
-      // place of the lowest-rated man in that shirt from a union with more.
-      if (nat === 'LIO') {
-        const from = (u: string) => travelling.filter(p => p.nat === u).length
-        for (const u of HOME4) {
-          const waiting = [...pool, ...ranked.slice(target)].filter(p => p.nat === u && !travelling.includes(p))
-          for (const add of waiting) {
-            if (from(u) >= 3) break
-            let drop = -1
-            for (let i = 0; i < travelling.length; i++) {
-              const c = travelling[i]
-              if (c.pos !== add.pos || from(c.nat) <= 3) continue
-              if (drop < 0 || c.ca < travelling[drop].ca) drop = i
-            }
-            if (drop >= 0) travelling[drop] = add
-          }
-        }
-      }
       // THE LAST CAMP'S MEN GO HOME WHEN THE NEXT ONE IS NAMED OVER IT (1.9.16).
       // A window that opens the week another closes (the autumn Tests on the
       // heels of the southern championship) keeps the squad standing: the
@@ -529,10 +524,41 @@ export function openUserCampAhead(state: GameState, ahead: 0 | 1): void {
   }
 }
 
+/**
+ * A UNION THAT LOST MEN TO THE TOUR CALLS UP COVER (1.9.16). The Isles coach
+ * names his party from the four unions' own camps (country.ts), so each of
+ * them is made back up to a touring squad from its next men, by shirt. Only
+ * while he holds the tour; nobody else's squad is touched.
+ */
+function refillUnions(state: GameState): void {
+  if (!islesCoach(state) || !state.natSquads['LIO']) return
+  const NEED: Record<string, number> = { LP: 3, HK: 3, TP: 3, LK: 3, FL: 3, N8: 1, SH: 2, FH: 2, CE: 3, WG: 3, FB: 1 }
+  for (const nat of HOME4_NAT) {
+    const named = state.natSquads[nat]
+    if (!named) continue
+    const w = activeWindows(state).find(o => o.nations.includes(nat) && state.week >= o.start && state.week <= o.end)
+    if (!w) continue
+    const want = Math.min(w.size, NAT_SQUAD_FLOOR + 5)
+    const left = Object.values(state.players)
+      .filter(p => p.nat === nat && p.clubId && homeBased(state, p, nat) && !p.injury && !p.natSquad && !p.onLoan)
+      .sort((a, b) => b.ca - a.ca || a.id - b.id)
+    while (named.length < want && left.length) {
+      const room = named.map(id => state.players[id]).filter((q): q is Player => !!q)
+      let i = left.findIndex(p => room.filter(q => q.pos === p.pos).length < (NEED[p.pos] ?? 0))
+      if (i < 0) i = 0
+      const p = left.splice(i, 1)[0]
+      named.push(p.id)
+      p.natSquad = true
+    }
+  }
+}
+
 export function fillShortNatSquad(state: GameState) {
+  refillUnions(state)
   // not gated on employment: a coach between club jobs still has a country,
   // and its camp opens empty for him like anyone's (see natSquadHold)
-  const nat = state.natTeam ?? state.natOrphan
+  // the tour party on an Isles tour (1.9.16): it opens empty for him too
+  const nat = islesCoach(state) && state.natSquads['LIO'] ? 'LIO' : state.natTeam ?? state.natOrphan
   if (!nat) return
   const playing = state.fixtures.some(f =>
     !f.played && f.week === state.week && (f.homeId === nat || f.awayId === nat))
@@ -551,7 +577,8 @@ export function fillShortNatSquad(state: GameState) {
   const inCamp = new Set(named)
   const candidates = Object.values(state.players)
     .filter(p => !inCamp.has(p.id) && (nat === 'LIO' ? HOME4_NAT.includes(p.nat) : p.nat === nat) &&
-      p.clubId && homeBased(state, p, nat) && !p.injury && !p.natSquad)
+      // the tour takes from the unions' own camps (country.ts inOwnUnionCamp)
+      p.clubId && homeBased(state, p, nat) && !p.injury && (!p.natSquad || (nat === 'LIO' && (state.natSquads[p.nat] ?? []).includes(p.id))))
     .sort((a, b) => b.ca - a.ca)
   // the top-up obeys the same club quota the coach does (9.10), or naming a
   // short squad would let the federation's top-up do the raiding for him
@@ -575,10 +602,12 @@ export function fillShortNatSquad(state: GameState) {
   }
   if (!spare.length) return
   for (const p of spare) {
+    if (nat === 'LIO' && p.natSquad) state.natSquads[p.nat] = (state.natSquads[p.nat] ?? []).filter(id => id !== p.id)
     named.push(p.id)
     p.natSquad = true
   }
   state.natSquads[nat] = named
+  if (nat === 'LIO') refillUnions(state)
   const v = { ...nationVars(nat), n: spare.length }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,

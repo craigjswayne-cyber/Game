@@ -32,7 +32,7 @@ export function kickoffTank(c0: number): number {
   const raw = 100 - (100 - c0) * TANK_K
   return raw >= TANK_FLOOR ? raw : TANK_FLOOR - (TANK_FLOOR - raw) * TANK_SOFT
 }
-import { applyCamp, applyNatPlan, natCaptain } from '../natcamp'
+import { applyCamp, applyNatPlan, applyTourStaff, natCaptain } from '../natcamp'
 import { type SideCtx, aggPenRisk, fieldLineup, freshMods, personnelKey } from './side'
 
 /** WHAT THE SKY DOES TO THE UNITS (conditions.ts), one place for kick-off and
@@ -420,6 +420,7 @@ export function applyModifiers(state: GameState, side: SideCtx, weather: Weather
   // the national camp's focus (1.9.14, natcamp.ts): the club's match prep,
   // for the country, chosen on Training & Staff while the window is open
   applyCamp(state, side)
+  applyTourStaff(state, side)
   // and its game plan (1.9.14): the club's four dials, for the country
   applyNatPlan(state, side)
 

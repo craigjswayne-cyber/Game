@@ -243,3 +243,15 @@
 .walkout .wo-anthem-line .wo-fig { width: calc(100% / 15); max-width: 14px; }
 .walkout .wo-stand-label { position: relative; margin-top: 8px; padding-top: 4px; border-top: 2px solid rgba(255,255,255,.4); font-size: 0.6875rem; letter-spacing: 1px; text-transform: uppercase; color: var(--on-hero-soft); }
 .cap-chip .muted { margin-left: 6px; }
+
+/* the tour office (1.9.16): the Isles coach's three appointments */
+.tour-office .to-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--border); }
+.tour-office .to-role { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.tour-office .to-who { font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tour-office .to-btn { min-height: 44px; padding: 6px 12px; font-size: 0.8125rem; flex: none; }
+.tour-office .to-list { max-height: 268px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin: 0 0 8px; }
+.tour-office .to-pick { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 6px 10px; background: none; border: 0; border-top: 1px solid var(--border); color: inherit; font: inherit; font-size: 0.8125rem; text-align: left; }
+.tour-office .to-pick:first-child { border-top: 0; }
+.tour-office .to-pick.sel { box-shadow: inset 3px 0 0 var(--gold); }
+.tour-office .to-pn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tour-office .to-px { flex: none; color: var(--gold); font-weight: 700; font-size: 0.75rem; }

@@ -1,5 +1,6 @@
 // The national side over the summer: the touring party comes home, and the
 // union reviews its head coach.
+import { closeTour } from '../isles'
 import { tIn } from '../i18n'
 import { isleTour } from '../isles'
 import { closeNatTenure, type GameState, type Player } from '../model'
@@ -70,6 +71,7 @@ export function unionReview(state: GameState) {
     // the man the four unions chose while he is away with their side, and a
     // series win is the biggest thing one of its coaches can bring home.
     const toured = state.isles?.season === state.season && state.isles.answer === 'yes'
+    if (toured) closeTour(state) // filed here if the party was not released before the season turned
     if (toured) {
       const tour = state.comps['lions'] ?? state.comps['w:lions']
       const won = tour?.champion === 'LIO' || state.history.some(h => h.season === state.season && /lions$/.test(h.compId) && h.champion === 'LIO')

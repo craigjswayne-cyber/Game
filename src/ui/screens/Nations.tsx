@@ -14,6 +14,7 @@ import { rowNavTr } from '../rowNav'
 import { acc } from '../accent'
 import { stageShort, stageName } from './Home'
 import { deskNat } from '../../game/country'
+import { TourOffice } from '../TourOffice'
 
 /** THE TEST RANKINGS, WITH THE REST OF INTERNATIONAL RUGBY (owner, 1.8.2).
  *  They sat as a third tab on the Scouting Agency, between two lists of club
@@ -116,6 +117,7 @@ export default function Nations() {
           </div>
         )
       })()}
+      <TourOffice />
       {/* and when there is a tour on that he is NOT part of, the panel says
           which condition he has not met - a locked door with no sign on it is
           just a missing feature */}

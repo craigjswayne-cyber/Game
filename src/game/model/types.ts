@@ -1387,7 +1387,18 @@ export interface GameState {
   /** The Isles XV tour job: which season it was offered in and what he said.
    *  Absent on every save made before v1.5, which is correct - nobody was ever
    *  offered it, because until now it was not a job you could be offered. */
-  isles?: { season: number; answer: 'open' | 'yes' | 'no' }
+  isles?: {
+    season: number; answer: 'open' | 'yes' | 'no'
+    /** THE TOUR'S COACHING TEAM (1.9.16, isles.ts): the club whose head coach
+     *  takes each part of the Isles' game for the summer. */
+    staff?: { fwd?: string; atk?: string; def?: string }
+    /** the three announcements, each made once: coaching team, party, captain */
+    staffOut?: boolean; partyOut?: boolean; capOut?: boolean
+  }
+  /** Tours he has taken, oldest first (1.9.16). The job ends with the tour,
+   *  and the four unions only ask again after a good one: the series won, or
+   *  taken to a deciding third Test. */
+  islesPast?: { season: number; won: boolean; decider: boolean }[]
   /** a country wants you - pending offer from a union */
   natOffer?: { nat: string; week: number } | null
   /** the board's secondary season objectives (evaluated at rollover) */

@@ -41,6 +41,39 @@ export function coachedSide(state: GameState): string | null {
   return state.natTeam ?? null
 }
 
+// ---- THE TOUR'S COACHING TEAM (1.9.16) ----
+//
+// Owner, 21 Nov 2026: "You should pick coaches from around the game... This
+// is the pinnacle of the game - make features that feel like it is the only
+// place you get this." The Isles coach names three assistants from the head
+// coaches of the game's clubs: forwards, attack, defence. Each lifts his part
+// of the Isles' game for the whole tour by a little, more for a coach from a
+// bigger club and a little more again when it is the thing his own side is
+// built on. A fact read at kick-off, like the camp focus; nothing is drawn.
+export type TourRole = 'fwd' | 'atk' | 'def'
+export const TOUR_ROLES: TourRole[] = ['fwd', 'atk', 'def']
+const ROLE_SUITS: Record<TourRole, string[]> = { fwd: ['pack', 'squeeze'], atk: ['width', 'tempo', 'counter'], def: ['blitz', 'structure', 'chaos'] }
+
+/** What a club's head coach is worth in a tour role, in percent (0.5 to 4). */
+export function tourCoachPct(state: GameState, clubId: string, role: TourRole): number {
+  const c = state.clubs[clubId]
+  if (!c) return 0
+  const base = Math.max(0.5, Math.min(3.5, (c.rep - 50) / 12))
+  const suited = !!c.philosophy && ROLE_SUITS[role].includes(c.philosophy)
+  return Math.round((base + (suited ? 0.5 : 0)) * 10) / 10
+}
+
+/** Kick-off: the tour side carries its coaching team's work. */
+export function applyTourStaff(state: GameState, side: SideCtx): void {
+  if (side.teamId !== 'LIO' || coachedSide(state) !== 'LIO') return
+  const st = state.isles?.staff
+  if (!st) return
+  const f = (role: TourRole) => 1 + (st[role] ? tourCoachPct(state, st[role]!, role) : 0) / 100
+  side.units.scrum *= f('fwd'); side.units.lineout *= f('fwd')
+  side.units.attack *= f('atk')
+  side.units.defence *= f('def')
+}
+
 /** This camp's focus, if one has been chosen in this window. */
 export function campFocus(state: GameState): CampFocus | null {
   const c = state.natCamp
