@@ -56,7 +56,10 @@ export interface MatchWorld extends World {
  * the unit strengths ran from 0.84 to 1.21, with nine in ten between 0.90
  * and 1.12. The widest are kicking and goal, which hang on one or two men.
  */
-export const GAMMA = 1.6
+// TUNED 21 Nov against the old engine (scripts/paritycheck.ts 40 150): at
+// 1.6 the stronger side won by 1.58 x the old engine's margin; at 1.0 the
+// slope is 1.03 and home wins are 53.2% against 52.3%.
+export const GAMMA = 1.0
 
 /** HOME ADVANTAGE. In the old engine ctx.hfa (about 1.08, venue.ts
  *  HOME_EDGE, moved by the trip, the crowd and the pitch in begin.ts) is a
