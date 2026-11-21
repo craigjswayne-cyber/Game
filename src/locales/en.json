@@ -8242,6 +8242,8 @@
   "islesPartySub": "A party of {n} · England {eng} · Ireland {ire} · Scotland {sco} · Wales {wal}",
   "islesCap": "{player} LEADS THE ISLES XV",
   "islesCapSub": "{tour} · Tour captain",
+  "islesOver": "THE TOUR IS OVER",
+  "islesOverSub": "{tour} · Test series {w}-{l} · The job ends here",
   "islesOfferSub": "{tour} · Head coach, if you want it · Answer on the World tab",
   "championsSub": "{comp} · {season} · {manager}",
   "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"

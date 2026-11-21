@@ -8218,6 +8218,8 @@
   "islesPartySub": "{n} jugadores · Inglaterra {eng} · Irlanda {ire} · Escocia {sco} · Gales {wal}",
   "islesCap": "{player} LIDERA AL XV DE LAS ISLAS",
   "islesCapSub": "{tour} · Capitán de la gira",
+  "islesOver": "LA GIRA HA TERMINADO",
+  "islesOverSub": "{tour} · Serie de test {w}-{l} · El cargo termina aquí",
   "islesOfferSub": "{tour} · Seleccionador, si lo quieres · Responde en la pestaña Mundo",
   "championsSub": "{comp} · {season} · {manager}",
   "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"

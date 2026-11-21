@@ -8420,6 +8420,8 @@
   "islesPartySub": "{n} joueurs · Angleterre {eng} · Irlande {ire} · Écosse {sco} · pays de Galles {wal}",
   "islesCap": "{player} MÈNE LE XV DES ÎLES",
   "islesCapSub": "{tour} · Capitaine de la tournée",
+  "islesOver": "LA TOURNÉE EST FINIE",
+  "islesOverSub": "{tour} · Série de tests {w}-{l} · Le poste s'arrête ici",
   "islesOfferSub": "{tour} · Sélectionneur, si vous le voulez · Répondez dans l'onglet Monde",
     "championsSub": "{comp} · {season} · {manager}",
     "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"

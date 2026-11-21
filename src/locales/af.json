@@ -8278,6 +8278,8 @@
   "islesPartySub": "{n} spelers · Engeland {eng} · Ierland {ire} · Skotland {sco} · Wallis {wal}",
   "islesCap": "{player} LEI DIE EILANDE-XV",
   "islesCapSub": "{tour} · Toerkaptein",
+  "islesOver": "DIE TOER IS VERBY",
+  "islesOverSub": "{tour} · Toetsreeks {w}-{l} · Die pos eindig hier",
   "islesOfferSub": "{tour} · Hoofafrigter, as jy dit wil hê · Antwoord op die Wêreld-oortjie",
   "championsSub": "{comp} · {season} · {manager}",
   "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"

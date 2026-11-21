@@ -271,6 +271,9 @@ export function closeTour(state: GameState): void {
   // level going into the last Test: the series was alive on the final day
   const decider = tests.length >= 3 && lead(tests[0]) + lead(tests[1]) === 0
   ;(state.islesPast ??= []).push({ season: state.season, won, decider })
+  // and the last occasion of the job: how the series finished
+  const tw = tests.filter(f => lead(f) > 0).length, tl = tests.filter(f => lead(f) < 0).length
+  occasion(state, 'cel.islesOver', {}, 'cel.islesOverSub', { tour: tour.name, w: tw, l: tl })
   const v = { tour: tour.name, result_k: won || decider ? 'news.islesOverGood' : 'news.islesOverBad' }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,

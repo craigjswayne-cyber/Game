@@ -7829,6 +7829,8 @@
   "islesPartySub": "{n}人 · イングランド{eng} · アイルランド{ire} · スコットランド{sco} · ウェールズ{wal}",
   "islesCap": "{player}がアイルズXVを率いる",
   "islesCapSub": "{tour} · 遠征キャプテン",
+  "islesOver": "遠征は終わった",
+  "islesOverSub": "{tour} · テストシリーズ {w}-{l} · 任務はここまで",
   "islesOfferSub": "{tour} · 望むならヘッドコーチに · 返事はワールドタブで",
   "championsSub": "{comp} · {season} · {manager}",
   "championsSubNat": "{nation_k} · {comp} · {season} · {manager}"

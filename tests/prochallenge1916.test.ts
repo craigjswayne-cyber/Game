@@ -135,6 +135,9 @@ describe('Academy Only: "No signings, no loans in, no free agents"', () => {
     toNextSeason(g)
     let guard = 0
     while (g.week < 26 && guard++ < 40) processWeekAndAdvance(g)
+    // a first season good enough completes the challenge (it did once the
+    // squads were re-dealt, 1.9.16): taken on again, the rule is the same one
+    if (!proActive(g)) startProChallenge(g, 'academy')
     expect(proActive(g)?.id).toBe('academy')
     const ctlBase = clone(g); ctlBase.proChallenge = null
     const cands = Object.values(g.players).filter(p => p.clubId && p.clubId !== uid && !p.acad && p.contractEnds <= g.season && !p.loanFrom && !p.onLoan && !p.retiring)

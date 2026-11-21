@@ -173,6 +173,10 @@ export default function Home() {
                 ? <>{t('home.headCoach')} · {nationName('LIO')}</>
                 : <>{t('home.headCoach')} · {nationName(game.natTeam)}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}</>}
             </span>
+            {/* the tour office is open and he has not named his coaches (1.9.16) */}
+            {game.isles?.season === game.season && game.isles.answer === 'yes' && !game.isles.staffOut && (
+              <span className="ht-s" data-tour-nudge style={{ fontWeight: 700, color: 'var(--gold)' }}>{t('isles.office')}: {t('isles.staffTitle')}</span>
+            )}
             {next ? (
               <>
                 <span className="ht-v">
