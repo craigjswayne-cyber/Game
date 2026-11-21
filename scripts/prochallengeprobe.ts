@@ -283,7 +283,7 @@ console.log(`promise: "${t('pro.firesaleDesc', { n: PRO_SEASONS.firesale })}"`)
   line('INFO', `loanees rated above the fifth man sold and kept (not the club's to sell): ${loaneesHeld}`)
   const fees = best.reduce((s, p) => s + Math.round(p.value / 50_000) * 50_000, 0)
   verdict(club.budget === c0.budget, 'F2 "the money clears the debts": none of the fees reach the transfer budget', `budget ${m(c0.budget)} -> ${m(club.budget)}; fees ${m(fees)}`)
-  verdict(club.balance === c0.balance + fees, 'F3 the fees are banked to the club balance in full', `balance ${m(c0.balance)} -> ${m(club.balance)} (+${m(club.balance - c0.balance)}); fees ${m(fees)}`)
+  verdict(club.balance === c0.balance, 'F3 the fees are gone the day they arrive: none is left in the bank (1.9.16)', `balance ${m(c0.balance)} -> ${m(club.balance)} (+${m(club.balance - c0.balance)}); fees ${m(fees)}`)
   {
     const debtKeys = Object.keys(c0).filter(k => /debt|loan|owed|overdraft/i.test(k))
     const stateDebt = Object.keys(base).filter(k => /debt|overdraft/i.test(k))
@@ -637,12 +637,13 @@ if (!QUICK) {
       line(appeared >= 15 ? 'PASS' : 'FAIL', `F6b the first league match (week ${firstWk}) is played by a full side although the sheet was left with holes`, `sheet holes now ${holes} of 23; men with an appearance ${appeared}`)
     }
     const pre = toNextSeason(g)
-    // the same summer, had the fees not been in the bank
-    const ctl = clone(pre); ctl.clubs[uid].balance -= fees
+    // the same summer as it was before 1.9.16, with the fees still sitting in the bank:
+    // the budget they would have bought is the leak that is now shut
+    const ctl = clone(pre); ctl.clubs[uid].balance += fees
     finishSeason(ctl)
     const c = g.clubs[uid], cc = ctl.clubs[uid]
     const leak = c.budget - cc.budget
-    verdict(leak <= 0, 'F10 "the money clears the debts", a summer later: the banked fees add nothing to the next transfer budget',
+    verdict(leak < 0, 'F10 "the money clears the debts", a summer later: the banked fees add nothing to the next transfer budget',
       `fees ${m(fees)}; balance before the summer ${m(pre.clubs[uid].balance)}; new budget ${m(c.budget)} against ${m(cc.budget)} had the fees not been banked: +${m(leak)} of budget comes from the sale (rollover/finance.ts resetBudgets: 15% of the balance)`)
     line('INFO', `day one budget ${m(day1.budget)} / balance ${m(day1.balance)}; season two budget ${m(c.budget)} / balance ${m(c.balance)}; facilities ${JSON.stringify(c.facilities)} against ${JSON.stringify(cc.facilities)} without the fees`)
     const reinvest = g.news.filter(n => /reinvest/i.test(`${n.k ?? ''}`)).map(n => `${n.k}`).slice(0, 3)
@@ -698,10 +699,10 @@ if (!QUICK) {
     const g = started('firesale', Number(seed), club); g.boardGrace = 999_999
     const d1 = g.clubs[club].budget
     const pre = toNextSeason(g)
-    const ctl = clone(pre); ctl.clubs[club].balance -= fees
+    const ctl = clone(pre); ctl.clubs[club].balance += fees // as before 1.9.16: fees left in the bank
     finishSeason(ctl)
     const leak = g.clubs[club].budget - ctl.clubs[club].budget
-    verdict(leak <= 0, `F10 ${club} (seed ${seed}): the banked fees add nothing to the next transfer budget`,
+    verdict(leak < 0, `F10 ${club} (seed ${seed}): the banked fees add nothing to the next transfer budget`,
       `day-one balance ${m(base.clubs[club].balance)}; fees ${m(fees)}; budget day one ${m(d1)}, season two ${m(g.clubs[club].budget)}, without the banked fees ${m(ctl.clubs[club].budget)}: +${m(leak)}`)
   }
 }

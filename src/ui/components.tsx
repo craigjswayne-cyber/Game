@@ -344,7 +344,7 @@ export function InjuryMark({ p, week, weeks = true }: { p: Player; week: number;
       style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 6, color: 'var(--text-negative)', fontWeight: 800, fontSize: '0.6875rem', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
       <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden focusable="false">
         <rect x="0" y="0" width="12" height="12" rx="3" fill="var(--danger)" />
-        <path d="M6 2.6v6.8M2.6 6h6.8" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+        <path d="M6 2.6v6.8M2.6 6h6.8" stroke="var(--on-danger)" strokeWidth="2" strokeLinecap="round" />
       </svg>
       {weeks && <span aria-hidden>{t('common.injTag', { n })}</span>}
     </span>

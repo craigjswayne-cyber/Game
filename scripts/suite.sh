@@ -32,7 +32,7 @@ FAILED_NAMES=""
 
 # no pass/fail to give: these print numbers or write screenshots. perfrun is
 # the release-to-release performance comparison (run in two worktrees).
-REPORTERS="analysis leaguestrength gapreport icons shots qa-shots qa-shots2 newspeak boardprobe disttest loantest nattest summertest dataaudit squaddiff premmerge stancecheck womensvoice newsmix perfrun"
+REPORTERS="firesaleprobe preseasonprobe analysis leaguestrength gapreport icons shots qa-shots qa-shots2 newspeak boardprobe disttest loantest nattest summertest dataaudit squaddiff premmerge stancecheck womensvoice newsmix perfrun"
 # minutes each, not seconds: only on request
 # dialweight is here too (v1.2.2): a qualitative balance audit that sims
 # ~290 paired seasons and alone took ten of the Gate's thirty minutes. Its
@@ -211,7 +211,7 @@ case "$MODE" in browser|smoke|pr|soak|area) ENGINE=0;; *) ENGINE=1;; esac
 done
 
 BROWSER="e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate nobenchprobe offlineprobe instantverdictprobe tapcontrols dealcardui unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe proprompt feedbackui backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe tryflash loanlistui floorad ruckui visitback retrainui womens19ui sheetroot ui1913 budgetfilter penaltywaitui preplanui marqueeui freeagentui dualroleui intlstageui prochallengeui typezoomui natonlyui
-  brandprobe chaosui coachriftui countryui devpickui exportui formerui ftprobe hlliveprobe injurysheet loannameui pagereset pressbaroprobe scoutscreen roomui screensave setpieceui sheetprobe spotadui teamtalkui temperui uiqaprobe telemetryui traitcard
+  brandprobe chaosui coachriftui countryui intlstart rowprobe devpickui exportui formerui ftprobe hlliveprobe injurysheet loannameui pagereset pressbaroprobe scoutscreen roomui screensave setpieceui sheetprobe spotadui teamtalkui temperui uiqaprobe telemetryui traitcard
   a11yprobe smalltype
   purchasestate paletteqa iconshots tidyshots"
 # purchasestate (1.9.1, was scripts/qa/purchasestate.mjs), paletteqa, iconshots and tidyshots had a

@@ -228,3 +228,4 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   fingerprint pass (the women's moves do not touch the men's fixed-seed world). Browser: rowprobe now runs in all six languages at 360, 384 and
   412 and checks that no money figure is clipped: 702 checks pass. It found one row that grew in French and Italian (the competition name
   wrapped on Fixtures at 360): now one line with an ellipsis. Nine other harnesses pass (138 checks). Ready for the owner's "merge".
+- 07:10 CI on the pull request failed at the token lint (a hard-coded #fff in the injury mark, components.tsx:347, from earlier in 1.9.16), a step I had not run locally. Fixed (var(--on-danger)). Also run now: cssaudit, orphancheck (new scripts registered in suite.sh), ipprobe. prochallengeprobe brought in line with the fixed Fire Sale: 73 PASS, 0 FAIL. CI runs every engine probe (8 shards, about 35 minutes): waiting on it before calling the branch ready.
