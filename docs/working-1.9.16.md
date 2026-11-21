@@ -199,3 +199,4 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   blowouts 6.8%, every band holds. Version 1.9.16, Play code 79. Store text in six languages (docs/store-listing.md).
   OWNER'S OPEN DECISIONS: number format per language; "clears the debts" wording; rename "Pre-season work"; Fire Sale difficulty; challenge-complete
   card beside a trophy; 10 women at a club the 2026 lists do not give (docs/research/club-audit-1916.md).
+- 03:15 Final run: unit suite 558 of 558; ten browser harnesses pass (216 checks); PR #116 opened against main, NOT merged. https://github.com/craigjswayne-cyber/Game/pull/116
