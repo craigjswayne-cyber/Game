@@ -256,3 +256,27 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 - OPEN, asked: he wants ratings "hidden for free but open in Pro". Not built: the game's own rule since 1.8.2 is that ability is found by
   scouting ("It shouldn't be easy to see the best youngsters and free agents"), and Pro is sold as adverts off, skins and save slots.
 - 09:37 owner: show the World Cup and the Lions job; keep assessing and improving for a premium feel; update every half hour until 14:00.
+
+### 09:40 to 10:50 UTC, 21 Nov: main's browser checks, and the Isles tour walked and played for the owner
+- Gate on main (90aae66) failed five browser checks that only run on main: preplanui, temperui, bidprobe, injurysheet (probes behind
+  the 1.9.16 changes) and intlstart (a path on one machine). All five pass. The opposite-number card now opens itself when he has
+  planned for you.
+- Owner, 09:51: "Change take charge of your nation to manage your nation. Is all caps the correct vibe". Now "Manage your nation",
+  sentence case, centred beside New Career.
+- Owner, 09:51 and 09:54: the Isles job "doesn't look built out"; "Play through the Lions tour a few times". Found by doing that:
+  - a coach with a country and no club could never be offered the job (islesEligible read `unemployed`)
+  - on tour the Test plan's dials, the captain and the camp focus were keyed on his own country: ignored for the Isles, and the
+    focus was worn by his country under the assistant (natcamp.ts coachedSide)
+  - squads were best-by-rating with only the front row protected: the tour party had no scrum-half, and Wales and Tonga went to a
+    World Championship without one. Every shirt has a floor now; thin nations generate the shirt they lack; an unnamed squad is
+    topped up by shirt and sent injury cover
+  - the party was 20 English of 32: at least three from each union now
+  - twelve tours played headless: series won 4 of 12, tour games 52-32. Eight ended with the coach sacked by his union that summer,
+    four of them after winning the series. The union cannot sack a touring coach at that review, and a series win is +12
+  - any home-union coach was credited with a series win, toured or not; the tour's games went on his country's Test ledger
+  - Club & Country, Home, the header and the Nations panel all still showed his country on tour. They show the tour: series so far,
+    tour captain (new, six best leaders), the party's camp focus, the tour's fixtures with midweek days
+  - the invitation is a gold card that says what is asked and what yes costs; World Championship knockouts read a round at a time
+  - the cabinet named an old tour or World Championship by its code
+- OPEN, asked: should the tour party open empty for him to name (his own v1.1.17 rule for his country)? And Pro revealing ratings.
+- Known and told: one South African club on a New Zealand tour (six New Zealand clubs in the game, seven tour games).
