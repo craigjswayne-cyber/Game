@@ -22,10 +22,29 @@ import { aggPenRisk, type SideCtx } from './match/side'
 export type CampFocus = 'fitness' | 'setpiece' | 'attack'
 export const CAMP_FOCI: CampFocus[] = ['fitness', 'setpiece', 'attack']
 
+/**
+ * THE SIDE HE IS COACHING THIS WEEK (1.9.16). On an Isles tour that is the
+ * tour party, 'LIO', and not his own country, which his assistant has.
+ *
+ * Everything in this file was keyed on state.natTeam alone, so on the tour -
+ * the hardest job in the game - the plan's four dials, the captain and the
+ * camp's focus did nothing for the Isles at all, and the camp focus he chose
+ * was worn by England under the assistant instead. The screens showed every
+ * control and the engine read none of them.
+ *
+ * The same test as isles.ts islesCoach, written out here because this file
+ * imports nothing from the season (the match engine reads it).
+ */
+export function coachedSide(state: GameState): string | null {
+  const i = state.isles
+  if (i && i.season === state.season && i.answer === 'yes' && (state.natSquads?.['LIO']?.length ?? 0) > 0) return 'LIO'
+  return state.natTeam ?? null
+}
+
 /** This camp's focus, if one has been chosen in this window. */
 export function campFocus(state: GameState): CampFocus | null {
   const c = state.natCamp
-  if (!c || !state.natTeam || c.nat !== state.natTeam) return null
+  if (!c || c.nat !== coachedSide(state)) return null
   if (c.season !== state.season || state.week < c.start || state.week > c.end) return null
   return CAMP_FOCI.includes(c.focus) ? c.focus : null
 }
@@ -33,7 +52,7 @@ export function campFocus(state: GameState): CampFocus | null {
 /** Kick-off: the user's national side carries its camp's work. Keyed on the
  *  nation, not on side.isUser, for the reason setup.ts gives for the club. */
 export function applyCamp(state: GameState, side: SideCtx): void {
-  if (!state.natTeam || side.teamId !== state.natTeam) return
+  if (side.teamId !== coachedSide(state)) return
   switch (campFocus(state)) {
     case 'attack': side.units.attack *= 1.035; side.units.defence *= 0.99; break
     case 'setpiece': side.units.scrum *= 1.04; side.units.lineout *= 1.04; side.units.attack *= 0.99; break
@@ -59,10 +78,15 @@ type NatPlan = NonNullable<GameState['natPlan']>
 
 /** The plan for the nation the manager coaches, created on first use. */
 export function natPlanOf(state: GameState): NatPlan | null {
-  const nat = state.natTeam
+  const nat = coachedSide(state)
   if (!nat) return null
   if (!state.natPlan || state.natPlan.nat !== nat) {
-    state.natPlan = { nat, style: 50, tempo: 50, kicking: 50, aggression: 50, captain: null }
+    // the tour has a plan and a captain of its own, and his country's are
+    // kept for when he is home
+    if (state.natPlan && nat === 'LIO') state.natPlanHome = state.natPlan
+    const home = nat !== 'LIO' && state.natPlanHome?.nat === nat ? state.natPlanHome : null
+    state.natPlan = home ?? { nat, style: 50, tempo: 50, kicking: 50, aggression: 50, captain: null }
+    if (nat !== 'LIO') state.natPlanHome = null
   }
   return state.natPlan
 }
@@ -70,7 +94,7 @@ export function natPlanOf(state: GameState): NatPlan | null {
 /** Read without creating: what the engine sees. */
 function planFor(state: GameState, teamId: string): NatPlan | null {
   const p = state.natPlan
-  return p && state.natTeam === teamId && p.nat === teamId ? p : null
+  return p && coachedSide(state) === teamId && p.nat === teamId ? p : null
 }
 
 /** The national captain, if the coach has named one. */

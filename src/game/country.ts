@@ -278,7 +278,9 @@ export function natSquadHold(state: GameState): { n: number } | null {
 /** The open window for the user's nation, with its weeks, or null: the same
  *  test natWindow makes (natcamp.ts, 1.9.14). */
 export function campWindow(state: GameState): { start: number; end: number } | null {
-  const nat = state.natTeam
+  // the side on the desk: the tour party on an Isles tour (1.9.16), or the
+  // focus he chose there was worn by his country under the assistant
+  const nat = deskNat(state)
   if (!nat || !state.natSquads[nat]) return null
   const w = activeWindows(state).find(w => w.nations.includes(nat) && state.week >= w.start && state.week <= w.end)
   return w ? { start: w.start, end: w.end } : null
@@ -288,6 +290,6 @@ export function campWindow(state: GameState): { start: number; end: number } | n
 export function setCampFocus(state: GameState, focus: CampFocus): boolean {
   const w = campWindow(state)
   if (!w || !CAMP_FOCI.includes(focus)) return false
-  state.natCamp = { nat: state.natTeam!, season: state.season, start: w.start, end: w.end, focus }
+  state.natCamp = { nat: deskNat(state)!, season: state.season, start: w.start, end: w.end, focus }
   return true
 }

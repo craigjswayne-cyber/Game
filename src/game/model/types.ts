@@ -1986,6 +1986,8 @@ export interface GameState {
    *  and its captain, set on the Test preview and from the touchline. Every
    *  dial at 50 and no captain is exactly the engine before it existed. */
   natPlan?: { nat: string; style: number; tempo: number; kicking: number; aggression: number; captain: number | null } | null
+  /** His country's plan, kept while he is away with the Isles XV (1.9.16). */
+  natPlanHome?: { nat: string; style: number; tempo: number; kicking: number; aggression: number; captain: number | null } | null
   /** THE LAST TEST THE COACH'S NATION PLAYED (1.9.14, nattest.ts): what the
    *  full-time card reads - the ranking either side of it, the union's
    *  reaction, and the caps it handed out. */
