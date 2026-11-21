@@ -169,3 +169,4 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   (ui/ritual.ts, TestDay.tsx RitualPitch). Engine fingerprint output identical before and after both. Full suite 513 of 514 (fingerprint, expected).
   NOT YET SEEN IN A BROWSER: the ritual pitch and the kick clips.
 - 02:08 Three more agents started on the club audit (men FIJ JPN; women WAL CAN USA IRE; women ITA JPN RSA FRA). Log: docs/research/club-audit-1916.md.
+- 02:21 scripts/rowprobe.mjs: every named table row is the height of its neighbours with 40-character names, 13 screens at 360, 384 and 412: 78 checks pass. hlprobe.ts and hlliveprobe.mjs pass after the goal-kick change. Release notes drafted (docs/release-notes-1.9.16.md).
