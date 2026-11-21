@@ -13,9 +13,9 @@
   "loadCareer": "Laai loopbaan",
   "community": "Sluit by ons Discord aan",
   "ideasDiscord": "Deel idees op Discord",
-  "intlStart": "Nasionale afrigter",
-  "intlStartSub": "Begin 'n loopbaan aan die stuur van 'n land. Eenmalige aankoop",
-  "intlStartOwned": "Begin 'n loopbaan aan die stuur van 'n land",
+  "intlStart": "Neem beheer van jou land",
+  "intlStartSub": "Slaan die klubspel oor met hierdie eenmalige aankoop",
+  "intlStartOwned": "Slaan die klubspel oor en begin met 'n land",
   "newCareer": "Nuwe loopbaan",
   "savedAt": "{season}, Week {week}",
   "matchLive": "Wedstryd teen {opp} onvoltooid: dit word klaargespeel wanneer jy inlaai",
@@ -306,6 +306,10 @@
  },
  "home": {
   "jobCentre": "Die Werksentrum",
+  "clubJobsOpen": {
+   "one": "{n} klubpos beskikbaar. Neem dit saam met jou land, of gaan voort soos jy is.",
+   "other": "{n} klubposte beskikbaar. Neem een saam met jou land, of gaan voort soos jy is."
+  },
   "betweenJobs": {
    "one": "Jy is tans sonder 'n pos. {n} vakature oop: doen aansoek, of druk Gaan voort en wag vir die regte een.",
    "other": "Jy is tans sonder 'n pos. {n} vakatures oop: doen aansoek, of druk Gaan voort en wag vir die regte een."
@@ -1957,7 +1961,7 @@
   "worldNo": "Wêreld nr. {n}",
   "unveilKicker": "Aangestel",
   "unveilTitle": "Hoofafrigter van {nat}",
-  "unveilLine": "Die unie stel {manager} voor as die nuwe hoofafrigter van {nation_k}. Die trui, die volkslied en elke toetsvenster is nou joune.",
+  "unveilLine": "Die unie stel {manager} voor as die nuwe hoofafrigter van {nation_k}. Die span is nou jou verantwoordelikheid, en die land verwag.",
   "termsTitle": "Die unie se voorwaardes",
   "termsSub": "Die unie hersien elke toetsvenster, en die hele seisoen aan die einde.",
   "termRank": "Neem {nat_k} in die wêreld se top {n}.",

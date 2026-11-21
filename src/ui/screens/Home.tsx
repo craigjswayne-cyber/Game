@@ -213,7 +213,8 @@ export default function Home() {
         <button className="card" style={{ ...acc('var(--gold)') }}
           onClick={() => go('jobs')}>
           <h3>{t('home.jobCentre')}</h3>
-          <div className="meta">{t('home.betweenJobs', { n: game.vacancies.length })}</div>
+          {/* a national coach is not between jobs: he has one (owner, 1.9.16) */}
+          <div className="meta">{t(game.natTeam ? 'home.clubJobsOpen' : 'home.betweenJobs', { n: game.vacancies.length })}</div>
         </button>
         {countryTile && <div className="card-grid home-tiles">{countryTile}</div>}
         {/* With no club there is no summary to separate the inbox from, so it

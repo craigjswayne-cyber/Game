@@ -13,9 +13,9 @@
   "loadCareer": "Cargar carrera",
   "community": "Únete a nosotros en Discord",
   "ideasDiscord": "Comparte ideas en Discord",
-  "intlStart": "Seleccionador",
-  "intlStartSub": "Empieza una carrera al frente de una selección. Compra única",
-  "intlStartOwned": "Empieza una carrera al frente de una selección",
+  "intlStart": "Toma el mando de tu selección",
+  "intlStartSub": "Sáltate la etapa de clubes con esta compra única",
+  "intlStartOwned": "Sáltate la etapa de clubes y empieza con un país",
   "newCareer": "Nueva carrera",
   "savedAt": "{season}, semana {week}",
   "matchLive": "Partido sin terminar contra {opp}: se completará al cargar",
@@ -310,6 +310,10 @@
  },
  "home": {
   "jobCentre": "La oficina de empleo",
+  "clubJobsOpen": {
+   "one": "{n} puesto en un club disponible. Acéptalo junto a tu selección, o sigue como estás.",
+   "other": "{n} puestos en clubes disponibles. Acepta uno junto a tu selección, o sigue como estás."
+  },
   "betweenJobs": {
    "one": "Estás sin equipo. {n} vacante abierta: preséntate, o pulsa Continuar y espera a la adecuada.",
    "other": "Estás sin equipo. {n} vacantes abiertas: preséntate, o pulsa Continuar y espera a la adecuada."
@@ -1998,7 +2002,7 @@
   "worldNo": "N.º {n} del mundo",
   "unveilKicker": "Nombramiento",
   "unveilTitle": "Al frente de {nat}",
-  "unveilLine": "La federación presenta a {manager} al frente de {nation_k}. La camiseta, el himno y cada ventana de tests son ahora tuyos.",
+  "unveilLine": "La federación presenta a {manager} al frente de {nation_k}. El equipo es ahora tu responsabilidad, y el país espera.",
   "termsTitle": "Lo que pide la federación",
   "termsSub": "La federación hace balance de cada ventana de tests, y de toda la temporada al final.",
   "termRank": "Meter a {nat_k} entre los {n} primeros del mundo.",

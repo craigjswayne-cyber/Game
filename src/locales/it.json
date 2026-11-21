@@ -13,9 +13,9 @@
   "loadCareer": "Carica carriera",
   "community": "Unisciti a noi su Discord",
   "ideasDiscord": "Condividi idee su Discord",
-  "intlStart": "Commissario tecnico",
-  "intlStartSub": "Inizia una carriera alla guida di una nazionale. Acquisto unico",
-  "intlStartOwned": "Inizia una carriera alla guida di una nazionale",
+  "intlStart": "Prendi in mano la tua nazionale",
+  "intlStartSub": "Salta la carriera nei club con questo acquisto unico",
+  "intlStartOwned": "Salta la carriera nei club e inizia con una nazionale",
   "newCareer": "Nuova carriera",
   "savedAt": "{season}, settimana {week}",
   "matchLive": "Partita con {opp} in sospeso: si completa al caricamento",
@@ -309,6 +309,10 @@
  },
  "home": {
   "jobCentre": "Il Centro per l'impiego",
+  "clubJobsOpen": {
+   "one": "{n} panchina di club disponibile. Accettala insieme alla nazionale, o resta così.",
+   "other": "{n} panchine di club disponibili. Accettane una insieme alla nazionale, o resta così."
+  },
   "betweenJobs": {
    "one": "Sei senza panchina. {n} posto vacante: candidati, oppure premi Continua e aspetta quello giusto.",
    "other": "Sei senza panchina. {n} posti vacanti: candidati, oppure premi Continua e aspetta quello giusto."
@@ -2001,7 +2005,7 @@
   "unveilKicker": "Nomina",
   "unveilTitle": "{nat}, il nuovo CT",
   "unveilTitle_w": "{nat}, la nuova CT",
-  "unveilLine": "La federazione presenta il nuovo CT: {manager} prende in mano {nationThe_k}. La maglia, l'inno e ogni finestra dei test adesso sono tuoi.",
+  "unveilLine": "La federazione presenta il nuovo CT: {manager} prende in mano {nationThe_k}. La squadra adesso è una tua responsabilità, e il paese si aspetta molto.",
   "termsTitle": "Gli obiettivi della federazione",
   "termsSub": "La federazione fa il bilancio di ogni finestra dei test, e di tutta la stagione alla fine.",
   "termRank": "Portare {nat_k} tra le prime {n} del mondo.",

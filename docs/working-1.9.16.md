@@ -243,3 +243,16 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   starveprobe: the bar (8% fewer kicks) sat exactly on the measured figure; now -7.9% (se 0.9). Bar is 6% and five points clear of every other plan.
   analystprobe: the frozen panel read 70.2% against a skill of 58%, 12.2 OVER, and tripped a two-sided band of 12 whose stated purpose is to catch
     inverted wiring (about 16 UNDER). Now 12 under fails, 18 over fails.
+
+### 09:31 UTC, 21 Nov: owner on the screenshots, after the merge (branch v1.9.16-fixes, not yet uploaded to a store)
+- Title card was 28px narrower than New Career (button.card's own width rule won): now the same width.
+- Card reads "Take charge of your nation" / "Skip the club game with this one-off purchase" (six languages).
+- A national coach with no club is not "between jobs": Home says "{n} club jobs available. Take one alongside your country, or carry on as you are."
+  The Job Centre was already in the World tab for him (App.tsx world group, with the badge).
+- Unveiling: "The shirt, the anthem and every Test window are yours now" became "The team is your responsibility now, and the nation expects."
+- Free agents: the gold chip beside Budget and Wage room ("a weird random place") is now a two-way switch, Everyone / Free agents n, above the
+  search. The Club column shows a dash for a free agent, so Value fits on a phone again.
+- Haka: checked. The arrowhead with the captain at the point has been the All Blacks' regular formation since the 2015 World Cup.
+- OPEN, asked: he wants ratings "hidden for free but open in Pro". Not built: the game's own rule since 1.8.2 is that ability is found by
+  scouting ("It shouldn't be easy to see the best youngsters and free agents"), and Pro is sold as adverts off, skins and save slots.
+- 09:37 owner: show the World Cup and the Lions job; keep assessing and improving for a premium feel; update every half hour until 14:00.

@@ -174,7 +174,7 @@ export default function Transfers() {
     // letters of their name be used... so you dont have to scroll right at
     // all"). clubCode is what the crest draws and the touchline paints; the
     // search box above still matches the full name.
-    { id: 'club', head: t('transfers.colClub'), td: () => ({ className: 'muted' }), cell: p => (p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')) },
+    { id: 'club', head: t('transfers.colClub'), td: () => ({ className: 'muted' }), cell: p => (p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : '-') }, // a dash, not the words "Free agent" (1.9.16): they made this the widest column and pushed Value off a phone
     { id: 'ca', head: t('transfers.colAbility'), sort: 'ca', cell: p => { const ca = shownCa(game, p); return <><Stars ca={ca} />{ca != null && knowledge(game, p) < 95 && !hasSupporter() && <span className="muted">?</span>}</> } },
     { id: 'form', head: t('transfers.colForm'), align: 'right', sort: 'form', narrowHide: true, cell: p => <FormPill v={p.form} /> },
     { id: 'value', head: t('squad.colValue'), align: 'right', sort: 'value', cell: p => fmtMoney(seenValue(game, p)) },
@@ -237,15 +237,6 @@ export default function Transfers() {
       }}>
         <span className="chip">{t('transfers.budget')} <b>{fmtMoney(user.budget)}</b></span>
         <span className="chip">{t('transfers.wageRoom')} <b>{Number.isFinite(userWageBudget(game, user)) ? `${fmtWage(Math.max(0, userWageBudget(game, user) - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}${t('common.perWeek')}` : t('finances.noLimit')}</b></span>
-        {/* FREE AGENTS, ONE TAP (1.9.16). Owner: "there should be a filter option
-            in transfer for free agents". There was one, but it was an entry in
-            the League menu inside the filter sheet, and he never found it. */}
-        <button className="chip" data-fa-chip aria-pressed={league === 'FA'}
-          /* a full 44px to tap: it is a button, and the chips beside it are labels (geosweep) */
-          style={{ minHeight: 44, ...(league === 'FA' ? { borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 } : {}) }}
-          onClick={() => { setLeague(league === 'FA' ? 'ALL' : 'FA'); setPage(0) }}>
-          {t('transfers.freeAgents')}&nbsp;<b>{freeCount}</b>
-        </button>
         <span className="chip" style={{
           color: windowOpen(game.week) ? 'var(--text-positive)' : 'var(--text-muted)',
           fontWeight: 700,
@@ -441,6 +432,21 @@ export default function Transfers() {
         : t('transfers.marketSub', { n: results.length === 120 ? t('transfers.best120') : results.length })}>
         {t(deal === 'loan' ? 'transfers.loanMarket' : 'transfers.scoutTheMarket')}
       </SectionTitle>
+      {/* EVERYONE, OR THE MEN WITHOUT A CLUB (1.9.16). Owner: "there should be a
+          filter option in transfer for free agents". It existed as an entry in
+          the League menu inside the filter sheet, and he never found it. Its
+          first home was a gold chip beside Budget and Wage room, and he called
+          that "a weird random place": those are facts, and this is a choice.
+          So it sits here, as the first choice of what to look at, above the
+          search it narrows. */}
+      {deal !== 'loan' && (
+        <div className="fa-switch" role="radiogroup" aria-label={t('transfers.scoutTheMarket')}>
+          <button type="button" role="radio" aria-checked={league !== 'FA'} className={league !== 'FA' ? 'on' : ''}
+            onClick={() => { setLeague('ALL'); setPage(0) }}>{t('squad.everyone')}</button>
+          <button type="button" role="radio" aria-checked={league === 'FA'} className={league === 'FA' ? 'on' : ''} data-fa-chip
+            onClick={() => { setLeague('FA'); setPage(0) }}>{t('transfers.freeAgents')}&nbsp;<b>{freeCount}</b></button>
+        </div>
+      )}
       {/* ---- six filters, two tidy rows, nothing bigger than it needs to be ----
           These controls were three different sizes: a flex-grow search box, a
           116px select whose label "All positions" did not fit inside it, and

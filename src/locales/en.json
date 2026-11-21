@@ -13,9 +13,9 @@
   "loadCareer": "Load Career",
   "community": "Join us on Discord",
   "ideasDiscord": "Share ideas on Discord",
-  "intlStart": "International coach",
-  "intlStartSub": "Start a career in charge of a country. One-off purchase",
-  "intlStartOwned": "Start a career in charge of a country",
+  "intlStart": "Take charge of your nation",
+  "intlStartSub": "Skip the club game with this one-off purchase",
+  "intlStartOwned": "Skip the club game and start with a country",
   "newCareer": "New Career",
   "savedAt": "{season}, Week {week}",
   "matchLive": "Match v {opp} unfinished: it plays out when you load",
@@ -306,6 +306,10 @@
  },
  "home": {
   "jobCentre": "The Job Centre",
+  "clubJobsOpen": {
+   "one": "{n} club job available. Take one alongside your country, or carry on as you are.",
+   "other": "{n} club jobs available. Take one alongside your country, or carry on as you are."
+  },
   "betweenJobs": {
    "one": "You're between jobs. {n} vacancy open: apply, or press Continue and wait for the right one.",
    "other": "You're between jobs. {n} vacancies open: apply, or press Continue and wait for the right one."
@@ -1959,7 +1963,7 @@
   "worldNo": "World no. {n}",
   "unveilKicker": "Appointed",
   "unveilTitle": "Head coach of {nat}",
-  "unveilLine": "The union presents {manager} as the new head coach of {nation_k}. The shirt, the anthem and every Test window are yours now.",
+  "unveilLine": "The union presents {manager} as the new head coach of {nation_k}. The team is your responsibility now, and the nation expects.",
   "termsTitle": "The union's terms",
   "termsSub": "The union reviews every Test window, and the whole season at its end.",
   "termRank": "Take {nat_k} into the world's top {n}.",

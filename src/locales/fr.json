@@ -13,9 +13,9 @@
     "loadCareer": "Charger une carrière",
     "community": "Rejoignez-nous sur Discord",
     "ideasDiscord": "Partagez vos idées sur Discord",
-    "intlStart": "Sélectionneur",
-    "intlStartSub": "Commencez une carrière à la tête d'une sélection. Achat unique",
-    "intlStartOwned": "Commencez une carrière à la tête d'une sélection",
+    "intlStart": "Prenez en main votre nation",
+    "intlStartSub": "Passez directement à la sélection avec cet achat unique",
+    "intlStartOwned": "Passez directement à la sélection et commencez avec un pays",
     "newCareer": "Nouvelle carrière",
     "savedAt": "{season}, semaine {week}",
     "matchLive": "Match contre {opp} inachevé : il se joue au chargement",
@@ -312,6 +312,10 @@
   },
   "home": {
     "jobCentre": "La bourse aux postes",
+    "clubJobsOpen": {
+      "one": "{n} poste en club disponible. Prenez-le en plus de la sélection, ou continuez ainsi.",
+      "other": "{n} postes en club disponibles. Prenez-en un en plus de la sélection, ou continuez ainsi."
+    },
     "betweenJobs": {
       "one": "Vous êtes sans club. {n} poste à pourvoir : postulez, ou appuyez sur Continuer et attendez le bon.",
       "other": "Vous êtes sans club. {n} postes à pourvoir : postulez, ou appuyez sur Continuer et attendez le bon."
@@ -2010,7 +2014,7 @@
     "worldNo": "{n}e mondial",
     "unveilKicker": "Nomination",
     "unveilTitle": "Sélectionneur : {nat}",
-    "unveilLine": "La fédération présente son nouveau sélectionneur : {manager} prend en main {nationThe_k}. Le maillot, l'hymne et chaque fenêtre internationale sont désormais à vous.",
+    "unveilLine": "La fédération présente son nouveau sélectionneur : {manager} prend en main {nationThe_k}. L'équipe est désormais sous votre responsabilité, et tout un pays attend.",
     "termsTitle": "Les objectifs de la fédération",
     "termsSub": "La fédération fait le bilan de chaque fenêtre internationale, et de toute la saison à son terme.",
     "termRank": "Faire entrer {nat_k} dans le top {n} mondial.",

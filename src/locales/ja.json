@@ -13,9 +13,9 @@
   "loadCareer": "キャリアをロード",
   "community": "Discordに参加しよう",
   "ideasDiscord": "Discordでアイデアを共有",
-  "intlStart": "代表監督",
-  "intlStartSub": "代表チームの監督としてキャリアを始める。買い切り",
-  "intlStartOwned": "代表チームの監督としてキャリアを始める",
+  "intlStart": "代表チームを率いよう",
+  "intlStartSub": "買い切りでクラブ編を飛ばして始める",
+  "intlStartOwned": "クラブ編を飛ばして代表から始める",
   "newCareer": "新しいキャリア",
   "savedAt": "{season}・第{week}週",
   "matchLive": "{opp}戦は未完了：読み込み時に最後まで進めます",
@@ -307,6 +307,10 @@
  },
  "home": {
   "jobCentre": "求人センター",
+  "clubJobsOpen": {
+   "one": "クラブの求人が{n}件ある。代表と兼任するか、このまま続けよう。",
+   "other": "クラブの求人が{n}件ある。代表と兼任するか、このまま続けよう。"
+  },
   "betweenJobs": {
    "one": "現在は無所属。求人が{n}件出ている。応募するか、「続ける」を押して好機を待とう。",
    "other": "現在は無所属。求人が{n}件出ている。応募するか、「続ける」を押して好機を待とう。"
@@ -1920,7 +1924,7 @@
   "worldNo": "世界{n}位",
   "unveilKicker": "就任",
   "unveilTitle": "{nat}代表ヘッドコーチ",
-  "unveilLine": "協会は{manager}を{nation_k}代表の新ヘッドコーチとして発表した。ジャージも国歌も、すべてのテストウィンドウも、今日からあなたのものだ。",
+  "unveilLine": "協会は{manager}を{nation_k}代表の新ヘッドコーチとして発表した。今日からチームはあなたの責任であり、国中が期待している。",
   "termsTitle": "協会の求めるもの",
   "termsSub": "協会はテストウィンドウごとに、そしてシーズン終了時に1年を総括する。",
   "termRank": "{nat_k}を世界ランキング{n}位以内に導く。",

@@ -539,3 +539,12 @@
   /* and a column that is also on the player's page (Form) steps aside */
   .dtable .narrow-hide { display: none; }
 }
+
+/* ---- everyone, or free agents: the first choice on the market (1.9.16, Transfers.tsx) ---- */
+.fa-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0 14px 8px; }
+.fa-switch button {
+  min-height: 44px; padding: 6px 10px; border-radius: 10px; cursor: pointer;
+  background: var(--surface-1); color: var(--text-secondary); border: 1.5px solid var(--border);
+  font: inherit; font-weight: 700; font-size: 0.875rem;
+}
+.fa-switch button.on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface-1)); }
