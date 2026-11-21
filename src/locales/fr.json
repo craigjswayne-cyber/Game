@@ -9549,6 +9549,7 @@
     "filters": "Filtres",
     "filtersOn": "Filtres ({n})",
     "any": "Tous",
+    "onlyFree": "Agents libres uniquement",
     "onlyListed": "Joueurs sur la liste des transferts",
     "onlyInterested": "Joueurs prêts à nous rejoindre",
     "onlyAffordable": "Dans mon budget",

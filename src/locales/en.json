@@ -9374,6 +9374,7 @@
   "filters": "Filters",
   "filtersOn": "Filters ({n})",
   "any": "Any",
+  "onlyFree": "Free agents only",
   "onlyListed": "Transfer-listed only",
   "onlyInterested": "Only players interested in joining",
   "onlyAffordable": "Within my budget",

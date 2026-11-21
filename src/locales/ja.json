@@ -8897,6 +8897,7 @@
   "filters": "絞り込み",
   "filtersOn": "絞り込み（{n}）",
   "any": "すべて",
+  "onlyFree": "フリーの選手のみ",
   "onlyListed": "移籍リストの選手のみ",
   "onlyInterested": "加入に前向きな選手のみ",
   "onlyAffordable": "予算内のみ",

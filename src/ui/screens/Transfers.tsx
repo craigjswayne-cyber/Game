@@ -226,6 +226,7 @@ export default function Transfers() {
     ? (setLoanDeal({ id, length: 'season', share: 0.5 }), setMsg(null))
     : go('player', id)
 
+  const freeCount = Object.values(game.players).filter(p => !p.clubId).length
   return (
     <>
       <div className="chips" style={{
@@ -235,6 +236,14 @@ export default function Transfers() {
       }}>
         <span className="chip">{t('transfers.budget')} <b>{fmtMoney(user.budget)}</b></span>
         <span className="chip">{t('transfers.wageRoom')} <b>{Number.isFinite(userWageBudget(game, user)) ? `${fmtWage(Math.max(0, userWageBudget(game, user) - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}${t('common.perWeek')}` : t('finances.noLimit')}</b></span>
+        {/* FREE AGENTS, ONE TAP (1.9.16). Owner: "there should be a filter option
+            in transfer for free agents". There was one, but it was an entry in
+            the League menu inside the filter sheet, and he never found it. */}
+        <button className="chip" data-fa-chip aria-pressed={league === 'FA'}
+          style={league === 'FA' ? { borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 } : undefined}
+          onClick={() => { setLeague(league === 'FA' ? 'ALL' : 'FA'); setPage(0) }}>
+          {t('transfers.freeAgents')}&nbsp;<b>{freeCount}</b>
+        </button>
         <span className="chip" style={{
           color: windowOpen(game.week) ? 'var(--text-positive)' : 'var(--text-muted)',
           fontWeight: 700,
@@ -532,6 +541,8 @@ export default function Transfers() {
           </div>
           <div className="fs-toggles">
             {([
+              // the same switch as League: Free agents, said where he looks for it (1.9.16)
+              [league === 'FA', () => setLeague(league === 'FA' ? 'ALL' : 'FA'), 'search.onlyFree'],
               [listedOnly, () => setListedOnly(!listedOnly), 'search.onlyListed'],
               [keenOnly, () => setKeenOnly(!keenOnly), 'search.onlyInterested'],
               ...(deal === 'transfer' ? [[affordOnly, () => setAffordOnly(!affordOnly), 'search.onlyAffordable'] as [boolean, () => void, string]] : []),

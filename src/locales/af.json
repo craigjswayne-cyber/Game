@@ -9416,6 +9416,7 @@
   "filters": "Filters",
   "filtersOn": "Filters ({n})",
   "any": "Enige",
+  "onlyFree": "Net kontrakvrye spelers",
   "onlyListed": "Net spelers op die oordraglys",
   "onlyInterested": "Net spelers wat wil aansluit",
   "onlyAffordable": "Binne my begroting",

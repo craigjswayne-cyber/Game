@@ -37,7 +37,7 @@ import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup, buildMrcCup } from './schedule'
 import { punditPredictions } from './gossip'
-import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
+import { POS_ORDER, WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, CLUB_VICES, sameName } from '../data/captains'
@@ -462,6 +462,49 @@ function trimToLimit(state: GameState): void {
       drop(p.id)
       p.clubId = null
       over--
+    }
+  }
+}
+
+/** How many senior free agents a new world opens with. */
+export const START_FREE_AGENTS = 33
+
+/**
+ * THERE IS SOMEBODY TO SIGN ON DAY ONE (1.9.16).
+ *
+ * Owner: "there are no free agents in the game at the very beginning. Add some
+ * fairly average free ones to start with." He was right: the only men without
+ * a club in a new world were the eight teenage hidden gems, who are academy
+ * prospects the scouts have to find. A manager with a hole in his squad and no
+ * budget had nobody to ring until the first releases months later.
+ *
+ * Three per position, one at each of three levels: a man who helps a third
+ * tier side, one for a second tier side, and one who is squad cover at the
+ * top. Nobody here walks into a top division team. Ages 23 to 33, which is
+ * who is really out of contract: the released and the nearly finished.
+ * Half are from the manager's own country, the rest from the rugby world.
+ *
+ * It draws from its OWN stream, never `rng`, and runs after everything else
+ * that draws, so a seed keeps every other fact it had.
+ */
+function seedFreeAgents(state: GameState, seed: number, gender: Gender, seenNames: Set<string>): void {
+  const rng = mulberry32((seed ^ 0x5fa1) >>> 0)
+  const home = state.clubs[state.userClubId]?.country ?? 'ENG'
+  const homeNat = home === 'EUR' ? 'ENG' : home
+  const WORLD = ['ENG', 'FRA', 'IRE', 'WAL', 'SCO', 'RSA', 'NZL', 'AUS', 'ARG', 'FIJ', 'ITA', 'GEO', 'SAM', 'TGA', 'JPN', 'USA']
+  const TIERS: [number, number][] = [[45, 52], [54, 61], [63, 70]]
+  let i = 0
+  for (const pos of POS_ORDER) {
+    for (const [lo, hi] of TIERS) {
+      const nat = rng() < 0.5 ? homeNat : WORLD[Math.floor(rng() * WORLD.length)]
+      const age = 23 + Math.floor(rng() * 11)
+      const p = buildPlayer(
+        { name: regenName(rng, nat, seenNames, gender), pos, age, nat, q: lo + Math.floor(rng() * (hi - lo + 1)), gk: (pos === 'FH' || pos === 'FB') && rng() < 0.6 },
+        null, seed + 9100 + i * 17, 0)
+      // a man of 30 is what he is: no hidden second career in the ceiling
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
+      state.players[p.id] = p
+      i++
     }
   }
 }
@@ -1029,6 +1072,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the world class stays rare: ceilings above 88 softened once (ageing.ts)
   softCeilings(state)
   listOpeners(state)
+  // senior men out of contract, there from the first morning (seedFreeAgents)
+  seedFreeAgents(state, seed, gender, seenNames)
   // the id counter travels with the save from here (GameState.pidNext, 1.6.4)
   state.pidNext = peekPid()
   // THE REAL SQUADS AND CAPS (owner, 1.9.16; data/intl2026.ts). Last, on the

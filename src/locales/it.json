@@ -9371,6 +9371,7 @@
   "filters": "Filtri",
   "filtersOn": "Filtri ({n})",
   "any": "Tutti",
+  "onlyFree": "Solo svincolati",
   "onlyListed": "Solo in lista trasferimenti",
   "onlyInterested": "Solo interessati a venire",
   "onlyAffordable": "Nel mio budget",

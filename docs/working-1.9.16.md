@@ -129,3 +129,21 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   allows for penalty tries. Not a game bug.
 - Owner asked for a tick-box list of 1.9.14 and 1.9.15 changes: published as an artifact (134 checks).
 - Full unit suite: 444 of 445; the one failure is the fingerprint, to be rebaselined once at the end.
+
+### 01:30 UTC, 21 Nov: owner's second list (13 points)
+1. Save slot still says Northampton after resigning to coach England only. FIXED 01:32 (save.ts saveLabel, tests/savelabel.test.ts).
+2. "Start as an international coach" on the first page: PAID, in the style of the store button; the club route stays free.
+3. Bid bug: 30k player, minus 100k, shows 100k. "Check all bidding". FIXED 01:33 (src/game/bidstep.ts; fee stepper,
+   wage stepper, and the seller's floor/counter rounding, which was 50k at every size). tests/bidstep.test.ts, tests/cheapbid.test.ts.
+4. No free agents at the very start: add some average ones; a free-agent filter in Transfers. (Measured: a new game has 8.)
+5. Pro challenges: do they work and do what they promise?
+6. Pre-season setup in Training: check it and its effect on the game.
+7. Kicking at goal: the placement looks too far back; it should be where the angle is best.
+8. Far too much text in the briefing: rethink the presentation.
+9. Match day: KICK OFF at the bottom sits too low; bring it closer to the bottom sub.
+10. Dressing room options: top buttons not aligned with the bottom ones.
+11. Backroom staff: far too much space. Name lists (rankings etc) grow when names are long; they should all cut with "..." like game time.
+12. With Pro, where the ability is shown the "?" must go.
+13. A "rate our game" prompt at a high (a derby win or similar), once per game, if they have not already rated.
+- 01:35 Owner on point 2: international start is its OWN one-off purchase, "same price as it currently is in the store".
+- 01:45 Free agents: the 8 at the start were hidden teenage gems, so no senior was free. 33 senior free agents now seeded (three a position, ability 45 to 70, ages 23 to 33, own rng stream, last in newGame). Transfers page has a one-tap Free agents chip with a count, and a toggle in the filter sheet (six languages). Full suite 465 of 466 (fingerprint, expected). Owner 01:40: check in every half hour and be ready to merge at the end.

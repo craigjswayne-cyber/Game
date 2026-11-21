@@ -10,7 +10,7 @@ import { ACADEMY_MAX, ACADEMY_MIN, buildPlayer, deriveCaps, deriveHist, deriveTr
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
 import { genderOf, staffGender, type Gender } from './gender'
 import { autoSelect } from './matchEngine'
-import { NATIONS, keptRetiredNames, regenName, worldNames } from './nations'
+import { NATIONS, keptRetiredNames, nationNameIn, regenName, worldNames } from './nations'
 import { rebuildTable } from './season'
 import { hashString, mulberry32 } from './rng'
 import { seedNatRank } from './natrank'
@@ -135,13 +135,24 @@ export interface SaveMeta {
   managerName: string
 }
 
+/** What a save slot calls the job: the club while he has one, his country
+ *  when that is the only job he holds, and plain words when he has neither. */
+export function saveLabel(state: GameState): string {
+  if (!state.unemployed) return state.clubs[state.userClubId]?.name ?? '?'
+  return state.natTeam ? nationNameIn('en', state.natTeam) : 'Between jobs'
+}
+
 export async function saveGame(slot: string, state: GameState): Promise<void> {
   const db = await openDb()
   return new Promise<void>((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite')
     const meta: SaveMeta = {
       slot,
-      club: state.clubs[state.userClubId]?.name ?? '?',
+      // the job he HOLDS, not the last club he held (1.9.16, owner: "ive taken a
+      // job as England coach, i resigned from Northampton but the game save
+      // still says northampton"). userClubId stays on the old club after a
+      // resignation, so the label read it for good.
+      club: saveLabel(state),
       season: state.season,
       week: state.week,
       savedAt: Date.now(),

@@ -1,3 +1,4 @@
+import { feeSteps, stepFee, stepLabel, wageDown, wageStep } from '../../game/bidstep'
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { scrollContentTo } from '../pageReset'
@@ -703,9 +704,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           })()}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.wagePerWeek')}</span>
-            <button className="btn ghost stepper" onClick={() => { setWage(Math.max(500, wage - 500)) }}>−</button>
+            <button className="btn ghost stepper" onClick={() => { setWage(wageDown(wage)) }}>−</button>
             <b style={{ minWidth: 76, textAlign: 'center' }}>{fmtWage(wage)}</b>
-            <button className="btn ghost stepper" onClick={() => { setWage(wage + 500) }}>+</button>
+            <button className="btn ghost stepper" onClick={() => { setWage(wage + wageStep(wage)) }}>+</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.signOn')}</span>
@@ -1131,7 +1132,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               <div className="card">
                 <h3 style={{ fontSize: '1rem' }}>{t('player.yourOffer', { club: club.short })}</h3>
                 <div className="meta">{t('player.askAndBudget', { ask: fmtMoney(ask), budget: fmtMoney(game.clubs[game.userClubId].budget) })}</div>
-                {floorPrice(game, p) < ask - 50_000 && (
+                {floorPrice(game, p) < ask - feeSteps(ask)[0] && (
                   <div className="meta muted">{t('player.asLowAs', { floor: fmtMoney(floorPrice(game, p)) })}</div>
                 )}
                 {/* THE STEPPER IS A GRID, NOT A ROW (user, on a 412px phone:
@@ -1145,10 +1146,17 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                     measures it at 360, the narrowest phone supported. */}
                 <div className="bid-step">
                   <b className="bid-amt">{fmtMoney(bid)}</b>
-                  <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 500_000))}>−500k</button>
-                  <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 100_000))}>−100k</button>
-                  <button className="btn ghost" onClick={() => setBid(bid + 100_000)}>+100k</button>
-                  <button className="btn ghost" onClick={() => setBid(bid + 500_000)}>+500k</button>
+                  {/* steps sized to the asking price, and a minus that can only
+                      go down (1.9.16, bidstep.ts): minus 100k on a 30k man used
+                      to RAISE the bid to 100k */}
+                  {(() => {
+                    const [small, big] = feeSteps(ask)
+                    return [-big, -small, small, big].map(d => (
+                      <button key={d} className="btn ghost" data-step={d} onClick={() => setBid(stepFee(bid, d, ask))}>
+                        {d < 0 ? '−' : '+'}{stepLabel(Math.abs(d))}
+                      </button>
+                    ))
+                  })()}
                 </div>
                 <div className="btn-row">
                   <button className="btn ghost" onClick={() => setBidding(false)}>{t('player.cancel')}</button>

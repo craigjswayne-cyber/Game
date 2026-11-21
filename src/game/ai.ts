@@ -1,3 +1,4 @@
+import { cleanFee } from './bidstep'
 import type { GameState, NewsItem, Player, TransferOffer } from './model'
 import { proBlocksSigning } from './prochallenge'
 import { MARQUEE_SLOTS, capBill, capWage } from './cap'
@@ -210,7 +211,8 @@ export function floorPrice(state: GameState, p: Player): number {
   const { discount, premium } = sellerWillingness(state, p)
   // still rounded to a clean figure, because a counter of £1,847,300 reads like
   // a spreadsheet rather than a negotiation
-  return Math.round((ask * (1 + premium - discount)) / 50_000) * 50_000
+  // sized to the fee (1.9.16, bidstep.ts): 50k rounding put a 30k man's floor above his ask
+  return cleanFee(ask * (1 + premium - discount))
 }
 
 /** Weekly AI transfer activity + bids for user players. */
@@ -439,7 +441,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
     const now = absWeek(state.season, state.week)
     const weeksIn = p.joinedAt != null ? now - p.joinedAt : null
     if (weeksIn != null && weeksIn < 22 && fee < ask * 2) {
-      const door = Math.round((ask * 2) / 50_000) * 50_000
+      const door = cleanFee(ask * 2)
       return {
         ok: false,
         msg: t('reply.tooSoonToSell', { club: seller.short, name: p.name, n: weeksIn, ago_k: weeksIn < 2 ? 'reply.agoDays' : 'reply.agoWeeks', door: fmtMoney(door) }),
@@ -461,7 +463,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   const floor = floorPrice(state, p)
   // the counter sits between the floor and the ask: they will not open at their
   // own worst price, but they will not pretend the floor does not exist either
-  const counterPrice = Math.max(floor, Math.round((floor + (ask - floor) * 0.45) / 50_000) * 50_000)
+  const counterPrice = Math.max(floor, cleanFee(floor + (ask - floor) * 0.45))
   if (fee >= floor) {
     // THE SAME CALL THE INTERESTED FILTER MAKES (interest.ts). It used to be
     // spelled out here and nowhere else, which made it invisible: the only way

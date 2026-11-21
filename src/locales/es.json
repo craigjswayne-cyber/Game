@@ -9308,6 +9308,7 @@
   "filters": "Filtros",
   "filtersOn": "Filtros ({n})",
   "any": "Todos",
+  "onlyFree": "Solo agentes libres",
   "onlyListed": "Solo transferibles",
   "onlyInterested": "Solo interesados en venir",
   "onlyAffordable": "Dentro de mi presupuesto",
