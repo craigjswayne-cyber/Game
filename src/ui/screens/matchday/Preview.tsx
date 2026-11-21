@@ -813,7 +813,8 @@ export function Preview({ fxId }: { fxId: number }) {
                 )
               })()}
               {oppClub?.coach && (
-                <details className="card brief-fold">
+                // open when he has changed his plan for you: that is news, not background
+                <details className="card brief-fold" open={!!oppClub.vsUser}>
                   <BriefSum label={t('matchday.oppositeNumber')} hint={`${oppClub.coach}${philosophyOf(oppClub) ? ` · ${t(philosophyOf(oppClub)!.name)}` : ''}`} />
                   <div className="meta">
                     <b>{oppClub.coach}</b>
