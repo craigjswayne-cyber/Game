@@ -15,7 +15,8 @@
 // It adds no rule and draws nothing: a planned club and a club set up by hand
 // the same way are the same club. The set-piece calls are left alone: a call
 // the pack has not drilled misfires, and a one-tap card should not do that.
-import type { GameState, TrainingFocus } from './model'
+import type { GameState, MatchPrep, TrainingFocus } from './model'
+import { tIn } from './i18n'
 import { applyAtkStyle, applyDefStyle, type AtkStyle, type DefStyle } from './styles'
 import { noteStep } from './firststeps'
 
@@ -46,6 +47,11 @@ export interface PreseasonPlan {
   season: number
   style: PlanStyle
   work: PlanWork
+  /** what Training was set to before the plan's work took it over, to go back to
+   *  when pre-season ends (1.9.16). Absent on a plan made before 1.9.16. */
+  prev?: { training: TrainingFocus; prep?: MatchPrep }
+  /** the pre-season work has been stood down for this plan's season (1.9.16) */
+  over?: boolean
 }
 
 /**
@@ -102,6 +108,10 @@ export function setPreseasonPlan(state: GameState, style: PlanStyle, work: PlanW
   const s = STYLE_OF[style]
   applyAtkStyle(club.tactic, s.atk)
   applyDefStyle(club.tactic, s.def)
+  // what he had before the plan touched it, kept ONCE per plan so that changing
+  // the answer does not record the plan's own setting as "before"
+  const old = state.preplan && state.preplan.season === planSeason(state) && !state.preplan.over ? state.preplan.prev : undefined
+  const prev = old ?? { training: state.training, prep: state.matchPrep }
   state.training = FOCUS_OF[work]
   // EACH ANSWER PULLS THE LEVER ITS WORDS NAME (1.9.16, measured by
   // scripts/preseasonprobe.ts over 24 seeds). Only Set pieces set a match
@@ -113,7 +123,45 @@ export function setPreseasonPlan(state: GameState, style: PlanStyle, work: PlanW
   // was one of the plan's.
   const PREP: Record<PlanWork, 'fitness' | 'setpiece' | 'attack'> = { fitness: 'fitness', setpiece: 'setpiece', attack: 'attack' }
   if (state.matchPrep == null || state.matchPrep === 'fitness' || state.matchPrep === 'setpiece' || state.matchPrep === 'attack') state.matchPrep = PREP[work]
-  state.preplan = { season: planSeason(state), style, work }
+  state.preplan = { season: planSeason(state), style, work, prev }
   // the plan IS the game plan: the first season's checklist ticks it
   noteStep(state, 'plan')
+}
+
+const PLAN_PREP: Record<PlanWork, MatchPrep> = { fitness: 'fitness', setpiece: 'setpiece', attack: 'attack' }
+
+/**
+ * PRE-SEASON WORK ENDS WHEN PRE-SEASON DOES (1.9.16).
+ *
+ * The card calls the second question "Pre-season work", and the answer was
+ * the training focus for the whole season: twelve weeks on it had not moved.
+ * Offered the honest rename to "Training focus", the owner said no: "it
+ * should only be for pre-season". So once the club has played its first
+ * league match of the plan's season, Training goes back to what it was
+ * before the plan (or to a balanced week, for a plan made before this
+ * version), the plan's match preparation is cleared, and a line in the inbox
+ * says so. A focus or preparation the manager has since chosen himself is
+ * left alone: only the plan's own settings are stood down. The way of playing
+ * is the season's and stays.
+ *
+ * Called once a week before training. Returns true the week it acts.
+ */
+export function endPreseasonWork(state: GameState): boolean {
+  const p = state.preplan
+  if (!p || p.over || p.season !== state.season || state.unemployed) return false
+  if (!PLAN_WORKS.includes(p.work) || beforeFirstLeague(state)) return false
+  p.over = true
+  const back = p.prev?.training ?? 'balanced'
+  let changed = false
+  if (state.training === FOCUS_OF[p.work] && back !== state.training) { state.training = back; changed = true }
+  if (state.matchPrep === PLAN_PREP[p.work]) { state.matchPrep = p.prev?.prep; changed = true }
+  if (!changed) return false
+  const cap = (x: string) => x[0].toUpperCase() + x.slice(1)
+  const v = { work_k: `preplan.w_${p.work}`, focus_k: `training.focus${cap(state.training)}` }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+    subject: tIn('en', 'news.preseasonOverSubj', v), body: tIn('en', 'news.preseasonOver', v),
+    k: 'news.preseasonOver', v,
+  })
+  return true
 }

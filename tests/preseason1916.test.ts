@@ -55,12 +55,12 @@ describe('the Season plan: what the card says and what it writes', () => {
     expect(fresh('balanced', 'setpiece').matchPrep).toBe('setpiece')
   })
 
-  it('"pre-season" work is not pre-season only: it is still the setting twelve weeks on', () => {
+  it('pre-season work is pre-season only since 1.9.16: twelve weeks on it has stood down, and the way of playing has not', () => {
     const g = fresh('forwards', 'setpiece')
     weeks(g, 12)
     expect(g.week).toBeGreaterThan(8) // well into the league season
-    expect(g.training).toBe('scrum')
-    expect(g.matchPrep).toBe('setpiece')
+    expect(g.training).not.toBe('scrum')
+    expect(g.matchPrep).toBeUndefined()
     expect(g.clubs[g.userClubId].tactic.atkStyle).toBe('direct')
   }, 60_000)
 })

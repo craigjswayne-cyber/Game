@@ -200,3 +200,22 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   OWNER'S OPEN DECISIONS: number format per language; "clears the debts" wording; rename "Pre-season work"; Fire Sale difficulty; challenge-complete
   card beside a trophy; 10 women at a club the 2026 lists do not give (docs/research/club-audit-1916.md).
 - 03:15 Final run: unit suite 558 of 558; ten browser harnesses pass (216 checks); PR #116 opened against main, NOT merged. https://github.com/craigjswayne-cyber/Game/pull/116
+
+### 06:14 UTC, 21 Nov: owner's six answers ("Once they are done we will merge")
+1. Money in each language's own number style: YES (keep pounds).
+2. Reword Fire Sale "the money clears the debts": YES.
+3. Make Fire Sale harder: YES.
+4. Rename "Pre-season work": NO, "it should only be for pre-season". So the work must stop when the season starts.
+5. Challenge-complete card after the trophy card: YES.
+6. Move the ten women to the clubs the 2026 lists give: YES.
+- 06:40 (1) DONE. model/money.ts: one style table read by fmtMoney and fmtWage. en unchanged; af £1,5m and mjd; fr/it/es "1,5 M£", "250 k£"
+  (Md, Mld, and thousands of millions in Spanish); ja in 万 and 億. No-break spaces. Hand-typed amounts replaced (Transfers value filter, bid
+  step labels, offerWage in fr/es/it, fundingLine in es/it/ja). tests/moneylang.test.ts. Still to see in a browser in fr and ja.
+- 06:40 (6) DONE for eight: Boulard to Bobigny; Brosseau and Khalfaoui to Bordeaux; Chambon, Muzzo and Ranuccini to Romagnat; Zanette to Blagnac;
+  the duplicate 'Chloé Jacquet' row at Montpellier removed (she is the Lyon fullback; intl2026 follows the squad file's spelling). Montpellier
+  gets three generated players so it stays at 30. NOT MOVED, club not in the game: Kitano and Nagata (Mie Pearls), Veronese (Valsugana).
+  Fernandez left alone (sources conflict). genprobe: e1 296 real and 60 generated, women's database 2136.
+- 06:40 (4) DONE. Owner: "it should only be for pre-season". preseasonplan.ts endPreseasonWork: after the first league match of the plan's season
+  Training returns to what it was before the plan (kept in preplan.prev), the plan's preparation is cleared, and the inbox says so. A focus he
+  chose himself since is left alone. Pre-season is three weeks, and at the ordinary rate three weeks moved nothing (one seed: no point gained),
+  so the session runs at PRESEASON_CAMP = 4 while the plan's own focus is on. tests/preseasonend.test.ts (7).

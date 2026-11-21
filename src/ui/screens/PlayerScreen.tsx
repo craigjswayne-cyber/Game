@@ -1,4 +1,4 @@
-import { feeSteps, stepFee, stepLabel, wageDown, wageStep } from '../../game/bidstep'
+import { feeSteps, stepFee, wageDown, wageStep } from '../../game/bidstep'
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { scrollContentTo } from '../pageReset'
@@ -1153,7 +1153,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                     const [small, big] = feeSteps(ask)
                     return [-big, -small, small, big].map(d => (
                       <button key={d} className="btn ghost" data-step={d} onClick={() => setBid(stepFee(bid, d, ask))}>
-                        {d < 0 ? '−' : '+'}{stepLabel(Math.abs(d))}
+                        {d < 0 ? '−' : '+'}{fmtMoney(Math.abs(d))}
                       </button>
                     ))
                   })()}

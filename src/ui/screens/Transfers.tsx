@@ -497,10 +497,10 @@ export default function Transfers() {
             <label htmlFor="fs-value">{t('transfers.filterValue')}</label>
             <select id="fs-value" className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
               <option value={0}>{t('search.any')}</option>
-              <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
-              <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
-              <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
-              <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
+              <option value={250000}>{t('transfers.toValue', { amount: fmtMoney(250000).replace(/[.,]0(?=\D)/, '') })}</option>
+              <option value={1000000}>{t('transfers.toValue', { amount: fmtMoney(1000000).replace(/[.,]0(?=\D)/, '') })}</option>
+              <option value={3000000}>{t('transfers.toValue', { amount: fmtMoney(3000000).replace(/[.,]0(?=\D)/, '') })}</option>
+              <option value={8000000}>{t('transfers.toValue', { amount: fmtMoney(8000000).replace(/[.,]0(?=\D)/, '') })}</option>
             </select>
             <label htmlFor="fs-age">{t('transfers.filterAge')}</label>
             <select id="fs-age" className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>

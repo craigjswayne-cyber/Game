@@ -408,7 +408,7 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Siobhan Soqeta', null), r('Mouna Touré', 0), r('Kelly Arbey', 11), r('Carla Arbez', 21),
       r('Émilie Boulard', 41), r('Pauline Bourdon Sansus', 76), r('Morgane Bourgeois', null),
       r('Alexandra Chambon', 41), r('Lili Dezou', 0), r('Teani Feleu', 21), r('Elodie Fernandez', 0),
-      r('Alice Grandhomme', 0), r('Anaïs Grando', null), r('Marie Ibañez', 0), r('Chloé Jacquet', 22),
+      r('Alice Grandhomme', 0), r('Anaïs Grando', null), r('Marie Ibañez', 0), r('Chloe Jacquet', 22),
       r('Léa Murie', 11), r('Lylou Pedussaud', 0), r('Lina Queyroi', 31), r('Aubane Rousset', null),
       r('Gabrielle Vernier', 60),
     ],

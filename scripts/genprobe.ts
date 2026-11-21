@@ -33,7 +33,8 @@
 //                                     and 17 from the clubs' 2026-27 lists (1.9.16, docs/research/intl-squads-2026.md)
 //   w_celt   185 real, 0 generated    competition team pages
 //   w_pac    279 real, 0 generated    2026 Aupiki + Super W
-//   w_e1     297 real, 57 generated   FFR workbook plus three club pages
+//   w_e1     296 real, 60 generated   FFR workbook plus three club pages (297 and 57 until 1.9.16:
+//                                     one duplicate row out, three generated in at Montpellier)
 //                                     (300 until 18 Oct 2026: three women
 //                                     listed twice lost the duplicate row -
 //                                     Baleinadogo, Boulard, Brosseau)
@@ -56,7 +57,7 @@ const EXPECT: Record<string, [number, number]> = {
   pwr: [399, 0],
   celt: [185, 0],
   pac: [279, 0],
-  e1: [297, 57],
+  e1: [296, 60],
   e2: [160, 152],
   champ: [28, 577],
 }
@@ -102,7 +103,7 @@ console.log(`  ${'total'.padEnd(6)} ${String(totReal).padStart(4)} real ${String
 // 2117 since 1.9.14: seven of Bristol's own 2026/27 list who were not on the
 // owner's sheet (w_pwr.ts)
 // 2134 since 1.9.16: seventeen more from the PWR clubs' 2026-27 lists
-if (totReal + totGen !== 2134) fail(`women's database is ${totReal + totGen} players, expected 2134`)
+if (totReal + totGen !== 2136) fail(`women's database is ${totReal + totGen} players, expected 2136`)
 
 // ---- 3. the per-club comments must say what the rows say ----
 // These are what went stale last time, so they are held rather than trusted.
