@@ -9037,7 +9037,10 @@
   "whyYes": "Cumples todas las condiciones que ponen las cuatro federaciones.",
   "took": "Eres el seleccionador del XV de las Islas Británicas e Irlandesas. Tu ayudante lleva tu selección hasta que vuelvas.",
   "deskSub": "La expedición de la gira. Tu selección queda con tu ayudante este verano; este es el grupo que te llevas. Descarta y convoca como harías en casa.",
-  "passed": "Dijiste que no. Se lo pedirán a otro, y esta vez no volverán a preguntarte."
+  "passed": "Dijiste que no. Se lo pedirán a otro, y esta vez no volverán a preguntarte.",
+  "short": "XV de las Islas",
+  "inviteHead": "Las cuatro federaciones te han elegido.",
+  "inviteBody": "Quieren que lleves de gira este verano al XV de las Islas Británicas e Irlandesas: siete partidos de gira y tres test. Si aceptas, tu ayudante lleva tu selección hasta que vuelvas."
  },
  "close": {
   "title": "La agenda de verano",

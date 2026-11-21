@@ -9097,7 +9097,10 @@
   "whyYes": "Soddisfi ogni condizione posta dalle quattro federazioni.",
   "took": "Sei il tecnico del XV delle Isole Britanniche e Irlandesi. Il tuo vice tiene la nazionale fino al tuo ritorno.",
   "deskSub": "Il gruppo del tour. La tua nazionale è con il tuo vice quest'estate; questa è la rosa che porti con te. Escludi e convoca come faresti a casa.",
-  "passed": "Hai detto no. Lo chiederanno a un altro, e stavolta non torneranno da te."
+  "passed": "Hai detto no. Lo chiederanno a un altro, e stavolta non torneranno da te.",
+  "short": "XV delle Isole",
+  "inviteHead": "Le quattro federazioni hanno scelto te.",
+  "inviteBody": "Vogliono che porti in tour quest'estate il XV delle Isole Britanniche e Irlandesi: sette partite del tour e tre test. Se accetti, il tuo vice tiene la nazionale fino al tuo ritorno."
  },
  "close": {
   "title": "L'agenda estiva",

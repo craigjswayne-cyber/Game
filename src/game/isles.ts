@@ -65,7 +65,10 @@ export function isleTour(state: GameState): Competition | undefined {
 
 export function islesEligible(state: GameState): { ok: boolean; why: string } {
   if (!isTourSeason(state)) return { ok: false, why: 'isles.whyNoTour' }
-  if (state.unemployed) return { ok: false, why: 'isles.whyNoJob' }
+  // NO CLUB IS NO BAR (1.9.16). `unemployed` means "no club", and a man who
+  // coaches England and nothing else is exactly who the owner's sentence
+  // describes. This clause used to turn him away, so the international start
+  // could never reach the job it is sold as the road to.
   // "are coachin internationally" - and one of the four, since it is their team
   const nat = state.natTeam
   if (!nat || !(HOME_UNIONS as readonly string[]).includes(nat)) return { ok: false, why: 'isles.whyNotIntl' }

@@ -9148,7 +9148,10 @@
   "whyYes": "Jy voldoen aan elke voorwaarde wat die vier unies stel.",
   "took": "Jy is die hoofafrigter van die Britse en Ierse Eilande-XV. Jou assistent neem jou land waar totdat jy terug is.",
   "deskSub": "Die toergroep. Jou land is hierdie somer by jou assistent; dit is die groep wat jy saamneem. Laat val en roep op soos jy tuis sou doen.",
-  "passed": "Jy het nee gesê. Hulle gaan iemand anders vra, en hulle gaan jou hierdie keer nie weer vra nie."
+  "passed": "Jy het nee gesê. Hulle gaan iemand anders vra, en hulle gaan jou hierdie keer nie weer vra nie.",
+  "short": "Eilande-XV",
+  "inviteHead": "Die vier unies het jou gekies.",
+  "inviteBody": "Hulle wil hê jy moet die Britse en Ierse Eilande-XV hierdie somer op toer neem: sewe toerwedstryde en drie toetse. Sê ja en jou assistent neem jou land waar totdat jy terug is."
  },
  "close": {
   "title": "Die somerdagboek",

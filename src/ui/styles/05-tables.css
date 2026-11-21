@@ -548,3 +548,11 @@
   font: inherit; font-weight: 700; font-size: 0.875rem;
 }
 .fa-switch button.on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface-1)); }
+
+/* the knockout rounds on the Nations screen (1.9.16): a heading a round, the beaten side dimmed */
+.ko-round { padding: 10px 16px 2px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.6875rem; color: var(--gold); }
+.ko-tie .ko-out { color: var(--text-muted); }
+[data-ko-round="F"] .dtable td { font-size: 1rem; padding-top: 12px; padding-bottom: 12px; }
+/* the letter from the four unions */
+.isles-invite { border: 1px solid var(--gold); background: color-mix(in srgb, var(--gold) 8%, var(--surface-1)); }
+.isles-invite-head { padding: 0 10px 6px; font-size: 1.25rem; font-weight: 700; line-height: 1.2; }
