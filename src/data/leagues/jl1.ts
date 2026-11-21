@@ -49,6 +49,33 @@ const REAL: Record<string, RawPlayer[]> = {
   hondaheat: [{ name: 'Kanato Hirano', pos: 'LP', age: 26, nat: 'JPN', q: 71, intl: true }, { name: 'Sena Kimura', pos: 'TP', age: 27, nat: 'JPN', q: 74, intl: true }],
 }
 
+/** 1.9.16 CLUB AUDIT, MEN: JAPAN. The men of the 35 named for November 2026
+ *  (RugbyPass, 26 Oct) whom the world still did not have, and two capped props
+ *  outside that party. Same mechanism as REAL: each takes a generated man's
+ *  shirt. Club and date of birth are the JRFU's own lists: the team sheets of
+ *  23 Oct (v Fiji), 7 Nov (v Wales) and 14 Nov 2026 (v England) for Harada,
+ *  Tokito, Botha, Ha'angana, Lawrence, Fukuda, Kitahara and Kihara; the 2026
+ *  preliminary squad of 5 Feb 2026 for Iwaihara and Nezuka and the 11 Jun 2026
+ *  squad note for Moriyama (no later club found for those three: assumed
+ *  unmoved); Japan's 9 Sep 2026 squad table for Inaba. Positions and ages agree
+ *  with the Nations Championship's Japan squad page (21 Nov 2026). A prop's
+ *  side is in no source: Kihara wore 18 v Fiji so is a tighthead here, and
+ *  Iwaihara and Inaba are to be checked. q is this audit's judgement on the
+ *  scale REAL uses. Uncapped before the autumn: Kitahara, Tokito, Moriyama.
+ *  Not here because their side is not in the game: Sojiro Otsuka (Kwansei
+ *  Gakuin University) and Jisu Lee (Korea University).
+ *  docs/research/club-audit-1916.md has the trail. */
+const REAL_AUDIT: Record<string, RawPlayer[]> = {
+  bravelupus: [{ name: 'Mamoru Harada', pos: 'HK', age: 27, nat: 'JPN', q: 77, intl: true }, { name: 'Riku Tokito', pos: 'WG', age: 23, nat: 'JPN', q: 71 }],
+  spears: [{ name: 'Ruan Botha', pos: 'LK', age: 34, nat: 'JPN', q: 74, intl: true }, { name: 'Koga Nezuka', pos: 'WG', age: 28, nat: 'JPN', q: 71, intl: true }],
+  canon: [{ name: 'Ryosuke Iwaihara', pos: 'TP', alt: ['LP'], age: 30, nat: 'JPN', q: 71, intl: true }],
+  drocks: [{ name: "Esei Ha'angana", pos: 'LK', alt: ['FL'], age: 27, nat: 'JPN', q: 71, intl: true }, { name: 'Miu Austin Moriyama', pos: 'FL', age: 23, nat: 'JPN', q: 68 }],
+  hondaheat: [{ name: 'Kenta Fukuda', pos: 'SH', age: 29, nat: 'JPN', q: 74, intl: true }, { name: 'Riku Kitahara', pos: 'FH', age: 27, nat: 'JPN', q: 71 }],
+  dynaboars: [{ name: 'Charlie Lawrence', pos: 'CE', age: 28, nat: 'JPN', q: 74, intl: true }],
+  sungoliath: [{ name: 'Sanshiro Kihara', pos: 'TP', alt: ['LP'], age: 23, nat: 'JPN', q: 68, intl: true }],
+  bluerevs: [{ name: 'Takumi Inaba', pos: 'LP', alt: ['TP'], age: 24, nat: 'JPN', q: 71, intl: true }],
+}
+
 // one name per man across the whole competition: a duplicate would cost the
 // second club a real shirt, since the world builder keeps only the first
 // Real men added by hand elsewhere (additions.ts) are reserved too: the pools
@@ -58,7 +85,7 @@ const usedNames = new Set<string>(['Atsushi Sakate'])
 
 function genSquad(clubId: string, rep: number): RawPlayer[] {
   const rng = mulberry32(0xa11e ^ clubId.split('').reduce((h, c) => (h * 33 + c.charCodeAt(0)) | 0, 5381))
-  const real = [...(REAL[clubId] ?? [])]
+  const real = [...(REAL[clubId] ?? []), ...(REAL_AUDIT[clubId] ?? [])]
   const out: RawPlayer[] = [...(STARS[clubId] ?? []), ...real]
   for (const p of out) usedNames.add(p.name)
   let gkGiven = out.some(p => p.gk) ? 1 : 0

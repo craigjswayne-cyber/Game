@@ -272,7 +272,9 @@ const EARLIER: Record<string, RawPlayer[]> = {
     { name: 'Torian Barnes', pos: 'LK', age: 23, nat: 'NZL', q: 61 },
   ],
   drua: [
-    { name: 'Virimi Vakatawa', pos: 'CE', age: 34, nat: 'FRA', q: 73, intl: true },
+    // nat was FRA: he switched to Fiji in 2026 (World Rugby's Pacific Nations
+    // Cup squad, 5 Sep 2026; three Fiji caps on the championship page). 1.9.16 club audit.
+    { name: 'Virimi Vakatawa', pos: 'CE', age: 34, nat: 'FIJ', q: 73, intl: true },
     { name: 'Manasa Mataele', pos: 'WG', age: 29, nat: 'FIJ', q: 68 },
   ],
   sungoliath: [
@@ -660,7 +662,9 @@ const WINDOW_2627: Record<string, RawPlayer[]> = {
   ],
   lyon: [
     // rugbypass.com/fr/news/lou-rugby-top-14-2026-2027 (prop from Ku
-    { name: 'Opeti Helu', pos: 'LP', age: 31, nat: 'TGA', q: 70, intl: true },
+    // nat was TGA: he is Japan's (on the bench v Wales 7 Nov and England 14 Nov
+    // 2026, JRFU team sheets, club given as Lyon). 1.9.16 club audit.
+    { name: 'Opeti Helu', pos: 'LP', age: 31, nat: 'JPN', q: 70, intl: true },
   ],
   pau: [
     // rugbypass.com/fr/news/section-paloise-top-14-2026-2027 (from Z
@@ -999,12 +1003,153 @@ const INTL_1916: Record<string, RawPlayer[]> = {
   // its limit and shut the user's own free-agent door (freeagenttalks test).
 }
 
+// ---- 1.9.16 club audit, women: Italy, Japan, South Africa, France ----------
+// Named in their union's autumn 2026 (WXV Global Series) squad and in no
+// squad file. Only the eight whose 2026-27 club is in the game; the rest play
+// in Italy, Japan and South Africa, which the game does not model, and are
+// listed in docs/research/club-audit-1916.md as "club not in game".
+// Clubs: Italy's 38 as RugbyPass printed them on 2 Sep 2026, and OA Sport's
+// list of 9 Sep for Catellani, Corradini, Grassi and Stevanin; South Africa's
+// 30 (RugbyPass and rugby365, 11 Sep); France's 38 (RugbyPass, 30 Jul).
+// Ratings are a judgement against the internationals already at each club.
+// A table of its own so that it cannot repeat a 'w:' key of another table.
+const W_AUDIT_ITA_JPN_RSA_FRA: Record<string, RawPlayer[]> = {
+  'w:blagnac': [
+    // 65 Italy caps. Fly-half, born 16 Jan 1995, Blagnac since 2025 (Wikipedia; Ultimate Rugby, 20 Mar 2026)
+    { name: 'Veronica Madia', pos: 'FH', age: 31, nat: 'ITA', q: 77, intl: true },
+  ],
+  'w:grenoble': [
+    // 32 caps. Fly-half, 24 (sixnationsrugby.com); Valsugana until summer 2026
+    { name: 'Emma Stevanin', pos: 'FH', age: 24, nat: 'ITA', q: 74, intl: true },
+  ],
+  'w:montpellier': [
+    // 2 caps. Centre, born 17 Apr 2002, Montpellier since 2025 (Wikipedia)
+    { name: 'Giada Corradini', pos: 'CE', age: 24, nat: 'ITA', q: 66, intl: true },
+  ],
+  'w:lyon': [
+    // uncapped. Lock, 22 (RugbyPass player page); Colorno in March 2026, LOU on the 2 Sep list only
+    { name: 'Francesca Andreoli', pos: 'LK', age: 22, nat: 'ITA', q: 62 },
+  ],
+  'w:toulon': [
+    // uncapped. Wing or full-back (Ultimate Rugby, 20 Mar 2026). AGE NOT SOURCED: 22 is a placeholder
+    { name: 'Rubina Grassi', pos: 'WG', alt: ['FB'], age: 22, nat: 'ITA', q: 60 },
+    // 26 South Africa caps. Utility back, born 30 Oct 2000; signed from the Bulls Daisies for
+    // 2026/27, contract from 1 Nov 2026 (rugby365, 21 Jul 2026; Wikipedia: wing or centre)
+    { name: 'Jakkie Cilliers', pos: 'CE', alt: ['WG', 'FH'], age: 25, nat: 'RSA', q: 74, intl: true },
+  ],
+  'w:lons': [
+    // 3 caps. Outside back, 22 (RugbyPass player page). w:lons is Lons Section Paloise (Division 2)
+    { name: 'Sofia Catellani', pos: 'WG', alt: ['FB'], age: 22, nat: 'ITA', q: 62, intl: true },
+  ],
+  'w:larochelle': [
+    // uncapped France lock, 19 (RugbyPass FR, 30 Jul 2026). Not Romane Kazmierczak, the Pau hooker
+    { name: 'Marine Kazmierczak', pos: 'LK', age: 19, nat: 'FRA', q: 64 },
+  ],
+}
+
+// ---- 1.9.16 club audit, women: Wales, Canada, USA, Ireland -----------------
+// Named in their union's autumn 2026 (WXV Global Series) squad and in no
+// squad file. Only the ten whose 2026-27 club is in the game and is not in
+// dispute; the rest (most of Canada and the USA play at home, in leagues the
+// game does not model) are in docs/research/club-audit-1916.md.
+// Clubs: Wales from the WRU's extended squad (Aug 2026) and RugbyPass's lists
+// of 1 Sep and 5 Oct and its team sheets to 29 Oct; Ireland from the IRFU's
+// squad of 24 Aug; Canada from RugbyPass's squad of 27 Aug. Dates of birth
+// for the Wales and Ireland players are from Wikipedia's 2026 Women's Six
+// Nations squads page. Ratings are a judgement against the internationals
+// already at each club. A table of its own so that it cannot repeat a 'w:'
+// key of another table.
+const W_AUDIT_WAL_CAN_USA_IRE: Record<string, RawPlayer[]> = {
+  'w:brython': [
+    // 57 caps. Flanker, born 14 Jun 1997; left Bristol in May 2026 to play in Wales (WRU, June 2026).
+    // Started at lock for Bristol on a one-match deal (RugbyPass, 16 Oct 2026). Alisha Butchers until 2026
+    { name: 'Alisha Joyce', pos: 'FL', alt: ['LK'], age: 29, nat: 'WAL', q: 76, intl: true },
+    // 57 caps (WRU, June 2026). Wing, born 9 Oct 1995; left Bristol with her
+    { name: 'Jasmine Joyce', pos: 'WG', age: 30, nat: 'WAL', q: 77, intl: true },
+    // 48 caps at 11 Apr 2026. Second row, born 15 Feb 1996; Bristol and Brython last season
+    { name: 'Natalia John', pos: 'LK', age: 30, nat: 'WAL', q: 72, intl: true },
+    // 2 caps. Centre, born 25 Dec 2003; Bristol in the spring, Brython on every list since August
+    { name: 'Jenna De Vera', pos: 'CE', age: 22, nat: 'WAL', q: 64, intl: true },
+  ],
+  'w:gwalia': [
+    // 2 caps. Centre, 21 (RugbyPass, 23 Sep 2026); wore 12 against South Africa and the USA
+    { name: 'Freya Bell', pos: 'CE', age: 21, nat: 'WAL', q: 66, intl: true },
+  ],
+  'w:leicester': [
+    // 52 caps. Wing, 32, born 23 Dec 1993; signed from Harlequins (RugbyPass, 1 Sep 2026) and on the
+    // club's thepwr.com list. Full-back for Wales all autumn. w_champ.ts has a generated namesake
+    // (wing, 25, English): seven years apart, so the builder keeps both
+    { name: 'Lisa Neumann', pos: 'WG', alt: ['FB'], age: 32, nat: 'WAL', q: 72, intl: true },
+  ],
+  'w:wolfhounds': [
+    // 12 caps, Ireland's captain. Back row, born 21 Oct 2003; Leinster/Wolfhounds (IRFU, 24 Aug 2026)
+    { name: 'Erin King', pos: 'FL', age: 22, nat: 'IRE', q: 76, intl: true },
+  ],
+  'w:bordeaux': [
+    // 2 caps. Hooker, born 5 Apr 2003 (Wikipedia); Stade Bordelais (RugbyPass, 27 Aug 2026)
+    { name: 'Taylor McKnight', pos: 'HK', age: 23, nat: 'CAN', q: 68, intl: true },
+  ],
+  'w:montpellier': [
+    // uncapped before the autumn. Lock, 24 (RugbyPass player page); Montpellier (RugbyPass, 27 Aug 2026)
+    { name: 'Emily Clark', pos: 'LK', age: 24, nat: 'CAN', q: 62 },
+  ],
+  'w:romagnat': [
+    // caps not found. Scrum-half (Université Laval, Nov 2024); ASM Romagnat (RugbyPass, 27 Aug 2026).
+    // AGE NOT SOURCED: 24 is a placeholder
+    { name: 'Corinne Frechette', pos: 'SH', age: 24, nat: 'CAN', q: 62 },
+  ],
+}
+
+// ---- 1.9.16 club audit, men: Fiji and Japan --------------------------------
+// Fiji's men the world did not have (scripts/intlaudit.ts listed them). The
+// first five are in the 35 named for November 2026; the rest are capped men
+// outside that party whose club is the Drua's own 2027 list or Provence's.
+// Each club is the club's or league's 2026-27 list, read 21 Nov 2026; ages
+// and positions are the Nations Championship's Fiji squad page of the same
+// day unless a line says otherwise. q is this audit's judgement against the
+// internationals already at that club and position. Japan's men are in
+// leagues/jl1.ts (REAL), where a real man takes a generated man's shirt.
+// docs/research/club-audit-1916.md has the trail and the men left out.
+const M_AUDIT_FIJ_JPN: Record<string, RawPlayer[]> = {
+  racing92: [
+    // RugbyPass, Racing 92's 2026-27 squad (30 Aug 2026): listed with the locks;
+    // he wore eight for Fiji v France on 7 Nov (rugby365)
+    { name: 'Nathan Hughes', pos: 'N8', alt: ['LK'], age: 35, nat: 'FIJ', q: 76, intl: true },
+  ],
+  bayonne: [
+    // RugbyPass, Bayonne's 2026-27 squad (props); Fiji's tighthead v France and Ireland
+    { name: 'Luke Tagi', pos: 'TP', age: 29, nat: 'FIJ', q: 72, intl: true },
+  ],
+  stade_francais: [
+    // RugbyPass, Stade Francais's 2026-27 squad (second rows)
+    { name: 'Setareki Turagacoke', pos: 'LK', age: 20, nat: 'FIJ', q: 66, intl: true },
+  ],
+  provence: [
+    // RugbyPass, the foreign players of the 2026-27 second division (18 Aug 2026):
+    // Bituniyata a wing (Fiji played him at centre v Ireland), Waqa a lock
+    // (the championship page has him a flanker). Bituniyata was uncapped
+    // before the autumn.
+    { name: 'Setareki Bituniyata', pos: 'WG', alt: ['CE'], age: 31, nat: 'FIJ', q: 72 },
+    { name: 'Etonia Waqa', pos: 'LK', alt: ['FL'], age: 27, nat: 'FIJ', q: 68, intl: true },
+  ],
+  drua: [
+    // The Drua's 2027 squad (PINA, 29 Oct 2026). Ravuiwasa is a new signing,
+    // a tighthead of 30 (Fiji Times, 20 Aug 2026).
+    { name: 'Inoke Ravuiwasa', pos: 'TP', age: 30, nat: 'FIJ', q: 64, intl: true },
+    { name: 'Penaia Cakobau', pos: 'HK', age: 32, nat: 'FIJ', q: 62, intl: true },
+    { name: 'Kavaia Tagivetaua', pos: 'HK', age: 23, nat: 'FIJ', q: 62, intl: true },
+    { name: 'Isoa Tuwai', pos: 'FL', age: 24, nat: 'FIJ', q: 64, intl: true },
+    { name: 'Tuidraki Samusamuvodre', pos: 'CE', age: 28, nat: 'FIJ', q: 66, intl: true },
+    { name: 'Joji Nasova', pos: 'WG', age: 26, nat: 'FIJ', q: 66, intl: true },
+  ],
+}
+
 /** The two tables as one: a club's earlier additions first, then its 2026-27
  *  ones. Keyed tables cannot repeat a key, which is why the window is its own
  *  table rather than a second `leinster:` inside the first. */
 export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = (() => {
   const out: Record<string, RawPlayer[]> = {}
-  for (const table of [EARLIER, WINDOW_2627, ROUND3, INTL_1916]) {
+  for (const table of [EARLIER, WINDOW_2627, ROUND3, INTL_1916, W_AUDIT_ITA_JPN_RSA_FRA, W_AUDIT_WAL_CAN_USA_IRE, M_AUDIT_FIJ_JPN]) {
     for (const [club, rows] of Object.entries(table)) out[club] = [...(out[club] ?? []), ...rows]
   }
   return out

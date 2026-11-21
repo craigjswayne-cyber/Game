@@ -1,7 +1,7 @@
 /**
  * ---- PREMIERSHIP WOMEN'S RUGBY (England), 2026-27 ----
  *
- * The nine clubs and all 375 contracted players (382 since 1.9.14: Bristol
+ * The nine clubs and all 375 contracted players (382 since 1.9.14, 399 since 1.9.16's check against the clubs' 2026-27 lists: Bristol
  * follows the club's own 2026/27 list, see its block), from the squad list the owner
  * supplied on 6 Sep 2026 ("Full PWR Player List & Current Club 26/27"). Every
  * NAME and every CLUB in this file is real and comes from that sheet: the club
@@ -58,7 +58,7 @@ export const W_PWR: RawClub[] = [
     stadium: 'Gillmore’s Ground', capacity: 3000,
     colors: ['#8b0d32', '#ffffff'],
     rep: 88, budget: 380000,
-    // 35 players from the sheet; 11 carry a stated position and union
+    // 38 players: 35 from the sheet and 3 from the club's 2026-27 list (1.9.16); 11 carry a stated position and union
     players: [
       { name: 'Jorja Aiono', pos: 'LK', age: 25, nat: 'WAL', q: 82 },
       { name: 'Emerson Allen', pos: 'LK', age: 27, nat: 'USA', q: 74, intl: true },
@@ -111,7 +111,7 @@ export const W_PWR: RawClub[] = [
     stadium: 'Hendon Park', capacity: 5000,
     colors: ['#000000', '#141414'],
     rep: 87, budget: 375000,
-    // 50 players from the sheet; 11 carry a stated position and union.
+    // 48 players: 50 from the sheet, less 2 who moved in 2026 (1.9.16); 11 carry a stated position and union.
     // 48 since 21 Nov 2026: Deborah Wills is in the Exeter block and Laetitia
     // Royer in the Ealing one (RugbyPass's 2026-27 preview; neither is on the
     // club's thepwr.com list).
@@ -231,7 +231,7 @@ export const W_PWR: RawClub[] = [
     stadium: 'Little Twickenham', capacity: 5500,
     colors: ['#006747', '#b7228f'],
     rep: 79, budget: 295000,
-    // 44 players from the sheet; 13 carry a stated position and union
+    // 46 players: 44 from the sheet and 2 from 2026-27 sources (1.9.16); 13 carry a stated position and union
     players: [
       { name: 'Daisy Aspinall', pos: 'WG', age: 19, nat: 'ENG', q: 66 },
       { name: 'Emily Blackburn', pos: 'CE', age: 23, nat: 'ENG', q: 76 },
@@ -291,7 +291,7 @@ export const W_PWR: RawClub[] = [
     stadium: 'Ealing Sports Ground', capacity: 2500,
     colors: ['#0e5a3a', '#ffffff'],
     rep: 76, budget: 270000,
-    // 36 players from the sheet; 11 carry a stated position and union
+    // 38 players: 36 from the sheet and 2 from 2026-27 sources (1.9.16); 11 carry a stated position and union
     players: [
       { name: 'Abi Burton', pos: 'FL', age: 26, nat: 'ENG', q: 70, intl: true },
       { name: 'Alana Borland', pos: 'LK', age: 33, nat: 'ENG', q: 59 },
@@ -343,7 +343,7 @@ export const W_PWR: RawClub[] = [
     stadium: 'Beachy Park', capacity: 3500,
     colors: ['#000000', '#ffffff'],
     rep: 74, budget: 255000,
-    // 44 players from the sheet; 10 carry a stated position and union
+    // 46 players: 44 from the sheet and 2 from 2026-27 sources (1.9.16); 10 carry a stated position and union
     players: [
       { name: 'Maisy Allen', pos: 'FL', age: 23, nat: 'ENG', q: 79 },
       { name: 'Sofia Bekir Fuente', pos: 'HK', age: 30, nat: 'ESP', q: 69, intl: true },
@@ -406,7 +406,7 @@ export const W_PWR: RawClub[] = [
     stadium: 'Loughborough Park', capacity: 3000,
     colors: ['#3b1d6e', '#c9a227'],
     rep: 71, budget: 230000,
-    // 37 players from the sheet; 8 carry a stated position and union
+    // 46 players: 36 from the sheet and 10 from the club's 2026-27 list (1.9.16); 8 carry a stated position and union
     players: [
       { name: 'Kaya Acton', pos: 'LK', age: 26, nat: 'ENG', q: 80 },
       { name: 'Ashton Adcock', pos: 'SH', age: 32, nat: 'ENG', q: 51 },
@@ -468,7 +468,7 @@ export const W_PWR: RawClub[] = [
     stadium: 'Welford Street', capacity: 4000,
     colors: ['#00563f', '#c8102e'],
     rep: 67, budget: 200000,
-    // 45 players from the sheet; 6 carry a stated position and union
+    // 46 players: 45 from the sheet and 1 from a 2026-27 source (1.9.16); 6 carry a stated position and union
     players: [
       // released: true on five rows: the club let Andrews, Greensmith, Poole,
       // Reeves and Russell go with immediate effect (RugbyPass, 27 Oct 2026)

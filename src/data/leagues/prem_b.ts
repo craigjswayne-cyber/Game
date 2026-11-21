@@ -45,7 +45,7 @@ export const PREM_B: RawClub[] = [
       { name: 'Dan Kelly', pos: 'CE', age: 24, nat: 'ENG', q: 75, intl: true },
       { name: 'Ollie Hassell-Collins', pos: 'WG', age: 26, nat: 'ENG', q: 77, intl: true },
       { name: 'Adam Radwan', pos: 'WG', age: 27, nat: 'ENG', q: 76, intl: true },
-      { name: 'Gabriel Hamer-Webb', pos: 'WG', age: 25, nat: 'ENG', q: 68 },
+      { name: 'Gabriel Hamer-Webb', pos: 'WG', age: 25, nat: 'WAL', q: 68, intl: true },
       { name: 'Freddie Steward', pos: 'FB', age: 24, nat: 'ENG', q: 84, intl: true },
     ],
   },

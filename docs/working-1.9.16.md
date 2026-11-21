@@ -170,3 +170,15 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   NOT YET SEEN IN A BROWSER: the ritual pitch and the kick clips.
 - 02:08 Three more agents started on the club audit (men FIJ JPN; women WAL CAN USA IRE; women ITA JPN RSA FRA). Log: docs/research/club-audit-1916.md.
 - 02:21 scripts/rowprobe.mjs: every named table row is the height of its neighbours with 40-character names, 13 screens at 360, 384 and 412: 78 checks pass. hlprobe.ts and hlliveprobe.mjs pass after the goal-kick change. Release notes drafted (docs/release-notes-1.9.16.md).
+- 02:27 BUG FOUND AND FIXED by a new test (tests/natsquadflag.test.ts, the open "check natSquad clears" item): when a window opens the
+  week another closes (the autumn Tests after the southern championship), the new squad was written over the old list and a man in the
+  old squad but not the new kept natSquad for the rest of the season. His club could not pick him and no coach could call him up.
+  14 men a season in the test world (Albornoz, Tupou, Snyman...). season/internationals.ts now sends the old camp's men home when the
+  next is named over it, for the AI federations and for the manager's own camp. Changes results (those men play for their clubs again):
+  inside the one fingerprint rebaseline.
+- 02:27 Club audit, women (two agents, checked: tsc, intlaudit, dataaudit, genprobe pass): 18 real players added at clubs in the game,
+  36 caps filled, 7 rows corrected (nationality, position, spelling). Wales is no longer thin (36 of 39). Italy 20/38, Canada 25/36,
+  USA 14/36, South Africa 3/30 and Japan 2/30 stay thin because their domestic clubs are not in the game (confirmed against LEAGUE_DEFS;
+  every player listed with her club in docs/research/club-audit-1916.md). Open for the owner: 10 players whose club in the game differs
+  from the 2026 squad lists (verified.ts), listed in that doc.
+- 02:27 genprobe counts and the w_pwr club comments updated for the 17 PWR additions (399 real, women's database 2134).

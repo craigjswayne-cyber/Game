@@ -266,6 +266,21 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
           !ranked.includes(p) && ['LP', 'HK', 'TP'].some(f => p.pos === f || (p.alt as string[]).includes(f)))
         .sort((a, b) => b.ca - a.ca || a.id - b.id)
       const travelling = withFrontRow([...pool, ...ranked.slice(target), ...frCover], w.size)
+      // THE LAST CAMP'S MEN GO HOME WHEN THE NEXT ONE IS NAMED OVER IT (1.9.16).
+      // A window that opens the week another closes (the autumn Tests on the
+      // heels of the southern championship) keeps the squad standing: the
+      // release above skips a nation "still wanted by another window". The
+      // new squad was then written over the old list, and a man in the old
+      // one but not the new kept natSquad for the rest of the season: his
+      // club could not pick him and no coach could call him up. Found by
+      // tests/natsquadflag.test.ts: 14 men a season, among them Albornoz at
+      // Toulon, Tupou at Racing and Snyman at Leinster, who are overseas and
+      // so not in the home-based autumn party.
+      const staying = new Set(travelling.map(p => p.id))
+      for (const id of state.natSquads[nat] ?? []) {
+        const old = state.players[id]
+        if (old && !staying.has(id)) old.natSquad = false
+      }
       state.natSquads[nat] = travelling.map(p => p.id)
       for (const p of travelling) {
         p.natSquad = true
@@ -407,6 +422,8 @@ function userCampOpen(state: GameState, w: Window): boolean {
  *  the federation's own list kept as the yardstick, his own club's men the
  *  federation would take released to it, and the summons in the inbox. */
 function openUserCamp(state: GameState, nat: string, w: Window): void {
+  // anybody still standing from the camp before goes home first (1.9.16, as above)
+  for (const id of state.natSquads[nat] ?? []) { const old = state.players[id]; if (old) old.natSquad = false }
   state.natSquads[nat] = []
   state.natSent = []
   state.natSentLoss = {}

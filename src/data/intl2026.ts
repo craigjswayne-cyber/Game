@@ -34,14 +34,20 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
   m: {
     // England: 36 named by the RFU on 2 Nov 2026 (20 forwards, 16 backs).
     // Caps as of 18 July 2026, after Argentina v England.
+    // The eight men that table does not have (1.9.16 club audit): the
+    // championship's England squad page, read 21 Nov 2026, less one for each
+    // of the Australia (8 Nov) and Japan (14 Nov) 23s a man was named in
+    // (rugby.com.au and RugbyPass team sheets). Assumes every replacement
+    // came on. Itoje's 102 also stands on his own page 'as of 22 Oct 2026'.
+    // Harry Randall is not on the page and stays open.
     ENG: [
-      r('Fin Baxter', null), r('Ollie Chessum', 38), r('Arthur Clark', 1), r('Alex Coles', 22),
-      r('Luke Cowan-Dickie', 61), r('Ben Curry', null), r('Tom Curry', 71), r('Theo Dan', 20),
+      r('Fin Baxter', 18), r('Ollie Chessum', 38), r('Arthur Clark', 1), r('Alex Coles', 22),
+      r('Luke Cowan-Dickie', 61), r('Ben Curry', 14), r('Tom Curry', 71), r('Theo Dan', 20),
       r('Ben Earl', 54), r('Greg Fisilau', 0), r('Jamie George', 113), r('Ellis Genge', 83),
-      r('Joe Heyes', 25), r('Maro Itoje', null), r('Emmanuel Iyogun', 1), r('George Martin', 24),
-      r('Asher Opoku-Fordjour', 8), r('Tom Pearson', null), r('Henry Pollock', 13), r('Will Stuart', null),
-      r('Seb Atkinson', 7), r('Fraser Dingwall', null), r('Immanuel Feyi-Waboso', 16), r('George Ford', 108),
-      r('Tommy Freeman', 30), r('George Furbank', 14), r('Will Joseph', null), r('Joe Marchant', null),
+      r('Joe Heyes', 25), r('Maro Itoje', 102), r('Emmanuel Iyogun', 1), r('George Martin', 24),
+      r('Asher Opoku-Fordjour', 8), r('Tom Pearson', 1), r('Henry Pollock', 13), r('Will Stuart', 53),
+      r('Seb Atkinson', 7), r('Fraser Dingwall', 10), r('Immanuel Feyi-Waboso', 16), r('George Ford', 108),
+      r('Tommy Freeman', 30), r('George Furbank', 14), r('Will Joseph', 1), r('Joe Marchant', 26),
       r('Cadan Murley', 7), r('Harry Randall', null), r('Henry Slade', 77), r('Fin Smith', 19),
       r('Marcus Smith', 53), r('Ben Spencer', 19), r('Freddie Steward', 44), r('Jack van Poortvliet', 27),
       // capped, not in the autumn squad
@@ -53,16 +59,19 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
     // France: 42 named by the FFR on 21 Oct 2026 (Reuters list). Caps as of
     // 21 Oct 2026, ahead of the November Tests. Jeremy Ward was named as a
     // training partner only (not eligible until 2027) and is left out.
+    // Gazzotti, Brau-Boirie and Hastoy withdrew hurt on 26 Oct and played no
+    // November Test, so the championship page's figure (read 21 Nov 2026) is
+    // their figure before the autumn.
     FRA: [
       r('Grégory Alldritt', 58), r('Hugo Auradou', 14), r('Paul Boudehent', 21), r('Joshua Brennan', 3),
       r('Esteban Capilla', 0), r('Guillaume Cramont', 1), r('François Cros', 44), r('Tyler Duguid', 1),
-      r('Sipili Falatea', 15), r('Alexandre Fischer', 3), r('Marko Gazzotti', null), r('Jean-Baptiste Gros', 45),
+      r('Sipili Falatea', 15), r('Alexandre Fischer', 3), r('Marko Gazzotti', 4), r('Jean-Baptiste Gros', 45),
       r('Mickaël Guillard', 19), r('Oscar Jégou', 15), r('Maxime Lamothe', 6), r('Peato Mauvaka', 48),
       r('Charles Ollivon', 53), r('Jefferson Poirot', 39), r('Karl Sorin', 0), r('Tom Staniforth', 3),
       r('Tevita Tatafu', 3), r('Reda Wardi', 18), r('Cameron Woki', 32),
-      r('Théo Attissogbe', 16), r('Léo Barré', 9), r('Louis Bielle-Biarrey', 27), r('Fabien Brau-Boirie', null),
+      r('Théo Attissogbe', 16), r('Léo Barré', 9), r('Louis Bielle-Biarrey', 27), r('Fabien Brau-Boirie', 5),
       r('Axel Desperes', 0), r('Antoine Dupont', 64), r('Mathis Ferté', 0), r('Théo Forner', 0),
-      r('Émilien Gailleton', 13), r('Kalvin Gourgues', 4), r('Aaron Grandidier-Nkanang', 2), r('Antoine Hastoy', null),
+      r('Émilien Gailleton', 13), r('Kalvin Gourgues', 4), r('Aaron Grandidier-Nkanang', 2), r('Antoine Hastoy', 11),
       r('Nolann Le Garrec', 16), r('Maxime Lucu', 33), r('Yoram Moefana', 42), r('Romain Ntamack', 45),
       r('Damian Penaud', 50), r('Tani Vili', 0),
       // capped, not in the 21 Oct squad (called in later, or hurt)
@@ -97,18 +106,24 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Kyle Steyn', 35), r('Sione Tuipulotu', 41), r('Duhan van der Merwe', 54), r('Ben White', 38),
     ],
     // Wales: 39 named by the WRU on 20 Oct 2026 (Planet Rugby list). Caps as
-    // of 18 July 2026 where the summer squad table has the man.
+    // of 18 July 2026 where the summer squad table has the man. The men it
+    // does not have (1.9.16 club audit): the championship's Wales squad page,
+    // read 21 Nov 2026, less one for each of the Japan (7 Nov) and New
+    // Zealand (14 Nov) 23s a man was named in (rugby365 and RugbyPass team
+    // sheets). Assumes every replacement came on. Rio Dyer is not on the
+    // page and stays open. 'Gabriel Hamer-Webb' is the page's spelling and
+    // the squad files' (the row said Gabe).
     WAL: [
-      r('Rhys Barratt', 0), r('Taine Basham', null), r('Adam Beard', 68), r('Liam Belcher', null),
+      r('Rhys Barratt', 0), r('Taine Basham', 17), r('Adam Beard', 68), r('Liam Belcher', 5),
       r('James Botham', 24), r('Rhys Carré', 31), r('Ben Carter', 21), r('Ryan Elias', 51),
-      r('Seb Davies', null), r('Tomas Francis', null), r('Archie Griffin', null), r('Kane James', 1),
-      r('Dafydd Jenkins', null), r('Dewi Lake', 34), r('Dillon Lewis', 60), r('Alex Mann', 18),
+      r('Seb Davies', 17), r('Tomas Francis', 82), r('Archie Griffin', 16), r('Kane James', 1),
+      r('Dafydd Jenkins', 31), r('Dewi Lake', 34), r('Dillon Lewis', 60), r('Alex Mann', 18),
       r('Jac Morgan', 27), r('Taine Plumtree', 15), r('Nicky Smith', 66), r('Gareth Thomas', 44),
       r('Aaron Wainwright', 70), r('Teddy Williams', 10),
       r('Josh Adams', 72), r('Sam Costelow', 22), r('Rio Dyer', null), r('Dan Edwards', 13),
-      r('Gabe Hamer-Webb', null), r('Joe Hawkins', 14), r('Louie Hennessey', null), r('Che Hope', 0),
+      r('Gabriel Hamer-Webb', 1), r('Joe Hawkins', 14), r('Louie Hennessey', 0), r('Che Hope', 0),
       r('Eddie James', 11), r('Max Llewellyn', 13), r('Ellis Mee', 11), r('Reuben Morgan-Williams', 3),
-      r('Blair Murray', 19), r('Aneurin Owen', 0), r('Louis Rees-Zammit', 43), r('Tom Rogers', null),
+      r('Blair Murray', 19), r('Aneurin Owen', 0), r('Louis Rees-Zammit', 43), r('Tom Rogers', 13),
       r('Tomos Williams', 75),
       // capped, not in the autumn squad
       r('Evan Lloyd', 8, false), r('Sam Wainwright', 4, false), r('Ben Warren', 3, false),
@@ -158,11 +173,12 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
     // from the Nations Championship's own squad page, read 20 Nov 2026, with
     // one cap taken off for each of the Italy (7 Nov) and France (13 Nov)
     // match-day 23s a man was named in (rugby365), so these are the caps
-    // before the autumn. Assumes every replacement came on.
+    // before the autumn. Assumes every replacement came on. Moerat: 11 going
+    // into the Italy Test, his first of 2026 (Reuters via Flashscore).
     RSA: [
       r('Thomas du Toit', 35), r('Ox Nche', 51), r('Wilco Louw', 34), r('Ntuthuko Mchunu', 4),
       r('Zachary Porthen', 8), r('Gerhard Steenekamp', 21), r('Malcolm Marx', 92), r('Jan-Hendrik Wessels', 13),
-      r('Lood de Jager', 76), r('Salmaan Moerat', null), r('Ruan Nortje', 22), r('Riley Norton', 0),
+      r('Lood de Jager', 76), r('Salmaan Moerat', 11), r('Ruan Nortje', 22), r('Riley Norton', 0),
       r('Franco Mostert', 84), r('Paul de Villiers', 3), r('Siya Kolisi', 105), r('Cameron Hanekom', 4),
       r('Emmanuel Tshituka', 0), r('Jasper Wiese', 48), r('Pieter-Steph du Toit', 100), r('Marco van Staden', 38),
       r('Cobus Reinach', 56), r('Morne van den Berg', 9), r('Grant Williams', 30), r('Yaqeen Ahmed', 0),
@@ -200,8 +216,12 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
     // announcements), so these are the caps before the autumn. Assumes every
     // replacement came on. Check: the page had Nathan Hughes (first Fiji Test
     // v France) and Setareki Bituniyata (debut v Ireland) on 1; both are now 0.
-    // 'Joe Tamani' and 'Ponipati Loganimasi' are the page's spellings of the
-    // Joseva Tamani and Ponipate Loganimasi who started v Ireland (one off).
+    // 'Joe Tamani' and 'Ponipati Loganimasi' on the page are the Joseva Tamani
+    // and Ponipate Loganimasi of the 30 Oct party and the Ireland 23 (one man
+    // each: the page has one Tamani forward, and RugbyPass, Planet Rugby and
+    // World Rugby all print Joseva and Ponipate). One row each, under the
+    // spelling the squad files use, with the page's caps less the Ireland Test.
+    // Iosefo Masi is not on the page and stays open.
     FIJ: [
       r('Mesake Doge', 30, false), r('Tim Hoyt', 3, false), r('Eroni Mawi', 50), r('Vilikesa Nairau', 1),
       r('Livai Natave', 6, false), r('Marika Parker', 0), r('Peni Ravai', 59), r('Inoke Ravuiwasa', 2),
@@ -210,18 +230,18 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Zuriel Togiatama', 12), r('Temo Mayanavanua', 37, false), r('Vilive Miramira', 6, false), r('Peni Naruma', 1, false),
       r('Isoa Nasilasila', 33), r('Tevita Ratuva', 14, false), r('Setareki Turagacoke', 3), r('Mesake Vocevoce', 21),
       r('Levani Botia', 31, false), r('Elia Canakaivata', 23), r('Motikiai Murray', 8, false), r('Kitione Salawa', 17),
-      r('Pita-Gus Sowakula', 6), r('Lekima Tagitagivalu', 13), r('Joe Tamani', 3, false), r('Isoa Tuwai', 2, false),
+      r('Pita-Gus Sowakula', 6), r('Lekima Tagitagivalu', 13), r('Isoa Tuwai', 2, false),
       r('Aporosa Vuniyayawa', 1, false), r('Etonia Waqa', 4, false), r('Peceli Yato', 24), r('Nathan Hughes', 0),
       r('Simione Kuruvoli', 26), r('Frank Lomani', 47), r('Terio Tamani', 2), r('Sam Wye', 8, false),
       r('Isaiah Armstrong-Ravula', 23, false), r('Caleb Muntz', 26), r('Ben Volavola', 47), r('Iosefo Balewairiki', 11, false),
       r('Kavekini Boselawa', 1, false), r('Vilimoni Botitu', 18), r('Sireli Maqala', 16), r('Isikeli Rabitu', 3),
       r('Semi Radradra', 22, false), r('Isaac Ratumaitavuki-Kneepkens', 1, false), r('Kalaveti Ravouvou', 18, false), r('Tuidraki Samusamuvodre', 5, false),
       r('Seta Tamanivalu', 6, false), r('Josua Tuisova', 34), r('Virimi Vakatawa', 3, false), r('Setareki Bituniyata', 0),
-      r('Nacani Boginisoko', 1, false), r('Vinaya Habosi', 11), r('Ponipati Loganimasi', 8, false), r('Manasa Mataele', 5, false),
+      r('Nacani Boginisoko', 1, false), r('Vinaya Habosi', 11), r('Manasa Mataele', 5, false),
       r('Joji Nasova', 6, false), r('Selestino Ravutaumada', 12), r('Salesi Rayasi', 7), r('Jiuta Wainiqolo', 21),
       r('Vuate Karawalevu', 8, false),
       // in the 30 Oct party, not on the championship's squad page
-      r('Joseva Tamani', null), r('Iosefo Masi', null), r('Ponipate Loganimasi', null),
+      r('Joseva Tamani', 3), r('Iosefo Masi', null), r('Ponipate Loganimasi', 8),
     ],
     // Japan: the 35 named for November (RugbyPass, 26 Oct 2026) are the squad;
     // the rest of the union's 2026 list are capped men outside it. Caps from
@@ -231,14 +251,20 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
     // so these are the caps before the autumn. Assumes every replacement came
     // on; the JRFU sheets print each man's caps before the Test, and all 23
     // named v Wales carry exactly the figure this sum gives.
+    // 'Michael Stolberg' (JRFU, RugbyPass) and 'Mike Stolberg' (the page, the
+    // squad files) are one man, born 27 Mar 1992, Brave Lupus lock: one row,
+    // in the squad, 7 before Wales on the JRFU sheet. Moriyama likewise is
+    // one man ('Miuaustin' on the page, 'Miu Austin' in the party list).
+    // Opeti Helu (Lyon) was on both November benches for Japan, so he is
+    // Japan's, not Tonga's; he was not in the 26 Oct party.
     JPN: [
       r('Opeti Helu', 2, false), r('Kanato Hirano', 1), r('Takumi Inaba', 3, false), r('Ryosuke Iwaihara', 5),
       r('Yota Kamimori', 3), r('Sanshiro Kihara', 1, false), r('Sena Kimura', 5), r('Takato Okabe', 14, false),
       r('Sojiro Otsuka', 9), r('Izi Sword', 2, false), r('Shuhei Takeuchi', 31), r('Keijiro Tamefusa', 25),
       r('Latu Taufa', 0, false), r('Hayate Era', 11, false), r('Mamoru Harada', 20), r('Kenji Sato', 13),
       r('Ruan Botha', 1), r('Jack Cornelsen', 38), r('Warner Dearns', 38), r("Esei Ha'angana", 5),
-      r('Harry Hockings', 10), r('Mike Stolberg', 7, false), r('Tiennan Costley', 19), r('Ben Gunter', 26),
-      r('Michael Leitch', 96, false), r('Faulua Makisi', 29, false), r('Miuaustin Moriyama', 0, false), r('Kanji Shimokawa', 30),
+      r('Harry Hockings', 10), r('Mike Stolberg', 7), r('Tiennan Costley', 19), r('Ben Gunter', 26),
+      r('Michael Leitch', 96, false), r('Faulua Makisi', 29, false), r('Miu Austin Moriyama', 0), r('Kanji Shimokawa', 30),
       r('Shinobu Fujiwara', 22), r('Kenta Fukuda', 9), r('Itsuki Kamimura', 3, false), r('Naoto Saito', 37),
       r('Sam Greene', 10, false), r('Ryunosuke Ito', 9, false), r('Riku Kitahara', 0), r('Shinya Komura', 3),
       r('Takuro Matsunaga', 12), r('Yuya Hirose', 10, false), r('Yuki Ikeda', 2), r('Charlie Lawrence', 10),
@@ -246,8 +272,6 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Inoke Burua', 4), r('Kippei Ishida', 11), r('Haruto Kida', 4, false), r('Taira Main', 4, false),
       r('Jone Naikabula', 17, false), r('Koga Nezuka', 3), r('Riku Tokito', 0), r('Kazuma Ueda', 9),
       r('Yoshitaka Yazaki', 11, false), r('Shunsuke Uenobo', 3, false),
-      // in the 26 Oct party, not on the championship's squad page
-      r('Michael Stolberg', null), r('Miu Austin Moriyama', 0),
     ],
   },
   // THE WOMEN: the twelve unions of the 2026 WXV Global Series (September and
@@ -301,14 +325,18 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
     ],
     // USA: 36 named by USA Rugby on 3 Sep 2026 (eagles.rugby). No caps on
     // the page: every count is still to be checked.
+    // 1.9.16 club audit: only the two uncapped before the first Test (v Ireland, 20 Sep) could be
+    // sourced: Mason ("uncapped", RugbyPass 17 Sep) and Carlton (debut v Italy, RugbyPass 22 Oct).
+    // No USA team sheet found prints caps. 'Mae Sagapolu' is the union's Keia Mae Sagapolu Sanele,
+    // spelled as w_pwr.ts and RugbyPass's 17 Sep team sheet spell her (rule 4).
     USA: [
-      r('Hope Rogers', null), r('Alivia Leatherman', null), r('Lauryn Carlton', null), r('Kathryn Treder', null),
-      r('Chloe Hill-Huse', null), r('Sam Brackett', null), r('Keia Mae Sagapolu Sanele', null), r('Reece Woods', null),
+      r('Hope Rogers', null), r('Alivia Leatherman', null), r('Lauryn Carlton', 0), r('Kathryn Treder', null),
+      r('Chloe Hill-Huse', null), r('Sam Brackett', null), r('Mae Sagapolu', null), r('Reece Woods', null),
       r('Mona Lisa Topu', null), r('Hallie Taufoou', null), r('Rachel Ehrecke', null), r('Erica Jarrell-Searcy', null),
       r('Malia Isaacs', null), r('Hann Humphreys', null), r('Georgie Perris-Redding', null), r('Ina Bailey', null),
       r('Freda Tafuna', null), r('Kennedy Feasby', null), r('Kate Zackary', null), r('Abigail Paton', null),
       r('Cassidy Bargell', null), r('Sadie Schier', null), r('Taina Tukuafu', null), r('Bella Vogel', null),
-      r('Nina Mason', null), r('Kayla Canett', null), r('Katana Howard', null), r('Alev Kelter', null),
+      r('Nina Mason', 0), r('Kayla Canett', null), r('Katana Howard', null), r('Alev Kelter', null),
       r('Emily Henrich', null), r('Tessa Hann', null), r('Telesi Uhatafe', null), r('Karina Gauto', null),
       r('Bulou Mataitoga', null), r('Erica Coulibaly', null), r('Tahna Wilfley', null), r('Ashley Cowdrey', null),
     ],
@@ -327,42 +355,61 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
     // Ireland: 36 named by the IRFU on 24 Aug 2026. The page prints no caps:
     // the seven uncapped women are 0, the rest still to be checked.
     // Ireland, 36 (irishrugby.ie, 24 Aug 2026). Caps: the 23 named v USA, 20 Sep (RugbyPass), before that Test.
+    // 1.9.16 club audit: 2 more, each the count before 20 Sep, from the squad for South Africa (rugby365
+    // and RugbyPass, 22 Oct, caps before that Test): Campbell 17 (in none of the three 23s before it),
+    // Parsons 38 less her two starts v Japan. Moore (30) and Breen (34) were only on the bench in
+    // between, so their counts before 20 Sep are not known. 'Fiona Tuite' is the union's Fiona Tuite
+    // O'Sullivan, spelled as w_celt.ts spells her (rule 4).
     IRE: [
       r('Jemima Adams-Verling', 0), r('Sophie Barrett', 0), r('Beth Buttimer', 0), r('Eilís Cahill', 4),
-      r('Ruth Campbell', null), r('Jane Clohessy', 1), r('Linda Djougang', 57), r('Brittany Hogan', 43),
+      r('Ruth Campbell', 17), r('Jane Clohessy', 1), r('Linda Djougang', 57), r('Brittany Hogan', 43),
       r('Neve Jones', 46), r('Kate Jordan', 0), r('Erin King', 12), r('Sadhbh McGrath', 22),
       r('Cliodhna Moloney-MacDonald', 54), r('Sam Monaghan', null), r('Grace Moore', null), r("Niamh O'Dowd", 23),
-      r("Fiona Tuite O'Sullivan", 25), r('Ailish Quinn', null), r('Aoife Wafer', 21), r('Dorothy Wall', 42),
+      r('Fiona Tuite', 25), r('Ailish Quinn', null), r('Aoife Wafer', 21), r('Dorothy Wall', 42),
       r('Enya Breen', null), r('Aoife Dalton', 33), r('Vicky Elmes Kinlan', 6), r('Caitríona Finn', 0),
       r('Stacey Flood', 29), r('Niamh Gallagher', 2), r('Eve Higgins', 37), r('Emily Lane', 25), r('Lucia Linn', 0),
       r('Anna McGann', 17), r('Alana McInerney', 0), r("Robyn O'Connor", 4), r("Dannah O'Brien", 35),
-      r('Béibhinn Parsons', null), r('Aoibheann Reilly', 19), r('Katie Whelan', null),
+      r('Béibhinn Parsons', 36), r('Aoibheann Reilly', 19), r('Katie Whelan', null),
     ],
     // Wales, 39 (RugbyPass, 1 Sep 2026). Caps: the 23 named v South Africa, 18 Sep (RugbyPass), before that Test.
+    // 1.9.16 club audit: 5 more, each the count before 18 Sep. From RugbyPass's sheet v Japan (22 Oct,
+    // caps before that Test; only South Africa and the USA came between): Lewis 66 and Nel Metcalfe 16
+    // (in neither 23), Cox 27 less her start v the USA, Reardon 18 less the USA Test (she was on that
+    // bench, and 12 on 11 Apr plus five Six Nations games caps her at 17). Jasmine Joyce 57 is the
+    // WRU's figure of June 2026, after the Six Nations; she was in no autumn 23.
     WAL: [
       r('Gwenllian Pyrs', 56), r('Maisie Davies', 17), r('Katherine Baverstock', null), r('Crystal James', 0),
-      r('Shanelle Williams', 0), r('Molly Reardon', null), r('Kelsey Jones', 57), r('Elan Jones', 0),
+      r('Shanelle Williams', 0), r('Molly Reardon', 17), r('Kelsey Jones', 57), r('Elan Jones', 0),
       r('Stella Orrin', 0), r('Donna Rose', null), r('Sisilia Tuipulotu', 34), r('Gwen Crabb', 42),
       r('Natalia John', null), r('Branwen Metcalfe', 6), r('Georgia Evans', 48), r('Alex Callender', 47),
-      r('Bryonie King', 17), r('Bethan Lewis', null), r('Alisha Joyce', 57), r('Kate Williams', 26),
+      r('Bryonie King', 17), r('Bethan Lewis', 66), r('Alisha Joyce', 57), r('Kate Williams', 26),
       r('Jorja Aiono', 5), r('Keira Bevan', 83), r('Seren Lockwood', 9), r('Megan Davey', 0),
       r('Kayleigh Powell', null), r('Lleucu George', 40), r('Courtney Keight', 33), r('Freya Bell', 2),
       r('Jenna De Vera', 2), r('Hannah Dallavalle', null), r('Hanna Tudor', 0), r('Nikita Prothero', null),
-      r('Jasmine Joyce', null), r('Amy Williams', 0), r('Kelsie Webster', 0), r('Lisa Neumann', 52),
-      r('Carys Cox', null), r('Nel Metcalfe', null), r('Seren Singleton', 4),
+      r('Jasmine Joyce', 57), r('Amy Williams', 0), r('Kelsie Webster', 0), r('Lisa Neumann', 52),
+      r('Carys Cox', 26), r('Nel Metcalfe', 16), r('Seren Singleton', 4),
     ],
     // France, 38 (RugbyPass, 30 Jul 2026). Caps only where printed before the first Test (v New Zealand, 12 Sep).
+    // 1.9.16 club audit: 14 more caps filled, each the count before 12 Sep. Method: the 23 named v Canada
+    // (RugbyPass FR, 24 Sep, caps before that Test) less the New Zealand and Australia Tests she played,
+    // kept only where it agrees with RugbyPass FR's squad table of 30 Jul or rests on two starts.
+    // Escudero and Champon are from the sheet alone (the 30 Jul table is 2 and 1 short for them, as it
+    // is for Vernier). Fall Raclot 50: the 30 Jul table and the New Zealand preview both print it.
+    // Still null: the 30 Jul table is the only source and it is short for 5 of the 19 it can be
+    // checked on; Deshaye is 57 or 58. See docs/research/club-audit-1916.md.
+    // Bazola and Brosseau are spelled as w_e1.ts spells them (rule 4); the union prints
+    // "Amalia Bazola Allieres" and "Yllana Brosseau".
     FRA: [
-      r('Amalia Bazola Allieres', 0), r('Rose Bernadou', null), r('Axelle Berthoumieu', null),
-      r('Yllana Brosseau', null), r('Léa Champon', null), r('Cloé Correa', null), r('Annaëlle Deshaye', null),
-      r('Charlotte Escudero', null), r('Madoussou Fall Raclot', null), r('Hina Ikahehegi', null),
-      r('Marine Kazmierczak', 0), r('Assia Khalfaoui', null), r('Mathilde Lazarko', null), r('Maïlys Mailagi', 0),
-      r('Ambre Mwayembe', null), r('Elsa Peyras', 0), r('Elisa Riffonneau', null), r('Lou Roboam', 0),
-      r('Siobhan Soqeta', null), r('Mouna Touré', 0), r('Kelly Arbey', 11), r('Carla Arbez', null),
-      r('Émilie Boulard', null), r('Pauline Bourdon Sansus', 76), r('Morgane Bourgeois', null),
-      r('Alexandra Chambon', null), r('Lili Dezou', 0), r('Teani Feleu', null), r('Elodie Fernandez', 0),
+      r('Amalia Bazola', 0), r('Rose Bernadou', null), r('Axelle Berthoumieu', 31),
+      r('Yllana Justina Brosseau', 32), r('Léa Champon', 20), r('Cloé Correa', null), r('Annaëlle Deshaye', null),
+      r('Charlotte Escudero', 37), r('Madoussou Fall Raclot', 50), r('Hina Ikahehegi', null),
+      r('Marine Kazmierczak', 0), r('Assia Khalfaoui', 42), r('Mathilde Lazarko', 5), r('Maïlys Mailagi', 0),
+      r('Ambre Mwayembe', null), r('Elsa Peyras', 0), r('Elisa Riffonneau', 25), r('Lou Roboam', 0),
+      r('Siobhan Soqeta', null), r('Mouna Touré', 0), r('Kelly Arbey', 11), r('Carla Arbez', 21),
+      r('Émilie Boulard', 41), r('Pauline Bourdon Sansus', 76), r('Morgane Bourgeois', null),
+      r('Alexandra Chambon', 41), r('Lili Dezou', 0), r('Teani Feleu', 21), r('Elodie Fernandez', 0),
       r('Alice Grandhomme', 0), r('Anaïs Grando', null), r('Marie Ibañez', 0), r('Chloé Jacquet', 22),
-      r('Léa Murie', null), r('Lylou Pedussaud', 0), r('Lina Queyroi', null), r('Aubane Rousset', null),
+      r('Léa Murie', 11), r('Lylou Pedussaud', 0), r('Lina Queyroi', 31), r('Aubane Rousset', null),
       r('Gabrielle Vernier', 60),
     ],
     // Italy, 38, every cap as printed (RugbyPass, 2 Sep 2026).
@@ -379,27 +426,35 @@ export const INTL_2026: { m: Record<string, IntlRow[]>; w: Record<string, IntlRo
       r('Emma Stevanin', 32), r('Vittoria Zeni', 0),
     ],
     // Canada, 36 (RugbyPass, 27 Aug 2026). Caps: the 23 named v Scotland, 12 Sep (RugbyPass), before that Test.
+    // 1.9.16 club audit: 6 more, each the count before 12 Sep, from the first later RugbyPass team sheet
+    // she is on (caps are printed before the match) with no earlier 23 behind her: Nelson 12 and Boag 39
+    // v England 19 Sep; McKnight 2 and Bowie 3 v France 26 Sep; Corrigan 26 and Seumanutafa 28 v England
+    // 16 Oct. Forteza is 43 or 44 (44 before France, on the bench v England a week earlier).
     CAN: [
       r('Brooke Rempel', 2), r('Brittany Kassil', 56), r('Cassandra Tuffnail', null), r('DaLeaka Menin', 72),
       r('Emily Clark', 0), r('Emily Tuttosi', 44), r('Fabiola Forteza', null), r('Faith Tilley', 0),
-      r('Gabrielle Senft', 43), r('Gillian Boag', null), r('Julia Omokhuale', 9), r('Kiki Idowu', 3),
-      r('Laetitia Royer', 25), r('Lizzie Gibson', 2), r('Maya Montiel', null), r('Mikiela Nelson', null),
+      r('Gabrielle Senft', 43), r('Gillian Boag', 39), r('Julia Omokhuale', 9), r('Kiki Idowu', 3),
+      r('Laetitia Royer', 25), r('Lizzie Gibson', 2), r('Maya Montiel', null), r('Mikiela Nelson', 12),
       r('Pamphinette Buisa', 21), r('Rachel Smith', 7), r('Sophie de Goede', 44), r('Sophie McDonald', 0),
-      r('Taylor McKnight', null), r('Alysha Corrigan', null), r('Alex Tessier', 68),
-      r('Asia Hogan-Rochester', 11), r('Aurora Bowie', null), r('Claire Gallagher', 22),
+      r('Taylor McKnight', 2), r('Alysha Corrigan', 26), r('Alex Tessier', 68),
+      r('Asia Hogan-Rochester', 11), r('Aurora Bowie', 3), r('Claire Gallagher', 22),
       r('Corinne Frechette', null), r('Charity Williams', 0), r('Fancy Bermudez', 19), r('Flo Symonds', 18),
       r('Justine Pelletier', 46), r('Olivia Apps', 25), r('Sarah-Maude Lachance', null), r('Savannah Bauder', 0),
-      r('Shoshanah Seumanutafa', null), r('Taylor Perry', 26),
+      r('Shoshanah Seumanutafa', 28), r('Taylor Perry', 26),
     ],
     // Japan, 30 (RugbyPass, 14 Sep 2026). Caps: the 23 named v Fiji, 4 Sep (JRFU), before that Test.
+    // 1.9.16 club audit: 7 more, each the count before 4 Sep, from the first later JRFU team sheet she is
+    // on (caps are printed before the match): Komaki, Imakugi, Yoshimura v Italy 19 Sep; Nagata, Yamamoto
+    // v Ireland 26 Sep; Nakamura, Nakashima v Ireland 3 Oct. None was in a 23 between 4 Sep and that sheet.
+    // Machida stays null: 5 before Hong Kong China (5 May) on the bench, so 5 or 6.
     JPN: [
-      r('Wako Kitano', 25), r('Hinata Komaki', null), r('Juka Fuji', 2), r('Miharu Machida', null),
-      r('Nami Yoshida', 4), r('Asuka Kuge', 26), r('Moe Nagaoka', 6), r('Nijiho Nagata', null),
-      r('Masami Kawamura', 25), r('Yuna Sato', 29), r('Saya Nakamura', null), r('Otoka Yoshimura', null),
+      r('Wako Kitano', 25), r('Hinata Komaki', 21), r('Juka Fuji', 2), r('Miharu Machida', null),
+      r('Nami Yoshida', 4), r('Asuka Kuge', 26), r('Moe Nagaoka', 6), r('Nijiho Nagata', 32),
+      r('Masami Kawamura', 25), r('Yuna Sato', 29), r('Saya Nakamura', 3), r('Otoka Yoshimura', 34),
       r('Nami Asari', 0), r('Sakurako Korai', 24), r('Mio Nishimura', 9), r('Mele Yua Havili Kagawa', 8),
-      r('Jennifer Nduka', 19), r('Anan Seo', 3), r('Moe Tsukui', 47), r('Suzuka Nakashima', null),
-      r('Kanna Hayashi', 2), r('Sawa Harada', 2), r('Minori Yamamoto', null), r('Uta Kataoka', 0),
-      r('Haruka Hirotsu', 19), r('Mana Furuta', 41), r('Komachi Imakugi', null), r('Honoka Tsunokawa', 0),
+      r('Jennifer Nduka', 19), r('Anan Seo', 3), r('Moe Tsukui', 47), r('Suzuka Nakashima', 1),
+      r('Kanna Hayashi', 2), r('Sawa Harada', 2), r('Minori Yamamoto', 43), r('Uta Kataoka', 0),
+      r('Haruka Hirotsu', 19), r('Mana Furuta', 41), r('Komachi Imakugi', 35), r('Honoka Tsunokawa', 0),
       r('Maiko Nishi', 0), r('Sora Nishimura', 26),
     ],
   },

@@ -29,7 +29,8 @@
 // must add up to. They are measured, not guessed, and they reconcile with the
 // owner's own audit of 6 Sep 2026: 1,255 real, 841 generated.
 //
-//   w_pwr    382 real, 0 generated    owner's squad sheet, plus 7 from Bristol's own 2026/27 list (1.9.14)
+//   w_pwr    399 real, 0 generated    owner's squad sheet, plus 7 from Bristol's own 2026/27 list (1.9.14)
+//                                     and 17 from the clubs' 2026-27 lists (1.9.16, docs/research/intl-squads-2026.md)
 //   w_celt   185 real, 0 generated    competition team pages
 //   w_pac    279 real, 0 generated    2026 Aupiki + Super W
 //   w_e1     297 real, 57 generated   FFR workbook plus three club pages
@@ -52,7 +53,7 @@ import type { RawClub } from '../src/data/types'
 
 /** league id suffix -> [real, generated]. See the header for provenance. */
 const EXPECT: Record<string, [number, number]> = {
-  pwr: [382, 0],
+  pwr: [399, 0],
   celt: [185, 0],
   pac: [279, 0],
   e1: [297, 57],
@@ -100,7 +101,8 @@ console.log(`  ${'total'.padEnd(6)} ${String(totReal).padStart(4)} real ${String
 // generated shirt in their position was left (owner).
 // 2117 since 1.9.14: seven of Bristol's own 2026/27 list who were not on the
 // owner's sheet (w_pwr.ts)
-if (totReal + totGen !== 2117) fail(`women's database is ${totReal + totGen} players, expected 2117`)
+// 2134 since 1.9.16: seventeen more from the PWR clubs' 2026-27 lists
+if (totReal + totGen !== 2134) fail(`women's database is ${totReal + totGen} players, expected 2134`)
 
 // ---- 3. the per-club comments must say what the rows say ----
 // These are what went stale last time, so they are held rather than trusted.

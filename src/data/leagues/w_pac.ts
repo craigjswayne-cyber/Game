@@ -148,7 +148,7 @@ export const W_PAC: RawClub[] = [
       { name: 'Kelsyn McCook', pos: 'SH', age: 28, nat: 'NZL', q: 79 },
       { name: 'Lialanie Muamua', pos: 'WG', age: 19, nat: 'NZL', q: 64, gk: true },
       { name: 'Winnie Palamo', pos: 'WG', age: 19, nat: 'NZL', q: 64 },
-      { name: 'Abigail Paton', pos: 'WG', age: 20, nat: 'NZL', q: 73, intl: true },
+      { name: 'Abigail Paton', pos: 'SH', age: 20, nat: 'USA', q: 73, intl: true },
       { name: 'Amy du Plessis', pos: 'CE', age: 26, nat: 'NZL', q: 82, intl: true },
       { name: 'Charntay Poko', pos: 'FH', age: 35, nat: 'NZL', q: 64 },
       { name: 'Alena Saili', pos: 'WG', age: 27, nat: 'NZL', q: 78, intl: true },
