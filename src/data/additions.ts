@@ -158,8 +158,8 @@ const EARLIER: Record<string, RawPlayer[]> = {
   sale: [
     { name: 'Courtney Lawes', pos: 'LK', alt: ['FL'], age: 37, nat: 'ENG', q: 74, intl: true },
     { name: 'Tomas Francis', pos: 'TP', age: 34, nat: 'WAL', q: 70, intl: true },
-    // 2026-27 second instalment (owner's v1.1.6 list): the Drua wing.
-    { name: 'Ponepati Loganimasi', pos: 'WG', age: 24, nat: 'FIJ', q: 70, intl: true },
+    // The Drua wing of the owner's v1.1.6 list was here as 'Ponepati Loganimasi'. Removed in
+    // 1.9.16: he is 'Ponipate Loganimasi' in srp_b.ts and already moves to Sale, so Sale held him twice.
   ],
   // Ion Neculai's move to Northampton (the club's own published 2026/27
   // squad list, supplied by the user) left Zebre a single real tighthead in

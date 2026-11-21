@@ -21,6 +21,7 @@
 // stream: the fire sale's buyers are the league's richest clubs, in order.
 import type { GameState, Player } from './model'
 import { tIn } from './i18n'
+import { repairSheet } from './match/selection'
 import { executeTransfer } from './transfer'
 import { capBill } from './cap'
 import { sackManager } from './jobs'
@@ -80,12 +81,19 @@ export function startProChallenge(state: GameState, id: ProChallengeId): void {
       if (!to) return
       const fee = Math.round(p.value / 50_000) * 50_000
       executeTransfer(state, p, to.id, fee)
-      // the fees clear the debts: they go to the bank, never to the budget
+      // the fees clear the debts: never to the budget, AND NOT LEFT IN THE BANK
+      // (1.9.16). They were banked, and next summer's budget is read off the
+      // balance: Leicester's came out at 8.10M against 4.05M without the sale,
+      // and the board built a facility with the rest. The money is gone the
+      // day it arrives, which is what the challenge says.
       club.budget = Math.max(0, club.budget - Math.round(fee * 0.7))
+      club.balance -= fee
       sold.push(p.name)
     })
     if (club.captain != null && !club.players.includes(club.captain)) club.captain = null
     if (club.vice != null && !club.players.includes(club.vice)) club.vice = null
+    // five shirts were left empty on the team sheet the manager opens (1.9.16)
+    club.tactic.lineup = repairSheet(state, club, club.tactic.lineup)
   }
   applyShoestring(state)
   const v = {

@@ -389,7 +389,14 @@ export function weeklyTraining(state: GameState, rng: Rng) {
         if (rng() < 0.008 * (1 - RIFT_TRAINING * rift) * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2) * load.grow) {
           const abs = absWeek(state.season, state.week)
           let moved = false
-          for (const k of focusMap[state.training]) moved = trainPoint(p, k, focusMap[state.training], attrRoll(state.seed, p.id, abs, k)) || moved
+          // "SET PIECES: scrum and lineout" (1.9.16). The season plan's set-piece
+          // answer wrote the scrum focus, which trains scrummaging and strength
+          // and PAYS for them out of whatever it does not cover, the lineout
+          // included: measured over 24 seeds, the squad's lineout fell 11.5
+          // points by the tenth league match under a plan that promised to
+          // work on it. Under that plan the session covers all three.
+          const attrs: (keyof Player['a'])[] = state.training === 'scrum' && state.preplan?.work === 'setpiece' ? ['scr', 'str', 'lin'] : focusMap[state.training]
+          for (const k of attrs) moved = trainPoint(p, k, attrs, attrRoll(state.seed, p.id, abs, k)) || moved
           if (moved) logPts++
         }
       }

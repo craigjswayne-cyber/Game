@@ -203,3 +203,99 @@ Gauto, Tahna Wilfley, Ashley Cowdrey (USA 7s).
 - Chloe Hill-Huse and Kate Zackary (USA): no 2026-27 club found. Neither is on a WER roster or a PWR list read.
 - USA clubs above are from March and April 2026; no autumn source was found for them.
 - Not in the 1 Sep squad of 39 but capped for Wales this autumn: Sian Jones (Gloucester-Hartpury, bench v the USA).
+
+## Men: Fiji and Japan, and the open caps in England, France, Wales and South Africa (1.9.16 club audit, 21 Nov 2026)
+
+All pages read 21 Nov 2026. Ratings (q) are this audit's judgement. "The page" is the Nations Championship squad page
+for the union, which answers at nationschampionshiprugby.com/en/teams/<code>/squad (no www: the www address fails).
+
+### Fiji: 26 of 35 found before, 31 of 35 after
+
+Added (src/data/additions.ts, block "1.9.16 club audit, men: Fiji and Japan"):
+- Nathan Hughes, Racing 92, N8 (cover LK), 35, q76. rugbypass.com/news/racing-92-top-14-2026-2027 (30 Aug 2026) lists
+  him with the locks; he wore eight v France (rugby365, 5 Nov). Age: the page.
+- Luke Tagi, Bayonne, TP, 29, q72. rugbypass.com/news/bayonne-top-14-2026-2027 (props). The page's club column says
+  Drua for him: stale.
+- Setareki Turagacoke, Stade Francais, LK, 20, q66. rugbypass.com/news/stade-francais-top-14-2026-2027.
+- Setareki Bituniyata, Provence, WG (cover CE), 31, q72. rugbypass.com/news/pro-d2-qui-sont-les-joueurs-etrangers-de-la-saison-2026-2027
+  (18 Aug 2026). Uncapped before the autumn, so no intl flag.
+- Inoke Ravuiwasa, Drua, TP, 30, q64. Drua 2027 squad, pina.com.fj/?p=77797 (29 Oct 2026); Fiji Times 20 Aug 2026.
+- Outside the November party, capped, same Drua list: Penaia Cakobau HK 32 q62, Kavaia Tagivetaua HK 23 q62, Isoa Tuwai
+  FL 24 q64, Tuidraki Samusamuvodre CE 28 q66, Joji Nasova WG 26 q66. Ages and positions: the page.
+- Outside the party, Provence (same RugbyPass list): Etonia Waqa LK (cover FL), 27, q68.
+
+One man, two spellings (intl2026.ts changed, the squad files left alone):
+- 'Joe Tamani' (page) is Joseva Tamani: one row, 'Joseva Tamani', 3 caps, in the squad. The page has one Tamani forward;
+  RugbyPass, Planet Rugby (30 Oct) and World Rugby's PNC guide (5 Sep) all print Joseva. Still an inference: no page
+  says "Joe is Joseva". The page gives his age as 29; additions.ts has 25 (not changed, age is outside this job).
+- 'Ponipati Loganimasi' (page) is Ponipate Loganimasi: one row, 8 caps, in the squad.
+
+Nationality: Virimi Vakatawa FRA to FIJ in additions.ts (World Rugby PNC squad 5 Sep 2026; 3 Fiji caps on the page).
+
+Club not in game:
+- Isoa Nasilasila: JR East Green Warriors Tokatsu (club's own signing notice, 25 Aug 2026). verified.ts already has him
+  GONE from the Drua, which is right.
+- Marika Parker: Taranaki (RugbyPass profile, 2026 NPC). Terio Tamani: Suva and Fiji sevens (Wikipedia).
+
+Unresolved:
+- Vilikesa Nairau: Saracens in 2025-26 (signed May 2025; one cup game Feb 2026) but he is not on Saracens' published
+  2026-27 list in prem2526.ts, and the page shows no club. Not added.
+- Iosefo Masi caps: not on the page; Wikipedia's 8 is dated Oct 2024. Left null. He is also not in the Drua's 2027
+  squad (Wikipedia has him at Lyon from 2025), so his Drua listing in srp_b.ts needs a verified.ts check.
+- Outside the party, no 2026-27 club sourced: Tim Hoyt (Wikipedia: Worcester; the page: Drua; not in the Drua's 2027
+  list), Sam Matavesi (Camborne on both, a generated-squad side: not added), Sam Wye (Counties Manukau, not in game),
+  Nacani Boginisoko (Drua 2027, but no age found), Peni Naruma, Aporosa Vuniyayawa, Iosefo Balewairiki, Kavekini
+  Boselawa, Isaac Ratumaitavuki-Kneepkens, Seta Tamanivalu.
+
+Found but outside this audit's files (for the engineer):
+- Sale holds the same man twice: 'Ponipate Loganimasi' (moved from the Drua by verified.ts) and 'Ponepati Loganimasi'
+  (additions.ts, owner's v1.1.6 list). The second should go.
+- Caleb Muntz is at Provence in 2026-27 (RugbyPass 18 Aug 2026, the page, Wikipedia); the world has him at the Drua.
+  Needs a verified.ts move.
+
+### Japan: 22 of 35 found before, 33 of 35 after
+
+Added (src/data/leagues/jl1.ts, REAL_AUDIT, the file's own mechanism: a real man takes a generated man's shirt):
+- Brave Lupus: Mamoru Harada HK 27 q77, Riku Tokito WG 23 q71. JRFU team sheets 7 and 14 Nov 2026.
+- Spears: Ruan Botha LK 34 q74 (JRFU sheet 23 Oct 2026), Koga Nezuka WG 28 q71 (JRFU preliminary squad 5 Feb 2026).
+- Canon: Ryosuke Iwaihara prop 30 q71 (JRFU 5 Feb 2026; RugbyPass profile shows Canon fixtures).
+- D-Rocks: Esei Ha'angana LK 27 q71 (JRFU sheet 23 Oct 2026), Miu Austin Moriyama FL 23 q68 (JRFU 11 Jun 2026 note).
+- Honda Heat: Kenta Fukuda SH 29 q74 (JRFU sheet 7 Nov), Riku Kitahara FH 27 q71 (7 and 14 Nov).
+- Dynaboars: Charlie Lawrence CE 28 q74 (JRFU sheet 23 Oct 2026).
+- Outside the party: Sanshiro Kihara, Sungoliath prop 23 q68 (JRFU sheet 23 Oct); Takumi Inaba, Blue Revs prop 24 q71
+  (Wikipedia's 9 Sep 2026 squad table).
+- JRFU pages: en.rugby-japan.jp/2026/10/23/brave-blossoms-to-face-fiji-in-historic-centenary-double-header/,
+  /2026/11/07/brave-blossoms-all-set-for-cardiff-showdown/, /2026/11/13/brave-blossoms-named-to-face-england-at-twickenham/,
+  /?p=32534 (5 Feb), /2026/06/11/brave-blossoms-squad-announced-ahead-of-inaugural-nations-championship/.
+
+Assumptions: Iwaihara, Nezuka and Moriyama have no source later than February or June 2026, so they are assumed not to
+have moved. Prop sides are in no source (Kihara wore 18, so tighthead; Iwaihara TP and Inaba LP are placeholders).
+
+One man, two spellings (intl2026.ts): 'Michael Stolberg' is 'Mike Stolberg' (born 27 Mar 1992, Brave Lupus lock on
+every JRFU list): one row, 7 caps, in the squad. 'Miuaustin Moriyama' and 'Miu Austin Moriyama': one row.
+
+Nationality: Opeti Helu TGA to JPN in additions.ts. He was on Japan's bench v Wales and v England (JRFU sheets, club
+Lyon) and is on the page as Japan's. He stays squad false: he was not in the 26 Oct party. The JRFU gives his date of
+birth as 22 Jul 1998 (28); additions.ts has 31, not changed.
+
+Club not in game: Sojiro Otsuka (Kwansei Gakuin University), Jisu Lee (Korea University). Outside the party: Ryunosuke
+Ito (Meiji University), Yoshitaka Yazaki (Waseda University). Unresolved: Latu Taufa, Jone Naikabula (no club found).
+
+For the engineer: Sam Greene is at Shizuoka in jl1.ts, but the JRFU says he left in May 2026 and JR East Green Warriors
+announced him on 25 Aug 2026 (not in game). Not removed.
+
+### Open caps filled (figure before the November 2026 Tests)
+
+Method for England and Wales: the page's current figure less one for each November 23 a man was named in. Assumes
+every replacement came on. Check that the page was two Tests on: Genge 83 to 85, Lake 34 to 36, Adams 72 to 73.
+- England (v Australia 8 Nov, rugby.com.au 6 Nov; v Japan 14 Nov, RugbyPass 12 Nov): Baxter 18, Ben Curry 14, Itoje 102
+  (also his Wikipedia box "as of 22 October 2026"), Pearson 1, Stuart 53, Dingwall 10, Joseph 1, Marchant 26.
+  Still null: Harry Randall (not on the page).
+- Wales (v Japan 7 Nov, rugby365 5 Nov; v New Zealand 14 Nov, RugbyPass 12 Nov): Basham 17, Belcher 5, Seb Davies 17,
+  Francis 82, Griffin 16, Dafydd Jenkins 31, Hamer-Webb 1, Hennessey 0, Rogers 13. Still null: Rio Dyer (not on the page).
+- Wales spelling and nationality: the row 'Gabe Hamer-Webb' is now 'Gabriel Hamer-Webb' (the page, RugbyPass and the
+  squad files), and his Leicester row in prem_b.ts is WAL, not ENG (Wales cap v New Zealand, 14 Nov). Now found.
+- France: Gazzotti 4, Brau-Boirie 5, Hastoy 11. The page's figures; all three withdrew hurt on 26 Oct (Wikipedia) and
+  played no November Test.
+- South Africa: Moerat 11. "Has 11 Test caps", first selection of 2026, before the Italy Test (Reuters via
+  flashscore.com/news/springboks-make-surprise-pick-at-lock-for-italy-test-in-turin); the page and Wikipedia agree.

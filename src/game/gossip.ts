@@ -324,7 +324,9 @@ function moneyMen(state: GameState, rng: Rng) {
         const locked = club.id === state.userClubId && proBlocksMoney(state)
         if (!locked) club.budget += boost
         club.balance += Math.round(boost * 0.6)
-        club.wageBudget = Math.round(club.wageBudget * 1.12)
+        // no extra wage room under a Pro challenge that shuts the board's money
+        // either (1.9.16): Shoestring promised it and a rich buyer opened 12%
+        if (!locked) club.wageBudget = Math.round(club.wageBudget * 1.12)
         club.rep = clamp(club.rep + 2, 30, 95)
         if (!hushed(state, club.id)) state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,

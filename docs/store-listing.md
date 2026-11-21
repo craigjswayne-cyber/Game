@@ -120,6 +120,26 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.16, Play version code 79 (confirm 78 is accepted on the Console first)
+
+**en-GB, Play and App Store** (477)
+New: start a career as an international coach from the title screen. Real 2026 national squads and caps, men's and women's. Close Tests feel close, with late drama in the commentary and on the scoreboard. Derby bust-ups with cards. Pre-match challenges in formation. Free agents from day one, with a one-tap filter. Fixed: bids going up when you press minus, players stuck away with their country, goal kicks from too far back. A shorter briefing, tidier staff cards and lists.
+
+**fr-FR, Play and App Store** (499)
+Nouveau : commencez une carrière de sélectionneur depuis l'écran titre. Vrais groupes et sélections 2026, hommes et femmes. Les tests serrés se vivent comme tels, dans le commentaire et au tableau d'affichage. Échauffourées de derby avec cartons. Défis d'avant-match en formation. Des joueurs libres dès le premier jour, avec un filtre. Corrigé : offres qui montaient en appuyant sur moins, joueurs bloqués en sélection, tirs au but pris de trop loin. Un briefing plus court, des listes plus nettes.
+
+**es-ES, Play and App Store** (497)
+Nuevo: empieza una carrera como seleccionador desde la pantalla de título. Convocatorias e internacionalidades reales de 2026, masculinas y femeninas. Los tests igualados se sienten igualados, en los comentarios y en el marcador. Trifulcas de derbi con tarjetas. Desafíos previos en formación. Agentes libres desde el primer día, con filtro. Corregido: ofertas que subían al pulsar menos, jugadores atrapados con su selección, tiros a palos desde muy lejos. Informe más corto y listas más limpias.
+
+**it-IT, Play and App Store** (479)
+Novità: inizia una carriera da commissario tecnico dalla schermata iniziale. Convocati e presenze reali del 2026, maschili e femminili. I test equilibrati si sentono tali, nella telecronaca e sul tabellone. Risse da derby con cartellini. Sfide pre-partita in formazione. Svincolati dal primo giorno, con un filtro. Corretto: offerte che salivano premendo meno, giocatori bloccati in nazionale, calci piazzati da troppo lontano. Un briefing più breve, schede e liste più ordinate.
+
+**ja-JP, Play and App Store** (217)
+新機能：タイトル画面から代表監督としてキャリアを開始できるように。男女とも2026年の実際の代表スコッドとキャップ数を収録。接戦のテストマッチは実況とスコアボードで緊張感が伝わるように。ダービーでの小競り合いとカード。試合前のチャレンジを隊形で表示。初日からフリーの選手が在籍、ワンタップで絞り込み。修正：マイナスを押すと入札額が上がる不具合、代表から戻れない選手、遠すぎるゴールキックの位置。ブリーフィングを短く、リストを見やすく。
+
+**af, Play and App Store** (438)
+Nuut: begin 'n loopbaan as nasionale afrigter van die titelskerm af. Regte 2026 nasionale groepe en toetse, mans en vroue. Naelbyttoetse voel so, in die kommentaar en op die telbord. Derby-onderonsies met kaarte. Voorwedstryd-uitdagings in formasie. Kontrakvrye spelers van dag een af, met 'n filter. Reggestel: bod wat styg as jy minus druk, spelers wat by hul land vassit, pale-skoppe van te ver. 'n Korter voorligting, netjieser lyste.
+
 ### What's new (500 max) - v1.9.15, Play version code 78 (confirm 77 is accepted on the Console first)
 
 **en-GB, Play and App Store** (477)

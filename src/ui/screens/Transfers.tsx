@@ -1,3 +1,4 @@
+import { hasSupporter } from '../../game/monetise'
 import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
@@ -174,7 +175,7 @@ export default function Transfers() {
     // all"). clubCode is what the crest draws and the touchline paints; the
     // search box above still matches the full name.
     { id: 'club', head: t('transfers.colClub'), td: () => ({ className: 'muted' }), cell: p => (p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')) },
-    { id: 'ca', head: t('transfers.colAbility'), sort: 'ca', cell: p => { const ca = shownCa(game, p); return <><Stars ca={ca} />{ca != null && knowledge(game, p) < 95 && <span className="muted">?</span>}</> } },
+    { id: 'ca', head: t('transfers.colAbility'), sort: 'ca', cell: p => { const ca = shownCa(game, p); return <><Stars ca={ca} />{ca != null && knowledge(game, p) < 95 && !hasSupporter() && <span className="muted">?</span>}</> } },
     { id: 'form', head: t('transfers.colForm'), align: 'right', sort: 'form', narrowHide: true, cell: p => <FormPill v={p.form} /> },
     { id: 'value', head: t('squad.colValue'), align: 'right', sort: 'value', cell: p => fmtMoney(seenValue(game, p)) },
   ]

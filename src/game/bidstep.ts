@@ -17,12 +17,12 @@ export function feeSteps(ref: number): [number, number] {
   return [100_000, 500_000]
 }
 
-/** A fee after one press. `delta` is signed. The floor is one small step of
- *  the reference fee, and never above where the bid already stands. */
-export function stepFee(bid: number, delta: number, ref: number): number {
-  if (delta >= 0) return bid + delta
-  const floor = Math.min(bid, feeSteps(ref)[0])
-  return Math.max(floor, bid + delta)
+/** A fee after one press. `delta` is signed. A bid can be taken all the way
+ *  down to nothing (owner, 21 Nov 2026: "have you added value starting at
+ *  0?"): what the club makes of a bid of nothing is the club's answer to give,
+ *  not the stepper's. It never goes below nothing. */
+export function stepFee(bid: number, delta: number, _ref?: number): number {
+  return Math.max(0, bid + delta)
 }
 
 /** The weekly-wage step at this wage. */

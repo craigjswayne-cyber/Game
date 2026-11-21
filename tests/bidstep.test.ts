@@ -7,6 +7,8 @@ describe('fee stepper', () => {
     const [s, b] = feeSteps(30_000)
     expect([s, b]).toEqual([5_000, 25_000])
     expect(stepFee(30_000, -b, 30_000)).toBe(5_000)
+    expect(stepFee(5_000, -s, 30_000)).toBe(0)
+    expect(stepFee(0, -s, 30_000)).toBe(0)
     expect(stepFee(30_000, -s, 30_000)).toBe(25_000)
   })
   it('no press of minus ever raises a bid, at any size', () => {
@@ -16,7 +18,7 @@ describe('fee stepper', () => {
         for (let i = 0; i < 40; i++) {
           const next = stepFee(bid, -step, ref)
           expect(next).toBeLessThanOrEqual(bid)
-          expect(next).toBeGreaterThan(0)
+          expect(next).toBeGreaterThanOrEqual(0)
           bid = next
         }
       }

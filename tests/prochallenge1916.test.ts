@@ -243,7 +243,7 @@ describe('Shoestring: "Half the transfer budget every summer and no extra wage r
       const c = g.clubs[uid]
       expect(c.budget, `summer ${summer}`).toBe(Math.round(twin.clubs[uid].budget / 2 / 50_000) * 50_000)
       expect(userWageBudget(g, c) - capBill(g, c), `summer ${summer}`).toBe(0)
-      expect([0, summer]).toContain(g.proChallenge!.streak) // met every season so far, or reset
+      expect(g.proChallenge!.streak).toBeLessThanOrEqual(summer) // one for each target met in a row, back to nought on a miss
     }
   }, 240_000)
 
@@ -258,7 +258,7 @@ describe('Shoestring: "Half the transfer budget every summer and no extra wage r
   })
 
   // BUG 2 (gossip.ts moneyMen, the rich-buyer branch): wageBudget * 1.12 is applied under the challenge
-  it.fails('BUG 2: a completed takeover by a rich buyer opens no wage room', () => {
+  it('FIXED 1.9.16, was BUG 2: a completed takeover by a rich buyer opens no wage room', () => {
     const s0 = started('shoestring'); s0.boardGrace = 999_999
     let guard = 0
     while (s0.week < 5 && guard++ < 10) processWeekAndAdvance(s0)
@@ -289,11 +289,11 @@ describe('Fire Sale: "Your five best players are sold before day one, and the mo
     expect(g.news.find(n => n.k === 'news.proStartSold')?.v?.sold).toBe(best.map(p => p.name).join(', '))
   })
 
-  it('day one: none of the fees is transfer budget, all of it is banked, and it cannot be moved back', () => {
+  it('day one: none of the fees is transfer budget or left in the bank (1.9.16: it cleared the debts), and nothing can be moved to the budget', () => {
     const g = started('firesale')
     const c = g.clubs[uid]
     expect(c.budget).toBe(base.clubs[uid].budget)
-    expect(c.balance).toBe(base.clubs[uid].balance + fees)
+    expect(c.balance).toBe(base.clubs[uid].balance)
     expect(releaseToBudget(g).ok).toBe(false)
     expect(requestFunds(g)).toBe(PRO_NOFUNDS())
     expect(c.budget).toBe(base.clubs[uid].budget)
@@ -306,12 +306,13 @@ describe('Fire Sale: "Your five best players are sold before day one, and the mo
   })
 
   // BUG 1 (rollover/finance.ts resetBudgets): budget = rep * 45k + 15% of the balance, and the balance holds the fees
-  it.fails('BUG 1: a summer later, the banked fees have added nothing to the transfer budget', () => {
+  it('FIXED 1.9.16, was BUG 1: a summer later, the banked fees have added nothing to the transfer budget', () => {
     const g = started('firesale'); g.boardGrace = 999_999
     const pre = toNextSeason(g)
-    const ctl = clone(pre); ctl.clubs[uid].balance -= fees // the same summer, had the fees really gone on debts
-    finishSeason(ctl)
-    expect(g.clubs[uid].budget).toBeLessThanOrEqual(ctl.clubs[uid].budget)
+    // the same summer as it was before the fix, with the fees still sitting in the bank
+    const old = clone(pre); old.clubs[uid].balance += fees
+    finishSeason(old)
+    expect(old.clubs[uid].budget - g.clubs[uid].budget).toBeGreaterThan(fees * 0.05)
   }, 120_000)
 
   it('a league title completes it, a cup does not, and the deadline ends the career', () => {

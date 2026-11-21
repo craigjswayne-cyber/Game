@@ -98,8 +98,16 @@ export function setPreseasonPlan(state: GameState, style: PlanStyle, work: PlanW
   applyAtkStyle(club.tactic, s.atk)
   applyDefStyle(club.tactic, s.def)
   state.training = FOCUS_OF[work]
-  if (work === 'setpiece') state.matchPrep = 'setpiece'
-  else if (state.matchPrep === 'setpiece') state.matchPrep = undefined
+  // EACH ANSWER PULLS THE LEVER ITS WORDS NAME (1.9.16, measured by
+  // scripts/preseasonprobe.ts over 24 seeds). Only Set pieces set a match
+  // preparation. Fitness ("legs for the season") set a training focus and
+  // nothing that touches recovery or how fast legs tire, which read the week's
+  // preparation; Attack ("moves and handling") never switched on the
+  // preparation that drills called moves. All three now set their own, and a
+  // preparation the manager chose himself in Training is left alone unless it
+  // was one of the plan's.
+  const PREP: Record<PlanWork, 'fitness' | 'setpiece' | 'attack'> = { fitness: 'fitness', setpiece: 'setpiece', attack: 'attack' }
+  if (state.matchPrep == null || state.matchPrep === 'fitness' || state.matchPrep === 'setpiece' || state.matchPrep === 'attack') state.matchPrep = PREP[work]
   state.preplan = { season: planSeason(state), style, work }
   // the plan IS the game plan: the first season's checklist ticks it
   noteStep(state, 'plan')

@@ -1,3 +1,4 @@
+import { hasSupporter } from '../../game/monetise'
 import { useState } from 'react'
 import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
@@ -525,7 +526,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               <td><Nat code={p.nat} /></td>
               {/* another club's squad is read through the scouts (1.8.2): the
                   academy tab here was a free list of true ratings and prices */}
-              <td><Stars ca={shownCa(game, p)} />{shownCa(game, p) != null && knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
+              <td><Stars ca={shownCa(game, p)} />{/* no estimate mark beside a rating for a Pro manager (owner, 1.9.16) */}{shownCa(game, p) != null && knowledge(game, p) < 95 && !hasSupporter() && <span className="muted">?</span>}</td>
               <td className="narrow-hide"><FormPill v={p.form} trend={formTrend(p)} /></td>
               <td className="num">{fmtMoney(seenValue(game, p))}</td>
             </tr>
