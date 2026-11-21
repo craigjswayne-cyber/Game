@@ -21,7 +21,7 @@ import { natRankOrder } from '../../game/natrank'
 import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
-import { NAT_SQUAD_FLOOR, natWindow, weeksToSquad } from '../../game/country'
+import { NAT_SQUAD_FLOOR, deskNat, natWindow, weeksToSquad } from '../../game/country'
 import { canAnnounce } from '../../game/natwin'
 import { FanFace, Glyph } from '../glyphs'
 import { COMMUNITY_URL } from '../../game/community'
@@ -154,23 +154,34 @@ export default function Home() {
   // the country desk tile, shared with the out-of-work Home: a national coach
   // between clubs still has Tests to run (1.9.14)
   const countryTile = game.natTeam && (() => {
-        const next = game.fixtures
-          .filter(f => !f.played && (f.homeId === game.natTeam || f.awayId === game.natTeam))
-          .sort((a, b) => a.week - b.week)[0]
+        // ON TOUR THE TILE IS THE TOUR'S (1.9.16): it read "Head coach ·
+        // England · Australia v England · this week belongs to your country"
+        // in the week of the first tour match, which the assistant has
+        const side = deskNat(game) ?? game.natTeam
+        const onTour = side === 'LIO'
+        const mine = game.fixtures
+          .filter(f => !f.played && (f.homeId === side || f.awayId === side))
+          .sort((a, b) => a.week - b.week || a.id - b.id)
+        const next = onTour ? (mine.find(f => f.week === mine[0]?.week && !f.tourMatch) ?? mine[0]) : mine[0]
+        const nm = (id: string) => game.clubs[id]?.name ?? (id === 'LIO' ? t('isles.short') : nationName(id))
         const rank = natRankOrder(game).indexOf(game.natTeam) + 1
         const testWeek = next && next.week === game.week
         return (
           <button className="home-tile wide" data-tile="country" onClick={() => go('country')}>
             <span className="ht-l">
-              {t('home.headCoach')} · {nationName(game.natTeam)}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}
+              {onTour
+                ? <>{t('home.headCoach')} · {nationName('LIO')}</>
+                : <>{t('home.headCoach')} · {nationName(game.natTeam)}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}</>}
             </span>
             {next ? (
               <>
                 <span className="ht-v">
-                  <Flag code={next.homeId} size={17} /> {nationName(next.homeId)} {t('common.v')} <Flag code={next.awayId} size={17} /> {nationName(next.awayId)}
+                  {!game.clubs[next.homeId] && <Flag code={next.homeId} size={17} />} {nm(next.homeId)} {t('common.v')} {!game.clubs[next.awayId] && <Flag code={next.awayId} size={17} />} {nm(next.awayId)}
                 </span>
                 <span className="ht-s">
-                  {testWeek ? t(game.unemployed ? 'home.testWeekNatOnly' : 'home.testWeek') : t('home.nextTest', { date: fxDate(game.season, next) })}
+                  {onTour
+                    ? `${next.stage ? stageName(next.stage) + ' · ' : ''}${fxDate(game.season, next)}`
+                    : testWeek ? t(game.unemployed ? 'home.testWeekNatOnly' : 'home.testWeek') : t('home.nextTest', { date: fxDate(game.season, next) })}
                 </span>
                 {/* DAYS UNTIL THE SQUAD (owner: "could we have days til squad
                     work"). The window calendar always knew this and never said
@@ -180,12 +191,13 @@ export default function Home() {
                     the party is named, and the countdown to the next one. */}
                 {(() => {
                   const w = natWindow(game)
+                  if (onTour && !w) return null
                   if (w) {
                     return (
                       <span className="ht-s" style={{ fontWeight: 700, color: 'var(--gold)' }}>
                         {canAnnounce(game, NAT_SQUAD_FLOOR)
                           ? t('natwin.announce')
-                          : t('home.campOpen', { n: (game.natSquads[game.natTeam!] ?? []).length, size: w.size })}
+                          : t('home.campOpen', { n: (game.natSquads[side!] ?? []).length, size: w.size })}
                       </span>
                     )
                   }
