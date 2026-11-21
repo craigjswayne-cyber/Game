@@ -125,6 +125,7 @@ ok(!wg.comps['lions'], 'the men\'s tour does not exist in a women\'s world')
   sw.season = wg.season
   buildWomensInternationals(mulberry32(sw.seed), sw)
   sw.natTeam = 'ENG'
+  sw.isles = { season: sw.season, answer: 'yes' } // she took the tour: only then is the series hers (1.9.16)
   const series = sw.comps[W + 'lions']
   const last = TOUR_WEEKS[TOUR_WEEKS.length - 1]
   for (const f of sw.fixtures) if (f.week < last) f.played = true

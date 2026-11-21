@@ -356,10 +356,27 @@ console.log('\n--- 7b. a signing in his position: the starter wants assurances\n
     // week. This used to injure him for twelve weeks, and an injured man's
     // promise is now lifted rather than broken (awaymoraleprobe.ts), which
     // is the point: only a man left out by choice holds you to it.
-    const sheet = P.clubs[P.userClubId].tactic.lineup
+    // AND NOT AWAY WITH HIS COUNTRY (1.9.16). The eight weeks run into the
+    // autumn Tests, and once every squad had a floor for every shirt the
+    // starter was called up: a man in camp is away, and an absent man's
+    // promise is lifted, as an injured man's is. A passport no Test side in
+    // the autumn reads keeps him at the club, where he can be left out.
+    P.players[s.id].nat = 'NAM'
+    P.players[n.id].nat = 'NAM' // and the signing too: called up, he hands the shirt back
     for (let i = 0; i < 8; i++) {
-      for (let k = 0; k < sheet.length; k++) if (sheet[k] === n.id) sheet[k] = null
-      for (let k = 0; k < sheet.length; k++) if (sheet[k] === s.id) sheet[k] = n.id
+      // read afresh each week: a call-up rebuilds the sheet as a new list, and
+      // a list held from week one was then edited in vain
+      const sheet = P.clubs[P.userClubId].tactic.lineup
+      // the signing takes the starter's shirt, wherever the starter is named.
+      // When the signing already has it there is nothing to do: clearing his
+      // name first (as this did) emptied the shirt, and the starter was
+      // picked back into it at kick-off
+      const si = sheet.indexOf(s.id)
+      if (si >= 0) {
+        const ni = sheet.indexOf(n.id)
+        if (ni >= 0) sheet[ni] = null
+        sheet[si] = n.id
+      }
       for (const q of P.press) if (!q.answered) q.answered = true
       processWeekAndAdvance(P)
     }

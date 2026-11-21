@@ -2,7 +2,7 @@
 // re-exports the public parts.
 import type { Competition, GameState, Player } from '../model'
 import { W, genderOf } from '../gender'
-import { islesCoach, isleTour } from '../isles'
+import { closeTour, islesCoach, isleTour } from '../isles'
 import { windowSpans } from '../calendar'
 import { buildPlayer } from '../attributes'
 import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, squadSizeOf, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from '../nations'
@@ -80,6 +80,7 @@ export function manageInternationals(state: GameState, rng: Rng) {
             }
           }
         }
+        if (nat === 'LIO') closeTour(state)
         delete state.natSquads[nat]
         if (nat === state.natTeam) { delete state.natSent; delete state.natFed; delete state.natSentLoss; delete state.natCallGain }
         if (nat === state.natOrphan) state.natOrphan = null
@@ -138,14 +139,30 @@ export function manageInternationals(state: GameState, rng: Rng) {
 function topUpPool(state: GameState, nat: string, pool: Player[], target: number, rng: Rng): void {
   const natRep = genderOf(state) === 'w' ? natStrength(state, nat) + 3 : nationByCode(nat)?.rep ?? 55
   const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
+  // THE SHIRT THE POOL IS SHORTEST OF, NOT THE NEXT ONE ROUND (1.9.16). The
+  // cycle started at loosehead whatever the country already had, so Tonga's
+  // pool filled up without a scrum-half and Samoa's without a fly-half, and
+  // a pool that was already full got nobody at all. Each generated man takes
+  // the shirt furthest below its share, and a full pool with an empty shirt
+  // (two wanted at half-back, full-back and hooker) still gets its man.
+  const WANT: Record<string, number> = {}
+  for (const pos of POS_CYCLE) WANT[pos] = (WANT[pos] ?? 0) + 1
+  const KEY = ['SH', 'FH', 'FB', 'HK']
+  const has = (pos: string) => pool.filter(p => p.pos === pos || (p.alt as string[]).includes(pos)).length
+  const neediest = () => {
+    const gap = KEY.find(pos => has(pos) < 2)
+    if (gap) return gap
+    return Object.keys(WANT).sort((x, y) => has(x) / WANT[x] - has(y) / WANT[y] || POS_CYCLE.indexOf(x as never) - POS_CYCLE.indexOf(y as never))[0]
+  }
   let i = 0
-  while (pool.length < target && i < target + 12) {
+  while ((pool.length < target || KEY.some(pos => has(pos) < 2)) && i < target + 12) {
+    const pos = neediest() as typeof POS_CYCLE[number]
     const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
     const hp = buildPlayer(
       {
-        name: regenName(rng, nat, worldNames(state), genderOf(state)), pos: POS_CYCLE[i % POS_CYCLE.length],
+        name: regenName(rng, nat, worldNames(state), genderOf(state)), pos,
         age: 22 + Math.floor(rng() * 9), nat, q,
-        gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
+        gk: (pos === 'FH') && rng() < 0.5,
       },
       null, state.seed + state.week * 131 + i * 17, state.season)
     hp.natGen = true
@@ -157,7 +174,7 @@ function topUpPool(state: GameState, nat: string, pool: Player[], target: number
 
 /** One window's call-ups: every federation names its squad, the coach's
  *  nation's camp opens empty for the coach. */
-function callUps(state: GameState, w: Window, rng: Rng): void {
+function callUps(state: GameState, w: Window, _rng: Rng): void {
     // call-ups
     const userCalls: Player[] = []
     const lionsCalls: Player[] = []
@@ -218,7 +235,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       // field 34 qualified men and not a soul more - never generated anybody
       // and had exactly two players outside a 32-man camp. Thin is thin
       // whether you are two short of a squad or two short of a contest.
-      if (nat !== 'LIO' && pool.length < target) topUpPool(state, nat, pool, target, rng)
+      if (nat !== 'LIO' && (pool.length < target || ['SH', 'FH', 'FB', 'HK'].some(pos => pool.filter(p => p.pos === pos || (p.alt as string[]).includes(pos)).length < 2))) topUpPool(state, nat, pool, target, mulberry32(hashString(`${state.seed}:${state.season}:${w.start}:${nat}:pool`)))
       // THE BEST OF THEM TRAVEL; THE REST ARE THE NEXT MEN IN. Re-sorted
       // because the generated players were pushed on the end rather than
       // merged in rating order, and a squad that is not the best of its own
@@ -251,6 +268,21 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
         openUserCamp(state, nat, w)
         continue
       }
+      // AND SO DOES HIS TOUR PARTY (owner, 21 Nov 2026: "yes it should open
+      // empty... all players"). The four unions hand him the sheet: every
+      // eligible man in the four countries, wherever he plays. It is held
+      // open by the same rule as his country's camp (country.ts natShortfall)
+      // and topped up by shirt if he never names it (fillShortNatSquad).
+      if (nat === 'LIO' && islesCoach(state)) {
+        if (state.natSquads['LIO']) continue
+        state.natSquads['LIO'] = []
+        const v = { n: NAT_SQUAD_FLOOR }
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: tIn('en', 'news.islesNameSubj', v), body: tIn('en', 'news.islesName', v), k: 'news.islesName', v,
+        })
+        continue
+      }
       // the front row may come from below the depth cut: a third hooker is
       // picked before a twentieth back, however far down the list he sits
       // AND FROM BELOW THE RATING BAR (1.8.17). The pool only reads men rated
@@ -263,7 +295,9 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       const frCover = Object.values(state.players)
         .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
           p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
-          !ranked.includes(p) && ['LP', 'HK', 'TP'].some(f => p.pos === f || (p.alt as string[]).includes(f)))
+          // any shirt, since 1.9.16 gave every shirt a floor (nations.ts):
+          // Tonga's third scrum-half is below the bar too
+          !ranked.includes(p))
         .sort((a, b) => b.ca - a.ca || a.id - b.id)
       const travelling = withFrontRow([...pool, ...ranked.slice(target), ...frCover], w.size)
       // THE LAST CAMP'S MEN GO HOME WHEN THE NEXT ONE IS NAMED OVER IT (1.9.16).
@@ -324,7 +358,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       const names = lionsCalls.map(p => `${p.name}${(p.lions ?? 0) > 1 ? ` (tour number ${p.lions})` : ''}`).join(', ')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-        subject: `LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
+        subject: `THE TOUR: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
         k: (state.season * 5 + state.week * 3) % 2 === 0 ? 'news.lionsCallA' : 'news.lionsCallB',
         v: {
           n: lionsCalls.length, names, tour,
@@ -490,10 +524,41 @@ export function openUserCampAhead(state: GameState, ahead: 0 | 1): void {
   }
 }
 
+/**
+ * A UNION THAT LOST MEN TO THE TOUR CALLS UP COVER (1.9.16). The Isles coach
+ * names his party from the four unions' own camps (country.ts), so each of
+ * them is made back up to a touring squad from its next men, by shirt. Only
+ * while he holds the tour; nobody else's squad is touched.
+ */
+function refillUnions(state: GameState): void {
+  if (!islesCoach(state) || !state.natSquads['LIO']) return
+  const NEED: Record<string, number> = { LP: 3, HK: 3, TP: 3, LK: 3, FL: 3, N8: 1, SH: 2, FH: 2, CE: 3, WG: 3, FB: 1 }
+  for (const nat of HOME4_NAT) {
+    const named = state.natSquads[nat]
+    if (!named) continue
+    const w = activeWindows(state).find(o => o.nations.includes(nat) && state.week >= o.start && state.week <= o.end)
+    if (!w) continue
+    const want = Math.min(w.size, NAT_SQUAD_FLOOR + 5)
+    const left = Object.values(state.players)
+      .filter(p => p.nat === nat && p.clubId && homeBased(state, p, nat) && !p.injury && !p.natSquad && !p.onLoan)
+      .sort((a, b) => b.ca - a.ca || a.id - b.id)
+    while (named.length < want && left.length) {
+      const room = named.map(id => state.players[id]).filter((q): q is Player => !!q)
+      let i = left.findIndex(p => room.filter(q => q.pos === p.pos).length < (NEED[p.pos] ?? 0))
+      if (i < 0) i = 0
+      const p = left.splice(i, 1)[0]
+      named.push(p.id)
+      p.natSquad = true
+    }
+  }
+}
+
 export function fillShortNatSquad(state: GameState) {
+  refillUnions(state)
   // not gated on employment: a coach between club jobs still has a country,
   // and its camp opens empty for him like anyone's (see natSquadHold)
-  const nat = state.natTeam ?? state.natOrphan
+  // the tour party on an Isles tour (1.9.16): it opens empty for him too
+  const nat = islesCoach(state) && state.natSquads['LIO'] ? 'LIO' : state.natTeam ?? state.natOrphan
   if (!nat) return
   const playing = state.fixtures.some(f =>
     !f.played && f.week === state.week && (f.homeId === nat || f.awayId === nat))
@@ -504,27 +569,45 @@ export function fillShortNatSquad(state: GameState) {
   const size = activeWindows(state).find(w =>
     w.nations.includes(nat) && state.week >= w.start && state.week <= w.end)?.size ?? NAT_SQUAD_SIZE
   const named = state.natSquads[nat] ?? []
-  if (named.length >= NAT_SQUAD_FLOOR) return
+  // FIT MEN, NOT NAMES (1.9.16). Twenty-three named and two of them hurt in
+  // camp is twenty-one, and the Test was played with holes on the bench: the
+  // union sends injury cover, as a union does.
+  const fit = named.filter(id => state.players[id] && !state.players[id].injury)
+  if (fit.length >= NAT_SQUAD_FLOOR || named.length >= size) return
   const inCamp = new Set(named)
   const candidates = Object.values(state.players)
     .filter(p => !inCamp.has(p.id) && (nat === 'LIO' ? HOME4_NAT.includes(p.nat) : p.nat === nat) &&
-      p.clubId && homeBased(state, p, nat) && !p.injury && !p.natSquad)
+      // the tour takes from the unions' own camps (country.ts inOwnUnionCamp)
+      p.clubId && homeBased(state, p, nat) && !p.injury && (!p.natSquad || (nat === 'LIO' && (state.natSquads[p.nat] ?? []).includes(p.id))))
     .sort((a, b) => b.ca - a.ca)
   // the top-up obeys the same club quota the coach does (9.10), or naming a
   // short squad would let the federation's top-up do the raiding for him
   const fed = conflictedClub(state) ? federationList(state, nat, size) : []
+  // A 23 THAT CAN FILL A TEAM SHEET (1.9.16). The top-up was the best by
+  // rating and nothing else, so a camp left unnamed could be made up to 23
+  // with no second scrum-half or no lock for the bench. Each place goes to
+  // the best man in a shirt the room is still short of, and only then to
+  // the best man left.
+  const NEED: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 2, N8: 1, SH: 2, FH: 2, CE: 2, WG: 2, FB: 1 }
   const spare: Player[] = []
-  for (const p of candidates) {
-    if (spare.length >= NAT_SQUAD_FLOOR - named.length) break
-    if (clubQuotaLeft(state, nat, size, [...named, ...spare.map(q => q.id)], p.clubId!, fed) <= 0) continue
-    spare.push(p)
+  const left = [...candidates]
+  while (spare.length < Math.min(NAT_SQUAD_FLOOR - fit.length, size - named.length) && left.length) {
+    const room = [...fit.map(id => state.players[id]), ...spare]
+    const short = (pos: string) => room.filter(q => q.pos === pos).length < (NEED[pos] ?? 0)
+    const ok = (p: Player) => clubQuotaLeft(state, nat, size, [...named, ...spare.map(q => q.id)], p.clubId!, fed) > 0
+    let i = left.findIndex(p => short(p.pos) && ok(p))
+    if (i < 0) i = left.findIndex(ok)
+    if (i < 0) break
+    spare.push(left.splice(i, 1)[0])
   }
   if (!spare.length) return
   for (const p of spare) {
+    if (nat === 'LIO' && p.natSquad) state.natSquads[p.nat] = (state.natSquads[p.nat] ?? []).filter(id => id !== p.id)
     named.push(p.id)
     p.natSquad = true
   }
   state.natSquads[nat] = named
+  if (nat === 'LIO') refillUnions(state)
   const v = { ...nationVars(nat), n: spare.length }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,

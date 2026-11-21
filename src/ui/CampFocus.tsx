@@ -1,7 +1,7 @@
 import { useStore } from '../store'
 import { t } from '../game/i18n'
 import { nationName } from '../game/nations'
-import { campWindow, setCampFocus, weeksToSquad } from '../game/country'
+import { campWindow, setCampFocus, weeksToSquad, deskNat } from '../game/country'
 import { CAMP_FOCI, campFocus } from '../game/natcamp'
 import { Flag } from './flags'
 import { acc } from './accent'
@@ -17,7 +17,8 @@ export function CampFocus() {
   const touch = useStore(s => s.touch)
   useStore(s => s.tick)
   if (!game?.natTeam) return null
-  const nat = game.natTeam
+  // the tour party's camp on an Isles tour (1.9.16), not his country's
+  const nat = deskNat(game) ?? game.natTeam
   const open = campWindow(game)
   const on = campFocus(game)
   return (

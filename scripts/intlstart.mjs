@@ -1,7 +1,9 @@
+import { mkdirSync } from 'node:fs'
 // 1.9.16: the paid "start as an international coach" door, driven with a stand-in store.
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
-const OUT = process.env.OUT ?? '/home/claude/tools/s5'
+const OUT = process.env.OUT ?? 'shots-intlstart'
+mkdirSync(OUT, { recursive: true })
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const server = await startPreview(0, 2500)

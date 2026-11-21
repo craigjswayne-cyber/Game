@@ -6,7 +6,7 @@ import { dressingRoomAlerts } from './alerts'
 import { settleStartPledge } from './handshake'
 import type { Fixture, GameState, Player, Pos } from './model'
 import { W, genderOf, subjectVar } from './gender'
-import { islesCoach, isleTour, lapseIsles, offerIsles } from './isles'
+import { islesCoach, isleTour, lapseIsles, offerIsles, raceIsles } from './isles'
 import { telling } from './tellings'
 import { aiCloseSeason } from './closeseason'
 import { talkingPoints } from './talkingpoints'
@@ -1365,11 +1365,16 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       else state.mgr.l += 1
       // the tenure's own ledger, shown on the country desk - the record books
       // keep a coach's Test record separately, so the game does too
-      const rec = (state.natRecord ??= { m: 0, w: 0, d: 0, l: 0 })
-      rec.m += 1
-      if (us > them) rec.w += 1
-      else if (us === them) rec.d += 1
-      else rec.l += 1
+      // HIS COUNTRY'S LEDGER IS HIS COUNTRY'S (1.9.16): the Isles tour's ten
+      // games went on it, so "Tests under you" for England counted a
+      // midweek game in Dunedin
+      if (mySide === state.natTeam) {
+        const rec = (state.natRecord ??= { m: 0, w: 0, d: 0, l: 0 })
+        rec.m += 1
+        if (us > them) rec.w += 1
+        else if (us === them) rec.d += 1
+        else rec.l += 1
+      }
       mgrMilestones(state, us > them)
       // and the window's target (1.9.14, natwin.ts)
       if (mySide === state.natTeam) noteWindowResult(state, us, them)
@@ -1688,8 +1693,11 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         }
-        const lionsWin = comp.id === isleTour(state)?.id && comp.champion === 'LIO' &&
-          state.natTeam != null && ['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)
+        // HIS, IF HE TOOK THE TOUR (1.9.16). This credited any coach of the
+        // four unions, so a man who was never asked, or who turned it down,
+        // got the trophy, the confetti and the reputation for a series his
+        // rival won.
+        const lionsWin = comp.id === isleTour(state)?.id && comp.champion === 'LIO' && islesCoach(state)
         if ((state.natTeam != null && comp.champion === state.natTeam) || lionsWin) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
           // A TABLE WON IS A TROPHY LIFTED (1.9.14). A knockout title (a World
@@ -2228,7 +2236,20 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       k: 'news.islesLapsed', v: {},
     })
   }
+  raceIsles(state)
   if (offerIsles(state)) {
+    // THE LETTER IS AN OCCASION (1.9.16). The biggest moment in a career
+    // arrived as one more line in the inbox. It takes the screen now, the way
+    // a title does, and says where the answer is given.
+    {
+      const sv = { tour: isleTour(state)?.name ?? '' }
+      const cel = {
+        headline: tIn('en', 'cel.islesOffer'), sub: tIn('en', 'cel.islesOfferSub', sv),
+        icon: 'trophy', hk: 'cel.islesOffer', hv: {}, sk: 'cel.islesOfferSub', sv,
+      }
+      if (state.celebration) state.celebrationNext = cel
+      else state.celebration = cel
+    }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
       subject: `An invitation from the four unions`,

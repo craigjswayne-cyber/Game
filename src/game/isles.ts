@@ -34,6 +34,9 @@ import { isLionsSeason, isWomensTourSeason } from './schedule'
 import { genderOf, W } from './gender'
 import type { Competition } from './model'
 import { TOUR_WEEKS } from './calendar'
+import { TOUR_ROLES, type TourRole } from './natcamp'
+import { tIn } from './i18n'
+import { NAT_SQUAD_FLOOR } from './nations'
 
 /** The four unions the touring side draws from. */
 const HOME_UNIONS = ['ENG', 'IRE', 'SCO', 'WAL'] as const
@@ -63,16 +66,34 @@ export function isleTour(state: GameState): Competition | undefined {
   return state.comps[genderOf(state) === 'w' ? W + 'lions' : 'lions']
 }
 
+/** A trophy won as a national coach: a championship or a world title. */
+export function hasTestTitle(state: GameState): boolean {
+  const TEST = ['sn', 'wc', 'trc', 'pnc', 'nc', 'p4']
+  return (state.mgr?.trophies ?? []).some(t => TEST.includes(t.compId.replace(/^w:/, '')))
+}
+
 export function islesEligible(state: GameState): { ok: boolean; why: string } {
   if (!isTourSeason(state)) return { ok: false, why: 'isles.whyNoTour' }
-  if (state.unemployed) return { ok: false, why: 'isles.whyNoJob' }
+  // NO CLUB IS NO BAR (1.9.16). `unemployed` means "no club", and a man who
+  // coaches England and nothing else is exactly who the owner's sentence
+  // describes. This clause used to turn him away, so the international start
+  // could never reach the job it is sold as the road to.
   // "are coachin internationally" - and one of the four, since it is their team
   const nat = state.natTeam
   if (!nat || !(HOME_UNIONS as readonly string[]).includes(nat)) return { ok: false, why: 'isles.whyNotIntl' }
   // "won something"
   if ((state.mgr?.trophies?.length ?? 0) < 1) return { ok: false, why: 'isles.whyNoTrophy' }
+  // ...WITH HIS COUNTRY (owner, 21 Nov 2026: "it should be a really
+  // specialist selection to get this, so not everybody should get it"). A
+  // club title gets a man talked about; the four unions give their side to
+  // somebody who has already won at Test level.
+  if (!hasTestTitle(state)) return { ok: false, why: 'isles.whyNoTrophy' }
   // "reputation of 95+"
   if (mgrReputation(state) < ISLES_REP) return { ok: false, why: 'isles.whyRep' }
+  // ONLY AFTER A GOOD TOUR (owner, 21 Nov 2026: "Only if you did a good job
+  // may you be potentially invited back 4 years later")
+  const last = state.islesPast?.[state.islesPast.length - 1]
+  if (last && !(last.won || last.decider)) return { ok: false, why: 'isles.whyNotBack' }
   return { ok: true, why: 'isles.whyYes' }
 }
 
@@ -86,6 +107,10 @@ export function offerIsles(state: GameState): boolean {
   if (state.isles?.season === state.season) return false
   if (state.week !== ISLES_OFFER_WEEK) return false
   if (!islesEligible(state).ok) return false
+  // a save that joined the season after the race began has no race: the
+  // conditions alone decide, as they did before 1.9.16
+  const r = state.islesRace?.season === state.season ? state.islesRace : null
+  if (r && (r.out || r.stage < 4)) return false
   state.isles = { season: state.season, answer: 'open' }
   return true
 }
@@ -102,4 +127,234 @@ export function answerIsles(state: GameState, yes: boolean): boolean {
   if (state.isles?.season !== state.season || state.isles.answer !== 'open') return false
   state.isles.answer = yes ? 'yes' : 'no'
   return true
+}
+
+// ---- THE TOUR OFFICE (1.9.16) ----
+//
+// Owner, 21 Nov 2026: "it should open empty. You should pick coaches from
+// around the game - all players. Every announcement is a big thing. This is
+// the pinnacle of the game - make features that feel like it is the only
+// place you get this."
+//
+// Three things he does nowhere else, each announced once and each an
+// occasion: the coaching team (three head coaches borrowed from the game's
+// clubs), the tour party (named from an empty sheet, from every eligible
+// player in the four unions wherever he plays), and the tour captain.
+
+/** The head coaches he can ask: every club that has one, best known first.
+ *  Not his own club's (that is him), and nobody twice. */
+export function tourCoaches(state: GameState): { clubId: string; name: string; club: string }[] {
+  return Object.values(state.clubs)
+    .filter(c => !!c.coach && (state.unemployed || c.id !== state.userClubId))
+    .sort((a, b) => b.rep - a.rep || (a.id < b.id ? -1 : 1))
+    .slice(0, 40)
+    .map(c => ({ clubId: c.id, name: c.coach!, club: c.short }))
+}
+
+/** Give a role to a club's head coach, or clear it with null. A coach holds
+ *  one role; the team is fixed once announced. */
+export function setTourCoach(state: GameState, role: TourRole, clubId: string | null): boolean {
+  const i = state.isles
+  if (!i || i.season !== state.season || i.answer !== 'yes' || i.staffOut) return false
+  const st = (i.staff ??= {})
+  if (clubId == null) { delete st[role]; return true }
+  if (!state.clubs[clubId]?.coach) return false
+  for (const r of TOUR_ROLES) if (st[r] === clubId) delete st[r]
+  st[role] = clubId
+  return true
+}
+
+const occasion = (state: GameState, hk: string, hv: Record<string, string | number>, sk: string, sv: Record<string, string | number>) => {
+  const cel = { headline: tIn('en', hk, hv), sub: tIn('en', sk, sv), icon: 'trophy', hk, hv, sk, sv }
+  if (state.celebration) state.celebrationNext = cel
+  else state.celebration = cel
+}
+const tourName = (state: GameState) => isleTour(state)?.name ?? ''
+
+/** Announce the coaching team: all three named, once. */
+export function announceTourStaff(state: GameState): boolean {
+  const i = state.isles
+  const st = i?.staff
+  if (!i || i.season !== state.season || i.answer !== 'yes' || i.staffOut || !st || !TOUR_ROLES.every(r => st[r] && state.clubs[st[r]!]?.coach)) return false
+  i.staffOut = true
+  const who = (r: TourRole) => state.clubs[st[r]!].coach!
+  const club = (r: TourRole) => state.clubs[st[r]!].short
+  const v = { manager: state.managerName, tour: tourName(state), a: who('fwd'), ca: club('fwd'), b: who('atk'), cb: club('atk'), c: who('def'), cc: club('def') }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', 'news.islesStaffSubj', v), body: tIn('en', 'news.islesStaff', v), k: 'news.islesStaff', v,
+  })
+  occasion(state, 'cel.islesStaff', {}, 'cel.islesStaffSub', { a: v.a, b: v.b, c: v.c })
+  return true
+}
+
+/** How the party splits across the four unions. */
+export function partyCount(state: GameState): Record<'ENG' | 'IRE' | 'SCO' | 'WAL', number> {
+  const out = { ENG: 0, IRE: 0, SCO: 0, WAL: 0 }
+  for (const id of state.natSquads['LIO'] ?? []) {
+    const n = state.players[id]?.nat
+    if (n === 'ENG' || n === 'IRE' || n === 'SCO' || n === 'WAL') out[n]++
+  }
+  return out
+}
+
+/** Can the party be announced? Named to the floor, and not yet announced. */
+export function canAnnounceParty(state: GameState): boolean {
+  const i = state.isles
+  return !!i && i.season === state.season && i.answer === 'yes' && !i.partyOut && (state.natSquads['LIO'] ?? []).length >= NAT_SQUAD_FLOOR
+}
+
+/**
+ * Announce the tour party. He picks who he likes: there is no quota (owner:
+ * "remove the at least 3 from every union - make it a press story line. Its
+ * always a talking point"). So the press counts the unions for him, and the
+ * headline is whichever of the four has most to say about it.
+ */
+export function announceTourParty(state: GameState): boolean {
+  if (!canAnnounceParty(state)) return false
+  const i = state.isles!
+  i.partyOut = true
+  const ids = state.natSquads['LIO'] ?? []
+  const c = partyCount(state)
+  const total = ids.length
+  const order = (['ENG', 'IRE', 'SCO', 'WAL'] as const).slice().sort((x, y) => c[x] - c[y])
+  const least = order[0], most = order[3]
+  const kind = c[least] === 0 ? 'None' : c[least] <= 2 ? 'Few' : c[most] >= total * 0.55 ? 'Many' : 'Even'
+  const nat = kind === 'Many' ? most : least
+  const v = { manager: state.managerName, tour: tourName(state), total, n: c[nat], nat: nat, nat_n: nat, eng: c.ENG, ire: c.IRE, sco: c.SCO, wal: c.WAL }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', `news.islesParty${kind}Subj`, v), body: tIn('en', `news.islesParty${kind}`, v), k: `news.islesParty${kind}`, v,
+  })
+  // the proudest phone call in rugby, made by him this time
+  for (const id of ids) {
+    const p = state.players[id]
+    if (!p) continue
+    p.lions = (p.lions ?? 0) + 1
+    p.morale = Math.max(1, Math.min(10, p.morale + 0.5))
+  }
+  occasion(state, 'cel.islesParty', {}, 'cel.islesPartySub', { n: total, eng: c.ENG, ire: c.IRE, sco: c.SCO, wal: c.WAL })
+  return true
+}
+
+/** Announce the tour captain: a man in the party, after the party is out. */
+export function announceTourCaptain(state: GameState): boolean {
+  const i = state.isles
+  const capId = state.natPlan?.nat === 'LIO' ? state.natPlan.captain : null
+  if (!i || i.season !== state.season || i.answer !== 'yes' || !i.partyOut || i.capOut || capId == null) return false
+  const p = state.players[capId]
+  if (!p || !(state.natSquads['LIO'] ?? []).includes(capId)) return false
+  i.capOut = true
+  p.morale = Math.max(1, Math.min(10, p.morale + 1))
+  const v = { manager: state.managerName, tour: tourName(state), player: p.name }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', 'news.islesCapSubj', v), body: tIn('en', 'news.islesCap', v), k: 'news.islesCap', v,
+  })
+  occasion(state, 'cel.islesCap', { player: p.name.toUpperCase() }, 'cel.islesCapSub', { tour: v.tour })
+  return true
+}
+
+/**
+ * THE JOB ENDS WITH THE TOUR (owner, 21 Nov 2026: "You do the job, complete
+ * it and leave"). Filed once, when the party is released: how it went, which
+ * is what the four unions read in four years' time.
+ */
+export function closeTour(state: GameState): void {
+  const i = state.isles
+  const tour = isleTour(state)
+  if (!i || i.season !== state.season || i.answer !== 'yes' || !tour) return
+  if (state.islesPast?.some(t => t.season === state.season)) return
+  const tests = state.fixtures.filter(f => f.compId === tour.id && !f.tourMatch && f.played).sort((a, b) => a.week - b.week || a.id - b.id)
+  const lead = (f: (typeof tests)[number]) => Math.sign((f.homeId === 'LIO' ? f.homeScore - f.awayScore : f.awayScore - f.homeScore))
+  const won = tour.champion === 'LIO'
+  // level going into the last Test: the series was alive on the final day
+  const decider = tests.length >= 3 && lead(tests[0]) + lead(tests[1]) === 0
+  ;(state.islesPast ??= []).push({ season: state.season, won, decider })
+  // and the last occasion of the job: how the series finished
+  const tw = tests.filter(f => lead(f) > 0).length, tl = tests.filter(f => lead(f) < 0).length
+  occasion(state, 'cel.islesOver', {}, 'cel.islesOverSub', { tour: tour.name, w: tw, l: tl })
+  const v = { tour: tour.name, result_k: won || decider ? 'news.islesOverGood' : 'news.islesOverBad' }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', 'news.islesOverSubj', v), body: tIn('en', 'news.islesOver', v), k: 'news.islesOver', v,
+  })
+}
+
+// ---- THE RACE FOR THE JOB (1.9.16) ----
+//
+// Owner, 21 Nov 2026: "there'd be loads of speculation and build up ahead of
+// the tour. Could you be considered? You are being considered. You're in the
+// final selection of 8, you're in the final selection of 4, you're down to
+// the final 2. And then you either get it or you don't, but you need to hit
+// the criteria, and it should be a really specialist selection."
+//
+// And it is a SECRET: nothing in the game says this job can be had until the
+// papers put his name on the list, so a coach who is nowhere near it never
+// hears of it. Four cuts through a tour season and then the decision, each
+// asking more than the last, each naming the rivals still standing. He can
+// be cut at any of them and is told who went through instead.
+export const RACE_WEEKS = [16, 22, 28, 33] as const
+const RACE_REP = [80, 86, 90, 93] as const
+const RACE_FIELD = [12, 8, 4, 2] as const
+
+function raceBar(state: GameState, stage: number): boolean {
+  const nat = state.natTeam
+  if (!nat || !(HOME_UNIONS as readonly string[]).includes(nat)) return false
+  if (mgrReputation(state) < RACE_REP[stage - 1]) return false
+  if (stage >= 2 && (state.mgr?.trophies?.length ?? 0) < 1) return false
+  if (stage >= 4 && !hasTestTitle(state)) return false
+  const last = state.islesPast?.[state.islesPast.length - 1]
+  if (last && !(last.won || last.decider)) return false
+  return true
+}
+
+/** The other names on the list: head coaches of the four unions' biggest
+ *  clubs, best known first. */
+function raceRivals(state: GameState): string[] {
+  return Object.values(state.clubs)
+    .filter(c => !!c.coach && (HOME_UNIONS as readonly string[]).includes(c.country) && (state.unemployed || c.id !== state.userClubId))
+    .sort((a, b) => b.rep - a.rep || (a.id < b.id ? -1 : 1))
+    .slice(0, RACE_FIELD[0] - 1).map(c => c.id)
+}
+const rivalLine = (state: GameState, ids: string[]) => ids.map(id => `${state.clubs[id]?.coach} (${state.clubs[id]?.short})`).join(', ')
+
+/** One week of the race. Called every week; it only speaks on its own days. */
+export function raceIsles(state: GameState): void {
+  if (!isTourSeason(state)) return
+  const say = (key: string, v: Record<string, string | number>) => state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', `news.${key}Subj`, v), body: tIn('en', `news.${key}`, v), k: `news.${key}`, v,
+  })
+  const tour = tourName(state)
+  const stage = RACE_WEEKS.indexOf(state.week as never) + 1
+  let r = state.islesRace?.season === state.season ? state.islesRace : null
+  if (stage >= 1) {
+    if (stage === 1) {
+      if (!raceBar(state, 1)) return // never mentioned: he hears nothing at all
+      r = state.islesRace = { season: state.season, stage: 1, rivals: raceRivals(state) }
+      say('islesRace1', { tour, names: rivalLine(state, r.rivals.slice(0, 5)) })
+      return
+    }
+    if (!r || r.out || r.stage !== stage - 1) return
+    const field = RACE_FIELD[stage - 1]
+    if (raceBar(state, stage)) {
+      r.stage = stage
+      r.rivals = r.rivals.slice(0, field - 1)
+      const rival = state.clubs[r.rivals[0]]
+      say(`islesRace${stage}`, { tour, names: rivalLine(state, r.rivals), rival: rival?.coach ?? '', club: rival?.short ?? '' })
+    } else {
+      r.out = true
+      r.rivals = r.rivals.slice(0, field)
+      say('islesRaceOut', { tour, n: field, names: rivalLine(state, r.rivals) })
+    }
+    return
+  }
+  // the decision: the week the letter would come (offerIsles runs after this)
+  if (state.week === ISLES_OFFER_WEEK && r) {
+    const rival = state.clubs[r.rivals[0]]
+    const v = { tour, rival: rival?.coach ?? '', club: rival?.short ?? '' }
+    if (r.out) say('islesRaceWinner', v)
+    else if (r.stage < 4 || !islesEligible(state).ok) { r.out = true; say('islesRaceLost', v) }
+  }
 }

@@ -808,8 +808,13 @@
 }
 
 /* ---- Start as an international coach (1.9.16, Menu.tsx, IntlStart.tsx) ---- */
-.intl-start-card { width: 100%; text-align: left; margin: 0; }
-.intl-start-card .store-word { font-size: 1.375rem; letter-spacing: 1px; }
+/* the same width as New Career above it (owner, 21 Nov 2026: "alignment issue - too much space"): a .card
+   carries side margins for a screen's gutter, and inside the title's own column they left it 28px short */
+button.card.intl-start-card { display: block; width: 100%; box-sizing: border-box; text-align: center; margin: 0; }
+/* sentence case, to sit beside New Career (owner, 21 Nov: "is all caps the correct vibe - feels off compared to the new game") */
+.intl-start-card { text-align: center; }
+.intl-start-card .store-word { font-family: inherit; font-size: 1.0625rem; font-weight: 700; letter-spacing: 0; text-transform: none; }
+.intl-start-card .store-sub { text-align: center; }
 .intl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 0 14px 8px; }
 .intl-tile {
   display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 10px;

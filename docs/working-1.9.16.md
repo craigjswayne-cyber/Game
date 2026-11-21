@@ -243,3 +243,63 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   starveprobe: the bar (8% fewer kicks) sat exactly on the measured figure; now -7.9% (se 0.9). Bar is 6% and five points clear of every other plan.
   analystprobe: the frozen panel read 70.2% against a skill of 58%, 12.2 OVER, and tripped a two-sided band of 12 whose stated purpose is to catch
     inverted wiring (about 16 UNDER). Now 12 under fails, 18 over fails.
+
+### 09:31 UTC, 21 Nov: owner on the screenshots, after the merge (branch v1.9.16-fixes, not yet uploaded to a store)
+- Title card was 28px narrower than New Career (button.card's own width rule won): now the same width.
+- Card reads "Take charge of your nation" / "Skip the club game with this one-off purchase" (six languages).
+- A national coach with no club is not "between jobs": Home says "{n} club jobs available. Take one alongside your country, or carry on as you are."
+  The Job Centre was already in the World tab for him (App.tsx world group, with the badge).
+- Unveiling: "The shirt, the anthem and every Test window are yours now" became "The team is your responsibility now, and the nation expects."
+- Free agents: the gold chip beside Budget and Wage room ("a weird random place") is now a two-way switch, Everyone / Free agents n, above the
+  search. The Club column shows a dash for a free agent, so Value fits on a phone again.
+- Haka: checked. The arrowhead with the captain at the point has been the All Blacks' regular formation since the 2015 World Cup.
+- OPEN, asked: he wants ratings "hidden for free but open in Pro". Not built: the game's own rule since 1.8.2 is that ability is found by
+  scouting ("It shouldn't be easy to see the best youngsters and free agents"), and Pro is sold as adverts off, skins and save slots.
+- 09:37 owner: show the World Cup and the Lions job; keep assessing and improving for a premium feel; update every half hour until 14:00.
+
+### 09:40 to 10:50 UTC, 21 Nov: main's browser checks, and the Isles tour walked and played for the owner
+- Gate on main (90aae66) failed five browser checks that only run on main: preplanui, temperui, bidprobe, injurysheet (probes behind
+  the 1.9.16 changes) and intlstart (a path on one machine). All five pass. The opposite-number card now opens itself when he has
+  planned for you.
+- Owner, 09:51: "Change take charge of your nation to manage your nation. Is all caps the correct vibe". Now "Manage your nation",
+  sentence case, centred beside New Career.
+- Owner, 09:51 and 09:54: the Isles job "doesn't look built out"; "Play through the Lions tour a few times". Found by doing that:
+  - a coach with a country and no club could never be offered the job (islesEligible read `unemployed`)
+  - on tour the Test plan's dials, the captain and the camp focus were keyed on his own country: ignored for the Isles, and the
+    focus was worn by his country under the assistant (natcamp.ts coachedSide)
+  - squads were best-by-rating with only the front row protected: the tour party had no scrum-half, and Wales and Tonga went to a
+    World Championship without one. Every shirt has a floor now; thin nations generate the shirt they lack; an unnamed squad is
+    topped up by shirt and sent injury cover
+  - the party was 20 English of 32: at least three from each union now
+  - twelve tours played headless: series won 4 of 12, tour games 52-32. Eight ended with the coach sacked by his union that summer,
+    four of them after winning the series. The union cannot sack a touring coach at that review, and a series win is +12
+  - any home-union coach was credited with a series win, toured or not; the tour's games went on his country's Test ledger
+  - Club & Country, Home, the header and the Nations panel all still showed his country on tour. They show the tour: series so far,
+    tour captain (new, six best leaders), the party's camp focus, the tour's fixtures with midweek days
+  - the invitation is a gold card that says what is asked and what yes costs; World Championship knockouts read a round at a time
+  - the cabinet named an old tour or World Championship by its code
+- OPEN, asked: should the tour party open empty for him to name (his own v1.1.17 rule for his country)? And Pro revealing ratings.
+- Known and told: one South African club on a New Zealand tour (six New Zealand clubs in the game, seven tour games).
+
+### 11:04 to 11:35 UTC, 21 Nov: the owner on the Isles job, and what was built
+- Owner, 11:04: "You cant be sacked from this while the tour is on. You do the job, complete it and leave. Only if you did a [good]
+  job may you be potentially invited back 4 years later." / "remove the at least 3 from every union - make it a press story line" /
+  "yes it should open empty. You should pick coaches from around the game - all players. Every announcement is a big thing. This is
+  the pinnacle of the game - make features that feel like it is the only place you get this."
+- Owner, 11:05: "All ratings should be revealed if you get the gig".
+- Owner, 11:15: IT IS A SECRET. "I don't want this to be revealed in the game in any of the what's new or any of the features. This
+  should be a secret level that appears." And a build-up: considered, final 8, final 4, final 2, then the job or not; "a really
+  specialist selection... not everybody should get it".
+- Built (isles.ts, natcamp.ts, TourOffice.tsx, internationals.ts, country.ts, scoutknow.ts):
+  - the race: weeks 16, 22, 28, 33 and the decision in 36. Reputation 80, then 86 and a trophy, 90, 93 and a title won with his
+    country, then the letter's own 95. Each story names the rival head coaches still in; a cut names who went through; the loser
+    of the last two is told who got it. A coach who never makes the first list hears nothing. tests/islesrace
+  - the Nations card that told any home-union coach which condition he lacked is removed. NOTHING about the job goes in release
+    notes, store text or What's new: keep it that way
+  - the tour office: three assistants from the head coaches of the forty biggest clubs (forwards, attack, defence; 0.5 to 4% on that
+    part of the Isles' game, by the club's standing and whether it is what his side is built on); the tour party from an empty
+    sheet, from every eligible player including men in their own union's camp (the union calls up cover); the tour captain. Each
+    announced once, each a full-screen occasion and a press story. No union quota: the press counts the unions
+  - every rating is open to him from the day he says yes to the end of that season
+  - the job ends with the tour (closeTour); the next letter only comes after a series won or taken to a decider
+- Kept from the morning and told to the owner: his own union cannot sack him at the review the summer he tours.

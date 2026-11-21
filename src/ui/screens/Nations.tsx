@@ -7,12 +7,14 @@ import { natRankOrder } from '../../game/natrank'
 import { MoveCell, sinceLine } from './Agency'
 import type { GameState } from '../../game/model'
 import { ClubLink, SectionTitle } from '../components'
-import { answerIsles, islesCoach, islesEligible } from '../../game/isles'
-import { weekDate } from '../../game/model'
+import { answerIsles, islesCoach } from '../../game/isles'
+import { weekDate, fixtureDate, MIDWEEK_OFF } from '../../game/model'
 import { t, compLabel } from '../../game/i18n'
 import { rowNavTr } from '../rowNav'
 import { acc } from '../accent'
-import { stageShort } from './Home'
+import { stageShort, stageName } from './Home'
+import { deskNat } from '../../game/country'
+import { TourOffice } from '../TourOffice'
 
 /** THE TEST RANKINGS, WITH THE REST OF INTERNATIONAL RUGBY (owner, 1.8.2).
  *  They sat as a third tab on the Scouting Agency, between two lists of club
@@ -67,15 +69,18 @@ export default function Nations() {
   // the tour's results read "blues v LIO")
   const side = (id: string) => game.clubs[id]
     ? <>{game.clubs[id].name}</>
-    : <><Flag code={id} /> {nationName(id)}</>
+    : <><Flag code={id} /> {id === 'LIO' ? t('isles.short') : nationName(id)}</>
   const sideR = (id: string) => game.clubs[id]
     ? <>{game.clubs[id].name}</>
-    : <>{nationName(id)} <Flag code={id} /></>
+    : <>{id === 'LIO' ? t('isles.short') : nationName(id)} <Flag code={id} /></>
   const touch = useStore(s => s.touch)
   const [compId, setCompId] = useState<string>(tabs[0]?.[0] ?? 'rank')
   const comp = game.comps[compId]
 
-  const myNat = game.natTeam
+  // ON TOUR THE SIDE HE COACHES IS THE TOUR PARTY (1.9.16). This panel went on
+  // saying "You coach England" over England's camp all summer, while the
+  // card above it said his assistant had England.
+  const myNat = deskNat(game) ?? undefined
   const mySquad = myNat ? (game.natSquads[myNat] ?? []).map(id => game.players[id]).filter(Boolean) : []
   // no rating floor: the user's federation calls its best REAL players,
   // whatever their age or number - the preview must agree with the rule
@@ -92,35 +97,47 @@ export default function Nations() {
       {(game.isles?.season === game.season || islesCoach(game)) && (() => {
         const open = game.isles?.answer === 'open'
         const took = game.isles?.answer === 'yes'
+        // THE BIGGEST LETTER IN THE GAME (1.9.16). It used to read "You meet
+        // every condition the four unions set" over two grey buttons, which
+        // is how a settings page talks. Gold, the tour's name, and what
+        // saying yes costs.
         return (
-          <div className="card" style={{ ...acc('var(--primary)') }}>
-            <SectionTitle sub={compLabel(game.comps['lions']?.name)}>{t('isles.title')}</SectionTitle>
+          <div className={`card${open ? ' isles-invite' : ''}`} data-isles={game.isles?.answer ?? 'tour'} style={{ ...acc(open ? 'var(--gold)' : 'var(--primary)') }}>
+            <SectionTitle sub={compLabel(game.comps['lions']?.name ?? game.comps['w:lions']?.name)}>{t('isles.title')}</SectionTitle>
+            {open && <div className="isles-invite-head">{t('isles.inviteHead')}</div>}
             <div className="meta" style={{ padding: '0 10px 8px' }}>
-              {open ? t('isles.whyYes') : took ? t('isles.took') : t('isles.passed')}
+              {open ? t('isles.inviteBody') : took ? t('isles.took') : t('isles.passed')}
             </div>
             {open && (
-              <div className="filter-line" style={{ padding: '0 10px 10px' }}>
-                <button className="btn" onClick={() => { answerIsles(game, true); touch() }}>{t('isles.accept')}</button>
+              <div className="btn-row" style={{ padding: '0 10px 10px' }}>
                 <button className="btn ghost" onClick={() => { answerIsles(game, false); touch() }}>{t('isles.decline')}</button>
+                <button className="btn gold" style={{ flex: 1.6 }} onClick={() => { answerIsles(game, true); touch() }}>{t('isles.accept')}</button>
               </div>
             )}
           </div>
         )
       })()}
+      <TourOffice />
       {/* and when there is a tour on that he is NOT part of, the panel says
           which condition he has not met - a locked door with no sign on it is
           just a missing feature */}
       {/* only for a coach of one of the four unions it picks from (1.9.14): the
           international stage shows itself to the men and women who hold it */}
-      {!game.isles && game.comps['lions'] && !islesCoach(game) && ['ENG', 'IRE', 'SCO', 'WAL'].includes(game.natTeam ?? '') && (
-        <div className="card">
-          <SectionTitle sub={compLabel(game.comps['lions']?.name)}>{t('isles.title')}</SectionTitle>
-          <div className="muted" style={{ padding: '0 10px 10px', fontSize: '0.75rem' }}>{t(islesEligible(game).why)}</div>
+      {/* A SECRET UNTIL THE PAPERS NAME HIM (owner, 21 Nov 2026: "This should
+          be a secret level that appears"). The card that told any coach of
+          the four unions which condition he had not met gave the job away to
+          people nowhere near it. It shows only while he is in the race. */}
+      {game.islesRace?.season === game.season && !game.islesRace.out && game.isles?.season !== game.season && (
+        <div className="card isles-invite" data-isles-race={game.islesRace.stage} style={{ ...acc('var(--gold)') }}>
+          <SectionTitle sub={compLabel(game.comps['lions']?.name ?? game.comps['w:lions']?.name)}>{t('isles.title')}</SectionTitle>
+          <div className="meta" style={{ padding: '0 10px 10px' }}>
+            {t(`isles.race_${game.islesRace.stage}`, { rival: game.clubs[game.islesRace.rivals[0]]?.coach ?? '' })}
+          </div>
         </div>
       )}
       {myNat && (
         <div className="card" style={{ ...acc('var(--gold)') }}>
-          <h3 style={{ fontSize: '0.875rem' }}>{t('world.natYouCoach', { nat: nationName(myNat), ...nationVars(myNat) })}</h3>
+          <h3 style={{ fontSize: '0.875rem' }}>{myNat === 'LIO' ? t('isles.title') : t('world.natYouCoach', { nat: nationName(myNat), ...nationVars(myNat) })}</h3>
           <div className="meta">
             {mySquad.length
               ? t('world.natWindowOpen', { n: mySquad.length })
@@ -189,15 +206,27 @@ export default function Nations() {
             ))}
             {ko.length > 0 && <>
               <SectionTitle>{t('world.natKnockouts')}</SectionTitle>
-              <div className="tblwrap"><table className="dtable"><tbody>
-                {ko.map(f => (
-                  <tr key={f.id}>
-                    <td className="muted">{stageShort(f.stage!)}</td>
-                    <td className="name">{side(f.homeId)} {t('common.v')} {sideR(f.awayId)}</td>
-                    <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : '-'}</td>
-                  </tr>
-                ))}
-              </tbody></table></div>
+              {/* A ROUND AT A TIME, THE WINNER IN BOLD (1.9.16): sixteen
+                  results in one list read as a fixture dump, not a bracket */}
+              {ko.filter((f, i) => ko.findIndex(x => x.stage === f.stage) === i).map(first => (
+                <div key={first.stage} data-ko-round={first.stage}>
+                  <div className="meta ko-round">{stageName(first.stage!)}</div>
+                  <div className="tblwrap"><table className="dtable"><tbody>
+                    {ko.filter(f => f.stage === first.stage).map(f => {
+                      const hw = f.played && f.homeScore > f.awayScore, aw = f.played && f.awayScore > f.homeScore
+                      const mine = !!game.natTeam && (f.homeId === game.natTeam || f.awayId === game.natTeam)
+                      return (
+                        <tr key={f.id} style={mine ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
+                          <td className="name ko-tie">
+                            <span className={f.played && !hw ? 'ko-out' : ''}>{side(f.homeId)}</span> <span className="muted">{t('common.v')}</span> <span className={f.played && !aw ? 'ko-out' : ''}>{sideR(f.awayId)}</span>
+                          </td>
+                          <td className="num" style={{ fontWeight: 700 }}>{f.played ? `${f.homeScore}-${f.awayScore}` : '-'}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody></table></div>
+                </div>
+              ))}
             </>}
           </>
         )
@@ -228,7 +257,7 @@ export default function Nations() {
       <div className="tblwrap"><table className="dtable"><tbody>
         {game.fixtures.filter(f => f.compId === compId && !(comp?.pools && comp.pools.length >= 2 && f.stage)).sort((a, b) => a.week - b.week).map(f => (
           <tr key={f.id}>
-            <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}{f.stage ? ` · ${stageShort(f.stage)}` : ''}</td>
+            <td className="muted">{f.midweek ? fixtureDate(game.season, f.week, f.id, MIDWEEK_OFF) : weekDate(game.season, f.week).slice(0, -5)}{f.stage ? ` · ${stageShort(f.stage)}` : ''}</td>
             <td className="name">{side(f.homeId)} {t('common.v')} {sideR(f.awayId)}</td>
             <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : '-'}</td>
           </tr>

@@ -63,10 +63,11 @@ try {
     st.touch()
   })
   await page.click('text=Haggle a different fee')
-  await page.waitForSelector('button:has-text("+500k")', { timeout: 6000 })
+  // 1.9.16: the steps follow the price (bidstep.ts), so the label is not always 500k
+  await page.waitForSelector('button[data-step]', { timeout: 6000 })
 
   const fit = await page.evaluate(() => {
-    const btn = [...document.querySelectorAll('button')].find(b => b.textContent?.includes('+500k'))
+    const btn = document.querySelector('button[data-step]')
     const card = btn?.closest('.card')
     if (!card) return null
     const cr = card.getBoundingClientRect()

@@ -1387,7 +1387,23 @@ export interface GameState {
   /** The Isles XV tour job: which season it was offered in and what he said.
    *  Absent on every save made before v1.5, which is correct - nobody was ever
    *  offered it, because until now it was not a job you could be offered. */
-  isles?: { season: number; answer: 'open' | 'yes' | 'no' }
+  isles?: {
+    season: number; answer: 'open' | 'yes' | 'no'
+    /** THE TOUR'S COACHING TEAM (1.9.16, isles.ts): the club whose head coach
+     *  takes each part of the Isles' game for the summer. */
+    staff?: { fwd?: string; atk?: string; def?: string }
+    /** the three announcements, each made once: coaching team, party, captain */
+    staffOut?: boolean; partyOut?: boolean; capOut?: boolean
+  }
+  /** THE RACE FOR THE TOUR JOB (1.9.16, isles.ts): how far down the four
+   *  unions' list he got this season (1 mentioned, 2 final eight, 3 final
+   *  four, 4 final two), whether he has been cut, and the rival coaches
+   *  (club ids) still in it. */
+  islesRace?: { season: number; stage: number; out?: boolean; rivals: string[] }
+  /** Tours he has taken, oldest first (1.9.16). The job ends with the tour,
+   *  and the four unions only ask again after a good one: the series won, or
+   *  taken to a deciding third Test. */
+  islesPast?: { season: number; won: boolean; decider: boolean }[]
   /** a country wants you - pending offer from a union */
   natOffer?: { nat: string; week: number } | null
   /** the board's secondary season objectives (evaluated at rollover) */
@@ -1986,6 +2002,8 @@ export interface GameState {
    *  and its captain, set on the Test preview and from the touchline. Every
    *  dial at 50 and no captain is exactly the engine before it existed. */
   natPlan?: { nat: string; style: number; tempo: number; kicking: number; aggression: number; captain: number | null } | null
+  /** His country's plan, kept while he is away with the Isles XV (1.9.16). */
+  natPlanHome?: { nat: string; style: number; tempo: number; kicking: number; aggression: number; captain: number | null } | null
   /** THE LAST TEST THE COACH'S NATION PLAYED (1.9.14, nattest.ts): what the
    *  full-time card reads - the ranking either side of it, the union's
    *  reaction, and the caps it handed out. */

@@ -88,7 +88,7 @@ export function DecisionPanel() {
   ]
 
   return (
-    <div className="card" style={{ margin: '12px 0', ...acc('var(--danger)') }}>
+    <div className="card" data-pen-call style={{ margin: '12px 0', ...acc('var(--danger)') }}>
       <h3 style={{ fontSize: '1rem' }}>{t('matchday.penCall')}</h3>
       <div className="meta" style={{ marginBottom: 8 }}>
         {t('matchday.penScore', { home: teamShort(game, mine.teamId), hs: mine.score, as: opp.score, away: teamShort(game, opp.teamId) })}

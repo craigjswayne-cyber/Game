@@ -40,7 +40,7 @@ try {
   await card.locator('[data-preplan-set]').click()
   await page.waitForTimeout(300)
   const g = await G()
-  ok(g.atk === 'width' && g.def === 'blitz', `Backs sets the styles on Tactics (${g.atk}, ${g.def})`)
+  ok(g.atk === 'width' && g.def === 'drift', `Backs sets the styles on Tactics (${g.atk}, ${g.def})`)
   ok(g.training === 'scrum' && g.prep === 'setpiece', `Set pieces sets the training focus and Set-Piece Work (${g.training}, ${g.prep})`)
   ok(g.plan?.season != null, 'the plan is kept for this season')
   ok(await page.locator('.preplan[data-preplan="set"]').count() === 1, 'the card folds to one line')

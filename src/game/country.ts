@@ -59,7 +59,20 @@ function callable(state: GameState, p: Player): boolean {
   const nat = deskNat(state)
   if (!nat) return false
   const natMatch = nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat
-  return natMatch && homeBased(state, p, nat) && !p.injury && !p.natSquad
+  return natMatch && homeBased(state, p, nat) && !p.injury && (!p.natSquad || inOwnUnionCamp(state, p))
+}
+
+/**
+ * THE TOUR TAKES ITS MEN FROM THE UNIONS' CAMPS (1.9.16). The tour party
+ * opens empty now, and the four unions name their own summer squads the same
+ * week: by the time the Isles coach looked, every Irishman, Scot and Welshman
+ * worth picking was "already in a Test squad". The tour comes first, as it
+ * does: a man in his own union's camp can be called to the tour, he leaves
+ * that camp, and the union calls up cover (internationals.ts refillUnions).
+ */
+function inOwnUnionCamp(state: GameState, p: Player): boolean {
+  return deskNat(state) === 'LIO' && HOME4.includes(p.nat) && !!p.natSquad &&
+    !(state.natSquads['LIO'] ?? []).includes(p.id) && (state.natSquads[p.nat] ?? []).includes(p.id)
 }
 
 /** The next men in: EVERY qualified player outside the current Test squads,
@@ -135,7 +148,8 @@ export function natCallUp(state: GameState, playerId: number): string | null {
   if (!w || !squad) return t('reply.noCampWindow')
   const p = state.players[playerId]
   if (!p) return t('reply.noSuchPlayer')
-  if (squad.includes(playerId) || p.natSquad) return t('reply.alreadyInTestSquad', { player: p.name })
+  const fromUnion = inOwnUnionCamp(state, p)
+  if (squad.includes(playerId) || (p.natSquad && !fromUnion)) return t('reply.alreadyInTestSquad', { player: p.name })
   if (!(nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat)) return t('reply.notQualified', { player: p.name })
   // the country's name, not its code; a player with no club is not abroad
   if (!homeBased(state, p, nat)) return t(p.clubId ? 'reply.notHomeBased' : 'reply.notHomeBasedFree', { player: p.name, nat: nationName(nat), ...nationVars(nat) })
@@ -150,6 +164,7 @@ export function natCallUp(state: GameState, playerId: number): string | null {
       ? t('reply.ownClubQuota', { player: p.name, club, n })
       : t('reply.rivalQuota', { player: p.name, club, n })
   }
+  if (fromUnion) state.natSquads[p.nat] = (state.natSquads[p.nat] ?? []).filter(id => id !== playerId)
   squad.push(playerId)
   p.natSquad = true
   // a man recalled after being sent home this window gets the sting back, not
@@ -278,7 +293,9 @@ export function natSquadHold(state: GameState): { n: number } | null {
 /** The open window for the user's nation, with its weeks, or null: the same
  *  test natWindow makes (natcamp.ts, 1.9.14). */
 export function campWindow(state: GameState): { start: number; end: number } | null {
-  const nat = state.natTeam
+  // the side on the desk: the tour party on an Isles tour (1.9.16), or the
+  // focus he chose there was worn by his country under the assistant
+  const nat = deskNat(state)
   if (!nat || !state.natSquads[nat]) return null
   const w = activeWindows(state).find(w => w.nations.includes(nat) && state.week >= w.start && state.week <= w.end)
   return w ? { start: w.start, end: w.end } : null
@@ -288,6 +305,6 @@ export function campWindow(state: GameState): { start: number; end: number } | n
 export function setCampFocus(state: GameState, focus: CampFocus): boolean {
   const w = campWindow(state)
   if (!w || !CAMP_FOCI.includes(focus)) return false
-  state.natCamp = { nat: state.natTeam!, season: state.season, start: w.start, end: w.end, focus }
+  state.natCamp = { nat: deskNat(state)!, season: state.season, start: w.start, end: w.end, focus }
   return true
 }

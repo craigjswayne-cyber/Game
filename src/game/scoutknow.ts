@@ -9,6 +9,11 @@ import { clamp, hashString, mulberry32 } from './rng'
 
 export function knowledge(state: GameState, p: Player): number {
   if (p.clubId === state.userClubId) return 100
+  // THE ISLES COACH SEES EVERYBODY (owner, 21 Nov 2026: "All ratings should
+  // be revealed if you get the gig"). From the day he says yes to the end of
+  // that season every file in the game is open to him: the one job where
+  // nothing is hidden, because he is picking from all of it.
+  if (state.isles && state.isles.season === state.season && state.isles.answer === 'yes') return 100
   return clamp(p.sc ?? 20, 0, 100)
 }
 

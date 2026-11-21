@@ -664,7 +664,7 @@ export default function App() {
     ? game.clubs[cur.param] : undefined
   const mastheadTitle = cur.screen === 'home' || (cur.screen === 'supporter' && !tillOpen())
     // a national coach with no club wears the nation, not "Unemployed" (QA, 1.9.15)
-    ? (game.unemployed ? (game.natTeam ? nationName(game.natTeam) : t('titles.unemployed')) : club.name)
+    ? (game.unemployed ? (game.natTeam ? (onTour ? nationName('LIO') : nationName(game.natTeam)) : t('titles.unemployed')) : club.name)
     : otherClub ? otherClub.name
     // the season review's own header was a second masthead under this one
     : cur.screen === 'seasonreview' && game.review ? t('legacy.srTitle', { label: seasonLabel(game.review.season) })

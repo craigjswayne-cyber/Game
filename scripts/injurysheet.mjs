@@ -198,6 +198,13 @@ const playOn = async () => {
     await page.waitForTimeout(250)
     if (await answerWait()) await page.waitForTimeout(200)
     if (await page.locator('.sheet-casualty').count()) await closeSheet().catch(() => {})
+    // the match's own penalty call (1.9.16: the re-dealt career has one in the
+    // third minute, straight after scene 4): take the points and play on
+    const pen = page.locator('[data-pen-call] button').first()
+    if (await pen.count()) {
+      await pen.click({ timeout: 2000 }).catch(() => {})
+      await page.evaluate(() => { const st = window.rugbyStore.getState(); if (st.liveMatch && !st.liveMatch.playing) st.matchCursor(st.liveMatch.cursor, true) })
+    }
     const s = await mineState()
     if (s.cursor >= c0 + 3 || s.seg === 3) return true
   }
