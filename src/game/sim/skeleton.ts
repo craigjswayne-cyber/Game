@@ -14,11 +14,14 @@
 import { mulberry32, type Rng } from '../rng'
 import { Laws, type LawEvent } from './law'
 import type { KickType, Play, PlayKind, SimResult } from './record'
+import { evenWorld, type Contest, type World } from './world'
 
 export interface SkeletonOpts {
   seed: number
-  /** each side's strength, 1 for an average side (stage 1 only: stage 2 replaces it with the team sheet) */
+  /** each side's strength, 1 for an average side, when no team sheets are given */
   strength?: [number, number]
+  /** the real sides: their strength at each contest and who does what (fromMatch.ts) */
+  world?: World
 }
 
 /** every number the shape of a match hangs on, in one place */
@@ -63,7 +66,9 @@ type Next =
 
 export function simSkeleton(o: SkeletonOpts): SimResult {
   const rng: Rng = mulberry32(o.seed)
-  const str = o.strength ?? [1, 1]
+  const W: World = o.world ?? evenWorld(o.strength ?? [1, 1])
+  // who does what is drawn from its own stream, so naming the players never changes what happens
+  const pick: Rng = mulberry32((o.seed ^ 0x9e3779b9) >>> 0)
   const L = new Laws()
   const plays: Play[] = []
   const score: [number, number] = [0, 0], tries: [number, number] = [0, 0]
@@ -84,10 +89,13 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
   const bin: [number[], number[]] = [[], []]
   const sentOff: [number, number] = [0, 0]
   const short = (s: 0 | 1) => bin[s].filter(u => u > t).length + sentOff[s]
-  /** a side's strength now: a man down costs every contest */
-  const eff = (s: 0 | 1) => str[s] * Math.max(0.55, 1 - K.SHORT_COST * short(s))
-  /** how much stronger a side is than the other, as a small lean on its contests */
-  const lean = (s: 0 | 1) => eff(s) / eff(other(s))
+  /** a side's strength at a contest now: a man down costs every contest */
+  const S = (s: 0 | 1, c: Contest) => W.str(s, c, t) * Math.max(0.55, 1 - K.SHORT_COST * short(s))
+  /** how much the better of side s at contest a is than the other side at contest b */
+  const vs = (s: 0 | 1, a: Contest, b: Contest = a) => S(s, a) / S(other(s), b)
+  const ids = (a: string[]) => a.filter(Boolean)
+  /** the last man to carry it, so a try has a scorer */
+  let carrierId = ''
 
   const emit = (kind: PlayKind, side: 0 | 1, result: string, law: LawEvent | null, live: number, dead: number, more?: Partial<Play>) => {
     // (nobody is ever behind a dead-ball line: a man driven back over his own line is held on it)
@@ -111,12 +119,12 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
   const scoreTry = (s: 0 | 1, how: string): Next => {
     x = s === 0 ? 100 : 0
     score[s] += 5; tries[s]++
-    emit('try', s, how, 'TRY', 0, K.TRY_DEAD)
+    emit('try', s, how, 'TRY', 0, K.TRY_DEAD, { who: carrierId })
     // the conversion is from in line with where it was scored: out wide is harder
     const wide = Math.abs(y - 35) / 35
-    const good = rng() < K.CON_GOOD + 0.16 - wide * 0.34
+    const good = rng() < clamp((K.CON_GOOD + 0.16 - wide * 0.34) * Math.sqrt(S(s, 'goal')), 0.2, 0.98)
     if (good) score[s] += 2
-    emit('conversion', s, good ? 'over' : 'wide', 'CON', 0, K.CON_DEAD, { good })
+    emit('conversion', s, good ? 'over' : 'wide', 'CON', 0, K.CON_DEAD, { good, who: W.goalKicker(s) })
     return { k: 'kickoff', by: other(s) }
   }
 
@@ -125,10 +133,10 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     const rec = other(by)
     x = adv(by, 50, 17 + rng() * 14); y = 8 + rng() * 54; ball = by
     const u = rng()
-    emit('kickoff', by, 'kicked', 'KICKOFF', K.RESTART_S, 0, { kick: 'restart' })
-    if (u < 0.82) { ball = rec; phase = 1; emit('catch', rec, 'caught', 'PLAY', K.CATCH_S, 0); return { k: 'phase' } }
-    if (u < 0.91) { ball = by; phase = 1; emit('catch', by, 'regathered', 'PLAY', K.CATCH_S, 0); return { k: 'phase' } }
-    if (u < 0.96) { emit('knockOn', rec, 'underTheRestart', 'STOP', 0, 0); return { k: 'scrum', to: by } }
+    emit('kickoff', by, 'kicked', 'KICKOFF', K.RESTART_S, 0, { kick: 'restart', who: W.kicker(by, false, pick) })
+    if (u < 0.82) { ball = rec; phase = 1; carrierId = W.jumper(rec, pick); emit('catch', rec, 'caught', 'PLAY', K.CATCH_S, 0, { who: carrierId }); return { k: 'phase' } }
+    if (u < 0.91) { ball = by; phase = 1; carrierId = W.jumper(by, pick); emit('catch', by, 'regathered', 'PLAY', K.CATCH_S, 0, { who: carrierId }); return { k: 'phase' } }
+    if (u < 0.96) { emit('knockOn', rec, 'underTheRestart', 'STOP', 0, 0, { who: W.jumper(rec, pick) }); return { k: 'scrum', to: by } }
     // not ten metres, or straight out: a scrum on halfway to the side that did not kick
     x = 50; y = 35
     emit('restartError', by, 'scrumHalfway', 'STOP', 0, 0)
@@ -142,8 +150,8 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     emit(goalLine ? 'goalLineDropout' : 'dropout22', by, 'kicked', 'DROPOUT', K.RESTART_S, 0, { kick: 'restart' })
     // (the dead time is before it: the sides walking back)
     plays[plays.length - 1].dead = K.DROPOUT_DEAD; t += K.DROPOUT_DEAD
-    if (rng() < 0.88) { ball = other(by); phase = 1; emit('catch', ball, 'caught', 'PLAY', K.CATCH_S, 0) }
-    else { ball = by; phase = 1; emit('catch', by, 'regathered', 'PLAY', K.CATCH_S, 0) }
+    if (rng() < 0.88) { ball = other(by); phase = 1; carrierId = W.catcher(ball, pick); emit('catch', ball, 'caught', 'PLAY', K.CATCH_S, 0, { who: carrierId }) }
+    else { ball = by; phase = 1; carrierId = W.catcher(by, pick); emit('catch', by, 'regathered', 'PLAY', K.CATCH_S, 0, { who: carrierId }) }
     return { k: 'phase' }
   }
 
@@ -153,10 +161,10 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     let dead = K.SCRUM_DEAD
     while (rng() < K.SCRUM_RESET) dead += K.SCRUM_RESET_DEAD
     t += dead
-    const u = rng(), feed = lean(to)
+    const u = rng(), feed = vs(to, 'scrum')
     const pf = K.SCRUM_PEN_FEED * feed, pa = K.SCRUM_PEN_AGAINST / feed
-    if (u < pf) { emit('scrum', to, 'penaltyWon', 'SCRUM', K.SCRUM_S, 0); return { k: 'penalty', to, free: false } }
-    if (u < pf + pa) { emit('scrum', to, 'penaltyLost', 'SCRUM', K.SCRUM_S, 0); return { k: 'penalty', to: other(to), free: false } }
+    if (u < pf) { emit('scrum', to, 'penaltyWon', 'SCRUM', K.SCRUM_S, 0, { vs: ids([W.forward(other(to), pick)]) }); return { k: 'penalty', to, free: false } }
+    if (u < pf + pa) { emit('scrum', to, 'penaltyLost', 'SCRUM', K.SCRUM_S, 0, { who: W.forward(to, pick) }); return { k: 'penalty', to: other(to), free: false } }
     if (u < pf + pa + K.SCRUM_FREE) { emit('scrum', to, 'freeKick', 'SCRUM', K.SCRUM_S, 0); return { k: 'penalty', to: rng() < 0.5 ? to : other(to), free: true } }
     if (u < pf + pa + K.SCRUM_FREE + K.SCRUM_HEAD / feed) { ball = other(to); phase = 1; emit('scrum', to, 'againstTheHead', 'SCRUM', K.SCRUM_S, 0); return { k: 'phase' } }
     phase = 1
@@ -170,7 +178,7 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     t += K.LINEOUT_DEAD
     const u = rng()
     if (u < K.LINEOUT_NOT_STRAIGHT) {
-      emit('lineout', to, 'notStraight', 'LINEOUT', K.LINEOUT_S, 0)
+      emit('lineout', to, 'notStraight', 'LINEOUT', K.LINEOUT_S, 0, { who: W.thrower(to) })
       y = y < 35 ? 15 : 55
       emit('notStraight', to, 'scrum', 'STOP', 0, 0)
       return { k: 'scrum', to: other(to) }
@@ -181,17 +189,18 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
       return { k: 'penalty', to: rng() < 0.5 ? to : other(to), free: rng() < 0.4 }
     }
     y = y < 35 ? 7 : 63
-    if (u < K.LINEOUT_NOT_STRAIGHT + K.LINEOUT_PEN + K.LINEOUT_STOLEN / lean(to)) {
+    if (u < K.LINEOUT_NOT_STRAIGHT + K.LINEOUT_PEN + K.LINEOUT_STOLEN / vs(to, 'lineout')) {
       ball = other(to); phase = 1
-      emit('lineout', to, 'stolen', 'LINEOUT', K.LINEOUT_S, 0)
+      emit('lineout', to, 'stolen', 'LINEOUT', K.LINEOUT_S, 0, { who: W.thrower(to), vs: ids([W.jumper(other(to), pick)]) })
       return { k: 'phase' }
     }
     phase = 1
-    emit('lineout', to, 'won', 'LINEOUT', K.LINEOUT_S, 0)
+    emit('lineout', to, 'won', 'LINEOUT', K.LINEOUT_S, 0, { who: W.thrower(to), with: ids([W.jumper(to, pick)]) })
     // close to their line it is driven
     if (toLine(to, x) < K.MAUL_FROM && rng() < K.P_MAUL) {
-      const gain = Math.max(0, gauss(5.5 * lean(to), 4))
+      const gain = Math.max(0, gauss(5.5 * vs(to, 'maul'), 4))
       x = adv(to, x, gain)
+      carrierId = W.forward(to, pick)
       if (toLine(to, x) <= 0) {
         emit('maul', to, 'driven', 'PLAY', K.MAUL_S, 0, { gain })
         return rng() < K.P_HELD_UP ? heldUp(to) : scoreTry(to, 'maul')
@@ -217,8 +226,8 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     const d = toLine(to, x)
     if (!free) {
       const c = rng()
-      if (c < K.P_RED) { sentOff[off]++; emit('redCard', off, 'foulPlay', null, 0, 20) }
-      else if (c < K.P_RED + K.P_YELLOW + (d < 22 ? K.P_YELLOW_22 : 0)) { bin[off].push(t + K.BIN_S); emit('yellowCard', off, d < 22 ? 'cynical' : 'foulPlay', null, 0, 12) }
+      if (c < K.P_RED) { const who = W.forward(off, pick); sentOff[off]++; W.carded?.(off, who, Infinity); emit('redCard', off, 'foulPlay', null, 0, 20, { who }) }
+      else if (c < K.P_RED + K.P_YELLOW + (d < 22 ? K.P_YELLOW_22 : 0)) { const who = W.forward(off, pick); bin[off].push(t + K.BIN_S); W.carded?.(off, who, t + K.BIN_S); emit('yellowCard', off, d < 22 ? 'cynical' : 'foulPlay', null, 0, 12, { who }) }
     }
     if (free) {
       phase = 1
@@ -228,9 +237,10 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     const u = rng()
     if (d <= K.GOAL_RANGE && u < K.GOAL_TAKE + (d < 30 ? 0.12 : 0)) {
       const wide = Math.abs(y - 35) / 35
-      const good = rng() < clamp(0.95 - 0.008 * Math.max(0, d - 15) - wide * 0.16, 0.3, 0.97)
-      if (good) { score[to] += 3; emit('penaltyGoal', to, 'over', 'GOAL', 0, K.GOAL_DEAD, { good }); return { k: 'kickoff', by: off } }
-      emit('penaltyGoal', to, 'wide', 'GOALMISS', 0, K.GOAL_DEAD, { good })
+      const good = rng() < clamp((0.95 - 0.008 * Math.max(0, d - 15) - wide * 0.16) * Math.sqrt(S(to, 'goal')), 0.3, 0.97)
+      const gk = W.goalKicker(to)
+      if (good) { score[to] += 3; emit('penaltyGoal', to, 'over', 'GOAL', 0, K.GOAL_DEAD, { good, who: gk }); return { k: 'kickoff', by: off } }
+      emit('penaltyGoal', to, 'wide', 'GOALMISS', 0, K.GOAL_DEAD, { good, who: gk })
       return { k: 'dropout', by: off, goalLine: false }
     }
     const v = rng()
@@ -239,7 +249,7 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     // to the corner or down the line: their own throw
     const gain = Math.min(d - 5, 22 + rng() * 16)
     x = adv(to, x, Math.max(2, gain)); y = y < 35 ? 0 : 70
-    emit('kick', to, 'penaltyToTouch', 'TOUCH', K.KICK_S, 0, { kick: 'touch', gain })
+    emit('kick', to, 'penaltyToTouch', 'TOUCH', K.KICK_S, 0, { kick: 'touch', gain, who: W.kicker(to, false, pick) })
     return { k: 'lineout', to }
   }
 
@@ -252,41 +262,43 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     if (own22) type = u < 0.68 ? 'clearance' : 'long'
     else if (d > 50) type = u < 0.42 ? 'box' : u < 0.74 ? 'long' : u < 0.90 ? 'upAndUnder' : 'touch'
     else type = u < 0.45 ? 'grubber' : u < 0.80 ? 'upAndUnder' : 'touch'
-    const dist = type === 'clearance' ? 28 + rng() * 18 : type === 'long' ? 34 + rng() * 18 : type === 'touch' ? 22 + rng() * 16
-      : type === 'grubber' ? 11 + rng() * 10 : 17 + rng() * 11
+    const kickerId = W.kicker(s, type === 'box', pick), boot = Math.sqrt(S(s, 'kicking'))
+    const dist = boot * (type === 'clearance' ? 28 + rng() * 18 : type === 'long' ? 34 + rng() * 18 : type === 'touch' ? 22 + rng() * 16
+      : type === 'grubber' ? 11 + rng() * 10 : 17 + rng() * 11)
     // charged down: it comes off a defender's hands and they are on to it first
     if (!fromFree && type !== 'grubber' && rng() < K.P_CHARGE) {
-      emit('kick', s, 'chargedDown', 'KICK', K.KICK_S * 0.4, 0, { kick: type })
+      emit('kick', s, 'chargedDown', 'KICK', K.KICK_S * 0.4, 0, { kick: type, who: kickerId, vs: ids(W.tacklers(o2, false, pick).slice(0, 1)) })
       x = adv(s, from, -(3 + rng() * 8)); ball = o2; phase = 1
       if (toLine(o2, x) <= 0) return scoreTry(o2, 'chargeDown')
-      emit('catch', o2, 'chargeDownRegathered', 'PLAY', K.CATCH_S, 0)
+      carrierId = W.forward(o2, pick)
+      emit('catch', o2, 'chargeDownRegathered', 'PLAY', K.CATCH_S, 0, { who: carrierId })
       return { k: 'phase' }
     }
     x = adv(s, from, dist); y = clamp(y + (rng() - 0.5) * 40, 2, 68)
     // over their goal line: dead, or touched down. A 22 drop-out from a long kick, a goal-line one when a short kick is made dead.
     if (toLine(s, x) <= 0) {
       x = s === 0 ? 100 : 0
-      emit('kick', s, 'dead', 'KICK', K.KICK_S, 0, { kick: type, gain: dist })
+      emit('kick', s, 'dead', 'KICK', K.KICK_S, 0, { kick: type, gain: dist, who: kickerId })
       emit('deadBall', s, type === 'grubber' ? 'touchedDown' : 'ranDead', 'DEAD', 0, 0)
       return { k: 'dropout', by: o2, goalLine: type === 'grubber' }
     }
     const toTouch = type === 'clearance' || type === 'touch'
     if (toTouch) {
       // from outside the 22 it has to bounce: straight out is a lineout back where it was kicked
-      if (!own22 && !fromFree && rng() < K.P_OUT_FULL * 4) { x = from; y = y < 35 ? 0 : 70; emit('kick', s, 'outOnFull', 'TOUCH', K.KICK_S, 0, { kick: type }); return { k: 'lineout', to: o2 } }
+      if (!own22 && !fromFree && rng() < K.P_OUT_FULL * 4) { x = from; y = y < 35 ? 0 : 70; emit('kick', s, 'outOnFull', 'TOUCH', K.KICK_S, 0, { kick: type, who: kickerId }); return { k: 'lineout', to: o2 } }
       y = y < 35 ? 0 : 70
       const fifty = !own22 && d > 50 && toLine(s, x) < 22 && rng() < K.P_FIFTY22 * 8
-      emit('kick', s, fifty ? 'fiftyTwentyTwo' : 'touch', 'TOUCH', K.KICK_S, 0, { kick: type, gain: dist })
+      emit('kick', s, fifty ? 'fiftyTwentyTwo' : 'touch', 'TOUCH', K.KICK_S, 0, { kick: type, gain: dist, who: kickerId })
       return { k: 'lineout', to: fifty ? s : o2 }
     }
-    emit('kick', s, 'inPlay', 'KICK', K.KICK_S, 0, { kick: type, gain: dist })
+    emit('kick', s, 'inPlay', 'KICK', K.KICK_S, 0, { kick: type, gain: dist, who: kickerId })
     const v = rng()
     const contest = type === 'box' || type === 'upAndUnder' || type === 'grubber'
-    const pCaught = contest ? 0.60 : 0.74, pRegather = contest ? 0.17 * lean(s) : 0.04
-    if (v < pCaught) { ball = o2; phase = 1; emit('catch', o2, 'caught', 'PLAY', K.CATCH_S, 0); return { k: 'phase' } }
-    if (v < pCaught + pRegather) { ball = s; phase = 1; emit('catch', s, 'regathered', 'PLAY', K.CATCH_S, 0); return { k: 'phase' } }
-    if (v < pCaught + pRegather + 0.07) { emit('knockOn', o2, 'underTheHighBall', 'STOP', 0, 0); return { k: 'scrum', to: s } }
-    if (v < pCaught + pRegather + 0.11) { emit('knockOn', s, 'inTheChase', 'STOP', 0, 0); return { k: 'scrum', to: o2 } }
+    const pCaught = contest ? 0.60 : 0.74, pRegather = contest ? 0.17 * vs(s, 'aerial') : 0.04
+    if (v < pCaught) { ball = o2; phase = 1; carrierId = W.catcher(o2, pick); emit('catch', o2, 'caught', 'PLAY', K.CATCH_S, 0, { who: carrierId }); return { k: 'phase' } }
+    if (v < pCaught + pRegather) { ball = s; phase = 1; carrierId = W.catcher(s, pick); emit('catch', s, 'regathered', 'PLAY', K.CATCH_S, 0, { who: carrierId }); return { k: 'phase' } }
+    if (v < pCaught + pRegather + 0.07) { emit('knockOn', o2, 'underTheHighBall', 'STOP', 0, 0, { who: W.catcher(o2, pick) }); return { k: 'scrum', to: s } }
+    if (v < pCaught + pRegather + 0.11) { emit('knockOn', s, 'inTheChase', 'STOP', 0, 0, { who: W.catcher(s, pick) }); return { k: 'scrum', to: o2 } }
     if (v < pCaught + pRegather + 0.135) return { k: 'penalty', to: rng() < 0.6 ? o2 : s, free: false }
     // it bounces into touch
     y = y < 35 ? 0 : 70
@@ -307,38 +319,43 @@ export function simSkeleton(o: SkeletonOpts): SimResult {
     // (nobody kicks it away on their line: inside ten metres they keep it in hand)
     if (d > 10 && rng() < base + K.KICK_PER_PHASE * Math.max(0, phase - K.KICK_PHASE_FROM)) return kick()
     const wide = rng() < K.WIDE
-    let gain = wide ? gauss(K.GAIN_WIDE * lean(s), K.GAIN_WIDE_SD) : gauss(K.GAIN_TIGHT * lean(s), K.GAIN_TIGHT_SD)
+    const edge = vs(s, 'carry', 'tackle')
+    let gain = wide ? gauss(K.GAIN_WIDE * edge, K.GAIN_WIDE_SD) : gauss(K.GAIN_TIGHT * edge, K.GAIN_TIGHT_SD)
+    carrierId = W.carrier(s, wide, pick)
+    const who = carrierId, tk = ids(W.tacklers(o2, wide, pick))
     gain = clamp(gain, -5, 22)
     y = clamp(y + (wide ? (rng() < 0.5 ? -1 : 1) * (10 + rng() * 22) : (rng() - 0.5) * 9), wide ? -1 : 4, wide ? 71 : 66)
     const u = rng()
     // out over the touchline with it
     if (wide && (y <= 0 || y >= 70)) {
-      if (rng() < 0.45) { x = adv(s, x, Math.max(0, gain)); y = y <= 0 ? 0 : 70; emit('carry', s, 'intoTouch', 'PLAY', K.CARRY_S, 0, { gain, phase }); emit('intoTouch', s, 'carried', 'TOUCH', 0, 0); return { k: 'lineout', to: o2 } }
+      if (rng() < 0.45) { x = adv(s, x, Math.max(0, gain)); y = y <= 0 ? 0 : 70; emit('carry', s, 'intoTouch', 'PLAY', K.CARRY_S, 0, { gain, phase, who, vs: tk }); emit('intoTouch', s, 'carried', 'TOUCH', 0, 0); return { k: 'lineout', to: o2 } }
       y = clamp(y, 3, 67)
     }
-    if (u < K.P_KNOCK_ON / Math.sqrt(lean(s))) { emit('carry', s, 'knockedOn', 'PLAY', K.CARRY_S * 0.6, 0, { phase }); emit('knockOn', s, 'inContact', 'STOP', 0, 0); return { k: 'scrum', to: o2 } }
-    if (u < K.P_KNOCK_ON + K.P_FORWARD) { emit('carry', s, 'forwardPass', 'PLAY', K.CARRY_S * 0.6, 0, { phase }); emit('forwardPass', s, 'forward', 'STOP', 0, 0); return { k: 'scrum', to: o2 } }
-    if (u < K.P_KNOCK_ON + K.P_FORWARD + K.P_BREAK * lean(s)) {
+    if (u < K.P_KNOCK_ON / Math.sqrt(S(s, 'handling'))) { emit('carry', s, 'knockedOn', 'PLAY', K.CARRY_S * 0.6, 0, { phase, who, vs: tk }); emit('knockOn', s, 'inContact', 'STOP', 0, 0, { who, vs: tk.slice(0, 1) }); return { k: 'scrum', to: o2 } }
+    if (u < K.P_KNOCK_ON + K.P_FORWARD) { emit('carry', s, 'forwardPass', 'PLAY', K.CARRY_S * 0.6, 0, { phase, who }); emit('forwardPass', s, 'forward', 'STOP', 0, 0, { who }); return { k: 'scrum', to: o2 } }
+    if (u < K.P_KNOCK_ON + K.P_FORWARD + K.P_BREAK * edge) {
       gain = K.BREAK_MIN + rng() * K.BREAK_SPAN
       x = adv(s, x, gain)
-      if (toLine(s, x) <= 0) { emit('lineBreak', s, 'clean', 'PLAY', K.BREAK_S, 0, { gain, phase }); return scoreTry(s, 'break') }
-      emit('lineBreak', s, 'hauledDown', 'PLAY', K.BREAK_S, 0, { gain, phase })
+      if (toLine(s, x) <= 0) { emit('lineBreak', s, 'clean', 'PLAY', K.BREAK_S, 0, { gain, phase, who }); return scoreTry(s, 'break') }
+      emit('lineBreak', s, 'hauledDown', 'PLAY', K.BREAK_S, 0, { gain, phase, who, vs: ids([W.catcher(o2, pick)]) })
     } else {
       x = adv(s, x, gain)
       if (toLine(s, x) >= 99) x = s === 0 ? 1 : 99
       if (toLine(s, x) <= 0) {
-        emit('carry', s, 'overTheLine', 'PLAY', K.CARRY_S, 0, { gain, phase })
+        emit('carry', s, 'overTheLine', 'PLAY', K.CARRY_S, 0, { gain, phase, who, vs: tk })
         return rng() < K.P_HELD_UP ? heldUp(s) : scoreTry(s, wide ? 'wide' : 'close')
       }
-      emit('carry', s, gain >= 1 ? 'gainLine' : 'held', 'PLAY', K.CARRY_S, 0, { gain, phase })
+      emit('carry', s, gain >= 1 ? 'gainLine' : 'held', 'PLAY', K.CARRY_S, 0, { gain, phase, who, vs: tk })
     }
     // the breakdown
-    const r = rng(), def = 1 / lean(s)
-    if (r < K.P_TURNOVER * def) { ball = o2; phase = 1; emit('ruck', s, 'turnover', 'PLAY', K.RUCK_S * 0.7, 0); return { k: 'phase' } }
-    if (r < K.P_TURNOVER * def + K.P_PEN_ATTACK) { emit('ruck', s, 'penaltyWon', 'PLAY', K.RUCK_S * 0.7, 0); return { k: 'penalty', to: s, free: false } }
-    if (r < K.P_TURNOVER * def + K.P_PEN_ATTACK + K.P_PEN_DEFENCE * def) { emit('ruck', s, 'penaltyLost', 'PLAY', K.RUCK_S * 0.7, 0); return { k: 'penalty', to: o2, free: false } }
-    if (r < K.P_TURNOVER * def + K.P_PEN_ATTACK + K.P_PEN_DEFENCE * def + K.P_UNPLAYABLE) { emit('ruck', s, 'unplayable', 'PLAY', K.RUCK_S, 0); emit('unplayable', s, 'scrum', 'STOP', 0, 0); return { k: 'scrum', to: s } }
-    emit('ruck', s, 'recycled', 'PLAY', K.RUCK_S, 0, { phase })
+    const r = rng(), def = 1 / vs(s, 'breakdown')
+    // the defence gives away fewer penalties when it is disciplined, and so does the side with the ball
+    const penFor = K.P_PEN_ATTACK / S(o2, 'discipline'), penAgainst = K.P_PEN_DEFENCE * def / S(s, 'discipline')
+    if (r < K.P_TURNOVER * def) { const jk = W.jackal(o2, pick); ball = o2; phase = 1; carrierId = jk; emit('ruck', s, 'turnover', 'PLAY', K.RUCK_S * 0.7, 0, { who, vs: ids([jk]) }); return { k: 'phase' } }
+    if (r < K.P_TURNOVER * def + penFor) { emit('ruck', s, 'penaltyWon', 'PLAY', K.RUCK_S * 0.7, 0, { who, vs: ids([W.jackal(o2, pick)]) }); return { k: 'penalty', to: s, free: false } }
+    if (r < K.P_TURNOVER * def + penFor + penAgainst) { emit('ruck', s, 'penaltyLost', 'PLAY', K.RUCK_S * 0.7, 0, { who, vs: ids([W.jackal(o2, pick)]) }); return { k: 'penalty', to: o2, free: false } }
+    if (r < K.P_TURNOVER * def + penFor + penAgainst + K.P_UNPLAYABLE) { emit('ruck', s, 'unplayable', 'PLAY', K.RUCK_S, 0); emit('unplayable', s, 'scrum', 'STOP', 0, 0); return { k: 'scrum', to: s } }
+    emit('ruck', s, 'recycled', 'PLAY', K.RUCK_S, 0, { phase, who })
     phase++
     return { k: 'phase' }
   }

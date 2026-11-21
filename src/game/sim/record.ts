@@ -7,8 +7,8 @@
 // plates, the stats and the pitch all read these entries and nothing else,
 // so they cannot disagree.
 //
-// STAGE 1: the skeleton. Entries carry the side, the place, the clock and
-// the result. The players (who, vs, with) arrive in stage 2.
+// Entries carry the side, the place, the clock and the result, and, when the
+// simulation is given real team sheets (fromMatch.ts), the players involved.
 
 export type PlayKind =
   // restarts
@@ -39,6 +39,12 @@ export interface Play {
   y: number
   /** what came of it, in one word the commentary and the pitch can switch on */
   result: string
+  /** the main player, by id: the carrier, the kicker, the thrower, the man carded ('' or absent when nobody is named) */
+  who?: string
+  /** the players against him: the tacklers, the man who stole it */
+  vs?: string[]
+  /** the players with him: the jumper, the man who took the pass */
+  with?: string[]
   /** metres made up the field by the side with the ball */
   gain?: number
   /** the count of phases in this possession */
