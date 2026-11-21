@@ -543,7 +543,11 @@ export function fillShortNatSquad(state: GameState) {
   const size = activeWindows(state).find(w =>
     w.nations.includes(nat) && state.week >= w.start && state.week <= w.end)?.size ?? NAT_SQUAD_SIZE
   const named = state.natSquads[nat] ?? []
-  if (named.length >= NAT_SQUAD_FLOOR) return
+  // FIT MEN, NOT NAMES (1.9.16). Twenty-three named and two of them hurt in
+  // camp is twenty-one, and the Test was played with holes on the bench: the
+  // union sends injury cover, as a union does.
+  const fit = named.filter(id => state.players[id] && !state.players[id].injury)
+  if (fit.length >= NAT_SQUAD_FLOOR || named.length >= size) return
   const inCamp = new Set(named)
   const candidates = Object.values(state.players)
     .filter(p => !inCamp.has(p.id) && (nat === 'LIO' ? HOME4_NAT.includes(p.nat) : p.nat === nat) &&
@@ -552,11 +556,22 @@ export function fillShortNatSquad(state: GameState) {
   // the top-up obeys the same club quota the coach does (9.10), or naming a
   // short squad would let the federation's top-up do the raiding for him
   const fed = conflictedClub(state) ? federationList(state, nat, size) : []
+  // A 23 THAT CAN FILL A TEAM SHEET (1.9.16). The top-up was the best by
+  // rating and nothing else, so a camp left unnamed could be made up to 23
+  // with no second scrum-half or no lock for the bench. Each place goes to
+  // the best man in a shirt the room is still short of, and only then to
+  // the best man left.
+  const NEED: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 2, N8: 1, SH: 2, FH: 2, CE: 2, WG: 2, FB: 1 }
   const spare: Player[] = []
-  for (const p of candidates) {
-    if (spare.length >= NAT_SQUAD_FLOOR - named.length) break
-    if (clubQuotaLeft(state, nat, size, [...named, ...spare.map(q => q.id)], p.clubId!, fed) <= 0) continue
-    spare.push(p)
+  const left = [...candidates]
+  while (spare.length < Math.min(NAT_SQUAD_FLOOR - fit.length, size - named.length) && left.length) {
+    const room = [...fit.map(id => state.players[id]), ...spare]
+    const short = (pos: string) => room.filter(q => q.pos === pos).length < (NEED[pos] ?? 0)
+    const ok = (p: Player) => clubQuotaLeft(state, nat, size, [...named, ...spare.map(q => q.id)], p.clubId!, fed) > 0
+    let i = left.findIndex(p => short(p.pos) && ok(p))
+    if (i < 0) i = left.findIndex(ok)
+    if (i < 0) break
+    spare.push(left.splice(i, 1)[0])
   }
   if (!spare.length) return
   for (const p of spare) {

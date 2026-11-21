@@ -133,7 +133,9 @@ describe('the Test sheet at kick-off', () => {
   it('an injured man on the Test bench is not named', () => {
     const { g, nat } = testWeek()
     const lu = picked(g, nat)
-    const id = lu[19]!
+    // any man on the bench: a 23 with two hurt in camp leaves a bench shirt
+    // empty, and shirt 20 was one of them once the squads were re-dealt (1.9.16)
+    const id = lu.slice(15).find(x => x != null)!
     injure(g.players[id])
     expect(lineupFor(g, nat)).not.toContain(id)
   })
