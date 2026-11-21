@@ -174,7 +174,7 @@ function topUpPool(state: GameState, nat: string, pool: Player[], target: number
 
 /** One window's call-ups: every federation names its squad, the coach's
  *  nation's camp opens empty for the coach. */
-function callUps(state: GameState, w: Window, rng: Rng): void {
+function callUps(state: GameState, w: Window, _rng: Rng): void {
     // call-ups
     const userCalls: Player[] = []
     const lionsCalls: Player[] = []
