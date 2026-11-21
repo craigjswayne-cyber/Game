@@ -235,7 +235,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       // field 34 qualified men and not a soul more - never generated anybody
       // and had exactly two players outside a 32-man camp. Thin is thin
       // whether you are two short of a squad or two short of a contest.
-      if (nat !== 'LIO' && (pool.length < target || ['SH', 'FH', 'FB', 'HK'].some(pos => pool.filter(p => p.pos === pos || (p.alt as string[]).includes(pos)).length < 2))) topUpPool(state, nat, pool, target, rng)
+      if (nat !== 'LIO' && (pool.length < target || ['SH', 'FH', 'FB', 'HK'].some(pos => pool.filter(p => p.pos === pos || (p.alt as string[]).includes(pos)).length < 2))) topUpPool(state, nat, pool, target, mulberry32(hashString(`${state.seed}:${state.season}:${w.start}:${nat}:pool`)))
       // THE BEST OF THEM TRAVEL; THE REST ARE THE NEXT MEN IN. Re-sorted
       // because the generated players were pushed on the end rather than
       // merged in rating order, and a squad that is not the best of its own

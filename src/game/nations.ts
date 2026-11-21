@@ -484,7 +484,7 @@ function squadFloors(size: number, frontRow: number): [string, number][] {
   ]
 }
 
-export function withFrontRow(pool: Player[], size: number, min = 3): Player[] {
+export function withFrontRow(pool: Player[], size: number, min = 3, keep?: (p: Player) => boolean): Player[] {
   const squad = pool.slice(0, size)
   const can = (p: Player, pos: string) => p.pos === pos || (p.alt as string[]).includes(pos)
   const floors = squadFloors(size, min)
@@ -504,6 +504,8 @@ export function withFrontRow(pool: Player[], size: number, min = 3): Player[] {
       for (let i = 0; i < squad.length; i++) {
         const c = squad[i]
         if (fits(c, pos)) continue
+        // the men a union really named are not left out for a shape (season one)
+        if (keep?.(c)) continue
         if (floors.some(([q, n]) => fits(c, q) && count(q) <= n)) continue
         if (drop < 0 || c.ca < squad[drop].ca || (c.ca === squad[drop].ca && c.id > squad[drop].id)) drop = i
       }
@@ -523,7 +525,8 @@ export function federationPick(state: GameState, nat: string, size: number): Pla
     // 1.9.16: "build our squads from the starting game from that"). The real
     // autumn 2026 squad comes first, best first, and the rest fill what is
     // left. From the second season form and ability decide, as before.
-    .sort((a, b) => (state.season === 0 ? +!!b.sq26 - +!!a.sq26 : 0) || b.ca - a.ca || a.id - b.id), size)
+    .sort((a, b) => (state.season === 0 ? +!!b.sq26 - +!!a.sq26 : 0) || b.ca - a.ca || a.id - b.id), size, 3,
+    state.season === 0 ? p => !!p.sq26 : undefined)
 }
 
 /** The federation's list for this window: the snapshot taken when the window

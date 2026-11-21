@@ -280,3 +280,26 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   - the cabinet named an old tour or World Championship by its code
 - OPEN, asked: should the tour party open empty for him to name (his own v1.1.17 rule for his country)? And Pro revealing ratings.
 - Known and told: one South African club on a New Zealand tour (six New Zealand clubs in the game, seven tour games).
+
+### 11:04 to 11:35 UTC, 21 Nov: the owner on the Isles job, and what was built
+- Owner, 11:04: "You cant be sacked from this while the tour is on. You do the job, complete it and leave. Only if you did a [good]
+  job may you be potentially invited back 4 years later." / "remove the at least 3 from every union - make it a press story line" /
+  "yes it should open empty. You should pick coaches from around the game - all players. Every announcement is a big thing. This is
+  the pinnacle of the game - make features that feel like it is the only place you get this."
+- Owner, 11:05: "All ratings should be revealed if you get the gig".
+- Owner, 11:15: IT IS A SECRET. "I don't want this to be revealed in the game in any of the what's new or any of the features. This
+  should be a secret level that appears." And a build-up: considered, final 8, final 4, final 2, then the job or not; "a really
+  specialist selection... not everybody should get it".
+- Built (isles.ts, natcamp.ts, TourOffice.tsx, internationals.ts, country.ts, scoutknow.ts):
+  - the race: weeks 16, 22, 28, 33 and the decision in 36. Reputation 80, then 86 and a trophy, 90, 93 and a title won with his
+    country, then the letter's own 95. Each story names the rival head coaches still in; a cut names who went through; the loser
+    of the last two is told who got it. A coach who never makes the first list hears nothing. tests/islesrace
+  - the Nations card that told any home-union coach which condition he lacked is removed. NOTHING about the job goes in release
+    notes, store text or What's new: keep it that way
+  - the tour office: three assistants from the head coaches of the forty biggest clubs (forwards, attack, defence; 0.5 to 4% on that
+    part of the Isles' game, by the club's standing and whether it is what his side is built on); the tour party from an empty
+    sheet, from every eligible player including men in their own union's camp (the union calls up cover); the tour captain. Each
+    announced once, each a full-screen occasion and a press story. No union quota: the press counts the unions
+  - every rating is open to him from the day he says yes to the end of that season
+  - the job ends with the tour (closeTour); the next letter only comes after a series won or taken to a decider
+- Kept from the morning and told to the owner: his own union cannot sack him at the review the summer he tours.
