@@ -9109,7 +9109,11 @@
   "passed": "You told them no. They will ask somebody else, and they will not ask you again this time.",
   "short": "Isles XV",
   "inviteHead": "The four unions have chosen you.",
-  "inviteBody": "They want you to take the British & Irish Isles XV on tour this summer: seven tour matches and three Tests. Say yes and your assistant runs your country until you are home."
+  "inviteBody": "They want you to take the British & Irish Isles XV on tour this summer: seven tour matches and three Tests. Say yes and your assistant runs your country until you are home.",
+  "tourCaptain": "Tour captain",
+  "tourCaptainNone": "Nobody has the armband yet. Name the player who leads the four nations.",
+  "tourCaptainSet": "{player} leads the tour.",
+  "record": "Test series {tw}-{tl} · Tour matches {w}-{l}"
  },
  "close": {
   "title": "The summer diary",

@@ -458,17 +458,55 @@ export function natQualifies(p: Player, nat: string): boolean {
  * play two counts for both), each added in rating order from the rest of the
  * pool in place of the lowest-rated man who is not a front-rower. No draw.
  */
+/**
+ * ---- AND WITH A SCRUM-HALF (1.9.16) ----
+ *
+ * The front row was the only shirt the rule above protected. Everything else
+ * was still "the best by rating", and ratings do not fall evenly: in one
+ * World Championship Wales and Tonga travelled with no scrum-half, Portugal
+ * and Samoa with no fly-half, four nations with no full-back, and the Isles
+ * XV - the hardest job in the game - was handed to its coach as 32 men with
+ * six flankers and nobody to wear 9.
+ *
+ * So every shirt has a floor, sized to the squad: what a real Test party
+ * carries. A man who covers two positions counts for both. The squad is
+ * still the best by rating wherever the floors allow; a man is only left out
+ * for a need when he is surplus in every shirt he covers. No draw.
+ */
+function squadFloors(size: number, frontRow: number): [string, number][] {
+  // a full party is the shape the country desk asks its coach for
+  // (country.ts NAT_SHAPE, 31 of the 32), so the federation's list and the
+  // desk's "short of cover" line agree
+  if (size >= 31) return [['LP', 3], ['HK', 3], ['TP', 3], ['SH', 3], ['FH', 2], ['LK', 4], ['FB', 2], ['FL', 3], ['N8', 2], ['CE', 3], ['WG', 3]]
+  return [
+    ['LP', frontRow], ['HK', frontRow], ['TP', frontRow],
+    ['SH', 2], ['FH', 2], ['LK', 3], ['FB', 1], ['FL', 2], ['N8', 1], ['CE', 2], ['WG', 2],
+  ]
+}
+
 export function withFrontRow(pool: Player[], size: number, min = 3): Player[] {
   const squad = pool.slice(0, size)
-  const FR = ['LP', 'HK', 'TP'] as const
   const can = (p: Player, pos: string) => p.pos === pos || (p.alt as string[]).includes(pos)
-  for (const pos of FR) {
-    let have = squad.filter(p => can(p, pos)).length
-    while (have < min) {
-      const add = pool.find(p => !squad.includes(p) && can(p, pos))
+  const floors = squadFloors(size, min)
+  // the front row counts cover (Law 3 asks who CAN prop); every other shirt
+  // counts the men who play there, or a party "has" two full-backs who are
+  // both wings by trade
+  const FR = ['LP', 'HK', 'TP']
+  const fits = (p: Player, pos: string) => (FR.includes(pos) && size < 31 ? can(p, pos) : p.pos === pos)
+  const count = (pos: string) => squad.filter(p => fits(p, pos)).length
+  for (const [pos, need] of floors) {
+    let have = count(pos)
+    while (have < need) {
+      const add = pool.find(p => !squad.includes(p) && fits(p, pos))
       if (!add) break
+      // the lowest-rated man who is surplus in every shirt he counts for
       let drop = -1
-      for (let i = squad.length - 1; i >= 0; i--) if (!FR.some(f => can(squad[i], f))) { drop = i; break }
+      for (let i = 0; i < squad.length; i++) {
+        const c = squad[i]
+        if (fits(c, pos)) continue
+        if (floors.some(([q, n]) => fits(c, q) && count(q) <= n)) continue
+        if (drop < 0 || c.ca < squad[drop].ca || (c.ca === squad[drop].ca && c.id > squad[drop].id)) drop = i
+      }
       if (drop < 0) break
       squad.splice(drop, 1)
       squad.push(add)

@@ -1365,11 +1365,16 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       else state.mgr.l += 1
       // the tenure's own ledger, shown on the country desk - the record books
       // keep a coach's Test record separately, so the game does too
-      const rec = (state.natRecord ??= { m: 0, w: 0, d: 0, l: 0 })
-      rec.m += 1
-      if (us > them) rec.w += 1
-      else if (us === them) rec.d += 1
-      else rec.l += 1
+      // HIS COUNTRY'S LEDGER IS HIS COUNTRY'S (1.9.16): the Isles tour's ten
+      // games went on it, so "Tests under you" for England counted a
+      // midweek game in Dunedin
+      if (mySide === state.natTeam) {
+        const rec = (state.natRecord ??= { m: 0, w: 0, d: 0, l: 0 })
+        rec.m += 1
+        if (us > them) rec.w += 1
+        else if (us === them) rec.d += 1
+        else rec.l += 1
+      }
       mgrMilestones(state, us > them)
       // and the window's target (1.9.14, natwin.ts)
       if (mySide === state.natTeam) noteWindowResult(state, us, them)

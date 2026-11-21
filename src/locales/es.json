@@ -9040,7 +9040,11 @@
   "passed": "Dijiste que no. Se lo pedirán a otro, y esta vez no volverán a preguntarte.",
   "short": "XV de las Islas",
   "inviteHead": "Las cuatro federaciones te han elegido.",
-  "inviteBody": "Quieren que lleves de gira este verano al XV de las Islas Británicas e Irlandesas: siete partidos de gira y tres test. Si aceptas, tu ayudante lleva tu selección hasta que vuelvas."
+  "inviteBody": "Quieren que lleves de gira este verano al XV de las Islas Británicas e Irlandesas: siete partidos de gira y tres test. Si aceptas, tu ayudante lleva tu selección hasta que vuelvas.",
+  "tourCaptain": "Capitán de la gira",
+  "tourCaptainNone": "Nadie lleva aún el brazalete. Nombra al jugador que liderará a las cuatro naciones.",
+  "tourCaptainSet": "{player} lidera la gira.",
+  "record": "Serie de test {tw}-{tl} · Partidos de gira {w}-{l}"
  },
  "close": {
   "title": "La agenda de verano",

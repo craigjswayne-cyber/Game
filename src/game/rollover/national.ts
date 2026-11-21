@@ -64,6 +64,17 @@ export function unionReview(state: GameState) {
     if (termD) state.natConfidence = clamp(state.natConfidence + termD, 0, 100)
     const top = term?.rank === 1
     const term_k = termD > 0 ? (top ? 'news.natTermMetTop' : 'news.natTermMet') : termD < 0 ? (top ? 'news.natTermMissedTop' : 'news.natTermMissed') : 'common.nothing'
+    // HOME FROM THE ISLES TOUR (1.9.16). Twelve tours played through for the
+    // owner: eight ended with the coach sacked by his own union that summer,
+    // four of them straight after WINNING the series. A union does not sack
+    // the man the four unions chose while he is away with their side, and a
+    // series win is the biggest thing one of its coaches can bring home.
+    const toured = state.isles?.season === state.season && state.isles.answer === 'yes'
+    if (toured) {
+      const tour = state.comps['lions'] ?? state.comps['w:lions']
+      const won = tour?.champion === 'LIO' || state.history.some(h => h.season === state.season && /lions$/.test(h.compId) && h.champion === 'LIO')
+      state.natConfidence = clamp(Math.max(state.natConfidence + (won ? 12 : 0), 28), 0, 100)
+    }
     const conf = Math.round(state.natConfidence)
     if (conf < 28) {
       closeNatTenure(state) // the record moves to the profile's history, not the bin

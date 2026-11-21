@@ -9,7 +9,10 @@ import { NAT_SQUAD_SIZE } from '../../game/nations'
 import { NAT_SQUAD_FLOOR, deskNat, natBarOf, natCallUp, natDrop, natEligible, natShort, natUnavailable, natWindow, suggestNatSquad, weeksToSquad } from '../../game/country'
 import { ClubLink, InjuryMark, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
-import { posName, t } from '../../game/i18n'
+import { posName, t, compLabel } from '../../game/i18n'
+import { natPlanOf } from '../../game/natcamp'
+import { isleTour } from '../../game/isles'
+import { stageName } from './Home'
 import { Glyph } from '../glyphs'
 import { rowNavTr } from '../rowNav'
 import { acc } from '../accent'
@@ -50,16 +53,21 @@ export default function Country() {
   const rec = game.natRecord
   const club = game.unemployed ? null : game.clubs[game.userClubId]
   const testFx = natFixtureThisWeek(game)
+  const onTour = deskNat(game) === 'LIO'
+  const sideId = onTour ? 'LIO' : natId
   const upcoming = game.fixtures
-    .filter(f => !f.played && (f.homeId === natId || f.awayId === natId))
-    .sort((a, b) => a.week - b.week).slice(0, 4)
+    .filter(f => !f.played && (f.homeId === sideId || f.awayId === sideId))
+    .sort((a, b) => a.week - b.week || a.id - b.id).slice(0, onTour ? 10 : 4)
   const results = game.fixtures
-    .filter(f => f.played && (f.homeId === natId || f.awayId === natId) &&
-      !game.clubs[f.homeId] && !game.clubs[f.awayId])
-    .sort((a, b) => b.week - a.week).slice(0, 5)
+    .filter(f => f.played && (f.homeId === sideId || f.awayId === sideId) &&
+      (onTour || (!game.clubs[f.homeId] && !game.clubs[f.awayId])))
+    .sort((a, b) => b.week - a.week || b.id - a.id).slice(0, onTour ? 10 : 5)
+  const sideName = (id: string) => game.clubs[id]?.name ?? (id === 'LIO' ? t('isles.short') : nationName(id))
+  const sideFlag = (id: string) => game.clubs[id] ? null : <Flag code={id} />
 
   return (
     <>
+      {onTour ? <IslesHead /> : <>
       <NatBand nat={natId} sub={t('natera.headCoach', { g: game.mgrGender ?? 'm' })} />
       <div className="card" style={{ ...acc(natKit(natId)?.[0] ?? 'var(--text-positive)') }}>
         <h3 style={{ fontSize: '1.125rem' }}><Flag code={natId} /> {nationName(natId)}</h3>
@@ -90,15 +98,20 @@ export default function Country() {
         )}
       </div>
 
+      </>}
+
       {/* The Thursday of a Test week is the other moment a manager wants a fit
           squad and cannot get to the shop. Same card, same rules - silent
           where there is no till and where nobody is hurt. */}
       <FullFitness compact />
 
-      <NatCampaign />
+      {/* ON TOUR THIS DESK IS THE TOUR'S (1.9.16). It went on showing his
+          country's union confidence, its window reviews and its squad
+          announcement, with the tour party somewhere underneath. */}
+      {!onTour && <NatCampaign />}
       {/* a coach with no club has no Training screen, so the camp's focus is
           set here (QA, 1.9.14) */}
-      {game.unemployed && <CampFocus />}
+      {(game.unemployed || onTour) && <CampFocus />}
       <NatSquad />
       <NatEraCard />
 
@@ -106,18 +119,18 @@ export default function Country() {
       <div className="tblwrap"><table className="dtable"><tbody>
         {upcoming.map(f => (
           <tr key={f.id}>
-            <td className="muted">{fxDate(game.season, f)}</td>
-            <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
+            <td className="muted">{fxDate(game.season, f)}{onTour && f.stage ? ` · ${stageName(f.stage)}` : ''}</td>
+            <td className="name">{sideFlag(f.homeId)} {sideName(f.homeId)} {t('common.v')} {sideName(f.awayId)} {sideFlag(f.awayId)}</td>
             <td className="num muted">-</td>
           </tr>
         ))}
         {results.map(f => {
-          const us = f.homeId === natId ? f.homeScore : f.awayScore
-          const them = f.homeId === natId ? f.awayScore : f.homeScore
+          const us = f.homeId === sideId ? f.homeScore : f.awayScore
+          const them = f.homeId === sideId ? f.awayScore : f.homeScore
           return (
             <tr key={f.id}>
-              <td className="muted">{fxDate(game.season, f)}</td>
-              <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
+              <td className="muted">{fxDate(game.season, f)}{onTour && f.stage ? ` · ${stageName(f.stage)}` : ''}</td>
+              <td className="name">{sideFlag(f.homeId)} {sideName(f.homeId)} {t('common.v')} {sideName(f.awayId)} {sideFlag(f.awayId)}</td>
               <td className="num" style={{ fontWeight: 700, color: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }}>
                 {f.homeScore}-{f.awayScore}
               </td>
@@ -162,6 +175,51 @@ export default function Country() {
       </div>
 
       <div className="spacer" />
+    </>
+  )
+}
+
+/**
+ * THE TOUR'S OWN DESK (1.9.16). The series so far, and the tour captain: the
+ * one appointment a touring coach makes that people remember. It writes the
+ * same captain the Test preview reads (natcamp.ts natPlan), so naming him
+ * here is naming him for the Tests.
+ */
+function IslesHead() {
+  const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const { persist } = useStore.getState()
+  const tour = isleTour(game)
+  const plan = natPlanOf(game)
+  const party = (game.natSquads['LIO'] ?? []).map(id => game.players[id]).filter((p): p is NonNullable<typeof p> => !!p)
+  const leaders = [...party].sort((a, b) => b.a.lea - a.a.lea || a.id - b.id).slice(0, 6)
+  const cap = plan?.captain != null ? party.find(p => p.id === plan.captain) ?? null : null
+  const mine = game.fixtures.filter(f => f.played && tour && f.compId === tour.id)
+  const won = (f: (typeof mine)[number]) => (f.homeId === 'LIO' ? f.homeScore > f.awayScore : f.awayScore > f.homeScore)
+  const lost = (f: (typeof mine)[number]) => (f.homeId === 'LIO' ? f.homeScore < f.awayScore : f.awayScore < f.homeScore)
+  const tests = mine.filter(f => !f.tourMatch), games = mine.filter(f => f.tourMatch)
+  return (
+    <>
+      <NatBand nat="LIO" sub={compLabel(tour?.name)} />
+      <div className="card" data-isles-desk style={{ ...acc('var(--gold)') }}>
+        <h3 style={{ fontSize: '1.125rem' }}><Flag code="LIO" /> {nationName('LIO')}</h3>
+        <div className="meta" style={{ marginTop: 2 }}>{t('isles.record', { tw: tests.filter(won).length, tl: tests.filter(lost).length, w: games.filter(won).length, l: games.filter(lost).length })}</div>
+        <div className="meta" style={{ marginTop: 6 }}>{t('isles.took')}</div>
+        {plan && (
+          <div data-tour-captain style={{ marginTop: 10 }}>
+            <div className="fact-label">{t('isles.tourCaptain')}</div>
+            <div className="meta" style={{ margin: '3px 0 8px' }}>{cap ? t('isles.tourCaptainSet', { player: cap.name }) : t('isles.tourCaptainNone')}</div>
+            <div className="cap-chips">
+              {leaders.map(p => (
+                <button key={p.id} type="button" className={`chip cap-chip${cap?.id === p.id ? ' sel' : ''}`} aria-pressed={cap?.id === p.id} data-cap={p.id}
+                  onClick={() => { plan.captain = cap?.id === p.id ? null : p.id; void persist(); touch() }}>
+                  {p.name} <span className="muted">{t('testday.lea', { n: Math.round(p.a.lea) })}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </>
   )
 }

@@ -9151,7 +9151,11 @@
   "passed": "Jy het nee gesê. Hulle gaan iemand anders vra, en hulle gaan jou hierdie keer nie weer vra nie.",
   "short": "Eilande-XV",
   "inviteHead": "Die vier unies het jou gekies.",
-  "inviteBody": "Hulle wil hê jy moet die Britse en Ierse Eilande-XV hierdie somer op toer neem: sewe toerwedstryde en drie toetse. Sê ja en jou assistent neem jou land waar totdat jy terug is."
+  "inviteBody": "Hulle wil hê jy moet die Britse en Ierse Eilande-XV hierdie somer op toer neem: sewe toerwedstryde en drie toetse. Sê ja en jou assistent neem jou land waar totdat jy terug is.",
+  "tourCaptain": "Toerkaptein",
+  "tourCaptainNone": "Niemand dra nog die kapteinsband nie. Benoem die speler wat die vier nasies lei.",
+  "tourCaptainSet": "{player} lei die toer.",
+  "record": "Toetsreeks {tw}-{tl} · Toerwedstryde {w}-{l}"
  },
  "close": {
   "title": "Die somerdagboek",

@@ -9100,7 +9100,11 @@
   "passed": "Hai detto no. Lo chiederanno a un altro, e stavolta non torneranno da te.",
   "short": "XV delle Isole",
   "inviteHead": "Le quattro federazioni hanno scelto te.",
-  "inviteBody": "Vogliono che porti in tour quest'estate il XV delle Isole Britanniche e Irlandesi: sette partite del tour e tre test. Se accetti, il tuo vice tiene la nazionale fino al tuo ritorno."
+  "inviteBody": "Vogliono che porti in tour quest'estate il XV delle Isole Britanniche e Irlandesi: sette partite del tour e tre test. Se accetti, il tuo vice tiene la nazionale fino al tuo ritorno.",
+  "tourCaptain": "Capitano del tour",
+  "tourCaptainNone": "Nessuno ha ancora la fascia. Nomina il giocatore che guiderà le quattro nazioni.",
+  "tourCaptainSet": "{player} guida il tour.",
+  "record": "Serie di test {tw}-{tl} · Partite del tour {w}-{l}"
  },
  "close": {
   "title": "L'agenda estiva",

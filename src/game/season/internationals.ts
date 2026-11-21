@@ -138,14 +138,30 @@ export function manageInternationals(state: GameState, rng: Rng) {
 function topUpPool(state: GameState, nat: string, pool: Player[], target: number, rng: Rng): void {
   const natRep = genderOf(state) === 'w' ? natStrength(state, nat) + 3 : nationByCode(nat)?.rep ?? 55
   const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
+  // THE SHIRT THE POOL IS SHORTEST OF, NOT THE NEXT ONE ROUND (1.9.16). The
+  // cycle started at loosehead whatever the country already had, so Tonga's
+  // pool filled up without a scrum-half and Samoa's without a fly-half, and
+  // a pool that was already full got nobody at all. Each generated man takes
+  // the shirt furthest below its share, and a full pool with an empty shirt
+  // (two wanted at half-back, full-back and hooker) still gets its man.
+  const WANT: Record<string, number> = {}
+  for (const pos of POS_CYCLE) WANT[pos] = (WANT[pos] ?? 0) + 1
+  const KEY = ['SH', 'FH', 'FB', 'HK']
+  const has = (pos: string) => pool.filter(p => p.pos === pos || (p.alt as string[]).includes(pos)).length
+  const neediest = () => {
+    const gap = KEY.find(pos => has(pos) < 2)
+    if (gap) return gap
+    return Object.keys(WANT).sort((x, y) => has(x) / WANT[x] - has(y) / WANT[y] || POS_CYCLE.indexOf(x as never) - POS_CYCLE.indexOf(y as never))[0]
+  }
   let i = 0
-  while (pool.length < target && i < target + 12) {
+  while ((pool.length < target || KEY.some(pos => has(pos) < 2)) && i < target + 12) {
+    const pos = neediest() as typeof POS_CYCLE[number]
     const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
     const hp = buildPlayer(
       {
-        name: regenName(rng, nat, worldNames(state), genderOf(state)), pos: POS_CYCLE[i % POS_CYCLE.length],
+        name: regenName(rng, nat, worldNames(state), genderOf(state)), pos,
         age: 22 + Math.floor(rng() * 9), nat, q,
-        gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
+        gk: (pos === 'FH') && rng() < 0.5,
       },
       null, state.seed + state.week * 131 + i * 17, state.season)
     hp.natGen = true
@@ -218,7 +234,7 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       // field 34 qualified men and not a soul more - never generated anybody
       // and had exactly two players outside a 32-man camp. Thin is thin
       // whether you are two short of a squad or two short of a contest.
-      if (nat !== 'LIO' && pool.length < target) topUpPool(state, nat, pool, target, rng)
+      if (nat !== 'LIO' && (pool.length < target || ['SH', 'FH', 'FB', 'HK'].some(pos => pool.filter(p => p.pos === pos || (p.alt as string[]).includes(pos)).length < 2))) topUpPool(state, nat, pool, target, rng)
       // THE BEST OF THEM TRAVEL; THE REST ARE THE NEXT MEN IN. Re-sorted
       // because the generated players were pushed on the end rather than
       // merged in rating order, and a squad that is not the best of its own
@@ -263,9 +279,32 @@ function callUps(state: GameState, w: Window, rng: Rng): void {
       const frCover = Object.values(state.players)
         .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
           p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
-          !ranked.includes(p) && ['LP', 'HK', 'TP'].some(f => p.pos === f || (p.alt as string[]).includes(f)))
+          // any shirt, since 1.9.16 gave every shirt a floor (nations.ts):
+          // Tonga's third scrum-half is below the bar too
+          !ranked.includes(p))
         .sort((a, b) => b.ca - a.ca || a.id - b.id)
       const travelling = withFrontRow([...pool, ...ranked.slice(target), ...frCover], w.size)
+      // FOUR UNIONS, AND ALL FOUR ON THE PLANE (1.9.16). By rating alone the
+      // party in the owner's walk-through was twenty English, eight Irish,
+      // three Welsh and a Scot. It is still picked on merit, but each union
+      // sends at least three: the best man they have for a shirt goes in
+      // place of the lowest-rated man in that shirt from a union with more.
+      if (nat === 'LIO') {
+        const from = (u: string) => travelling.filter(p => p.nat === u).length
+        for (const u of HOME4) {
+          const waiting = [...pool, ...ranked.slice(target)].filter(p => p.nat === u && !travelling.includes(p))
+          for (const add of waiting) {
+            if (from(u) >= 3) break
+            let drop = -1
+            for (let i = 0; i < travelling.length; i++) {
+              const c = travelling[i]
+              if (c.pos !== add.pos || from(c.nat) <= 3) continue
+              if (drop < 0 || c.ca < travelling[drop].ca) drop = i
+            }
+            if (drop >= 0) travelling[drop] = add
+          }
+        }
+      }
       // THE LAST CAMP'S MEN GO HOME WHEN THE NEXT ONE IS NAMED OVER IT (1.9.16).
       // A window that opens the week another closes (the autumn Tests on the
       // heels of the southern championship) keeps the squad standing: the

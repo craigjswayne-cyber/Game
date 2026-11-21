@@ -9278,7 +9278,11 @@
     "passed": "Vous avez dit non. Elles demanderont à quelqu'un d'autre, et ne reviendront pas vers vous cette fois-ci.",
   "short": "XV des Îles",
   "inviteHead": "Les quatre fédérations vous ont choisi.",
-  "inviteBody": "Elles veulent que vous emmeniez le XV des Îles Britanniques et Irlandaises en tournée cet été : sept matchs de tournée et trois tests. Si vous acceptez, votre adjoint garde votre sélection jusqu'à votre retour."
+  "inviteBody": "Elles veulent que vous emmeniez le XV des Îles Britanniques et Irlandaises en tournée cet été : sept matchs de tournée et trois tests. Si vous acceptez, votre adjoint garde votre sélection jusqu'à votre retour.",
+  "tourCaptain": "Capitaine de la tournée",
+  "tourCaptainNone": "Personne n'a encore le brassard. Nommez le joueur qui mènera les quatre nations.",
+  "tourCaptainSet": "{player} mène la tournée.",
+  "record": "Série de tests {tw}-{tl} · Matchs de tournée {w}-{l}"
   },
   "close": {
     "title": "L'agenda de l'été",
