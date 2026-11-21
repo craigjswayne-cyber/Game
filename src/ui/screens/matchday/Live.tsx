@@ -1,6 +1,7 @@
 // The match as it is played: the ticker, the pitch, the controls and the sheets.
 
 import { TestVerdict } from '../../TestVerdict'
+import { isTest, ONE_SCORE, TENSE_FROM } from '../../../game/match/tension'
 import { natKit } from '../../../data/natcolours'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../../store'
@@ -276,6 +277,8 @@ export function Live() {
     const close = Math.max(0, Math.min(1, 1 - Math.abs(hs - as) / 14)) // one score is 7
     return late * close
   }, [min, hs, as, done, last])
+
+  const testTense = !done && !!last && isTest(game, ctx) && min >= TENSE_FROM && Math.abs(hs - as) <= ONE_SCORE
 
   // The heartbeat, and the one thing tension actually buys: the beat between
   // revealed events stretches by up to 60% when the game is late and close.
@@ -559,8 +562,13 @@ export function Live() {
         {!!live.skipTook && (
           <div className="skip-took">{t('matchday.skipTook', { n: live.skipTook })}</div>
         )}
-        {!done && tension > 0.45 && (
-          <div className="tense-band">
+        {/* ONE BAND, NOT TWO. Every close game has worn this since 1.1.1. A
+            Test (owner, 1.9.16: "internationals need to feel the tension")
+            wears it from the hour whenever a converted try or less is in it,
+            and it pulses. Read off the score ON SCREEN, never the match's own
+            running total, which can be ahead of what has been shown. */}
+        {!done && (tension > 0.45 || testTense) && (
+          <div className={`tense-band${testTense ? ' test' : ''}`} data-tense={testTense ? 'test' : 'club'} role="status">
             {t(Math.abs(hs - as) === 0 ? 'matchday.tenseLevel'
               : Math.abs(hs - as) <= 3 ? 'matchday.tenseKick'
                 : 'matchday.tenseScore', { n: Math.max(1, 80 - min) })}

@@ -4,6 +4,7 @@ import type { MatchEvent } from '../../game/model'
 import { MOVE_BY_ID, moveOfKey } from '../../game/moves'
 import { atkStyleOf, defStyleOf, tracksFor, type StyleDials } from '../clipPlays'
 import { trackFrame } from './plays'
+import { conversionBack, penaltyBack } from './goalkick'
 import type { ClipKind, ClipLabels, ClipSpec, ClipStyle } from './types'
 
 // ---------------------------------------------------------------- building
@@ -159,13 +160,18 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
   if (kind === 'kick') {
     const good = e.type === 'PEN' || e.type === 'DG' || e.type === 'CON'
     const drop = e.type === 'DG' || /^comm\.dropMiss\d/.test(e.k ?? '')
-    const u = e.type === 'CON' ? 85 : Math.max(58, Math.min(drop ? 80 : 90, up(e.fld ?? 72)))
+    // A MISSED CONVERSION IS A CONVERSION (1.9.16). Its line is not a 'CON'
+    // line (nothing went on the board), so it was placed like a penalty: on
+    // the engine's field position, which at that moment is where the move
+    // that scored STARTED. Over 30 matches the missed ones were drawn 22 to
+    // 42 m out (33 in the middle) and nowhere near the line of the try.
+    const con = e.type === 'CON' || e.k === 'comm.conWide'
     // A CONVERSION IS TAKEN IN LINE WITH THE TRY (owner, 1.8.12: a maul try
     // in the corner had its kick drawn in front of the posts). The try's own
     // clip is worked out the same way the try was shown, and the kick goes
     // from across the field where it was grounded, a few metres in from touch.
-    let y = e.type === 'CON' ? 12 + hash(m) * 46 : 16 + hash(m) * 38
-    if (e.type === 'CON' || e.k === 'comm.conWide') {
+    let y = con ? 12 + hash(m) * 46 : 16 + hash(m) * 38
+    if (con) {
       let ti = m - 1
       while (ti >= 0 && !(events[ti].type === 'TRY' && events[ti].teamId === e.teamId)) ti--
       if (ti >= 0 && m - ti <= 3) {
@@ -173,6 +179,14 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
         y = Math.max(5, Math.min(65, tryClip.finish.y))
       }
     }
+    // AND ONLY AS FAR BACK AS THE ANGLE ASKS (owner, 1.9.16, goalkick.ts):
+    // close in under the posts, further back the wider the try. Every one
+    // was 15 m out before, in the corner as under the bar. A penalty is
+    // kicked from the mark (it was held between 10 and 42 m out), and a drop
+    // goal from where it was struck.
+    const u = con ? 100 - conversionBack(y - 35)
+      : drop ? Math.max(58, Math.min(80, up(e.fld ?? 72)))
+      : 100 - penaltyBack(100 - up(e.fld ?? 72))
     return {
       kind, style: 'phases', attackHome, beats: [], finish: { x: toX(u), y, carrier: shirtOf(e.playerId) ?? 10 }, endLine: m, attNum: nums(attackHome), defNum: nums(!attackHome), ...styles,
       kickGood: good, drop, label: good ? labels.good : labels.wide, att, def, misses: 0,

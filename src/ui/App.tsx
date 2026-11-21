@@ -18,6 +18,7 @@ import { IcoClipboard, IcoGlobe, IcoHome, IcoInbox, IcoPress, IcoTrophy } from '
 import { Glyph } from './glyphs'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
+import IntlStart from './screens/IntlStart'
 import Home from './screens/Home'
 import Inbox from './screens/Inbox'
 import MatchDay from './screens/MatchDay'
@@ -178,7 +179,7 @@ function Celebration() {
   const cel = game.celebration
   return (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- full-screen tap-to-dismiss celebration; Escape dismisses it (a11y.ts)
-    <div className="celebrate-veil" onClick={() => { game.celebration = null; useStore.getState().touch() }}>
+    <div className="celebrate-veil" onClick={() => { game.celebration = game.celebrationNext ?? null; game.celebrationNext = null; useStore.getState().touch() }}>
       {Array.from({ length: 26 }).map((_, i) => (
         <i key={i} className="confetti" style={{
           left: `${(i * 137) % 100}%`,
@@ -588,6 +589,8 @@ export default function App() {
   }, [game?.unemployed, game?.natTeam, game, cur.screen, home])
 
   if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /><Overlays /></div>
+  // the paid door beside New Career (1.9.16): the same screen name, a different wizard
+  if (cur.screen === 'newgame' && cur.param === 'intl') return <div className={`${appClass} no-rail`}><IntlStart /><Overlays /></div>
   if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /><Overlays /></div>
   if (!game) return <div className={`${appClass} no-rail`}><Menu /><Overlays /></div>
 

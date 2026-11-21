@@ -2,6 +2,22 @@
 // hotter tempers, and results that echo louder in the boardroom.
 
 const PAIRS: [string, string, string][] = [
+  // THE OLD TEST RIVALRIES (owner, 1.9.16: "the occasional bust up in a derby
+  // or intense rivalry"). A Test had no derby of its own, so the heat, the
+  // crowd and the bust-up never reached the international game. The pairs
+  // with real history only; men's and women's Tests share the union codes.
+  ['ENG', 'SCO', 'The Oldest Rivalry'],
+  ['ENG', 'WAL', 'The Border Test'],
+  ['ENG', 'IRE', 'The Irish Sea Test'],
+  ['ENG', 'FRA', 'Le Crunch'],
+  ['ENG', 'AUS', 'The Old Enemy'],
+  ['IRE', 'WAL', 'The Celtic Test'],
+  ['NZL', 'RSA', 'The Great Rivalry'],
+  ['AUS', 'NZL', 'The Trans-Tasman Test'],
+  ['FIJ', 'SAM', 'The Pacific Test'],
+  ['FIJ', 'TGA', 'The Pacific Test'],
+  ['SAM', 'TGA', 'The Pacific Test'],
+  ['CAN', 'USA', 'The North American Test'],
   // Premier Division
   ['leicester', 'northampton', 'The East Midlands Derby'],
   ['bath', 'gloucester', 'The West Country Derby'],

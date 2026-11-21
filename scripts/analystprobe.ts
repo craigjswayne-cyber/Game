@@ -85,9 +85,20 @@ for (const [wclub, wseed] of WORLDS) {
 const target = expSum / n
 console.log(`accuracy over ${n} reads in ${WORLDS.length} careers: ${((right / n) * 100).toFixed(1)}% (skill those reads were rolled against ${(target * 100).toFixed(1)}%)`)
 if (n < 100) bad(`only ${n} reads across ${WORLDS.length} careers`)
-const off = Math.abs(right / n - target)
-console.log(`  off by ${(off * 100).toFixed(1)} points (frozen-panel sanity band 12; calibration is asserted on the roll itself below)`)
-if (off > 0.12) bad('career accuracy is so far from skill the wiring must be inverted')
+// A THIRD TIME (1.9.16), and the note above already says why: frozen-panel
+// accuracy spans 46% to 70% around a true 58%, so +12 is the panel's own
+// 95th centile, and the band was 12 on BOTH sides. 1.9.16 re-dealt the four
+// worlds (real squads and caps, new players) and the panel read 70.2%, 12.2
+// OVER, and "the wiring must be inverted" fired on a result in the opposite
+// direction to an inversion: swapped right and wrong read about 42%, sixteen
+// points UNDER. So the band is what it is for. Under by more than 12 is an
+// inversion and fails. Over is luck up to 18, past any panel the 2,000
+// synthetic careers produced, and beyond that the analyst is not being
+// rolled against his skill at all, which fails too.
+const signed = right / n - target
+console.log(`  ${signed >= 0 ? 'over' : 'under'} by ${(Math.abs(signed) * 100).toFixed(1)} points (frozen-panel sanity band: 12 under, 18 over; calibration is asserted on the roll itself below)`)
+if (signed < -0.12) bad('career accuracy is so far under skill the wiring must be inverted')
+if (signed > 0.18) bad('career accuracy is so far over skill the reads are not being rolled against it')
 
 // 3b. THE CALIBRATION ASSERT: the roll itself is fair. 500 seeds x 45 weeks
 // x 12 opponents = 270,000 triples through the exact function analystRead

@@ -156,7 +156,9 @@ export default function Fixtures({ initial }: { initial?: string } = {}) {
                     {f.played && f.events?.length ? <span className="muted" style={{ fontSize: '0.6875rem' }}>▸</span> : null}
                   </span>
                 </td>
-                <td className="muted" style={{ whiteSpace: 'normal', lineHeight: 1.2 }}>{compLabel(game.comps[f.compId]?.short) ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
+                {/* one line, cut with an ellipsis (1.9.16, the owner's rule for every list): it
+                    wrapped, and in French "Coupe continentale" made its rows 44px against 32 */}
+                <td className="muted" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 96 }}>{compLabel(game.comps[f.compId]?.short) ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{res(f)}</td>
               </tr>
             )

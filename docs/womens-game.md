@@ -154,7 +154,7 @@ squads, and 4,211 in the built world once the academy and the squad fill are in.
 
 | League | Players | Real | Generated | Source |
 |---|---|---|---|---|
-| PWR | 382 | 382 | 0 | owner's spreadsheet, plus 7 from Bristol's own 2026/27 list (1.9.14; 5 sheet players there open as free agents) |
+| PWR | 399 | 399 | 0 | owner's spreadsheet, plus 7 from Bristol's own 2026/27 list (1.9.14; 5 sheet players there open as free agents) and 17 from the clubs' 2026-27 lists (1.9.16) |
 | Pacific (Aupiki + Super W) | 279 | 279 | 0 | owner's screenshots |
 | Celtic Challenge | 185 | 185 | 0 | competition team pages |
 | Élite 1 | 354 | 297 | 57 | FFR workbook + three club pages (3 duplicate rows removed 18 Oct 2026) |

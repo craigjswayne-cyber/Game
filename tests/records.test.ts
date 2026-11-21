@@ -26,7 +26,9 @@ function play(g: GameState, fx: Fixture, ids: number[]) {
   playHalf(g, ctx)
   playHalf(g, ctx)
   const after = tally(g, ids)
-  return { tries: after.tries - before.tries, points: after.points - before.points, apps: after.apps - before.apps }
+  // a penalty try is seven points and a try with no scorer: nobody's to tally
+  const pen = (ctx.home.penTries ?? 0) + (ctx.away.penTries ?? 0)
+  return { tries: after.tries - before.tries, points: after.points - before.points, apps: after.apps - before.apps, pen }
 }
 const fixture = (g: GameState, compId: string, homeId: string, awayId: string): Fixture => ({
   id: g.nextId++, compId, round: 0, week: g.week, homeId, awayId, played: false,
@@ -40,7 +42,7 @@ describe('the season tally', () => {
     const fx = fixture(g, 'fr', 'leicester', 'bath')
     const d = play(g, fx, ids)
     expect(fx.homeScore + fx.awayScore).toBeGreaterThan(0)
-    expect(d).toEqual({ tries: 0, points: 0, apps: 0 })
+    expect(d).toMatchObject({ tries: 0, points: 0, apps: 0 })
   })
 
   it('a Test scores nothing into it', () => {
@@ -62,8 +64,8 @@ describe('the season tally', () => {
     const ids = [...g.clubs.leicester.players, ...g.clubs.bath.players]
     const fx = fixture(g, 'prem', 'leicester', 'bath')
     const d = play(g, fx, ids)
-    expect(d.points).toBe(fx.homeScore + fx.awayScore)
-    expect(d.tries).toBe(fx.homeTries + fx.awayTries)
+    expect(d.points).toBe(fx.homeScore + fx.awayScore - 7 * d.pen)
+    expect(d.tries).toBe(fx.homeTries + fx.awayTries - d.pen)
     expect(d.apps).toBeGreaterThanOrEqual(30)
   })
 })

@@ -4,7 +4,7 @@ import { canBuy, msSincePurchase, purchaseActive } from '../game/monetise'
 import { proDue, readFunnel } from '../game/profunnel'
 import { userMatchThisWeek } from '../game/season'
 import { askStoreReview } from '../game/storekit'
-import { markReviewAsked, readReview, reviewDue } from '../game/reviewask'
+import { highDue, markReviewAsked, readReview, reviewDue } from '../game/reviewask'
 import { readUsage } from '../game/usage'
 import { nativePlatform } from '../game/shell'
 
@@ -34,7 +34,15 @@ export function ReviewAsk() {
   useEffect(() => {
     if (asking || !nativePlatform()) return
     if (typeof navigator !== 'undefined' && navigator.webdriver) return
-    if (!reviewDue(readUsage().matches, readReview())) return
+    // due by the count, or because he has just won something worth winning
+    // (1.9.16, reviewask.ts highDue): once a career, on the next quiet screen
+    const due = (): 'count' | 'high' | null => {
+      const g = useStore.getState().game
+      const m = readUsage().matches, r = readReview()
+      if (g && highDue(g, m, r)) return 'high'
+      return reviewDue(m, r) ? 'count' : null
+    }
+    if (!due()) return
     const blocked = (): boolean => {
       const s = useStore.getState()
       const g = s.game
@@ -54,10 +62,15 @@ export function ReviewAsk() {
     // opens first and this waits for the next quiet one
     const timer = setTimeout(() => {
       const matches = readUsage().matches
-      if (asking || !reviewDue(matches, readReview())) return
+      const why = due()
+      if (asking || !why) return
       if (blocked()) { setAgain(n => n + 1); return }
       asking = true
       markReviewAsked(matches)
+      if (why === 'high') {
+        const s = useStore.getState()
+        if (s.game) { s.game.rateAsked = true; void s.persist() }
+      }
       void askStoreReview().finally(() => { asking = false })
     }, 2500)
     return () => clearTimeout(timer)

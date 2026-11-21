@@ -10,11 +10,12 @@
  * Rochelais came up, and the workbook records both. This file is the 26/27
  * league, to match the season the rest of the game now runs.
  *
- * 297 of the 354 players here are real (300 of 357 until 18 Oct 2026, when
- * three women listed twice lost the duplicate row), with the position and nationality the
- * workbook gives them, and the other 57 carry RawPlayer.gen so that the ratio is
+ * 296 of the 356 players here are real (300 of 357 until 18 Oct 2026, when
+ * three women listed twice lost the duplicate row; 297 of 354 until 1.9.16, when a
+ * fourth did and eight moved to the clubs the 2026 squad lists give), with the position and nationality the
+ * workbook gives them, and the other 60 carry RawPlayer.gen so that the ratio is
  * a property of the data rather than of this sentence. scripts/genprobe.ts holds
- * it: 297 and 57, club by club, and the suite fails if either moves without
+ * it: 296 and 60, club by club, and the suite fails if either moves without
  * somebody deciding it should.
  *
  * The workbook is explicit that it is "a working database and not yet a claim of
@@ -112,8 +113,11 @@ export const W_E1: RawClub[] = [
     stadium: 'Stade Sainte-Germaine', capacity: 2500,
     colors: ['#6b2231', '#ffffff'],
     rep: 82, budget: 250000,
-    // 40 players, 37 of them from the workbook
+    // 42 players, 39 of them from the workbook
     players: [
+      // 1.9.16: at this club on the 2026 squad lists (FFR France squad 30 Jul and team sheet 24 Sep 2026: Stade Bordelais)
+      { name: 'Yllana Justina Brosseau', pos: 'LP', age: 33, nat: 'FRA', q: 65 },
+      { name: 'Assia Khalfaoui', pos: 'TP', age: 26, nat: 'FRA', q: 73 },
       { name: 'Montserrat Amédée', pos: 'CE', age: 30, nat: 'FRA', q: 80 },
       { name: 'Carla Arbez', pos: 'FH', age: 35, nat: 'FRA', q: 65 },
       { name: 'Makarita Baleinadogo', pos: 'LP', age: 22, nat: 'FRA', q: 70 },
@@ -134,23 +138,23 @@ export const W_E1: RawClub[] = [
       { name: 'Maïlys Mailagi', pos: 'LP', age: 34, nat: 'FRA', q: 69 },
       { name: 'Orane Jambes', pos: 'HK', age: 31, nat: 'FRA', q: 68 },
       { name: 'Laura Morelle', pos: 'LP', age: 20, nat: 'FRA', q: 64 },
-      { name: 'Alessia Pilani', pos: 'TP', age: 29, nat: 'FRA', q: 80 },
+      { name: 'Alessia Pilani', pos: 'TP', age: 29, nat: 'ITA', q: 80 },
       { name: 'Oihana Tome Belmonte', pos: 'HK', age: 23, nat: 'FRA', q: 80 },
       { name: 'Hina Ikahehegi', pos: 'LK', age: 29, nat: 'FRA', q: 80 },
-      { name: 'Hallie Taufoou', pos: 'FL', age: 25, nat: 'FRA', q: 80 },
+      { name: 'Hallie Taufoou', pos: 'FL', age: 25, nat: 'USA', q: 80 },
       { name: 'Jennifer Vander Elst', pos: 'LK', age: 33, nat: 'FRA', q: 65 },
       { name: 'Elsa Peyras', pos: 'FL', age: 23, nat: 'FRA', q: 77 },
-      { name: 'Fabiola Forteza', pos: 'N8', age: 28, nat: 'FRA', q: 80 },
+      { name: 'Fabiola Forteza', pos: 'N8', age: 28, nat: 'CAN', q: 80 },
       { name: 'Manon Delbos', pos: 'SH', age: 24, nat: 'FRA', q: 80 },
       { name: 'Maiana Gony', pos: 'SH', age: 18, nat: 'FRA', q: 65 },
       // the Canada scrum-half, 44th in the owner's Women's Top 100; at Stade
       // Bordelais per the owner's verified database (7 Oct 2026); born 27 Feb
       // 1996 (Wikipedia). Was a generated 23-year-old French nine.
       { name: 'Justine Pelletier', pos: 'SH', age: 30, nat: 'CAN', q: 83, intl: true },
-      { name: 'Sarah Maude Lachance', pos: 'CE', age: 28, nat: 'FRA', q: 75 },
+      { name: 'Sarah Maude Lachance', pos: 'CE', age: 28, nat: 'CAN', q: 75 },
       { name: 'Aubane Rousset', pos: 'CE', age: 31, nat: 'FRA', q: 72 },
       { name: 'Lilou Graciet', pos: 'CE', age: 27, nat: 'FRA', q: 80 },
-      { name: 'Emily Henrich', pos: 'CE', age: 22, nat: 'FRA', q: 70 },
+      { name: 'Emily Henrich', pos: 'CE', age: 22, nat: 'USA', q: 70 },
       { name: 'Joanna Grisez', pos: 'WG', age: 27, nat: 'FRA', q: 80 },
       { name: 'Marie Ibañez', pos: 'FB', age: 26, nat: 'FRA', q: 79 },
       { name: 'Louise Lavabre', pos: 'WG', age: 24, nat: 'FRA', q: 80 },
@@ -169,16 +173,17 @@ export const W_E1: RawClub[] = [
     rep: 79, budget: 235000,
     // 37 players, 24 of them from the workbook
     players: [
+      // 1.9.16: at this club on the 2026 squad lists (both Italy squad lists of Sep 2026: Blagnac)
+      { name: 'Vittoria Zanette', pos: 'TP', age: 34, nat: 'ITA', q: 56 },
       { name: 'Audrey Abadie', pos: 'CE', age: 21, nat: 'FRA', q: 67 },
       { name: 'Michael Abejean', pos: 'LP', age: 32, nat: 'FRA', q: 61 },
       { name: 'Cyrielle Auge', pos: 'FL', age: 25, nat: 'FRA', q: 75 },
       { name: 'Sylvie Bayle', pos: 'LP', age: 26, nat: 'FRA', q: 80 },
       { name: 'Laura Belebbad', pos: 'TP', age: 24, nat: 'FRA', q: 76 },
       { name: 'Elsa Bonnet', pos: 'FH', age: 33, nat: 'FRA', q: 66, gk: true },
-      { name: 'Émilie Boulard', pos: 'WG', age: 19, nat: 'FRA', q: 81 },
       { name: 'Justine Bouscatel', pos: 'WG', age: 25, nat: 'FRA', q: 79 },
       { name: 'Clemence Cinot', pos: 'TP', age: 30, nat: 'FRA', q: 69 },
-      { name: 'Alyssa D’Inca', pos: 'CE', age: 29, nat: 'FRA', q: 77 },
+      { name: 'Alyssa D’Inca', pos: 'CE', age: 29, nat: 'ITA', q: 77 },
       { name: 'Abygaelle Dal Lago', pos: 'FL', age: 28, nat: 'FRA', q: 80 },
       { name: 'Anais Descombes Illiaquer', pos: 'N8', age: 31, nat: 'FRA', q: 65 },
       { name: 'Jeanne Despaux', pos: 'WG', age: 27, nat: 'FRA', q: 80 },
@@ -214,8 +219,12 @@ export const W_E1: RawClub[] = [
     stadium: 'Parc des Sports de Romagnat', capacity: 1500,
     colors: ['#f2e500', '#17255a'],
     rep: 77, budget: 225000,
-    // 39 players, 36 of them from the workbook
+    // 41 players, 38 of them from the workbook
     players: [
+      // 1.9.16: at this club on the 2026 squad lists (Chambon: FFR 30 Jul and 24 Sep 2026; Muzzo and Ranuccini: both Italy lists of Sep 2026, ASM Clermont)
+      { name: 'Alexandra Chambon', pos: 'SH', age: 24, nat: 'FRA', q: 72 },
+      { name: 'Aura Muzzo', pos: 'WG', age: 22, nat: 'ITA', q: 65, gk: true },
+      { name: 'Alissa Ranuccini', pos: 'FL', age: 25, nat: 'ITA', q: 73 },
       { name: 'Elia Brouat', pos: 'SH', age: 31, nat: 'FRA', q: 62 },
       { name: 'Marie Kill', pos: 'FL', age: 32, nat: 'FRA', q: 68 },
       { name: 'Suzanne Delouvrier', pos: 'WG', age: 30, nat: 'FRA', q: 71 },
@@ -232,9 +241,8 @@ export const W_E1: RawClub[] = [
       { name: 'Chloe Vauclin', pos: 'LK', age: 26, nat: 'FRA', q: 75 },
       { name: 'Manon Guerrhit', pos: 'FB', age: 24, nat: 'FRA', q: 70, gk: true },
       { name: 'Salome Perraudin', pos: 'WG', age: 29, nat: 'FRA', q: 77, gk: true },
-      { name: 'Yllana Justina Brosseau', pos: 'LP', age: 33, nat: 'FRA', q: 65 },
       { name: 'Margaux Franc', pos: 'FL', age: 26, nat: 'FRA', q: 78 },
-      { name: 'Francesca Sgorbini', pos: 'FL', age: 26, nat: 'FRA', q: 77 },
+      { name: 'Francesca Sgorbini', pos: 'FL', age: 26, nat: 'ITA', q: 77 },
       { name: 'Elise Pignot', pos: 'CE', age: 25, nat: 'FRA', q: 71 },
       { name: 'Elodie Fernandez', pos: 'FH', age: 24, nat: 'FRA', q: 70 },
       { name: 'Ghizlaine Ben Malem', pos: 'WG', age: 28, nat: 'FRA', q: 78 },
@@ -263,7 +271,7 @@ export const W_E1: RawClub[] = [
     stadium: 'Stade Sabathier', capacity: 2500,
     colors: ['#0a2240', '#ffffff'],
     rep: 75, budget: 215000,
-    // 30 players, 25 of them from the workbook
+    // 30 players, 22 of them from the workbook
     players: [
       { name: 'Maëlle Huiban', pos: 'LP', age: 18, nat: 'FRA', q: 60 },
       { name: 'Eva Mazzochi', pos: 'HK', age: 31, nat: 'FRA', q: 70 },
@@ -271,7 +279,6 @@ export const W_E1: RawClub[] = [
       { name: 'Rkhya Aït-Lhabib', pos: 'LK', age: 27, nat: 'FRA', q: 77 },
       { name: 'Rose Bernadou', pos: 'FL', age: 20, nat: 'FRA', q: 82 },
       { name: 'Marie-Charlotte Burel', pos: 'LK', age: 21, nat: 'FRA', q: 66 },
-      { name: 'Assia Khalfaoui', pos: 'TP', age: 26, nat: 'FRA', q: 73 },
       { name: 'Axelle Moles', pos: 'LP', age: 24, nat: 'FRA', q: 67 },
       { name: 'Sabrina Banet', pos: 'HK', age: 20, nat: 'FRA', q: 63 },
       { name: 'Safi N’Diaye', pos: 'TP', age: 32, nat: 'FRA', q: 61 },
@@ -280,14 +287,12 @@ export const W_E1: RawClub[] = [
       { name: 'Romane Menager', pos: 'N8', age: 25, nat: 'FRA', q: 78 },
       { name: 'Marine Menager', pos: 'WG', age: 28, nat: 'FRA', q: 72 },
       { name: 'Emeline Gros', pos: 'N8', age: 33, nat: 'FRA', q: 61 },
-      { name: 'Alexandra Chambon', pos: 'SH', age: 24, nat: 'FRA', q: 72 },
       { name: 'Morgane Peyronnet', pos: 'FH', age: 21, nat: 'FRA', q: 68 },
       { name: 'Caroline Boujard', pos: 'CE', age: 26, nat: 'FRA', q: 73 },
       { name: 'Cyrielle Banet', pos: 'WG', age: 29, nat: 'FRA', q: 72 },
       { name: 'Maëlle Filopon', pos: 'CE', age: 32, nat: 'FRA', q: 68 },
       { name: 'Yolaine Yengo', pos: 'CE', age: 34, nat: 'FRA', q: 64 },
       { name: 'Cantorna Monserrat', pos: 'WG', age: 22, nat: 'FRA', q: 65 },
-      { name: 'Chloé Jacquet', pos: 'SH', age: 25, nat: 'FRA', q: 70 },
       { name: 'Mia Moussac', pos: 'FH', age: 27, nat: 'FRA', q: 78 },
       { name: 'Lilou Bosc', pos: 'CE', age: 30, nat: 'FRA', q: 65 },
       { name: 'Léonie Peyrouse', pos: 'LK', age: 22, nat: 'FRA', q: 65, gen: true },
@@ -295,6 +300,10 @@ export const W_E1: RawClub[] = [
       { name: 'Violette Cambon', pos: 'CE', age: 26, nat: 'FRA', q: 76, gen: true },
       { name: 'Ariane Larrieu', pos: 'WG', age: 36, nat: 'FRA', q: 55, gen: true },
       { name: 'Coralie Baradat', pos: 'FB', age: 30, nat: 'FRA', q: 74, gen: true },
+      // 1.9.16: three generated players in place of Khalfaoui, Chambon and the duplicate Jacquet row
+      { name: 'Inès Carrère', pos: 'TP', age: 24, nat: 'FRA', q: 64, gen: true },
+      { name: 'Lison Vidalenc', pos: 'SH', age: 22, nat: 'FRA', q: 63, gen: true },
+      { name: 'Maud Escoffier', pos: 'SH', age: 27, nat: 'FRA', q: 62, gen: true },
     ],
   },
   {
@@ -312,7 +321,7 @@ export const W_E1: RawClub[] = [
       { name: 'Lea Champon', pos: 'FL', age: 25, nat: 'FRA', q: 72 },
       { name: 'Inger Marit Jongerius', pos: 'LK', age: 23, nat: 'FRA', q: 63 },
       { name: 'Mikaela Hall', pos: 'FL', age: 26, nat: 'FRA', q: 70 },
-      { name: 'Teani Feleu', pos: 'LK', age: 31, nat: 'FRA', q: 63 },
+      { name: 'Teani Feleu', pos: 'CE', age: 31, nat: 'FRA', q: 63 },
       { name: 'Faustine Piscicelli', pos: 'FH', age: 27, nat: 'FRA', q: 76 },
       { name: 'Chloe Constantin', pos: 'WG', age: 22, nat: 'FRA', q: 58 },
       { name: 'Oumou Barry', pos: 'LP', age: 29, nat: 'FRA', q: 65 },
@@ -320,7 +329,7 @@ export const W_E1: RawClub[] = [
       { name: 'Aneymone Talalua', pos: 'CE', age: 21, nat: 'FRA', q: 61 },
       { name: 'Elisa Riffonneau', pos: 'HK', age: 33, nat: 'FRA', q: 55 },
       { name: 'Oceane Millot Chevrey', pos: 'WG', age: 34, nat: 'FRA', q: 57 },
-      { name: 'Aurora Bowie', pos: 'FB', age: 27, nat: 'FRA', q: 80, gk: true },
+      { name: 'Aurora Bowie', pos: 'FB', age: 27, nat: 'CAN', q: 80, gk: true },
       { name: 'Lou Thoron', pos: 'WG', age: 30, nat: 'FRA', q: 72 },
       { name: 'Taina Maka', pos: 'N8', age: 18, nat: 'FRA', q: 58 },
       { name: 'Enoleen Brisa', pos: 'HK', age: 29, nat: 'FRA', q: 65 },
@@ -351,7 +360,7 @@ export const W_E1: RawClub[] = [
     stadium: 'Stade de Gerland', capacity: 3000,
     colors: ['#c8102e', '#0e0e0e'],
     rep: 71, budget: 195000,
-    // 37 players, 32 of them from the workbook
+    // 34 players, 29 of them from the workbook
     players: [
       { name: 'Ilona Pedicone', pos: 'SH', age: 20, nat: 'FRA', q: 54 },
       { name: 'Christina Bearune', pos: 'WG', age: 22, nat: 'FRA', q: 61 },
@@ -359,14 +368,12 @@ export const W_E1: RawClub[] = [
       { name: 'Garance Merle', pos: 'SH', age: 30, nat: 'FRA', q: 68 },
       { name: 'Lea Peucheret', pos: 'LP', age: 27, nat: 'FRA', q: 76 },
       { name: 'Grace Okemba', pos: 'N8', age: 27, nat: 'FRA', q: 68 },
-      { name: 'Aura Muzzo', pos: 'FH', age: 22, nat: 'FRA', q: 65, gk: true },
       { name: 'Garance Delord', pos: 'SH', age: 21, nat: 'FRA', q: 59 },
       { name: 'Julie Guillot', pos: 'FB', age: 18, nat: 'FRA', q: 54 },
       { name: 'Alizee Foure', pos: 'SH', age: 24, nat: 'FRA', q: 65 },
       { name: 'Clarisse Clainholphe', pos: 'TP', age: 26, nat: 'FRA', q: 70 },
       { name: 'Maelle Jouve', pos: 'HK', age: 21, nat: 'FRA', q: 60 },
       { name: 'Clementine Joliveau', pos: 'LK', age: 19, nat: 'FRA', q: 55 },
-      { name: 'Alissa Ranuccini', pos: 'FL', age: 25, nat: 'FRA', q: 73 },
       { name: 'Esme Ligtvoet', pos: 'FL', age: 31, nat: 'FRA', q: 57 },
       { name: 'Marie Morland', pos: 'FL', age: 24, nat: 'FRA', q: 69 },
       { name: 'Margaux Jeannin', pos: 'LP', age: 31, nat: 'FRA', q: 57 },
@@ -381,7 +388,6 @@ export const W_E1: RawClub[] = [
       { name: 'Camille Martel', pos: 'LP', age: 26, nat: 'FRA', q: 70 },
       { name: 'Victoire Foulon', pos: 'FL', age: 36, nat: 'FRA', q: 53 },
       { name: 'Camille Bourdeil', pos: 'CE', age: 19, nat: 'FRA', q: 54 },
-      { name: 'Vittoria Zanette', pos: 'HK', age: 34, nat: 'FRA', q: 56 },
       { name: 'Leonna Rondeau', pos: 'CE', age: 29, nat: 'FRA', q: 72 },
       { name: 'Solene Garnier', pos: 'FL', age: 24, nat: 'FRA', q: 64 },
       { name: 'Sophie Hopkins', pos: 'WG', age: 28, nat: 'FRA', q: 65 },
@@ -410,17 +416,17 @@ export const W_E1: RawClub[] = [
       { name: 'Celia Caroff', pos: 'HK', age: 27, nat: 'FRA', q: 71 },
       { name: 'Cloe Da Costa', pos: 'CE', age: 25, nat: 'FRA', q: 61 },
       { name: 'Amelie Derrey', pos: 'WG', age: 25, nat: 'FRA', q: 68 },
-      { name: 'Chloe Rollie', pos: 'FB', age: 32, nat: 'FRA', q: 51 },
+      { name: 'Chloe Rollie', pos: 'FB', age: 32, nat: 'SCO', q: 51, intl: true },
       { name: 'Clémence Rypen', pos: 'FL', age: 20, nat: 'FRA', q: 53 },
       { name: 'Marie Schall', pos: 'WG', age: 27, nat: 'FRA', q: 68 },
       { name: 'Daisy Shackley', pos: 'LK', age: 24, nat: 'FRA', q: 64 },
       { name: 'Ashlynn Smith', pos: 'LK', age: 25, nat: 'FRA', q: 62 },
       { name: 'Marie Soko', pos: 'TP', age: 22, nat: 'FRA', q: 58 },
-      { name: 'Sofia Stefan', pos: 'SH', age: 29, nat: 'FRA', q: 65 },
+      { name: 'Sofia Stefan', pos: 'SH', age: 29, nat: 'ITA', q: 65 },
       { name: 'Laure Tabarot', pos: 'N8', age: 30, nat: 'FRA', q: 65 },
-      { name: 'Beatrice Veronese', pos: 'FL', age: 28, nat: 'FRA', q: 64 },
+      { name: 'Beatrice Veronese', pos: 'FL', age: 28, nat: 'ITA', q: 64 },
       { name: 'Chloé Vial', pos: 'FH', age: 19, nat: 'FRA', q: 53 },
-      { name: 'Sara Tounesi', pos: 'LK', age: 33, nat: 'FRA', q: 51 },
+      { name: 'Sara Tounesi', pos: 'LK', age: 33, nat: 'ITA', q: 51 },
       { name: 'Taylor Price', pos: 'LK', age: 34, nat: 'FRA', q: 51 },
       { name: 'Lucie Filitika', pos: 'FL', age: 31, nat: 'FRA', q: 56 },
       { name: 'Sylvie Blanc', pos: 'LP', age: 23, nat: 'FRA', q: 55, gen: true },
@@ -441,8 +447,10 @@ export const W_E1: RawClub[] = [
     stadium: 'Stade Henri-Vallon', capacity: 2000,
     colors: ['#c8102e', '#0e0e0e'],
     rep: 67, budget: 175000,
-    // 33 players, 27 of them from the workbook
+    // 34 players, 28 of them from the workbook
     players: [
+      // 1.9.16: at this club on the 2026 squad lists (FFR France squad 30 Jul and team sheet 24 Sep 2026: AC Bobigny 93)
+      { name: 'Émilie Boulard', pos: 'WG', age: 19, nat: 'FRA', q: 81 },
       { name: 'Grace Bokomo', pos: 'LP', age: 26, nat: 'FRA', q: 72 },
       { name: 'Khadidja Camara', pos: 'HK', age: 27, nat: 'FRA', q: 75 },
       { name: 'Amandine Buchard', pos: 'TP', age: 26, nat: 'FRA', q: 70 },
@@ -469,7 +477,7 @@ export const W_E1: RawClub[] = [
       { name: 'Juliette Fregier', pos: 'CE', age: 24, nat: 'FRA', q: 58 },
       { name: 'Aménis Khaldi Legriel', pos: 'WG', age: 32, nat: 'FRA', q: 54 },
       { name: 'Micol Cavina', pos: 'FH', age: 19, nat: 'FRA', q: 52 },
-      { name: 'Giulia Cavina', pos: 'N8', age: 29, nat: 'FRA', q: 63 },
+      { name: 'Giulia Cavina', pos: 'N8', age: 29, nat: 'ITA', q: 63 },
       { name: 'Aurore Cambon', pos: 'LP', age: 30, nat: 'FRA', q: 68, gen: true },
       { name: 'Delphine Larrieu', pos: 'HK', age: 32, nat: 'FRA', q: 51, gen: true },
       { name: 'Léonie Baradat', pos: 'TP', age: 22, nat: 'FRA', q: 63, gen: true },

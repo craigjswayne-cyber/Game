@@ -25,6 +25,7 @@ import { W_CELT } from '../data/leagues/w_celt'
 import { W_E2 } from '../data/leagues/w_e2'
 import { W_CHAMP } from '../data/leagues/w_champ'
 import { W, type Gender, staffGender } from './gender'
+import { INTL_2026 } from '../data/intl2026'
 import type { Club, GameState, MgrOrigin, NewsItem, Player, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies, peekPid } from './attributes'
 import { regenName } from './nations'
@@ -36,7 +37,7 @@ import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup, buildMrcCup } from './schedule'
 import { punditPredictions } from './gossip'
-import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
+import { POS_ORDER, WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, CLUB_VICES, sameName } from '../data/captains'
@@ -461,6 +462,49 @@ function trimToLimit(state: GameState): void {
       drop(p.id)
       p.clubId = null
       over--
+    }
+  }
+}
+
+/** How many senior free agents a new world opens with. */
+export const START_FREE_AGENTS = 33
+
+/**
+ * THERE IS SOMEBODY TO SIGN ON DAY ONE (1.9.16).
+ *
+ * Owner: "there are no free agents in the game at the very beginning. Add some
+ * fairly average free ones to start with." He was right: the only men without
+ * a club in a new world were the eight teenage hidden gems, who are academy
+ * prospects the scouts have to find. A manager with a hole in his squad and no
+ * budget had nobody to ring until the first releases months later.
+ *
+ * Three per position, one at each of three levels: a man who helps a third
+ * tier side, one for a second tier side, and one who is squad cover at the
+ * top. Nobody here walks into a top division team. Ages 23 to 33, which is
+ * who is really out of contract: the released and the nearly finished.
+ * Half are from the manager's own country, the rest from the rugby world.
+ *
+ * It draws from its OWN stream, never `rng`, and runs after everything else
+ * that draws, so a seed keeps every other fact it had.
+ */
+function seedFreeAgents(state: GameState, seed: number, gender: Gender, seenNames: Set<string>): void {
+  const rng = mulberry32((seed ^ 0x5fa1) >>> 0)
+  const home = state.clubs[state.userClubId]?.country ?? 'ENG'
+  const homeNat = home === 'EUR' ? 'ENG' : home
+  const WORLD = ['ENG', 'FRA', 'IRE', 'WAL', 'SCO', 'RSA', 'NZL', 'AUS', 'ARG', 'FIJ', 'ITA', 'GEO', 'SAM', 'TGA', 'JPN', 'USA']
+  const TIERS: [number, number][] = [[45, 52], [54, 61], [63, 70]]
+  let i = 0
+  for (const pos of POS_ORDER) {
+    for (const [lo, hi] of TIERS) {
+      const nat = rng() < 0.5 ? homeNat : WORLD[Math.floor(rng() * WORLD.length)]
+      const age = 23 + Math.floor(rng() * 11)
+      const p = buildPlayer(
+        { name: regenName(rng, nat, seenNames, gender), pos, age, nat, q: lo + Math.floor(rng() * (hi - lo + 1)), gk: (pos === 'FH' || pos === 'FB') && rng() < 0.6 },
+        null, seed + 9100 + i * 17, 0)
+      // a man of 30 is what he is: no hidden second career in the ceiling
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
+      state.players[p.id] = p
+      i++
     }
   }
 }
@@ -1028,8 +1072,14 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the world class stays rare: ceilings above 88 softened once (ageing.ts)
   softCeilings(state)
   listOpeners(state)
+  // senior men out of contract, there from the first morning (seedFreeAgents)
+  seedFreeAgents(state, seed, gender, seenNames)
   // the id counter travels with the save from here (GameState.pidNext, 1.6.4)
   state.pidNext = peekPid()
+  // THE REAL SQUADS AND CAPS (owner, 1.9.16; data/intl2026.ts). Last, on the
+  // finished world, and it draws nothing from `rng`: a seed keeps every other
+  // fact it had.
+  applyIntl2026(state)
   return state
 }
 
@@ -1198,3 +1248,32 @@ function squadAssessment(state: GameState): NewsItem {
     },
   }
 }
+
+/** Lay the real autumn 2026 squads and caps over the finished world. A name
+ *  is matched within its own nation, so two namesakes of different unions
+ *  never trade caps. A man with a checked figure takes it and is repriced; a
+ *  man named in the squad is marked for the federation's first season. */
+export function applyIntl2026(state: GameState): void {
+  const table = INTL_2026[state.gender ?? 'm']
+  const plain = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[’'`]/g, '').replace(/-/g, ' ').toLowerCase()
+  for (const [nat, rows] of Object.entries(table)) {
+    const byName = new Map<string, Player[]>()
+    for (const p of Object.values(state.players)) {
+      if (p.nat !== nat) continue
+      const k = plain(p.name)
+      byName.set(k, [...(byName.get(k) ?? []), p])
+    }
+    for (const row of rows) {
+      // the senior man of that name, not an academy namesake
+      const p = (byName.get(plain(row.name)) ?? []).sort((a, b) => b.ca - a.ca)[0]
+      if (!p) continue
+      if (row.squad !== false) p.sq26 = true
+      if (row.caps != null) {
+        p.caps = row.caps
+        p.intl = row.caps > 0 || p.intl
+        p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
+      }
+    }
+  }
+}
+

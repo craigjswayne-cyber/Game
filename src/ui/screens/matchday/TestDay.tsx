@@ -18,6 +18,7 @@ import { effAt } from '../../../game/attributes'
 import { XV_SLOTS, type Fixture } from '../../../game/model'
 import { Flag } from '../../flags'
 import { isLight } from '../../highlight/draw'
+import { FACING_FRONT, RITUAL_FRONT, RITUAL_WIDTH, facingLine, ritualFormation, type RitualSpot } from '../../ritual'
 
 type Units = { scrum: number; lineout: number; breakdown: number; attack: number; defence: number }
 const UNIT_KEYS: (keyof Units)[] = ['scrum', 'lineout', 'breakdown', 'attack', 'defence']
@@ -123,6 +124,77 @@ function Figure({ kit, n, cap }: { kit: [string, string]; n: number; cap?: boole
   )
 }
 
+/** the line under the pitch that says what the shape is, by side */
+const FORM_K: Record<string, string> = {
+  NZL: 'walkout.formNZL', FIJ: 'walkout.formFIJ', SAM: 'walkout.formSAM', TGA: 'walkout.formTGA',
+}
+/** the matchday squad stands for it, the bench as well */
+const RITUAL_MEN = 23
+/** a man's disc on the challenge pitch, in metres: 2.3 across */
+const RITUAL_R = 1.15
+
+export interface RitualSide { code: string; kit: [string, string]; performs: boolean; front: number; capAt: number | null }
+
+/**
+ * THE CHALLENGE, IN ITS SHAPE (1.9.16, owner: "they should be in the
+ * formations that set up in for it not just a straight line"). A strip of the
+ * field either side of halfway, seen from above and drawn in metres: the side
+ * laying it down in its own shape behind its ten-metre line (ui/ritual.ts),
+ * the side facing it in one line arm in arm on halfway. Where both lay one
+ * down they face each other in formation, the hosts up to halfway and the
+ * visitors behind their ten, as the toss would have it.
+ *
+ * The leader of a shape is its first man. For your own side that is your
+ * captain, ringed as he is everywhere else; for theirs nobody is named.
+ */
+export function RitualPitch({ top, bottom, label }: { top: RitualSide; bottom: RitualSide; label: string }) {
+  const spots = (s: RitualSide): RitualSpot[] => s.performs ? ritualFormation(s.code, RITUAL_MEN, s.front) : facingLine(RITUAL_MEN, s.front)
+  // the number on each man: along the line as they stand for the anthems, and
+  // in a shape the captain's own shirt on the leader, the rest in order
+  const shirts = (s: RitualSide): number[] => {
+    const all = Array.from({ length: RITUAL_MEN }, (_, k) => k + 1)
+    if (!s.performs || s.capAt == null) return all
+    return [s.capAt + 1, ...all.filter(n => n !== s.capAt! + 1)]
+  }
+  const ts = spots(top), bs = spots(bottom)
+  const edge = RITUAL_R + 1.1
+  const half = Math.max(...ts.map(p => p.back)) + edge
+  const h = half + Math.max(...bs.map(p => p.back)) + edge
+  const side = (s: RitualSide, sp: RitualSpot[], dir: -1 | 1) => {
+    const nums = shirts(s)
+    return (
+      <g className={`wo-rit-side${s.performs ? ' wo-rit-form' : ''}`} data-ritual-side={s.code} data-ritual-role={s.performs ? 'challenge' : 'facing'}
+        data-ritual={s.performs ? s.code : undefined} data-ritual-facing={s.performs ? undefined : ''}
+        style={{ ['--wo-adv' as string]: `${dir * 3}px` }}>
+        {sp.map((p, i) => {
+          const cap = s.capAt != null && (s.performs ? i === 0 : i === s.capAt)
+          return (
+            <g key={i} data-fig={nums[i]} data-leader={s.performs && i === 0 ? '' : undefined} transform={`translate(${p.x.toFixed(2)} ${(half + dir * p.back).toFixed(2)})`}>
+              <circle cy=".12" r={RITUAL_R} fill="black" fillOpacity=".28" />
+              <circle r={RITUAL_R - 0.1} fill={s.kit[0]} stroke={cap ? 'var(--prop-ink)' : s.kit[1]} strokeWidth={cap ? 0.3 : 0.18} />
+              <text y=".08" textAnchor="middle" dominantBaseline="middle" fontSize="1.25" fontWeight="800"
+                fill={isLight(s.kit[0]) ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'}>{nums[i]}</text>
+            </g>
+          )
+        })}
+      </g>
+    )
+  }
+  const mark = (y: number, cls: string) => y > 0.5 && y < h - 0.5
+    ? <line className={`wo-rit-mark ${cls}`} x1="0" x2={RITUAL_WIDTH} y1={y} y2={y} /> : null
+  return (
+    <div className="wo-pitch wo-ritual" data-ritual-pitch data-ritual-both={top.performs && bottom.performs ? '' : undefined}>
+      <svg viewBox={`0 0 ${RITUAL_WIDTH} ${h.toFixed(2)}`} role="img" aria-label={label}>
+        {mark(half, 'wo-rit-half')}
+        {mark(half - RITUAL_FRONT, 'wo-rit-ten')}
+        {mark(half + RITUAL_FRONT, 'wo-rit-ten')}
+        {side(top, ts, -1)}
+        {side(bottom, bs, 1)}
+      </svg>
+    </div>
+  )
+}
+
 /**
  * THE WALK-OUT. Out of the tunnel behind the captain, then both sides stand
  * in a line for the anthems (the visitors' first, then the hosts'), then the
@@ -143,7 +215,9 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
   // anthem, no challenge and no flag, and its name is its own, not a code
   const vsClub = !!game.clubs[fx.homeId] || !!game.clubs[fx.awayId]
   const sideName = (id: string) => game.clubs[id]?.name ?? nationName(id)
-  const challenger = vsClub ? undefined : [fx.homeId, fx.awayId].find(c => natChallenge(c))
+  // the visitors first, as the anthems go; both, where both lay one down
+  const challengers = vsClub ? [] : [fx.awayId, fx.homeId].filter(c => natChallenge(c))
+  const challenger = challengers.length === 1 ? challengers[0] : challengers.find(c => c !== nat) ?? challengers[0]
   const beats: ('out' | 'anthems' | 'challenge' | 'ko')[] = ['out', ...(vsClub ? [] : ['anthems' as const]), ...(challenger ? ['challenge' as const] : []), 'ko']
   const [i, setI] = useState(0)
   const beat = beats[i]
@@ -194,17 +268,35 @@ export function WalkOut({ fx, nat, lineup, onDone, onCancel }: {
             <li>{anthemLine(fx.homeId)}</li>
           </ol>
         </>}
-        {beat === 'challenge' && challenger && <>
-          <h2>{t('walkout.challengeTitle')}</h2>
-          <p>{challenger === nat
-            ? t('walkout.ourChallenge', { nat: nationName(nat), ...nationVars(nat), challenge: natChallenge(challenger)! })
-            : t('walkout.theirChallenge', { opp: nationName(challenger), challenge: natChallenge(challenger)! })}</p>
-          <div className="wo-pitch wo-stand">
-            {line(challenger === nat ? myKit : oppKit, false)}
-            <div className="wo-gap" />
-            {line(challenger === nat ? oppKit : myKit, challenger !== nat && !!cap)}
-          </div>
-        </>}
+        {beat === 'challenge' && challenger && (() => {
+          const both = challengers.length > 1
+          const mine = (code: string) => code === nat
+          const sideOf = (code: string, performs: boolean, front: number): RitualSide => ({
+            code, kit: mine(code) ? myKit : oppKit, performs, front, capAt: mine(code) && cap ? capAt : null,
+          })
+          const form = (code: string) => t(FORM_K[code] ?? 'walkout.formTGA')
+          // one challenge: the side laying it down at the top, behind its ten,
+          // and the other on halfway. Two: the visitors at the top behind
+          // their ten and the hosts up to halfway, ten metres between them.
+          const other = challenger === fx.homeId ? fx.awayId : fx.homeId
+          const top = both ? sideOf(fx.awayId, true, RITUAL_FRONT) : sideOf(challenger, true, RITUAL_FRONT)
+          const bottom = both ? sideOf(fx.homeId, true, FACING_FRONT) : sideOf(other, false, FACING_FRONT)
+          const caps = both
+            ? [fx.awayId, fx.homeId].map(c => t('walkout.formOf', { nat: nationName(c), form: form(c) }))
+            : [form(challenger), t('walkout.facing')]
+          return <>
+            <h2>{t('walkout.challengeTitle')}</h2>
+            <p>{both
+              ? t('walkout.bothChallenge', { a: nationName(fx.awayId), challengeA: natChallenge(fx.awayId)!, b: nationName(fx.homeId), challengeB: natChallenge(fx.homeId)! })
+              : challenger === nat
+                ? t('walkout.ourChallenge', { nat: nationName(nat), ...nationVars(nat), challenge: natChallenge(challenger)! })
+                : t('walkout.theirChallenge', { opp: nationName(challenger), challenge: natChallenge(challenger)! })}</p>
+            <RitualPitch top={top} bottom={bottom} label={caps.join(' ')} />
+            <div className="wo-ritual-cap" data-ritual-caption>
+              {caps.map((c, k) => <p key={k} className="muted">{c}</p>)}
+            </div>
+          </>
+        })()}
         {beat === 'ko' && <>
           <h2>{t('walkout.koTitle')}</h2>
           <p>{t('walkout.koLine', { nat: nationName(nat), ...nationVars(nat) })}</p>

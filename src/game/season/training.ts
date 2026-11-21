@@ -92,6 +92,14 @@ export function rollPlan(state: GameState, p: Player, rng: Rng): boolean {
   return moved
 }
 
+/** How much harder the squad session works while the season plan's
+ *  pre-season work is on (see the session below). */
+export const PRESEASON_CAMP = 4
+/** The plan's work and the focus it writes (preseasonplan.ts FOCUS_OF, held
+ *  equal by tests/preseasonend.test.ts; restated here to keep this file free
+ *  of that one's imports). */
+const PLAN_FOCUS: Record<string, string> = { fitness: 'fitness', setpiece: 'scrum', attack: 'attack' }
+
 export function weeklyTraining(state: GameState, rng: Rng) {
   const focusMap = FOCUS_ATTRS
   const coachFor = FOCUS_COACH
@@ -386,10 +394,28 @@ export function weeklyTraining(state: GameState, rng: Rng) {
         const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
         // 0.008, was 0.03, for the same reason as rollPlan's rate: the whole
         // squad took ten attribute points a season from the session
-        if (rng() < 0.008 * (1 - RIFT_TRAINING * rift) * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2) * load.grow) {
+        // PRE-SEASON IS A CAMP (1.9.16). The season plan's work now lasts only
+        // until the first league match (preseasonplan.ts endPreseasonWork,
+        // the owner's call), which is three weeks. At the session's ordinary
+        // rate three weeks moved nothing: one seed's squad gained no point at
+        // all. A pre-season block is the heaviest work of a club's year, so
+        // while the plan's own focus is on, the session runs at PRESEASON_CAMP
+        // times the rate: three weeks do what about twelve did, which is what
+        // the season-long plan had delivered by the tenth league match. One
+        // draw as before, so nothing else in the week moves.
+        const camp = state.preplan && !state.preplan.over && state.preplan.season === state.season
+          && PLAN_FOCUS[state.preplan.work] === state.training ? PRESEASON_CAMP : 1
+        if (rng() < 0.008 * camp * (1 - RIFT_TRAINING * rift) * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2) * load.grow) {
           const abs = absWeek(state.season, state.week)
           let moved = false
-          for (const k of focusMap[state.training]) moved = trainPoint(p, k, focusMap[state.training], attrRoll(state.seed, p.id, abs, k)) || moved
+          // "SET PIECES: scrum and lineout" (1.9.16). The season plan's set-piece
+          // answer wrote the scrum focus, which trains scrummaging and strength
+          // and PAYS for them out of whatever it does not cover, the lineout
+          // included: measured over 24 seeds, the squad's lineout fell 11.5
+          // points by the tenth league match under a plan that promised to
+          // work on it. Under that plan the session covers all three.
+          const attrs: (keyof Player['a'])[] = state.training === 'scrum' && state.preplan?.work === 'setpiece' && !state.preplan.over ? ['scr', 'str', 'lin'] : focusMap[state.training]
+          for (const k of attrs) moved = trainPoint(p, k, attrs, attrRoll(state.seed, p.id, abs, k)) || moved
           if (moved) logPts++
         }
       }

@@ -617,6 +617,8 @@ export function loanBuy(state: GameState, playerId: number): { ok: boolean; k: s
   const p = state.players[playerId]
   const offer = loanBuyOffer(state, playerId)
   if (state.unemployed) return { ok: false, k: 'reply.noDesk', fee: 0 }
+  // Pro: Academy Only shuts this door with the other five (1.9.16)
+  if (proBlocksSigning(state)) return { ok: false, k: 'reply.proAcademy', fee: 0 }
   if (!p || !offer) return { ok: false, k: 'reply.unavailable', fee: 0 }
   if (!offer.ok) return { ok: false, k: offer.k, fee: offer.fee }
   const parent = state.clubs[p.loanFrom!]

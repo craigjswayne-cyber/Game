@@ -34,10 +34,10 @@ const candidates = club.players.map(id => base.players[id])
   .filter(p => p && !sheet.has(p.id) && !p.acad && !p.injury && !p.natSquad && p.bans === 0 && !p.onLoan && p.stats.apps >= 1 && p.status !== 'key')
   .sort((a, b) => a.id - b.id)
 /** Two weeks of the scenario under test, on a copy of the world. */
-const scenario = (id: number, injured: boolean) => {
+const scenario = (id: number, injured: boolean, playedLastWeek = false) => {
   const g = structuredClone(base)
   const p = g.players[id]
-  p.lastWk = g.week - 9
+  p.lastWk = playedLastWeek ? g.week - 1 : g.week - 9
   p.outWk = injured ? g.week - 1 : undefined
   if (injured) p.avail = Math.max(0, (p.avail ?? 0) - 8)
   p.morale = 7
@@ -67,7 +67,17 @@ console.log(`  week ${base.week}, ${who.name}: ${who.stats.apps} apps, available
   ok(stayedOut.every(Boolean), `the man under test really stayed out both weeks (${stayedOut.join(', ')})`)
   console.log(`  two weeks unpicked: just back from injury -${back.toFixed(2)}, fit and left out -${leftOut.toFixed(2)}`)
   ok(leftOut > back + 0.2, `a fit man left out for weeks still feels it (-${leftOut.toFixed(2)})`)
-  ok(back < 0.15, `a man just back from injury does not (-${back.toFixed(2)}, the ordinary weekly drift only)`)
+  // AGAINST THE WEEK'S OWN DRIFT, NOT AGAINST NOUGHT (1.9.16). "The ordinary
+  // weekly drift only" was tested as a drop under 0.15, which is true in a
+  // fortnight where nothing else happens to the squad. On 1.9.16's re-dealt
+  // world these two weeks are ones in which the whole dressing room loses
+  // ground, and the man read -0.46 with no grievance in it. The control is
+  // the same man in the same fortnight with a game in his legs last week,
+  // who has nothing to be aggrieved about: just back from injury must sit
+  // within 0.15 of HIM.
+  const drift = scenario(who.id, false, true).drop
+  console.log(`  the same fortnight for the same man with a game last week: -${drift.toFixed(2)}`)
+  ok(Math.abs(back - drift) < 0.15, `a man just back from injury does not (-${back.toFixed(2)} against -${drift.toFixed(2)} for the fortnight itself: the ordinary drift only)`)
 }
 
 // ---- 1b. the stamp: an injured man's weeks are marked as out

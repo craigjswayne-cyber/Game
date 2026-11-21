@@ -198,18 +198,27 @@ function StaffPanel() {
           const said = msg?.role === role ? msg.text : null
           return (
             <div className="card" key={role} style={{ margin: 0, padding: '8px 10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                <div style={{ minWidth: 0 }}>
-                  <div className="fact-label">{t(info.name)}</div>
+              {/* A STAFF CARD IS THREE SHORT LINES (1.9.16). Owner: "backroom
+                  staff, far too much space". The three buttons were stacked
+                  down the right edge, 136px of card for two lines of words, so
+                  eight posts took three screens. The role and what he costs
+                  share a line, his name has the next one to itself and is cut
+                  with an ellipsis if it is long, and the buttons sit side by
+                  side underneath (.staff-card, 14-club.css). */}
+              <div className="staff-card">
+                <div className="staff-info">
+                  <div className="staff-top">
+                    <span className="fact-label">{t(info.name)}</span>
+                    {p && <span className="meta staff-cost">
+                      {t('training.staffLine', { age: p.age, wage: fmtWage(p.wage) })}
+                      {(p.passed ?? 0) > 0 ? t(p.passed === 1 ? 'training.badgeHere' : 'training.badgesHere', { n: p.passed ?? 0 }) : ''}
+                    </span>}
+                  </div>
                   {p ? (
                     <>
-                      <h3 style={{ fontSize: '0.875rem', margin: 0 }}>
-                        <Flag code={p.nat} /> {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: '0.75rem' }}>{badgeLabel(p.tier).toUpperCase()}</b>
+                      <h3 className="staff-name">
+                        <Flag code={p.nat} /> <span className="nm">{p.name}</span> <b style={{ color: BADGE_COL[p.tier], fontSize: '0.75rem' }}>{badgeLabel(p.tier).toUpperCase()}</b>
                       </h3>
-                      <div className="meta" style={{ fontSize: '0.6875rem' }}>
-                        {t('training.staffLine', { age: p.age, wage: fmtWage(p.wage) })}
-                        {(p.passed ?? 0) > 0 ? t(p.passed === 1 ? 'training.badgeHere' : 'training.badgesHere', { n: p.passed ?? 0 }) : ''}
-                      </div>
                       {p.course && <div className="meta" style={{ fontSize: '0.6875rem', color: 'var(--gold)', fontWeight: 700 }}>
                         {t(weeksLeft === 1 ? 'training.onCourseOne' : 'training.onCourse', { badge: badgeLabel(p.course.toTier).toLowerCase(), n: weeksLeft })}
                       </div>}
@@ -226,7 +235,7 @@ function StaffPanel() {
                     </>
                   )}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                <div className="staff-acts">
                   {/* the seat can be emptied without a replacement lined up
                       (owner, v1.2.7): eight weeks of his wage, asked twice */}
                   {p && !p.course && (
@@ -239,7 +248,7 @@ function StaffPanel() {
                     <button className="btn gold" style={{ padding: '4px 8px', fontSize: '0.6875rem', lineHeight: 1.25, minHeight: 40 }}
                       disabled={!!courseNo} title={courseNo?.long}
                       onClick={() => { setMsg({ role, text: sendToCourse(game, role) }); touch() }}>
-                      {t('training.assess')}<br /><span style={{ fontSize: '0.6875rem', fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
+                      {t('training.assess')} <span style={{ fontSize: '0.6875rem', fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
                     </button>
                   )}
                   <button className="btn ghost" style={{ padding: '4px 8px', fontSize: '0.6875rem' }}

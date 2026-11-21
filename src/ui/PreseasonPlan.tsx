@@ -49,6 +49,8 @@ export function PreseasonPlan() {
       </div>
 
       <div className="pp-q">{t('preplan.work')}</div>
+      {/* it lasts as long as its name says (1.9.16) */}
+      <div className="meta" style={{ marginTop: -2, marginBottom: 6 }} data-preplan-until>{t('preplan.workUntil')}</div>
       <div className="pp-opts" role="radiogroup" aria-label={t('preplan.work')} data-group="work">
         {PLAN_WORKS.map(w => opt(work === w, w, t(`preplan.w_${w}`), t(`preplan.w_${w}Desc`), () => setWork(w)))}
       </div>

@@ -72,6 +72,7 @@ import { boardReaction, boardReadsTheTable, honeymoonEnd } from './season/board'
 import { applyToTable, maybeCreateKnockouts, resolveKnockoutDraw, winnerOf } from './season/tables'
 import { callUpsAhead, fillShortNatSquad, manageInternationals, openUserCampAhead } from './season/internationals'
 import { weeklyTraining } from './season/training'
+import { endPreseasonWork } from './preseasonplan'
 import { weeklyFinance } from './season/finance'
 import { afterClubMatch, leagueRoundUp, matchReport, mgrMilestones, milestones } from './season/news'
 import { userFixtureThisWeek } from './season/whose'
@@ -1968,6 +1969,8 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
   }
 
   yield
+  // pre-season work stands down after the first league match (1.9.16)
+  endPreseasonWork(state)
   weeklyTraining(state, rng)
   // the game-time ledger (F18): what the team sheets say against what each man
   // was told, settled a little every week rather than in one lump

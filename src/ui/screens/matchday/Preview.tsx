@@ -33,6 +33,27 @@ import { WEATHER_ICON, weatherWord } from './weather'
 import { Veil } from '../../Veil'
 import { acc, accLine } from '../../accent'
 
+/**
+ * ---- THE BRIEFING IS A PAGE, NOT A DOSSIER (1.9.16) ----
+ *
+ * Owner: "far too much text in briefing - rethink how to present this". It ran
+ * to three screens: the danger man, the head to head and the game plan, then
+ * the referee's six opinions, the other coach's philosophy, the bench orders,
+ * the record against them and the partnerships, every line open. The first
+ * three are what a manager acts on and they stay open. The rest are reference,
+ * so each is one line that says the fact (who has the whistle, what the sky is
+ * doing, who is in the other dugout, the record) and opens on a tap for the
+ * detail. Nothing was removed.
+ */
+function BriefSum({ label, hint }: { label: string; hint: string }) {
+  return (
+    <summary>
+      <span className="fact-label">{label}</span>
+      <span className="bf-hint">{hint}</span>
+    </summary>
+  )
+}
+
 export function Preview({ fxId }: { fxId: number }) {
   const game = useStore(s => s.game)!
   useStore(s => s.tick)
@@ -779,8 +800,8 @@ export function Preview({ fxId }: { fxId: number }) {
                 // sky and the ground, on one card, each read off the fixture
                 const surface = surfaceOf(game, fx)
                 return (
-                  <div className="card" data-conditions={`${forecast}/${surface}`}>
-                    <div className="fact-label">{t('matchday.theConditions')}</div>
+                  <details className="card brief-fold" data-conditions={`${forecast}/${surface}`}>
+                    <BriefSum label={t('matchday.theConditions')} hint={`${ref.name} · ${weatherWord(forecast)} · ${t(surfKey(surface))}`} />
                     <div className="meta" style={{ marginBottom: 4 }}>
                       <b>{ref.name}</b>{t('matchday.refAppointed')}
                     </div>
@@ -788,12 +809,12 @@ export function Preview({ fxId }: { fxId: number }) {
                     {notes.length === 0 && <div className="meta">{t('matchday.refNothing')}</div>}
                     <div className="meta">· <Glyph name={WEATHER_ICON[forecast]} /> <b>{weatherWord(forecast)}.</b> {t(wxEffectKey(forecast))}</div>
                     <div className="meta">· <b>{t(surfKey(surface))}.</b> {t(surfaceNote(surface))}</div>
-                  </div>
+                  </details>
                 )
               })()}
               {oppClub?.coach && (
-                <div className="card">
-                  <div className="fact-label">{t('matchday.oppositeNumber')}</div>
+                <details className="card brief-fold">
+                  <BriefSum label={t('matchday.oppositeNumber')} hint={`${oppClub.coach}${philosophyOf(oppClub) ? ` · ${t(philosophyOf(oppClub)!.name)}` : ''}`} />
                   <div className="meta">
                     <b>{oppClub.coach}</b>
                     {t('matchday.oppCoachLine', { club: oppClub.short, quote: t(QUOTES[(fx.id + game.week) % QUOTES.length]) })}
@@ -829,7 +850,7 @@ export function Preview({ fxId }: { fxId: number }) {
                       </>
                     )
                   })()}
-                </div>
+                </details>
               )}
               {(() => {
                 const bowing = oppLineup
@@ -895,8 +916,8 @@ export function Preview({ fxId }: { fxId: number }) {
                   .map((_, i) => ({ i, b: briefForSeat(club, i), id: tac.lineup[15 + i] }))
                   .filter(x => x.b !== 'orders' && x.id != null)
                 return (
-                  <div className="card">
-                    <div className="fact-label">{t('matchday.finishers')}</div>
+                  <details className="card brief-fold">
+                    <BriefSum label={t('matchday.finishers')} hint={t(def.name)} />
                     <div className="meta" style={{ marginBottom: briefed.length ? 4 : 0 }}>
                       <b>{t(def.name)}.</b> {t(def.desc)}
                     </div>
@@ -908,7 +929,7 @@ export function Preview({ fxId }: { fxId: number }) {
                     {briefed.length === 0 && (
                       <div className="meta">{t('matchday.finishersNone')}</div>
                     )}
-                  </div>
+                  </details>
                 )
               })()}
               {/* F27: the trip itself. Only when WE are the ones travelling - the
@@ -934,8 +955,8 @@ export function Preview({ fxId }: { fxId: number }) {
                 const total = rec ? rec.w + rec.d + rec.l : 0
                 if (!meetings.length && !total) return null
                 return (
-                  <div className="card">
-                    <div className="fact-label">{t('matchday.bookOnThem')}</div>
+                  <details className="card brief-fold">
+                    <BriefSum label={t('matchday.bookOnThem')} hint={total > 0 ? `${rec!.w}${t('common.w')} ${rec!.d}${t('common.d')} ${rec!.l}${t('common.l')}` : `${meetings.length}`} />
                     {total > 0 && (
                       <div className="meta">
                         {t('matchday.underYou')}<b>{rec!.w}{t('common.w')} {rec!.d}{t('common.d')} {rec!.l}{t('common.l')}</b>
@@ -952,7 +973,7 @@ export function Preview({ fxId }: { fxId: number }) {
                         {' '}<span className="muted">({compLabel(game.comps[m.compId]?.short)})</span>
                       </div>
                     ))}
-                  </div>
+                  </details>
                 )
               })()}
             </>
@@ -974,8 +995,8 @@ export function Preview({ fxId }: { fxId: number }) {
           const surname = (n: string) => n.split(' ').slice(-1)[0]
           return (
             <>
-              <SectionTitle sub={t('matchday.partnershipsSub')}>{t('matchday.partnerships')}</SectionTitle>
-              <div className="card" style={{ paddingTop: 6, paddingBottom: 6 }}>
+              <details className="card brief-fold">
+                <BriefSum label={t('matchday.partnerships')} hint={rows.map(r => r.tier).filter((x, i, a) => a.indexOf(x) === i).join(' · ')} />
                 {rows.map(r => (
                   <div key={r.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)', fontSize: '0.8125rem' }}>
                     <span><span style={{ color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, fontSize: '0.6875rem' }}>{r.key}</span> · {surname(r.a.name)} & {surname(r.b.name)}</span>
@@ -984,7 +1005,7 @@ export function Preview({ fxId }: { fxId: number }) {
                     </span>
                   </div>
                 ))}
-              </div>
+              </details>
             </>
           )
         })()}
@@ -1046,7 +1067,9 @@ export function Preview({ fxId }: { fxId: number }) {
         </div>
         </>}
 
-        <div className="btn-row" style={{ marginTop: 10 }}>
+        {/* tight under the last row (1.9.16, owner: "kick off down the bottom is
+            too low. Get closer to bottom sub") */}
+        <div className="btn-row" style={{ marginTop: 2 }}>
           <button className="btn gold block" style={{ fontSize: '1rem', width: '100%' }} onClick={tryKickOff}>
             {t(view === 'instant' ? 'matchday.instantResult' : view === 'highlights' ? 'matchday.kickOffHighlights' : 'matchday.kickOff')}
           </button>

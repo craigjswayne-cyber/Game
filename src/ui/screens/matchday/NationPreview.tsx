@@ -7,7 +7,7 @@ import { MIDWEEK_OFF, BENCH_SLOTS, XV_SLOTS, fixtureDate } from '../../../game/m
 import { assistantFixtureThisWeek } from '../../../game/season'
 import { effAt } from '../../../game/attributes'
 import { posName, t, compLabel } from '../../../game/i18n'
-import { CrestT, PosBadge, SectionTitle, Stars } from '../../components'
+import { CrestT, PosBadge, SectionTitle, Stars, InjuryMark } from '../../components'
 import { stageName } from '../Home'
 import { nationName, nationVars } from '../../../game/nations'
 import { Glyph } from '../../glyphs'
@@ -156,7 +156,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
               <tr key={i} {...rowNavTr(() => tapSlot(i))} className={sel === i ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos} /></td>
-                <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
+                <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}{p && <InjuryMark p={p} week={game.week} />}</td>
                 <td>{p && <Stars ca={effAt(p, s.pos)} />}</td>
               </tr>
             )
@@ -172,7 +172,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
               <tr key={slot} {...rowNavTr(() => tapSlot(slot))} className={sel === slot ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos[0]} /></td>
-                <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
+                <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}{p && <InjuryMark p={p} week={game.week} />}</td>
                 <td>{p && <Stars ca={effAt(p, s.pos[0])} />}</td>
               </tr>
             )
@@ -230,7 +230,7 @@ export function NationPreview({ fxId }: { fxId: number }) {
             its confirm sheet is three lines and two buttons. This is the same
             shape - the choice sits on the page beside the team talk, where it
             can be made in advance, and the sheet asks one question. */}
-        <ViewPicker view={view} onPick={setView} />
+        <div data-view-gutter style={{ padding: '0 14px' }}><ViewPicker view={view} onPick={setView} /></div>
         <div className="btn-row" style={{ marginTop: 10 }}>
           <button className="btn gold block" style={{ fontSize: '1rem', width: '100%' }} onClick={() => setConfirm(true)}>
             {t('matchday.kickOff')}

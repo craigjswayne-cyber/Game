@@ -1,5 +1,6 @@
 // Goal kicking: the chance of a kick, its tally and the shot at goal. Split
 // out of matchEngine.ts.
+import { pressureKick } from './tension'
 import type { GameState, Player } from '../model'
 import { tIn } from '../i18n'
 import { clamp } from '../rng'
@@ -68,6 +69,8 @@ export function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, m
       { player: kicker?.name ?? teamShort(state, side.teamId), team: teamShort(state, side.teamId), opp: teamShort(state, other.teamId) }, kicker?.id)
     return
   }
+  // the walk to the tee, said before the strike in a one-score Test (tension.ts)
+  pressureKick(state, ctx, side, other, kicker, min)
   // the kicker's nerve with the match on the line (habits.ts): a threshold, never a draw
   const pPen = clamp(kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side) + clutchKick(state.seed, kicker, min, side.score - other.score), 0.3, 0.92)
   const penOver = rng() < pPen

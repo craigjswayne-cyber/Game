@@ -1,3 +1,4 @@
+import { hasSupporter } from '../../game/monetise'
 import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
@@ -174,7 +175,7 @@ export default function Transfers() {
     // all"). clubCode is what the crest draws and the touchline paints; the
     // search box above still matches the full name.
     { id: 'club', head: t('transfers.colClub'), td: () => ({ className: 'muted' }), cell: p => (p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')) },
-    { id: 'ca', head: t('transfers.colAbility'), sort: 'ca', cell: p => { const ca = shownCa(game, p); return <><Stars ca={ca} />{ca != null && knowledge(game, p) < 95 && <span className="muted">?</span>}</> } },
+    { id: 'ca', head: t('transfers.colAbility'), sort: 'ca', cell: p => { const ca = shownCa(game, p); return <><Stars ca={ca} />{ca != null && knowledge(game, p) < 95 && !hasSupporter() && <span className="muted">?</span>}</> } },
     { id: 'form', head: t('transfers.colForm'), align: 'right', sort: 'form', narrowHide: true, cell: p => <FormPill v={p.form} /> },
     { id: 'value', head: t('squad.colValue'), align: 'right', sort: 'value', cell: p => fmtMoney(seenValue(game, p)) },
   ]
@@ -226,6 +227,7 @@ export default function Transfers() {
     ? (setLoanDeal({ id, length: 'season', share: 0.5 }), setMsg(null))
     : go('player', id)
 
+  const freeCount = Object.values(game.players).filter(p => !p.clubId).length
   return (
     <>
       <div className="chips" style={{
@@ -235,6 +237,15 @@ export default function Transfers() {
       }}>
         <span className="chip">{t('transfers.budget')} <b>{fmtMoney(user.budget)}</b></span>
         <span className="chip">{t('transfers.wageRoom')} <b>{Number.isFinite(userWageBudget(game, user)) ? `${fmtWage(Math.max(0, userWageBudget(game, user) - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}${t('common.perWeek')}` : t('finances.noLimit')}</b></span>
+        {/* FREE AGENTS, ONE TAP (1.9.16). Owner: "there should be a filter option
+            in transfer for free agents". There was one, but it was an entry in
+            the League menu inside the filter sheet, and he never found it. */}
+        <button className="chip" data-fa-chip aria-pressed={league === 'FA'}
+          /* a full 44px to tap: it is a button, and the chips beside it are labels (geosweep) */
+          style={{ minHeight: 44, ...(league === 'FA' ? { borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 } : {}) }}
+          onClick={() => { setLeague(league === 'FA' ? 'ALL' : 'FA'); setPage(0) }}>
+          {t('transfers.freeAgents')}&nbsp;<b>{freeCount}</b>
+        </button>
         <span className="chip" style={{
           color: windowOpen(game.week) ? 'var(--text-positive)' : 'var(--text-muted)',
           fontWeight: 700,
@@ -487,10 +498,10 @@ export default function Transfers() {
             <label htmlFor="fs-value">{t('transfers.filterValue')}</label>
             <select id="fs-value" className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
               <option value={0}>{t('search.any')}</option>
-              <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
-              <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
-              <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
-              <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
+              <option value={250000}>{t('transfers.toValue', { amount: fmtMoney(250000).replace(/[.,]0(?=\D)/, '') })}</option>
+              <option value={1000000}>{t('transfers.toValue', { amount: fmtMoney(1000000).replace(/[.,]0(?=\D)/, '') })}</option>
+              <option value={3000000}>{t('transfers.toValue', { amount: fmtMoney(3000000).replace(/[.,]0(?=\D)/, '') })}</option>
+              <option value={8000000}>{t('transfers.toValue', { amount: fmtMoney(8000000).replace(/[.,]0(?=\D)/, '') })}</option>
             </select>
             <label htmlFor="fs-age">{t('transfers.filterAge')}</label>
             <select id="fs-age" className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
@@ -532,6 +543,8 @@ export default function Transfers() {
           </div>
           <div className="fs-toggles">
             {([
+              // the same switch as League: Free agents, said where he looks for it (1.9.16)
+              [league === 'FA', () => setLeague(league === 'FA' ? 'ALL' : 'FA'), 'search.onlyFree'],
               [listedOnly, () => setListedOnly(!listedOnly), 'search.onlyListed'],
               [keenOnly, () => setKeenOnly(!keenOnly), 'search.onlyInterested'],
               ...(deal === 'transfer' ? [[affordOnly, () => setAffordOnly(!affordOnly), 'search.onlyAffordable'] as [boolean, () => void, string]] : []),

@@ -6,8 +6,8 @@ import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { natFixtureThisWeek } from '../../game/season'
 import { NAT_SQUAD_SIZE } from '../../game/nations'
-import { NAT_SQUAD_FLOOR, deskNat, natCallUp, natDrop, natEligible, natShort, natWindow, suggestNatSquad, weeksToSquad } from '../../game/country'
-import { ClubLink, PosBadge, SectionTitle } from '../components'
+import { NAT_SQUAD_FLOOR, deskNat, natBarOf, natCallUp, natDrop, natEligible, natShort, natUnavailable, natWindow, suggestNatSquad, weeksToSquad } from '../../game/country'
+import { ClubLink, InjuryMark, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
 import { posName, t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
@@ -186,6 +186,8 @@ export function NatSquad() {
   // names, so an unfiltered "next men in" list was not a shortlist, it was a
   // census.
   const [posFilter, setPosFilter] = useState<Pos | 'ALL'>('ALL')
+  // find a man by name: the shortlist is twenty of two thousand (1.9.16)
+  const [query, setQuery] = useState('')
 
   // on an Isles tour the desk is the tour party's (country.ts deskNat)
   const natId = deskNat(game)
@@ -205,7 +207,10 @@ export function NatSquad() {
   // enough to move a man up the page, never enough to put a journeyman above a
   // Lion.
   const recommend = (p: { ca: number; form: number }) => p.ca + (p.form - 5) * 2.2
-  const pool = [...natEligible(game)].sort((a, b) => recommend(b) - recommend(a))
+  // the men he cannot call are on the page too, greyed, with the reason
+  // (owner, 1.9.16): hurt, playing abroad, or without a club
+  const pool = [...natEligible(game), ...natUnavailable(game)].sort((a, b) => recommend(b) - recommend(a))
+  const plain = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
   // IN FORM is a fact about the man, not about the sort: it is called out on
   // the row so the reason he has climbed is visible rather than implied.
   const inForm = (p: { form: number }) => p.form >= 7
@@ -219,18 +224,27 @@ export function NatSquad() {
     redraw(n => n + 1)
   }
 
-  const row = (p: NonNullable<(typeof squad)[number]>, inSquad: boolean) => (
-    <tr key={p.id} {...rowNavTr(() => go('player', p.id))}>
-      <td style={{ width: 34 }}><PosBadge pos={p.pos} /></td>
+  const row = (p: NonNullable<(typeof squad)[number]>, inSquad: boolean) => {
+    const bar = inSquad ? null : natBarOf(game, p)
+    return (
+    <tr key={p.id} {...rowNavTr(() => go('player', p.id))} data-nat-bar={bar ?? undefined}>
+      <td style={{ width: 34, opacity: bar ? 0.55 : undefined }}><PosBadge pos={p.pos} /></td>
       <td className="name" style={p.clubId === game.userClubId ? { fontWeight: 800 } : undefined}>
-        {p.name}{(p.caps ?? 0) === 0 && <span className="muted">{t('legacy.coUncapped')}</span>}
+        <span style={bar ? { opacity: 0.55 } : undefined}>{p.name}</span>
+        <InjuryMark p={p} week={game.week} />
+        {(p.caps ?? 0) === 0 && <span className="muted">{t('legacy.coUncapped')}</span>}
         {/* the reason he is near the top, said out loud rather than implied by
             the sort order (owner: "recommended/in form at top") */}
-        {!inSquad && inForm(p) && <span style={{ color: 'var(--text-positive)', fontWeight: 700 }}> {t('legacy.coInForm')}</span>}
+        {!inSquad && !bar && inForm(p) && <span style={{ color: 'var(--text-positive)', fontWeight: 700 }}> {t('legacy.coInForm')}</span>}
       </td>
       <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>
       <td style={{ width: 64, textAlign: 'right' }}>
-        {w && (
+        {w && bar && (
+          <span className="meta" style={{ fontSize: '0.6875rem', color: 'var(--text-negative)', fontWeight: 700 }}>
+            {t(bar === 'injured' ? 'legacy.coBarInjured' : bar === 'abroad' ? 'legacy.coBarAbroad' : 'legacy.coBarNoClub')}
+          </span>
+        )}
+        {w && !bar && (
           <button className="btn ghost tiny" style={{ fontSize: '0.75rem', padding: '6px 10px', color: inSquad ? 'var(--text-negative)' : 'var(--text-positive)' }}
             onClick={e => { e.stopPropagation(); act(p, inSquad ? natDrop : natCallUp) }}>
             {t(inSquad ? 'legacy.coDrop' : 'legacy.coCallUp')}
@@ -238,7 +252,8 @@ export function NatSquad() {
         )}
       </td>
     </tr>
-  )
+    )
+  }
 
   const table = (list: typeof squad, inSquad: boolean) => (
     <div className="tblwrap"><table className="dtable"><tbody>
@@ -279,7 +294,7 @@ export function NatSquad() {
               which is not the same as it being made for him. */}
           {squad.length < NAT_SQUAD_FLOOR ? (
             <div className="card" style={{ ...acc('var(--gold)') }}>
-              <b>{t('legacy.coNameIt', { n: NAT_SQUAD_FLOOR - squad.length })}</b>
+              <b>{t('legacy.coNameIt', { n: squad.length, max: w.size, floor: NAT_SQUAD_FLOOR })}</b>
               <div className="meta" style={{ marginTop: 2 }}>{t('legacy.coNameItSub', { floor: NAT_SQUAD_FLOOR, max: w.size })}</div>
               <button className="btn gold block" style={{ marginTop: 8 }}
                 onClick={() => {
@@ -351,11 +366,20 @@ export function NatSquad() {
             // England - and the old screen rendered all of it. Twenty of the
             // best, in the shirt you asked for, is what a selection meeting
             // actually looks at.
-            const shown = pool.filter(p => posFilter === 'ALL' || p.pos === posFilter)
+            const q = plain(query.trim())
+            const shown = pool.filter(p => (posFilter === 'ALL' || p.pos === posFilter) && (!q || plain(p.name).includes(q)))
             const top = shown.slice(0, 20)
-            if (!top.length) return <div className="meta" style={{ padding: '0 16px' }}>{t('legacy.coNobodyLeft')}</div>
+            const search = (
+              <div style={{ padding: '0 16px 8px' }}>
+                <input type="search" className="inline-input" data-nat-search value={query} onChange={e => setQuery(e.target.value)}
+                  placeholder={t('legacy.coSearch')} aria-label={t('legacy.coSearch')}
+                  style={{ width: '100%', minHeight: 44, boxSizing: 'border-box' }} />
+              </div>
+            )
+            if (!top.length) return <>{search}<div className="meta" style={{ padding: '0 16px' }}>{t(q ? 'legacy.coNoMatch' : 'legacy.coNobodyLeft')}</div></>
             return (
               <>
+                {search}
                 <div className="meta" style={{ padding: '0 16px 4px' }}>
                   {posFilter === 'ALL'
                     ? t('legacy.coShowingAll', { n: top.length, total: shown.length })

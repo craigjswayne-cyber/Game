@@ -503,7 +503,13 @@
    table's columns still size to whole words. Every phone width since 1.8.6:
    "P. Bourdon Sansus" lost 4px in the market at 360-412. A name that fits
    keeps its one line. */
-  .dtable td.name, .xv-fixed .dtable td.name, .dtable.codefirst td.name { white-space: normal; overflow-wrap: break-word; }
+  /* REVERSED IN 1.9.16. Owner, 21 Nov 2026: "a lot of the name lists, like
+     rankings etc, are bigger when names are longer. They should all be like
+     game time where if a name is long it goes..." A wrapped name made its row
+     half as tall again as its neighbours, and a list of them read as uneven.
+     One line everywhere, cut with an ellipsis; the full name is one tap away
+     on the man's own page. */
+  .dtable td.name, .xv-fixed .dtable td.name, .dtable.codefirst td.name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* in a table that scrolls sideways anyway, the name keeps room for an
      initial and a surname on one line rather than the table squeezing it */
   .tblwrap .dtable td.name { min-width: 7.5em; }

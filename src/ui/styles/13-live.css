@@ -783,6 +783,11 @@
 .hl-banner.miss { color: var(--hl-miss); }
 @keyframes hl-banner { from { opacity: 0; transform: translate(-50%, 10px) scale(.9); } }
 
+/* THE LAST ROW STAYS ON THE SCREEN (owner's S25 Ultra, 1.9.16). The panel is
+   ten rows tall and the column it sits in does not scroll, so on a phone
+   where the commentary took the room the Cards row ran out under the system
+   buttons. It may now give up height and scroll inside itself instead. */
+.live-wrap > .live-stats { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin-bottom: 8px; }
 .live-stats {
   margin: 8px 10px 0; padding: 6px 12px 8px; border-radius: 12px;
   background: var(--surface-1); border: 1px solid var(--border);
@@ -866,3 +871,10 @@
 .app.tablet .tab-stats .live-stats .ls-row + .ls-row { border-top: 1px solid var(--border); }
 .mpanels.tele-mode { gap: 6px; padding: 8px 10px 10px; box-shadow: 0 -10px 30px rgba(0, 0, 0, .45); }
 .tele tr.binned td { background: color-mix(in srgb, var(--prop-yellow) 12%, transparent); }
+
+/* ONE SCORE IN IT (1.9.16): the marker under the clock in a close Test. Gold
+   on the hero gradient (the -fill form, as the penalty counts above use), and
+   a slow pulse that stops for anyone who has asked for less motion. */
+.tense-band.test { animation: tense-pulse 1.2s ease-in-out infinite; }
+@keyframes tense-pulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .tense-band.test { animation: none; } }

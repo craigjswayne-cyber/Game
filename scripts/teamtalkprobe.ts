@@ -270,15 +270,26 @@ if (ev) {
 // ---------------------------------------------------------------------------
 console.log('--- 6. morale carries a little of it home')
 {
-  const g = clone(base)
-  const fx = userFx(g)[0]
-  const ctx = beginMatch(g, fx, mulberry32(11), false)
-  const mine = mineOf(ctx)
-  const ids = mine.lineup.slice(0, 15).filter((id): id is number => id != null)
-  const g2 = clone(base)
-  const ctx2 = beginMatch(g2, fx, mulberry32(11), false)
-  applyPreTalk(g2, ctx2, 'fire')
-  playHalf(g, ctx); playHalf(g, ctx); playHalf(g2, ctx2); playHalf(g2, ctx2)
+  // THE TALK'S OWN TRACE, NOT THE RESULT'S (1.9.16). This played one pair of
+  // matches on dice 11 and compared morale. A talk can turn a match, and when
+  // it does the two squads differ by a win and a defeat, which is the very
+  // thing the next line says is bigger: on 1.9.16's re-dealt world dice 11
+  // was such a match and the pair read 1.11 a man. The pair is now taken on
+  // the first dice where both matches end the same way (won, drawn or lost),
+  // so what is measured is what the words left behind.
+  const sign = (c: ReturnType<typeof beginMatch>) => { const me = mineOf(c), them = me === c.home ? c.away : c.home; return Math.sign(me.score - them.score) }
+  let g = clone(base), g2 = clone(base), ids: number[] = [], dice = 11
+  for (; dice < 40; dice++) {
+    g = clone(base); g2 = clone(base)
+    const fx = userFx(g)[0]
+    const ctx = beginMatch(g, fx, mulberry32(dice), false)
+    ids = mineOf(ctx).lineup.slice(0, 15).filter((id): id is number => id != null)
+    const ctx2 = beginMatch(g2, userFx(g2)[0], mulberry32(dice), false)
+    applyPreTalk(g2, ctx2, 'fire')
+    playHalf(g, ctx); playHalf(g, ctx); playHalf(g2, ctx2); playHalf(g2, ctx2)
+    if (sign(ctx) === sign(ctx2)) break
+  }
+  ok(dice < 40, `a pair of matches that ended the same way with and without the talk (dice ${dice})`)
   const diffs = ids.map(id => g2.players[id].morale - g.players[id].morale)
   const maxAbs = Math.max(...diffs.map(Math.abs))
   console.log(`     morale moved by the talk: up to ${maxAbs.toFixed(2)} a man`)

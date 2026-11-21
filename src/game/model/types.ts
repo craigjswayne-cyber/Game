@@ -201,8 +201,12 @@ export interface Player {
   trait?: string | null
   /** estimated career before the game world began (2025-26) */
   hist?: { apps: number; tries: number; points: number }
-  /** Test caps, pre-2025 estimate plus every international played here */
+  /** Test caps: the real count where data/intl2026.ts has one, an estimate
+   *  otherwise, plus every international played here */
   caps?: number
+  /** Named in his union's real autumn 2026 squad (data/intl2026.ts): the
+   *  federations pick these men first in the opening season (1.9.16). */
+  sq26?: boolean
   /** Isles XV tours made - the honour of a career.
    *
    *  THE FIELD KEEPS ITS OLD NAME ON PURPOSE. It is written into every save
@@ -1500,6 +1504,11 @@ export interface GameState {
    *  slot a season, so the gamble cannot be shopped round until it pays */
   dealEndedSeason?: Partial<Record<import('../commercial').SlotId, number>>
   /** a trophy moment waiting to be celebrated full-screen */
+  /** the rating card has been asked for on a high in this career (1.9.16,
+   *  reviewask.ts): once a career */
+  rateAsked?: boolean
+  /** the career began in a national job, with no club (1.9.16, intlstart.ts) */
+  intlStart?: boolean
   /** THE FULL-SCREEN MOMENT. Promotion, a title, an unbeaten season, a
    *  challenge finished - the rarest things the game has to show, and every
    *  one of them was English whatever language the manager had chosen.
@@ -1518,6 +1527,10 @@ export interface GameState {
     sk?: string
     sv?: Record<string, string | number>
   } | null
+  /** A second card waiting behind the first (1.9.16): a Pro challenge
+   *  completed in the summer a trophy was won. The trophy's card shows, and
+   *  this one follows it when it is tapped away (App.tsx). Same shape. */
+  celebrationNext?: GameState['celebration']
   /** THE GAFFER'S LEDGER (v1.2.2). The quiet firsts of a career: the first
    *  win at a ground, the first derby win, ten unbeaten. Each is recorded
    *  once (the key is the dedupe), filed as a story when it happens, and
@@ -2013,6 +2026,9 @@ export interface GameState {
   /** What a drop this window took off each player's morale, so a recall
    *  gives back exactly that (country.ts, 1.9.15). */
   natSentLoss?: Record<number, number>
+  /** What each call-up in the DRAFT sheet added to a man's morale, so taking
+   *  him off again before the announcement gives back exactly that (1.9.16). */
+  natCallGain?: Record<number, number>
   /** a window whose review ended the tenure, kept so the screen can say so */
   natLastReview?: GameState['natWin']
   /** the federation's own list for the user's nation, snapshotted when the

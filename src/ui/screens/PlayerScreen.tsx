@@ -1,3 +1,4 @@
+import { feeSteps, stepFee, wageDown, wageStep } from '../../game/bidstep'
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { scrollContentTo } from '../pageReset'
@@ -6,7 +7,9 @@ import { POS_ORDER, SEASON_WEEKS, careerRows, kickRecord, fmtMoney, fmtWage, sho
 import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, offerFreeAgent, freeAgentDemand, freeAgentTerm, FREE_TERMS, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
-import { FormPill, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton, spotNote } from '../components'
+import { FormPill, InjuryMark, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton, spotNote } from '../components'
+import { deskNat, natBarOf, natCallUp, natDrop, natWindow } from '../../game/country'
+import { natQualifies } from '../../game/nations'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { effAt, firstProWage } from '../../game/attributes'
@@ -79,6 +82,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   // the conclusion of the contract talks, shown inside the talks card
   const [talkOutcome, setTalkOutcome] = useState<string | null>(null)
   const [chatMsg, setChatMsg] = useState<string | null>(null)
+  const [natMsg, setNatMsg] = useState<string | null>(null)
   const [talkSigned, setTalkSigned] = useState(false)
   const [bidding, setBidding] = useState(false)
   const [bid, setBid] = useState(0)
@@ -150,6 +154,16 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h3 style={{ fontSize: '1.25rem' }}>{p.name}</h3>
+            {/* HURT, SAID AT THE TOP (owner, 1.9.16: "it should show their
+                injury status in their profile"). The chip was eleventh in a
+                row of chips further down; a coach looking for his fly-half
+                needs it beside the name. */}
+            {p.injury && (
+              <div data-injury-top style={{ display: 'flex', alignItems: 'center', gap: 0, margin: '2px 0 4px -6px', color: 'var(--text-negative)', fontWeight: 700, fontSize: '0.8125rem' }}>
+                <InjuryMark p={p} week={game.week} weeks={false} />
+                <span style={{ marginLeft: 6 }}>{t('player.injuredChip', { desc: injuryDesc(p.injury), n: Math.max(0, p.injury.until - game.week) })}</span>
+              </div>
+            )}
             <div className="meta">
               <PosBadge pos={p.pos} /> {posName(p.pos)}
               {p.alt.length > 0 && <span className="muted">{t('player.alsoPlays', { pos: p.alt.join(', ') })}</span>}
@@ -193,6 +207,35 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       <div className="card" style={{ ...acc(p.injury || p.bans > 0 ? 'var(--danger)' : p.form >= 7 ? 'var(--text-positive)' : 'var(--gold)') }}>
         <div className="meta" style={{ fontSize: '0.8125rem', lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
       </div>
+
+      {/* ---- THE CALL, FROM HIS OWN PAGE (owner, 1.9.16: "you should also be
+          able to call up from inside people's profiles") ----
+          A national coach reads a man's page to decide on him, then had to go
+          back to the desk and find him again in a list of two thousand. The
+          same two functions the desk calls, so every rule there holds here,
+          and a man who cannot be called says why. Only while a window is open
+          and only for a man who qualifies for the coach's side. */}
+      {(() => {
+        const nat = deskNat(game)
+        if (!nat || !natWindow(game) || !natQualifies(p, nat)) return null
+        const inSquad = (game.natSquads[nat] ?? []).includes(p.id)
+        const bar = inSquad ? null : natBarOf(game, p)
+        return (
+          <div className="card" data-nat-call style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0 }}>
+              <b style={{ fontSize: '0.875rem' }}>{t(inSquad ? 'player.natDeskIn' : 'player.natDeskOut')}</b>
+              {bar && <div className="meta" style={{ color: 'var(--text-negative)' }}>{t(bar === 'injured' ? 'legacy.coBarInjured' : bar === 'abroad' ? 'legacy.coBarAbroad' : 'legacy.coBarNoClub')}</div>}
+              {natMsg && <div className="meta" style={{ color: 'var(--text-negative)' }}>{natMsg}</div>}
+            </div>
+            {!bar && (
+              <button className={`btn ${inSquad ? 'ghost' : 'gold'}`} data-nat-call-btn style={{ minHeight: 44 }}
+                onClick={() => { setNatMsg((inSquad ? natDrop : natCallUp)(game, p.id)); void useStore.getState().persist(); touch() }}>
+                {t(inSquad ? 'legacy.coDrop' : 'legacy.coCallUp')}
+              </button>
+            )}
+          </div>
+        )
+      })()}
 
       {/* THE READ AND THE CHARACTER, SIDE BY SIDE WHERE THERE IS ROOM (1.9.0):
           stacked they made a scouted man's page 3.15 screenfuls deep on a
@@ -661,9 +704,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           })()}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.wagePerWeek')}</span>
-            <button className="btn ghost stepper" onClick={() => { setWage(Math.max(500, wage - 500)) }}>−</button>
+            <button className="btn ghost stepper" onClick={() => { setWage(wageDown(wage)) }}>−</button>
             <b style={{ minWidth: 76, textAlign: 'center' }}>{fmtWage(wage)}</b>
-            <button className="btn ghost stepper" onClick={() => { setWage(wage + 500) }}>+</button>
+            <button className="btn ghost stepper" onClick={() => { setWage(wage + wageStep(wage)) }}>+</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.signOn')}</span>
@@ -1089,7 +1132,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               <div className="card">
                 <h3 style={{ fontSize: '1rem' }}>{t('player.yourOffer', { club: club.short })}</h3>
                 <div className="meta">{t('player.askAndBudget', { ask: fmtMoney(ask), budget: fmtMoney(game.clubs[game.userClubId].budget) })}</div>
-                {floorPrice(game, p) < ask - 50_000 && (
+                {floorPrice(game, p) < ask - feeSteps(ask)[0] && (
                   <div className="meta muted">{t('player.asLowAs', { floor: fmtMoney(floorPrice(game, p)) })}</div>
                 )}
                 {/* THE STEPPER IS A GRID, NOT A ROW (user, on a 412px phone:
@@ -1103,10 +1146,17 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                     measures it at 360, the narrowest phone supported. */}
                 <div className="bid-step">
                   <b className="bid-amt">{fmtMoney(bid)}</b>
-                  <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 500_000))}>−500k</button>
-                  <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 100_000))}>−100k</button>
-                  <button className="btn ghost" onClick={() => setBid(bid + 100_000)}>+100k</button>
-                  <button className="btn ghost" onClick={() => setBid(bid + 500_000)}>+500k</button>
+                  {/* steps sized to the asking price, and a minus that can only
+                      go down (1.9.16, bidstep.ts): minus 100k on a 30k man used
+                      to RAISE the bid to 100k */}
+                  {(() => {
+                    const [small, big] = feeSteps(ask)
+                    return [-big, -small, small, big].map(d => (
+                      <button key={d} className="btn ghost" data-step={d} onClick={() => setBid(stepFee(bid, d, ask))}>
+                        {d < 0 ? '−' : '+'}{fmtMoney(Math.abs(d))}
+                      </button>
+                    ))
+                  })()}
                 </div>
                 <div className="btn-row">
                   <button className="btn ghost" onClick={() => setBidding(false)}>{t('player.cancel')}</button>

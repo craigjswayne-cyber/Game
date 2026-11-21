@@ -38,8 +38,14 @@ const nextLeague = (g: GameState): Fixture => {
 
 // ---- it knows when to shut up ----
 {
-  const g = newGame('northampton', 'Billing', 71)
+  // an ORDINARY opening fixture. Seed 71 was one until 1.9.16 re-dealt the
+  // world, when Northampton's first league match became Leicester, and a
+  // derby is something to say in any week ("Derby day..."). The first seed
+  // from 71 whose opener is not a derby is the case this line is about.
+  let g = newGame('northampton', 'Billing', 71)
+  for (let seed = 72; seed < 90 && isDerby(nextLeague(g).homeId, nextLeague(g).awayId); seed++) g = newGame('northampton', 'Billing', seed)
   const fx = nextLeague(g)
+  ok(!isDerby(fx.homeId, fx.awayId), 'an opening league fixture that is not a derby was found')
   const line = S.matchStakes(g, fx)
   ok(line === null, `week one, nothing has happened, nothing to say (got ${JSON.stringify(line)})`)
 }

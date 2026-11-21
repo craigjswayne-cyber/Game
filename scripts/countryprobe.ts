@@ -32,6 +32,7 @@ import { newGame } from '../src/game/newgame'
 import { activeWindows, natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import { natCallUp, natDrop, natEligible, natWindow, weeksToSquad, NAT_SQUAD_FLOOR } from '../src/game/country'
 import { NAT_TIERS } from '../src/game/nations'
+import { announceSquad } from '../src/game/natwin'
 import { NAT_SQUAD_SIZE, squadSizeOf, clubQuotaLeft, homeBased, sharesClubComp } from '../src/game/nations'
 import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
@@ -80,6 +81,9 @@ ok(!!w, 'natWindow reports the window open')
 }
 
 // ---- 1a. drop, to the floor and not through it ----
+// The floor is for a NAMED squad (1.9.16): before the announcement the sheet
+// is a draft and anyone comes off it. So the coach announces, then trims.
+announceSquad(g, [])
 const beforeDrops = squad.length
 let dropped = 0
 let floorMsg: string | null = null

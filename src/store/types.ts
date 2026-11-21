@@ -145,6 +145,9 @@ export interface Store {
   lastAdvanceAt: number
 
   start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, gender?: Gender, mgrGender?: Gender, seed?: number) => void
+  /** A career that begins in a national job, with no club (1.9.16,
+   *  game/intlstart.ts). False if this world plays no Tests for `nat`. */
+  startIntl: (nat: string, managerName: string) => boolean
   /** Which game the NEXT new career is in, chosen on the menu before the wizard
    *  opens. Not part of a save - the save carries its own gender - just the
    *  answer to "which game" travelling from the menu to the first screen of the

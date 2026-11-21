@@ -41,8 +41,13 @@ describe('each way of learning about a man has a ceiling', () => {
   it('your own league is read, not finished, by the end of a season', () => {
     const g = world()
     const lg = g.clubs[g.userClubId].leagueId
+    // the clubs that were IN the league that season. Read after the rollover,
+    // the league holds whoever was promoted into it, and nobody has watched
+    // them play yet: on 1.9.16's world that was Ealing, 38 unread men, and
+    // the share fell to 90% for a reason that has nothing to do with scouting.
+    const inLeague = new Set(Object.values(g.clubs).filter(c => c.leagueId === lg).map(c => c.id))
     while (g.season === 0) processWeekAndAdvance(g)
-    const men = Object.values(g.players).filter(p => p.clubId && p.clubId !== g.userClubId && g.clubs[p.clubId]?.leagueId === lg && !p.acad)
+    const men = Object.values(g.players).filter(p => p.clubId && p.clubId !== g.userClubId && inLeague.has(p.clubId) && g.clubs[p.clubId]?.leagueId === lg && !p.acad)
     const rated = men.filter(p => (p.sc ?? 0) >= 55).length / men.length
     const full = men.filter(p => (p.sc ?? 0) >= 90).length / men.length
     expect(rated).toBeGreaterThan(0.95)

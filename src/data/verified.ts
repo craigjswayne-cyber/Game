@@ -476,9 +476,12 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'isaia walker-leawere@hurricanes': 'benetton',
   'josh flook@reds': 'benetton',
   'louis werchon@reds': 'benetton',
-  'juan ignacio brex@benetton': GONE,
+  // 1.9.16: both are at Toulon, a club in the game, so they move rather than
+  // vanish. Brex: Italy's June 2026 squad list (RugbyPass) has him at Toulon.
+  // Albornoz: Argentina's 30 Oct 2026 squad table (Wikipedia) has him at Toulon.
+  'juan ignacio brex@benetton': 'toulon',
   'toa halafihi@benetton': GONE,
-  'tomas albornoz@benetton': GONE,
+  'tomas albornoz@benetton': 'toulon',
   // bulls: Irish Examiner / RugbyPass / Rugby365 'seven confirmed Bulls signings'; Joined Bulls from Stormers mid-2025 (SA Rugby Mag 'Stormers star...
   'kurt-lee arendse@bulls': 'dynaboars',
   'paul de wet@stormers': 'bulls',
@@ -768,6 +771,9 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'vincent giudicelli@montpellier': 'provence',
   'francisco coria marchetti@lyon': 'brive',
   'aymeric luc@bayonne': 'brive',
+  // 1.9.16 club audit: the Fiji fly-half left the Drua for Provence for 2026-27 (RugbyPass, Pro D2
+  // foreign players, 18 Aug 2026; the Nations Championship Fiji squad page gives the same club)
+  'caleb muntz': 'provence',
 }
 
 /** Every man the 2025/26 Premiership guide names, at the club it names him at.
