@@ -1395,6 +1395,11 @@ export interface GameState {
     /** the three announcements, each made once: coaching team, party, captain */
     staffOut?: boolean; partyOut?: boolean; capOut?: boolean
   }
+  /** THE RACE FOR THE TOUR JOB (1.9.16, isles.ts): how far down the four
+   *  unions' list he got this season (1 mentioned, 2 final eight, 3 final
+   *  four, 4 final two), whether he has been cut, and the rival coaches
+   *  (club ids) still in it. */
+  islesRace?: { season: number; stage: number; out?: boolean; rivals: string[] }
   /** Tours he has taken, oldest first (1.9.16). The job ends with the tour,
    *  and the four unions only ask again after a good one: the series won, or
    *  taken to a deciding third Test. */

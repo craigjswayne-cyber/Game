@@ -66,6 +66,12 @@ export function isleTour(state: GameState): Competition | undefined {
   return state.comps[genderOf(state) === 'w' ? W + 'lions' : 'lions']
 }
 
+/** A trophy won as a national coach: a championship or a world title. */
+export function hasTestTitle(state: GameState): boolean {
+  const TEST = ['sn', 'wc', 'trc', 'pnc', 'nc', 'p4']
+  return (state.mgr?.trophies ?? []).some(t => TEST.includes(t.compId.replace(/^w:/, '')))
+}
+
 export function islesEligible(state: GameState): { ok: boolean; why: string } {
   if (!isTourSeason(state)) return { ok: false, why: 'isles.whyNoTour' }
   // NO CLUB IS NO BAR (1.9.16). `unemployed` means "no club", and a man who
@@ -77,6 +83,11 @@ export function islesEligible(state: GameState): { ok: boolean; why: string } {
   if (!nat || !(HOME_UNIONS as readonly string[]).includes(nat)) return { ok: false, why: 'isles.whyNotIntl' }
   // "won something"
   if ((state.mgr?.trophies?.length ?? 0) < 1) return { ok: false, why: 'isles.whyNoTrophy' }
+  // ...WITH HIS COUNTRY (owner, 21 Nov 2026: "it should be a really
+  // specialist selection to get this, so not everybody should get it"). A
+  // club title gets a man talked about; the four unions give their side to
+  // somebody who has already won at Test level.
+  if (!hasTestTitle(state)) return { ok: false, why: 'isles.whyNoTrophy' }
   // "reputation of 95+"
   if (mgrReputation(state) < ISLES_REP) return { ok: false, why: 'isles.whyRep' }
   // ONLY AFTER A GOOD TOUR (owner, 21 Nov 2026: "Only if you did a good job
@@ -96,6 +107,10 @@ export function offerIsles(state: GameState): boolean {
   if (state.isles?.season === state.season) return false
   if (state.week !== ISLES_OFFER_WEEK) return false
   if (!islesEligible(state).ok) return false
+  // a save that joined the season after the race began has no race: the
+  // conditions alone decide, as they did before 1.9.16
+  const r = state.islesRace?.season === state.season ? state.islesRace : null
+  if (r && (r.out || r.stage < 4)) return false
   state.isles = { season: state.season, answer: 'open' }
   return true
 }
@@ -261,4 +276,82 @@ export function closeTour(state: GameState): void {
     id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
     subject: tIn('en', 'news.islesOverSubj', v), body: tIn('en', 'news.islesOver', v), k: 'news.islesOver', v,
   })
+}
+
+// ---- THE RACE FOR THE JOB (1.9.16) ----
+//
+// Owner, 21 Nov 2026: "there'd be loads of speculation and build up ahead of
+// the tour. Could you be considered? You are being considered. You're in the
+// final selection of 8, you're in the final selection of 4, you're down to
+// the final 2. And then you either get it or you don't, but you need to hit
+// the criteria, and it should be a really specialist selection."
+//
+// And it is a SECRET: nothing in the game says this job can be had until the
+// papers put his name on the list, so a coach who is nowhere near it never
+// hears of it. Four cuts through a tour season and then the decision, each
+// asking more than the last, each naming the rivals still standing. He can
+// be cut at any of them and is told who went through instead.
+export const RACE_WEEKS = [16, 22, 28, 33] as const
+const RACE_REP = [80, 86, 90, 93] as const
+const RACE_FIELD = [12, 8, 4, 2] as const
+
+function raceBar(state: GameState, stage: number): boolean {
+  const nat = state.natTeam
+  if (!nat || !(HOME_UNIONS as readonly string[]).includes(nat)) return false
+  if (mgrReputation(state) < RACE_REP[stage - 1]) return false
+  if (stage >= 2 && (state.mgr?.trophies?.length ?? 0) < 1) return false
+  if (stage >= 4 && !hasTestTitle(state)) return false
+  const last = state.islesPast?.[state.islesPast.length - 1]
+  if (last && !(last.won || last.decider)) return false
+  return true
+}
+
+/** The other names on the list: head coaches of the four unions' biggest
+ *  clubs, best known first. */
+function raceRivals(state: GameState): string[] {
+  return Object.values(state.clubs)
+    .filter(c => !!c.coach && (HOME_UNIONS as readonly string[]).includes(c.country) && (state.unemployed || c.id !== state.userClubId))
+    .sort((a, b) => b.rep - a.rep || (a.id < b.id ? -1 : 1))
+    .slice(0, RACE_FIELD[0] - 1).map(c => c.id)
+}
+const rivalLine = (state: GameState, ids: string[]) => ids.map(id => `${state.clubs[id]?.coach} (${state.clubs[id]?.short})`).join(', ')
+
+/** One week of the race. Called every week; it only speaks on its own days. */
+export function raceIsles(state: GameState): void {
+  if (!isTourSeason(state)) return
+  const say = (key: string, v: Record<string, string | number>) => state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', `news.${key}Subj`, v), body: tIn('en', `news.${key}`, v), k: `news.${key}`, v,
+  })
+  const tour = tourName(state)
+  const stage = RACE_WEEKS.indexOf(state.week as never) + 1
+  let r = state.islesRace?.season === state.season ? state.islesRace : null
+  if (stage >= 1) {
+    if (stage === 1) {
+      if (!raceBar(state, 1)) return // never mentioned: he hears nothing at all
+      r = state.islesRace = { season: state.season, stage: 1, rivals: raceRivals(state) }
+      say('islesRace1', { tour, names: rivalLine(state, r.rivals.slice(0, 5)) })
+      return
+    }
+    if (!r || r.out || r.stage !== stage - 1) return
+    const field = RACE_FIELD[stage - 1]
+    if (raceBar(state, stage)) {
+      r.stage = stage
+      r.rivals = r.rivals.slice(0, field - 1)
+      const rival = state.clubs[r.rivals[0]]
+      say(`islesRace${stage}`, { tour, names: rivalLine(state, r.rivals), rival: rival?.coach ?? '', club: rival?.short ?? '' })
+    } else {
+      r.out = true
+      r.rivals = r.rivals.slice(0, field)
+      say('islesRaceOut', { tour, n: field, names: rivalLine(state, r.rivals) })
+    }
+    return
+  }
+  // the decision: the week the letter would come (offerIsles runs after this)
+  if (state.week === ISLES_OFFER_WEEK && r) {
+    const rival = state.clubs[r.rivals[0]]
+    const v = { tour, rival: rival?.coach ?? '', club: rival?.short ?? '' }
+    if (r.out) say('islesRaceWinner', v)
+    else if (r.stage < 4 || !islesEligible(state).ok) { r.out = true; say('islesRaceLost', v) }
+  }
 }

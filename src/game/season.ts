@@ -6,7 +6,7 @@ import { dressingRoomAlerts } from './alerts'
 import { settleStartPledge } from './handshake'
 import type { Fixture, GameState, Player, Pos } from './model'
 import { W, genderOf, subjectVar } from './gender'
-import { islesCoach, isleTour, lapseIsles, offerIsles } from './isles'
+import { islesCoach, isleTour, lapseIsles, offerIsles, raceIsles } from './isles'
 import { telling } from './tellings'
 import { aiCloseSeason } from './closeseason'
 import { talkingPoints } from './talkingpoints'
@@ -2236,6 +2236,7 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
       k: 'news.islesLapsed', v: {},
     })
   }
+  raceIsles(state)
   if (offerIsles(state)) {
     // THE LETTER IS AN OCCASION (1.9.16). The biggest moment in a career
     // arrived as one more line in the inbox. It takes the screen now, the way

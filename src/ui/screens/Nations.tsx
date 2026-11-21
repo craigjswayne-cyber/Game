@@ -7,7 +7,7 @@ import { natRankOrder } from '../../game/natrank'
 import { MoveCell, sinceLine } from './Agency'
 import type { GameState } from '../../game/model'
 import { ClubLink, SectionTitle } from '../components'
-import { answerIsles, islesCoach, islesEligible } from '../../game/isles'
+import { answerIsles, islesCoach } from '../../game/isles'
 import { weekDate, fixtureDate, MIDWEEK_OFF } from '../../game/model'
 import { t, compLabel } from '../../game/i18n'
 import { rowNavTr } from '../rowNav'
@@ -123,10 +123,16 @@ export default function Nations() {
           just a missing feature */}
       {/* only for a coach of one of the four unions it picks from (1.9.14): the
           international stage shows itself to the men and women who hold it */}
-      {!game.isles && game.comps['lions'] && !islesCoach(game) && ['ENG', 'IRE', 'SCO', 'WAL'].includes(game.natTeam ?? '') && (
-        <div className="card">
-          <SectionTitle sub={compLabel(game.comps['lions']?.name)}>{t('isles.title')}</SectionTitle>
-          <div className="muted" style={{ padding: '0 10px 10px', fontSize: '0.75rem' }}>{t(islesEligible(game).why)}</div>
+      {/* A SECRET UNTIL THE PAPERS NAME HIM (owner, 21 Nov 2026: "This should
+          be a secret level that appears"). The card that told any coach of
+          the four unions which condition he had not met gave the job away to
+          people nowhere near it. It shows only while he is in the race. */}
+      {game.islesRace?.season === game.season && !game.islesRace.out && game.isles?.season !== game.season && (
+        <div className="card isles-invite" data-isles-race={game.islesRace.stage} style={{ ...acc('var(--gold)') }}>
+          <SectionTitle sub={compLabel(game.comps['lions']?.name ?? game.comps['w:lions']?.name)}>{t('isles.title')}</SectionTitle>
+          <div className="meta" style={{ padding: '0 10px 10px' }}>
+            {t(`isles.race_${game.islesRace.stage}`, { rival: game.clubs[game.islesRace.rivals[0]]?.coach ?? '' })}
+          </div>
         </div>
       )}
       {myNat && (
