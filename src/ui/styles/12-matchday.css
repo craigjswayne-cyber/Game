@@ -158,3 +158,24 @@
 .app.tablet .talk-modal .talk-tones { padding: 6px 0; }
 /* THE BENCH STARTS HERE: the one heavy rule in the table */
 .tele tr.bench-first td { border-top: 2px solid var(--border-strong); }
+
+/* ---- THE DRESSING ROOM SHEET HAS ONE LEFT EDGE (1.9.16) ----
+   Owner: "check alignment on the dressing room options, the top buttons are not
+   aligned properly with the bottom." Measured at 384px: the three how-to-watch
+   chips, their caption and "The room" started at x=12, while the heading, the
+   four speech tiles and Say nothing started at x=26, and the chips stopped 27px
+   short of the tiles' right edge. The pieces that carry no gutter of their own
+   take the same 14px the others have, and the chips share the full width. */
+.talk-modal .view-picker, .talk-modal .mood-fold { margin-left: 14px; margin-right: 14px; }
+.talk-modal .view-picker .preset-row { display: flex; gap: 6px; padding-left: 0; padding-right: 0; }
+.talk-modal .view-picker .preset-chip { flex: 1 1 auto; justify-content: center; }
+
+/* ---- a briefing card that opens on a tap (1.9.16, Preview.tsx BriefSum) ---- */
+.brief-fold > summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: 40px; margin: -8px 0; cursor: pointer; }
+.brief-fold > summary::-webkit-details-marker { display: none; }
+.brief-fold > summary .fact-label { flex-shrink: 0; margin: 0; }
+.brief-fold .bf-hint { flex: 1; min-width: 0; text-align: right; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brief-fold > summary::after { content: '›'; flex-shrink: 0; color: var(--text-muted); font-size: 1.125rem; line-height: 1; transition: transform .15s; }
+.brief-fold[open] > summary::after { transform: rotate(90deg); }
+.brief-fold[open] > summary { margin-bottom: 2px; }
+@media (prefers-reduced-motion: reduce) { .brief-fold > summary::after { transition: none; } }

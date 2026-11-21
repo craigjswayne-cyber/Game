@@ -147,3 +147,12 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
 13. A "rate our game" prompt at a high (a derby win or similar), once per game, if they have not already rated.
 - 01:35 Owner on point 2: international start is its OWN one-off purchase, "same price as it currently is in the store".
 - 01:45 Free agents: the 8 at the start were hidden teenage gems, so no senior was free. 33 senior free agents now seeded (three a position, ability 45 to 70, ages 23 to 33, own rng stream, last in newGame). Transfers page has a one-tap Free agents chip with a count, and a toggle in the filter sheet (six languages). Full suite 465 of 466 (fingerprint, expected). Owner 01:40: check in every half hour and be ready to merge at the end.
+- 02:00 Layout batch, each seen at 384x832 (scripts/shots2.mjs, shots in /home/claude/tools/s3 before and s4 after):
+  - Dressing room sheet: watch chips, caption and "The room" started at x=12, heading, tiles and Say nothing at x=26. Now all 26 to 358.
+  - Backroom staff: card was 136px with three stacked buttons; now role and cost on one line, name (ellipsis), buttons in a row. 5 posts a screen, was 3.5.
+  - Briefing: 3 screens to 1.4. Danger man, head to head and game plan stay open; conditions, opposite number, finishers, record and
+    partnerships are one-line summaries that open on a tap (BriefSum, .brief-fold). Nothing removed.
+  - Names in tables: one line with an ellipsis on phones (reverses the 1.8.4 wrap rule, at the owner's request).
+  - Bottom Kick Off: gap above it cut from 10 to 2.
+- 01:50 Owner: use multiple agents, ready to merge in the morning. Three agents running (caps and PWR; Pro challenge and pre-season probes;
+  goal-kick placement and ritual formations). They do not commit; I check and commit their work.
