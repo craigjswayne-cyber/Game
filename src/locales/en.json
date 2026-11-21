@@ -1851,7 +1851,7 @@
   "theirChallenge": "{opp} lay down their challenge: {challenge}. Your side stands and faces it.",
   "bothChallenge": "Both sides lay down a challenge, in formation and face to face. {a}: {challengeA}. {b}: {challengeB}.",
   "formNZL": "An arrowhead, the leader at its point.",
-  "formFIJ": "A tight block, row behind row, moving forward as one.",
+  "formFIJ": "A tight block, row behind row, advancing as one.",
   "formSAM": "Loose rows, the leader out in front.",
   "formTGA": "A broad block in rows, shoulder to shoulder.",
   "formOf": "{nat}: {form}",

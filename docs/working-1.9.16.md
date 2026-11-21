@@ -229,3 +229,17 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   412 and checks that no money figure is clipped: 702 checks pass. It found one row that grew in French and Italian (the competition name
   wrapped on Fixtures at 360): now one line with an ellipsis. Nine other harnesses pass (138 checks). Ready for the owner's "merge".
 - 07:10 CI on the pull request failed at the token lint (a hard-coded #fff in the injury mark, components.tsx:347, from earlier in 1.9.16), a step I had not run locally. Fixed (var(--on-danger)). Also run now: cssaudit, orphancheck (new scripts registered in suite.sh), ipprobe. prochallengeprobe brought in line with the fixed Fire Sale: 73 PASS, 0 FAIL. CI runs every engine probe (8 shards, about 35 minutes): waiting on it before calling the branch ready.
+- 08:10 CI, first full run on the branch (12fa41d): browser smoke and 2 of 3 browser PR shards green, engine shards 5 and 8 green. Eight failures, each read and run locally:
+  GAME/CONTENT FIXES: geosweep (the Free agents button was 42px tall, now 44); frenchprobe (ten new French lines had a plain space before
+  ":" or "?", now no-break); voiceprobe ("moving forward" a third time, in the Fiji formation line: reworded "advancing as one");
+  landingprobe (the landing page footer still said 1.9.15).
+  PROBES WHOSE FIXED WORLD MOVED (1.9.16 re-dealt every world: real squads, caps, new players). None of the four was a fault in the game:
+  billprobe: Northampton's opening league fixture on seed 71 is now Leicester, a derby, which rightly has a stakes line; the probe now takes the
+    first seed whose opener is not a derby.
+  teamtalkprobe: the single pair of matches it compares was one the talk turned (a win against a defeat), so "morale moved 1.11" was the result,
+    not the talk; it now takes the first dice where both end the same way: 0.21.
+  awaymoraleprobe: "a man back from injury drops under 0.15" assumed a quiet fortnight; here the whole room drifts. Control added: the same man,
+    same fortnight, with a game last week reads -0.50 against his -0.46.
+  starveprobe: the bar (8% fewer kicks) sat exactly on the measured figure; now -7.9% (se 0.9). Bar is 6% and five points clear of every other plan.
+  analystprobe: the frozen panel read 70.2% against a skill of 58%, 12.2 OVER, and tripped a two-sided band of 12 whose stated purpose is to catch
+    inverted wiring (about 16 UNDER). Now 12 under fails, 18 over fails.

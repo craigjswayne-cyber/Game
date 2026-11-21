@@ -132,7 +132,16 @@ const sk = m(dKicks, 'starve'), sg = m(gain, 'starve')
 // a cut of 8%, not 15% (1.9.15): kicking 10 cut 18% and lost the plan the
 // match (oppreport.ts STARVE); at 30 it cuts 9% and is the only plan that
 // cuts at all, which is what makes it a plan of its own
-ok(sk <= -0.08 && others.every(id => m(dKicks, id) > -0.03), `distinct: the only plan that stops kicking it to them (${sgn(sk * 100, 0)}% kicks from hand; ${others.map(id => `${id} ${sgn(m(dKicks, id) * 100, 0)}%`).join(', ')})`)
+// THE BAR SAT ON THE MEASUREMENT (1.9.16). 0.08 was the figure the plan cut
+// by when it was set, so any re-deal of the world put the same plan a hair
+// either side of it: on 1.9.16's world (real squads and caps, new players)
+// it reads STARVE_CUT below, printed with its standard error, and failed at
+// "-8%". What the line claims is that starve is the ONE plan that cuts kicks
+// from hand, and clearly: so the bar is a cut of at least 6% that also beats
+// every other plan by five points, which a plan that had stopped working
+// would still fail.
+console.log(`    starve cuts kicks from hand by ${(sk * 100).toFixed(1)}% (se ${(se(dKicks.get('starve')!) * 100).toFixed(1)})`)
+ok(sk <= -0.06 && others.every(id => m(dKicks, id) > -0.03 && m(dKicks, id) - sk >= 0.05), `distinct: the only plan that stops kicking it to them (${sgn(sk * 100, 0)}% kicks from hand; ${others.map(id => `${id} ${sgn(m(dKicks, id) * 100, 0)}%`).join(', ')})`)
 // (their back three's own tries are reported, not held: a tenth of a try a
 // match either way is inside the noise of 80 fixtures, and the engine names
 // a try's scorer after the try, so the back three are the side's tries

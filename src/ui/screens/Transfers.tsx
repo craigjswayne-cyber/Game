@@ -241,7 +241,8 @@ export default function Transfers() {
             in transfer for free agents". There was one, but it was an entry in
             the League menu inside the filter sheet, and he never found it. */}
         <button className="chip" data-fa-chip aria-pressed={league === 'FA'}
-          style={league === 'FA' ? { borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 } : undefined}
+          /* a full 44px to tap: it is a button, and the chips beside it are labels (geosweep) */
+          style={{ minHeight: 44, ...(league === 'FA' ? { borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 } : {}) }}
           onClick={() => { setLeague(league === 'FA' ? 'ALL' : 'FA'); setPage(0) }}>
           {t('transfers.freeAgents')}&nbsp;<b>{freeCount}</b>
         </button>
