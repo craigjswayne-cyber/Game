@@ -1527,6 +1527,10 @@ export interface GameState {
     sk?: string
     sv?: Record<string, string | number>
   } | null
+  /** A second card waiting behind the first (1.9.16): a Pro challenge
+   *  completed in the summer a trophy was won. The trophy's card shows, and
+   *  this one follows it when it is tapped away (App.tsx). Same shape. */
+  celebrationNext?: GameState['celebration']
   /** THE GAFFER'S LEDGER (v1.2.2). The quiet firsts of a career: the first
    *  win at a ground, the first derby win, ten unbeaten. Each is recorded
    *  once (the key is the dedupe), filed as a story when it happens, and

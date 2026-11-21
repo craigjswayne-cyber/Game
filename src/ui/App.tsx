@@ -179,7 +179,7 @@ function Celebration() {
   const cel = game.celebration
   return (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- full-screen tap-to-dismiss celebration; Escape dismisses it (a11y.ts)
-    <div className="celebrate-veil" onClick={() => { game.celebration = null; useStore.getState().touch() }}>
+    <div className="celebrate-veil" onClick={() => { game.celebration = game.celebrationNext ?? null; game.celebrationNext = null; useStore.getState().touch() }}>
       {Array.from({ length: 26 }).map((_, i) => (
         <i key={i} className="confetti" style={{
           left: `${(i * 137) % 100}%`,

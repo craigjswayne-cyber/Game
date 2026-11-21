@@ -30,6 +30,12 @@ for (const width of [360, 384, 412]) {
     fa[0].name = 'Christopher Lindsey-Netherwood-Thackeray'
     st.touch()
   })
+  // 1.9.16: the same lists with money written the French and the Japanese way
+  // ("1,5 M£", "£150万"), which are wider than "£1.5m"
+  const LANGS = (process.env.LANGS ?? 'en').split(',')
+  for (const lang of LANGS) {
+  await page.evaluate(lang => window.rugbyStore.getState().setLang(lang), lang)
+  await page.waitForTimeout(900)
   const screens = ['squad', 'transfers', 'tables', 'nations', 'medical', 'report', 'academy', 'history', 'club', 'fixtures', 'training', 'tactics', 'finances']
   for (const sc of screens) {
     await page.evaluate(sc => window.rugbyStore.getState().go(sc), sc)
@@ -50,8 +56,11 @@ for (const width of [360, 384, 412]) {
       const wide = document.documentElement.scrollWidth > innerWidth + 1
       return { out, wide }
     })
-    ok(bad.out.length === 0, `${width}px ${sc}: every named row is the height of its neighbours${bad.out.length ? ' (' + bad.out.slice(0, 3).join('; ') + ')' : ''}`)
-    ok(!bad.wide, `${width}px ${sc}: the page does not scroll sideways`)
+    ok(bad.out.length === 0, `${width}px ${lang} ${sc}: every named row is the height of its neighbours${bad.out.length ? ' (' + bad.out.slice(0, 3).join('; ') + ')' : ''}`)
+    ok(!bad.wide, `${width}px ${lang} ${sc}: the page does not scroll sideways`)
+    const cut = await page.evaluate(() => [...document.querySelectorAll('td, .chip, .fact b, .stat b')].filter(e => /£/.test(e.textContent) && e.children.length === 0 && e.scrollWidth > e.clientWidth + 1).map(e => e.textContent.slice(0, 20)).slice(0, 3))
+    ok(cut.length === 0, `${width}px ${lang} ${sc}: no money figure is clipped${cut.length ? ' (' + cut.join('; ') + ')' : ''}`)
+  }
   }
   await page.close()
 }

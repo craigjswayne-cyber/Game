@@ -95,6 +95,21 @@ Version 1.9.16, Play versionCode 79. Baseline: 1.9.15, code 78.
   "Attack" also set the week's preparation of the same name.
 - **Season plan, "Backs": a drift defence behind the wide game**, not a blitz.
   With the blitz it was the worst of the three choices at both clubs measured.
+- **Money in each language's own style**, pounds kept: "1,5 M£" in French,
+  Italian and Spanish, "£1,5m" in Afrikaans, "£150万" in Japanese. English is
+  unchanged.
+- **Pre-season work is pre-season only.** It runs until the first league
+  match, then Training goes back to what it was and the inbox says so. While
+  it lasts the squad works four times as hard, so three weeks count.
+- **Fire Sale (Pro challenge) is harder and its wording is true.** The owners
+  keep the fees and the wages saved: selling the five opens no wage room.
+  Measured on Continue at Leicester, Bath and Saracens: the league won in 0 of
+  6 careers.
+- **A "challenge complete" card follows the trophy card** when a Pro challenge
+  is finished by winning one.
+- **Eight women moved to the clubs the 2026 squad lists give**, and one
+  duplicate row removed. Three could not be moved: their club is not in the
+  game.
 - **A bid can go down to nothing**, and a Pro manager sees no "?" beside a
   rating in the Transfer Centre or on another club's squad list.
 - Sale held one Fijian wing twice under two spellings. Caleb Muntz is at
@@ -128,7 +143,7 @@ Version 1.9.16, Play versionCode 79. Baseline: 1.9.15, code 78.
 
 ## Checked
 
-- Unit suite: 558 of 558 in 74 files (21 Nov 2026, 03:10 UTC), with the type
+- Unit suite: 577 of 577 in 77 files (21 Nov 2026, 06:50 UTC), with the type
   check, lint, six-language parity, text lint, data audit, international audit
   and provenance audit all passing.
 - Scoring bands on four worlds after every change: 49.4 points and 6.47 tries
@@ -140,7 +155,8 @@ Version 1.9.16, Play versionCode 79. Baseline: 1.9.15, code 78.
 - In a browser at 384x832: the national desk (19 checks), the international
   start with a stand-in store (cancelled, bought, owned), the dressing room
   sheet, the staff cards, the briefing, the challenge formations, and every
-  named list at 360, 384 and 412 wide.
+  named list at 360, 384 and 412 wide in all six languages (702 checks,
+  including that no money figure is clipped).
 
 ## Known and not done
 

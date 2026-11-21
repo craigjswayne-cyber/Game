@@ -10,8 +10,10 @@
 //   Shoestring    the transfer budget halved every summer, and the wage
 //                 budget held to the bill (no room to add wages). Meet the
 //                 board's target three seasons running, within six.
-//   Fire Sale     the five best players sold before day one, the fees to the
-//                 bank (the debts), not the budget. Win the league in four.
+//   Fire Sale     the five best players sold before day one. The owners keep
+//                 the fees and the wages saved (1.9.16: no club starts in
+//                 debt, so it no longer says "clears the debts", and the
+//                 money really is gone). Win the league in four.
 //
 // The match engine is not touched: these change what the manager has, not
 // how the rugby is played. Miss the deadline and the board ends it (owner:
@@ -80,6 +82,7 @@ export function startProChallenge(state: GameState, id: ProChallengeId): void {
       const to = buyers[i % Math.max(1, buyers.length)]
       if (!to) return
       const fee = Math.round(p.value / 50_000) * 50_000
+      const wageWas = p.wage
       executeTransfer(state, p, to.id, fee)
       // the fees clear the debts: never to the budget, AND NOT LEFT IN THE BANK
       // (1.9.16). They were banked, and next summer's budget is read off the
@@ -88,6 +91,11 @@ export function startProChallenge(state: GameState, id: ProChallengeId): void {
       // day it arrives, which is what the challenge says.
       club.budget = Math.max(0, club.budget - Math.round(fee * 0.7))
       club.balance -= fee
+      // and the wages saved are the owners' too (1.9.16, owner: make it harder).
+      // Selling five big earners opened about 30k a week of wage room, so the
+      // five could be replaced on day one. The ceiling comes down by what they
+      // were paid: the room he had before the sale is the room he has after.
+      club.wageBudget = Math.max(0, club.wageBudget - wageWas)
       sold.push(p.name)
     })
     if (club.captain != null && !club.players.includes(club.captain)) club.captain = null
@@ -145,12 +153,19 @@ export function proCheck(state: GameState): void {
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
       subject: tIn('en', 'news.proDoneSubj', v), body: tIn('en', 'news.proDone', v), k: 'news.proDone', v,
     })
-    // never over a celebration already waiting (a title won the same summer)
-    if (!state.celebration) state.celebration = {
+    // never OVER a celebration already waiting (a title won the same summer),
+    // but no longer lost to it either (1.9.16, owner: yes to a card after the
+    // trophy's). Academy Only and Fire Sale are won BY winning a trophy, so
+    // the trophy's card was always there and this one never showed: the
+    // manager finished a five-season challenge and got an inbox letter. It
+    // now waits behind the trophy and follows it.
+    const card = {
       headline: tIn('en', 'cel.challenge'),
       sub: tIn('en', 'cel.challengeSub', { title_k: `pro.${c.id}`, manager: state.managerName }),
       icon: 'award', hk: 'cel.challenge', sk: 'cel.challengeSub', sv: { title_k: `pro.${c.id}`, manager: state.managerName },
     }
+    if (state.celebration) state.celebrationNext = card
+    else state.celebration = card
     return
   }
   if (played < PRO_SEASONS[c.id]) return

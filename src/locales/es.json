@@ -10148,7 +10148,7 @@
   "shoestring": "Presupuesto mínimo",
   "shoestringDesc": "La mitad del presupuesto de fichajes cada verano y ningún margen salarial extra. Cumple el objetivo de la directiva tres temporadas seguidas, antes del final de la temporada {n}.",
   "firesale": "Liquidación total",
-  "firesaleDesc": "Tus cinco mejores jugadores se venden antes del primer día, y el dinero salda las deudas. Gana la liga antes del final de la temporada {n}.",
+  "firesaleDesc": "Tus cinco mejores jugadores se venden antes del primer día. Los dueños se quedan con los traspasos y con los sueldos ahorrados: nada de eso es tuyo para gastar. Gana la liga antes del final de la temporada {n}.",
   "firesaleDesc_f": "Tus cinco mejores jugadoras se venden antes del primer día, y el dinero salda las deudas. Gana la liga antes del final de la temporada {n}.",
   "notBought": "No se ha comprado Pro Manager, así que el reto sigue bloqueado.",
   "pickClub": "{title}: ahora elige una competición y un club.",

@@ -219,3 +219,12 @@ Browser walk used to check these by eye: `scripts/shots1916.mjs` (untracked;
   Training returns to what it was before the plan (kept in preplan.prev), the plan's preparation is cleared, and the inbox says so. A focus he
   chose himself since is left alone. Pre-season is three weeks, and at the ordinary rate three weeks moved nothing (one seed: no point gained),
   so the session runs at PRESEASON_CAMP = 4 while the plan's own focus is on. tests/preseasonend.test.ts (7).
+- 06:42 (2) DONE. Fire Sale reads "The owners keep the fees and the wages saved, so none of it is yours to spend" in six languages. No "debts".
+- 06:42 (3) DONE. Fire Sale harder: the sold players' wages come off the wage ceiling, so the sale opens no room to replace them (it opened about
+  30k a week). Measured BEFORE this, with only the fee fix: scripts/firesaleprobe.ts, Leicester, Bath and Saracens, two seeds each, four seasons
+  on Continue: league won in 0 of 6 (before the fee fix one of two Leicester runs won it in season two). tests/firesale1916.test.ts.
+- 06:42 (5) DONE. GameState.celebrationNext: the challenge-complete card waits behind a trophy card and follows it when tapped away (App.tsx).
+- 06:58 ALL SIX DONE AND CHECKED. Unit suite 577 of 577 (77 files); tsc, eslint, langparity, textlint, dataaudit, intlaudit, genprobe and the
+  fingerprint pass (the women's moves do not touch the men's fixed-seed world). Browser: rowprobe now runs in all six languages at 360, 384 and
+  412 and checks that no money figure is clipped: 702 checks pass. It found one row that grew in French and Italian (the competition name
+  wrapped on Fixtures at 360): now one line with an ellipsis. Nine other harnesses pass (138 checks). Ready for the owner's "merge".

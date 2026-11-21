@@ -275,7 +275,7 @@ describe('Shoestring: "Half the transfer budget every summer and no extra wage r
   }, 120_000)
 })
 
-describe('Fire Sale: "Your five best players are sold before day one, and the money clears the debts"', () => {
+describe('Fire Sale: "Your five best players are sold before day one. The owners keep the fees and the wages saved"', () => {
   const base = fresh()
   const uid = base.userClubId
   const best = seniors(base).sort((a, b) => b.ca - a.ca || a.id - b.id).slice(0, FIRESALE_COUNT)
