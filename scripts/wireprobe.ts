@@ -93,7 +93,13 @@ const fingerprint = (body: string) => body.replace(/[A-Z][a-z]+ [A-Z][a-z']+/g, 
 // CLUBHOUSE is warm-and-daft but it is NOT in the wireLog LRU - it has its
 // own rng draw and a 6-week same-season gate, so its templates can lap the
 // field at season boundaries. The LRU metrics judge the LRU pool.
-const lru = colour.filter(s => s.key !== 'CLUBHOUSE')
+// LAW WATCH is the same case (1.9.17): gossip.lawWatch picks its wind-up by
+// arithmetic on the season and week behind a 12-week stamp, and the serious
+// proposals run on the calendar. Neither reads the wireLog, so the same
+// proposal can come round while others wait. It sat inside the bound until
+// 1.9.17's penalty mark re-dealt the weeks and one wind-up aired four times
+// in four seasons (thirteen weeks apart at the closest).
+const lru = colour.filter(s => s.key !== 'CLUBHOUSE' && s.key !== 'LAW WATCH')
 const gaps: number[] = []
 const lastAt = new Map<string, number>()
 const uses = new Map<string, number>()
