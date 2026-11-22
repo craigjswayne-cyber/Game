@@ -25,6 +25,7 @@ import { manUpAt, phaseAt, readLine, type Banner, type Phase } from './phase'
 import { direct, type Beat } from './script'
 import { PitchSim } from './sim'
 import type { PitchTac } from './agents'
+import type { RecordFeed } from './fromRecord'
 
 export interface PitchSide {
   /** the lineup by shirt index, as the engine holds it */
@@ -121,7 +122,9 @@ try { const c = Number(new URLSearchParams(window.location.search).get('lpcap'))
 // (?lpbase=1 plays the match at life speed, for looking hard at the movement: owner, 20 Nov 2026)
 try { const b = Number(new URLSearchParams(window.location.search).get('lpbase')); if (b >= 0.5 && b <= 3) PitchSim.base = b } catch { /* no window: tests */ }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false, onReached, onSay }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false, onReached, onSay, feed }: {
+  /** 2.0.0: play the new engine's record (fromRecord.ts) instead of acting out the commentary lines; events and cursor are then unused */
+  feed?: RecordFeed
   /** snow on the ground */
   snow?: boolean
   /** rain or snow: the wet ground */
@@ -203,7 +206,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   if (!sim.current) sim.current = new PitchSim()
   const seen = useRef<{ at: number; cursor: number; told: boolean; moved: boolean; pre: boolean }>({ at: -99, cursor: -1, told: true, moved: false, pre: false })
   // a new line: a new play if it moves the picture, else it is already played
-  if (seen.current.cursor !== cursor) {
+  if (!feed && seen.current.cursor !== cursor) {
     seen.current.cursor = cursor
     seen.current.moved = phase.at !== seen.current.at
     if (phase.at !== seen.current.at) {
@@ -243,7 +246,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   useEffect(() => {
     const cv = canvas.current
     if (!cv) return
-    const S = sim.current!
+    const S = feed ?? sim.current!
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     const ink = readInk()
     const lp = { ground: tokenColor('--lp-ground'), stand: tokenColor('--lp-stand'), light: tokenColor('--lp-board-light'), dark: tokenColor('--lp-board-dark'), boardInk: tokenColor('--lp-board-ink') }
@@ -718,7 +721,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         rateNow += (want - rateNow) * Math.min(1, dt * 3.5)
         const rate = rateNow
         acc += dt * io.current.speed * rate
-        ffShown += ((rate >= 2.6 && !S.done ? 1 : 0) - ffShown) * Math.min(1, dt * 8)
+        ffShown += (((feed ? feed.speed : rate) >= 2.6 && !S.done ? 1 : 0) - ffShown) * Math.min(1, dt * 8)
         while (acc >= 1 / 120) { S.step(1 / 120); acc -= 1 / 120 }
       }
       if (S.cuts !== seenCuts) {
@@ -740,8 +743,14 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       // the banner lands with the moment, not with the line
       while (S.says.length) io.current.onSay?.(S.says.shift()!)
-      { const by = S.ball.y, up = plateUpRef.current ? by > 38 : by > 47; if (up !== plateUpRef.current) { plateUpRef.current = up; setPlateUp(up) } }
+      {
+        // (where the ball is ON SCREEN: on the upright pitch the bottom of the screen is the home try line, not a touchline; 21 Nov 2026)
+        const sy = dim.h ? SY(S.ball.x, S.ball.y) / dim.h : 0
+        const up = plateUpRef.current ? sy > 0.55 : sy > 0.62
+        if (up !== plateUpRef.current) { plateUpRef.current = up; setPlateUp(up) }
+      }
       const bw = bannerRef.current
+      if (feed) bw.want = feed.banner
       if (bw.want && S.landed && !S.pending && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at) {
         bw.shownAt = bw.want.at
         setBanner(bw.want)
@@ -855,7 +864,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // (in the painted ground the pitch is a smaller share of the panel, so the men are a touch smaller)
       const R0 = Math.max(dim.art ? 5.2 : 6.5, sc * 1.45)
       let R = R0
-      const { home: H, away: A, names: N, carrierId } = io.current
+      const { home: H, away: A, names: N } = io.current
+      const carrierId = feed ? (feed.who != null ? Number(feed.who) : undefined) : io.current.carrierId
       const flying = S.ball.lift > 0.4
       // a lineout jumper in the air is drawn larger: he is above the rest
       const up2 = S.lifted()
@@ -1054,7 +1064,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     void document.fonts?.ready.then(() => { if (cv.isConnected) size() })
     raf = requestAnimationFrame(frame)
     return () => { cancelAnimationFrame(raf); ro.disconnect() }
-  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], night, wet, snow])
+  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], night, wet, snow, feed])
 
   // the chip says what the play is; a plain carry or tackle says nothing.
   // A called move is named, and named large, for as long as it is being run
@@ -1069,7 +1079,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const good = banner && (banner.kind === 'try' || banner.kind === 'pentry' || banner.kind === 'con' || banner.kind === 'pen' || banner.kind === 'dg')
   const pts = banner ? ({ try: 5, pentry: 7, con: 2, pen: 3, dg: 3 } as Record<string, number>)[banner.kind] : undefined
   return (
-    <div className={`live-pitch${night ? '' : ' day'}`} data-testid="live-pitch" data-phase={phase.kind}>
+    <div className={`live-pitch${night ? '' : ' day'}`} data-testid="live-pitch" data-phase={feed ? (onGrass ?? phase).kind : phase.kind}>
       <canvas ref={canvas} className="lp-canvas" />
       {chip && <div className="lp-chip" key={`c${now.at}`}><i style={{ background: (now.homeBall ? home : away).kit[0] }} />{chip}</div>}
       {/* WHAT JUST HAPPENED, AND WHOSE BALL IT IS (owner, 19 Nov 2026: "Suddenly
