@@ -999,7 +999,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                     const opts = FREE_TERMS.filter(y => game.season + y > p.contractEnds || y === renewalTerm(p))
                     if (opts.length < 2) return null
                     return (
-                      <>
+                      <div className="fa-talks">
                         <div className="fact-label" style={{ marginTop: 8 }}>{t('player.faLength')}</div>
                         <div className="pp-opts" role="radiogroup" aria-label={t('player.faLength')}>
                           {opts.map(y => (
@@ -1009,7 +1009,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                             </button>
                           ))}
                         </div>
-                      </>
+                      </div>
                     )
                   })()}
                   <input className="inline-input" type="text" inputMode="numeric" value={wageText} aria-label={t('player.yourOfferWage')}
