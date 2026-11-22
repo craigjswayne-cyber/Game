@@ -111,7 +111,13 @@ const diffs: number[] = []
 // a noisy thing to compare, and the Law 3 front-row fix, which changes no
 // rift and no mood, re-dealt enough matches to take the eight-world mean
 // from -0.24 to -0.08. Over sixteen it reads -0.21, lower in 11.
-const SEEDS = [777, 101, 4242, 9, 12345, 31, 55, 2024, 11, 23, 404, 7, 99, 2025, 31337, 606]
+// Thirty-two worlds, not sixteen (1.9.17). The penalty mark, which touches no
+// rift and no mood, re-dealt the matches again and the sixteen read a median
+// of -0.08, lower in 10. The same sixteen plus sixteen more read -0.21, lower
+// in 24 of 32: the rift's drag is there, and sixteen worlds was too few to
+// see it through twelve weeks of results.
+const SEEDS = [777, 101, 4242, 9, 12345, 31, 55, 2024, 11, 23, 404, 7, 99, 2025, 31337, 606,
+  1, 2, 3, 4, 5, 6, 8, 10, 12, 13, 14, 15, 16, 17, 18, 19]
 for (const seed of SEEDS) {
   const g0 = newGame('leicester', 'Rift', seed)
   while (g0.week < 8) processWeekAndAdvance(g0)

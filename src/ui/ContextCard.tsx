@@ -1,6 +1,7 @@
 import { useStore } from '../store'
 import type { NewsItem } from '../game/model'
 import { posName, t } from '../game/i18n'
+import { nationName } from '../game/nations'
 import { CrestT } from './components'
 
 /**
@@ -35,7 +36,27 @@ export function ContextCard({ n }: { n: NewsItem }) {
       </button>
     )
   }
-  const club = game.clubs[game.userClubId]
+  // THE CLUB THE STORY IS ABOUT (1.9.17, owner: "im an international coach
+  // only for England - i keep seeing Bath RFC down the bottom of news
+  // stories. It should be the club associated to the story"). A coach with a
+  // country and no club still has a userClubId (the club his career was
+  // hosted at), and every story that was not about one player fell back to
+  // it. A story that names a club gets that club; one that names none gets
+  // his own club if he has one, his country if that is what he coaches, and
+  // otherwise nothing.
+  const named = Object.values(n.v ?? {}).filter((x): x is string => typeof x === 'string')
+  const about = named.length ? Object.values(game.clubs).find(c => named.includes(c.name) || named.includes(c.short)) : undefined
+  if (!about && game.unemployed) {
+    if (!game.natTeam) return null
+    return (
+      <button className="ctx-card ctx-link" data-ctx="nation" onClick={() => go('country')}>
+        <CrestT g={game} teamId={game.natTeam} size={28} />
+        <span className="ctx-name"><b>{nationName(game.natTeam)}</b><span>{t('home.headCoach')}</span></span>
+        <span className="ctx-go" aria-hidden>›</span>
+      </button>
+    )
+  }
+  const club = about ?? game.clubs[game.userClubId]
   if (!club) return null
   return (
     <button className="ctx-card ctx-link" onClick={() => go('club', club.id)}>

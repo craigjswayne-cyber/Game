@@ -333,6 +333,8 @@ export interface Player {
    *  cover. His wage is outside the salary cap while this is set, and he
    *  leaves when that man is fit, leaves the club, or the season ends. */
   joker?: number
+  /** the injured man he was warned about leaving for (1.9.17): one warning each */
+  jokerWarned?: number
   /** has announced this is his final season: retires at the rollover.
    *  Set at the midwinter announcement for every player aged 37+ */
   retiring?: boolean

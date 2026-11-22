@@ -48,6 +48,7 @@ export function activePlan(state: GameState, playerId: number): TrainingFocus | 
 
 /** The whole plan entry, secondary programme and tally included (1.8.2). */
 export function activeEntry(state: GameState, playerId: number): NonNullable<GameState['plans']>[number] | null {
+  if (state.players[playerId]?.onLoan) return null // away on loan: no plan runs for him here (1.9.17)
   return (state.plans ?? []).slice(-planCap(state)).find(x => x.id === playerId) ?? null
 }
 

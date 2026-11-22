@@ -351,6 +351,7 @@
   ].join(', ')
   function veiled() { return !!document.querySelector(VEILS) }
 
+  function unitOf(place) { return ids.banner[place] || ids.banner['home-foot'] }
   function reconcile() {
     return enqueue(async function () {
       var shouldShow = !!wantedEl && !veiled()
@@ -374,7 +375,13 @@
       try {
         if (shouldShow) {
           if (!(await ready())) { held = 0; return }
-          if (created && created !== wantedPlace) { up = false; await ad.removeBanner(); created = null; visible = false }
+          // THE SAME UNIT IS THE SAME BANNER (1.9.17). Every page of a career
+          // carries a slot now, and most places share the Home unit. Taking
+          // the banner down and asking for it again on every change of page
+          // was a fresh request and a blink of empty space per tap; a banner
+          // is only replaced when the new place has a different unit id.
+          if (created && unitOf(created) !== unitOf(wantedPlace)) { up = false; await ad.removeBanner(); created = null; visible = false }
+          else if (created) created = wantedPlace
           if (!created) {
             log('asking for banner', wantedPlace, ids.banner[wantedPlace] || ids.banner['home-foot'])
             up = true
@@ -537,7 +544,7 @@
       // coming back to a screen whose banner is only hidden: make the room in
       // the same frame the screen draws, so the nav does not settle and then
       // jump when the banner resumes a moment later
-      if (created === place && held > 0 && !veiled()) setInset(held)
+      if (created && unitOf(created) === unitOf(place) && held > 0 && !veiled()) setInset(held)
       reconcile()
     },
     unmount: function (el) { if (wantedEl === el || !el) { wantedEl = null; wantedPlace = null; reconcile() } },

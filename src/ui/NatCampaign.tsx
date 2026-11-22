@@ -83,8 +83,16 @@ export function NatCampaign() {
       {ev && p && (
         <div className="card nat-event" data-nc-event={ev.kind} style={{ ...acc('var(--info)') }}>
           <div className="fact-label">{t('natwin.eventTitle')}</div>
-          <div style={{ margin: '4px 0 8px' }}>{t(`natwin.ev_${ev.kind}`, evVars)}</div>
-          {ev.answer ? (
+          {/* THE DEBUT HAS BEEN GIVEN (1.9.17, owner: "I made a promise to
+              give a debut, they played in the game but still saying they are
+              uncapped"). He was capped; this card went on reading "Uncapped
+              ... A debut promised" for the rest of the window. */}
+          {ev.kind === 'bolter' && (p.caps ?? 0) > ev.caps ? (
+            <div style={{ margin: '4px 0 8px' }} data-nc-debut>{t('natwin.ev_bolter_capped', evVars)}</div>
+          ) : (
+            <div style={{ margin: '4px 0 8px' }}>{t(`natwin.ev_${ev.kind}`, evVars)}</div>
+          )}
+          {ev.kind === 'bolter' && (p.caps ?? 0) > ev.caps ? null : ev.answer ? (
             <div className="meta" data-nc-answered>{t(`natwin.ev_${ev.kind}_${ev.answer}_done`, evVars)}</div>
           ) : (
             <div className="nc-answers">

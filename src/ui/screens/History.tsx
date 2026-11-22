@@ -1,3 +1,4 @@
+import { AdSlot } from '../AdSlot'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { seasonLabel } from '../../game/model'
@@ -41,6 +42,7 @@ export default function History() {
           ))}
         </tbody>
       </table></div>}
+      <AdSlot place="history-foot" />
       <div className="spacer" />
     </>
   )

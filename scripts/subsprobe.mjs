@@ -348,18 +348,27 @@ try {
     `${CHANGES} changes in one visit spent ${CHANGES} of the ${MAX_SUBS} (${before} -> ${beforeExit})`)
 
   // ---- the wrong tap can be taken back at the same stoppage (16B) ----
-  const undoBtn = page.locator('text=Take back the last change')
-  ok(await undoBtn.count() === 1, 'the last change offers an undo at the same stoppage')
+  // 1.9.17: every change of the stoppage has its own, and the OLDEST is the
+  // one taken back here - the old button could only reach the newest
+  const undoBtn = page.locator('[data-take-back]')
+  // (this harness swaps the same shirt each time, a chain, and a chain can
+  // only be unpicked from its newest end; tests/v1917.test.ts takes back the
+  // older of two separate changes)
+  // ONE RESET (owner, 1.9.17): back to how the side was, every change at once
+  ok(await undoBtn.count() === 1, `the stoppage's changes offer one reset (${await undoBtn.count()})`)
   await undoBtn.click()
-  await page.waitForTimeout(300)
-  ok(await subsLeft() === before - CHANGES + 1,
-    `taking it back refunds the replacement (${await subsLeft()} left)`)
-  // make the change again so every count below stays honest
-  await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click()
-  await page.waitForTimeout(150)
-  await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click()
-  await page.waitForTimeout(300)
-  ok(await subsLeft() === before - CHANGES, 'and the change can be made again')
+  await page.waitForTimeout(400)
+  ok(await subsLeft() === before,
+    `the reset refunds every replacement (${await subsLeft()} left, started on ${before})`)
+  ok(await undoBtn.count() === 0, 'and with nothing left to take back the reset goes')
+  // make the changes again so every count below stays honest
+  for (let i = 0; i < CHANGES; i++) {
+    await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click()
+    await page.waitForTimeout(150)
+    await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click()
+    await page.waitForTimeout(300)
+  }
+  ok(await subsLeft() === before - CHANGES, 'and the changes can be made again')
 
   // ---- two on-pitch taps swap shirts, free (16B) ----
   await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').nth(0).click()

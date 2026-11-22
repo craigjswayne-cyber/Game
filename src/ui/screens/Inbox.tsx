@@ -203,10 +203,15 @@ export default function Inbox() {
   const n = live.find(x => x.id === inboxId) ?? window20[0]
 
   if (!n) {
+    // an empty News page had no banner at all (owner, 1.9.17): the floor is
+    // the same floor whether or not there is a story on it
     return (
-      <div className="muted" style={{ padding: 14 }}>
-        {t('inbox.emptyReader', { days: RECALL_DAYS })}
-      </div>
+      <>
+        <div className="muted" style={{ padding: 14 }}>
+          {t('inbox.emptyReader', { days: RECALL_DAYS })}
+        </div>
+        <AdSlot place="news-foot" />
+      </>
     )
   }
 

@@ -54,7 +54,8 @@ export function clockLine(state: GameState): string {
   if (state.retired) return t('legacy.cvRetired')
   const a = mgrAge(state)
   const left = seasonsLeft(state)
-  if (a < 50) return t('legacy.cvYoungClock', { age: a })
+  // nothing to say before fifty (owner, 1.9.17: "scrap that")
+  if (a < 50) return ''
   if (a < RETIRE_OPEN) return t('legacy.cvMiddleClock', { age: a })
   if (left > 4) return t('legacy.cvOpenClock', { age: a })
   if (left > 1) return t('legacy.cvSeasonsLeft', { age: a, n: left })

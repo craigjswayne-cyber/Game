@@ -113,12 +113,13 @@
     "77 IS 1.9.14 AS IT SHIPS (19 Nov 2026). 76 was uploaded to Internal testing and Play refused to send it for review: the portrait lock made android.hardware.screen.portrait a required feature. scaffold.sh now declares it optional. 76 is spent; same version name, one code higher.",
     "78 IS 1.9.15: the national coach without a club can pick the Test side (the match day screen had been sent back to Home), the coaches' squad covers every shirt, the squad announcement draws the social media's reaction, the Job Centre leaves a national coach's bottom bar, no fees or wages on a player's page for a national coach without a club, no caps count on the squad desk, Test dates on the day they are played, the Board Funding box inside the screen. Check the Console's highest accepted code is 77 before building.",
     "79 IS 1.9.16: start a career as an international coach from the title screen (the existing phase.pinnacle product, no new product in the Console), real 2026 national squads and caps, close Tests that feel close, derby bust-ups, pre-match challenges in formation, 33 free agents from day one with a one-tap filter, the rating card asked for on a high, and fixes from play: bids that rose on minus, players stuck away with their country, goal kicks from too far back, a shorter briefing and tidier lists. Check the Console's highest accepted code before building: 79 assumes 78 was the last.",
+    "80 IS 1.9.17, a player's feedback round of 22 Nov 2026: cards and sin-bin minutes on the live scoreboard, a penalty mark (distance and width) that changes the kick with the average held at about 74%, a renewal length the manager chooses and the month a contract ends, keeping a medical joker with a week's warning, one reset for a stoppage's substitutions (committed on returning to the match), yellow and red cards as separate chips, the bare appearances-for-the-club line removed, loaned players out of the training places with the loan club on their card, the Pro challenges named on the shop row, press and social stories after every Test the coach takes, a banner slot on every page of a career for a manager who is not Pro (none in a match, in setup, on the shop or while a press question waits); fixed: a national coach's news stories, press barometer and legacy page showing the club his career was dealt from, and a debut promise card still saying uncapped. Check the Console's highest accepted code before building: 80 assumes 79 (1.9.16) was the last.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026).",
     "reviewLibrary is the Play In-App Review library behind PhaseBilling.review() (1.9.3)."
   ],
-  "versionCode": 79,
+  "versionCode": 80,
   "billingLibrary": "8.0.0",
   "reviewLibrary": "2.0.2"
 }

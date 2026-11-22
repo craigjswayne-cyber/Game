@@ -120,10 +120,8 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
   // a transfer request, and the answer
   const rq = latest(state, p, ['request-refused', 'request-granted'])
   if (rq) add('request', rq.kind === 'request-granted' ? 'story.reqGranted' : 'story.reqRefused', { season: seasonLabel(rq.season) })
-  // and the long servant, when nothing above has given his number
-  if (uid && p.clubId === uid && !capt && !legend && !out.some(l => l.why === 'grad' || l.why === 'record')) {
-    const n = service(p, uid).apps
-    if (n >= SERVICE_APPS) add('service', 'story.service', { club: short(uid), n })
-  }
+  // NO BARE "N appearances for the club" LINE (owner, 1.9.17: "we can't get
+  // accurate facts for that"). A man the career opened with carries an
+  // invented count for his years before it, and that line printed it as fact.
   return out
 }

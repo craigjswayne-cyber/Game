@@ -1,3 +1,4 @@
+import { FloorAd } from './FloorAd'
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { proMoment, readFunnel, writeFunnel } from '../game/profunnel'
 import { CareerOver } from './CareerOver'
@@ -915,6 +916,9 @@ export default function App() {
       </header>
       <main className="content" data-screen={cur.screen} ref={mainRef} onScroll={e => noteScroll(cur, e.currentTarget.scrollTop)}>
         <VisitContext.Provider value={cur}><Suspense fallback={null}>{screen()}</Suspense></VisitContext.Provider>
+        {/* every page of the career carries a banner for a manager who is not
+            Pro (owner, 1.9.17); a page with its own slot keeps its own */}
+        <FloorAd screen={cur.screen} main={mainRef} />
       </main>
       <nav className="bottom-nav">
         {/* The order the user asked for, top to bottom: news, home, the hub,

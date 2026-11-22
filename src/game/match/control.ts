@@ -67,6 +67,7 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   // play has resumed: the last substitution has now been played and cannot be
   // taken back (16B), and no whistle is waiting on anything
   ctx.lastSub = null
+  ctx.subStack = []
   ctx.whistleAt = null
   // the dials the second half kicks off with, against the half-time read
   if (ctx.tick === 10 && ctx.htEv && !ctx.shDials) ctx.shDials = userDials(state, ctx)
@@ -369,6 +370,7 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
     briefed: (mine.briefsUsed ?? 0) > briefsBefore,
     blewCover: !coverBefore && !!mine.coverBlown,
   }
+  ctx.subStack = [...(ctx.subStack ?? []), ctx.lastSub]
   pushLine(state, ctx, min, 'SUB', mine, 'comm.subFromBench',
     { on: pin.name, off: pout.name, brief_k: brief ?? 'common.nothing' }, pin.id)
   return t('touch.willComeOn', { on: pin.name, off: pout.name })
@@ -400,7 +402,7 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   // count, with his mark wiped, and come back later as a fresh replacement.
   // The match screen only offers the cover the assistant sent on (lastInj);
   // the man brought on at this same stoppage (lastSub) has not played either.
-  if (mine.lastInj?.coverId !== onId && ctx.lastSub?.inId !== onId) return t('touch.tooLateToUndo')
+  if (mine.lastInj?.coverId !== onId && !(ctx.subStack ?? (ctx.lastSub ? [ctx.lastSub] : [])).some(x => x.inId === onId)) return t('touch.tooLateToUndo')
   /**
    * HE CANNOT BE ERASED ONCE HE HAS PLAYED (coverswap, 1.8.0).
    *
@@ -552,9 +554,16 @@ function swapHiaCover(state: GameState, ctx: LiveCtx, mine: SideCtx, onId: numbe
  *  cover - and the change gives back everything it took: the replacement slot,
  *  the brief it spent, the cover charge it blew. Play resuming closes the
  *  window: a man who has played a tick cannot be un-played. */
-export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
+export function undoSubstitution(state: GameState, ctx: LiveCtx, inId0?: number): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  const u = ctx.lastSub
+  // any change of this stoppage, named by the man it brought on (1.9.17);
+  // with no name, the newest, as it always was
+  const stack = ctx.subStack ?? (ctx.lastSub ? [ctx.lastSub] : [])
+  const u = inId0 != null ? stack.find(x => x.inId === inId0) : ctx.lastSub
+  const settle = () => {
+    ctx.subStack = stack.filter(x => x !== u)
+    ctx.lastSub = ctx.subStack[ctx.subStack.length - 1] ?? null
+  }
   if (!u) return t('touch.nothingToUndo')
   if (ctx.seg === 3) return t('touch.matchOver')
   const { outId, inId } = u
@@ -562,7 +571,11 @@ export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
   const slotOut = mine.lineup.indexOf(outId)
   const pout = state.players[outId]
   const pin = state.players[inId]
-  if (slotIn < 0 || slotIn > 14 || !pout || pout.injury) { ctx.lastSub = null; return t('touch.tooLateToUndo') }
+  // A CHAIN (A off for X, then X off for Y) can only be unpicked from the
+  // newest end: X is not on the pitch to come off again. That change is kept
+  // on the list, and becomes takeable once the one after it has been undone.
+  if (slotIn < 0 || slotIn > 14 || mine.onPitch.has(outId)) return t('touch.tooLateToUndo')
+  if (!pout || pout.injury) { settle(); return t('touch.tooLateToUndo') }
   mine.lineup[slotIn] = outId
   if (slotOut >= 0) mine.lineup[slotOut] = inId
   mine.onPitch.delete(inId)
@@ -590,7 +603,7 @@ export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
   // he never played a second, so his stint closes empty (play has not
   // resumed, so the clock has not moved since he came on)
   fieldChanged(state, ctx, mine, ctx.lastMin)
-  ctx.lastSub = null
+  settle()
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   pushLine(state, ctx, min, 'SUB', mine, pin ? 'comm.subUndoneNamed' : 'comm.subUndone',
     { off: pout.name, on: pin?.name ?? '' }, pout.id)
@@ -614,6 +627,7 @@ export function swapShirts(state: GameState, ctx: LiveCtx, aId: number, bId: num
   mine.lineup[bi] = aId
   // a switch after an undo would otherwise resurrect a stale record
   ctx.lastSub = null
+  ctx.subStack = []
   recomputeSideUnits(state, ctx, mine)
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   pushLine(state, ctx, min, 'SUB', mine, 'comm.shirtSwap',

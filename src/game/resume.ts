@@ -84,7 +84,7 @@ export type MatchCmdBody =
   | { kind: 'cover'; onId: number; inId: number }
   /** his pick for an injured man the match waited on (1.9.1) */
   | { kind: 'inj'; hurtId: number; inId: number | null }
-  | { kind: 'undo' }
+  | { kind: 'undo'; inId?: number }
   | { kind: 'swap'; aId: number; bId: number }
   /** the tactic dials AS THEY WERE when he changed them: the pre-match save holds
    *  the old values, so replaying "he opened the tactics board" is not enough */
@@ -182,7 +182,7 @@ export function replayMatch(state: GameState, rec: MatchResume): Resumed | null 
           coverInjury(state, ctx, c.hurtId, c.inId)
           break
         case 'undo':
-          undoSubstitution(state, ctx)
+          undoSubstitution(state, ctx, c.inId)
           break
         case 'swap':
           swapShirts(state, ctx, c.aId, c.bId)

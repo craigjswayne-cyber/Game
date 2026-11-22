@@ -1,3 +1,4 @@
+import { testNoise } from './natnoise'
 import { talkbackWeek } from './talkback'
 import { leavingWeek } from './leaving'
 import { testConfDelta } from './nattest'
@@ -1388,6 +1389,8 @@ function* weekSteps(state: GameState): Generator<void, void, void> {
         if (state.natLastTest?.fxId === userFx.id) { state.natLastTest.conf = state.natConfidence; state.natLastTest.confDelta = delta }
       }
       matchReport(state, userFx)
+      // and the country has its say (1.9.17, natnoise.ts)
+      testNoise(state, userFx, mySide)
     }
   }
 

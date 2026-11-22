@@ -1,3 +1,4 @@
+import { AdSlot } from '../AdSlot'
 import { useEffect, useState } from 'react'
 import { useVisitState } from '../visitState'
 import { noteStep } from '../../game/firststeps'
@@ -291,6 +292,8 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
           })}
         </div>
         <HelpTip text={t('tacticsScreen.rolesNote')} className="pad" />
+        {/* under the roles, never beside a dial (owner, 1.9.17) */}
+        <AdSlot place="roles-foot" />
       </>}
 
       {ttab === 'setp' && <div className="game-pick sp-sub" role="tablist" aria-label={t('tacticsScreen.tabSetPiece')}>

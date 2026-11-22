@@ -9,6 +9,8 @@ import { CHALLENGES } from '../../game/newgame'
 import { horizon, horizonPct } from '../../game/legacy'
 import { annalsFor } from '../../game/history'
 import { ord, t, compLabel } from '../../game/i18n'
+import { nationName } from '../../game/nations'
+import { Flag } from '../flags'
 import { Glyph } from '../glyphs'
 import { clubRepute } from '../../game/repute'
 import { coachRows } from '../../game/rivalcoach'
@@ -33,12 +35,19 @@ export default function Legacy() {
   return (
     <>
       <div className="card" style={{ textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'center' }}><Crest club={club} size={44} mr={0} /></div>
+        {/* NO CLUB, NO CREST (1.9.17): a national coach with no club job was
+            headed "Director of Rugby, Bath RFC", the club the career was
+            dealt from and one he has never coached */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>{game.unemployed
+          ? (game.natTeam ? <span style={{ fontSize: '2rem' }}><Flag code={game.natTeam} /></span> : null)
+          : <Crest club={club} size={44} mr={0} />}</div>
         <h3 style={{ fontSize: '1.375rem', marginTop: 6 }}>{game.managerName}</h3>
-        <div className="meta">{t('legacy.lgDirectorOf', { club: club.name })}</div>
+        <div className="meta">{game.unemployed
+          ? (game.natTeam ? t('profile.natHeadCoach', { nat: nationName(game.natTeam) }) : t('profile.unemployed'))
+          : t('legacy.lgDirectorOf', { club: club.name })}</div>
         {/* THE CLUB'S NAME FOR ITSELF (repute.ts): an identity held for years */}
         {(() => {
-          const l = clubRepute(game)
+          const l = game.unemployed ? null : clubRepute(game)
           return l ? <div className="meta club-repute" style={{ marginTop: 3, fontStyle: 'italic' }}>{t('arc.knownAs', { label_k: `arc.repute.${l}` })}</div> : null
         })()}
         {challenge && <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700, marginTop: 3 }}>{t('legacy.lgChallenge', { title: t(challenge.title) })}</div>}
@@ -127,9 +136,11 @@ export default function Legacy() {
             </div>
           )
         }
+        // nothing to say yet: no card at all, not an empty one (1.9.17)
+        if (!clockLine(game) && !mayRetire(game)) return null
         return (
           <div className="card">
-            <div className="meta">{clockLine(game)}</div>
+            {clockLine(game) && <div className="meta">{clockLine(game)}</div>}
             {mayRetire(game) && (
               <>
                 <div className="meta" style={{ marginTop: 8 }}>
@@ -169,8 +180,11 @@ export default function Legacy() {
         <span className="chip">{t('profile.drawn')} <b>{m.d}</b></span>
         <span className="chip">{t('profile.lost')} <b style={{ color: 'var(--danger)' }}>{m.l}</b></span>
         <span className="chip">{t('profile.winRate')} <b>{winPct}%</b></span>
-        <span className="chip">{t('legacy.lgSignings')} <b>{m.signings}</b></span>
-        <span className="chip">{t('legacy.lgSpent')} <b>{fmtMoney(m.spent)}</b></span>
+        {/* a coach who has never had a club has no signings to count (1.9.17) */}
+        {(!(game.unemployed && game.natTeam) || m.signings > 0) && <>
+          <span className="chip">{t('legacy.lgSignings')} <b>{m.signings}</b></span>
+          <span className="chip">{t('legacy.lgSpent')} <b>{fmtMoney(m.spent)}</b></span>
+        </>}
       </div>
 
       {/* WHAT YOU ARE CHASING (C4).
@@ -272,7 +286,7 @@ export default function Legacy() {
         )
       })()}
 
-      <SectionTitle sub={t('legacy.lgHorizonSub')}>{t('legacy.lgHorizon')}</SectionTitle>
+      <SectionTitle sub={horizon(game).length === 4 ? t('legacy.lgHorizonSub') : undefined}>{t('legacy.lgHorizon')}</SectionTitle>
       <div className="card">
         {horizon(game).map((h, i, all) => (
           <div key={h.label} style={{ marginBottom: i === all.length - 1 ? 0 : 9 }}>

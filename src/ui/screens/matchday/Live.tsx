@@ -484,6 +484,31 @@ export function Live() {
           {/* say so, or a ticker that skips the quiet minutes looks broken (F5) */}
           {live.mode === 'highlights' && !done ? t('matchday.highlightsTag') : ''}
         </div>
+        {/* CARDS ON THE SCOREBOARD (1.9.17, player feedback): who is in the
+            bin and for how many more minutes, and who has been sent off. Read
+            off the lines already shown, so it never runs ahead of the feed. */}
+        {(() => {
+          const cards = (teamId: string) => {
+            const out: { id: number; who: string; red: boolean; left: number }[] = []
+            for (const e of shown) {
+              if (e.teamId !== teamId || e.playerId == null || (e.type !== 'YC' && e.type !== 'RC')) continue
+              const who = (game.players[e.playerId]?.name ?? e.playerName ?? '').split(' ').slice(-1)[0]
+              const i = out.findIndex(c => c.id === e.playerId)
+              if (i >= 0) out.splice(i, 1)
+              if (e.type === 'RC') out.push({ id: e.playerId, who, red: true, left: 0 })
+              else if (!done && e.min + 10 > min) out.push({ id: e.playerId, who, red: false, left: e.min + 10 - min })
+            }
+            return out
+          }
+          const h = cards(fixture.homeId), a = cards(fixture.awayId)
+          if (!h.length && !a.length) return null
+          const list = (cs: typeof h) => cs.map(c => (
+            <span key={c.id} className="sb-card" title={t(c.red ? 'matchday.sentOff' : 'matchday.inTheBin')}>
+              <span className={c.red ? 'tele-rc' : 'tele-yc'} role="img" aria-label={t(c.red ? 'matchday.sentOff' : 'matchday.inTheBin')} /> {c.who}{c.red ? '' : ` ${c.left}'`}
+            </span>
+          ))
+          return <div className="sb-cards" data-sb-cards><div>{list(h)}</div><div>{list(a)}</div></div>
+        })()}
         {!done && (() => {
           const win = (ctx.momoHist ?? []).slice(-3)
           // no history yet means no measurement: a half-filled bar at 0' reads

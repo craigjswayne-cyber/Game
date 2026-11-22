@@ -112,6 +112,9 @@ export interface LiveCtx {
    *  Records whether that change spent a brief or blew the cover charge, so
    *  the undo can give back exactly what the change took. */
   lastSub?: { outId: number; inId: number; blewCover: boolean; briefed: boolean } | null
+  /** every change made at this stoppage, oldest first, so any one of them can
+   *  be taken back until play resumes (1.9.17); lastSub is the newest */
+  subStack?: { outId: number; inId: number; blewCover: boolean; briefed: boolean }[]
   /** THE MANAGER CHOOSES WHO COVERS AN INJURY (1.9.1): set at kick-off of a
    *  match he is watching. Absent on a match begun by an older build, which
    *  replays the way it was played, with the assistant's pick. */
@@ -128,7 +131,11 @@ export interface LiveCtx {
   htReads?: TalkRead[]
   htTone?: string
   /** a touchline call waiting on the user (kickable penalty etc) */
-  decision: { kind: 'penalty'; min: number; fld?: number } | null
+  /** `wide`: how far the mark is from the middle of the posts, in metres,
+   *  negative to the left (1.9.17, kicking.ts penWide) */
+  decision: { kind: 'penalty'; min: number; fld?: number; wide?: number } | null
+  /** the mark of the manager's own penalty, carried to the kick (1.9.17) */
+  penWide?: number
   /** the captain's look to the touchline, held until the tick has played
    *  out so no line follows it before the call (tick.ts, control.ts flushAsk) */
   askLine?: { min: number; home: boolean } | null

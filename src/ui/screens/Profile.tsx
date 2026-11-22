@@ -1,3 +1,4 @@
+import { AdSlot } from '../AdSlot'
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { decisionText, mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState } from '../../game/model'
@@ -449,6 +450,7 @@ export default function Profile() {
             : <button className="btn ghost" style={{ color: 'var(--text-negative)' }} onClick={() => setConfirmResign(true)}>{t('profile.resign')}</button>
         )}
       </div>
+      <AdSlot place="profile-foot" />
       <div className="spacer" />
     </>
   )

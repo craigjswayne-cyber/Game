@@ -240,7 +240,6 @@ for (const { code, label } of LANGS) {
     ['matchday.playFinalQuarter', 'Play the Final Quarter'],
     ['matchday.continueToResults', 'Continue to Results'],
     ['matchday.matchDaySquad', 'Match-Day Squad'],
-    ['matchday.takeBack', 'Take back the last change'],
     ['matchday.optPosts', 'Take the Points'],
     ['matchday.quickPlans', 'Quick Game Plans'],
     ['matchday.matchSettings', 'Match Settings'],

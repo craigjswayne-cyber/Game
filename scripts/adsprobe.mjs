@@ -26,6 +26,24 @@ import { chromium } from 'playwright-core'
 import { startPreview, done } from './lib/preview.mjs'
 import { writeSync, readFileSync } from 'node:fs'
 
+// A PAGE WITH NO BANNER (1.9.17). Every page of a career carries one now, so
+// "leave for a screen with no slot" needs a page that refuses: the game's own
+// refusal is the press room's `data-no-ad` mark while a question waits, and
+// the shell's FloorAd stands down for it. The mark is put on the Squad here
+// rather than waiting for a journalist, and taken off by the next page.
+const noSlot = async (page) => {
+  await page.evaluate(() => {
+    document.querySelectorAll('main.content > [data-probe-no-ad]').forEach(n => n.remove())
+    window.rugbyStore.getState().go('squad')
+  })
+  await page.waitForTimeout(250)
+  await page.evaluate(() => {
+    const m = document.createElement('span'); m.hidden = true
+    m.setAttribute('data-no-ad', ''); m.setAttribute('data-probe-no-ad', '')
+    document.querySelector('main.content').appendChild(m)
+  })
+}
+
 const say = (s) => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -221,12 +239,11 @@ try {
 
     // leave the screen: hidden; come back: resumed, not re-requested
     const before = (await log(page)).length
-    // The Manager's Profile, not the news: the news floor carries its own
-    // banner since 1.8.3, and a screen with no slot is what this tests
-    await page.locator('.bottom-nav button').nth(3).click()   // the manager's menu
-    await page.locator('.submenu-item').first().click()        // Profile
+    // A page that says no (see noSlot above): every page of a career carries
+    // a banner since 1.9.17, so a screen with none has to be one that refuses.
+    await noSlot(page)
     await page.waitForTimeout(500)
-    ok((await log(page)).slice(before).includes('hideBanner') && (await inset(page)) === '0px', 'leaving Home hides the banner (no slot on the profile)')
+    ok((await log(page)).slice(before).includes('hideBanner') && (await inset(page)) === '0px', 'leaving Home hides the banner (a page that carries none)')
     ok(await page.evaluate(() => document.querySelectorAll('.ad-slot').length === 0), 'and the game has no slot on that screen')
     await page.locator('.bottom-nav button').nth(1).click()   // home
     await page.waitForTimeout(500)
@@ -293,8 +310,7 @@ try {
     await still('closing the sheet')
     ok((await lastBanner(page)) === 'resumeBanner' && (await inset(page)) === '50px', 'and the banner came back into the room it left')
     // room is still released where no slot wants a banner (the 1.8.4 band)
-    await page.locator('.bottom-nav button').nth(3).click()
-    await page.locator('.submenu-item').first().click()
+    await noSlot(page)
     await page.waitForTimeout(900)
     ok((await inset(page)) === '0px', 'a screen with no slot holds no room')
     // and coming back makes the room in the frame the screen draws
@@ -498,8 +514,7 @@ try {
     const { page, errs } = await openPage({ plugin: 'lateload' })
     await startCareer(page)
     // leave Home for a screen with no slot before Home's advert has landed
-    await page.locator('.bottom-nav button').nth(3).click()
-    await page.locator('.submenu-item').first().click()
+    await noSlot(page)
     await settle(page, 1500)
     const l = await log(page)
     const shown = l.findIndex(x => x.startsWith('showBanner:'))
@@ -524,7 +539,7 @@ try {
   const units = Object.values(ADS.android.banner).concat(Object.values(ADS.ios.banner), [ADS.android.rewarded, ADS.ios.rewarded])
   ok(units.filter(s => s !== '').every(s => /\//.test(s)), 'every ad unit id that is set carries a /')
   const pending = Object.entries(ADS.android.banner).concat(Object.entries(ADS.ios.banner)).filter(([, v]) => v === '').map(([k]) => k)
-  const AWAITING = ['week-foot', 'match-foot', 'news-foot', 'press-foot', 'finance-foot', 'stats-foot', 'table-foot', 'fixtures-foot']
+  const AWAITING = ['week-foot', 'match-foot', 'news-foot', 'press-foot', 'finance-foot', 'stats-foot', 'table-foot', 'fixtures-foot', 'report-foot', 'roles-foot', 'medical-foot', 'profile-foot', 'history-foot', 'country-foot', 'transfers-foot', 'page-foot']
   ok(pending.every(k => AWAITING.includes(k)),
     pending.length ? `only the newer places await a unit id (${[...new Set(pending)].join(', ')})` : 'every place has its own unit id')
 
