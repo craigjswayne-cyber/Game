@@ -32,7 +32,10 @@ export function matchReport(state: GameState, fx: Fixture) {
     { k: 'news.resScore', home: teamShort(state, fx.homeId), hs: fx.homeScore, as: fx.awayScore, away: teamShort(state, fx.awayId) },
   ]
   if (fx.att) rows.push({ k: 'news.resAtt', att: fx.att, venue: fx.venue?.name ?? state.clubs[fx.homeId]?.stadium ?? tIn('en', 'news.resNeutral') })
-  rows.push(scorers.length ? { k: 'news.resTries', tries: scorers.join(', ') } : { k: 'news.resNoTries' })
+  // WHO SCORED, ONLY WHEN THERE IS A RECORD OF IT (owner, 1.9.17). This report
+  // is only written for matches with no event log (the return above), so the
+  // row was always "No tries scored": printed under a 24-5 Test win.
+  if (scorers.length) rows.push({ k: 'news.resTries', tries: scorers.join(', ') })
   if (motm) rows.push({ k: 'news.resMotm', player: motm.name })
   const lines = rows.map(r => tIn('en', r.k, r))
   state.news.push({

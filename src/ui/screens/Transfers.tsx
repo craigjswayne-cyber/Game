@@ -1,3 +1,4 @@
+import { AdSlot } from '../AdSlot'
 import { hasSupporter } from '../../game/monetise'
 import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { useVisitState } from '../visitState'
@@ -597,6 +598,7 @@ export default function Transfers() {
         </div>
       )}
       </>}
+      <AdSlot place="transfers-foot" />
       <div className="spacer" />
     </>
   )

@@ -1,3 +1,4 @@
+import { AdSlot } from '../AdSlot'
 import { Fragment, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, fxDate, type Pos } from '../../game/model'
@@ -176,6 +177,7 @@ export default function Country() {
         {!club && <div className="meta">{t('legacy.coNoClubPost')}</div>}
       </div>
 
+      <AdSlot place="country-foot" />
       <div className="spacer" />
     </>
   )

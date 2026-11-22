@@ -286,7 +286,7 @@ export default function Legacy() {
         )
       })()}
 
-      <SectionTitle sub={t('legacy.lgHorizonSub')}>{t('legacy.lgHorizon')}</SectionTitle>
+      <SectionTitle sub={horizon(game).length === 4 ? t('legacy.lgHorizonSub') : undefined}>{t('legacy.lgHorizon')}</SectionTitle>
       <div className="card">
         {horizon(game).map((h, i, all) => (
           <div key={h.label} style={{ marginBottom: i === all.length - 1 ? 0 : 9 }}>

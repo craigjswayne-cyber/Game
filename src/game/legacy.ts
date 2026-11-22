@@ -53,8 +53,9 @@ export function horizon(state: GameState): Horizon[] {
   if (nextGame) {
     rows.push({ label: t('legacy.hzMatches', { n: nextGame }), at: m.m, goal: nextGame, note: t('legacy.hzMore', { n: nextGame - m.m }) })
   }
-  // A title is always ahead of you: there is always another season.
-  rows.push({
+  // A title is always ahead of you: there is always another season. Not for a
+  // national coach with no club (owner, 1.9.17): he has no league to win.
+  if (!(state.unemployed && state.natTeam)) rows.push({
     label: titles === 0 ? t('legacy.hzFirstTitle') : t('legacy.hzNthTitle', { n: ord(titles + 1) }),
     at: titles,
     goal: titles + 1,

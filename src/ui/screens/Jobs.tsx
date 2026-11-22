@@ -183,7 +183,7 @@ export default function Jobs() {
         </div>
       )}
       <div className="card">
-        <h3 style={{ fontSize: '1rem' }}>{t(game.unemployed ? 'world.jbBetweenJobs' : 'world.jbMarket')}</h3>
+        <h3 style={{ fontSize: '1rem' }}>{t(game.unemployed ? (game.natTeam ? 'world.jbNoClubJob' : 'world.jbBetweenJobs') : 'world.jbMarket')}</h3>
         <div className="meta">
           {t('world.jbYourRep')}<b style={{ color: 'var(--info)' }}>{rep}/95</b>
           {t(game.mgr.trophies.length === 1 ? 'world.jbRepBuiltOne' : 'world.jbRepBuilt', {
