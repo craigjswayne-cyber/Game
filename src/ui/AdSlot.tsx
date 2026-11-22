@@ -20,7 +20,7 @@ import { useStore } from '../store'
  *   A SUPPORTER NEVER SEES ONE. adsAllowed answers that before anything is
  *     mounted, so the purchase is honoured before the provider is even asked.
  */
-export function AdSlot({ place }: { place: AdPlace }) {
+export function AdSlot({ place, floor }: { place: AdPlace; floor?: boolean }) {
   const host = useRef<HTMLDivElement>(null)
   // THE PURCHASE IS A DEPENDENCY (1.8.18). The effect used to re-run only when
   // `place` changed, so buying Pro from a card on the same screen left the
@@ -41,5 +41,5 @@ export function AdSlot({ place }: { place: AdPlace }) {
   }, [place, supporter])
 
   if (!adsAllowed(place)) return null
-  return <div className="ad-slot" ref={host} aria-hidden="true" />
+  return <div className="ad-slot" ref={host} aria-hidden="true" data-floor={floor ? '' : undefined} />
 }

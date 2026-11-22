@@ -1383,7 +1383,9 @@ export const AD_PLACES = ['home-foot', 'week-foot', 'results-foot', 'match-foot'
   // other tabs), the Roles tab on Tactics and the Medical Centre
   'report-foot', 'roles-foot', 'medical-foot',
   // and four more floors the same day, each at the very bottom as Home's is
-  'profile-foot', 'history-foot', 'country-foot', 'transfers-foot'] as const
+  'profile-foot', 'history-foot', 'country-foot', 'transfers-foot',
+  // every other page of the career (ui/FloorAd.tsx): one place, the Home unit
+  'page-foot'] as const
 export type AdPlace = typeof AD_PLACES[number]
 
 /** Did the shell inject a purchase bridge at all? Not the same question as

@@ -124,7 +124,7 @@ export default function Press() {
         </>
       )}
       {/* a banner only while nobody is waiting on an answer (owner, 1.8.3) */}
-      {open.length === 0 && <AdSlot place="press-foot" />}
+      {open.length === 0 ? <AdSlot place="press-foot" /> : <span data-no-ad hidden />}
       <div className="spacer" />
     </>
   )

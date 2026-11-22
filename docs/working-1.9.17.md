@@ -30,6 +30,11 @@ A French player's feedback, points 1 to 7, plus two bugs the owner hit as Englan
 - Job Centre heading for a national coach with no club: "No club job". Legacy drops the league-title goal for him.
 - Four more advert floors, each at the very bottom as Home's is: Profile, Roll of Honour, Country, Transfer Centre (profile-foot, history-foot, country-foot, transfers-foot). scripts/adsprobe.mjs now uses the Squad as its screen with no slot.
 
+## A banner on every page (owner, 22 Nov, 15:33)
+- src/ui/FloorAd.tsx: the shell mounts one slot (page-foot) under any career page that has none of its own. It stands down for a page with its own slot and for `data-no-ad` (the press room while a question waits). The shop page carries none. Matches and the menus before a career are outside the shell.
+- packaging/shell/ads-bridge.js: moving between places that share a unit id keeps the same banner (hide, resume) instead of removing it and asking again.
+- scripts/everypagead.mjs walks 32 pages: one banner each, one per Tactics tab, none before a career, none for Pro.
+
 ## Left out (owner's call)
 - International tries and points. Loan matches in career history and per-club history.
 
