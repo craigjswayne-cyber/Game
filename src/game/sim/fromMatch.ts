@@ -21,10 +21,16 @@ import { mulberry32, wpick, type Rng } from '../rng'
 import { beginMatch } from '../match/begin'
 import { mkSide } from '../match/setup'
 import { sideEnergy } from '../match/energy'
-import { goalKicker } from '../match/field'
+import { fieldChanged, goalKicker, recomputeSideUnits } from '../match/field'
+import { applyTeamTalk, makeSubstitution } from '../match/control'
+import { benchTank } from '../match/subs'
+import { kickChance } from '../match/kicking'
+import { clutchKick } from '../habits'
+import { clamp } from '../rng'
 import { teamName } from '../match/selection'
 import type { SideCtx } from '../match/side'
-import type { Contest, World } from './world'
+import type { LiveCtx } from '../match/live'
+import type { Contest, Decision, World } from './world'
 
 /** a side as a reader needs it, to print names: the starting 15 in shirt order, then the bench */
 export interface SimSide {
@@ -74,7 +80,10 @@ export const GAMMA = 1.0
  *  already an edge on the result, not a rating. Kicks at goal and
  *  discipline get none: the old engine gives the kicker none, and the home
  *  crowd's lean on the whistle is already inside refPenF. */
-export const HFA_SHARE = 0.5
+// 0.45 from 0.5 (22 Nov): with the units above, 0.5 left the new home margin
+// 0.7 points over the old engine's across the parity pairings, and 0.42 left
+// it 0.2 under.
+export const HFA_SHARE = 0.45
 
 /** THE LATE FADE. The old engine multiplies a side's attack and defence by
  *  0.78 + 0.22 x (average energy / 100) (tick.ts eF). This World is built
@@ -92,7 +101,7 @@ export const FADE_W = 0.22
 export const END_TANK = 0.27
 
 /** the units a strength is read from, and the league's mean of each */
-type UnitKey = 'scrum' | 'lineout' | 'breakdown' | 'attack' | 'defence' | 'kicking' | 'goal' | 'overall'
+export type UnitKey = 'scrum' | 'lineout' | 'breakdown' | 'attack' | 'defence' | 'kicking' | 'goal' | 'overall'
 const UNIT_KEYS: UnitKey[] = ['scrum', 'lineout', 'breakdown', 'attack', 'defence', 'kicking', 'goal', 'overall']
 export type LeagueMeans = Record<UnitKey, number> & { penRisk: number; energy: number; n: number }
 
@@ -155,7 +164,48 @@ const W_ANYONE      = [  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   
 
 const clampStr = (v: number) => Math.max(0.6, Math.min(1.5, v))
 
-export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng): { world: MatchWorld; home: SimSide; away: SimSide } {
+/** HOW MUCH EACH UNIT COUNTS, on top of GAMMA: a unit u becomes (u / m) ^ (GAMMA x UNIT_EXP[unit]).
+ *  1 for every unit until 21 Nov; see the note at the value for how each was set. */
+//
+// SET 21 Nov from what each unit is worth to the margin in each engine
+// (scripts/tmp/gp/sens.ts: the home side's unit raised 10% and held there
+// through every recompute, the same seeds paired, 6 fixtures x 300 matches).
+// Change in the home margin, old engine / new at exponent 1: attack 1.67 /
+// 2.56, defence 2.25 / 2.47, breakdown 1.50 / 2.39, scrum 0.39 / 0.36,
+// lineout 0.33 / 0.42, kicking 1.19 / 1.62 (goal and overall 0 / 0). Matching
+// each unit exactly (exponent = old / new) took the slope of the new margin
+// on the old across the parity pairings from 0.96 to 0.77: the old engine's
+// better sides win by more than their units alone are worth to it (its
+// styles, zone plans, called moves, player-by-player contests and benches
+// lean the same way as the units, and the new simulation has none of them
+// yet). So the exponents keep the old engine's RATIOS between the units and
+// are scaled up together until the slope is back at 1: old / new x 1.3.
+// On the 40 parity pairings (scripts/tmp/gp/newonly.ts, 300 new matches
+// each against the stored old numbers) the mean gap in home margin went
+// from 2.25 to 2.05 points and the rms from 2.83 to 2.75, slope 0.98.
+// THEN KICKING, ON ITS OWN (second parity run, 22 Nov). The pairings still
+// furthest apart were the ones with the widest gap in kicking units
+// (Washington 15.1 v New England 10.3: old margin 1.9, new 6.3; Canberra
+// 18.2 v Wellington 12.9: 3.6 v 10.8). Kicking is the unit with the widest
+// spread between sides (sd of the log ratio 0.17, the others 0.09 to 0.13:
+// it hangs on one or two men), and the old engine turns it into territory
+// through a log and a pull back to halfway, so a big gap is worth less to
+// it than a straight line says. Kicking down to 0.62 and the rest scaled up
+// 1.12 to hold the slope: rms of the margin gap 2.70 to about 2.35 on the
+// 40 pairings, slope 0.94 to 1.01 across the two runs either side of this.
+// (Tuned against the same 40 pairings it is measured on: the old engine's
+// own 150-match noise, about 1.4 points of margin, is in the target.)
+export const UNIT_EXP: Record<UnitKey, number> = { scrum: 1.43, lineout: 1.15, breakdown: 0.91, attack: 0.95, defence: 1.3, kicking: 0.62, goal: 1, overall: 1 }
+
+export interface FromMatchOpts {
+  /** for measuring only: change the kicked-off sides (on the private copy) before the world reads them */
+  tweak?: (ctx: LiveCtx) => void
+  /** for tuning only: exponents to use in place of UNIT_EXP, and a home share in place of HFA_SHARE */
+  exp?: Partial<Record<UnitKey, number>>
+  hfaShare?: number
+}
+
+export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: FromMatchOpts = {}): { world: MatchWorld; home: SimSide; away: SimSide } {
   // the real game is copied whole and the copy is what kicks off
   const clone = structuredClone(state)
   const fxc = clone.fixtures.find(f => f.id === fx.id)
@@ -165,6 +215,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng): { world
   // beginMatch draws from the dice it is given (the gate, the kick seed):
   // they are ours, seeded off the caller's, never the week's
   const ctx = beginMatch(clone, fxc, mulberry32((Math.floor(rng() * 4294967296) >>> 0) || 1), false)
+  opts.tweak?.(ctx)
   const sides: [SideCtx, SideCtx] = [ctx.home, ctx.away]
 
   /** the fifteen shirts at kick-off (after any warm-up withdrawal), by index 0 to 14 */
@@ -175,14 +226,70 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng): { world
    *  the time, and `str` is asked on every contest, so it keeps the clock. */
   let now = 0
 
-  const unitStr = (s: 0 | 1, k: UnitKey) => Math.pow(sides[s].units[k] / Math.max(1e-6, mean[k]), GAMMA)
-  const hfa = (s: 0 | 1) => (s === 0 ? Math.pow(ctx.hfa, HFA_SHARE) : 1)
+  const exps = { ...UNIT_EXP, ...opts.exp }
+  const unitStr = (s: 0 | 1, k: UnitKey) => Math.pow(sides[s].units[k] / Math.max(1e-6, mean[k]), GAMMA * exps[k])
+  const hfaShare = opts.hfaShare ?? HFA_SHARE
+  const hfa = (s: 0 | 1) => (s === 0 ? Math.pow(ctx.hfa, hfaShare) : 1)
+  // each shirt's tank when its man came on, and the second he came on (0 for a starter), so a
+  // replacement brings fresh legs and the fade is the fifteen men on the field now
+  const tank0 = sides.map(side => shirts[sides.indexOf(side)].map(id => (id == null ? 70 : side.energy.get(id) ?? 70) / 100))
+  const onAt = [Array(15).fill(0), Array(15).fill(0)] as [number[], number[]]
   const fade = (s: 0 | 1, t: number) => {
-    const side = sides[s]
-    const e0 = sideEnergy(side) / 100
-    const used = Math.min(1, Math.max(0, t) / 4800) * (1 - END_TANK) * side.tempoF * side.drainF
-    const e = e0 * Math.max(0, 1 - used)
+    const side = sides[s], rate = (1 - END_TANK) * side.tempoF * side.drainF
+    let e = 0
+    for (let i = 0; i < 15; i++) e += tank0[s][i] * Math.max(0, 1 - Math.min(1, Math.max(0, t - onAt[s][i]) / 4800) * rate)
+    e /= 15
     return (1 - FADE_W + FADE_W * e) / (1 - FADE_W + FADE_W * (mean.energy / 100))
+  }
+  /** the bench men already used, who cannot come on again */
+  const used: [Set<number>, Set<number>] = [new Set(), new Set()]
+  const isUserSide = (s: 0 | 1) => ctx.userSideId != null && sides[s].teamId === ctx.userSideId
+  /** THE MANAGER'S HAND on the private copy, through the old engine's own functions where it has them.
+   *  It changes this World for good: after a decision, build a new World for the next match. */
+  const decide = (d: Decision, t: number): string => {
+    now = t
+    if (d.kind === 'world' || d.kind === 'strength' || d.kind === 'penaltyCall') return 'not a decision for the World'
+    const s = d.side, side = sides[s], min = Math.min(79, Math.max(1, Math.floor(t / 60)))
+    ctx.lastMin = min
+    if (d.kind === 'substitution') {
+      const outId = Number(d.off), inId = Number(d.on)
+      const slot = shirts[s].indexOf(outId)
+      if (slot < 0) return 'not on the field'
+      if (isOff(s, outId)) return 'in the bin or sent off'
+      const benchAt = side.lineup.indexOf(inId)
+      if (benchAt < 15 || used[s].has(inId)) return 'not on the bench'
+      if (isUserSide(s)) {
+        // the manager's own side: the old engine's makeSubstitution, with every law it checks
+        // (the front row, the bin, the count) and its bill for a shirt that does not fit
+        makeSubstitution(clone, ctx, outId, inId)
+        if (side.lineup[slot] !== inId) return 'refused'
+      } else {
+        side.lineup[slot] = inId; side.lineup[benchAt] = outId
+        side.onPitch.delete(outId); side.onPitch.add(inId)
+        side.energy.set(inId, benchTank(clone.players[inId]))
+        fieldChanged(clone, ctx, side, min)
+      }
+      used[s].add(inId)
+      shirts[s][slot] = inId
+      tank0[s][slot] = (side.energy.get(inId) ?? 70) / 100
+      onAt[s][slot] = t
+      return ''
+    }
+    if (d.kind === 'tactics') {
+      const tac = clone.clubs[side.teamId]?.tactic as unknown as Record<string, unknown> | undefined
+      if (!tac) return 'no club'
+      Object.assign(tac, d.set)
+      // as applyTacticsChange: the units rebuilt with the new dials, nothing else
+      recomputeSideUnits(clone, ctx, side)
+      return ''
+    }
+    if (d.kind === 'talk') {
+      if (!isUserSide(s)) return 'only the manager gives a talk'
+      const said = applyTeamTalk(clone, ctx, d.tone as Parameters<typeof applyTeamTalk>[2])
+      recomputeSideUnits(clone, ctx, side)
+      return said && ctx.htTone !== d.tone ? said : ''
+    }
+    return 'unknown decision'
   }
   const ruckRaw = (s: 0 | 1, hasBall: boolean | null) => {
     const side = sides[s]
@@ -274,6 +381,22 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng): { world
     jumper: (s, rng) => pickBy(s, W_JUMP, rng),
     forward: (s, rng) => pickBy(s, W_FORWARD, rng),
     carded: (s, id, until) => { off[s].set(id, until) },
+    decide,
+    // THE OLD ENGINE'S OWN KICK (kicking.ts kickChance, with the clutch
+    // habit, as scoring.ts and takePenaltyShot use them): the kicker's goal
+    // kicking, form and nerve, the kicking coach and facility (goalBonus) and
+    // the weather (goalPenalty), all absolute. Measured 21 Nov (scripts/tmp/
+    // gp/kicks.ts): reading the kick as a strength against the league mean
+    // gave every league the same goal kicking, so a National One side kicked
+    // like a Top 14 one and the lower leagues scored 3 to 6 points a match
+    // more than they do in the old engine.
+    goalP: (s, kind, t, lead) => {
+      now = t
+      const id = world.goalKicker(s)
+      const kicker = id ? clone.players[Number(id)] ?? null : null
+      const base = kind === 'con' ? 0.495 : 0.53
+      return clamp(kickChance(clone, kicker, base, 54, ctx.goalPenalty ?? 0, sides[s]) + clutchKick(clone.seed, kicker, Math.floor(t / 60), lead), 0.3, 0.92)
+    },
   }
 
   const simSide = (side: SideCtx): SimSide => ({

@@ -18,17 +18,24 @@ export type PlayKind =
   // stoppages
   | 'knockOn' | 'forwardPass' | 'notStraight' | 'unplayable' | 'restartError' | 'intoTouch' | 'outOnFull' | 'deadBall' | 'heldUp' | 'penalty' | 'freeKick'
   // scores
-  | 'try' | 'conversion' | 'penaltyGoal' | 'dropGoal'
-  // officials
-  | 'yellowCard' | 'redCard' | 'halfTime' | 'fullTime'
+  | 'try' | 'penaltyTry' | 'conversion' | 'penaltyGoal' | 'dropGoal'
+  // officials and the bench
+  | 'yellowCard' | 'redCard' | 'halfTime' | 'fullTime' | 'substitution'
+
+/** the manager's call at a penalty (and the game's own, which is the same choice) */
+export type PenaltyCall = 'posts' | 'corner' | 'tap' | 'scrum'
 
 export type KickType = 'box' | 'upAndUnder' | 'grubber' | 'long' | 'clearance' | 'touch' | 'restart'
 
 export interface Play {
   /** order in the match */
   n: number
-  /** the match clock, in seconds of the eighty minutes (the clock stops for nothing in the skeleton) */
+  /** seconds since the kick-off when this entry ends. Always goes forward, through half-time too:
+   *  it is what the pitch schedules on. (Before 21 Nov it went back to 2400 at half-time.) */
   t: number
+  /** the referee's clock when it ends, in seconds: the second half starts at 2400 however long the
+   *  first ran over. What a screen shows as the minute. Optional only for records made before it. */
+  clock?: number
   kind: PlayKind
   /** the side this entry is about: 0 home, 1 away */
   side: 0 | 1
@@ -55,6 +62,24 @@ export interface Play {
   /** seconds of ball in play this entry used, and seconds of dead time after it */
   live: number
   dead: number
+  /** seconds of dead time BEFORE it (the sides walking to a scrum or a lineout, and every reset) */
+  pre?: number
+  /** a scrum: how many times it was reset before it went */
+  resets?: number
+  /** a pass or a run of passes before a carry: how many hands it went through (with[0] is the man who
+   *  gave the last pass, when he is named) */
+  passes?: number
+  /** a kick: where it came down, [x, y] in metres (in touch, y is 0 or 70) */
+  land?: [number, number]
+  /** a penalty or free kick: what it was for (for example 'handsInRuck', 'offside', 'notRollingAway',
+   *  'highTackle', 'holdingOn', 'sealingOff', 'obstruction', 'collapsing', 'standingUp', 'notBinding',
+   *  'earlyEngagement', 'collapsingMaul', 'offsideAtLineout', 'closingTheGap', 'offsideAtKick',
+   *  'notReleasing'); a refused substitution: why */
+  cause?: string
+  /** a penalty or free kick: the man who gave it away (of the other side) */
+  offender?: string
+  /** a yellow card: the second (Play.t) he comes back */
+  until?: number
   /** the score after it */
   score: [number, number]
 }

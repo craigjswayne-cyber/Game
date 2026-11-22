@@ -20,7 +20,7 @@
 // World Rugby laws referred to: 12 (kick-off and restarts), 11 (knock-on,
 // forward pass: scrum), 18 (touch, lineout), 19 (scrum), 20 (penalty and
 // free kick), 8 (scoring), 21 (in-goal, drop-outs).
-import { createMachine, getInitialSnapshot, getNextSnapshot } from 'xstate'
+import { createMachine } from 'xstate'
 
 export type LawEvent =
   | 'KICKOFF'    // a place or drop kick from halfway (start, after a score, second half)
@@ -43,43 +43,53 @@ export type LawEvent =
 
 export type LawState = 'kickoff' | 'open' | 'touch' | 'scrum' | 'penalty' | 'try' | 'dropout'
 
-const machine = createMachine({
+/** THE TABLE: from each state, the moves allowed and where each one leads.
+ *  The XState machine below is built from it, and so is the fast lookup the
+ *  simulation runs on (about 550 moves a match: XState's snapshots cost the
+ *  simulation most of its time, 21 Nov). The two are the same rules. */
+export const LAW_TABLE: Record<LawState, Partial<Record<LawEvent, LawState>>> = {
+  // waiting for a kick from halfway
+  kickoff: { KICKOFF: 'open', HALF: 'kickoff' },
+  // the ball is in play
+  open: {
+    PLAY: 'open', KICK: 'open', TOUCH: 'touch', STOP: 'scrum', PENALTY: 'penalty', TRY: 'try',
+    DROPGOAL: 'kickoff', DROPMISS: 'dropout', DEAD: 'dropout', HALF: 'kickoff',
+  },
+  // in touch: only a lineout restarts it (a quick throw is a lineout here)
+  touch: { LINEOUT: 'open', HALF: 'kickoff' },
+  // stopped for a scrum
+  scrum: { SCRUM: 'open', PENALTY: 'penalty', HALF: 'kickoff' },
+  // a penalty or free kick has been given: kick at goal, kick to touch, tap, or take the scrum
+  penalty: {
+    GOAL: 'kickoff', GOALMISS: 'dropout', TOUCH: 'touch', PLAY: 'open', KICK: 'open', SCRUM: 'open',
+    PENALTY: 'penalty', TRY: 'try', DEAD: 'dropout', HALF: 'kickoff',
+  },
+  // a try has been scored: the conversion, then a kick-off
+  try: { CON: 'kickoff', KICKOFF: 'open', HALF: 'kickoff' },
+  // waiting for a drop-out
+  dropout: { DROPOUT: 'open', HALF: 'kickoff' },
+}
+
+/** the same rules as an XState machine, for anything that wants one */
+export const lawMachine = createMachine({
   id: 'laws',
   initial: 'kickoff',
-  states: {
-    // waiting for a kick from halfway
-    kickoff: { on: { KICKOFF: 'open', HALF: 'kickoff' } },
-    // the ball is in play
-    open: { on: {
-      PLAY: 'open', KICK: 'open', TOUCH: 'touch', STOP: 'scrum', PENALTY: 'penalty', TRY: 'try',
-      DROPGOAL: 'kickoff', DROPMISS: 'dropout', DEAD: 'dropout', HALF: 'kickoff',
-    } },
-    // in touch: only a lineout restarts it (a quick throw is a lineout here)
-    touch: { on: { LINEOUT: 'open', HALF: 'kickoff' } },
-    // stopped for a scrum
-    scrum: { on: { SCRUM: 'open', PENALTY: 'penalty', HALF: 'kickoff' } },
-    // a penalty or free kick has been given: kick at goal, kick to touch, tap, or take the scrum
-    penalty: { on: {
-      GOAL: 'kickoff', GOALMISS: 'dropout', TOUCH: 'touch', PLAY: 'open', KICK: 'open', SCRUM: 'open',
-      PENALTY: 'penalty', TRY: 'try', DEAD: 'dropout', HALF: 'kickoff',
-    } },
-    // a try has been scored: the conversion, then a kick-off
-    try: { on: { CON: 'kickoff', KICKOFF: 'open', HALF: 'kickoff' } },
-    // waiting for a drop-out
-    dropout: { on: { DROPOUT: 'open', HALF: 'kickoff' } },
-  },
+  states: Object.fromEntries(Object.entries(LAW_TABLE).map(([k, on]) => [k, { on }])) as Record<LawState, { on: Partial<Record<LawEvent, LawState>> }>,
 })
 
-type Snap = ReturnType<typeof getInitialSnapshot<typeof machine>>
+const FILL: LawEvent[] = ['KICKOFF', 'DROPOUT', 'LINEOUT', 'SCRUM', 'TOUCH', 'STOP', 'DEAD', 'CON']
 
 export class Laws {
-  private snap: Snap = getInitialSnapshot(machine)
-  get state(): LawState { return this.snap.value as LawState }
-  can(e: LawEvent): boolean { return this.snap.can({ type: e }) }
+  private st: LawState = 'kickoff'
+  /** start from a state (a match picked up where it was stopped) */
+  constructor(from: LawState = 'kickoff') { this.st = from }
+  get state(): LawState { return this.st }
+  can(e: LawEvent): boolean { return LAW_TABLE[this.st][e] !== undefined }
   /** make the move; false, and nothing changes, when the laws do not allow it */
   go(e: LawEvent): boolean {
-    if (!this.can(e)) return false
-    this.snap = getNextSnapshot(machine, this.snap, { type: e })
+    const to = LAW_TABLE[this.st][e]
+    if (to === undefined) return false
+    this.st = to
     return true
   }
   /** THE MISSING STEPS: the shortest run of restarts and stoppages that makes
@@ -88,14 +98,14 @@ export class Laws {
    *  those are the engine's alone. */
   bridge(e: LawEvent): LawEvent[] | null {
     if (this.can(e)) return []
-    const FILL: LawEvent[] = ['KICKOFF', 'DROPOUT', 'LINEOUT', 'SCRUM', 'TOUCH', 'STOP', 'DEAD', 'CON']
-    let frontier: { s: Snap; path: LawEvent[] }[] = [{ s: this.snap, path: [] }]
+    let frontier: { s: LawState; path: LawEvent[] }[] = [{ s: this.st, path: [] }]
     for (let depth = 0; depth < 3; depth++) {
-      const next: { s: Snap; path: LawEvent[] }[] = []
+      const next: { s: LawState; path: LawEvent[] }[] = []
       for (const f of frontier) for (const b of FILL) {
-        if (!f.s.can({ type: b })) continue
-        const s = getNextSnapshot(machine, f.s, { type: b }), path = [...f.path, b]
-        if (s.can({ type: e })) return path
+        const s = LAW_TABLE[f.s][b]
+        if (s === undefined) continue
+        const path = [...f.path, b]
+        if (LAW_TABLE[s][e] !== undefined) return path
         next.push({ s, path })
       }
       frontier = next
@@ -106,9 +116,9 @@ export class Laws {
    *  the nearest state that allows it. Counted by the test, which holds it at zero. */
   jump(e: LawEvent): void {
     for (const path of [['KICKOFF'], ['KICKOFF', 'TOUCH'], ['KICKOFF', 'STOP'], ['KICKOFF', 'PENALTY'], ['KICKOFF', 'TRY'], ['KICKOFF', 'DEAD'], []] as LawEvent[][]) {
-      let s: Snap = getInitialSnapshot(machine)
-      for (const b of path) s = getNextSnapshot(machine, s, { type: b })
-      if (s.can({ type: e })) { this.snap = s; return }
+      let s: LawState = 'kickoff'
+      for (const b of path) s = LAW_TABLE[s][b] ?? s
+      if (LAW_TABLE[s][e] !== undefined) { this.st = s; return }
     }
   }
 }

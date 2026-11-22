@@ -18,7 +18,8 @@ for (let i = 0; i < N; i++) {
     if (p.kind === 'scrum') add('scrums')
     if (p.kind === 'lineout') add('lineouts')
     if (p.kind === 'penalty' || p.kind === 'freeKick') add('pens')
-    if (p.kind === 'try') add('tries')
+    if (p.kind === 'try' || p.kind === 'penaltyTry') add('tries')
+    if (p.kind === 'penaltyTry') add('penTries')
     if (p.kind === 'penaltyGoal') { add('goalKicks'); if (p.good) add('penGoals') }
     if (p.kind === 'conversion' && p.good) add('cons')
     if (p.kind === 'yellowCard') add('yellows')
@@ -58,7 +59,7 @@ const rows: [string, number, number, number, string][] = [
 let bad = 0
 console.log(`${n} matches (${errors} threw an illegal sequence), up to ${maxPlays} entries a match\n`)
 for (const [name, v, lo, hi, src] of rows) { const ok = v >= lo && v <= hi; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'OFF '} ${name.padEnd(28)} ${v.toFixed(1).padStart(6)}   target ${lo} to ${hi}   (${src})`) }
-console.log(`\nalso: penalty goals ${a('penGoals').toFixed(1)} of ${a('goalKicks').toFixed(1)} kicks, conversions ${a('cons').toFixed(1)}, yellow cards ${a('yellows').toFixed(2)}, red cards ${a('reds').toFixed(2)}, drop goals ${a('dropsGood').toFixed(2)} of ${a('drops').toFixed(2)}, charge-downs ${a('charges').toFixed(2)}, line breaks ${a('breaks').toFixed(1)}, knock-ons and forward passes ${a('handling').toFixed(1)}, ruck turnovers ${a('turnovers').toFixed(1)}, carries ${a('carries').toFixed(0)}, entries ${a('plays').toFixed(0)}`)
+console.log(`\nalso: penalty goals ${a('penGoals').toFixed(1)} of ${a('goalKicks').toFixed(1)} kicks, conversions ${a('cons').toFixed(1)}, penalty tries ${a('penTries').toFixed(2)}, yellow cards ${a('yellows').toFixed(2)}, red cards ${a('reds').toFixed(2)}, drop goals ${a('dropsGood').toFixed(2)} of ${a('drops').toFixed(2)}, charge-downs ${a('charges').toFixed(2)}, line breaks ${a('breaks').toFixed(1)}, knock-ons and forward passes ${a('handling').toFixed(1)}, ruck turnovers ${a('turnovers').toFixed(1)}, carries ${a('carries').toFixed(0)}, entries ${a('plays').toFixed(0)}`)
 console.log(`possessions ${a('poss').toFixed(0)} a match: ${(100 * a('ph1') / a('poss')).toFixed(0)}% end within one ruck, ${(100 * a('ph3') / a('poss')).toFixed(0)}% in 2 to 3, ${(100 * a('ph6') / a('poss')).toFixed(0)}% in 4 to 6, ${(100 * a('ph7') / a('poss')).toFixed(0)}% go 7 or more; ${(100 * a('in22') / a('live')).toFixed(0)}% of play is inside a 22; home has the ball ${(100 * a('homeBall') / a('live')).toFixed(0)}% of it`)
 console.log(`even sides: home wins ${(100 * homeWins / n).toFixed(1)}%, draws ${(100 * draws / n).toFixed(1)}%`)
 console.log(bad || errors ? `\nSHAPE OFF: ${bad} rows outside target, ${errors} illegal` : '\nSHAPE HOLDS: every row inside its target, no illegal sequence')
