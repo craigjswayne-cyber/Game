@@ -1,112 +1,129 @@
 // THE COMMENTARY IN ENGLISH (2.0.0, docs/match-sim-spec.md sections 2 and 7).
 //
 // Every line commentary.ts writes is a key and its values. The words live
-// here, one list per line, so a re-run picks the same wording (the choice is
-// made from the play's index) and the other five languages can be added
-// later, key for key. A key is 'sim.' + the base + the wording's number, in
-// the style of the game's 'comm.pen1' lines: 'sim.kickTouch2'.
+// here, one list per line, so the other five languages can be added later,
+// key for key. A key is 'sim.' + the base + the wording's number, in the
+// style of the game's 'comm.pen1' lines: 'sim.kickTouch2'.
+//
+// Owner, 22 November 2026: "the games shouldn't feel repetitive". So a line
+// seen often has six or more wordings and a key moment five or more, and
+// commentary.ts uses every wording of a line before it repeats one, and
+// never says the same sentence twice within twelve lines. The wordings vary
+// the shape too: some lead with the man, some with the place, some with
+// what it means.
 //
 // Placeholders:
 //   {team} the side the line is about, {opp} the other side
 //   {player} {player2} men of {team}; {oppPlayer} a man of {opp}
 //   {home} {away} {hs} {as} the score, home first, as the record has it
-//   {m} metres, {d} metres from the line, {phase}, {pct}, {men}, {count}
+//   {m} metres, {d} metres from the line, {phase}, {pct}, {men}, {count},
+//   {made}, {taken}, {mins}, {margin}, {deficit}, {a}, {b}
 //   {cause_k} what a penalty was for ('sim.causeSealingOff1': "sealing off"), from Play.cause
-//   a placeholder ending in _k holds another key ('sim.zoneOppEnd1'), which is
-//   put into words first.
+//   {nth_k} 'sim.nth2' "second" and so on; {kick_k} the kind of kick; {type_k} the kind of try;
+//   {need_k} what a trailing side needs; {zone_k} where on the field
+//   a placeholder ending in _k holds another key, which is put into words first.
 // No pronouns for the players: the game has women's sides, and "he" or "she"
 // would need a second key for each line ('_f' in the game's other files).
 // A wording is only used when every man it names is named in the record, so
 // each line has at least one wording with no player in it.
 
 export const SIM_EN: Record<string, string[]> = {
-  // ---- where, from the side's own end ----
+  // ---- words put inside lines ----
   zoneOwnEnd: ['in their own 22'],
   zoneOwnHalf: ['in their own half'],
   zoneOppHalf: ['in the {opp} half'],
   zoneOppEnd: ['inside the {opp} 22'],
-  causeHandsInRuck: [
-    'hands in the ruck',
+  causeHandsInRuck: ['hands in the ruck'],
+  causeOffside: ['being offside'],
+  causeNotRollingAway: ['not rolling away'],
+  causeHighTackle: ['a high tackle'],
+  causeHoldingOn: ['holding on'],
+  causeSealingOff: ['sealing off'],
+  causeObstruction: ['obstruction'],
+  causeCollapsing: ['collapsing'],
+  causeStandingUp: ['standing up'],
+  causeNotBinding: ['not binding'],
+  causeEarlyEngagement: ['engaging early'],
+  causeCollapsingMaul: ['collapsing the maul'],
+  causeOffsideAtLineout: ['being offside at the lineout'],
+  causeClosingTheGap: ['closing the gap'],
+  causeOffsideAtKick: ['being offside at the kick'],
+  causeNotReleasing: ['not letting the ball go in the tackle'],
+  nthTwo: ['second'], nthThree: ['third'], nthFour: ['fourth'], nthFive: ['fifth'], nthSix: ['sixth'],
+  kindBox: ['box kick'], kindLong: ['long kick'], kindHigh: ['high ball'], kindGrubber: ['grubber'], kindOther: ['kick'],
+  typeMaul: ['from the maul'], typeWide: ['out wide'], typeBreak: ['from line breaks'], typeClose: ['from close range'], typeInterception: ['from interceptions'],
+  needWinKick: ['a penalty would win it'],
+  needLevelKick: ['a penalty would draw them level'],
+  needWinTry: ['a try would win it'],
+  needLevelTry: ['a try would draw them level'],
+  needWinConTry: ['a converted try would win it'],
+  needLevelConTry: ['a converted try would draw them level'],
+  kindCross: [
+    'cross-field kick',
   ],
-  causeOffside: [
-    'being offside',
-  ],
-  causeNotRollingAway: [
-    'not rolling away',
-  ],
-  causeHighTackle: [
-    'a high tackle',
-  ],
-  causeHoldingOn: [
-    'holding on',
-  ],
-  causeSealingOff: [
-    'sealing off',
-  ],
-  causeObstruction: [
-    'obstruction',
-  ],
-  causeCollapsing: [
-    'collapsing',
-  ],
-  causeStandingUp: [
-    'standing up',
-  ],
-  causeNotBinding: [
-    'not binding',
-  ],
-  causeEarlyEngagement: [
-    'engaging early',
-  ],
-  causeCollapsingMaul: [
-    'collapsing the maul',
-  ],
-  causeOffsideAtLineout: [
-    'being offside at the lineout',
-  ],
-  causeClosingTheGap: [
-    'closing the gap',
-  ],
-  causeOffsideAtKick: [
-    'being offside at the kick',
-  ],
-  causeNotReleasing: [
-    'not letting the ball go in the tackle',
+  kindChip: [
+    'chip',
   ],
 
   // ---- restarts ----
   koStart: [
     '{team} get the match under way.',
+    'And we are off: {team} kick off.',
     '{player} kicks off for {team}, and we are under way.',
     'Under way: {player} gets the match started for {team}.',
+    '{player} gets us going for {team}.',
+    'The whistle goes and {player} kicks off for {team}.',
+    'Here we go. {player} starts it for {team}.',
   ],
   koSecond: [
     '{team} get the second half under way.',
+    'Second half: {team} kick off.',
     '{player} kicks off the second half for {team}.',
+    'We go again: {player} restarts the second half for {team}.',
+    'The second half is under way, {player} kicking off for {team}.',
+    '{player} gets the second half started for {team}.',
   ],
   koAfterScore: [
     '{team} restart from halfway.',
+    'Back to halfway, and {team} kick off.',
     '{player} restarts for {team}.',
     'Back to halfway: {player} kicks off for {team}.',
+    '{team} restart, {player} kicking.',
+    '{player} gets it going again for {team}.',
+    'From halfway, {player} kicks off once more.',
+    'The restart from {player}.',
   ],
   restartNotTen: [
     'The {team} kick-off does not go ten metres.',
     '{team} kick off short: it does not make the ten metres.',
     'Short from {player}: the kick-off does not go ten metres.',
+    '{player} does not get the kick-off to ten metres.',
+    'Not ten! {player} kicks off too short for {team}.',
   ],
   restartOut: [
     'The {team} kick-off goes straight out on the full.',
     '{player} kicks off and it goes straight out, on the full.',
+    'Out on the full from the kick-off: a poor restart from {player}.',
+    'Straight out from {player} at the restart, on the full.',
+    'The restart from {player} never bounces before it leaves the field.',
   ],
   dropDead: [
     '22 drop-out to {team}: the {opp} kick went dead.',
     'The {opp} kick ran dead, so {team} restart with a 22 drop-out.',
     'The {opp} kick ran dead. {player} takes the 22 drop-out for {team}.',
+    '{player} restarts from the 22 for {team} after that kick ran dead.',
+    'A 22 drop-out for {team}, {player} kicking, after the {opp} kick went dead.',
+    'Dead ball, so it is a {team} drop-out from the 22. {player} kicks it.',
+    'From the 22, {player} restarts for {team}: the {opp} kick had run dead.',
+    'Dead ball: {player} drops out from the 22 for {team}.',
   ],
   dropPenMiss: [
     '22 drop-out to {team} after the missed penalty.',
     'The penalty missed, so {team} restart from their 22.',
     'The penalty missed. {player} restarts from the 22 for {team}.',
+    'A missed penalty means a 22 drop-out: {player} kicks for {team}.',
+    'No points from the kick, so {player} restarts from the 22 for {team}.',
+    '{player} takes the drop-out for {team} after the miss.',
   ],
   dropDropMiss: [
     '22 drop-out to {team} after the missed drop goal.',
@@ -120,10 +137,14 @@ export const SIM_EN: Record<string, string[]> = {
     'Goal-line drop-out to {team} after holding {opp} up.',
     '{team} held them up, so it is a goal-line drop-out to {team}.',
     '{team} held them up. {player} restarts from the goal line.',
+    'A goal-line drop-out after that hold-up: {player} kicks for {team}.',
+    'From their own goal line, {player} restarts for {team} after the hold-up.',
+    'Big defence earns {team} a goal-line drop-out, and {player} kicks it.',
   ],
   dropGlTouched: [
     'Goal-line drop-out to {team}, who touched the {opp} kick down in their in-goal.',
     '{team} touched the {opp} kick down, so {player} restarts from the goal line.',
+    'A goal-line drop-out for {team}, {player} kicking, after the {opp} kick was touched down.',
   ],
   dropGl: [
     'Goal-line drop-out to {team}.',
@@ -133,101 +154,213 @@ export const SIM_EN: Record<string, string[]> = {
   // ---- catches ----
   catchKo: [
     '{team} gather the kick-off.',
+    'Taken by {team}.',
     '{player} takes the kick-off for {team}.',
     'Safe hands from {player} under the kick-off.',
+    '{player} gathers it for {team}.',
+    'The kick-off goes to {player}, who takes it cleanly.',
+    'Under the restart is {player}. Taken.',
+    '{player} claims the kick-off.',
+    'Clean take from {player}.',
   ],
   regatherKo: [
     '{team} win their own kick-off back!',
+    'Regathered! {team} have their own kick-off back.',
     '{player} goes up and wins the kick-off back for {team}!',
+    'Brilliant restart: {player} wins it back for {team}.',
+    '{player} gets up above everyone and {team} have it back.',
+    'Their own kick-off, and {player} reclaims it for {team}!',
   ],
   catchKick: [
     '{team} gather it.',
+    'Taken by {team}.',
     '{player} fields it for {team}.',
     'Safe under it is {player}.',
     '{player} takes the kick.',
+    'Gathered by {player}.',
+    '{player} is there to take it.',
+    'Under the kick: {player}, and taken.',
+    'A good take from {player}.',
+  ],
+  kickCaught: [
+    '{opp} kick, {team} gather.',
+    'The {opp} kick is gathered by {team}.',
+    'The {opp} {kick_k} is taken by {player}.',
+    '{opp} kick and {player} takes it.',
+    '{player} gathers the {kick_k} from {opp}.',
+    '{opp} put boot to ball; {player} is there for {team}.',
+    'A {kick_k} from {opp}, safely taken by {player}.',
+    '{opp} send it downfield and {player} fields it.',
+    '{player} takes the {opp} {kick_k} cleanly.',
+    'Up comes the {opp} {kick_k}, and {player} is under it.',
   ],
   regatherKick: [
     '{team} win the kick back!',
+    'Regathered! {team} have their own kick back.',
     '{player} wins it back in the air for {team}!',
     'Great chase: {player} takes it back for {team}.',
+    '{player} gets up and claims it for {team}!',
+    '{team} chase and {player} wins it back!',
+    'Back in {team} hands: {player} takes the kick.',
+    '{player} beats {opp} to the kick and takes it for {team}.',
   ],
   catchDrop: [
     '{team} take the drop-out.',
+    'Taken by {team}.',
     '{player} takes the drop-out for {team}.',
+    '{player} gathers the drop-out.',
+    'The drop-out goes to {player}. Taken.',
+    'Safe hands from {player} from the restart.',
+    '{player} claims it for {team}.',
+    'Taken cleanly by {player}.',
   ],
   regatherDrop: [
     '{team} win their own drop-out back!',
     '{player} regathers the drop-out for {team}!',
+    'Back in {team} hands: {player} wins the drop-out.',
   ],
   chargeRegather: [
     '{team} are first to the loose ball.',
     '{player} is first to the loose ball for {team}.',
+    '{player} pounces on the loose ball.',
   ],
 
   // ---- open play ----
   carryBig: [
     '{team} make {m} metres with that carry.',
+    'Good ground for {team}: {m} metres.',
     '{player} makes {m} metres for {team}.',
     'Good carry from {player}: {m} metres.',
+    '{m} metres for {player}, right through the middle of it.',
+    '{player} gets {team} going forward: {m} metres.',
+    'What a run from {player}! {m} metres.',
+    '{player} finds space and makes {m} metres.',
     '{player2} gives it to {player}, who makes {m} metres.',
     '{player} takes the pass from {player2} and makes {m} metres for {team}.',
   ],
   carryBack: [
     '{opp} drive {team} back in the tackle.',
+    'Big hit from {opp}.',
     'Big hit! {oppPlayer} drives {player} back.',
     '{oppPlayer} wins that collision and puts {player} on the floor.',
+    'Thumping tackle from {oppPlayer} on {player}.',
+    '{player} is driven backwards by {oppPlayer}.',
+    '{oppPlayer} stops {player} dead and drives the carrier back.',
+    'No way through for {player}: {oppPlayer} sends the carrier back.',
+  ],
+  pickGo: [
+    '{team} pick and go, {d} metres out.',
+    '{player} picks and goes, {d} metres out.',
+    '{player} has a go from close range: {d} metres out now.',
+    'Tight and hard from {player}. {d} metres to go.',
+    'Pick and go from {player}, inching towards the line: {d} metres.',
+    '{player} drives for the line and is held {d} metres short.',
+    '{d} metres out, {player} picks and drives.',
+    '{player} goes again from close range, {d} metres short.',
   ],
   carryTouch: [
     '{team} are bundled into touch.',
+    'Into touch goes the {team} carrier.',
     '{player} is bundled into touch by {oppPlayer}.',
     '{player} runs out of room and is put into touch.',
+    '{oppPlayer} shoves {player} into touch.',
+    'Squeezed out: {oppPlayer} puts {player} over the touchline.',
+    '{player} is forced out by {oppPlayer}.',
+    'Great covering from {oppPlayer}, who pushes {player} out.',
+    '{oppPlayer} bundles {player} into touch.',
+    '{player} cannot stay in: {oppPlayer} makes the tackle on the touchline.',
   ],
   intercepted: [
     'Intercepted! {opp} pick it off.',
+    'Picked off! {opp} have it.',
     'Intercepted! {oppPlayer} picks off the pass meant for {player}.',
     '{oppPlayer} reads it and steps in front of {player}. Intercepted!',
+    'The pass for {player} never arrives: {oppPlayer} has intercepted!',
+    '{oppPlayer} jumps the pass to {player}. Interception!',
+    'Intercepted by {oppPlayer}! It was meant for {player}.',
+  ],
+  offload: [
+    '{team} keep it alive with an offload.',
+    'Out of the tackle, {team} offload.',
+    '{player} gets the offload away to {player2}!',
+    'Lovely hands: {player} offloads to {player2}.',
+    '{player} slips it out of the tackle to {player2}.',
+    'The offload from {player} finds {player2} on the run.',
+    '{player} keeps it alive for {player2}.',
+    'In the tackle, {player} pops it to {player2}.',
   ],
   phases: [
     '{team} are through {phase} phases, {zone_k}.',
     '{phase} phases now for {team}, {zone_k}.',
     'Patient from {team}: {phase} phases, {zone_k}.',
+    '{zone_k} and through {phase} phases, {team} keep going.',
+    'Phase {phase} for {team}, {zone_k}.',
+    '{team} keep the ball: {phase} phases, {zone_k}.',
+    'Still {team} with it, {zone_k}: phase {phase}.',
   ],
   turnover: [
     'Turnover at the ruck! {opp} win it.',
+    '{opp} steal it at the ruck!',
     'Turnover! {oppPlayer} gets over the ball and wins it for {opp}.',
     '{oppPlayer} steals it at the ruck. {opp} have the ball.',
     'Brilliant from {oppPlayer}: turnover for {opp}.',
+    'Over the ball and away with it: {oppPlayer} turns it over.',
+    '{oppPlayer} wins the turnover! {opp} have it now.',
+    'Hands on it, and {oppPlayer} rips it away. Turnover!',
   ],
   breakClean: [
     '{team} are through! A clean break.',
+    'Clean break! {team} are away.',
     '{player} is through! A clean break for {team}.',
     'Line break! {player} is away for {team}.',
+    'Through the gap goes {player}!',
+    '{player} splits the defence wide open!',
+    'Nobody lays a hand on {player}! A clean break.',
     'Line break! {player2} sends {player} through for {team}.',
+    'A lovely pass from {player2} and {player} is clean through!',
   ],
   breakHauled: [
     '{team} break the line and make {m} metres before {opp} get back.',
+    'Line break for {team}! {m} metres before the cover arrives.',
     'Line break! {player} makes {m} metres before {oppPlayer} brings it down.',
     '{player} is through the line for {team}, {m} metres, and {oppPlayer} makes the tackle.',
+    '{player} breaks clear! {m} metres, then {oppPlayer} gets across.',
+    'Away goes {player}: {m} metres before {oppPlayer} hauls the carrier down.',
+    '{m} metres for {player} through the line, until {oppPlayer} makes the tackle.',
     '{player2} puts {player} through the line! {m} metres before {oppPlayer} makes the tackle.',
   ],
   breakLastGasp: [
     'What a tackle! {team} break clear but {opp} stop it {d} metres short.',
+    'Saved! {opp} stop the break {d} metres out.',
     'Try-saver! {player} breaks clear and {oppPlayer} hauls it down {d} metres short.',
     '{player} is through, but {oppPlayer} gets back and stops it {d} metres from the line!',
+    'Superb from {oppPlayer}! {player} was away, but is stopped {d} metres out.',
+    '{oppPlayer} chases {player} down, {d} metres from the line!',
+    'Just {d} metres short: {oppPlayer} hauls {player} down.',
   ],
   interceptRun: [
     '{team} are away with the interception!',
+    'Off goes {team} with the interception!',
     '{player} is away with the interception!',
-    '{player} has the interception and nobody will catch {team} now.',
+    '{player} has the interception and is clear!',
+    'Intercepted and gone: {player} is away for {team}!',
+    '{player} takes it and runs, nobody near!',
   ],
   interceptHauled: [
     '{team} run the interception back before {opp} get across, {zone_k}.',
+    'The interception is run back {zone_k} before {opp} stop it.',
     '{player} runs the interception back before {oppPlayer} makes the tackle, {zone_k}.',
+    '{player} goes with the interception, until {oppPlayer} catches up {zone_k}.',
+    '{oppPlayer} chases down {player} after the interception, {zone_k}.',
+    'Off goes {player} with it, but {oppPlayer} makes the tackle {zone_k}.',
   ],
   forwardPass: [
     'Forward pass by {team}.',
+    'That pass is forward from {team}.',
     'The pass from {player} to {player2} is forward.',
     'Forward! {player} throws it forward to {player2}.',
+    '{player} to {player2}, and the pass goes forward.',
+    'The referee says forward: {player} to {player2}.',
   ],
   unplayableRuck: [
     'The ball will not come out of the {team} ruck. Scrum.',
@@ -241,41 +374,101 @@ export const SIM_EN: Record<string, string[]> = {
   koKnock: [
     '{team} knock on under the kick-off.',
     '{player} knocks on under the kick-off.',
+    'The kick-off is spilled by {player}. Knock-on.',
+    '{player} cannot hold the kick-off. Knock-on.',
   ],
   highKnock: [
     '{team} spill the high ball. Knock-on.',
     '{player} spills the high ball. Knock-on.',
     'Under pressure in the air, {player} knocks it on.',
+    '{player} goes up for it but knocks on.',
+    'Dropped! {player} knocks on under the high ball.',
+    'The high ball beats {player}. Knock-on.',
+    '{player} cannot take the high ball cleanly. Knock-on.',
+    'A fumble under the high ball from {player}.',
   ],
   chaseKnock: [
     '{team} knock on chasing their own kick.',
+    'Knocked on in the chase by {team}.',
     '{player} knocks on chasing the kick.',
+    '{player} gets to the kick first but knocks it on.',
+    'Good chase from {player}, but it is knocked on.',
+    '{player} arrives under the kick and spills it forward.',
+    'Chasing hard, {player} knocks on.',
+    'The chase is good, the hands are not: {player} knocks on.',
   ],
   contactKnock: [
     'Knock-on by {team} in the tackle.',
+    'Knocked on in contact by {team}.',
     '{player} is tackled by {oppPlayer} and knocks on.',
-    '{player} loses it in contact. Knock-on.',
+    '{player} loses it in contact with {oppPlayer}. Knock-on.',
+    'Knock-on! {oppPlayer} hits {player} and the ball goes forward.',
+    '{oppPlayer} makes the tackle and {player} spills it forward.',
+    'Spilled in the tackle: {player} knocks on, {oppPlayer} the tackler.',
+    '{player} knocks on in the tackle from {oppPlayer}.',
+  ],
+  weatherKnock: [
+    'The wet ball claims another.',
+    'Hard to hold on to in these conditions.',
+    'The weather is making the handling difficult.',
   ],
 
   // ---- kicks from hand ----
   kickBox: [
     '{team} box kick.',
+    'Box kick from {team}.',
     '{player} puts up a box kick.',
     'Box kick from {player}.',
+    '{player} goes to the boot from the base.',
+    'Up it goes from {player}, a box kick.',
+    '{player} kicks from the base of the ruck.',
+    'A box kick from {player} for the chasers.',
   ],
   kickLong: [
     '{team} kick long.',
+    'A long kick from {team}.',
     '{player} kicks long downfield, {m} metres.',
     'Long kick from {player}.',
+    '{player} sends it long, {m} metres.',
+    'Deep into {opp} territory: {player} kicks long.',
+    '{player} turns them round with a long kick.',
+    '{m} metres downfield from {player}.',
   ],
   kickHigh: [
     '{team} put up a high ball.',
+    'A high ball from {team}.',
     '{player} hoists a high ball.',
     'Up and under from {player}.',
+    '{player} puts it up for the chasers.',
+    'A towering kick from {player}.',
+    '{player} hangs it up in the air.',
+    'High and contestable from {player}.',
   ],
   kickGrubber: [
     '{team} roll a grubber in behind.',
+    'A grubber from {team}.',
     '{player} rolls a grubber in behind.',
+    '{player} grubbers it through.',
+    'Along the ground from {player}.',
+    '{player} kicks it through low, along the turf.',
+    'A clever grubber from {player}.',
+    '{player} prods a grubber in behind the line.',
+  ],
+  kickCross: [
+    '{team} kick cross-field.',
+    'A cross-field kick from {team}.',
+    '{player} kicks cross-field for the far wing.',
+    '{player} looks up and puts it across the field.',
+    'Cross-field from {player}!',
+    '{player} goes to the far touchline with a cross-field kick.',
+  ],
+  kickChip: [
+    '{team} chip it over the top.',
+    'A little chip from {team}.',
+    '{player} chips over the defence.',
+    'Over the top goes the chip from {player}.',
+    '{player} dinks it over and chases.',
+    'A delicate chip from {player}.',
   ],
   kickOther: [
     '{team} kick it downfield.',
@@ -283,64 +476,113 @@ export const SIM_EN: Record<string, string[]> = {
   ],
   kickTouch: [
     '{team} find touch, {m} metres.',
+    'Into touch from {team}, {m} metres on.',
     '{player} finds touch, {m} metres up the field.',
     'Good kick from {player}: into touch, {m} metres on.',
+    '{player} kicks to touch. {m} metres gained.',
+    'Touch found by {player}, {m} metres downfield.',
+    '{m} metres with the boot: {player} finds touch.',
+    '{player} kicks it out, {m} metres on.',
   ],
   penTouch: [
     '{team} kick the penalty to touch, {m} metres.',
+    '{team} go for touch with the penalty, {m} metres on.',
     '{player} kicks the penalty to touch, {m} metres on.',
     '{player} puts the penalty into touch, {zone_k}.',
+    '{m} metres from the penalty: {player} finds touch.',
+    '{player} kicks for the line, {zone_k}.',
+    'Into touch from {player}, {zone_k}.',
+    'A good penalty kick to touch from {player}, {m} metres.',
   ],
   fiftyTwentyTwo: [
     '50:22! {team} kick from their own half and it bounces out inside the {opp} 22.',
     '50:22 from {player}! From their own half, it bounces out inside the {opp} 22.',
+    'A 50:22 from {player}! It rolls into touch inside the {opp} 22.',
   ],
   outFull: [
     '{team} kick it out on the full.',
+    'Out on the full from {team}.',
     'Out on the full from {player}.',
     '{player} kicks it straight out without a bounce.',
+    'No bounce: {player} kicks it out on the full.',
+    'That one from {player} goes out on the full.',
+    'Too much on it: {player} finds touch on the full.',
+    '{player} kicks it out on the full. A poor kick.',
   ],
   kickDead: [
     '{team} kick it too far, into the in-goal.',
+    'Too long from {team}, into the in-goal.',
     '{player} kicks it through into the in-goal.',
+    'Too long from {player}: into the in-goal it goes.',
+    '{player} overcooks it, and it runs into the in-goal.',
+    'Too much on it from {player}, into the in-goal.',
+    '{player} kicks deep, into the in-goal.',
+    '{player} kicks it out of the field of play, into the in-goal.',
   ],
   chargedDown: [
     'Charged down! {opp} get to the {team} kick.',
     '{player} kicks and {oppPlayer} charges it down!',
     'Charge-down! {oppPlayer} blocks the kick from {player}.',
+    '{oppPlayer} gets a body in front of the kick from {player}!',
   ],
   bouncedOut: [
     'The {team} kick bounces into touch.',
+    'It bounces into touch from the {team} kick.',
     'The kick from {player} bounces into touch.',
+    '{player} kicks downfield and it bounces out.',
+    'Bounce, and out: the kick from {player} finds touch.',
+    '{player} kicks, and it rolls into touch.',
+    'A bouncing kick from {player} runs into touch.',
+    'Into touch off the bounce from {player}.',
+    '{player} finds touch on the bounce.',
   ],
   ranDead: [
     'It runs over the dead-ball line.',
     'Too long: it runs dead.',
+    'Over the dead-ball line it goes.',
+    'Dead ball.',
+    'Nobody can stop it, and it runs dead.',
+    'It keeps rolling, and it is dead.',
   ],
   touchedDown: [
     '{opp} touch it down in their in-goal.',
+    'Touched down by {opp}.',
   ],
   freeKickKick: [
     '{team} kick the free kick.',
+    'The free kick is kicked by {team}.',
+    '{team} go to the boot from the free kick.',
   ],
 
   // ---- set pieces ----
   scrumKnock: [
     'Scrum to {team} for the {opp} knock-on.',
     '{opp} knocked on, so it is a {team} put-in.',
+    'A {team} scrum after the {opp} knock-on.',
+    'The knock-on gives {team} the scrum.',
+    'Scrum time: {team} put in after that {opp} knock-on.',
+    'It is a {team} scrum, the knock-on by {opp}.',
+    'After the {opp} knock-on, {team} have the feed.',
   ],
   scrumForward: [
     'Scrum to {team} for the forward pass.',
     'Forward pass by {opp}: {team} put in.',
+    'The forward pass gives {team} the scrum.',
+    '{team} have the feed after the {opp} forward pass.',
+    'A {team} scrum for the forward pass.',
+    'Scrum, {team} ball: that {opp} pass went forward.',
   ],
   scrumNotStraight: [
     'Scrum to {team}: the {opp} throw was not straight.',
+    'The crooked {opp} throw gives {team} the scrum.',
   ],
   scrumUnplayable: [
     'Scrum to {team}, as the ball would not come out.',
+    'A {team} scrum after the ball would not come out.',
   ],
   scrumRestart: [
     'Scrum on halfway to {team} after the poor {opp} restart.',
+    'The bad {opp} restart gives {team} a scrum on halfway.',
   ],
   scrumChoice: [
     '{team} choose a scrum from the penalty.',
@@ -351,6 +593,8 @@ export const SIM_EN: Record<string, string[]> = {
     'Against the head! {opp} shove {team} off their own ball.',
     '{opp} win it against the head!',
     'Against the head! {oppPlayer} and the {opp} pack shove {team} off their own ball.',
+    'Against the head! The {opp} pack, {oppPlayer} at the heart of it, take the ball.',
+    '{oppPlayer} leads the {opp} shove and they win the {team} put-in!',
   ],
   scrumFree: [
     'The referee has seen something at the scrum: free kick.',
@@ -358,10 +602,19 @@ export const SIM_EN: Record<string, string[]> = {
   loTouch: [
     'Lineout to {team}, after the {opp} kick to touch.',
     '{opp} kicked it out, so it is a {team} throw.',
+    '{team} have the throw after the {opp} kick.',
+    'A {team} lineout from the {opp} kick.',
+    'The {opp} kick went out: {team} throw in.',
+    'It is {team} to throw, from the {opp} kick to touch.',
+    '{team} lineout: {opp} kicked it out.',
   ],
   loPen: [
     '{team} throw in, after kicking the penalty to touch.',
     'Lineout to {team}: their throw, as it was a penalty kicked to touch.',
+    'A penalty kicked to touch, so {team} keep the throw.',
+    '{team} have the throw from their own penalty.',
+    'From the penalty to touch, {team} have the lineout.',
+    'Their own penalty kicked out, so it is a {team} lineout.',
   ],
   loFifty: [
     '{team} throw in after the 50:22.',
@@ -370,40 +623,82 @@ export const SIM_EN: Record<string, string[]> = {
   loFull: [
     'Lineout to {team}, back where {opp} kicked it out on the full.',
     '{opp} kicked it out on the full, so {team} throw in from where it was kicked.',
+    'Back to where it was kicked: {team} throw, after {opp} went out on the full.',
+    'Out on the full from {opp}, so the {team} lineout is back where it was kicked.',
+    'A {team} throw, back up the field where {opp} kicked it.',
+    '{team} lineout where {opp} kicked it: that went out on the full.',
   ],
   loBounced: [
     'Lineout to {team}: the {opp} kick bounced into touch.',
+    'The {opp} kick bounced out, so {team} have the throw.',
+    '{team} throw in after the {opp} kick rolled into touch.',
+    'A {team} lineout from the {opp} kick that bounced out.',
+    'It is {team} to throw: the {opp} kick bounced into touch.',
+    '{team} have the lineout, the {opp} kick having bounced out.',
   ],
   loCarried: [
     'Lineout to {team}: {opp} were put into touch.',
     '{opp} were bundled out, so it is a {team} throw.',
+    'A {team} lineout after {opp} were forced out.',
+    '{team} have the throw: {opp} went into touch with it.',
+    '{opp} carried it out, so {team} throw in.',
+    'The {opp} carrier went out: {team} lineout.',
   ],
   loFreeTouch: [
     'Lineout to {team}: {opp} kicked the free kick to touch.',
   ],
+  loQuick: [
+    'Quick throw from {team}!',
+    '{team} take a quick throw before the lineout forms.',
+    'Quick lineout! {player} takes it for {team}.',
+    '{player} takes a quick throw-in for {team}.',
+    '{player} does not wait for the lineout: a quick throw.',
+    'Quick throw to {player}, and {team} are away.',
+    '{player} is quick to the ball and throws in.',
+    'Before {opp} can set, {player} takes a quick throw.',
+  ],
   lo: ['Lineout to {team}.'],
   loWon: [
     '{team} win their own ball.',
+    'Clean ball for {team} off the top.',
     '{player2} takes the throw from {player}.',
     '{player} finds {player2} at the lineout.',
+    '{player2} rises to take it from {player}.',
+    'Off the top for {player2}, a good throw from {player}.',
+    '{player} hits {player2} at the lineout.',
+    'Clean lineout ball: {player} to {player2}.',
+    '{player2} claims it, {player} with the throw.',
   ],
   loStolen: [
     'Stolen! {opp} take the {team} throw.',
+    '{opp} pinch the {team} lineout!',
     'Stolen! {oppPlayer} picks off the throw from {player}.',
     '{oppPlayer} steals the {team} lineout!',
+    '{oppPlayer} gets up and steals it from {player}!',
+    'Lineout steal: {oppPlayer} beats the {team} jumpers to the throw from {player}.',
+    'The throw from {player} is taken by {oppPlayer}! Stolen.',
+    '{oppPlayer} reads the throw from {player} and steals it.',
+    '{oppPlayer} wins the {team} throw! Stolen.',
+    'Stolen: {oppPlayer} is up first to the throw from {player}.',
+    '{oppPlayer} takes it off the {team} jumpers. The throw from {player} is lost.',
   ],
   loNotStraight: [
     'The {team} throw is not straight.',
     'Not straight from {player}.',
+    'Crooked from {player}: not straight.',
+    '{player} does not throw it straight.',
   ],
   loPenalty: [
     'The referee blows at the lineout.',
     '{player} throws in, and the referee blows.',
+    'Whistle at the lineout as {player} throws.',
   ],
   maulOut: [
     '{team} drive the maul {m} metres and use it.',
     'The {team} maul rumbles on {m} metres.',
     '{team} drive the maul {m} metres, and {player} at the back uses it.',
+    '{player} at the back as the {team} maul goes {m} metres.',
+    'The maul moves {m} metres, then {player} takes it away for {team}.',
   ],
   maulNoGain: [
     'The {team} maul goes nowhere, and they use the ball.',
@@ -413,6 +708,8 @@ export const SIM_EN: Record<string, string[]> = {
     'The {team} maul is driven over the line!',
     '{team} drive the maul over the line!',
     '{team} drive the maul over the line, {player} at the back!',
+    'Over they go! The {team} maul, {player} at the back.',
+    'Unstoppable: the {team} maul goes over with {player} at the back.',
   ],
   maulDown: [
     '{opp} pull the {team} maul down.',
@@ -426,18 +723,31 @@ export const SIM_EN: Record<string, string[]> = {
     'Penalty to {team} at the breakdown, {zone_k}, for {cause_k}.',
     '{oppPlayer} is penalised at the breakdown for {cause_k}. Penalty to {team}, {zone_k}.',
     'Penalty to {team}, {zone_k}: {oppPlayer} is pinged for {cause_k} at the breakdown.',
+    'The whistle at the breakdown: {cause_k}, by {oppPlayer}. Penalty to {team}, {zone_k}.',
+    '{oppPlayer} gives away a penalty at the breakdown for {cause_k}. {team} have it, {zone_k}.',
+    '{cause_k} at the breakdown from {oppPlayer}, and {team} have a penalty {zone_k}.',
+    'Penalty, {team}, {zone_k}: {oppPlayer}, {cause_k} at the breakdown.',
   ],
   penRuckAtt: [
     'Penalty to {team} at the breakdown, {zone_k}.',
     'Penalty to {team} at the breakdown, {zone_k}, for {cause_k}.',
     '{player} gets over the ball and {oppPlayer} is penalised for {cause_k}. Penalty to {team}, {zone_k}.',
     'Penalty to {team} at the breakdown, {zone_k}: {oppPlayer} is penalised for {cause_k}.',
+    '{player} wins it over the ball: {cause_k} by {oppPlayer}. Penalty to {team}, {zone_k}.',
+    'Great work from {player} at the breakdown. {oppPlayer} is penalised for {cause_k}, {zone_k}.',
+    '{oppPlayer} is caught for {cause_k} with {player} over the ball. {team} have the penalty, {zone_k}.',
+    'The penalty goes to {team}, {zone_k}: {player} on the ball, {oppPlayer} penalised for {cause_k}.',
+    '{oppPlayer} is caught for {cause_k} at the breakdown, {player} the man over the ball. Penalty to {team}.',
   ],
   penScrum: [
     'Penalty to {team} at the scrum, {zone_k}.',
     'Penalty to {team} at the scrum, {zone_k}, for {cause_k}.',
     '{oppPlayer} is penalised for {cause_k} at the scrum. Penalty to {team}, {zone_k}.',
     'Penalty to {team} at the scrum, {zone_k}: {oppPlayer}, {cause_k}.',
+    'The {team} pack win a penalty: {oppPlayer} is penalised for {cause_k}.',
+    'Scrum penalty to {team}, {zone_k}, {oppPlayer} penalised for {cause_k}.',
+    '{cause_k} at the scrum from {oppPlayer}. {team} have the penalty, {zone_k}.',
+    'Penalty to {team} at the scrum: {oppPlayer} goes down for {cause_k}, {zone_k}.',
   ],
   penMaul: [
     'Penalty to {team}, {zone_k}: {opp} pulled the maul down.',
@@ -448,12 +758,15 @@ export const SIM_EN: Record<string, string[]> = {
     'Penalty to {team} at the lineout, {zone_k}.',
     'Penalty to {team} at the lineout, {zone_k}, for {cause_k}.',
     'Penalty to {team} at the lineout, {zone_k}: {oppPlayer} is penalised for {cause_k}.',
+    '{oppPlayer} is penalised at the lineout for {cause_k}. {team} have it, {zone_k}.',
   ],
   penKick: [
     'Penalty to {team} as the kick comes down, {zone_k}.',
     'Penalty to {team} after the kick, {zone_k}, for {cause_k}.',
     'Penalty to {team} after the kick, {zone_k}: {oppPlayer} is penalised for {cause_k}.',
     'As the kick comes down, {oppPlayer} is penalised for {cause_k}. Penalty to {team}, {zone_k}.',
+    'The whistle in the chase: {oppPlayer}, {cause_k}. Penalty to {team}, {zone_k}.',
+    '{oppPlayer} is pinged for {cause_k} after the kick. {team} have a penalty {zone_k}.',
   ],
   pen: [
     'Penalty to {team}, {zone_k}.',
@@ -464,11 +777,13 @@ export const SIM_EN: Record<string, string[]> = {
     'Free kick to {team} at the scrum.',
     'Free kick to {team} at the scrum, for {cause_k}.',
     'Free kick to {team} at the scrum: {oppPlayer} is penalised for {cause_k}.',
+    '{oppPlayer} is penalised for {cause_k}. Free kick to {team}.',
   ],
   freeLineout: [
     'Free kick to {team} at the lineout.',
     'Free kick to {team} at the lineout, for {cause_k}.',
     'Free kick to {team} at the lineout: {oppPlayer} is penalised for {cause_k}.',
+    '{oppPlayer} is penalised for {cause_k} at the lineout. Free kick to {team}.',
   ],
   free: [
     'Free kick to {team}.',
@@ -479,36 +794,86 @@ export const SIM_EN: Record<string, string[]> = {
     'Quick tap from {team}!',
     '{player} taps the penalty and goes for {team}!',
     'Quick tap from {player}!',
+    '{player} takes it quickly!',
+    'No time wasted: {player} taps and runs.',
+    '{player} picks it up, taps, and goes!',
+  ],
+  tapNear: [
+    '{team} tap and go from {d} metres out!',
+    'Tap and go, {d} metres from the line.',
+    '{player} taps and goes from {d} metres out!',
+    '{d} metres out, and {player} goes for the line from the tap.',
+    '{player} taps it {d} metres out and charges!',
+  ],
+  tapQuick: [
+    'Quick tap from {team} before the defence is set!',
+    '{team} catch them napping with a quick tap.',
+    '{player} takes the quick tap before the defence is ready!',
+    'Lightning quick from {player}: the tap is taken at once.',
+    '{player} does not wait: quick tap and go.',
   ],
   tapFree: [
     '{team} take the free kick quickly.',
     '{player} takes the free kick quickly for {team}.',
+    'Quick free kick from {player}.',
   ],
 
-  // ---- cards ----
+  // ---- cards and the bench ----
   yellowCynical: [
     'Yellow card for {team}: a cynical offence. Ten minutes in the bin, and {team} are down to {men}.',
     'Yellow card! {player} goes to the bin for ten minutes for a cynical offence. {team} down to {men}.',
+    '{player} sees yellow for a cynical offence. Ten minutes off, and {team} have {men}.',
+    'Yellow card, {player}: cynical. {team} play the next ten minutes with {men}.',
+    'The referee goes to the pocket: yellow for {player}, a cynical offence. {team} down to {men}.',
+    'A cynical one from {player}, and it is yellow. {team} are down to {men} for ten minutes.',
   ],
   yellowFoul: [
     'Yellow card for {team} for foul play. Ten minutes in the bin, and {team} are down to {men}.',
     'Yellow card! {player} is sent to the bin for ten minutes for foul play. {team} down to {men}.',
+    '{player} sees yellow for foul play. {team} have {men} for ten minutes.',
+    'Yellow card, {player}, for foul play. Ten minutes in the bin: {team} are down to {men}.',
+    'The referee shows {player} a yellow card for foul play. {team} down to {men}.',
+    'Foul play from {player}, and that is a yellow card. {team} have {men} for ten minutes.',
   ],
   yellowPenTry: [
     'Yellow card for {team} for stopping a try illegally. Ten minutes in the bin, and {team} are down to {men}.',
     'Yellow card! {player} goes to the bin for ten minutes for stopping a try illegally. {team} down to {men}.',
+    '{player} sees yellow for illegally stopping a certain try. {team} down to {men}.',
+    'That stopped a try, illegally: yellow card for {player}. {team} have {men} for ten minutes.',
+    'Yellow card, {player}, for preventing a try illegally. {team} are down to {men}.',
   ],
   red: [
     'Red card for {team}! Sent off for foul play. {team} are down to {men} for the rest of the match.',
     'Red card! {player} is sent off for foul play. {team} down to {men} for the rest of the match.',
+    '{player} is shown a red card for foul play. {team} will play the rest with {men}.',
+    'Red card, {player}: sent off for foul play. {team} down to {men}.',
+    'The referee shows red. {player} is sent off for foul play, and {team} have {men} for the rest of the match.',
   ],
   binBack: [
     '{team} are back to {men}.',
     'The ten minutes are up: {team} are back to {men}.',
+    '{team} have {men} on the field again.',
+    'Back to {men} for {team}.',
+    '{men} on the field again for {team}.',
+    '{team} welcome their man back: {men} on the field.',
+  ],
+  injured: [
+    '{team} have a man down: {player} is hurt.',
+    '{player} is hurt and has to go off.',
+    'Bad news for {team}: {player} is hurt.',
+    '{player} stays down. Injured, and coming off.',
+    'An injury for {team}: {player} cannot carry on.',
   ],
   subMade: [
     'Change for {team}: {player2} comes on for {player}.',
     '{team} make a change: {player} off, {player2} on.',
+    '{player2} replaces {player} for {team}.',
+    'On comes {player2}, off goes {player}.',
+  ],
+  subInjury: [
+    '{player2} comes on for the injured {player}.',
+    '{team} replace the injured {player} with {player2}.',
+    'On comes {player2}, for the injured {player}.',
   ],
   subRefused: [
     '{team} want to bring {player2} on for {player}, but the change is not allowed.',
@@ -517,47 +882,90 @@ export const SIM_EN: Record<string, string[]> = {
   // ---- scores ----
   tryClose: [
     'TRY! {team} go over from close range.',
+    'TRY! {team} force their way over.',
     'TRY! {player} goes over from close range for {team}.',
     'TRY! {player} powers over for {team}.',
+    'TRY! {player} crashes over from short range.',
+    'TRY! Nobody is stopping {player} from there. Over for {team}.',
+    'TRY! {player} bulldozes over for {team}.',
+    'TRY! From close in, {player} gets it down for {team}.',
     'TRY! {player2} puts {player} over from close range for {team}.',
     'TRY! {player} takes the pass from {player2} and powers over for {team}.',
   ],
   tryWide: [
     'TRY! {team} finish it out wide.',
+    'TRY! {team} work it wide and score.',
     'TRY! {player} finishes out wide for {team}.',
+    'TRY! Out wide, {player} has the room and goes over for {team}.',
+    'TRY! {player} gets outside the last man and scores.',
+    'TRY! Width from {team}, and {player} finishes it.',
+    'TRY! {player} dives over out wide for {team}.',
     'TRY! {player2} gives the scoring pass and {player} finishes out wide for {team}.',
     'TRY! {player} takes the pass from {player2} and finishes out wide for {team}.',
   ],
   tryBreak: [
     'TRY! {team} run it in.',
+    'TRY! Nobody catches them: {team} score.',
     'TRY! {player} runs it in for {team}.',
     'TRY! Nobody can catch {player}. Over for {team}.',
+    'TRY! {player} finishes off the break for {team}.',
+    'TRY! {player} has gone all the way for {team}.',
+    'TRY! {player} races clear and touches down.',
     'TRY! {player} takes the pass from {player2} and runs it in for {team}.',
   ],
   tryMaul: [
     'TRY! {team} touch down off the drive.',
+    'TRY! The {team} maul does the damage.',
     'TRY! {team} drive it over and {player} touches down.',
+    'TRY! {player} touches down at the back of the {team} maul.',
+    'TRY! The maul goes over and {player} gets the ball down.',
+    'TRY! Power from the {team} pack, and {player} scores.',
+  ],
+  tryPickGo: [
+    'TRY! {team} pick and go and score.',
+    'TRY! Tight and close, {team} get there.',
+    'TRY! {player} picks and goes, and is over.',
+    'TRY! {player} burrows over from the base.',
+    'TRY! {player} picks it up and dives over.',
+    'TRY! From a metre out, {player} gets it down.',
+    'TRY! {player} drives over from close range for {team}.',
+    'TRY! {player} picks from the base and scores.',
   ],
   tryCharge: [
     'TRY! {team} score off the charge-down.',
+    'TRY! From the charge-down, {team} score.',
     'TRY! {player} scores off the charge-down for {team}.',
+    'TRY! {player} charges it down and touches down!',
+    'TRY! {player} blocks the kick and scores!',
   ],
   tryInterception: [
     'TRY! {team} score from the interception.',
+    'TRY! The interception leads to a {team} score.',
     'TRY! {player} runs in the interception for {team}.',
     'TRY! {player} goes the distance with the interception for {team}.',
+    'TRY! {player} picks it off and runs it in for {team}.',
+    'TRY! An interception try for {player}!',
   ],
   tryAgain: [
-    'That is try number {count} for {player}.',
+    'That is the {nth_k} try of the match for {player}.',
+    '{player} has a {nth_k} try today.',
+    'The {nth_k} for {player}.',
   ],
   penaltyTry: [
     'PENALTY TRY to {team}! Seven points, no conversion. {home} {hs}, {away} {as}.',
     'The referee runs under the posts: penalty try to {team}. {home} {hs}, {away} {as}.',
+    'Penalty try! {team} get seven points. {home} {hs}, {away} {as}.',
+    'That was a certain try, so it is a penalty try to {team}. {home} {hs}, {away} {as}.',
+    'Seven points to {team}: a penalty try. {home} {hs}, {away} {as}.',
   ],
   heldUp: [
     'Held up! {team} are over the line but cannot get it down.',
+    'Held up over the line! {opp} keep it off the ground.',
     'Held up! {player} is over the line, but {opp} keep the ball off the ground.',
     '{player} goes over, but it is held up!',
+    '{player} gets over the line but cannot ground it. Held up!',
+    'No try: {player} is held up by {opp}.',
+    'Over the line, but {player} is held up!',
   ],
   heldUpMaul: [
     'The {team} maul goes over, but it is held up!',
@@ -565,68 +973,315 @@ export const SIM_EN: Record<string, string[]> = {
   ],
   conOver: [
     '{team} convert. {home} {hs}, {away} {as}.',
+    'Converted. {home} {hs}, {away} {as}.',
     '{player} converts. {home} {hs}, {away} {as}.',
     '{player} adds the extras. {home} {hs}, {away} {as}.',
+    'Two more from {player}. {home} {hs}, {away} {as}.',
+    'The conversion from {player} is good. {home} {hs}, {away} {as}.',
+    '{player} makes no mistake. {home} {hs}, {away} {as}.',
+    'Over goes the conversion from {player}. {home} {hs}, {away} {as}.',
   ],
   conWide: [
     '{team} miss the conversion. {home} {hs}, {away} {as}.',
+    'No conversion. {home} {hs}, {away} {as}.',
     '{player} misses the conversion. {home} {hs}, {away} {as}.',
     'Wide from {player}. {home} {hs}, {away} {as}.',
+    '{player} pulls the conversion wide. {home} {hs}, {away} {as}.',
+    'The conversion from {player} drifts wide. {home} {hs}, {away} {as}.',
+    'No extras from {player}. {home} {hs}, {away} {as}.',
   ],
   penAim: [
     '{team} go for the posts, {m} metres out.',
+    '{team} take the shot at goal from {m} metres.',
     '{team} point to the posts. {player} from {m} metres.',
     '{player} lines up the penalty for {team}, {m} metres out.',
+    'A shot at goal for {player}, from {m} metres.',
+    'The tee comes on. {player}, {m} metres out.',
+    '{team} want the points. {player} has a kick from {m} metres.',
   ],
   penOver: [
     'Over! {home} {hs}, {away} {as}.',
+    'Three points. {home} {hs}, {away} {as}.',
     '{player} kicks it. {home} {hs}, {away} {as}.',
     'Good kick from {player}. Three points. {home} {hs}, {away} {as}.',
+    '{player} slots it. {home} {hs}, {away} {as}.',
+    'Between the posts from {player}. {home} {hs}, {away} {as}.',
+    '{player} adds three. {home} {hs}, {away} {as}.',
   ],
   penWide: [
     'Wide. No points. {home} {hs}, {away} {as}.',
+    'Missed. {home} {hs}, {away} {as}.',
     '{player} pushes it wide. {home} {hs}, {away} {as}.',
+    '{player} misses. {home} {hs}, {away} {as}.',
+    'No good from {player}: wide. {home} {hs}, {away} {as}.',
+    'It drifts past the post. {player} misses. {home} {hs}, {away} {as}.',
+    '{player} cannot find the target. {home} {hs}, {away} {as}.',
+    'The kick from {player} misses. {home} {hs}, {away} {as}.',
   ],
   dropOver: [
     'DROP GOAL! {team} slot it over from {m} metres. {home} {hs}, {away} {as}.',
+    'DROP GOAL from {team}, {m} metres out. {home} {hs}, {away} {as}.',
     'DROP GOAL! {player} slots it over from {m} metres for {team}. {home} {hs}, {away} {as}.',
+    'DROP GOAL! {player} drops into the pocket and kicks it from {m} metres. {home} {hs}, {away} {as}.',
+    'DROP GOAL! Three points from the boot of {player}, {m} metres out. {home} {hs}, {away} {as}.',
+    'DROP GOAL! {player} from {m} metres. {home} {hs}, {away} {as}.',
   ],
   dropWide: [
     '{team} try a drop goal from {m} metres, but it goes wide.',
+    'A drop goal attempt from {team}, {m} metres out: wide.',
     '{player} tries a drop goal from {m} metres, but it goes wide.',
-  ],
-  run: [
-    '{team} have scored {count} points without reply.',
-    'That is {count} unanswered points for {team}.',
+    'A drop goal from {player}, {m} metres out, and it misses.',
+    '{player} has a crack at a drop goal from {m} metres. Wide.',
   ],
 
   // ---- the clock ----
   halfTime: [
     'Half-time. {home} {hs}, {away} {as}.',
     'The referee blows for half-time. {home} {hs}, {away} {as}.',
+    'That is half-time. {home} {hs}, {away} {as}.',
   ],
   fullTime: [
     'Full time. {home} {hs}, {away} {as}.',
     'The referee blows for full time. {home} {hs}, {away} {as}.',
+    'That is full time. {home} {hs}, {away} {as}.',
   ],
-  tries: [
-    'Tries: {home} {ht}, {away} {at}.',
+  tries: ['Tries: {home} {ht}, {away} {at}.'],
+  possession: ['Possession so far: {home} {hp}%, {away} {ap}%.'],
+  winBy: ['{winner} win by {margin}.'],
+  draw: ['It ends all square.'],
+
+  // ---- notes: the match story, worked out from the record so far ----
+  firstScore: [
+    'The first points of the match go to {team}.',
+    '{team} open the scoring.',
+    'First blood to {team}.',
   ],
-  possession: [
-    'Possession so far: {home} {hp}%, {away} {ap}%.',
+  leadTaken: [
+    '{team} take the lead.',
+    'And {team} are in front.',
+    'That puts {team} ahead.',
+    'The lead changes hands: {team} are in front.',
   ],
-  winBy: [
-    '{winner} win by {margin}.',
+  levelScores: [
+    'All square.',
+    'Level again.',
+    '{team} draw level.',
+    'Scores level: {team} have caught up.',
   ],
-  draw: [
-    'It ends all square.',
+  biggestLead: [
+    '{team} lead by {margin}, the biggest lead of the match.',
+    'The gap is {margin}: the biggest it has been.',
+    '{team} are {margin} clear, their biggest lead yet.',
+  ],
+  comeback: [
+    '{team} were {deficit} points down. Now it is a {margin}-point game.',
+    'What a fightback: {team} trailed by {deficit}, now only {margin} behind.',
+    '{team} were {deficit} adrift. The gap is down to {margin}.',
+  ],
+  comebackLevel: [
+    '{team} were {deficit} points down, and they have drawn level.',
+    'From {deficit} points behind, {team} are level.',
+  ],
+  comebackLead: [
+    '{team} were {deficit} points down, and now they lead.',
+    'From {deficit} behind to in front: {team} have turned it round.',
+  ],
+  twoScore: [
+    'That makes it a two-score game.',
+    '{team} are more than a converted try clear now.',
+    'A {margin}-point lead: two scores in it.',
+  ],
+  run: [
+    '{team} have scored {count} points without reply.',
+    'That is {count} unanswered points for {team}.',
+    '{count} points in a row for {team}.',
+    '{team} are on a run: {count} points without a reply.',
+  ],
+  beforeHalf: [
+    'Points just before half-time for {team}.',
+    'A good time to score: {team} strike just before the break.',
+  ],
+  afterHalf: [
+    'A fast start to the second half from {team}.',
+    '{team} score early in the second half.',
+  ],
+  bonusTry: [
+    'Four tries for {team}: that is the bonus point.',
+    'That is the fourth try, and the bonus point for {team}.',
+  ],
+  lateTrail: [
+    '{mins} minutes left. {team} trail by {d}: {need_k}.',
+    '{team} are {d} behind with {mins} minutes to play: {need_k}.',
+    'With {mins} minutes left, {team} need points: {need_k}.',
+  ],
+  lateLast: [
+    'Last minute. {team} trail by {d}: {need_k}.',
+    'Into the last minute, {team} {d} behind: {need_k}.',
+  ],
+  lateRed: [
+    'The clock is past 80 minutes. {team} trail by {d}: {need_k}.',
+    'Time is up on the clock, and {team} are {d} behind: {need_k}.',
+  ],
+  lateLevel: [
+    '{mins} minutes left, and it is all square.',
+    'All square with {mins} minutes to play.',
+  ],
+  lateRedLevel: [
+    'The clock is past 80 minutes, and it is all square.',
+  ],
+  scoreManUp: [
+    '{team} make the extra man count: {opp} are down to {men}.',
+    '{team} score while {opp} have only {men}.',
+  ],
+  scoreManDown: [
+    '{team} score with only {men} on the field!',
+    'Down to {men}, and {team} still score.',
+  ],
+  binOutcomeWon: [
+    '{team} came through the ten minutes a man down, outscoring {opp} {a} points to {b}.',
+    'A man down for ten minutes, and {team} still won that spell, {a} points to {b}.',
+  ],
+  binOutcomeLost: [
+    '{team} lost the ten minutes a man down, {a} points to {b}.',
+    'While {team} were a man down, {opp} outscored them {b} points to {a}.',
+  ],
+  binOutcomeLevel: [
+    '{team} held out for the ten minutes a man down: {a} points each.',
+    'No damage while {team} were a man down: {a} points each in that spell.',
   ],
 
-  // ---- summaries, worked out from the record so far ----
+  // ---- notes: players ----
+  goalRun: [
+    '{player} is {made} from {taken} with the boot today.',
+    '{made} from {taken} now for {player} off the tee.',
+    'That makes {player} {made} from {taken} at goal.',
+  ],
+  goalPerfect: [
+    '{player} has not missed: {made} from {made}.',
+    'Perfect so far from {player}: {made} out of {made}.',
+    '{made} kicks, {made} successes for {player}.',
+  ],
+  missRun: [
+    '{player} has missed {count} in a row now.',
+    'That is {count} misses on the bounce for {player}.',
+  ],
+  statTackles: [
+    '{player} has made {count} tackles.',
+    'That is tackle number {count} for {player}.',
+    '{count} tackles now for {player}.',
+  ],
+  statCarries: [
+    '{player} has carried {count} times for {m} metres.',
+    '{count} carries now for {player}, {m} metres in all.',
+  ],
+  statMetres: [
+    '{player} is up to {m} metres with ball in hand.',
+    '{m} metres for {player} so far today.',
+  ],
+  statTurnovers: [
+    'The {nth_k} turnover of the match for {player}.',
+    '{player} has done it again: a {nth_k} turnover.',
+  ],
+  statLineout: [
+    '{player2} has taken {count} lineouts now.',
+    '{count} lineout takes for {player2}.',
+  ],
+  statSteals: [
+    '{player} has stolen {count} lineouts.',
+    'The {nth_k} lineout steal from {player}.',
+  ],
+  offenderPens: [
+    '{oppPlayer} has given away {count} penalties now.',
+    'That is penalty number {count} against {oppPlayer}.',
+  ],
+  scrumPensWon: [
+    '{team} have won {count} penalties at the scrum.',
+    'The {team} scrum is winning the battle: {count} penalties won there.',
+  ],
+  backFromBin: [
+    '{player}, back from the sin bin, is straight into it.',
+    'Just back on, {player} is involved at once.',
+  ],
+  subFirst: [
+    '{player}, just on, has a first touch of the match.',
+    'Fresh legs: {player} is straight into the action.',
+  ],
+  capPosts: ['The {team} captain points to the posts.'],
+  capCorner: ['The {team} captain wants the lineout.'],
+  capTap: ['The {team} captain taps and goes.'],
+  capScrum: ['The {team} captain asks for the scrum.'],
+  choicePosts: [
+    'Rather than the corner or a tap, {team} take the three points on offer, {m} metres out.',
+    'From {m} metres, {team} choose the posts rather than the corner.',
+  ],
+  choiceCorner: [
+    'They could have gone for the posts from {m} metres. {team} kick for touch instead.',
+    'A shot at goal from {m} metres was on, but {team} want the lineout.',
+  ],
+  choiceTap: [
+    'With the posts {m} metres away, {team} choose the quick tap.',
+  ],
+  choiceScrum: [
+    'The posts were {m} metres away; {team} take the scrum instead.',
+  ],
+
+  // ---- notes: team patterns ----
   territory: [
     '{team} have had {pct}% of the territory in the last ten minutes.',
     'Ten minutes of pressure: {team} have had {pct}% of the territory.',
+    '{pct}% of the territory to {team} over the last ten minutes.',
   ],
+  ballTen: [
+    '{team} have had the ball for {pct}% of the last ten minutes.',
+    'The ball has been with {team} for {pct}% of the last ten minutes.',
+  ],
+  pensWarn: [
+    'That is {count} penalties against {opp} in the last fifteen minutes.',
+    '{opp} have given away {count} penalties in fifteen minutes. The referee will be losing patience.',
+  ],
+  pensTotal: [
+    '{opp} have conceded {count} penalties in the match.',
+    'Penalty count against {opp}: {count}.',
+  ],
+  loRecord: [
+    '{team} have lost {lost} of their {total} lineouts on their own throw.',
+    'Trouble at the lineout for {team}: {lost} lost from {total} throws.',
+  ],
+  scRecord: [
+    '{team} have lost {lost} of their {total} scrums on their own put-in.',
+    'The {team} scrum is struggling: {lost} lost from {total} put-ins.',
+  ],
+  entries: [
+    '{team} have been into the {opp} 22 {count} times and have {pts} points to show for it.',
+    '{count} visits to the {opp} 22 for {team}, worth {pts} points.',
+  ],
+  outFullCount: [
+    'That is {count} times {team} have kicked out on the full.',
+    '{team} have kicked out on the full {count} times now.',
+  ],
+  handlingCount: [
+    '{count} handling errors from {team} now.',
+    'That is handling error number {count} for {team}.',
+  ],
+  turnoversCount: [
+    '{team} have won {count} turnovers.',
+    'Turnover number {count} for {team}.',
+  ],
+  tryType: [
+    'That is {count} tries {type_k} for {team}.',
+    '{team} have {count} tries {type_k} now.',
+  ],
+
+  // ---- notes: the occasion (from the context the game passes in) ----
+  introDerby: ['A derby, and you can feel it.', 'Derby day: {home} against {away}.'],
+  introCup: ['{cup}: {home} against {away}.'],
+  introTable: ['In the table, {home} start the day in position {hp} and {away} in position {ap}.'],
+  introVenue: ['Welcome to {venue}.'],
+  wxDamp: ['A damp day for it.'],
+  wxRain: ['Rain is falling at kick-off.'],
+  wxWind: ['A strong wind is blowing.'],
+  wxSnow: ['Snow at kick-off.'],
+  surfArtificial: ['They play on an artificial pitch today.'],
 }
 
 /** the flat dictionary the game's locale files will hold: 'sim.kickTouch2' -> words */
