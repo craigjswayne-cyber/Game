@@ -10,6 +10,9 @@ import { markAdj, penMark, penWide } from '../src/game/match/kicking'
 import { renewalDemandFor, renewalTerm } from '../src/game/ai'
 import { loanOut } from '../src/game/loans'
 import { mulberry32 } from '../src/game/rng'
+import { beginInternational } from '../src/game/intlstart'
+import { pressWhy, userResults } from '../src/game/pressmood'
+import { testTone } from '../src/game/natnoise'
 
 function match(seed: number) {
   const g = newGame('bath', 'Seventeen', seed)
@@ -96,5 +99,33 @@ describe('1.9.17', () => {
     }
     expect(sent).not.toBe(0)
     expect(g.devFocus.includes(sent)).toBe(false)
+  })
+
+  it('a national coach with no club: every Test files the press and the supporters, and the barometer reads his Tests, not a club', () => {
+    const g = newGame('bath', 'Coach', 42)
+    expect(beginInternational(g, 'ENG')).toBe(true)
+    let guard = 0
+    while ((g.natRecord?.m ?? 0) < 2 && guard++ < 40) processWeekAndAdvance(g)
+    const tests = g.natRecord?.m ?? 0
+    expect(tests).toBeGreaterThanOrEqual(2)
+    const press = g.news.filter(n => n.k?.startsWith('news.tnPress_'))
+    const social = g.news.filter(n => n.k?.startsWith('news.tnSocial_'))
+    expect(press.length).toBe(tests)
+    expect(social.length).toBeGreaterThanOrEqual(tests)
+    for (const n of [...press, ...social]) expect(n.v?.nat_n).toBe('ENG')
+    const reads = userResults(g)
+    expect(reads.length).toBe(tests)
+    expect(reads.every(r => r.fx.homeId === 'ENG' || r.fx.awayId === 'ENG')).toBe(true)
+    const why = pressWhy(g)
+    expect(JSON.stringify(why)).not.toContain('Bath')
+  })
+
+  it('the tone is read off the result: a hiding is not a narrow defeat', () => {
+    const g = newGame('bath', 'Tone', 42)
+    beginInternational(g, 'ENG')
+    expect(testTone(g, 'ENG', 'NZL', 40, 10)).toBe('rout')
+    expect(testTone(g, 'ENG', 'NZL', 10, 40)).toBe('shock')
+    expect(testTone(g, 'ENG', 'ITA', 20, 20)).toBe('draw')
+    expect(['narrow', 'loss']).toContain(testTone(g, 'ENG', 'NZL', 18, 22))
   })
 })

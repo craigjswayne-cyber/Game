@@ -19,6 +19,11 @@ A French player's feedback, points 1 to 7, plus two bugs the owner hit as Englan
 
 - Player page: yellow cards and red cards are separate chips. The bare "N appearances for the club" line is gone (owner: the count before the career is invented).
 
+## Owner round, 22 Nov (after the first screenshots)
+- After every Test the coach takes, two stories land in News: PRESS and SOCIAL. The tone is read off the result (rout, big win, win, draw, narrow defeat, defeat, shock) and a third straight win or defeat gets its own (src/game/natnoise.ts). News only: no rating, morale or confidence moves.
+- A national coach with no club: the press barometer follows his Tests (pressmood.pressSides), not the club the career was dealt from. The Legacy header shows his nation, not "Director of Rugby, <club>", and hides signings and spend.
+- Advert boxes: Team Report (every tab, Where We Stand included), the Roles tab on Tactics, the Medical Centre, and the News page when the inbox is empty. Three new places (report-foot, roles-foot, medical-foot) use the Home unit until they have their own in AdMob.
+
 ## Left out (owner's call)
 - International tries and points. Loan matches in career history and per-club history.
 

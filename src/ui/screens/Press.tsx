@@ -59,7 +59,7 @@ export default function Press() {
     <>
       <Barometer game={game} />
       {open.length === 0 && (
-        <div className="muted" style={{ padding: 14 }}>{t('world.prQuiet')}</div>
+        <div className="muted" style={{ padding: 14 }}>{t(game.unemployed && game.natTeam ? 'world.prQuietNat' : 'world.prQuiet')}</div>
       )}
       {open.map(item => (
         <div key={item.id}>

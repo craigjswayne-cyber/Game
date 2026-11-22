@@ -67,10 +67,15 @@ export interface Read {
  * (league games), and playing at home is worth a little either way. A final
  * at a neutral ground has no home side.
  */
-function expectation(state: GameState, fx: Fixture): number {
-  const me = state.userClubId
+function expectation(state: GameState, fx: Fixture, me: string): number {
   const oppId = fx.homeId === me ? fx.awayId : fx.homeId
   const us = state.clubs[me], opp = state.clubs[oppId]
+  // A TEST (1.9.17): the world rankings say who was fancied. Ten rating
+  // points is a class of nation, and home ground counts as it does for a club.
+  if (!us && state.natRank?.[me] != null) {
+    const e = ((state.natRank[me] ?? 70) - (state.natRank[oppId] ?? 70)) / 10
+    return clamp(e + (fx.venue ? 0 : fx.homeId === me ? 0.15 : -0.15), -1, 1)
+  }
   if (!us || !opp) return 0
   let e = (us.rep - opp.rep) / 12
   const pu = state.preds?.[me], po = state.preds?.[oppId]
@@ -84,17 +89,33 @@ function expectation(state: GameState, fx: Fixture): number {
 
 /** The user's competitive results this season, oldest first. Friendlies and
  *  anything the club did not play in are not the press's business. */
+/**
+ * WHOSE RESULTS THE PRESS WRITE ABOUT (1.9.17). A national coach with no club
+ * still has a club id in the save (the one the career was dealt from), and
+ * the barometer read that club's Saturdays: "Beat Leicester 59-5" over a man
+ * who has never coached a club (owner, 22 Nov 2026). With no club job the
+ * press follow his country, and the touring side in a tour summer.
+ */
+export function pressSides(state: GameState): string[] {
+  if (state.unemployed && state.natTeam) {
+    const tour = state.isles && state.isles.season === state.season && state.isles.answer === 'yes'
+    return tour ? [state.natTeam, 'LIO'] : [state.natTeam]
+  }
+  return [state.userClubId]
+}
+
 export function userResults(state: GameState): Read[] {
-  const me = state.userClubId
+  const sides = pressSides(state)
   return state.fixtures
-    .filter(f => f.played && f.compId !== 'fr' && (f.homeId === me || f.awayId === me))
+    .filter(f => f.played && f.compId !== 'fr' && (sides.includes(f.homeId) || sides.includes(f.awayId)))
     .map(fx => {
+      const me = sides.includes(fx.homeId) ? fx.homeId : fx.awayId
       const us = fx.homeId === me ? fx.homeScore : fx.awayScore
       const them = fx.homeId === me ? fx.awayScore : fx.homeScore
       return {
         fx, abs: absWeek(state.season, fx.week), us, them,
         res: (us > them ? 'W' : us < them ? 'L' : 'D') as Read['res'],
-        exp: expectation(state, fx),
+        exp: expectation(state, fx, me),
         oppId: fx.homeId === me ? fx.awayId : fx.homeId,
       }
     })
@@ -141,11 +162,12 @@ const round1 = (x: number) => Math.round(x * 10) / 10
 /** Fold everything since `at` into the needle. Pure: returns the new mood. */
 function fold(state: GameState, prev: PressMood | undefined): PressMood {
   const now = absWeek(state.season, state.week)
+  const side = pressSides(state)[0]
   let pm: PressMood = prev
     ? { ...prev }
-    : { v: 0, at: -1, club: state.userClubId, s: state.season }
+    : { v: 0, at: -1, club: side, s: state.season }
   // a new job is a clean sheet: the last club's results were somebody else's
-  if (pm.club !== state.userClubId) pm = { v: 0, at: now, club: state.userClubId, s: state.season }
+  if (pm.club !== side) pm = { v: 0, at: prev && state.clubs[side] ? now : -1, club: side, s: state.season }
   // the summer takes half of it away, and any hype with it
   if (pm.s !== state.season) { pm.v *= 0.5; pm.s = state.season; pm.hype = 0 }
   const reads = userResults(state)
@@ -204,7 +226,8 @@ export function pressWhy(state: GameState, pm = currentMood(state)): { k: string
   if (run.n >= 2 && run.res === 'W') return { k: 'world.prBaroWhyWins', v: { n: run.n } }
   if (run.n >= 2 && run.res === 'D') return { k: 'world.prBaroWhyDraws', v: { n: run.n } }
   const r = reads[reads.length - 1]
-  const v = { opp: state.clubs[r.oppId]?.short ?? r.oppId, us: r.us, them: r.them }
+  const v: Vars = state.clubs[r.oppId] ? { opp: state.clubs[r.oppId].short, us: r.us, them: r.them }
+    : { opp: r.oppId, opp_n: r.oppId, us: r.us, them: r.them }
   if (r.res === 'L' && r.exp >= 0.25) return { k: 'world.prBaroWhyUpsetL', v }
   if (r.res === 'W' && r.exp <= -0.25) return { k: 'world.prBaroWhyUpsetW', v }
   return { k: r.res === 'W' ? 'world.prBaroWhyWon' : r.res === 'L' ? 'world.prBaroWhyLost' : 'world.prBaroWhyDrew', v }

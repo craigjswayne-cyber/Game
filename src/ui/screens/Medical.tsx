@@ -1,3 +1,4 @@
+import { AdSlot } from '../AdSlot'
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, fmtWage, inRedZone, injuryDesc, type Player } from '../../game/model'
@@ -264,6 +265,8 @@ export default function Medical() {
       {section(t('medical.awayFromClub'), t('medical.awayFromClubSub'), away, p => ({
         info: <span className="gold">{t(p.onLoan ? 'medical.onLoan' : 'medical.intlDuty')}</span>,
       }))}
+      {/* the floor of the Medical Centre (owner, 1.9.17) */}
+      <AdSlot place="medical-foot" />
       <div className="spacer" />
       {jokerHurt && (
         <Veil onClose={() => setJokerHurt(null)}>

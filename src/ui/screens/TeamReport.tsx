@@ -1,3 +1,4 @@
+import { AdSlot } from '../AdSlot'
 import { useVisitState } from '../visitState'
 import { useStore } from '../../store'
 import { fmtMoney, XV_SLOTS, type Player } from '../../game/model'
@@ -126,6 +127,8 @@ export default function TeamReport({ initial }: { initial?: string }) {
         ))}
       </tbody></table></div>
       </>}
+      {/* the floor of every Team Report tab carries a banner (owner, 1.9.17) */}
+      <AdSlot place="report-foot" />
       <div className="spacer" />
     </>
   )

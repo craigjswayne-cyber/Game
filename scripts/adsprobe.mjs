@@ -524,7 +524,7 @@ try {
   const units = Object.values(ADS.android.banner).concat(Object.values(ADS.ios.banner), [ADS.android.rewarded, ADS.ios.rewarded])
   ok(units.filter(s => s !== '').every(s => /\//.test(s)), 'every ad unit id that is set carries a /')
   const pending = Object.entries(ADS.android.banner).concat(Object.entries(ADS.ios.banner)).filter(([, v]) => v === '').map(([k]) => k)
-  const AWAITING = ['week-foot', 'match-foot', 'news-foot', 'press-foot', 'finance-foot', 'stats-foot', 'table-foot', 'fixtures-foot']
+  const AWAITING = ['week-foot', 'match-foot', 'news-foot', 'press-foot', 'finance-foot', 'stats-foot', 'table-foot', 'fixtures-foot', 'report-foot', 'roles-foot', 'medical-foot']
   ok(pending.every(k => AWAITING.includes(k)),
     pending.length ? `only the newer places await a unit id (${[...new Set(pending)].join(', ')})` : 'every place has its own unit id')
 
