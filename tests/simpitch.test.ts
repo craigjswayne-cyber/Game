@@ -22,7 +22,7 @@ import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture } from '../src/game/model'
 import { worldFromMatch, type SimSide } from '../src/game/sim/fromMatch'
-import { bake, bakeOf, expectedAt, FPS, schedule, SCREEN_MAN, timeline, type Baked } from '../src/ui/livepitch/fromRecord'
+import { bake, bakeOf, expectedAt, FPS, oddRuns, schedule, SCREEN_MAN, TARGET_S, timeline, type Baked } from '../src/ui/livepitch/fromRecord'
 
 function realMatch(seed: number): { plays: Play[]; sides: [SimSide, SimSide] } {
   const g = newGame('leicester', 'T', seed)
@@ -67,7 +67,8 @@ function measure(bk: Baked): Faults {
     // carrying in open play: the furthest forward he has been with it, and how far back from that he goes
     const g = bk.segs[bk.seg[fr]], p = P[g.n]
     // (a condensed passage is the ball carried along the record's path, forwards or back as the passage went)
-    const live = g.live && !g.condensed && fr / FPS < g.a0 + g.act
+    // (and not a restart or a set piece: until it is kicked, fed or thrown the ball is dead, and the man with it may walk it to his mark)
+    const live = g.live && !g.condensed && fr / FPS < g.a0 + g.act && !['kickoff', 'dropout22', 'goalLineDropout', 'scrum', 'lineout'].includes(p.kind)
     if (!live || h < 0 || h !== spell) { spell = live ? h : -1; best = spell >= 0 ? bk.pos[fr * 62 + h * 2] : 0; continue }
     const dir = h < 15 ? 1 : -1, x = bk.pos[fr * 62 + h * 2]
     if ((x - best) * dir > 0) best = x
@@ -143,9 +144,28 @@ describe('the stadium pitch plays the record', () => {
     expect(sides).toEqual([])
   }, 300_000)
 
-  it('an Extended match takes 3.5 to 4.5 minutes to watch', () => {
+  // POSITIONAL PLAY (owner, 22 Nov 2026: "players just randomly travel a strange angle"). The measure is
+  // scripts/tmp/oddruns.ts with the runs rugby has a reason for left out (fromRecord.ts oddRuns). On the
+  // round 2 pitch (commit 7d97b361) it found 1,309 odd runs in seed 4242 and whole sides sliding 13.5 m
+  // sideways in two seconds; the shape was centred on the ball across the field.
+  it('men run for a reason: few odd runs, no side sliding across, wings on their touchlines, a flat defensive line', () => {
+    const BEFORE = 1309
+    const rows: string[] = []
+    for (const seed of [4242, 1, 2]) {
+      const m = realMatch(seed), bk = bakeOf(m.plays, m.sides), r = oddRuns(bk, m.sides)
+      rows.push(`seed ${seed}: odd runs ${r.odd} of ${r.runs} long runs, worst side slide ${r.slide.toFixed(1)} m, wings off their lane ${(100 * r.wingShare).toFixed(1)}%, flat line at ${(100 * r.flat).toFixed(0)}% of rucks (median spread ${r.spreadMedian.toFixed(1)} m)`)
+      if (seed === 4242) expect(r.odd).toBeLessThanOrEqual(BEFORE * 0.15)
+      // (a side drifting with the play; the aim was about 4 m, measured 4.0 to 4.3)
+      expect(r.slide).toBeLessThan(5)
+      expect(r.wingShare).toBeLessThan(0.1)
+      expect(r.flat).toBeGreaterThan(0.8)
+    }
+    console.log('simpitch shape:\n' + rows.join('\n'))
+  }, 300_000)
+
+  it(`an Extended match takes 4.5 to 5.5 minutes to watch (TARGET_S ${TARGET_S} s)`, () => {
     const views = all().map(r => r.f.view)
     console.log('simpitch minutes:', views.map(v => (v / 60).toFixed(2)).join(' '))
-    for (const v of views) { expect(v).toBeGreaterThanOrEqual(210); expect(v).toBeLessThanOrEqual(270) }
+    for (const v of views) { expect(v).toBeGreaterThanOrEqual(270); expect(v).toBeLessThanOrEqual(330) }
   }, 300_000)
 })

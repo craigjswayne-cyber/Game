@@ -111,6 +111,7 @@ function darkTrim(c: string): boolean {
   return !!m && (parseInt(m[1], 16) * 0.299 + parseInt(m[2], 16) * 0.587 + parseInt(m[3], 16) * 0.114) / 255 < 0.24
 }
 
+const hyp2 = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y)
 /** a stable 0..1 from two integers: the crowd is the same crowd every frame */
 function h2(a: number, b: number): number {
   let h = (a * 374761393 + b * 668265263 + 1013904223) >>> 0
@@ -899,7 +900,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         // kept: ten men within a few metres of it is right, but at full size
         // they were one mass)
         const atRuck = S.atRuck(i)
-        sz[i] += ((S.bound(i) || floor ? 0.56 : up2[0] === i || up2[1] === i ? 1.24 : atRuck ? 0.84 : 1) - sz[i]) * 0.18
+        sz[i] += ((S.bound(i) || floor ? (feed ? 0.8 : 0.56) : up2[0] === i || up2[1] === i ? 1.24 : atRuck ? 0.84 : 1) - sz[i]) * 0.18
         R = R0 * sz[i]
         if (floor) g.globalAlpha = 0.6
         // DEPTH (owner, 17 Nov 2026: "Add more depth"): a man stands on the
@@ -943,6 +944,19 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // (the dashed arrows for the lines being run are gone with the move lines: owner, 19 Nov 2026)
       // the side with the ball on top, the man with it last of all
       const top = S.phase?.homeBall === false ? 15 : 0
+      // A RUCK OR A MAUL IS ONE BOUND SHAPE (2.0.0 record pitch): a dark mat under the men bound in it,
+      // so it reads as a ruck rather than a pile of dots; they keep their size and colours on it
+      if (feed) {
+        const bnd: number[] = []
+        for (let i = 0; i < 30; i++) if (S.bound(i) && hyp2(S.b[i], S.ball) < 4) bnd.push(i)
+        if (bnd.length >= 2) {
+          let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity
+          for (const i of bnd) { const sx = SX(S.b[i].x, S.b[i].y), sy = SY(S.b[i].x, S.b[i].y); x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy) }
+          const pad = R0 * 1.25
+          g.fillStyle = 'rgba(8,14,10,.42)'; g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1
+          g.beginPath(); g.roundRect(x0 - pad, y0 - pad, x1 - x0 + pad * 2, y1 - y0 + pad * 2, pad); g.fill(); g.stroke()
+        }
+      }
       for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder && S.bound(i)) dot(i)
       for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder && !S.bound(i)) dot(i)
       R = R0
