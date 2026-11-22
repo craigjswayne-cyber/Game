@@ -734,6 +734,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
     }
     const render = (dt: number) => {
+      feed?.sync()
       if (feed?.frozen) ffShown = feed.ff && !S.done ? 1 : 0
       if (S.cuts !== seenCuts) {
         // the canvas still holds the frame before the cut: keep it
@@ -900,7 +901,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         // kept: ten men within a few metres of it is right, but at full size
         // they were one mass)
         const atRuck = S.atRuck(i)
-        sz[i] += ((S.bound(i) || floor ? (feed ? 0.8 : 0.56) : up2[0] === i || up2[1] === i ? 1.24 : atRuck ? 0.84 : 1) - sz[i]) * 0.18
+        sz[i] += ((S.bound(i) || floor ? (feed ? 0.92 : 0.56) : up2[0] === i || up2[1] === i ? 1.24 : atRuck ? 0.84 : 1) - sz[i]) * 0.18
         R = R0 * sz[i]
         if (floor) g.globalAlpha = 0.6
         // DEPTH (owner, 17 Nov 2026: "Add more depth"): a man stands on the
@@ -921,7 +922,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.font = `800 ${Math.round(R * 1.2)}px system-ui, sans-serif`
         g.textAlign = 'center'; g.textBaseline = 'middle'
         // (a man bound in a ruck or on the floor is one of a knot: no number on him)
-        if (sz[i] > 0.8) g.fillText(String(side.nums[k] ?? k + 1), x, y + 0.5)
+        if (sz[i] > 0.8 && !(feed && S.bound(i))) g.fillText(String(side.nums[k] ?? k + 1), x, y + 0.5)
         if (floor) g.globalAlpha = 1
         R = R0
       }
@@ -952,7 +953,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         if (bnd.length >= 2) {
           let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity
           for (const i of bnd) { const sx = SX(S.b[i].x, S.b[i].y), sy = SY(S.b[i].x, S.b[i].y); x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy) }
-          const pad = R0 * 1.25
+          const pad = R0 * 1.6
           g.fillStyle = 'rgba(8,14,10,.42)'; g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1
           g.beginPath(); g.roundRect(x0 - pad, y0 - pad, x1 - x0 + pad * 2, y1 - y0 + pad * 2, pad); g.fill(); g.stroke()
         }
@@ -1105,7 +1106,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const isMove = !!now.move
   // (a called move no longer gets its own gold label: owner, 19 Nov 2026,
   // "remove the pop up that says moves". It carries the ordinary one.)
-  const chip = quiet && !isMove ? '' : tr(now.label, now.n != null ? { n: now.n } : undefined)
+  const chipText = tr(now.label, now.n != null ? { n: now.n } : undefined)
+  // (a label not yet in the locales comes back as its own key: the record's feed gives its words instead)
+  const chip = quiet && !isMove ? '' : chipText === now.label ? ((now as { fallback?: string }).fallback ?? '') : chipText
   const bSide = banner ? (banner.teamId === homeId ? home : away) : null
   const good = banner && (banner.kind === 'try' || banner.kind === 'pentry' || banner.kind === 'con' || banner.kind === 'pen' || banner.kind === 'dg')
   const pts = banner ? ({ try: 5, pentry: 7, con: 2, pen: 3, dg: 3 } as Record<string, number>)[banner.kind] : undefined

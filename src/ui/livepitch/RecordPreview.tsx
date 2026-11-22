@@ -37,7 +37,7 @@ import en from '../../locales/en.json'
 
 /** the commentary agent's module, if it is there (src/game/sim/commentary.ts) */
 interface CLine { n: number; key: string; params: Record<string, string | number>; level: 'key' | 'normal' | 'minor'; side: 0 | 1 | null }
-type CMod = { commentate(r: SimResult, names: { teams: [string, string]; player(id: string): string }): CLine[]; render(l: CLine): string }
+type CMod = { commentate(r: SimResult, names: { teams: [string, string]; player(id: string): string }): CLine[]; render(l: CLine): string; thin?(lines: CLine[], slots: Slot[], gap?: number): CLine[] }
 const commentaryModule = import.meta.glob<CMod>('../../game/sim/commentary.ts')
 
 const q = new URLSearchParams(location.search)
@@ -130,10 +130,12 @@ function App() {
     const load = commentaryModule['../../game/sim/commentary.ts']
     if (!load) return
     load().then(mod => {
-      const ls = mod.commentate(m.result, { teams: [m.sides[0].name, m.sides[1].name], player: id => names.get(id) ?? '' })
+      const all = mod.commentate(m.result, { teams: [m.sides[0].name, m.sides[1].name], player: id => names.get(id) ?? '' })
+      // (thinned to what a reader can take in at the speed each play is shown: the commentary agent's thin())
+      const ls = mod.thin ? mod.thin(all, slots) : all
       setLines(ls.map(l => ({ n: l.n, text: mod.render(l), level: l.level, side: l.side })))
     }).catch(() => setLines(null))
-  }, [m])
+  }, [m, slots])
   const [n, setN] = useState(0)
   const [landed, setLanded] = useState(false)
   const raf = useRef(0), nRef = useRef(-1), lRef = useRef(false)

@@ -77,6 +77,8 @@ export const V_CAP = 9.4
 /** a ball in the air or in hand is never faster than this (m/s) */
 export const BALL_CAP = 40
 const A_PLAYER = 16
+/** personal space: closer than this two men are eased apart (a lineout stands 1.2 m apart and is left alone) */
+const ROOM_M = 1.15
 const V_JOG = 7
 const DS = defenceShape(undefined)
 
@@ -170,6 +172,7 @@ function heldBy(q: Play): string | undefined {
   if (q.kind === 'ruck' && q.result === 'turnover') return q.vs?.[0]
   if (q.kind === 'carry' && q.result === 'intercepted') return q.vs?.[0]
   if (q.kind === 'lineout') return q.result === 'stolen' ? q.vs?.[0] : q.with?.[0]
+  if (q.kind === 'offload') return q.with?.[0]
   if (q.kind === 'lineBreak' || q.kind === 'carry') return q.who
   return undefined
 }
@@ -212,11 +215,12 @@ export interface Seg {
   quick?: boolean
 }
 
-const LIVE = new Set(['kickoff', 'dropout22', 'goalLineDropout', 'carry', 'ruck', 'maul', 'lineBreak', 'kick', 'catch', 'scrum', 'lineout', 'tap'])
+const LIVE = new Set(['offload', 'kickoff', 'dropout22', 'goalLineDropout', 'carry', 'ruck', 'maul', 'lineBreak', 'kick', 'catch', 'scrum', 'lineout', 'tap'])
 
 function actOf(plays: Play[], n: number): { act: number; mark: number } {
   const p = plays[n]
   switch (p.kind) {
+    case 'offload': return { act: 0.6, mark: 0.6 }
     case 'carry': case 'lineBreak': {
       const g = carryGeo(plays, n)
       const act = g.pick + g.passes * g.passT + g.runT + g.spill
@@ -268,7 +272,7 @@ function actOf(plays: Play[], n: number): { act: number; mark: number } {
 export function fadesIn(plays: Play[], n: number): boolean {
   const p = plays[n]
   if (!p) return false
-  if (p.kind === 'lineout' || p.kind === 'conversion' || p.kind === 'penaltyGoal') return true
+  if ((p.kind === 'lineout' && p.result !== 'quick') || p.kind === 'conversion' || p.kind === 'penaltyGoal') return true
   return p.kind === 'kickoff' && plays[n - 1]?.kind === 'halfTime'
 }
 
@@ -295,9 +299,11 @@ function deadOf(plays: Play[], n: number): number {
 function keyOf(plays: Play[], n: number): boolean {
   const p = plays[n], nx = plays[n + 1]
   if (['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'yellowCard', 'redCard', 'heldUp', 'lineBreak'].includes(p.kind)) return true
-  if (p.kind === 'ruck' && p.result === 'turnover' && (p.x < 22 || p.x > 78)) return true
+  const in22 = p.x < 22 || p.x > 78
+  if (in22 && ((p.kind === 'ruck' && p.result === 'turnover') || (p.kind === 'lineout' && p.result === 'stolen') || (p.kind === 'scrum' && p.result === 'againstTheHead'))) return true
   if ((p.kind === 'carry' || p.kind === 'maul') && nx && (nx.kind === 'try' || nx.kind === 'heldUp')) return true
   if (p.kind === 'kick' && p.result === 'chargedDown') return true
+  if (p.kind === 'carry' && p.result === 'intercepted') return true
   return false
 }
 /** shown at the lead-in pace, not wound on: the restarts (owner: "teams formed up in view, kick, chase, catch") */
@@ -404,35 +410,45 @@ export function plan(plays: Play[], level = 0): Seg[] {
 /** `at` is `start` again, under the name the overseer's harmonycheck reads; `fade` is true where the picture dissolves into the play (fadesIn) */
 export interface Slot { n: number; start: number; at: number; dur: number; speed: number; fade: boolean; condensed: boolean }
 
-/** an Extended match is about this long on screen (owner: "about 4 minutes") */
-/** the length an Extended match is aimed at, in seconds on screen (coordinator's default, 22 Nov
- *  2026: 4.5 to 5.5 minutes while the owner decides; change it here) */
-export const TARGET_S = 300
+/** THE LENGTH (owner, 22 Nov 2026 22:13: "8 mins is fine"): an Extended match is aimed at this
+ *  many seconds on screen at the normal speed button. Change it here. */
+export const TARGET_S = 480
 
-/** THE SPEEDS (owner, 22 Nov 2026: "It feels jumpy not smooth"). What makes winding on look
- *  jumpy is men flicking across the grass, so the clock is set from the men: at every moment it
- *  runs as fast as it can while nobody on screen goes faster than SCREEN_MAN (two and a half
- *  times a sprint) and the ball no faster than SCREEN_BALL; never over CLOCK_MAX; and it eases
- *  up and down rather than jumping. A ruck, where men walk in, goes by quickly; a break, where
- *  they sprint, is near life speed anyway. Key moments are at life speed, their lead-in at LEAD. */
-export const SCREEN_MAN = Number((globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env?.LP_SCREEN ?? 2.5) * V_CAP
-export const SCREEN_BALL = 90
-export const CLOCK_MAX = Number((globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env?.LP_CLOCK ?? 6)
-const LEAD = 1.6
-/** how fast the clock may change, in times-life-speed per anim second */
-const EASE = 2.5
-/** the slowest ordinary play is ever shown, when there is time to spare */
-const WIND_MIN = 1.2
+/** THE PACE (owner, 22 Nov 2026 22:13: "for build ups to tries and key moments the game should be
+ *  normal speed, then everything else is on fast forward but still happening"). Every play is
+ *  shown. Life speed (1x): every key moment, the whole passage of possession that ends in a try
+ *  (back to the set piece, turnover or catch it started from, the last BUILD_MAX seconds of it
+ *  at most), LEAD_IN seconds before any other key moment and BEAT after it. Everything else is
+ *  fast forward at a factor F worked out for each match so it lasts TARGET_S, but never so fast
+ *  that a man moves more than MAN_PX or the ball more than BALL_PX on a phone screen between two
+ *  frames at 60 a second. A close game (CLOSE_MARGIN points or fewer with CLOSE_FROM seconds of
+ *  the clock gone) runs its last minutes at CLOSE_RATE. Every change of speed is eased over at
+ *  least EASE_S seconds on screen: never a step. */
+export const BUILD_MAX = 35, BUILD_MIN = 6, LEAD_IN = 3, BEAT = 1
+/** the longest a match may run on screen (owner: 7 to 9 minutes) before try build-ups are shortened */
+export const LONGEST_S = 535
+export const CLOSE_MARGIN = 7, CLOSE_FROM = 4500, CLOSE_RATE = 2
+export const EASE_S = 1.0
+/** the phone pitch: about 2.8 screen pixels to a metre (the landscape stadium in a 390 px wide box) */
+export const PX_PER_M = 3.3
+export const MAN_PX = 4, BALL_PX = 12, SCREEN_FPS = 60
+/** (kept for the tests: the fastest a man may appear on screen, m/s) */
+export const SCREEN_MAN = MAN_PX * SCREEN_FPS / PX_PER_M
+export const SCREEN_BALL = BALL_PX * SCREEN_FPS / PX_PER_M
+const F_MIN = 1.5, F_MAX = 20
 
 /** the clock of the screen: the view second each frame starts at, and its rate */
-export interface Timeline { V: Float64Array; rate: Float32Array; total: number }
+export interface Timeline { V: Float64Array; rate: Float32Array; total: number; ff: number; slow: Uint8Array; close: boolean }
 
-/** the most each frame may be wound on, by the speeds in it (before key moments and the match length) */
-const capCache = new WeakMap<Baked, { cap: Float32Array; kind: Uint8Array }>()
-function capsOf(bk: Baked): { cap: Float32Array; kind: Uint8Array } {
-  const hit = capCache.get(bk)
+/** what each frame is: 1 life speed (key, try build-up, lead-in), 2 the close finish, 0 fast forward;
+ *  and the most it may be wound on by the pixel limits */
+const capCache = new WeakMap<Baked, Map<number, { cap: Float32Array; slow: Uint8Array; close: boolean }>>()
+function capsOf(bk: Baked, build = BUILD_MAX): { cap: Float32Array; slow: Uint8Array; close: boolean } {
+  let byB = capCache.get(bk)
+  if (!byB) capCache.set(bk, byB = new Map())
+  const hit = byB.get(build)
   if (hit) return hit
-  const n = bk.n, cap = new Float32Array(n), kind = new Uint8Array(n)
+  const n = bk.n, P = bk.plays, segs = bk.segs, cap = new Float32Array(n), slow = new Uint8Array(n)
   const vm = new Float32Array(n)
   const cut = new Set(bk.cuts)
   for (let f = 1; f < n; f++) {
@@ -442,59 +458,75 @@ function capsOf(bk: Baked): { cap: Float32Array; kind: Uint8Array } {
     const bv = Math.hypot(bk.ball[f * 3] - bk.ball[(f - 1) * 3], bk.ball[f * 3 + 1] - bk.ball[(f - 1) * 3 + 1]) * FPS
     vm[f] = Math.max(v / SCREEN_MAN, bv / SCREEN_BALL)
   }
-  // (the fastest man over the next and last half second: the clock slows before a sprint, not during it)
+  // (the fastest over the next and last half second: it slows before a sprint, not during it)
   const W = Math.round(FPS * 0.5)
   for (let f = 0; f < n; f++) {
     let m = 0
     for (let k = Math.max(0, f - W); k <= Math.min(n - 1, f + W); k++) m = Math.max(m, vm[k])
-    cap[f] = clamp(1 / Math.max(1e-6, m), 1, CLOCK_MAX)
-    const g = bk.segs[bk.seg[f]], inAct = f / FPS < g.a0 + g.act
-    kind[f] = g.condensed ? 3 : !inAct ? 0 : g.key === 2 ? 2 : g.key === 1 ? 1 : 0
+    cap[f] = clamp(1 / Math.max(1e-6, m), 1, F_MAX)
   }
-  const out = { cap, kind }
-  capCache.set(bk, out)
+  // (life speed wins over the close finish: a try in the last minutes is still shown at 1x)
+  const mark = (a: number, b: number, v: number) => { for (let f = Math.max(0, Math.floor(a * FPS)); f < Math.min(n, Math.ceil(b * FPS)); f++) slow[f] = v === 1 ? 1 : slow[f] === 1 ? 1 : v }
+  // the close finish first (the slower life-speed marks go over it)
+  let close = false
+  const at75 = P.findIndex(p => (p.clock ?? p.t) >= CLOSE_FROM)
+  if (at75 > 0 && Math.abs(P[at75 - 1].score[0] - P[at75 - 1].score[1]) <= CLOSE_MARGIN) { close = true; mark(segs[at75].a0, segs[segs.length - 1].a1, 2) }
+  for (let k = 0; k < P.length; k++) {
+    const g = segs[k]
+    if (g.key !== 2) continue
+    const p = P[k]
+    if (p.kind === 'try' || p.kind === 'penaltyTry') {
+      // the build-up: back through the passage of possession that ended in the try
+      let st = k
+      while (st > 0 && P[st - 1].ball === p.side && !['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'halfTime', 'kickoff', 'yellowCard', 'redCard'].includes(P[st - 1].kind)) st--
+      const from = Math.max(segs[st].a0, g.a0 - build)
+      mark(from, g.a0 + g.act + BEAT, 1)
+    } else mark(g.a0 - LEAD_IN, g.a0 + g.act + BEAT, 1)
+  }
+  for (const f of bk.cuts) if (f < n) cap[f] = cap[Math.max(0, f - 1)]
+  const out = { cap, slow, close }
+  byB.set(build, out)
   return out
 }
-function timelineAt(bk: Baked, S: number): Timeline {
-  const { cap, kind } = capsOf(bk)
+function timelineAt(bk: Baked, F: number, build = BUILD_MAX): Timeline {
+  const { cap, slow, close } = capsOf(bk, build)
   const n = bk.n, rate = new Float32Array(n)
-  for (let f = 0; f < n; f++) rate[f] = kind[f] === 2 ? 1 : kind[f] === 1 ? Math.min(cap[f], LEAD) : kind[f] === 3 ? cap[f] : Math.min(cap[f], S)
-  // eased: never changing faster than EASE per anim second, either way
-  const step = EASE / FPS
-  for (let f = 1; f < n; f++) rate[f] = Math.min(rate[f], rate[f - 1] + step)
-  for (let f = n - 2; f >= 0; f--) rate[f] = Math.min(rate[f], rate[f + 1] + step)
+  for (let f = 0; f < n; f++) rate[f] = slow[f] === 1 ? 1 : slow[f] === 2 ? Math.min(CLOSE_RATE, cap[f]) : Math.min(F, cap[f])
+  // EASED: the speed changes by the same share every screen frame, so going from life speed to F takes at
+  // least EASE_S on screen either way, and near life speed a step is as gentle as near F
+  const k = Math.log(Math.max(2, F)) / EASE_S
+  for (let f = 1; f < n; f++) rate[f] = Math.min(rate[f], rate[f - 1] * Math.exp(k / FPS / rate[f - 1]))
+  for (let f = n - 2; f >= 0; f--) rate[f] = Math.min(rate[f], rate[f + 1] * Math.exp(k / FPS / rate[f + 1]))
   const V = new Float64Array(n + 1)
   for (let f = 0; f < n; f++) V[f + 1] = V[f] + 1 / FPS / rate[f]
-  return { V, rate, total: V[n] }
+  return { V, rate, total: V[n], ff: F, slow, close }
 }
 const tlCache = new WeakMap<Baked, Timeline>()
-/** the screen's clock for a baked match: ordinary play wound on (WIND_MIN to CLOCK_MAX) to last as near TARGET_S as it can */
+/** the screen's clock for a baked match: the fast-forward factor that makes it last TARGET_S */
 export function timeline(bk: Baked): Timeline {
   const hit = tlCache.get(bk)
   if (hit) return hit
-  let lo = WIND_MIN, hi = CLOCK_MAX
-  for (let k = 0; k < 30; k++) { const mid = (lo + hi) / 2; if (timelineAt(bk, mid).total > TARGET_S) lo = mid; else hi = mid }
-  const tl = timelineAt(bk, hi)
+  // (a match of many tries: their build-ups are cut back from BUILD_MAX, BUILD_MIN at the least, only as far
+  // as it takes for the match to fit in LONGEST_S with the fast forward as fast as the screen allows)
+  let build = BUILD_MAX
+  while (build > BUILD_MIN && timelineAt(bk, F_MAX, build).total > LONGEST_S) build = Math.max(BUILD_MIN, build - 2)
+  let lo = F_MIN, hi = F_MAX
+  for (let k = 0; k < 30; k++) { const mid = (lo + hi) / 2; if (timelineAt(bk, mid, build).total > TARGET_S) lo = mid; else hi = mid }
+  const tl = timelineAt(bk, hi, build)
   tlCache.set(bk, tl)
   return tl
 }
-/** (a match can come out a little long or short of TARGET_S: this much either way is accepted before condensing more or less) */
-const SLACK = 15
+
+/** CONDENSING IS OFF (owner, 22 Nov 2026 22:13: every play is shown, "not just being ignored").
+ *  The code is kept: a level above 0 would travel through routine phases again. */
+export const CONDENSE_LEVEL = 0
 
 const bakeCache = new WeakMap<Play[], { sides?: [RecSide, RecSide]; bk: Baked }>()
-/** the bake of a record, made once (the pitch and the commentary's schedule share it). It is
- *  condensed as little as lets the match be watched in about four minutes. */
+/** the bake of a record, made once (the pitch and the commentary's schedule share it) */
 export function bakeOf(plays: Play[], sides?: [RecSide, RecSide]): Baked {
   const hit = bakeCache.get(plays)
   if (hit && hit.sides === sides) return hit.bk
-  // (most matches need the most condensing to come near TARGET_S: start there, and condense less only while it still fits)
-  let level = CONDENSE_MAX
-  let bk = bake(plays, sides, level)
-  while (level > 0 && timeline(bk).total < TARGET_S - SLACK) {
-    const less = bake(plays, sides, level - 1)
-    if (timeline(less).total > TARGET_S + SLACK) break
-    bk = less; level--
-  }
+  const bk = bake(plays, sides, CONDENSE_LEVEL)
   bakeCache.set(plays, { sides, bk })
   return bk
 }
@@ -561,7 +593,7 @@ export interface Baked {
   cuts: number[]
 }
 
-interface Body { x: number; y: number; vx: number; vy: number }
+interface Body { x: number; y: number; vx: number; vy: number; rest?: boolean }
 type Ov = { x: number; y: number; v: number; place?: boolean; a?: number }
 
 /** BAKE THE WHOLE MATCH. Deterministic: the same record and sides give the same frames. */
@@ -654,7 +686,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
 
   /** THE CONTEXT the men not named in a play stand by */
   type Ctx =
-    | { k: 'open'; att: Side; O: Pt; tOut: number; lean: number }
+    | { k: 'open'; att: Side; O: Pt; tOut: number; lean: number; T?: number }
     | { k: 'kick'; kicker: Side; L: Pt; lean: number; quick?: boolean }
     | { k: 'form'; at: Pt[]; v: number }
     | { k: 'hold' }
@@ -669,11 +701,15 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
   // with the ball, which is the way men run in rugby: forward onto it, back behind it.
   const ANCHOR_V = 1.6
   const ay: [number, number] = [35, 35]
+  /** the ball's x, followed over about a second: the lines go up and back with the play, not with every pass and step */
+  let bxs = 50
   /** the open side (the side of the anchor with more room), held until the play is well over the middle */
   const osOf: [number, number] = [1, 1]
   const updateAnchors = (fast: boolean) => {
     for (const s of [0, 1] as Side[]) {
-      const want = clamp(ball.y, 8, 62), dv = (fast ? 10 : ANCHOR_V) * DT
+      // (the further the ball has gone across, the quicker the side drifts after it: a 25 m switch is
+      // covered in a few seconds, not left as a hole; a small change is followed at a walk)
+      const want = clamp(ball.y, 8, 62), dv = (fast ? 10 : clamp(ANCHOR_V + 0.12 * Math.abs(want - ay[s]), ANCHOR_V, 4.5)) * DT
       ay[s] += clamp(want - ay[s], -dv, dv)
       if (ay[s] < 27) osOf[s] = 1
       else if (ay[s] > 43) osOf[s] = -1
@@ -732,12 +768,14 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     } else {
       // open play: the attack in its lanes behind the ball, the defence a flat line in front of it, pressing once the ball is out
       const a = ctx.att, da = dirOf(a)
-      if (s === a) { const p = attackSpot(k, s, Math.min(ball.x * da, ctx.O.x * da + 3) * da); o = { ...p, v: fwd ? 5 : 7 } }
+      if (s === a) { const p = attackSpot(k, s, Math.min(bxs * da, ctx.O.x * da + 3) * da); o = { ...p, v: fwd ? 5 : 7 } }
       else {
         const up = t > ctx.tOut ? press(t - ctx.tOut) : 0
-        let lx = ctx.O.x + da * 2 - da * Math.min(6, up)
+        let lx = ctx.O.x + da * 1.2 - da * Math.min(1.5, up)
         // (never closer than a metre in front of the ball: the line backs off a carry it has not stopped)
-        if ((lx - ball.x) * da < 1.0) lx = ball.x + da * 1.0
+        if ((lx - bxs) * da < 1.0) lx = bxs + da * 1.0
+        if (ctx.T !== undefined && (lx - ctx.T) * da < 1.2) lx = ctx.T + da * 1.2
+        if ((lx - ball.x) * da < 0.5) lx = ball.x + da * 0.5
         const p = defenceSpot(k, s, lx)
         o = { ...p, v: fwd ? 6.5 : 7 }
       }
@@ -745,7 +783,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     // a man whose way to his place is mostly across the field jogs there: nobody sprints sideways off the ball
     const dx = Math.abs(o.x - B[i].x), dyy = Math.abs(o.y - B[i].y)
     // (but a wing gets back to his touchline at a run: holding the width is his job)
-    if (dyy > dx) o.v = Math.min(o.v, k === 10 || k === 13 ? 6 : 2.1)
+    if (dyy > dx) o.v = Math.min(o.v, k === 10 || k === 13 ? 6 : dyy > 8 ? 4.5 : 2.1)
     return o
   }
 
@@ -896,7 +934,10 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         return { at: formDropout(s, from, kk), fetch: kk, spot: { x: from - dirOf(s) * 1, y: 35 } }
       }
       case 'scrum': return { at: formScrum(s, spot(nx)), fetch: slot(s, 9), spot: spot(nx) }
-      case 'lineout': { const tY = nx.y < 35 ? 0 : 70; return { at: formLineout(s, nx.x, tY), fetch: who(nx.who, s, 2), spot: { x: nx.x, y: tY + (tY === 0 ? 0.6 : -0.6) } } }
+      case 'lineout': {
+        if (nx.result === 'quick') return null
+        const tY = nx.y < 35 ? 0 : 70; return { at: formLineout(s, nx.x, tY), fetch: who(nx.who, s, 2), spot: { x: nx.x, y: tY + (tY === 0 ? 0.6 : -0.6) } }
+      }
       case 'penaltyGoal': { const kk = who(nx.who, s, 10); return { at: formGoal(s, spot(nx)), fetch: kk, spot: spot(nx) } }
       case 'kick': { const kk = who(nx.who, s, 10); return { at: formPenalty(s, spot(plays[nx.n - 1] ?? nx)), fetch: kk, spot: spot(plays[nx.n - 1] ?? nx) } }
       case 'tap': { const kk = who(undefined, s, 9); return { at: formPenalty(s, spot(nx)), fetch: kk, spot: spot(nx) } }
@@ -1060,8 +1101,8 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
           // A RUCK THAT READS: the tackled man on the ground over the ball, two of his side bound over
           // him, their tacklers bound against them, and the 9 at the base behind
           ov[tackled] = { x: R.x + d * 0.2, y: R.y + 0.9, v: 3 }; fl[tackled] |= 2
-          ruckers.forEach((i, j) => { ov[i] = { x: R.x - d * 1.0, y: R.y + (j ? 0.55 : -0.55), v: 6 }; if (hyp(B[i], R) < 2.2) fl[i] |= 2 })
-          tk.forEach((i, j) => { if (i === jackal) return; ov[i] = { x: R.x + d * 1.0, y: R.y + (j ? 0.55 : -0.55), v: 6 }; if (tau < 1.2 && hyp(B[i], R) < 2.2) fl[i] |= 2 })
+          ruckers.forEach((i, j) => { ov[i] = { x: R.x - d * 1.1, y: R.y + (j ? 0.7 : -0.7), v: 6 }; if (hyp(B[i], R) < 2.4) fl[i] |= 2 })
+          tk.forEach((i, j) => { if (i === jackal) return; ov[i] = { x: R.x + d * 1.1, y: R.y + (j ? 0.7 : -0.7), v: 6 }; if (tau < 1.2 && hyp(B[i], R) < 2.4) fl[i] |= 2 })
           if (p.result === 'turnover') {
             ov[jackal] = { x: R.x + d * 0.35, y: R.y, v: V_CAP }
             if (tau > 0.5) pickUp(jackal)
@@ -1113,7 +1154,13 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         return tau => {
           ctx = { k: 'form', at, v: 4 }
           for (let k = 0; k < 8; k++) { fl[feed * 15 + k] |= 2; fl[o * 15 + k] |= 2 }
-          if (set < 0) { give(n9); if (holder === n9 && (formed(at, 1.5, 4) || tau > 3)) set = tau; return false }
+          // (the scrum goes down once the 9 has the ball at his feeding spot and the packs are set)
+          if (set < 0) {
+            if (holder !== n9) { if (holder < 0 && !fly) { pickUp(n9); ov[n9] = { x: ball.x, y: ball.y, v: 6 } } else if (holder >= 0 && hyp(B[holder], B[n9]) < 3) give(n9); else ov[n9] = { x: ball.x, y: ball.y, v: 6 } }
+            if (holder === n9) ov[n9] = { x: at[n9].x, y: at[n9].y, v: 4 }
+            if (holder === n9 && hyp(B[n9], at[n9]) < 1.5 && (formed(at, 1.5, 4) || tau > 3)) set = tau
+            return false
+          }
           const k = tau - set
           if (k < 0.7) return false
           if (!plays2) { if (k >= 1.0) mark(); return k >= 1.8 }
@@ -1123,7 +1170,27 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
           return hooked && holder === w9
         }
       }
-      case 'lineout': {
+      case 'lineout': if (p.result === 'quick') {
+        // A QUICK THROW-IN: no lineout forms. The man who has it (the record's thrower) takes it at the
+        // touchline and throws it in five metres to a man of his side running onto it.
+        const tY = p.y < 35 ? 0 : 70, ts = tY === 0 ? 1 : -1
+        const named0 = who(p.who, s, 11), thrower = hyp(B[named0], ball) < 12 ? named0 : nearest(s, ball, [], false), named = who(p.with?.[0], s, 9)
+        const tSpot = { x: p.x, y: tY + ts * 0.5 }, rSpot = { x: p.x - d * 0.35, y: p.y }
+        // (the man the record names takes it if he is near; from across the field the nearest man does: nobody waits five seconds for him)
+        const recv = named !== thrower && hyp(B[named], rSpot) < 12 ? named : nearest(s, rSpot, [thrower], false)
+        let thrown = -1
+        return tau => {
+          ctx = { k: 'open', att: s, O: spot(p), tOut: Infinity, lean: ts }
+          ov[recv] = { x: rSpot.x, y: rSpot.y, v: 6 }
+          if (thrown < 0) {
+            if (holder !== thrower) { if (holder < 0 && !fly) { pickUp(thrower); ov[thrower] = { x: ball.x, y: ball.y, v: 6 } } else if (holder >= 0) give(thrower) }
+            else ov[thrower] = { x: tSpot.x, y: tSpot.y, v: 5 }
+            if (holder === thrower && hyp(B[thrower], tSpot) < 0.8 && (hyp(B[recv], rSpot) < 0.8 || tau > 5)) { thrown = tau; throwTo(recv, 0.45, 0.8) }
+            return false
+          }
+          return holder === recv && tau - thrown >= 0.5
+        }
+      } else {
         const X = p.x, tY = p.y < 35 ? 0 : 70, ts = tY === 0 ? 1 : -1
         const at = formLineout(s, X, tY)
         const thrower = who(p.who, s, 2)
@@ -1138,7 +1205,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
           if (caught) { ov[jumper] = { x: jSpot.x, y: jSpot.y, v: 5 } }
           if (thrown < 0) {
             give(thrower)
-            if (tau >= 0.6 && holder === thrower && (formed(at, 2, 4) || tau > 3.5)) {
+            if (tau >= 0.6 && holder === thrower && (((formed(at, 2, 4) || tau > 3.5) && (!caught || hyp(B[jumper], jSpot) < 0.6)) || tau > 6)) {
               thrown = tau
               if (caught) throwTo(jumper, 0.65, 3.5); else kickTo({ x: X, y: tY + ts * 6 }, 0.65, 3.5)
               if (!caught) mark()
@@ -1226,6 +1293,21 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
           // his side come to him; theirs walk back
           for (let k = 0; k < 15; k++) { const i = s * 15 + k; if (i !== scorer && !off[i] && hyp(B[i], at) < 25) ov[i] = { x: at.x - d * (3 + (k % 3)), y: inY(at.y + ((k % 5) - 2) * 2), v: 4 } }
           return tau - down0 >= 1.3
+        }
+      }
+      case 'offload': {
+        // AN OFFLOAD: in the tackle the carrier slips it to the man on his shoulder (the record's `with`)
+        const giver = holder >= 0 && sideOfSlot(holder) === s ? holder : who(p.who, s, 8)
+        const recv = who(p.with?.[0], s, 12)
+        const at = spot(p), rSpot = { x: at.x - d * 0.5, y: inY(at.y + (at.y < 35 ? 1.2 : -1.2)) }
+        let thrown = false
+        return tau => {
+          ctx = { k: 'open', att: s, O: at, tOut: Infinity, lean: at.y < 35 ? 1 : -1 }
+          ov[recv] = { x: rSpot.x, y: rSpot.y, v: V_CAP }
+          if (holder === giver) ov[giver] = { x: B[giver].x, y: B[giver].y, v: 1, a: 30 }
+          if (!thrown && holder === giver && (hyp(B[recv], rSpot) < 0.8 || tau > 4)) { thrown = true; throwTo(recv, 0.3, 0.4); down[giver] = 0.8 }
+          if (!thrown && holder < 0 && !fly) { pickUp(recv); ov[recv] = { x: ball.x, y: ball.y, v: V_CAP } }
+          return holder === recv && tau >= 0.3
         }
       }
       case 'penaltyTry': {
@@ -1346,7 +1428,8 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     const back = carrier % 15 >= 8
     const vRun = g.brk ? 8.8 : back ? 8.0 : 6.6
     return tau => {
-      ctx = { k: 'open', att: s, O: g.A, tOut: segs[n].a0 + g.pick, lean }
+      // (T: where the record has him stopped, so the line comes up to meet him there and no further)
+      ctx = { k: 'open', att: s, O: g.A, tOut: segs[n].a0 + g.pick, lean, T: g.brk || thief >= 0 ? undefined : g.B.x }
       // the man who has it: the 9 at the base (or the man the record says gave the pass, or whoever is there), the jumper, the catcher
       if (first < 0) {
         first = holder >= 0 && sideOfSlot(holder) === s ? holder
@@ -1439,6 +1522,13 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         const c = who(nx.who, nx.side, 15)
         put(c, { x: lerp(B[c].x, g.L.x, 0.5), y: lerp(B[c].y, g.L.y, 0.5), v: 7 })
       }
+    } else if (p.kind === 'dropGoal') {
+      // the drop-goal man drops back into the pocket behind the ruck
+      put(who(p.who, p.side, 10), { x: p.x - dirOf(p.side) * (soon ? 2.2 : 5), y: p.y, v: soon ? 8 : 6 })
+    } else if (p.kind === 'offload') {
+      // the support runner on the carrier's shoulder
+      const recv = who(p.with?.[0], p.side, 12), d2 = dirOf(p.side)
+      put(recv, { x: p.x - d2 * (soon ? 1.5 : 4), y: inY(p.y + (p.y < 35 ? 1.2 : -1.2)), v: soon ? 8 : 6 })
     } else if (p.kind === 'catch' && soon) {
       const c = who(p.who, p.side, 15)
       put(c, { x: p.x, y: p.y, v: V_CAP })
@@ -1467,7 +1557,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         ctx = { k: 'open', att: s, O: g.A, tOut: 0, lean: 1 }
         ov[kk] = { x: pocket.x, y: pocket.y, v: V_CAP }
         // the ball on the floor: the kicker takes it himself if he is on it, else the 9 (or whoever is nearest) picks it up and passes
-        if (first < 0) first = holder >= 0 && sideOfSlot(holder) === s ? holder : hyp(B[kk], ball) < 4 ? kk : nearest(s, ball, [], false)
+        if (first < 0) first = holder >= 0 && sideOfSlot(holder) === s ? holder : hyp(B[kk], ball) < 4 ? kk : nearest(s, ball, [catcher, charger], false)
         if (holder < 0 && !fly) { pickUp(first); ov[first] = { x: ball.x - d * 0.35, y: ball.y, v: V_CAP } }
         if (holder >= 0 && holder !== kk && !fly && tau > 0.25 && hyp(B[kk], pocket) < 4) throwTo(kk, clamp(hyp(ball, B[kk]) / 16, 0.3, 0.8), 0.8)
         if (holder >= 0 && holder !== kk) ov[holder] = { x: B[holder].x, y: B[holder].y, v: 1.5, a: 30 }
@@ -1478,7 +1568,8 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         const settled = hyp(B[kk], pocket) < (p.result === 'chargedDown' ? 0.7 : 2) || tau > g.pre + 0.8
         if (holder === kk && tau >= g.pre - 0.02 && settled) {
           kicked = tau; mark0At(p)
-          if (p.result === 'chargedDown') kickTo({ x: B[kk].x + d * 0.9, y: B[kk].y }, 0.15, 0.6)
+          // (off the charger's hands: a step back off him, or, when the record has them score off it, bouncing back over the kicker's own line)
+          if (p.result === 'chargedDown') kickTo(nx?.kind === 'try' ? { x: lineOf(o) + dirOf(o) * 1.2, y: inY(B[kk].y) } : { x: B[kk].x + d * 0.9, y: B[kk].y }, nx?.kind === 'try' ? 0.9 : 0.15, 0.6, nx?.kind === 'try')
           else {
             // (it hangs long enough for the man under it to get there, as the clips' kicks do)
             const need = catcher >= 0 ? hyp(B[catcher], g.L) / (vRun - 0.6) + 0.2 : 0
@@ -1490,6 +1581,8 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
       if (p.result === 'chargedDown') { ctx = { k: 'hold' }; if (charger >= 0) ov[charger] = { x: B[kk].x + d * 1.0, y: B[kk].y, v: 6 }; return !fly }
       ctx = { k: 'kick', kicker: s, L: g.L, lean: 1, quick }
       if (catcher >= 0) ov[catcher] = { x: g.L.x, y: inY(g.L.y), v: vRun }
+      // the receivers nearest where it will land come across to cover the catcher (behind and either side of him)
+      nearestN(o, g.L, 2, catcher >= 0 ? [catcher] : [], false).forEach((i, j) => { ov[i] = { x: g.L.x - dirOf(o) * 4, y: inY(g.L.y + (j ? 5 : -5)), v: quick ? 5 : 7 } })
       for (const i of chasers(s, g.L, 2)) if (i !== catcher && i !== kk) ov[i] = { x: g.L.x - d * 3, y: inY(g.L.y + ((i % 3) - 1) * 2.5), v: quick ? 5 : 8.6 }
       return !fly
     }
@@ -1506,7 +1599,11 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
   // ---- steering: the clips' arrive, with a top speed
   const steer = (b: Body, tx: number, ty: number, vmax: number, amax = A_PLAYER) => {
     const dx = tx - b.x, dy = ty - b.y, dist = Math.hypot(dx, dy)
-    const wantV = Math.min(vmax, dist * 2.4)
+    // (a dead band with a catch: a man on his spot stands still, and once settled he stays still until his place
+    // is half a metre off, rather than creeping after every small change of it, which fast forward shows as a twitch)
+    if (b.rest && dist < 0.5) { b.vx *= 0.6; b.vy *= 0.6; return }
+    b.rest = dist < 0.15 && Math.hypot(b.vx, b.vy) < 0.4
+    const wantV = dist < 0.15 ? 0 : Math.min(vmax, (dist - 0.15) * 2.4)
     const dvx = (dist > 1e-6 ? dx / dist * wantV : 0) - b.vx, dvy = (dist > 1e-6 ? dy / dist * wantV : 0) - b.vy
     let ax = dvx * 8, ay = dvy * 8
     const a = Math.hypot(ax, ay)
@@ -1526,12 +1623,14 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
       for (let c = a + 1; c < 30; c++) {
         const q = B[c]
         const dx = q.x - p.x, dy = q.y - p.y
-        if (dx > 1.3 || dx < -1.3 || dy > 1.3 || dy < -1.3) continue
+        if (dx > ROOM_M || dx < -ROOM_M || dy > ROOM_M || dy < -ROOM_M) continue
         if ((fl[a] & 2 && fl[c] & 2) || a === holder || c === holder || off[a] || off[c]) continue
         const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist >= 1.3 || dist < 1e-6) continue
-        const push = Math.min(0.02, (1.3 - dist) / 2)
-        p.x -= dx / dist * push; p.y -= dy / dist * push; q.x += dx / dist * push; q.y += dy / dist * push
+        if (dist >= ROOM_M || dist < 1e-6) continue
+        if (ROOM_M - dist < 0.06) continue
+        // (into their velocity, not their position: a shove the steering absorbs, rather than a step it pulls back every frame)
+        const push = Math.min(0.6, (ROOM_M - dist) * 1.5)
+        p.vx -= dx / dist * push; p.vy -= dy / dist * push; q.vx += dx / dist * push; q.vy += dy / dist * push
       }
     }
   }
@@ -1588,6 +1687,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     // ---- the lateral anchors: slow in open play and under a kick, quick when nobody is in his shape
     // (under a kick everyone holds his lane, and so does the anchor: the side moves across once the ball is caught)
     if ((ctx as Ctx).k !== 'kick') updateAnchors((ctx as Ctx).k === 'form' || (ctx as Ctx).k === 'hold')
+    bxs += (ball.x - bxs) * Math.min(1, DT / 0.9)
     // ---- the men
     for (let i = 0; i < 30; i++) {
       const b = B[i]
@@ -1683,18 +1783,25 @@ export function expectedAt(p: Play, next?: Play): { x?: number; y?: number; tol:
   if (p.kind === 'kickoff' && next?.kind === 'restartError') return { tol: Infinity }
   switch (p.kind) {
     case 'conversion': return { y: clamp(p.y, 5, 65), tol: 1.5 }
-    case 'dropGoal': return { x: p.x, y: p.y, tol: 2.5 }
+    // (struck 1.8 m behind the ruck the record puts it at)
+    case 'dropGoal': return { x: p.x - dirOf(p.side) * 1.8, y: p.y, tol: 1.6 }
     case 'try': case 'heldUp': return { x: p.x, y: clamp(p.y, 1, 69), tol: 2.5 }
     case 'notStraight': case 'restartError': case 'unplayable': case 'forwardPass': return { tol: Infinity }
     // (a forward pass is written where it was thrown from: it is caught a stride or two in front of that)
     case 'carry': return p.result === 'forwardPass' ? { x: p.x, y: p.y, tol: 4 } : { x: p.x, y: p.y, tol: 1.6 }
+    // (an offload is taken a stride from the tackle the record puts it at)
+    case 'offload': return { x: p.x, y: p.y, tol: 2.5 }
     case 'kick': return p.result === 'outOnFull' ? { y: p.y, tol: 2 } : { x: p.x, y: p.y, tol: 1.6 }
     case 'kickoff': return { x: p.x, tol: 2 }
-    case 'knockOn': case 'scrum': case 'maul': return { x: p.x, y: p.y, tol: 2.6 }
+    case 'knockOn': case 'maul': return { x: p.x, y: p.y, tol: 2.6 }
+    // (the ball comes back to the No. 8's feet, 1.8 m behind the mark, and the 9 has it there)
+    case 'scrum': return { x: p.x, y: p.y, tol: 3 }
     case 'lineout': return { x: p.x, y: p.y, tol: p.result === 'won' || p.result === 'stolen' ? 1.6 : 1.6 }
     case 'intoTouch': return { x: p.x, y: p.y, tol: 1.6 }
     case 'deadBall': return { tol: Infinity }
     case 'yellowCard': case 'redCard': case 'halfTime': case 'fullTime': return { tol: Infinity }
+    // (a substitution is made while the ball is dead: its x, y is where play was, not where the ball is)
+    case 'substitution': return { tol: Infinity }
     default: return { x: p.x, y: p.y, tol: 1.6 }
   }
 }
@@ -1728,6 +1835,7 @@ function chipOf(p: Play): string {
     case 'fullTime': return 'lp.fullTime'
     case 'ruck': return p.result === 'turnover' ? 'lp.turnover' : 'lp.ruck'
     case 'try': case 'penaltyTry': return 'lp.try'
+    case 'lineBreak': return 'lp.lineBreak'
     default: return 'lp.carry'
   }
 }
@@ -1760,7 +1868,7 @@ export class RecordFeed {
   down: number[] = new Array(30).fill(0)
   off: boolean[] = new Array(30).fill(false)
   private fl: number[] = new Array(30).fill(0)
-  phase: { kind: PhaseKindLike; homeBall: boolean; at: number; label: string; x: number; y: number } | null = null
+  phase: { kind: PhaseKindLike; homeBall: boolean; at: number; label: string; x: number; y: number; fallback?: string } | null = null
   landed = false
   readonly pending = false
   readonly reached = true
@@ -1774,7 +1882,7 @@ export class RecordFeed {
   /** a routine phase the picture is travelling through (the screen shows the fast-forward mark) */
   condensed = false
   /** the fast-forward mark: a condensed passage, or the clock well over life speed */
-  get ff(): boolean { return this.condensed || this.speed >= 2.6 }
+  get ff(): boolean { return this.condensed || this.speed >= 1.5 }
   flash: { label: string; home: boolean; n: number; vars?: Record<string, string | number> } | null = null
   says: { k: string; home: boolean; src: number }[] = []
   banner: FeedBanner | null = null
@@ -1786,7 +1894,11 @@ export class RecordFeed {
     this.read()
   }
   get length(): number { return this.tl.total }
-  step(dt: number) { if (this.done) return; this.view = Math.min(this.length, this.view + dt); this.read() }
+  /** the clock on dt seconds; the picture is read once, when it is drawn (sync) */
+  step(dt: number) { if (this.done) return; this.view = Math.min(this.length, this.view + dt); this.dirty = true; this.done = this.view >= this.length - 1e-6 }
+  private dirty = false
+  /** read the picture at the clock, if it has moved since it was last read (LivePitch calls this before drawing) */
+  sync() { if (this.dirty) { this.dirty = false; this.read() } }
   seek(v: number) { this.view = clamp(v, 0, this.length); this.read() }
   private read() {
     const a = animAt(this.tl, this.view)
@@ -1804,7 +1916,8 @@ export class RecordFeed {
     this.speed = this.tl.rate[clamp(Math.floor(a * FPS), 0, this.bk.n - 1)] ?? 1
     this.condensed = !!seg.condensed
     if (!this.phase || this.phase.at !== n) {
-      this.phase = { kind: KIND[p.kind] ?? 'hold', homeBall: fr.poss === 0, at: n, label: chipOf(p), x: p.x, y: p.y }
+      // (lp.lineBreak is asked for in the locales, requests.md: until it is there the chip says it in English)
+      this.phase = { kind: KIND[p.kind] ?? 'hold', homeBall: fr.poss === 0, at: n, label: chipOf(p), x: p.x, y: p.y, fallback: p.kind === 'lineBreak' ? 'Line break' : undefined }
       const fk = FLASH[p.kind] ?? (p.kind === 'ruck' && p.result === 'turnover' ? 'lp.turnover' : p.kind === 'kick' && p.result === 'chargedDown' ? 'lp.chargeDown' : undefined)
       if (fk) this.flash = { label: fk, home: (p.kind === 'knockOn' || p.kind === 'forwardPass' || p.kind === 'intoTouch' ? p.side : p.ball) === 0, n }
       // a condensed passage: the phase count it gets to, on the plate, while the picture travels
@@ -1854,7 +1967,8 @@ export class RecordFeed {
  * jackal, passer), a chase of a kick or a drop back under one (straight, within 35 degrees),
  * the side that has just lost the ball getting back behind it (straight), a man going to or
  * from the bin, or a window with a dissolve in it (the owner's fades). Also the worst
- * whole-side slide: the mean sideways move of a side's men over two seconds.
+ * whole-side slide: the mean sideways move of a side's men over two seconds, where the side is not
+ * going towards a ball 5 m or more off its middle (a side drifting after a switch is meant).
  */
 export function oddRuns(bk: Baked, sides?: [RecSide, RecSide]) {
   const P = bk.plays, W = 2 * FPS
@@ -1881,6 +1995,14 @@ export function oddRuns(bk: Baked, sides?: [RecSide, RecSide]) {
     if (!chase) for (const s of [0, 1]) {
       let sy = 0, c = 0
       for (let k = 0; k < 15; k++) { const i = s * 15 + k; if (bk.flags[fr * 30 + i] & 4 || named(n, i)) continue; sy += bk.pos[fr * 62 + i * 2 + 1] - bk.pos[(fr - W) * 62 + i * 2 + 1]; c++ }
+      // (a side going across towards a ball 5 m or more off its middle is following it, as the owner asked
+      // after a switch: the slide looked for is one with no ball to go to)
+      let my = 0
+      for (let k = 0; k < 15; k++) my += bk.pos[(fr - W) * 62 + (s * 15 + k) * 2 + 1]
+      // (where the ball is now, or was during the two seconds)
+      let follows = false
+      for (let q = fr - W; q <= fr && !follows; q += 10) { const off = bk.ball[q * 3 + 1] - my / 15; follows = Math.abs(off) >= 5 && Math.sign(off) === Math.sign(sy) }
+      if (follows) continue
       if (c && Math.abs(sy / c) > slide) { slide = Math.abs(sy / c); slideAt = n }
     }
     for (let i = 0; i < 30; i++) {
@@ -1942,4 +2064,51 @@ export function oddRuns(bk: Baked, sides?: [RecSide, RecSide]) {
   spreads.sort((a, b) => a - b)
   const flat = spreads.length ? spreads.filter(v => v < 6).length / spreads.length : 1
   return { runs, odd, across, back, slide, slideAt, byKind, sample, wingShare: wingFrames ? wingOff / wingFrames : 0, flat, spreadMedian: spreads[spreads.length >> 1] ?? 0 }
+}
+
+// =====================================================================
+// SMOOTHNESS ON SCREEN (owner, 22 Nov 2026 22:13: "I believe we can get there with smoothness")
+// =====================================================================
+
+/**
+ * What the phone shows, frame by frame at SCREEN_FPS: the view clock stepped a 60th of a second at a
+ * time, positions read back exactly as the screen reads them (frameAt, blended between baked frames),
+ * and measured in pixels on the phone pitch (PX_PER_M). Frames that cross one of the owner's dissolves
+ * are left out. Reports the most any man and the ball move between two frames, the most a man's
+ * movement changes from one frame to the next (jerk), how often a man who is all but still twitches
+ * back and forth, the biggest change of clock rate between frames, and the seconds at life speed,
+ * in fast forward and in a close finish.
+ */
+export function screenSmooth(bk: Baked, tl: Timeline) {
+  const step = 1 / SCREEN_FPS
+  const cutA = bk.cuts.map(f => f / FPS)
+  let prev: Frame | null = null, prevA = 0
+  const lastV = new Float32Array(31 * 2)
+  let manMax = 0, ballMax = 0, jerkMax = 0, jitter = 0, rateStep = 0, prevRate = tl.rate[0] || 1
+  const men: number[] = [], jerks: number[] = [], jitKinds: Record<string, number> = {}, P = bk.plays
+  let slowS = 0, ffS = 0, closeS = 0
+  for (let v = 0; v < tl.total; v += step) {
+    const a = animAt(tl, v), f = Math.min(bk.n - 1, Math.floor(a * FPS))
+    const r = tl.rate[f]
+    if (tl.slow[f] === 1) slowS += step; else if (tl.slow[f] === 2) closeS += step; else ffS += step
+    // (the change of speed from one screen frame to the next, as a share)
+    rateStep = Math.max(rateStep, Math.abs(r / prevRate - 1)); prevRate = r
+    const fr = frameAt(bk, a)
+    if (prev && !cutA.some(c => c > prevA - 1 / FPS - 1e-9 && c <= a + 1 / FPS + 1e-9)) {
+      for (let i = 0; i < 30; i++) {
+        const dx = (fr.men[i].x - prev.men[i].x) * PX_PER_M, dy = (fr.men[i].y - prev.men[i].y) * PX_PER_M, d = Math.hypot(dx, dy)
+        if (fr.flags[i] & 4) continue
+        men.push(d); manMax = Math.max(manMax, d)
+        const jx = dx - lastV[i * 2], jy = dy - lastV[i * 2 + 1], j = Math.hypot(jx, jy)
+        jerks.push(j); jerkMax = Math.max(jerkMax, j)
+        // a near-still man going back the way he came: a twitch
+        if (d > 0.05 && d < 0.6 && Math.hypot(lastV[i * 2], lastV[i * 2 + 1]) > 0.05 && dx * lastV[i * 2] + dy * lastV[i * 2 + 1] < 0) { jitter++; const k2 = P[bk.seg[f]].kind; jitKinds[k2] = (jitKinds[k2] ?? 0) + 1 }
+        lastV[i * 2] = dx; lastV[i * 2 + 1] = dy
+      }
+      ballMax = Math.max(ballMax, Math.hypot(fr.ball.x - prev.ball.x, fr.ball.y - prev.ball.y) * PX_PER_M)
+    } else lastV.fill(0)
+    prev = fr; prevA = a
+  }
+  const q = (xs: number[], p: number) => { const s2 = Float32Array.from(xs).sort(); return s2[Math.min(s2.length - 1, Math.floor(p * s2.length))] ?? 0 }
+  return { jitKinds, manMax, manP999: q(men, 0.999), ballMax, jerkMax, jerkP999: q(jerks, 0.999), jitterPerMin: jitter / (tl.total / 60), rateStep, slowS, ffS, closeS }
 }

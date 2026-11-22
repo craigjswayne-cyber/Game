@@ -22,7 +22,7 @@ import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture } from '../src/game/model'
 import { worldFromMatch, type SimSide } from '../src/game/sim/fromMatch'
-import { bake, bakeOf, expectedAt, FPS, oddRuns, schedule, SCREEN_MAN, TARGET_S, timeline, type Baked } from '../src/ui/livepitch/fromRecord'
+import { bake, bakeOf, BALL_PX, BUILD_MIN, CLOSE_FROM, CLOSE_MARGIN, CLOSE_RATE, expectedAt, FPS, MAN_PX, oddRuns, schedule, SCREEN_MAN, screenSmooth, TARGET_S, timeline, type Baked } from '../src/ui/livepitch/fromRecord'
 
 function realMatch(seed: number): { plays: Play[]; sides: [SimSide, SimSide] } {
   const g = newGame('leicester', 'T', seed)
@@ -34,6 +34,7 @@ function realMatch(seed: number): { plays: Play[]; sides: [SimSide, SimSide] } {
 }
 
 interface Faults {
+  smooth: ReturnType<typeof screenSmooth>; buildNotSlow: string[]; closeFast: string[]
   holderGap: number; manSpeed: number; ballSpeed: number; carryBack: number; screenSpeed: number
   keyNotShown: string[]; condensed: number
   marks: string[]; sides: string[]; view: number; where: Record<string, string>
@@ -42,7 +43,7 @@ interface Faults {
 /** every check over one baked match: the worst of each, and where it was */
 function measure(bk: Baked): Faults {
   const P = bk.plays
-  const f: Faults = { holderGap: 0, manSpeed: 0, ballSpeed: 0, carryBack: 0, screenSpeed: 0, keyNotShown: [], condensed: 0, marks: [], sides: [], view: 0, where: {} }
+  const f: Faults = { smooth: null as unknown as ReturnType<typeof screenSmooth>, buildNotSlow: [], closeFast: [], holderGap: 0, manSpeed: 0, ballSpeed: 0, carryBack: 0, screenSpeed: 0, keyNotShown: [], condensed: 0, marks: [], sides: [], view: 0, where: {} }
   const tl = timeline(bk)
   // (a dissolve the owner allows, before a lineout, a conversion, a kick at goal, after half-time, is the one place things move at once)
   const cut = new Set(bk.cuts)
@@ -94,6 +95,22 @@ function measure(bk: Baked): Faults {
     if (bk.poss[fr] !== p.ball || (h >= 0 && (h < 15 ? 0 : 1) !== p.ball)) f.sides.push(`play ${g.n} ${p.kind}/${p.result}: shown with side ${bk.poss[fr]}, held by ${h}, record ball ${p.ball}`)
   }
   f.view = tl.total
+  f.smooth = screenSmooth(bk, tl)
+  // THE BUILD-UP TO A TRY AT LIFE SPEED: at least the last BUILD_MIN seconds of the passage before it
+  // (the whole passage, up to 35 s, when the match has time for it)
+  for (let n = 0; n < P.length; n++) {
+    if (P[n].kind !== 'try') continue
+    const g = bk.segs[n]
+    let st = n
+    while (st > 0 && P[st - 1].ball === P[n].side && !['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'halfTime', 'kickoff', 'yellowCard', 'redCard'].includes(P[st - 1].kind)) st--
+    const from = Math.max(bk.segs[st].a0, g.a0 - BUILD_MIN)
+    for (let fr = Math.ceil(from * FPS) + 1; fr < Math.floor(g.a0 * FPS); fr++) if (Math.abs(tl.rate[fr] - 1) > 1e-6) { f.buildNotSlow.push(`try at play ${n}: ${tl.rate[fr].toFixed(2)}x ${((g.a0 - fr / FPS)).toFixed(1)} s before it`); break }
+  }
+  // A CLOSE GAME'S LAST FIVE MINUTES are slower: no faster than CLOSE_RATE
+  const at75 = P.findIndex(p => (p.clock ?? p.t) >= CLOSE_FROM)
+  if (at75 > 0 && Math.abs(P[at75 - 1].score[0] - P[at75 - 1].score[1]) <= CLOSE_MARGIN) {
+    for (let fr = Math.ceil(bk.segs[at75].a0 * FPS) + Math.round(FPS * 2); fr < bk.n; fr++) if (tl.rate[fr] > CLOSE_RATE + 1e-6) { f.closeFast.push(`close finish at ${tl.rate[fr].toFixed(2)}x`); break }
+  }
   return f
 }
 
@@ -106,8 +123,8 @@ describe('the stadium pitch plays the record', () => {
     const sch = schedule(plays)
     expect(sch.map(s => s.n)).toEqual(plays.map(p => p.n))
     for (let k = 1; k < sch.length; k++) expect(sch[k].start).toBeGreaterThanOrEqual(sch[k - 1].start + sch[k - 1].dur - 1e-6)
-    // (a condensed play is passed through in a moment; every other play takes time; fades only where the owner allows them)
-    for (const s of sch) { if (!s.condensed) expect(s.dur).toBeGreaterThan(0); if (s.fade) expect(['lineout', 'conversion', 'penaltyGoal', 'kickoff']).toContain(plays[s.n].kind) }
+    // (every play is shown: nothing condensed, owner 22 Nov 2026 22:13; fades only where he allows them)
+    for (const s of sch) { expect(s.condensed).toBe(false); expect(s.dur).toBeGreaterThan(0); if (s.fade) expect(['lineout', 'conversion', 'penaltyGoal', 'kickoff']).toContain(plays[s.n].kind) }
   })
 
   const seeds = [4242, ...Array.from({ length: 19 }, (_, i) => i + 1)]
@@ -140,6 +157,7 @@ describe('the stadium pitch plays the record', () => {
     expect(worst.screenSpeed).toBeLessThanOrEqual(SCREEN_MAN + 0.05)
     expect(worst.carryBack).toBeLessThanOrEqual(2.5)
     expect(keys).toEqual([])
+    expect(condensed).toBe(0)
     expect(marks).toEqual([])
     expect(sides).toEqual([])
   }, 300_000)
@@ -155,7 +173,9 @@ describe('the stadium pitch plays the record', () => {
       const m = realMatch(seed), bk = bakeOf(m.plays, m.sides), r = oddRuns(bk, m.sides)
       rows.push(`seed ${seed}: odd runs ${r.odd} of ${r.runs} long runs, worst side slide ${r.slide.toFixed(1)} m, wings off their lane ${(100 * r.wingShare).toFixed(1)}%, flat line at ${(100 * r.flat).toFixed(0)}% of rucks (median spread ${r.spreadMedian.toFixed(1)} m)`)
       if (seed === 4242) expect(r.odd).toBeLessThanOrEqual(BEFORE * 0.15)
-      // (a side drifting with the play; the aim was about 4 m, measured 4.0 to 4.3)
+      // (a side sliding across with no ball to go to: under 5 m in two seconds, the overseer's S03 limit. A side
+      // going across towards a ball 5 m or more off its middle is following it, as round 4 asked after a switch,
+      // and oddRuns leaves it out)
       expect(r.slide).toBeLessThan(5)
       expect(r.wingShare).toBeLessThan(0.1)
       expect(r.flat).toBeGreaterThan(0.8)
@@ -163,9 +183,29 @@ describe('the stadium pitch plays the record', () => {
     console.log('simpitch shape:\n' + rows.join('\n'))
   }, 300_000)
 
-  it(`an Extended match takes 4.5 to 5.5 minutes to watch (TARGET_S ${TARGET_S} s)`, () => {
-    const views = all().map(r => r.f.view)
-    console.log('simpitch minutes:', views.map(v => (v / 60).toFixed(2)).join(' '))
-    for (const v of views) { expect(v).toBeGreaterThanOrEqual(270); expect(v).toBeLessThanOrEqual(330) }
+  it(`an Extended match takes 7 to 9 minutes to watch (TARGET_S ${TARGET_S} s), try build-ups at life speed, close finishes slower`, () => {
+    const rows = all()
+    console.log('simpitch minutes:', rows.map(r => (r.f.view / 60).toFixed(2)).join(' '))
+    for (const r of rows) { expect(r.f.view).toBeGreaterThanOrEqual(420); expect(r.f.view).toBeLessThanOrEqual(540) }
+    const build = rows.flatMap(r => r.f.buildNotSlow.map(x => `seed ${r.seed} ${x}`)), close = rows.flatMap(r => r.f.closeFast.map(x => `seed ${r.seed} ${x}`))
+    if (build.length) console.log(build.slice(0, 8).join('\n'))
+    if (close.length) console.log(close.slice(0, 8).join('\n'))
+    expect(build).toEqual([])
+    expect(close).toEqual([])
+  }, 300_000)
+
+  // SMOOTH ON SCREEN (owner, 22 Nov 2026 22:13: "I believe we can get there with smoothness"): at 60 frames a
+  // second on the phone pitch, every man moves at most MAN_PX and the ball BALL_PX between frames, a man's
+  // movement never jumps from one frame to the next, and the speed is never stepped
+  it('is smooth on screen at 60 frames a second over twenty fixtures', () => {
+    const rows = all().map(r => ({ seed: r.seed, ...r.f.smooth }))
+    const w = (k: 'manMax' | 'ballMax' | 'jerkP999' | 'jerkMax' | 'rateStep' | 'jitterPerMin') => Math.max(...rows.map(r => r[k]))
+    console.log('simpitch smooth:', JSON.stringify({ manMax: w('manMax'), ballMax: w('ballMax'), jerkMax: w('jerkMax'), jerkP999: w('jerkP999'), rateStep: w('rateStep'), jitterPerMin: w('jitterPerMin') }))
+    expect(w('manMax')).toBeLessThanOrEqual(MAN_PX + 0.05)
+    expect(w('ballMax')).toBeLessThanOrEqual(BALL_PX + 0.05)
+    // (a change of more than 2 px in a man's step from one frame to the next is a pop)
+    expect(w('jerkP999')).toBeLessThanOrEqual(2)
+    // (no frame more than an eighth quicker or slower than the one before)
+    expect(w('rateStep')).toBeLessThanOrEqual(0.125)
   }, 300_000)
 })
