@@ -138,7 +138,7 @@ export default function Legacy() {
         }
         return (
           <div className="card">
-            <div className="meta">{clockLine(game)}</div>
+            {clockLine(game) && <div className="meta">{clockLine(game)}</div>}
             {mayRetire(game) && (
               <>
                 <div className="meta" style={{ marginTop: 8 }}>

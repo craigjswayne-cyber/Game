@@ -177,7 +177,13 @@ function fold(state: GameState, prev: PressMood | undefined): PressMood {
     if (r.abs <= pm.at) return
     let n = 0
     for (let j = i; j >= 0 && reads[j].res === r.res; j--) n++
-    v = v * 0.9 + resultShift(r, n, !!r.fx.derby || isDerby(r.fx.homeId, r.fx.awayId))
+    // TEST RUGBY SWINGS HARDER (owner, 1.9.17: "the media barometer should be
+    // more swingy on international duty"). A country plays a handful of Tests
+    // a year and each one is the only story that week: every result moves the
+    // needle twice as far, and less of last month's feeling survives it. One
+    // defeat as favourites is sceptical; a second is hostile.
+    const test = !state.clubs[side]
+    v = v * (test ? 0.8 : 0.9) + resultShift(r, n, !!r.fx.derby || isDerby(r.fx.homeId, r.fx.awayId)) * (test ? 2 : 1)
     moved = true
   })
   if (!moved && now > pm.at && pm.at >= 0) v *= 0.95
