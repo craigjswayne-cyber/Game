@@ -32,7 +32,8 @@ import { K } from './skeleton'
 export interface Line {
   /** the index of the Play this line describes */
   n: number
-  /** the match clock of that Play, in seconds */
+  /** the referee's clock at that Play (Play.clock), in seconds: what the screen shows as the minute.
+   *  The second half starts at 2400. (Play.t, the playing time, for records made before clock existed.) */
   t: number
   key: string
   params: Record<string, string | number>
@@ -75,17 +76,17 @@ export const FALLBACK = new Set(['dropOut', 'dropGl', 'scrum', 'lo', 'pen', 'fre
 
 const ANY: PlayKind[] = ['kickoff', 'dropout22', 'goalLineDropout', 'scrum', 'lineout', 'tap', 'carry', 'ruck', 'maul', 'lineBreak', 'kick', 'catch',
   'knockOn', 'forwardPass', 'notStraight', 'unplayable', 'restartError', 'intoTouch', 'outOnFull', 'deadBall', 'heldUp', 'penalty', 'freeKick',
-  'try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'yellowCard', 'redCard', 'halfTime', 'fullTime']
+  'try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'yellowCard', 'redCard', 'halfTime', 'fullTime', 'substitution']
 
 /** the kinds of Play each base may be written for */
 export const BASE_KINDS: Record<string, PlayKind[]> = {
   zoneOwnEnd: [], zoneOwnHalf: [], zoneOppHalf: [], zoneOppEnd: [],
-  koStart: ['kickoff'], koSecond: ['kickoff'], koAfterScore: ['kickoff'], restartError: ['restartError'],
+  koStart: ['kickoff'], koSecond: ['kickoff'], koAfterScore: ['kickoff'], restartNotTen: ['restartError'], restartOut: ['restartError'],
   dropDead: ['dropout22'], dropPenMiss: ['dropout22'], dropDropMiss: ['dropout22'], dropOut: ['dropout22'],
   dropGlHeld: ['goalLineDropout'], dropGlTouched: ['goalLineDropout'], dropGl: ['goalLineDropout'],
   catchKo: ['catch'], regatherKo: ['catch'], catchKick: ['catch'], regatherKick: ['catch'], catchDrop: ['catch'], regatherDrop: ['catch'], chargeRegather: ['catch'],
-  carryBig: ['carry'], carryBack: ['carry'], carryTouch: ['carry'], phases: ['ruck'], turnover: ['ruck'],
-  breakClean: ['lineBreak'], breakHauled: ['lineBreak'], breakLastGasp: ['lineBreak'], forwardPass: ['forwardPass'],
+  carryBig: ['carry'], carryBack: ['carry'], carryTouch: ['carry'], intercepted: ['carry'], phases: ['ruck'], turnover: ['ruck'],
+  breakClean: ['lineBreak'], breakHauled: ['lineBreak'], breakLastGasp: ['lineBreak'], interceptRun: ['lineBreak'], interceptHauled: ['lineBreak'], forwardPass: ['forwardPass'],
   unplayableRuck: ['unplayable'], unplayableMaul: ['unplayable'],
   koKnock: ['knockOn'], highKnock: ['knockOn'], chaseKnock: ['knockOn'], contactKnock: ['knockOn'],
   kickBox: ['kick'], kickLong: ['kick'], kickHigh: ['kick'], kickGrubber: ['kick'], kickOther: ['kick'], kickTouch: ['kick'], penTouch: ['kick'],
@@ -98,17 +99,20 @@ export const BASE_KINDS: Record<string, PlayKind[]> = {
   maulOut: ['maul'], maulNoGain: ['maul'], maulOver: ['maul'], maulDown: ['maul'],
   penRuckDef: ['penalty'], penRuckAtt: ['penalty'], penScrum: ['penalty'], penMaul: ['penalty'], penLineout: ['penalty'], penKick: ['penalty'], pen: ['penalty'],
   freeScrum: ['freeKick'], freeLineout: ['freeKick'], free: ['freeKick'], tapPen: ['tap'], tapFree: ['tap'],
-  yellowCynical: ['yellowCard'], yellowFoul: ['yellowCard'], yellowPenTry: ['yellowCard'], red: ['redCard'], binBack: ANY, penaltyTry: ['penaltyTry'],
-  tryClose: ['try'], tryWide: ['try'], tryBreak: ['try'], tryMaul: ['try'], tryCharge: ['try'], tryAgain: ['try'],
+  yellowCynical: ['yellowCard'], yellowFoul: ['yellowCard'], yellowPenTry: ['yellowCard'], red: ['redCard'], binBack: ANY, subMade: ['substitution'], subRefused: ['substitution'], penaltyTry: ['penaltyTry'],
+  tryClose: ['try'], tryWide: ['try'], tryBreak: ['try'], tryMaul: ['try'], tryCharge: ['try'], tryInterception: ['try'], tryAgain: ['try'],
   heldUp: ['heldUp'], heldUpMaul: ['heldUp'], conOver: ['conversion'], conWide: ['conversion'],
   penAim: ['penaltyGoal'], penOver: ['penaltyGoal'], penWide: ['penaltyGoal'], dropOver: ['dropGoal'], dropWide: ['dropGoal'],
   run: ['conversion', 'penaltyGoal', 'dropGoal', 'penaltyTry'],
   halfTime: ['halfTime'], fullTime: ['fullTime'], tries: ['halfTime', 'fullTime'], possession: ['halfTime', 'fullTime'], winBy: ['fullTime'], draw: ['fullTime'],
   territory: ['scrum', 'lineout', 'penalty'],
+  // the reasons for a penalty: words put inside a line ({cause_k}), never a line of their own
+  ...Object.fromEntries(Object.keys(SIM_EN).filter(b => b.startsWith('cause')).map(b => [b, [] as PlayKind[]])),
 }
 
-/** placeholders that name a man: a wording is only used when each it names is named */
-const NAME_PH = ['player', 'player2', 'oppPlayer'] as const
+/** placeholders the record may or may not fill (a man's name, the reason for a penalty): a wording is
+ *  only used when each it holds is filled, and the wording that says the most is preferred */
+const NAME_PH = ['player', 'player2', 'oppPlayer', 'cause_k'] as const
 const NEEDS: Record<string, string[][]> = Object.fromEntries(
   Object.entries(SIM_EN).map(([b, list]) => [b, list.map(s => NAME_PH.filter(k => s.includes(`{${k}}`)))]),
 )
@@ -151,6 +155,13 @@ export function possession(plays: Play[], upto: number): [number, number] {
   return w
 }
 
+/** the key for a penalty's reason, when the words have one */
+const causeKey = (c: string | undefined) => {
+  if (!c) return undefined
+  const b = 'cause' + c[0].toUpperCase() + c.slice(1)
+  return SIM_EN[b] ? `sim.${b}1` : undefined
+}
+
 export function commentate(result: SimResult, names: Names): Line[] {
   const plays = result.plays
   const T = names.teams
@@ -160,13 +171,17 @@ export function commentate(result: SimResult, names: Names): Line[] {
     try { return names.player(id) || '' } catch { return '' }
   }
   const other = (s: 0 | 1): 0 | 1 => (s === 0 ? 1 : 0)
+  const CARD = new Set(['yellowCard', 'redCard'])
 
   // what the record has told us so far
+  /** men in the bin: the Play.t each comes back */
   const bins: { side: 0 | 1; until: number }[] = []
+  /** men back from the bin whose return is still to be said (a return is not said at a card) */
+  const back: (0 | 1)[] = []
   const reds: [number, number] = [0, 0]
+  const onField = (side: 0 | 1) => 15 - reds[side] - bins.filter(x => x.side === side).length
   const tryCount = new Map<string, number>()
-  /** which side a man is on, learned from plays where only his own side can be named */
-  const idSide = new Map<string, 0 | 1>()
+  /** the referee's clock when this half began */
   let halfStart = 0
   let lastTerr = -Infinity
   let runSide: 0 | 1 | null = null, runPts = 0, runSaid = 0
@@ -174,6 +189,7 @@ export function commentate(result: SimResult, names: Names): Line[] {
 
   for (const p of plays) {
     const n = p.n
+    const clock = p.clock ?? p.t
     let j = 0
     const say = (base: string, level: Line['level'], side: 0 | 1 | null, extra: Record<string, string | number | undefined> = {}) => {
       const params: Record<string, string | number> = {}
@@ -186,30 +202,25 @@ export function commentate(result: SimResult, names: Names): Line[] {
       const c = ok.filter(i => NEEDS[base][i].length === most)
       const i = c[mix(n * 131 + j * 17 + strHash(base)) % c.length]
       j++
-      out.push({ n, t: p.t, key: `sim.${base}${i + 1}`, params, level, side })
+      out.push({ n, t: clock, key: `sim.${base}${i + 1}`, params, level, side })
     }
-    const prev = plays[n - 1] as Play | undefined
-    /** the play before, stepping back over cards (a card comes between a penalty and what is done with it) */
-    const before = (() => { let i = n - 1; while (i >= 0 && (plays[i].kind === 'yellowCard' || plays[i].kind === 'redCard')) i--; return plays[i] as Play | undefined })()
+    /** the play before, stepping back over substitutions (made while the ball is dead, between a stoppage and its restart) */
+    const prev = (() => { let i = n - 1; while (i >= 0 && plays[i].kind === 'substitution') i--; return plays[i] as Play | undefined })()
+    /** the same, stepping back over cards too (a card comes between a penalty and what is done with it) */
+    const before = (() => { let i = n - 1; while (i >= 0 && (CARD.has(plays[i].kind) || plays[i].kind === 'substitution')) i--; return plays[i] as Play | undefined })()
     const s = p.side, o = other(s)
     const score = { home: T[0], away: T[1], hs: p.score[0], as: p.score[1] }
 
-    // learn sides from roles that can only be the side's own man
-    if (p.who && (p.kind === 'carry' || p.kind === 'kick' || p.kind === 'catch' || p.kind === 'lineBreak')) idSide.set(p.who, s)
-
-    // a man back from the bin
-    for (let b = bins.length - 1; b >= 0; b--) {
-      if (p.t >= bins[b].until) {
-        const side = bins[b].side
-        bins.splice(b, 1)
-        const men = 15 - reds[side] - bins.filter(x => x.side === side).length
-        say('binBack', 'normal', side, { men })
-      }
+    // men back from the bin (by the record's own return second), said at the first play that is not a card
+    for (let b = bins.length - 1; b >= 0; b--) if (p.t >= bins[b].until) { back.push(bins[b].side); bins.splice(b, 1) }
+    if (!CARD.has(p.kind)) {
+      for (const side of back) say('binBack', 'normal', side, { men: onField(side) })
+      back.length = 0
     }
 
     switch (p.kind) {
       case 'kickoff': {
-        if (prev?.kind === 'halfTime') halfStart = p.t - p.live - p.dead
+        if (prev?.kind === 'halfTime') halfStart = p.clock !== undefined ? 2400 : p.t - p.live - p.dead
         const base = !prev ? 'koStart' : prev.kind === 'halfTime' ? 'koSecond' : 'koAfterScore'
         say(base, 'normal', s, { player: nm(p.who) })
         break
@@ -226,7 +237,8 @@ export function commentate(result: SimResult, names: Names): Line[] {
       case 'carry': {
         const player = nm(p.who), oppPlayer = nm(p.vs?.[0]), g = p.gain ?? 0
         if (p.result === 'intoTouch') say('carryTouch', 'normal', s, { player, oppPlayer })
-        else if (p.result === 'gainLine' && g >= 10) say('carryBig', 'normal', s, { player, m: Math.round(g) })
+        else if (p.result === 'intercepted') say('intercepted', 'key', s, { player, oppPlayer })
+        else if (p.result === 'gainLine' && g >= 10) say('carryBig', 'normal', s, { player, player2: nm(p.with?.[0]), m: Math.round(g) })
         else if ((p.result === 'held' || p.result === 'gainLine') && g <= -2.5) say('carryBack', 'minor', s, { player, oppPlayer })
         break
       }
@@ -241,12 +253,14 @@ export function commentate(result: SimResult, names: Names): Line[] {
         break
       }
       case 'lineBreak': {
-        const player = nm(p.who), oppPlayer = nm(p.vs?.[0])
-        if (p.result === 'clean') say('breakClean', 'key', s, { player })
+        const player = nm(p.who), oppPlayer = nm(p.vs?.[0]), player2 = nm(p.with?.[0])
+        if (p.result === 'interception') say('interceptRun', 'key', s, { player })
+        else if (p.result === 'interceptionHauled') say('interceptHauled', 'key', s, { player, oppPlayer, zone_k: zoneKey(s, p.x) })
+        else if (p.result === 'clean') say('breakClean', 'key', s, { player, player2 })
         else {
           const d = toLine(s, p.x)
           if (d <= 5) say('breakLastGasp', 'key', s, { player, oppPlayer, d: Math.max(1, Math.round(d)) })
-          else say('breakHauled', 'key', s, { player, oppPlayer, m: Math.round(p.gain ?? 0) })
+          else say('breakHauled', 'key', s, { player, player2, oppPlayer, m: Math.round(p.gain ?? 0) })
         }
         break
       }
@@ -274,71 +288,71 @@ export function commentate(result: SimResult, names: Names): Line[] {
         say(base, 'normal', s, { player, oppPlayer: base === 'contactKnock' ? nm(p.vs?.[0]) : undefined })
         break
       }
-      case 'forwardPass': say('forwardPass', 'normal', s, { player: nm(p.who) }); break
+      // the passer and the man it was meant for, only when the record names both (`who` alone may be either)
+      case 'forwardPass': say('forwardPass', 'normal', s, p.with?.[0] ? { player: nm(p.who), player2: nm(p.with[0]) } : {}); break
       case 'unplayable': say(prev?.kind === 'maul' ? 'unplayableMaul' : 'unplayableRuck', 'normal', s); break
-      case 'restartError': say('restartError', 'normal', s); break
+      case 'restartError': say(p.result === 'outOnFull' ? 'restartOut' : 'restartNotTen', 'normal', s, { player: prev?.kind === 'kickoff' && prev.side === s ? nm(prev.who) : '' }); break
       case 'intoTouch': {
         if (p.result === 'bounced') say('bouncedOut', 'normal', s, { player: prev?.kind === 'kick' && prev.side === s ? nm(prev.who) : '' })
         break
       }
       case 'deadBall': say(p.result === 'touchedDown' ? 'touchedDown' : 'ranDead', 'normal', s); break
       case 'heldUp': {
-        if (prev?.kind === 'maul') say('heldUpMaul', 'key', s)
-        else say('heldUp', 'key', s, { player: prev?.kind === 'carry' && prev.side === s ? nm(prev.who) : '' })
+        if (prev?.kind === 'maul') say('heldUpMaul', 'key', s, { player: nm(p.who) })
+        else say('heldUp', 'key', s, { player: nm(p.who) || (prev?.kind === 'carry' && prev.side === s ? nm(prev.who) : '') })
         break
       }
       case 'dropout22': {
         const base = prev?.kind === 'deadBall' && prev.side === o ? 'dropDead'
           : prev?.kind === 'penaltyGoal' && prev.side === o ? 'dropPenMiss'
           : prev?.kind === 'dropGoal' && prev.side === o ? 'dropDropMiss' : 'dropOut'
-        say(base, 'normal', s)
+        say(base, 'normal', s, { player: nm(p.who) })
         break
       }
       case 'goalLineDropout': {
         const base = prev?.kind === 'heldUp' && prev.side === o ? 'dropGlHeld' : prev?.kind === 'deadBall' && prev.side === o ? 'dropGlTouched' : 'dropGl'
-        say(base, 'normal', s)
+        say(base, 'normal', s, { player: nm(p.who) })
         break
       }
       case 'penalty': {
-        const zone_k = zoneKey(s, p.x)
-        if (prev?.kind === 'ruck' && prev.result === 'penaltyWon' && prev.side === s) say('penRuckDef', 'normal', s, { zone_k, oppPlayer: nm(prev.vs?.[0]) })
-        else if (prev?.kind === 'ruck' && prev.result === 'penaltyLost' && prev.side === o) say('penRuckAtt', 'normal', s, { zone_k, player: nm(prev.vs?.[0]) })
-        else if (prev?.kind === 'scrum' && prev.result === 'penaltyWon' && prev.side === s) say('penScrum', 'normal', s, { zone_k, oppPlayer: nm(prev.vs?.[0]) })
-        else if (prev?.kind === 'scrum' && prev.result === 'penaltyLost' && prev.side === o) say('penScrum', 'normal', s, { zone_k, oppPlayer: nm(prev.who) })
-        else if (prev?.kind === 'maul' && prev.result === 'pulledDown' && prev.side === s) say('penMaul', 'normal', s, { zone_k })
-        else if (prev?.kind === 'lineout' && prev.result === 'penalty') say('penLineout', 'normal', s, { zone_k })
-        else if (prev?.kind === 'kick' && prev.result === 'inPlay') say('penKick', 'normal', s, { zone_k })
-        else say('pen', 'normal', s, { zone_k })
+        const zone_k = zoneKey(s, p.x), cause_k = causeKey(p.cause)
+        // the man penalised: the record's offender, else the man the play before names against this side
+        const off = (fallback: string | undefined) => nm(p.offender) || nm(fallback)
+        if (prev?.kind === 'ruck' && prev.result === 'penaltyWon' && prev.side === s) say('penRuckDef', 'normal', s, { zone_k, cause_k, oppPlayer: off(prev.vs?.[0]) })
+        else if (prev?.kind === 'ruck' && prev.result === 'penaltyLost' && prev.side === o) say('penRuckAtt', 'normal', s, { zone_k, cause_k, player: nm(prev.vs?.[0]), oppPlayer: nm(p.offender) })
+        else if (prev?.kind === 'scrum' && prev.result === 'penaltyWon' && prev.side === s) say('penScrum', 'normal', s, { zone_k, cause_k, oppPlayer: off(prev.vs?.[0]) })
+        else if (prev?.kind === 'scrum' && prev.result === 'penaltyLost' && prev.side === o) say('penScrum', 'normal', s, { zone_k, cause_k, oppPlayer: off(prev.who) })
+        else if (prev?.kind === 'maul' && prev.result === 'pulledDown' && prev.side === s) say('penMaul', 'normal', s, { zone_k, cause_k, oppPlayer: off(prev.vs?.[0]) })
+        else if (prev?.kind === 'lineout' && prev.result === 'penalty') say('penLineout', 'normal', s, { zone_k, cause_k, oppPlayer: nm(p.offender) })
+        else if (prev?.kind === 'kick' && prev.result === 'inPlay') say('penKick', 'normal', s, { zone_k, cause_k, oppPlayer: nm(p.offender) })
+        else say('pen', 'normal', s, { zone_k, cause_k, oppPlayer: nm(p.offender) })
         break
       }
       case 'freeKick': {
         const base = prev?.kind === 'scrum' && prev.result === 'freeKick' ? 'freeScrum' : prev?.kind === 'lineout' && prev.result === 'penalty' ? 'freeLineout' : 'free'
-        say(base, 'normal', s)
+        say(base, 'normal', s, { cause_k: causeKey(p.cause), oppPlayer: base === 'free' ? undefined : nm(p.offender) })
         break
       }
-      case 'tap': say(before?.kind === 'freeKick' ? 'tapFree' : 'tapPen', 'normal', s); break
+      case 'tap': say(before?.kind === 'freeKick' ? 'tapFree' : 'tapPen', 'normal', s, { player: nm(p.who) }); break
       case 'yellowCard': {
-        bins.push({ side: s, until: p.t - p.live - p.dead + K.BIN_S })
-        const men = 15 - reds[s] - bins.filter(x => x.side === s).length
-        say(p.result === 'cynical' ? 'yellowCynical' : p.result === 'penaltyTry' ? 'yellowPenTry' : 'yellowFoul', 'key', s, { player: nm(p.who), men })
+        bins.push({ side: s, until: p.until ?? p.t - p.live - p.dead + K.BIN_S })
+        say(p.result === 'cynical' ? 'yellowCynical' : p.result === 'penaltyTry' ? 'yellowPenTry' : 'yellowFoul', 'key', s, { player: nm(p.who), men: onField(s) })
         break
       }
       case 'redCard': {
         reds[s]++
-        const men = 15 - reds[s] - bins.filter(x => x.side === s).length
-        say('red', 'key', s, { player: nm(p.who), men })
+        say('red', 'key', s, { player: nm(p.who), men: onField(s) })
         break
       }
+      case 'substitution': say(p.result === 'made' ? 'subMade' : 'subRefused', 'normal', s, { player: nm(p.who), player2: nm(p.with?.[0]) }); break
       case 'try': {
-        let who = p.who
-        // a charge-down try: the record's scorer is named only if he is known to be on the scoring side
-        if (p.result === 'chargeDown' && who && idSide.get(who) !== s) who = undefined
-        const player = nm(who)
-        const base = p.result === 'close' ? 'tryClose' : p.result === 'wide' ? 'tryWide' : p.result === 'break' ? 'tryBreak' : p.result === 'maul' ? 'tryMaul' : 'tryCharge'
-        say(base, 'key', s, { player })
-        if (who) {
-          const c = (tryCount.get(who) ?? 0) + 1
-          tryCount.set(who, c)
+        const player = nm(p.who)
+        const base = p.result === 'close' ? 'tryClose' : p.result === 'wide' ? 'tryWide' : p.result === 'break' ? 'tryBreak' : p.result === 'maul' ? 'tryMaul'
+          : p.result === 'interception' ? 'tryInterception' : 'tryCharge'
+        say(base, 'key', s, { player, player2: nm(p.with?.[0]) })
+        if (p.who) {
+          const c = (tryCount.get(p.who) ?? 0) + 1
+          tryCount.set(p.who, c)
           if (c >= 2 && player) say('tryAgain', 'key', s, { player, count: c })
         }
         break
@@ -350,7 +364,7 @@ export function commentate(result: SimResult, names: Names): Line[] {
         say(p.good ? 'penOver' : 'penWide', 'key', s, { player: nm(p.who), ...score })
         break
       }
-      case 'dropGoal': say(p.good ? 'dropOver' : 'dropWide', 'key', s, { m: toPosts(s, p.x, p.y), ...(p.good ? score : {}) }); break
+      case 'dropGoal': say(p.good ? 'dropOver' : 'dropWide', 'key', s, { player: nm(p.who), m: toPosts(s, p.x, p.y), ...(p.good ? score : {}) }); break
       case 'scrum': {
         const reason = prev?.kind === 'knockOn' && prev.side === o ? 'scrumKnock'
           : prev?.kind === 'forwardPass' && prev.side === o ? 'scrumForward'
@@ -359,12 +373,12 @@ export function commentate(result: SimResult, names: Names): Line[] {
           : prev?.kind === 'restartError' && prev.side === o ? 'scrumRestart'
           : before?.kind === 'penalty' && before.side === s ? 'scrumChoice' : 'scrum'
         say(reason, 'normal', s)
-        if (p.result === 'againstTheHead') say('scrumAgainstHead', 'normal', s)
+        if (p.result === 'againstTheHead') say('scrumAgainstHead', 'normal', s, { oppPlayer: nm(p.vs?.[0]) })
         else if (p.result === 'freeKick') say('scrumFree', 'normal', s)
         break
       }
       case 'lineout': {
-        const pp = plays[n - 2] as Play | undefined
+        const pp = prev ? (() => { let i = prev.n - 1; while (i >= 0 && plays[i].kind === 'substitution') i--; return plays[i] as Play | undefined })() : undefined
         const reason = prev?.kind === 'intoTouch' && prev.side === o ? (prev.result === 'carried' ? 'loCarried' : 'loBounced')
           : prev?.kind === 'kick' && prev.result === 'touch' && prev.side === o ? (pp?.kind === 'freeKick' ? 'loFreeTouch' : 'loTouch')
           : prev?.kind === 'kick' && prev.result === 'penaltyToTouch' && prev.side === s ? 'loPen'
@@ -374,14 +388,14 @@ export function commentate(result: SimResult, names: Names): Line[] {
         if (p.result === 'won') say('loWon', 'minor', s, { player: nm(p.who), player2: nm(p.with?.[0]) })
         else if (p.result === 'stolen') say('loStolen', 'normal', s, { player: nm(p.who), oppPlayer: nm(p.vs?.[0]) })
         else if (p.result === 'notStraight') say('loNotStraight', 'normal', s, { player: nm(p.who) })
-        else if (p.result === 'penalty') say('loPenalty', 'normal', s)
+        else if (p.result === 'penalty') say('loPenalty', 'normal', s, { player: nm(p.who) })
         break
       }
       case 'maul': {
-        const g = Math.round(p.gain ?? 0)
-        if (p.result === 'ballOut') say(g >= 3 ? 'maulOut' : 'maulNoGain', 'minor', s, { m: g })
-        else if (p.result === 'driven') say('maulOver', 'key', s)
-        else if (p.result === 'pulledDown') say('maulDown', 'normal', s)
+        const g = Math.round(p.gain ?? 0), player = nm(p.who)
+        if (p.result === 'ballOut') say(g >= 3 ? 'maulOut' : 'maulNoGain', 'minor', s, { m: g, player })
+        else if (p.result === 'driven') say('maulOver', 'key', s, { player })
+        else if (p.result === 'pulledDown') say('maulDown', 'normal', s, { oppPlayer: nm(p.vs?.[0]), player })
         break
       }
       case 'halfTime':
@@ -415,8 +429,9 @@ export function commentate(result: SimResult, names: Names): Line[] {
       runSaid = runPts
     }
 
-    // territory over the last ten minutes, said at a stoppage, at most every fifteen minutes, and only ten minutes into a half
-    if ((p.kind === 'scrum' || p.kind === 'lineout' || p.kind === 'penalty') && p.t - halfStart >= 600 && p.t - lastTerr >= 900) {
+    // territory over the last ten minutes of play, said at a stoppage, at most every fifteen minutes,
+    // and only once the referee's clock is ten minutes into the half
+    if ((p.kind === 'scrum' || p.kind === 'lineout' || p.kind === 'penalty') && clock - halfStart >= 600 && p.t - lastTerr >= 900) {
       const w = territory(plays, n, p.t - 600), tot = w[0] + w[1]
       if (tot >= 120) {
         for (const side of [0, 1] as const) {

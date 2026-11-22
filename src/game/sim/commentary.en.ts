@@ -11,6 +11,7 @@
 //   {player} {player2} men of {team}; {oppPlayer} a man of {opp}
 //   {home} {away} {hs} {as} the score, home first, as the record has it
 //   {m} metres, {d} metres from the line, {phase}, {pct}, {men}, {count}
+//   {cause_k} what a penalty was for ('sim.causeSealingOff1': "sealing off"), from Play.cause
 //   a placeholder ending in _k holds another key ('sim.zoneOppEnd1'), which is
 //   put into words first.
 // No pronouns for the players: the game has women's sides, and "he" or "she"
@@ -24,6 +25,54 @@ export const SIM_EN: Record<string, string[]> = {
   zoneOwnHalf: ['in their own half'],
   zoneOppHalf: ['in the {opp} half'],
   zoneOppEnd: ['inside the {opp} 22'],
+  causeHandsInRuck: [
+    'hands in the ruck',
+  ],
+  causeOffside: [
+    'being offside',
+  ],
+  causeNotRollingAway: [
+    'not rolling away',
+  ],
+  causeHighTackle: [
+    'a high tackle',
+  ],
+  causeHoldingOn: [
+    'holding on',
+  ],
+  causeSealingOff: [
+    'sealing off',
+  ],
+  causeObstruction: [
+    'obstruction',
+  ],
+  causeCollapsing: [
+    'collapsing',
+  ],
+  causeStandingUp: [
+    'standing up',
+  ],
+  causeNotBinding: [
+    'not binding',
+  ],
+  causeEarlyEngagement: [
+    'engaging early',
+  ],
+  causeCollapsingMaul: [
+    'collapsing the maul',
+  ],
+  causeOffsideAtLineout: [
+    'being offside at the lineout',
+  ],
+  causeClosingTheGap: [
+    'closing the gap',
+  ],
+  causeOffsideAtKick: [
+    'being offside at the kick',
+  ],
+  causeNotReleasing: [
+    'not letting the ball go in the tackle',
+  ],
 
   // ---- restarts ----
   koStart: [
@@ -40,30 +89,46 @@ export const SIM_EN: Record<string, string[]> = {
     '{player} restarts for {team}.',
     'Back to halfway: {player} kicks off for {team}.',
   ],
-  restartError: [
-    'The {team} kick-off is no good: short of ten metres, or straight out.',
-    '{team} get the restart wrong. It does not go ten, or it goes straight out.',
+  restartNotTen: [
+    'The {team} kick-off does not go ten metres.',
+    '{team} kick off short: it does not make the ten metres.',
+    'Short from {player}: the kick-off does not go ten metres.',
+  ],
+  restartOut: [
+    'The {team} kick-off goes straight out on the full.',
+    '{player} kicks off and it goes straight out, on the full.',
   ],
   dropDead: [
     '22 drop-out to {team}: the {opp} kick went dead.',
     'The {opp} kick ran dead, so {team} restart with a 22 drop-out.',
+    'The {opp} kick ran dead. {player} takes the 22 drop-out for {team}.',
   ],
   dropPenMiss: [
     '22 drop-out to {team} after the missed penalty.',
     'The penalty missed, so {team} restart from their 22.',
+    'The penalty missed. {player} restarts from the 22 for {team}.',
   ],
   dropDropMiss: [
     '22 drop-out to {team} after the missed drop goal.',
+    '{player} takes the 22 drop-out for {team} after the missed drop goal.',
   ],
-  dropOut: ['22 drop-out to {team}.'],
+  dropOut: [
+    '22 drop-out to {team}.',
+    '{player} takes the 22 drop-out for {team}.',
+  ],
   dropGlHeld: [
     'Goal-line drop-out to {team} after holding {opp} up.',
     '{team} held them up, so it is a goal-line drop-out to {team}.',
+    '{team} held them up. {player} restarts from the goal line.',
   ],
   dropGlTouched: [
     'Goal-line drop-out to {team}, who touched the {opp} kick down in their in-goal.',
+    '{team} touched the {opp} kick down, so {player} restarts from the goal line.',
   ],
-  dropGl: ['Goal-line drop-out to {team}.'],
+  dropGl: [
+    'Goal-line drop-out to {team}.',
+    '{player} takes the goal-line drop-out for {team}.',
+  ],
 
   // ---- catches ----
   catchKo: [
@@ -104,6 +169,8 @@ export const SIM_EN: Record<string, string[]> = {
     '{team} make {m} metres with that carry.',
     '{player} makes {m} metres for {team}.',
     'Good carry from {player}: {m} metres.',
+    '{player2} gives it to {player}, who makes {m} metres.',
+    '{player} takes the pass from {player2} and makes {m} metres for {team}.',
   ],
   carryBack: [
     '{opp} drive {team} back in the tackle.',
@@ -114,6 +181,11 @@ export const SIM_EN: Record<string, string[]> = {
     '{team} are bundled into touch.',
     '{player} is bundled into touch by {oppPlayer}.',
     '{player} runs out of room and is put into touch.',
+  ],
+  intercepted: [
+    'Intercepted! {opp} pick it off.',
+    'Intercepted! {oppPlayer} picks off the pass meant for {player}.',
+    '{oppPlayer} reads it and steps in front of {player}. Intercepted!',
   ],
   phases: [
     '{team} are through {phase} phases, {zone_k}.',
@@ -130,20 +202,32 @@ export const SIM_EN: Record<string, string[]> = {
     '{team} are through! A clean break.',
     '{player} is through! A clean break for {team}.',
     'Line break! {player} is away for {team}.',
+    'Line break! {player2} sends {player} through for {team}.',
   ],
   breakHauled: [
     '{team} break the line and make {m} metres before {opp} get back.',
     'Line break! {player} makes {m} metres before {oppPlayer} brings it down.',
     '{player} is through the line for {team}, {m} metres, and {oppPlayer} makes the tackle.',
+    '{player2} puts {player} through the line! {m} metres before {oppPlayer} makes the tackle.',
   ],
   breakLastGasp: [
     'What a tackle! {team} break clear but {opp} stop it {d} metres short.',
     'Try-saver! {player} breaks clear and {oppPlayer} hauls it down {d} metres short.',
     '{player} is through, but {oppPlayer} gets back and stops it {d} metres from the line!',
   ],
+  interceptRun: [
+    '{team} are away with the interception!',
+    '{player} is away with the interception!',
+    '{player} has the interception and nobody will catch {team} now.',
+  ],
+  interceptHauled: [
+    '{team} run the interception back before {opp} get across, {zone_k}.',
+    '{player} runs the interception back before {oppPlayer} makes the tackle, {zone_k}.',
+  ],
   forwardPass: [
     'Forward pass by {team}.',
-    'The pass to {player} is forward.',
+    'The pass from {player} to {player2} is forward.',
+    'Forward! {player} throws it forward to {player2}.',
   ],
   unplayableRuck: [
     'The ball will not come out of the {team} ruck. Scrum.',
@@ -266,6 +350,7 @@ export const SIM_EN: Record<string, string[]> = {
   scrumAgainstHead: [
     'Against the head! {opp} shove {team} off their own ball.',
     '{opp} win it against the head!',
+    'Against the head! {oppPlayer} and the {opp} pack shove {team} off their own ball.',
   ],
   scrumFree: [
     'The referee has seen something at the scrum: free kick.',
@@ -313,58 +398,91 @@ export const SIM_EN: Record<string, string[]> = {
   ],
   loPenalty: [
     'The referee blows at the lineout.',
+    '{player} throws in, and the referee blows.',
   ],
   maulOut: [
     '{team} drive the maul {m} metres and use it.',
     'The {team} maul rumbles on {m} metres.',
+    '{team} drive the maul {m} metres, and {player} at the back uses it.',
   ],
   maulNoGain: [
     'The {team} maul goes nowhere, and they use the ball.',
+    'The {team} maul goes nowhere, and {player} at the back uses it.',
   ],
   maulOver: [
     'The {team} maul is driven over the line!',
     '{team} drive the maul over the line!',
+    '{team} drive the maul over the line, {player} at the back!',
   ],
   maulDown: [
     '{opp} pull the {team} maul down.',
+    '{oppPlayer} pulls the {team} maul down.',
+    '{oppPlayer} pulls down the {team} maul, with {player} at the back.',
   ],
 
   // ---- penalties and free kicks ----
   penRuckDef: [
     'Penalty to {team} at the breakdown, {zone_k}.',
-    'Penalty to {team} at the breakdown, {zone_k}. {oppPlayer} is penalised.',
-    '{oppPlayer} is penalised at the breakdown. Penalty to {team}, {zone_k}.',
+    'Penalty to {team} at the breakdown, {zone_k}, for {cause_k}.',
+    '{oppPlayer} is penalised at the breakdown for {cause_k}. Penalty to {team}, {zone_k}.',
+    'Penalty to {team}, {zone_k}: {oppPlayer} is pinged for {cause_k} at the breakdown.',
   ],
   penRuckAtt: [
     'Penalty to {team} at the breakdown, {zone_k}.',
-    '{player} gets over the ball and wins a penalty for {team}, {zone_k}.',
-    'Penalty to {team}, {zone_k}: {player} won that one over the ball.',
+    'Penalty to {team} at the breakdown, {zone_k}, for {cause_k}.',
+    '{player} gets over the ball and {oppPlayer} is penalised for {cause_k}. Penalty to {team}, {zone_k}.',
+    'Penalty to {team} at the breakdown, {zone_k}: {oppPlayer} is penalised for {cause_k}.',
   ],
   penScrum: [
     'Penalty to {team} at the scrum, {zone_k}.',
-    'Penalty to {team} at the scrum, {zone_k}. {oppPlayer} is penalised.',
-    '{oppPlayer} is penalised at the scrum. Penalty to {team}.',
+    'Penalty to {team} at the scrum, {zone_k}, for {cause_k}.',
+    '{oppPlayer} is penalised for {cause_k} at the scrum. Penalty to {team}, {zone_k}.',
+    'Penalty to {team} at the scrum, {zone_k}: {oppPlayer}, {cause_k}.',
   ],
   penMaul: [
     'Penalty to {team}, {zone_k}: {opp} pulled the maul down.',
+    'Penalty to {team}, {zone_k}: {oppPlayer} pulled the maul down.',
+    'Penalty to {team}, {zone_k}: {oppPlayer} is penalised for {cause_k}.',
   ],
   penLineout: [
     'Penalty to {team} at the lineout, {zone_k}.',
+    'Penalty to {team} at the lineout, {zone_k}, for {cause_k}.',
+    'Penalty to {team} at the lineout, {zone_k}: {oppPlayer} is penalised for {cause_k}.',
   ],
   penKick: [
     'Penalty to {team} as the kick comes down, {zone_k}.',
-    'The referee blows after the kick: penalty to {team}, {zone_k}.',
+    'Penalty to {team} after the kick, {zone_k}, for {cause_k}.',
+    'Penalty to {team} after the kick, {zone_k}: {oppPlayer} is penalised for {cause_k}.',
+    'As the kick comes down, {oppPlayer} is penalised for {cause_k}. Penalty to {team}, {zone_k}.',
   ],
-  pen: ['Penalty to {team}, {zone_k}.'],
-  freeScrum: ['Free kick to {team} at the scrum.'],
-  freeLineout: ['Free kick to {team} at the lineout.'],
-  free: ['Free kick to {team}.'],
+  pen: [
+    'Penalty to {team}, {zone_k}.',
+    'Penalty to {team}, {zone_k}, for {cause_k}.',
+    'Penalty to {team}, {zone_k}: {oppPlayer} is penalised for {cause_k}.',
+  ],
+  freeScrum: [
+    'Free kick to {team} at the scrum.',
+    'Free kick to {team} at the scrum, for {cause_k}.',
+    'Free kick to {team} at the scrum: {oppPlayer} is penalised for {cause_k}.',
+  ],
+  freeLineout: [
+    'Free kick to {team} at the lineout.',
+    'Free kick to {team} at the lineout, for {cause_k}.',
+    'Free kick to {team} at the lineout: {oppPlayer} is penalised for {cause_k}.',
+  ],
+  free: [
+    'Free kick to {team}.',
+    'Free kick to {team}, for {cause_k}.',
+  ],
   tapPen: [
     '{team} tap the penalty and go!',
     'Quick tap from {team}!',
+    '{player} taps the penalty and goes for {team}!',
+    'Quick tap from {player}!',
   ],
   tapFree: [
     '{team} take the free kick quickly.',
+    '{player} takes the free kick quickly for {team}.',
   ],
 
   // ---- cards ----
@@ -388,21 +506,33 @@ export const SIM_EN: Record<string, string[]> = {
     '{team} are back to {men}.',
     'The ten minutes are up: {team} are back to {men}.',
   ],
+  subMade: [
+    'Change for {team}: {player2} comes on for {player}.',
+    '{team} make a change: {player} off, {player2} on.',
+  ],
+  subRefused: [
+    '{team} want to bring {player2} on for {player}, but the change is not allowed.',
+  ],
 
   // ---- scores ----
   tryClose: [
     'TRY! {team} go over from close range.',
     'TRY! {player} goes over from close range for {team}.',
     'TRY! {player} powers over for {team}.',
+    'TRY! {player2} puts {player} over from close range for {team}.',
+    'TRY! {player} takes the pass from {player2} and powers over for {team}.',
   ],
   tryWide: [
     'TRY! {team} finish it out wide.',
     'TRY! {player} finishes out wide for {team}.',
+    'TRY! {player2} gives the scoring pass and {player} finishes out wide for {team}.',
+    'TRY! {player} takes the pass from {player2} and finishes out wide for {team}.',
   ],
   tryBreak: [
     'TRY! {team} run it in.',
     'TRY! {player} runs it in for {team}.',
     'TRY! Nobody can catch {player}. Over for {team}.',
+    'TRY! {player} takes the pass from {player2} and runs it in for {team}.',
   ],
   tryMaul: [
     'TRY! {team} touch down off the drive.',
@@ -411,6 +541,11 @@ export const SIM_EN: Record<string, string[]> = {
   tryCharge: [
     'TRY! {team} score off the charge-down.',
     'TRY! {player} scores off the charge-down for {team}.',
+  ],
+  tryInterception: [
+    'TRY! {team} score from the interception.',
+    'TRY! {player} runs in the interception for {team}.',
+    'TRY! {player} goes the distance with the interception for {team}.',
   ],
   tryAgain: [
     'That is try number {count} for {player}.',
@@ -426,6 +561,7 @@ export const SIM_EN: Record<string, string[]> = {
   ],
   heldUpMaul: [
     'The {team} maul goes over, but it is held up!',
+    'The {team} maul goes over, but {player} is held up!',
   ],
   conOver: [
     '{team} convert. {home} {hs}, {away} {as}.',
@@ -453,9 +589,11 @@ export const SIM_EN: Record<string, string[]> = {
   ],
   dropOver: [
     'DROP GOAL! {team} slot it over from {m} metres. {home} {hs}, {away} {as}.',
+    'DROP GOAL! {player} slots it over from {m} metres for {team}. {home} {hs}, {away} {as}.',
   ],
   dropWide: [
     '{team} try a drop goal from {m} metres, but it goes wide.',
+    '{player} tries a drop goal from {m} metres, but it goes wide.',
   ],
   run: [
     '{team} have scored {count} points without reply.',

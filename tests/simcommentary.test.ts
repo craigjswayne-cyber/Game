@@ -6,7 +6,7 @@
 // is worked out again here, independently, and found true, and a re-run reads
 // the same.
 import { describe, it, expect } from 'vitest'
-import { simSkeleton } from '../src/game/sim/skeleton'
+import { simSkeleton, simWithDecisions } from '../src/game/sim/skeleton'
 import { commentate, render, SILENT, SUMMARY, FALLBACK, BASE_KINDS, type Line } from '../src/game/sim/commentary'
 import { SIM_EN, EN_FLAT } from '../src/game/sim/commentary.en'
 import type { Play, SimResult } from '../src/game/sim/record'
@@ -27,15 +27,25 @@ const namedWorld = (): World => {
     thrower: s => id(s, 'h'),
     jumper: (s, r) => id(s, 'l', r),
     forward: (s, r) => id(s, 'f', r),
+    // the bench says yes to every change but one man (so both a change made and one refused are in the record)
+    decide: d => (d.kind === 'substitution' && d.on.endsWith('r9') ? 'no such man on the bench' : ''),
   }
 }
 const names = { teams: TEAMS, player: (id: string) => `P${id}` }
 const SEEDS = Array.from({ length: 200 }, (_, i) => i + 1)
 const runs: { r: SimResult; lines: Line[] }[] = SEEDS.map(seed => {
-  const r = simSkeleton({ seed, world: namedWorld() })
+  // one match in four has the manager changing men at 50 and 60 minutes
+  const r = seed % 4 ? simSkeleton({ seed, world: namedWorld() }) : simWithDecisions({ seed, world: namedWorld(), decisions: [
+    { at: { clock: 3000 }, decision: { kind: 'substitution', side: 0, off: '0:c3', on: '0:r1' } },
+    { at: { clock: 3600 }, decision: { kind: 'substitution', side: 1, off: '1:c5', on: '1:r9' } },
+  ] })
   return { r, lines: commentate(r, names) }
 })
 const baseOf = (key: string) => key.replace(/^sim\./, '').replace(/\d+$/, '')
+/** a penalty whose reason the words can give (every one in today's record) */
+const P0 = (_r: SimResult, p: Play) => !!p.offender
+/** the play before n, stepping over substitutions (made at a dead ball, between a stoppage and its restart) */
+const prevOf = (P: Play[], n: number, skipCards = false) => { let i = n - 1; while (i >= 0 && (P[i].kind === 'substitution' || (skipCards && (P[i].kind === 'yellowCard' || P[i].kind === 'redCard')))) i--; return P[i] }
 const pair = (p: Play) => `${p.kind}/${p.result}`
 const other = (s: 0 | 1): 0 | 1 => (s === 0 ? 1 : 0)
 
@@ -58,7 +68,7 @@ describe('the commentary is true to the record', () => {
         const p = r.plays[l.n]
         expect(p, `line ${l.key} n ${l.n}`).toBeDefined()
         expect(p.n).toBe(l.n)
-        expect(l.t).toBe(p.t)
+        expect(l.t, 'a line carries the referee\'s clock').toBe(p.clock ?? p.t)
         expect(BASE_KINDS[baseOf(l.key)], l.key).toContain(p.kind)
         expect(l.n, 'lines are in the order of the record').toBeGreaterThanOrEqual(last)
         last = l.n
@@ -115,7 +125,7 @@ describe('the commentary is true to the record', () => {
     }
     for (const { r, lines } of runs) for (const l of lines) {
       const f = PREV[baseOf(l.key)]
-      if (f) expect(f(r.plays[l.n - 1], r.plays[l.n]), `${l.key} at ${l.n} after ${pair(r.plays[l.n - 1])}`).toBe(true)
+      if (f) { const q = prevOf(r.plays, l.n); expect(f(q, r.plays[l.n]), `${l.key} at ${l.n} after ${pair(q)}`).toBe(true) }
     }
   })
 
@@ -124,7 +134,10 @@ describe('the commentary is true to the record', () => {
     for (const { r, lines } of runs) for (const l of lines) {
       const b = baseOf(l.key)
       if (b !== 'penTouch' && b !== 'fiftyTwentyTwo' && b !== 'outFull') continue
-      const k = r.plays[l.n], lo = r.plays[l.n + 1]
+      const k = r.plays[l.n]
+      let li = l.n + 1
+      while (r.plays[li].kind === 'substitution') li++
+      const lo = r.plays[li]
       // (the whistle can go before the lineout is taken: the kick's own line promises no throw)
       if (lo.kind === 'halfTime' || lo.kind === 'fullTime') continue
       expect(lo.kind).toBe('lineout')
@@ -171,7 +184,12 @@ describe('the commentary is true to the record', () => {
           const ok = all.includes(`P${id}`)
           ;(ok ? named : missed).set(why, ((ok ? named : missed).get(why) ?? 0) + 1)
         }
-        if (p.kind === 'try' && p.result !== 'chargeDown') want(p.who, 'try scorer')
+        if (p.kind === 'try') { want(p.who, 'try scorer'); want(p.with?.[0], 'scoring pass') }
+        if (p.kind === 'dropGoal' || p.kind === 'dropout22' || p.kind === 'goalLineDropout') want(p.who, 'kicker')
+        if (p.kind === 'tap' || p.kind === 'heldUp' || p.kind === 'maul') want(p.who, p.kind)
+        if (p.kind === 'substitution') { want(p.who, 'man off'); want(p.with?.[0], 'man on') }
+        if ((p.kind === 'penalty' || p.kind === 'freeKick') && P0(r, p)) want(p.offender, 'offender')
+        if (p.kind === 'carry' && p.result === 'intercepted') want(p.vs?.[0], 'interceptor')
         if (p.kind === 'conversion' || p.kind === 'penaltyGoal') want(p.who, 'goal kicker')
         if (p.kind === 'kick' || p.kind === 'kickoff') want(p.who, 'kicker')
         if (p.kind === 'catch') want(p.who, 'catcher')
@@ -204,8 +222,8 @@ describe('the commentary is true to the record', () => {
           // ball-in-play seconds in each half of the field, this half of the match, last ten minutes of clock
           let half = 0
           for (let i = 0; i < l.n; i++) if (P[i].kind === 'halfTime') half = i + 1
-          const start = half === 0 ? 0 : P[half].t - P[half].live - P[half].dead
-          expect(p.t - start, 'not in the first ten minutes of a half').toBeGreaterThanOrEqual(600)
+          // ten minutes on the referee's clock into the half
+          expect((p.clock ?? p.t) - (half === 0 ? 0 : 2400), 'not in the first ten minutes of a half').toBeGreaterThanOrEqual(600)
           const w = [0, 0]
           for (let i = half; i <= l.n; i++) if (P[i].t > p.t - 600 && P[i].live > 0) { if (P[i].x > 50) w[0] += P[i].live; else if (P[i].x < 50) w[1] += P[i].live }
           const pct = Math.round(100 * w[l.side!] / (w[0] + w[1]))
@@ -251,14 +269,15 @@ describe('the commentary is true to the record', () => {
           expect(l.params.count).toBe(c)
         }
         if (b.startsWith('yellow') || b === 'red' || b === 'binBack') {
-          // men on the field: fifteen, less reds so far, less yellows within their ten minutes
+          // men on the field: fifteen, less reds so far, less yellows not yet back (the record's `until`)
           let men = 15
           for (let i = 0; i <= l.n; i++) {
             const q = P[i]
             if (q.side !== l.side) continue
             if (q.kind === 'redCard') men--
-            if (q.kind === 'yellowCard' && q.t - q.live - q.dead + 600 > p.t) men--
+            if (q.kind === 'yellowCard' && (q.until ?? q.t - q.dead + 600) > p.t) men--
           }
+          if (b === 'binBack') expect(p.kind === 'yellowCard' || p.kind === 'redCard', 'a return is not said at a card').toBe(false)
           expect(l.params.men, `${l.key} at ${l.n}`).toBe(men)
         }
       }
@@ -269,8 +288,7 @@ describe('the commentary is true to the record', () => {
   it('says nothing about territory before ten minutes of a half have gone (the Northampton line)', () => {
     for (const { r, lines } of runs) {
       const ht = r.plays.findIndex(p => p.kind === 'halfTime')
-      const second = r.plays[ht + 1], start2 = second.t - second.live - second.dead
-      for (const l of lines) if (baseOf(l.key) === 'territory') expect(l.n < ht ? l.t : l.t - start2).toBeGreaterThanOrEqual(600)
+      for (const l of lines) if (baseOf(l.key) === 'territory') expect(l.n < ht ? l.t : l.t - 2400).toBeGreaterThanOrEqual(600)
     }
   })
 
@@ -281,6 +299,33 @@ describe('the commentary is true to the record', () => {
         expect(p.kind === 'ruck' || p.kind === 'unplayable' || q?.kind === 'ruck', `${l.key} at ${pair(p)}`).toBe(true)
       }
     }
+  })
+
+  it('every penalty and free kick says what it was for, when the record says', () => {
+    let said = 0
+    for (const { r, lines } of runs) for (const l of lines) {
+      const p = r.plays[l.n]
+      if ((p.kind !== 'penalty' && p.kind !== 'freeKick') || !l.key.match(/^sim\.(pen|free)/)) continue
+      if (p.cause) { expect(l.params.cause_k, `${l.key} for ${p.cause}`).toBe(`sim.cause${p.cause[0].toUpperCase()}${p.cause.slice(1)}1`); said++ }
+      if (p.offender) expect(l.params.oppPlayer, l.key).toBe(`P${p.offender}`)
+    }
+    expect(said).toBeGreaterThan(1000)
+  })
+
+  it('says the substitutions, made and refused', () => {
+    const seen = new Set<string>()
+    for (const { r, lines } of runs) for (const l of lines) if (r.plays[l.n].kind === 'substitution') seen.add(baseOf(l.key))
+    expect([...seen].sort()).toEqual(['subMade', 'subRefused'])
+  })
+
+  it('an interception is a key moment, and a score from one says so', () => {
+    let n = 0
+    for (const { r, lines } of runs) for (const l of lines) {
+      const p = r.plays[l.n]
+      if ((p.kind === 'carry' && p.result === 'intercepted') || (p.kind === 'lineBreak' && p.result.startsWith('interception'))) { expect(l.level).toBe('key'); n++ }
+      if (p.kind === 'try' && p.result === 'interception') expect(baseOf(l.key)).toMatch(/^(tryInterception|tryAgain)$/)
+    }
+    expect(n).toBeGreaterThan(20)
   })
 
   it('is the same on a re-run, and uses more than one wording', () => {
