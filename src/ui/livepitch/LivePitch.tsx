@@ -161,7 +161,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   /** the play on the grass right now: usually the newest line's, but a score
    *  is played before its line is shown, and the label has to match the grass */
   const [onGrass, setOnGrass] = useState<Phase | null>(null)
-  const [flash, setFlash] = useState<{ label: string; home: boolean; n: number } | null>(null)
+  const [flash, setFlash] = useState<{ label: string; home: boolean; n: number; vars?: Record<string, string | number> } | null>(null)
   // THE PLATE KEEPS OUT OF THE WAY (20 Nov 2026, seen: a man was put into
   // touch on the near touchline behind the plate that said so). When play
   // is in the near third the plate goes to the far side of the pitch.
@@ -267,7 +267,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // the last frame before a cut, dissolved out over the new one
     const ghost = document.createElement('canvas')
     let grassSeen: Phase | null = null
-    let flashSeen = 0
+    let flashSeen = 0, flashAtView = -1
     let reachedSent = -1
     let seenCuts = S.cuts, dissolve = 0
     /** 0..1: how much the fast-forward mark is showing */
@@ -715,15 +715,25 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     const frame = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000)
       last = now
+      // (a feed frozen for frame-exact capture is drawn only when it is told to: feed.redraw)
+      if (feed?.frozen) { raf = requestAnimationFrame(frame); return }
+      advance(dt)
+      render(dt)
+      raf = requestAnimationFrame(frame)
+    }
+    const advance = (dt: number) => {
       if (!io.current.paused) {
         // the speed changes are eased, never snapped: it winds on and winds down
         const want = io.current.realTime ? Math.min(1, S.rate) : S.rate
         rateNow += (want - rateNow) * Math.min(1, dt * 3.5)
         const rate = rateNow
         acc += dt * io.current.speed * rate
-        ffShown += (((feed ? feed.speed : rate) >= 2.6 && !S.done ? 1 : 0) - ffShown) * Math.min(1, dt * 8)
+        ffShown += (((feed ? feed.ff : rate >= 2.6) && !S.done ? 1 : 0) - ffShown) * Math.min(1, dt * 8)
         while (acc >= 1 / 120) { S.step(1 / 120); acc -= 1 / 120 }
       }
+    }
+    const render = (dt: number) => {
+      if (feed?.frozen) ffShown = feed.ff && !S.done ? 1 : 0
       if (S.cuts !== seenCuts) {
         // the canvas still holds the frame before the cut: keep it
         const first = seenCuts === 0 && S.cuts === 1
@@ -736,7 +746,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       if (dissolve > 0) dissolve = Math.max(0, dissolve - dt / 0.45)
       if (S.phase && S.phase !== grassSeen) { grassSeen = S.phase; setOnGrass(S.phase) }
-      if (S.flash && S.flash.n !== flashSeen) { flashSeen = S.flash.n; const f = S.flash; setFlash(f); window.setTimeout(() => setFlash(c => (c && c.n === f.n ? null : c)), 2300) }
+      if (S.flash && S.flash.n !== flashSeen) {
+        flashSeen = S.flash.n; const f = S.flash; setFlash(f)
+        // (the record's feed keeps its own clock, and a frame-exact recording is slower than life: the plate goes by that clock)
+        if (feed) flashAtView = feed.view; else window.setTimeout(() => setFlash(c => (c && c.n === f.n ? null : c)), 2300)
+      }
+      // (and the phase count goes as soon as the passage it counts is over)
+      if (feed && flashAtView >= 0 && (feed.view - flashAtView > 2.3 || feed.view < flashAtView || (feed.flash?.label === 'lp.phases' && feed.flash.n === flashSeen && !feed.condensed))) { flashAtView = -1; setFlash(null) }
       {
         const rc = io.current.cursor
         if (reachedSent !== rc && (S.phase?.at !== rc - 1 || S.reached)) { reachedSent = rc; io.current.onReached?.(rc) }
@@ -768,8 +784,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         } else { sn.told = true; io.current.onPlayed?.(sn.moved) }
       } else if (sn.pre && !sn.told && S.landed && !S.done) { sn.told = true; io.current.onPlayed?.(true) }
       draw()
-      raf = requestAnimationFrame(frame)
     }
+    // FRAME-EXACT CAPTURE (2.0.0 preview): the recorder sets the feed's clock and asks for one frame
+    if (feed) feed.redraw = () => render(1 / 30)
 
     const draw = () => {
       const g = (dim.tilt ? flat : cv).getContext('2d')!
@@ -1089,7 +1106,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           with the side that now has the ball. */}
       {!banner && flash && (
         <div className={`lp-banner note${plateUp ? ' up' : ''}`} key={`f${flash.n}`} data-testid="lp-flash">
-          <b style={bannerSize(tr(flash.label), false)}>{tr(flash.label)}</b>
+          <b style={bannerSize(tr(flash.label, flash.vars), false)}>{tr(flash.label, flash.vars)}</b>
           <span>{flash.home ? teams.home : teams.away}<i style={{ background: barInk((flash.home ? home : away).kit) }} /></span>
         </div>
       )}

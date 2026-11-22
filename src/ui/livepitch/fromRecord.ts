@@ -77,7 +77,7 @@ export const V_CAP = 9.4
 /** a ball in the air or in hand is never faster than this (m/s) */
 export const BALL_CAP = 40
 const A_PLAYER = 16
-const V_SHAPE_BACK = 8, V_SHAPE_FWD = 6.2, V_JOG = 5.5
+const V_SHAPE_BACK = 8, V_SHAPE_FWD = 6.2, V_JOG = 7
 const DS = defenceShape(undefined)
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -206,6 +206,8 @@ export interface Seg {
   key: 0 | 1 | 2
   /** the ball is in play during the action */
   live: boolean
+  /** a routine phase not shown in full: the picture travels through it (condense()) */
+  condensed?: boolean
 }
 
 const LIVE = new Set(['kickoff', 'dropout22', 'goalLineDropout', 'carry', 'ruck', 'maul', 'lineBreak', 'kick', 'catch', 'scrum', 'lineout', 'tap'])
@@ -221,7 +223,7 @@ function actOf(plays: Play[], n: number): { act: number; mark: number } {
     case 'ruck': {
       const nx = plays[n + 1]
       const wideNext = nx && (nx.kind === 'carry' || nx.kind === 'lineBreak') ? Math.abs(nx.y - p.y) : 0
-      const act = (p.result === 'turnover' ? 1.6 : 0.9) + Math.min(1.4, wideNext / 16)
+      const act = (p.result === 'turnover' ? 1.4 : 0.6) + Math.min(1.0, wideNext / 18)
       return { act, mark: act }
     }
     case 'kick': { const g = kickGeo(plays, n); return { act: g.pre + g.hang, mark: p.result === 'chargedDown' ? g.pre : g.pre + g.hang } }
@@ -242,7 +244,7 @@ function actOf(plays: Play[], n: number): { act: number; mark: number } {
     case 'tap': return { act: 0.6, mark: 0.6 }
     case 'penaltyGoal': case 'conversion': {
       const d = Math.abs(lineOf(p.side) - p.x) + (p.kind === 'conversion' ? 16 : 0)
-      return { act: 0.8 + 0.7 + d / 24 + 1.1, mark: 0.8 }
+      return { act: 0.8 + 0.6 + d / 24 + 0.6, mark: 0.8 }
     }
     case 'dropGoal': return { act: 1.3 + 0.6 + Math.abs(lineOf(p.side) - p.x) / 24 + 1.0, mark: 1.3 }
     case 'try': return { act: 1.9, mark: 0.6 }
@@ -258,10 +260,22 @@ function actOf(plays: Play[], n: number): { act: number; mark: number } {
   }
 }
 
+/** THE FADES THE OWNER ALLOWS (20 Nov 2026): "Fades only for lineouts, conversions, kicks at
+ *  goal, after half-time." Before these the picture dissolves to the set piece formed, instead
+ *  of everybody walking there. Scrums, kick-offs and 22s are still formed up on screen. */
+export function fadesIn(plays: Play[], n: number): boolean {
+  const p = plays[n]
+  if (!p) return false
+  if (p.kind === 'lineout' || p.kind === 'conversion' || p.kind === 'penaltyGoal') return true
+  return p.kind === 'kickoff' && plays[n - 1]?.kind === 'halfTime'
+}
+
 /** the walk between a stoppage and the set piece after it (anim seconds) */
 function deadOf(plays: Play[], n: number): number {
   const p = plays[n], nx = nextAction(plays, n)
   if (!nx) return 0
+  // (a fade is coming: a moment's pause, then the dissolve)
+  if (nx && fadesIn(plays, nx.n)) return 0.8
   if (p.kind === 'halfTime') return 9
   if (p.kind === 'try') return 7
   if (p.kind === 'penalty' || p.kind === 'freeKick') return nx.kind === 'penaltyGoal' ? 5 : nx.kind === 'kick' ? 3.5 : nx.kind === 'scrum' ? 5 : 1.5
@@ -287,22 +301,83 @@ function keyOf(plays: Play[], n: number): boolean {
 /** shown at the lead-in pace, not wound on: the restarts (owner: "teams formed up in view, kick, chase, catch") */
 const SLOWISH = new Set(['kickoff', 'dropout22', 'goalLineDropout', 'halfTime', 'fullTime'])
 
-const planCache = new WeakMap<Play[], Seg[]>()
-/** every play's place on the bake's clock */
-export function plan(plays: Play[]): Seg[] {
-  const hit = planCache.get(plays)
+// =====================================================================
+// CONDENSING: routine phases are travelled through, not wound on
+// =====================================================================
+//
+// Owner, 22 Nov 2026, on play wound on twelve and eighteen times: "It feels
+// jumpy not smooth." Nothing is ever shown faster than WIND_MAX times life
+// speed. The time is saved instead by not showing every routine phase of a
+// long passage: the first phase is shown, then the picture carries on, the
+// ball and both lines travelling smoothly to where the passage is heading
+// (with the phase count on a plate), and the last phase or two before what
+// ends it are shown again. Only plain phases are condensed: a carry that
+// made ground or was held, and a ruck that was recycled, by the same side
+// one after another. Nothing that the commentary calls a key moment is.
+
+/** a run of plays the picture travels through */
+export interface Stretch { first: number; last: number; from: Pt; to: Pt; side: Side; phases: number; T: number }
+
+/** how hard to condense: [phases shown at the head of a passage, at its tail, least phases left out] */
+const LEVELS: [number, number, number][] = [[1, 2, 99], [1, 2, 2], [1, 1, 2], [1, 1, 1], [0, 1, 1], [0, 0, 1]]
+export const CONDENSE_MAX = LEVELS.length - 1
+
+const condenseCache = new WeakMap<Play[], Map<number, { stretches: Stretch[]; of: Int32Array }>>()
+export function condense(plays: Play[], level: number): { stretches: Stretch[]; of: Int32Array } {
+  let byL = condenseCache.get(plays)
+  if (!byL) condenseCache.set(plays, byL = new Map())
+  const hit = byL.get(level)
   if (hit) return hit
+  const [head, tail, least] = LEVELS[clamp(level, 0, CONDENSE_MAX)]
+  const of = new Int32Array(plays.length).fill(-1)
+  const stretches: Stretch[] = []
+  const plain = (n: number) => {
+    const c = plays[n], r = plays[n + 1]
+    return !!c && !!r && c.kind === 'carry' && (c.result === 'gainLine' || c.result === 'held') && r.kind === 'ruck' && r.result === 'recycled' && r.side === c.side && c.ball === c.side
+  }
+  for (let n = 0; n < plays.length;) {
+    if (!plain(n)) { n++; continue }
+    // a passage: phases one after another by the same side
+    const starts: number[] = []
+    let m = n
+    while (plain(m) && (!starts.length || plays[m].side === plays[n].side)) { starts.push(m); m += 2 }
+    const h = head
+    const mid = starts.length - h - tail
+    if (mid >= least) {
+      const first = starts[h], last = starts[h + mid - 1] + 1
+      const from = spot(plays[first - 1]), to = spot(plays[last])
+      const T = clamp(hyp(from, to) / 6 + 0.8, 1.2, 6)
+      const idx = stretches.length
+      stretches.push({ first, last, from, to, side: plays[first].side, phases: mid, T })
+      for (let k = first; k <= last; k++) of[k] = idx
+    }
+    n = m
+  }
+  const out = { stretches, of }
+  byL.set(level, out)
+  return out
+}
+
+const planCache = new WeakMap<Play[], Map<number, Seg[]>>()
+/** every play's place on the bake's clock, at a level of condensing */
+export function plan(plays: Play[], level = 0): Seg[] {
+  let byL = planCache.get(plays)
+  if (!byL) planCache.set(plays, byL = new Map())
+  const hit = byL.get(level)
+  if (hit) return hit
+  const cd = condense(plays, level)
   const segs: Seg[] = []
   let a = 0
   const keys = plays.map((_, n) => keyOf(plays, n))
   for (let n = 0; n < plays.length; n++) {
-    const { act, mark } = actOf(plays, n)
-    const dead = deadOf(plays, n)
-    const lead = !keys[n] && (keys[n + 1] || keys[n + 2] || SLOWISH.has(plays[n].kind))
-    segs.push({ n, a0: a, act, dead, a1: a + act + dead, mark: a + mark, key: keys[n] ? 2 : lead ? 1 : 0, live: LIVE.has(plays[n].kind) })
+    const st = cd.of[n] >= 0 ? cd.stretches[cd.of[n]] : null
+    const { act, mark } = st ? { act: st.T / (st.last - st.first + 1), mark: 0 } : actOf(plays, n)
+    const dead = st ? 0 : deadOf(plays, n)
+    const lead = !keys[n] && (keys[n + 1] || keys[n + 2] || (SLOWISH.has(plays[n].kind) && (n === 0 || plays[n - 1].kind === 'halfTime' || plays[n].kind === 'halfTime' || plays[n].kind === 'fullTime')))
+    segs.push({ n, a0: a, act, dead, a1: a + act + dead, mark: a + mark, key: st ? 0 : keys[n] ? 2 : lead ? 1 : 0, live: LIVE.has(plays[n].kind), condensed: !!st })
     a += act + dead
   }
-  planCache.set(plays, segs)
+  byL.set(level, segs)
   return segs
 }
 
@@ -310,95 +385,130 @@ export function plan(plays: Play[]): Seg[] {
 // THE SCHEDULE: how fast each play is shown
 // =====================================================================
 
-/** `at` is `start` again, under the name the overseer's harmonycheck reads; nothing is faded (every man walks to every set piece) */
-export interface Slot { n: number; start: number; at: number; dur: number; speed: number; fade: boolean }
-/** a stretch of the bake shown at one speed: view seconds [v0, v1) are anim seconds [a0, a1) */
-export interface Piece { n: number; v0: number; v1: number; a0: number; a1: number; speed: number }
+/** `at` is `start` again, under the name the overseer's harmonycheck reads; `fade` is true where the picture dissolves into the play (fadesIn) */
+export interface Slot { n: number; start: number; at: number; dur: number; speed: number; fade: boolean; condensed: boolean }
 
 /** an Extended match is about this long on screen (owner: "about 4 minutes") */
 export const TARGET_S = 240
 
-/** the winding-on: ordinary play at S times life speed, the walking between set pieces quicker still,
- *  the lead-in to a key moment at `lead`, the key moment at `key` (life speed unless the match has too many) */
-function piecesAt(plays: Play[], segs: Seg[], S: number, key = 1, lead = 2.4): Piece[] {
-  const dS = clamp(S * 1.6, 6, 18)
-  const out: Piece[] = []
-  let v = 0
-  for (const g of segs) {
-    // (a conversion is the end of a try already watched: a little quicker than life)
-    const kk = plays[g.n].kind === 'conversion' ? Math.max(key, 1.5) : key
-    const sp = g.key === 2 ? kk : g.key === 1 ? Math.min(S, lead) : S
-    if (g.act > 0) { const d = g.act / sp; out.push({ n: g.n, v0: v, v1: v + d, a0: g.a0, a1: g.a0 + g.act, speed: sp }); v += d }
-    if (g.dead > 0) { const d = g.dead / dS; out.push({ n: g.n, v0: v, v1: v + d, a0: g.a0 + g.act, a1: g.a1, speed: dS }); v += d }
+/** THE SPEEDS (owner, 22 Nov 2026: "It feels jumpy not smooth"). What makes winding on look
+ *  jumpy is men flicking across the grass, so the clock is set from the men: at every moment it
+ *  runs as fast as it can while nobody on screen goes faster than SCREEN_MAN (two and a half
+ *  times a sprint) and the ball no faster than SCREEN_BALL; never over CLOCK_MAX; and it eases
+ *  up and down rather than jumping. A ruck, where men walk in, goes by quickly; a break, where
+ *  they sprint, is near life speed anyway. Key moments are at life speed, their lead-in at LEAD. */
+export const SCREEN_MAN = Number((globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env?.LP_SCREEN ?? 2.5) * V_CAP
+export const SCREEN_BALL = 70
+export const CLOCK_MAX = Number((globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env?.LP_CLOCK ?? 6)
+const LEAD = 1.6
+/** how fast the clock may change, in times-life-speed per anim second */
+const EASE = 2.5
+/** the slowest ordinary play is ever shown, when there is time to spare */
+const WIND_MIN = 1.2
+
+/** the clock of the screen: the view second each frame starts at, and its rate */
+export interface Timeline { V: Float64Array; rate: Float32Array; total: number }
+
+/** the most each frame may be wound on, by the speeds in it (before key moments and the match length) */
+const capCache = new WeakMap<Baked, { cap: Float32Array; kind: Uint8Array }>()
+function capsOf(bk: Baked): { cap: Float32Array; kind: Uint8Array } {
+  const hit = capCache.get(bk)
+  if (hit) return hit
+  const n = bk.n, cap = new Float32Array(n), kind = new Uint8Array(n)
+  const vm = new Float32Array(n)
+  const cut = new Set(bk.cuts)
+  for (let f = 1; f < n; f++) {
+    if (cut.has(f)) { vm[f] = vm[f - 1]; continue }
+    let v = 0
+    for (let i = 0; i < 30; i++) v = Math.max(v, Math.hypot(bk.pos[f * 62 + i * 2] - bk.pos[(f - 1) * 62 + i * 2], bk.pos[f * 62 + i * 2 + 1] - bk.pos[(f - 1) * 62 + i * 2 + 1]) * FPS)
+    const bv = Math.hypot(bk.ball[f * 3] - bk.ball[(f - 1) * 3], bk.ball[f * 3 + 1] - bk.ball[(f - 1) * 3 + 1]) * FPS
+    vm[f] = Math.max(v / SCREEN_MAN, bv / SCREEN_BALL)
   }
+  // (the fastest man over the next and last half second: the clock slows before a sprint, not during it)
+  const W = Math.round(FPS * 0.5)
+  for (let f = 0; f < n; f++) {
+    let m = 0
+    for (let k = Math.max(0, f - W); k <= Math.min(n - 1, f + W); k++) m = Math.max(m, vm[k])
+    cap[f] = clamp(1 / Math.max(1e-6, m), 1, CLOCK_MAX)
+    const g = bk.segs[bk.seg[f]], inAct = f / FPS < g.a0 + g.act
+    kind[f] = g.condensed ? 3 : !inAct ? 0 : g.key === 2 ? 2 : g.key === 1 ? 1 : 0
+  }
+  const out = { cap, kind }
+  capCache.set(bk, out)
   return out
 }
-
-/** ordinary play is never wound on harder than this (the spec's "about eight times", with room) */
-export const MAX_WIND = 12
-
-const pieceCache = new WeakMap<Baked, Piece[]>()
-/** the pieces of the whole match, wound on so it lasts TARGET_S */
-export function pieces(bk: Baked): Piece[] {
-  const hit = pieceCache.get(bk)
-  if (hit) return hit
-  const segs = bk.segs, plays = bk.plays
-  const len = (ps: Piece[]) => ps.length ? ps[ps.length - 1].v1 : 0
-  // the wind-on speed for ordinary play that makes the match the length wanted
-  const solve = (key: number, lead: number) => {
-    let lo = 1, hi = MAX_WIND
-    for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (len(piecesAt(plays, segs, mid, key, lead)) > TARGET_S) lo = mid; else hi = mid }
-    return piecesAt(plays, segs, hi, key, lead)
-  }
-  let ps = solve(1, 2.4)
-  // A MATCH WITH A LOT IN IT (twelve tries, say) cannot show every key moment at life speed in four
-  // minutes without winding the rest past readable: the key moments and their lead-ins go a little quicker
-  for (let f = 1; f <= 8 && len(ps) > TARGET_S + 1; f++) ps = solve(1 + f * 0.1, 2.4 + f * 0.2)
-  pieceCache.set(bk, ps)
-  return ps
+function timelineAt(bk: Baked, S: number): Timeline {
+  const { cap, kind } = capsOf(bk)
+  const n = bk.n, rate = new Float32Array(n)
+  for (let f = 0; f < n; f++) rate[f] = kind[f] === 2 ? 1 : kind[f] === 1 ? Math.min(cap[f], LEAD) : kind[f] === 3 ? cap[f] : Math.min(cap[f], S)
+  // eased: never changing faster than EASE per anim second, either way
+  const step = EASE / FPS
+  for (let f = 1; f < n; f++) rate[f] = Math.min(rate[f], rate[f - 1] + step)
+  for (let f = n - 2; f >= 0; f--) rate[f] = Math.min(rate[f], rate[f + 1] + step)
+  const V = new Float64Array(n + 1)
+  for (let f = 0; f < n; f++) V[f + 1] = V[f] + 1 / FPS / rate[f]
+  return { V, rate, total: V[n] }
 }
+const tlCache = new WeakMap<Baked, Timeline>()
+/** the screen's clock for a baked match: ordinary play wound on (WIND_MIN to CLOCK_MAX) to last as near TARGET_S as it can */
+export function timeline(bk: Baked): Timeline {
+  const hit = tlCache.get(bk)
+  if (hit) return hit
+  let lo = WIND_MIN, hi = CLOCK_MAX
+  for (let k = 0; k < 30; k++) { const mid = (lo + hi) / 2; if (timelineAt(bk, mid).total > TARGET_S) lo = mid; else hi = mid }
+  const tl = timelineAt(bk, hi)
+  tlCache.set(bk, tl)
+  return tl
+}
+/** (a match can come out a little long or short of TARGET_S: this much either way is accepted before condensing more or less) */
+const SLACK = 15
 
 const bakeCache = new WeakMap<Play[], { sides?: [RecSide, RecSide]; bk: Baked }>()
-/** the bake of a record, made once (the pitch and the commentary's schedule share it) */
+/** the bake of a record, made once (the pitch and the commentary's schedule share it). It is
+ *  condensed as little as lets the match be watched in about four minutes. */
 export function bakeOf(plays: Play[], sides?: [RecSide, RecSide]): Baked {
   const hit = bakeCache.get(plays)
   if (hit && hit.sides === sides) return hit.bk
-  const bk = bake(plays, sides)
+  // (most matches need the most condensing to come near TARGET_S: start there, and condense less only while it still fits)
+  let level = CONDENSE_MAX
+  let bk = bake(plays, sides, level)
+  while (level > 0 && timeline(bk).total < TARGET_S - SLACK) {
+    const less = bake(plays, sides, level - 1)
+    if (timeline(less).total > TARGET_S + SLACK) break
+    bk = less; level--
+  }
   bakeCache.set(plays, { sides, bk })
   return bk
 }
 
 /**
  * WHEN EACH PLAY IS SHOWN. `start` and `dur` are seconds on screen from the
- * kick-off; `speed` is how many times life speed the play's action is shown
- * at (1 for a key moment; the walk to a set piece after it goes quicker
- * still). The commentary shows Line n's text when play n starts. Pass the
- * same sides the pitch is given (fromMatch.ts SimSide, home then away), or
- * none to both: the timing comes from the bake, which waits for the men the
- * record names, so the two must be baked alike to agree to the frame.
+ * kick-off; `speed` is how many times life speed the play is shown at on
+ * average (1 for a key moment). A condensed play (a routine phase the
+ * picture travels through) has `condensed: true` and a short `dur`. `fade`
+ * is true where the picture dissolves into the play (fadesIn). The
+ * commentary shows Line n's text when play n starts. Pass the same sides the
+ * pitch is given (fromMatch.ts SimSide, home then away), or none to both.
  */
 export function schedule(plays: Play[], sides?: [RecSide, RecSide]): Slot[] {
-  const ps = pieces(bakeOf(plays, sides))
-  const out: Slot[] = plays.map((_, n) => ({ n, start: 0, at: 0, dur: 0, speed: 1, fade: false }))
-  const seen = new Set<number>()
-  for (const p of ps) {
-    const o = out[p.n]
-    if (!seen.has(p.n)) { seen.add(p.n); o.start = p.v0; o.speed = p.speed }
-    o.dur = p.v1 - o.start
-  }
-  for (let n = 1; n < out.length; n++) if (!seen.has(n)) out[n].start = out[n - 1].start + out[n - 1].dur
-  for (const o of out) o.at = o.start
-  return out
+  const bk = bakeOf(plays, sides), tl = timeline(bk)
+  const faded = new Set(bk.cuts.map(f => bk.seg[f]))
+  const fr = (a: number) => clamp(Math.round(a * FPS), 0, bk.n)
+  return plays.map((_, n) => {
+    const g = bk.segs[n], start = tl.V[fr(g.a0)], end = tl.V[fr(g.a1)]
+    const dur = Math.max(0, end - start)
+    return { n, start, at: start, dur, speed: dur > 0 ? (g.a1 - g.a0) / dur : 1, fade: faded.has(n), condensed: !!g.condensed }
+  })
 }
 
-/** the bake's clock at a moment on screen */
-export function animAt(ps: Piece[], v: number): number {
-  if (!ps.length) return 0
-  if (v <= 0) return ps[0].a0
-  let lo = 0, hi = ps.length - 1
-  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (ps[m].v0 <= v) lo = m; else hi = m - 1 }
-  const p = ps[lo]
-  return p.a0 + Math.min(1, (v - p.v0) / Math.max(1e-9, p.v1 - p.v0)) * (p.a1 - p.a0)
+/** the bake's clock (anim seconds) at a moment on screen */
+export function animAt(tl: Timeline, v: number): number {
+  const V = tl.V
+  if (v <= 0) return 0
+  if (v >= tl.total) return (V.length - 1) / FPS
+  let lo = 0, hi = V.length - 1
+  while (lo < hi - 1) { const m = (lo + hi) >> 1; if (V[m] <= v) lo = m; else hi = m }
+  return (lo + (v - V[lo]) / Math.max(1e-9, V[lo + 1] - V[lo])) / FPS
 }
 
 // =====================================================================
@@ -429,15 +539,18 @@ export interface Baked {
   seg: Int16Array
   /** per frame, 30 a frame: on the floor (1), bound in a ruck/scrum/maul (2), off the field (4), in the air at a lineout (8) */
   flags: Uint8Array
+  /** the frames the picture dissolves at (the owner's fades: before a lineout, a conversion, a kick at goal, after half-time) */
+  cuts: number[]
 }
 
 interface Body { x: number; y: number; vx: number; vy: number }
 type Ov = { x: number; y: number; v: number; place?: boolean; a?: number }
 
 /** BAKE THE WHOLE MATCH. Deterministic: the same record and sides give the same frames. */
-export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
+export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Baked {
   // (the plan's times are the least each play takes: the bake waits for the men the record names, so it writes its own)
-  const segs = plan(plays).map(g => ({ ...g }))
+  const segs = plan(plays, level).map(g => ({ ...g }))
+  const cd = condense(plays, level)
   let cap = Math.ceil(((segs.length ? segs[segs.length - 1].a1 : 0) * 1.6 + 60) * FPS)
   let pos = new Float32Array(cap * 62), ballA = new Float32Array(cap * 3)
   let holderA = new Int8Array(cap), possA = new Int8Array(cap), segA = new Int16Array(cap), flags = new Uint8Array(cap * 30)
@@ -531,7 +644,8 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
   const targetOf = (i: number): Ov => {
     const s = sideOfSlot(i), k = i % 15, fwd = k < 8
     if (ctx.k === 'hold') return { x: B[i].x, y: B[i].y, v: 2 }
-    if (ctx.k === 'form') { const p = ctx.at[i]; const far = hyp(B[i], p) > 22; return { x: p.x, y: p.y, v: far ? 7.5 : ctx.v } }
+    // (to a set piece every man goes straight to his mark at a run: the walk is not wound on, owner 22 Nov 2026)
+    if (ctx.k === 'form') { const p = ctx.at[i]; const far = hyp(B[i], p) > 6; return { x: p.x, y: p.y, v: far ? 8.5 : ctx.v } }
     if (ctx.k === 'kick') {
       const r = other(ctx.kicker), dr = dirOf(r)
       if (s === r) { const p = shapeAtt(k, ctx.L, dr, ctx.lean); return { ...p, v: fwd ? 6.5 : 8 } }
@@ -562,7 +676,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
   const throwTo = (i: number, dur: number, h: number, then?: () => void) => {
     const from = { x: ball.x, y: ball.y }
     // (never faster on average than a hard pass, 20 m/s: the clips' rule)
-    dur = Math.max(dur, hyp(from, B[i]) / 20)
+    dur = Math.max(dur, hyp(from, B[i]) / 16)
     holder = -1; want = -1; pick = false; roll = null
     fly = { from, to: () => ({ x: B[i].x + dirOf(sideOfSlot(i)) * 0.35, y: B[i].y }), t0: t, dur, h, then: () => { holder = i; then?.() } }
   }
@@ -723,7 +837,37 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
 
   // ---- THE PLAYS. Each returns true once its action is done; mark() is the
   // moment the ball is where the record puts it (by default, the end).
+  /** A CONDENSED PASSAGE: the ball travels on the ground from the last shown ruck to the ruck
+   *  before the next shown phase, smoothly, and both sides keep their shape round it */
+  const travelT0 = new Map<number, number>()
+  const travelMan = new Map<number, number>()
+  const travelCtl = (n: number): Ctl => {
+    const idx = cd.of[n], st = cd.stretches[idx], m = st.last - st.first + 1, k = n - st.first
+    const lean = Math.sign(st.to.y - st.from.y) || (openSide(st.from.y) >= 0 ? 1 : -1)
+    const d = dirOf(st.side)
+    return () => {
+      ctx = { k: 'open', att: st.side, O: { x: ball.x, y: ball.y }, tOut: Infinity, lean }
+      // the man who has it carries it along the passage (whoever has it, or the nearest to it picks it up)
+      if (!travelMan.has(idx)) {
+        const c = holder >= 0 && sideOfSlot(holder) === st.side ? holder : nearest(st.side, ball, [], false)
+        travelMan.set(idx, c); fly = null; roll = null
+      }
+      const c = travelMan.get(idx)!
+      if (holder !== c) { if (holder >= 0) drop(); pickUp(c); ov[c] = { x: ball.x - d * 0.35, y: ball.y, v: V_CAP }; return false }
+      if (!travelT0.has(idx)) travelT0.set(idx, t)
+      const t0 = travelT0.get(idx)!, prog = clamp((t - t0) / st.T, 0, 1), e = smooth(prog)
+      const from = travelFrom.get(idx) ?? (travelFrom.set(idx, { x: B[c].x, y: B[c].y }), travelFrom.get(idx)!)
+      ov[c] = { x: lerp(from.x, st.to.x - d * 0.35, e), y: lerp(from.y, st.to.y, e), v: V_CAP, place: true }
+      const done = t - t0 >= st.T * (k + 1) / m - 1e-9
+      // at the end he goes to ground, and the ball is there for the next shown phase
+      if (done && n === st.last) { drop({ x: st.to.x, y: st.to.y }); down[c] = 0.8 }
+      return done
+    }
+  }
+  const travelFrom = new Map<number, Pt>()
+
   const ctlOf = (n: number): Ctl => {
+    if (cd.of[n] >= 0) return travelCtl(n)
     const p = plays[n], s = p.side, d = dirOf(s), o = other(s), q = plays[n - 1]
     const nx = plays[n + 1]
     const plan0 = segs[n]
@@ -796,7 +940,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
           }
           ov[nine] = { x: R.x - d * 1.2, y: R.y + 0.6, v: 8 }
           // the ball comes out when the next play's men are there (a quick ruck when they already are)
-          return tau >= minT && (ready(n + 1) || tau > minT + 3)
+          return tau >= minT && (ready(n + 1) || tau > minT + 1.5)
         }
       }
       case 'kick': return kickCtl(n)
@@ -926,14 +1070,15 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
           if (at) ctx = { k: 'form', at, v: 3 }
           else ctx = { k: 'open', att: s, O: spot(p), tOut: 0, lean: 1 }
           if (struck < 0) {
-            if (p.kind === 'dropGoal' && holder !== kk && !fly && holder >= 0) throwTo(kk, 0.55, 0.9)
-            else if (holder !== kk && !fly) { if (p.kind === 'dropGoal') pickUp(kk); else give(kk) }
+            if (p.kind === 'dropGoal' && holder !== kk && !fly && holder >= 0) { if (hyp(B[kk], K) < 3 || tau > 1.5) throwTo(kk, 0.55, 0.9); else ov[holder] = { x: B[holder].x, y: B[holder].y, v: 1.5, a: 30 } }
+            else if (p.kind === 'dropGoal' && holder < 0 && !fly) { const c = nearest(s, ball, [kk], false); pickUp(c); ov[c] = { x: ball.x - d * 0.35, y: ball.y, v: V_CAP } }
+            else if (holder !== kk && !fly && p.kind !== 'dropGoal') give(kk)
             ov[kk] = { x: K.x - d * 0.35, y: K.y, v: p.kind === 'dropGoal' ? 8 : 4 }
             if (tau >= lead && holder === kk && hyp(ball, K) < 0.8) { struck = tau; mark(); kickTo(posts, flight, p.kind === 'dropGoal' ? 8 : 10) }
             return false
           }
           ov[kk] = { x: K.x + d * 2, y: K.y, v: 3 }
-          return !fly && tau - struck >= flight + 1.0
+          return !fly && tau - struck >= flight + 0.6
         }
       }
       case 'try': {
@@ -1077,7 +1222,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
         first = holder >= 0 && sideOfSlot(holder) === s ? holder
           : g.passes === 0 ? carrier
           : giver >= 0 && hyp(B[giver], ball) < 6 ? giver
-          : want >= 0 && sideOfSlot(want) === s ? want : nearest(s, g.A, [carrier], false)
+          : want >= 0 && sideOfSlot(want) === s && !mids2.includes(want) ? want : nearest(s, g.A, [carrier, ...mids2], false)
       }
       if (holder !== first && holder < 0 && !fly && next === 0) { pickUp(first); ov[first] = { x: ball.x - d * 0.35, y: ball.y, v: V_CAP } }
       // the receivers into their places, the carrier into his (an intercepted carrier still runs his line)
@@ -1199,7 +1344,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
         if (charger >= 0) ov[charger] = { x: B[kk].x + d * 1.2, y: B[kk].y, v: V_CAP }
         // the man who will take it reads it as it is set up
         if (catcher >= 0 && catcher !== kk) ov[catcher] = { x: g.L.x, y: inY(g.L.y), v: 8.5 }
-        const settled = hyp(B[kk], pocket) < (p.result === 'chargedDown' ? 0.7 : 2) || tau > g.pre + 2
+        const settled = hyp(B[kk], pocket) < (p.result === 'chargedDown' ? 0.7 : 2) || tau > g.pre + 0.8
         if (holder === kk && tau >= g.pre - 0.02 && settled) {
           kicked = tau; mark0At(p)
           if (p.result === 'chargedDown') kickTo({ x: B[kk].x + d * 0.9, y: B[kk].y }, 0.15, 0.6)
@@ -1273,6 +1418,21 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
     ref.x = 50; ref.y = 44
   }
 
+  // ---- A FADE: everybody at his place for the set piece, the ball with the man who puts it in play
+  const cutFrames: number[] = []
+  const cutTo = (n: number, frame: number) => {
+    const p = plays[n]
+    let at: Pt[] | null = null, man = -1, spotAt: Pt | null = null
+    if (p.kind === 'conversion') { const K = conSpot(p.side, p.y); at = formGoal(p.side, K); man = who(p.who, p.side, 10); spotAt = { x: K.x - dirOf(p.side) * 0.35, y: K.y } }
+    else { const f2 = formFor(p); if (f2) { at = f2.at; man = f2.fetch; spotAt = f2.spot } }
+    if (!at || man < 0 || !spotAt) return
+    for (let i = 0; i < 30; i++) { if (off[i]) continue; B[i].x = at[i].x; B[i].y = at[i].y; B[i].vx = 0; B[i].vy = 0; px[i] = B[i].x; py[i] = B[i].y; down[i] = 0 }
+    B[man].x = spotAt.x; B[man].y = spotAt.y; px[man] = spotAt.x; py[man] = spotAt.y
+    fly = null; roll = null; want = -1; pick = false; holder = man
+    ball.x = spotAt.x + dirOf(sideOfSlot(man)) * 0.35; ball.y = spotAt.y; ball.lift = 0
+    ref.x = fx(ball.x - dirOf(p.side) * 7); ref.y = inY(ball.y + (ball.y < 35 ? 8 : -8)); ref.vx = ref.vy = 0
+    cutFrames.push(frame)
+  }
   // ---- THE LOOP
   const px = B.map(b => b.x), py = B.map(b => b.y)
   let si = 0, f = 0, inDead = false, deadT0 = 0, deadReady = false
@@ -1351,11 +1511,11 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide]): Baked {
     if (inDead && (deadReady || t + DT - deadT0 >= (dctl ? g.dead + 4 : g.dead) - 1e-9)) {
       g.a1 = (f + 1) * DT; g.dead = g.a1 - g.a0 - g.act
       si++; inDead = false; markAt = -1; dctl = null; deadReady = false
-      if (si < segs.length) { segs[si].a0 = g.a1; ctl = ctlOf(si) }
+      if (si < segs.length) { segs[si].a0 = g.a1; if (fadesIn(plays, si)) cutTo(si, f + 1); ctl = ctlOf(si) }
     }
   }
   const N = f
-  return { plays, segs, n: N, pos: pos.slice(0, N * 62), ball: ballA.slice(0, N * 3), holder: holderA.slice(0, N), poss: possA.slice(0, N), seg: segA.slice(0, N), flags: flags.slice(0, N * 30) }
+  return { plays, segs, cuts: cutFrames, n: N, pos: pos.slice(0, N * 62), ball: ballA.slice(0, N * 3), holder: holderA.slice(0, N), poss: possA.slice(0, N), seg: segA.slice(0, N), flags: flags.slice(0, N * 30) }
 }
 
 // =====================================================================
@@ -1456,7 +1616,7 @@ export interface FeedBanner { kind: 'try' | 'pentry' | 'con' | 'conMiss' | 'pen'
  */
 export class RecordFeed {
   readonly bk: Baked
-  readonly ps: Piece[]
+  readonly tl: Timeline
   /** seconds on screen since the kick-off */
   view = 0
   b: { x: number; y: number; vx: number; vy: number }[] = Array.from({ length: 30 }, () => ({ x: 50, y: 35, vx: 0, vy: 0 }))
@@ -1471,27 +1631,33 @@ export class RecordFeed {
   readonly pending = false
   readonly reached = true
   done = false
-  readonly cuts = 0
+  /** how many dissolves have been passed (LivePitch dissolves when this changes) */
+  cuts = 0
   /** 1: the feed keeps its own clock (the schedule), the screen is not to wind it on again */
   readonly rate = 1
   /** how many times life speed it is being shown at (the screen shows the fast-forward mark over 2.6) */
   speed = 1
-  flash: { label: string; home: boolean; n: number } | null = null
+  /** a routine phase the picture is travelling through (the screen shows the fast-forward mark) */
+  condensed = false
+  /** the fast-forward mark: a condensed passage, or the clock well over life speed */
+  get ff(): boolean { return this.condensed || this.speed >= 2.6 }
+  flash: { label: string; home: boolean; n: number; vars?: Record<string, string | number> } | null = null
   says: { k: string; home: boolean; src: number }[] = []
   banner: FeedBanner | null = null
   /** the play on screen now, by its index in the record */
   n = 0
   constructor(public plays: Play[], sides?: [RecSide, RecSide], private ids: [string, string] = ['home', 'away'], private nameOf?: (id: string) => string | undefined) {
     this.bk = bakeOf(plays, sides)
-    this.ps = pieces(this.bk)
+    this.tl = timeline(this.bk)
     this.read()
   }
-  get length(): number { return this.ps.length ? this.ps[this.ps.length - 1].v1 : 0 }
+  get length(): number { return this.tl.total }
   step(dt: number) { if (this.done) return; this.view = Math.min(this.length, this.view + dt); this.read() }
   seek(v: number) { this.view = clamp(v, 0, this.length); this.read() }
   private read() {
-    const a = animAt(this.ps, this.view)
+    const a = animAt(this.tl, this.view)
     const fr = frameAt(this.bk, a)
+    { const f = Math.round(a * FPS); let c = 0; for (const x of this.bk.cuts) if (x <= f) c++; this.cuts = c }
     for (let i = 0; i < 30; i++) {
       const m = fr.men[i], b = this.b[i]
       b.vx = m.x - b.x; b.vy = m.y - b.y; b.x = m.x; b.y = m.y
@@ -1501,12 +1667,20 @@ export class RecordFeed {
     this.ball.x = fr.ball.x; this.ball.y = fr.ball.y; this.ball.lift = fr.ball.lift
     this.holder = fr.holder
     const n = fr.n, p = this.plays[n], seg = this.bk.segs[n]
-    const piece = this.ps.find(q => q.n === n && a >= q.a0 && a <= q.a1)
-    this.speed = piece?.speed ?? 1
+    this.speed = this.tl.rate[clamp(Math.floor(a * FPS), 0, this.bk.n - 1)] ?? 1
+    this.condensed = !!seg.condensed
     if (!this.phase || this.phase.at !== n) {
       this.phase = { kind: KIND[p.kind] ?? 'hold', homeBall: fr.poss === 0, at: n, label: chipOf(p), x: p.x, y: p.y }
       const fk = FLASH[p.kind] ?? (p.kind === 'ruck' && p.result === 'turnover' ? 'lp.turnover' : p.kind === 'kick' && p.result === 'chargedDown' ? 'lp.chargeDown' : undefined)
       if (fk) this.flash = { label: fk, home: (p.kind === 'knockOn' || p.kind === 'forwardPass' || p.kind === 'intoTouch' ? p.side : p.ball) === 0, n }
+      // a condensed passage: the phase count it gets to, on the plate, while the picture travels
+      if (seg.condensed && (n === 0 || !this.bk.segs[n - 1].condensed)) {
+        let last = n
+        while (this.bk.segs[last + 1]?.condensed) last++
+        const ph = this.plays[last].phase ?? this.plays[last - 1]?.phase
+        // (a count that low says nothing: the passage was short)
+        if (ph && ph >= 3) this.flash = { label: 'lp.phases', home: p.side === 0, n, vars: { n: ph } }
+      }
       this.banner = this.bannerOf(n)
     }
     this.phase.homeBall = fr.poss === 0
@@ -1526,6 +1700,10 @@ export class RecordFeed {
   lifted(): [number, number] { const j = this.fl.findIndex(f => !!(f & 8)); return [j, -1] }
   /** (PitchSim's: a line to play. The feed plays the record, so there is nothing to queue.) */
   playLine(_beats?: unknown, _carrier?: unknown) { /* the record is played whole */ }
+  /** frozen: the screen does not move the clock on; the recorder seeks and calls redraw() for each frame */
+  frozen = false
+  /** set by LivePitch: draw one frame now, at the feed's clock */
+  redraw: () => void = () => {}
   /** the man the current play names (the tag over the man on the ball shows when he has it) */
   get who(): string | undefined { return this.plays[this.n]?.who }
 }

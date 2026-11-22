@@ -22,7 +22,7 @@ import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture } from '../src/game/model'
 import { worldFromMatch, type SimSide } from '../src/game/sim/fromMatch'
-import { bake, expectedAt, FPS, pieces, schedule, type Baked } from '../src/ui/livepitch/fromRecord'
+import { bake, bakeOf, expectedAt, FPS, schedule, SCREEN_MAN, timeline, type Baked } from '../src/ui/livepitch/fromRecord'
 
 function realMatch(seed: number): { plays: Play[]; sides: [SimSide, SimSide] } {
   const g = newGame('leicester', 'T', seed)
@@ -34,14 +34,18 @@ function realMatch(seed: number): { plays: Play[]; sides: [SimSide, SimSide] } {
 }
 
 interface Faults {
-  holderGap: number; manSpeed: number; ballSpeed: number; carryBack: number
+  holderGap: number; manSpeed: number; ballSpeed: number; carryBack: number; screenSpeed: number
+  keyNotShown: string[]; condensed: number
   marks: string[]; sides: string[]; view: number; where: Record<string, string>
 }
 
 /** every check over one baked match: the worst of each, and where it was */
 function measure(bk: Baked): Faults {
   const P = bk.plays
-  const f: Faults = { holderGap: 0, manSpeed: 0, ballSpeed: 0, carryBack: 0, marks: [], sides: [], view: 0, where: {} }
+  const f: Faults = { holderGap: 0, manSpeed: 0, ballSpeed: 0, carryBack: 0, screenSpeed: 0, keyNotShown: [], condensed: 0, marks: [], sides: [], view: 0, where: {} }
+  const tl = timeline(bk)
+  // (a dissolve the owner allows, before a lineout, a conversion, a kick at goal, after half-time, is the one place things move at once)
+  const cut = new Set(bk.cuts)
   const at = (fr: number) => `frame ${fr}, play ${bk.seg[fr]} ${P[bk.seg[fr]].kind}/${P[bk.seg[fr]].result}`
   let spell = -1, best = 0
   for (let fr = 0; fr < bk.n; fr++) {
@@ -50,17 +54,20 @@ function measure(bk: Baked): Faults {
       const gap = Math.hypot(bk.ball[fr * 3] - bk.pos[fr * 62 + h * 2], bk.ball[fr * 3 + 1] - bk.pos[fr * 62 + h * 2 + 1])
       if (gap > f.holderGap) { f.holderGap = gap; f.where.holderGap = at(fr) }
     }
-    if (fr > 0) {
+    if (fr > 0 && !cut.has(fr)) {
       for (let i = 0; i < 31; i++) {
         const v = Math.hypot(bk.pos[fr * 62 + i * 2] - bk.pos[(fr - 1) * 62 + i * 2], bk.pos[fr * 62 + i * 2 + 1] - bk.pos[(fr - 1) * 62 + i * 2 + 1]) * FPS
         if (v > f.manSpeed) { f.manSpeed = v; f.where.manSpeed = `${at(fr)}, man ${i}` }
+        // and as the screen shows him, wound on
+        if (i < 30 && v * tl.rate[fr] > f.screenSpeed) { f.screenSpeed = v * tl.rate[fr]; f.where.screenSpeed = `${at(fr)}, man ${i}, ${tl.rate[fr].toFixed(2)}x` }
       }
       const bv = Math.hypot(bk.ball[fr * 3] - bk.ball[(fr - 1) * 3], bk.ball[fr * 3 + 1] - bk.ball[(fr - 1) * 3 + 1]) * FPS
       if (bv > f.ballSpeed) { f.ballSpeed = bv; f.where.ballSpeed = at(fr) }
     }
     // carrying in open play: the furthest forward he has been with it, and how far back from that he goes
     const g = bk.segs[bk.seg[fr]], p = P[g.n]
-    const live = g.live && fr / FPS < g.a0 + g.act
+    // (a condensed passage is the ball carried along the record's path, forwards or back as the passage went)
+    const live = g.live && !g.condensed && fr / FPS < g.a0 + g.act
     if (!live || h < 0 || h !== spell) { spell = live ? h : -1; best = spell >= 0 ? bk.pos[fr * 62 + h * 2] : 0; continue }
     const dir = h < 15 ? 1 : -1, x = bk.pos[fr * 62 + h * 2]
     if ((x - best) * dir > 0) best = x
@@ -70,6 +77,12 @@ function measure(bk: Baked): Faults {
   }
   for (const g of bk.segs) {
     const p = P[g.n], e = expectedAt(p, P[g.n + 1])
+    if (g.condensed) { f.condensed++; continue }
+    // a key moment is shown in full, at life speed
+    if (g.key === 2) {
+      const a = Math.ceil(g.a0 * FPS), b = Math.floor((g.a0 + g.act) * FPS)
+      for (let fr = a; fr < b; fr++) if (Math.abs(tl.rate[fr] - 1) > 1e-6) { f.keyNotShown.push(`play ${g.n} ${p.kind}/${p.result} at ${tl.rate[fr].toFixed(2)}x`); break }
+    }
     if (e.tol === Infinity) continue
     // the frame at the mark, inside the play
     const fr = Math.max(Math.ceil(g.a0 * FPS - 1e-6), Math.min(bk.n - 1, Math.floor(g.mark * FPS + 1e-6)))
@@ -79,8 +92,7 @@ function measure(bk: Baked): Faults {
     const h = bk.holder[fr]
     if (bk.poss[fr] !== p.ball || (h >= 0 && (h < 15 ? 0 : 1) !== p.ball)) f.sides.push(`play ${g.n} ${p.kind}/${p.result}: shown with side ${bk.poss[fr]}, held by ${h}, record ball ${p.ball}`)
   }
-  const ps = pieces(bk)
-  f.view = ps.length ? ps[ps.length - 1].v1 : 0
+  f.view = tl.total
   return f
 }
 
@@ -93,34 +105,47 @@ describe('the stadium pitch plays the record', () => {
     const sch = schedule(plays)
     expect(sch.map(s => s.n)).toEqual(plays.map(p => p.n))
     for (let k = 1; k < sch.length; k++) expect(sch[k].start).toBeGreaterThanOrEqual(sch[k - 1].start + sch[k - 1].dur - 1e-6)
-    for (const s of sch) { expect(s.dur).toBeGreaterThan(0); expect(s.fade).toBe(false) }
+    // (a condensed play is passed through in a moment; every other play takes time; fades only where the owner allows them)
+    for (const s of sch) { if (!s.condensed) expect(s.dur).toBeGreaterThan(0); if (s.fade) expect(['lineout', 'conversion', 'penaltyGoal', 'kickoff']).toContain(plays[s.n].kind) }
   })
 
-  it('over twenty real fixtures: ball in hand, no jumps, no running back with it, the record kept, about four minutes', () => {
-    const seeds = [4242, ...Array.from({ length: 19 }, (_, i) => i + 1)]
-    const worst = { holderGap: 0, manSpeed: 0, ballSpeed: 0, carryBack: 0 }
+  const seeds = [4242, ...Array.from({ length: 19 }, (_, i) => i + 1)]
+  const results: { seed: number; f: Faults; plays: number }[] = []
+  const all = () => {
+    if (!results.length) for (const seed of seeds) { const m = realMatch(seed); results.push({ seed, plays: m.plays.length, f: measure(bakeOf(m.plays, m.sides)) }) }
+    return results
+  }
+
+  it('over twenty real fixtures: ball in hand, no jumps, nobody too quick on screen, no running back with it, key moments in full, the record kept', () => {
+    const worst = { holderGap: 0, manSpeed: 0, ballSpeed: 0, carryBack: 0, screenSpeed: 0 }
     const where: Record<string, string> = {}
-    const marks: string[] = [], sides: string[] = [], views: number[] = []
-    let plays = 0
-    for (const seed of seeds) {
-      const m = realMatch(seed)
-      const f = measure(bake(m.plays, m.sides))
-      plays += m.plays.length
+    const marks: string[] = [], sides: string[] = [], keys: string[] = []
+    let plays = 0, condensed = 0
+    for (const { seed, f, plays: np } of all()) {
+      plays += np; condensed += f.condensed
       for (const k of Object.keys(worst) as (keyof typeof worst)[]) if (f[k] > worst[k]) { worst[k] = f[k]; where[k] = `seed ${seed}, ${f.where[k]}` }
       marks.push(...f.marks.map(s => `seed ${seed} ${s}`))
       sides.push(...f.sides.map(s => `seed ${seed} ${s}`))
-      views.push(f.view)
+      keys.push(...f.keyNotShown.map(s => `seed ${seed} ${s}`))
     }
-    const report = { plays, worst, where, marks: marks.length, sides: sides.length, minutes: [Math.min(...views) / 60, Math.max(...views) / 60].map(v => v.toFixed(2)) }
-    console.log('simpitch:', JSON.stringify(report, null, 1))
+    console.log('simpitch:', JSON.stringify({ plays, condensed, worst, where, marks: marks.length, sides: sides.length, keys: keys.length }, null, 1))
     if (marks.length) console.log(marks.slice(0, 10).join('\n'))
     if (sides.length) console.log(sides.slice(0, 10).join('\n'))
+    if (keys.length) console.log(keys.slice(0, 10).join('\n'))
     expect(worst.holderGap).toBeLessThanOrEqual(1.5)
     expect(worst.manSpeed).toBeLessThanOrEqual(9.5)
     expect(worst.ballSpeed).toBeLessThanOrEqual(40)
+    // nobody on screen faster than two and a half times a sprint
+    expect(worst.screenSpeed).toBeLessThanOrEqual(SCREEN_MAN + 0.05)
     expect(worst.carryBack).toBeLessThanOrEqual(2.5)
+    expect(keys).toEqual([])
     expect(marks).toEqual([])
     expect(sides).toEqual([])
+  }, 300_000)
+
+  it('an Extended match takes 3.5 to 4.5 minutes to watch', () => {
+    const views = all().map(r => r.f.view)
+    console.log('simpitch minutes:', views.map(v => (v / 60).toFixed(2)).join(' '))
     for (const v of views) { expect(v).toBeGreaterThanOrEqual(210); expect(v).toBeLessThanOrEqual(270) }
-  }, 240_000)
+  }, 300_000)
 })
