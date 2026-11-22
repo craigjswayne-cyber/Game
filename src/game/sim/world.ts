@@ -21,6 +21,55 @@ export type Contest =
   | 'goal'        // kicks at goal
   | 'discipline'  // higher is cleaner: fewer penalties given away
 
+/**
+ * HOW A SIDE PLAYS (round 4, owner: "the games shouldn't feel repetitive").
+ * Read by the simulation at every decision it makes for the side with the
+ * ball (kick or run, tight or wide, drive the lineout, the corner or the
+ * posts, tap or wait) and by the defence (line speed, width). 1 is the
+ * average club everywhere; NEUTRAL_STYLE is a side with no club (the even
+ * world). fromMatch.ts builds it from the old engine's own dials, styles,
+ * zone plans and called moves.
+ */
+export interface PlayStyle {
+  /** the attacking and defensive styles by name (styles.ts), for the record */
+  atk: string
+  def: string
+  /** times the chance of kicking from hand, everywhere, and by zone: own 22, the middle, their 22 */
+  kick: number
+  kickZone: [number, number, number]
+  /** times the weight of each kind of kick when a kick is chosen */
+  kickMix: { box: number; long: number; touch: number; upAndUnder: number; grubber: number; crossField: number; chip: number; clearance: number }
+  /** the chance a carry goes wide (0.30 is the average side) */
+  width: number
+  /** times the seconds a ruck takes (under 1 is quick ball) */
+  tempo: number
+  /** times the chance of an offload out of the tackle */
+  offload: number
+  /** times the chance of driving a lineout near their line, and of picking and going on it */
+  maul: number
+  pick: number
+  /** 0..1: how often a kickable penalty in their 22 goes to the corner rather than the posts */
+  corner: number
+  /** times the chance of a quick tap or a quick lineout */
+  quick: number
+  /** the defence: -1 a drifting line .. 1 a blitz; -1 spread wide .. 1 narrow round the ruck */
+  blitz: number
+  narrow: number
+  /** times the chance of a break off first-phase ball from a set piece, and the move called for it */
+  launch: number
+  launchMove?: string
+  /** -2..2: this side's attack against the other side's defence (styles.ts MATCHUP) */
+  matchup: number
+  /** the old engine's own lean on this side's tries from its attack and the other side's defence (styles.ts) */
+  tryF: number
+}
+
+export const NEUTRAL_STYLE: PlayStyle = {
+  atk: '', def: '', kick: 1, kickZone: [1, 1, 1],
+  kickMix: { box: 1, long: 1, touch: 1, upAndUnder: 1, grubber: 1, crossField: 1, chip: 1, clearance: 1 },
+  width: 0.30, tempo: 1, offload: 1, maul: 1, pick: 1, corner: 0.3, quick: 1, blitz: 0, narrow: 0, launch: 1, matchup: 0, tryF: 1,
+}
+
 /** THE MANAGER'S HAND (spec 1.2): what can change during a match. MatchSim.apply takes these. */
 export type Decision =
   /** a different World from now on */
@@ -29,8 +78,13 @@ export type Decision =
   | { kind: 'strength'; side: 0 | 1; factor: number; contests?: Contest[] }
   /** a standing penalty call for a side: 'ask' stops the match for the manager, 'auto' is the game's own */
   | { kind: 'penaltyCall'; side: 0 | 1; call: 'posts' | 'corner' | 'tap' | 'scrum' | 'ask' | 'auto' }
-  /** a replacement (player ids as the World names them); made at the next dead ball */
-  | { kind: 'substitution'; side: 0 | 1; off: string; on: string }
+  /** a replacement (player ids as the World names them); made at the next dead ball. `injury`:
+   *  forced, for a man already taken off hurt. `auto`: the game's own bench, not the manager's. */
+  | { kind: 'substitution'; side: 0 | 1; off: string; on: string; injury?: boolean; auto?: boolean }
+  /** a man hurt in play: off the field now, replaced at the next dead ball if the bench allows */
+  | { kind: 'injury'; side: 0 | 1; who: string }
+  /** whether the game runs a side's bench (on by default for both; the manager's own side off when he does it) */
+  | { kind: 'bench'; side: 0 | 1; auto: boolean }
   /** the side's tactics changed: the fields given, as on the club's tactic */
   | { kind: 'tactics'; side: 0 | 1; set: Record<string, unknown> }
   /** a team talk (half-time tone, as the game's own talks) */
@@ -64,6 +118,17 @@ export interface World {
   /** a substitution, a tactics change or a team talk, made at clock second t on the World's own
    *  sides: '' when it is done, else why not. A World without it has no bench and no dials. */
   decide?(d: Decision, t: number): string
+  /** how each side plays (absent: NEUTRAL_STYLE) */
+  style?(s: 0 | 1): PlayStyle
+  /** the day's weather (model Weather: 'Dry' | 'Damp' | 'Rain' | 'Wind' | 'Snow') */
+  weather?: string
+  /** the men in shirts 1 to 15 ('' for an empty shirt), whether each is off the field now (bin,
+   *  sent off, hurt), and the bench by shirt (16 up, '' when he has been used) */
+  lineup?(s: 0 | 1): { field: string[]; off: boolean[]; bench: string[] }
+  /** a new match on the same World: every man back in his kick-off shirt, the bin empty */
+  newMatch?(): void
+  /** the manager's own side, whose bench the game leaves to him (MatchSim starts with it off) */
+  managed?: 0 | 1 | null
 }
 
 /** stage 1: two sides with no players, of the strengths given (1 is average) */

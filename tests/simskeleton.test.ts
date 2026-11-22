@@ -9,7 +9,7 @@
 // table against its sources is scripts/simshape.ts.
 import { describe, expect, it } from 'vitest'
 import { MatchSim, simSkeleton, simWithDecisions } from '../src/game/sim/skeleton'
-import { evenWorld, type World } from '../src/game/sim/world'
+import { evenWorld, NEUTRAL_STYLE, type PlayStyle, type World } from '../src/game/sim/world'
 import { LAW_TABLE, Laws, lawMachine } from '../src/game/sim/law'
 import type { Play } from '../src/game/sim/record'
 import { getInitialSnapshot, getNextSnapshot } from 'xstate'
@@ -216,15 +216,66 @@ describe('the manager\'s hand (spec stage 3: a match that can be stopped, change
     const userSide: 0 | 1 = home.teamId === g.userClubId ? 0 : 1
     const sheet = userSide === 0 ? home : away
     // the No. 8 off, the bench back-rower (shirt 19 or 20) on
-    const off = sheet.players.find(p => p.shirt === 8)!.id, on = sheet.players.find(p => p.shirt === 20)!.id
+    const off = sheet.players.find(p => p.shirt === 8)!.id
     const m = new MatchSim({ seed: 6, world }).runUntil({ clock: 3000 })
+    // a back-rower off the bench if one is left (a hurt man may already have taken shirt 20), else anyone
+    const bench = world.lineup!(userSide).bench
+    const on = bench[4] || bench[3] || bench.find(Boolean)!
+    expect(sheet.players.some(p => p.id === on && p.shirt > 15)).toBe(true)
     m.apply({ kind: 'substitution', side: userSide, off, on })
     const r = m.runUntil().result()
-    const k = r.plays.findIndex(p => p.kind === 'substitution')
+    // (the manager's change: a hurt man may have been replaced before it)
+    const k = r.plays.findIndex(p => p.kind === 'substitution' && p.who === off)
     expect(r.plays[k]).toMatchObject({ result: 'made', who: off, with: [on] })
     const later = r.plays.slice(k + 1).filter(p => p.side === userSide || p.ball === userSide)
     expect(later.some(p => p.who === off || p.with?.includes(off))).toBe(false)
     expect(r.plays.slice(k + 1).some(p => p.who === on || p.with?.includes(on) || p.vs?.includes(on))).toBe(true)
     legal(r.plays)
+  }, 60000)
+})
+
+describe('team identity (round 4): two styles, the same strengths, two different matches to watch', () => {
+  // a kicking, forward-driven side against a ball-in-hand, wide, offloading one, both average
+  const pack: PlayStyle = { ...NEUTRAL_STYLE, atk: 'kick', def: 'choke', kick: 1.5, width: 0.21, maul: 1.4, pick: 1.4, offload: 0.7, corner: 0.5, tempo: 1.08,
+    kickMix: { ...NEUTRAL_STYLE.kickMix, long: 1.5, touch: 1.5, box: 1.3 } }
+  const hand: PlayStyle = { ...NEUTRAL_STYLE, atk: 'offload', def: 'blitz', kick: 0.6, width: 0.40, maul: 0.7, pick: 0.7, offload: 2.2, tempo: 0.88, blitz: 0.8, quick: 1.3,
+    kickMix: { ...NEUTRAL_STYLE.kickMix, chip: 2, crossField: 2, grubber: 1.5 } }
+  const shapeOf = (st: PlayStyle) => {
+    let kicks = 0, carries = 0, wide = 0, mauls = 0, offloads = 0, lineouts = 0, margin = 0
+    const N = 200
+    for (let seed = 1; seed <= N; seed++) {
+      const w: World = { ...evenWorld(), style: () => st }
+      const r = new MatchSim({ seed, world: w }).runUntil().result()
+      margin += r.score[0] - r.score[1]
+      let prev: Play | null = null
+      for (const p of r.plays) {
+        if (p.kind === 'kick' && p.result !== 'penaltyToTouch') kicks++
+        if (p.kind === 'carry') { carries++; if (prev && Math.abs(p.y - prev.y) > 10) wide++ }
+        if (p.kind === 'maul') mauls++
+        if (p.kind === 'offload') offloads++
+        if (p.kind === 'lineout' && p.result === 'won') lineouts++
+        prev = p
+      }
+    }
+    return { kicks: kicks / N, wide: wide / carries, maulsPerLineout: mauls / lineouts, offloads: offloads / N }
+  }
+  it('kicks, width, mauls and offloads all differ, each the way the style says', () => {
+    const a = shapeOf(pack), b = shapeOf(hand)
+    expect(a.kicks).toBeGreaterThan(b.kicks * 1.4)
+    expect(b.wide).toBeGreaterThan(a.wide * 1.4)
+    expect(a.maulsPerLineout).toBeGreaterThan(b.maulsPerLineout * 1.5)
+    expect(b.offloads).toBeGreaterThan(a.offloads * 2)
+  })
+
+  it('real clubs bring their own way of playing through the World', () => {
+    const g = newGame('leicester', 'T', 4242)
+    let fx: Fixture | null | undefined = null
+    for (let i = 0; i < 12 && !fx; i++) { fx = userFixtureThisWeek(g); if (!fx) processWeekAndAdvance(g) }
+    const { world } = worldFromMatch(g, fx!, mulberry32(1))
+    const a = world.style!(0), b = world.style!(1)
+    expect(a.atk).toBeTruthy(); expect(b.atk).toBeTruthy()
+    expect(world.weather).toBeTruthy()
+    // the two sides read differently on at least one lever a watcher sees
+    expect(Math.abs(a.kick - b.kick) + Math.abs(a.width - b.width) + Math.abs(a.offload - b.offload) + Math.abs(a.maul - b.maul)).toBeGreaterThan(0.05)
   }, 60000)
 })

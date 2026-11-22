@@ -45,7 +45,14 @@ import { simMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
 import { worldFromMatch, type MatchWorld } from '../src/game/sim/fromMatch'
-import { simSkeleton } from '../src/game/sim/skeleton'
+import { MatchSim } from '../src/game/sim/skeleton'
+import type { World } from '../src/game/sim/world'
+/** nobody managing: the game runs both benches, as the old engine's assistant does for the user's side */
+const simSkeleton = (o: { seed: number; world: World }) => {
+  const m = new MatchSim(o)
+  m.apply({ kind: 'bench', side: 0, auto: true }); m.apply({ kind: 'bench', side: 1, auto: true })
+  return m.runUntil().result()
+}
 import { mkdirSync, writeFileSync } from 'node:fs'
 
 const args = process.argv.slice(2).filter(a => !a.startsWith('--'))

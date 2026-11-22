@@ -29,7 +29,7 @@ for (let i = 0; i < N; i++) {
     if (p.kind === 'lineBreak') add('breaks')
     if (p.kind === 'knockOn' || p.kind === 'forwardPass') add('handling')
     if (p.kind === 'ruck' && p.result === 'turnover') add('turnovers')
-    if (p.kind === 'lineout' && p.result === 'won') add('lineoutsWon')
+    if (p.kind === 'lineout' && (p.result === 'won' || p.result === 'quick')) add('lineoutsWon')
     if (p.kind === 'carry') add('carries')
   }
   // possessions: a run of entries with the ball in the same hands; how long each lasted in phases; where the match was played

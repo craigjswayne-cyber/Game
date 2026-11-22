@@ -14,18 +14,18 @@ export type PlayKind =
   // restarts
   | 'kickoff' | 'dropout22' | 'goalLineDropout' | 'scrum' | 'lineout' | 'tap'
   // open play
-  | 'carry' | 'ruck' | 'maul' | 'lineBreak' | 'kick' | 'catch'
+  | 'carry' | 'offload' | 'ruck' | 'maul' | 'lineBreak' | 'kick' | 'catch'
   // stoppages
   | 'knockOn' | 'forwardPass' | 'notStraight' | 'unplayable' | 'restartError' | 'intoTouch' | 'outOnFull' | 'deadBall' | 'heldUp' | 'penalty' | 'freeKick'
   // scores
   | 'try' | 'penaltyTry' | 'conversion' | 'penaltyGoal' | 'dropGoal'
   // officials and the bench
-  | 'yellowCard' | 'redCard' | 'halfTime' | 'fullTime' | 'substitution'
+  | 'yellowCard' | 'redCard' | 'halfTime' | 'fullTime' | 'substitution' | 'injury'
 
 /** the manager's call at a penalty (and the game's own, which is the same choice) */
 export type PenaltyCall = 'posts' | 'corner' | 'tap' | 'scrum'
 
-export type KickType = 'box' | 'upAndUnder' | 'grubber' | 'long' | 'clearance' | 'touch' | 'restart'
+export type KickType = 'box' | 'upAndUnder' | 'grubber' | 'long' | 'clearance' | 'touch' | 'restart' | 'crossField' | 'chip'
 
 export interface Play {
   /** order in the match */
@@ -80,6 +80,12 @@ export interface Play {
   offender?: string
   /** a yellow card: the second (Play.t) he comes back */
   until?: number
+  /** a carry: the shape it was run in ('pickAndGo' on their line, 'launch' off first-phase set-piece
+   *  ball, 'offload' the man who took an offload running on), and the called move it came from */
+  shape?: string
+  move?: string
+  /** a catch: the kick was chased and contested in the air */
+  contested?: boolean
   /** the score after it */
   score: [number, number]
 }

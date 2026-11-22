@@ -30,7 +30,10 @@ import { clamp } from '../rng'
 import { teamName } from '../match/selection'
 import type { SideCtx } from '../match/side'
 import type { LiveCtx } from '../match/live'
-import type { Contest, Decision, World } from './world'
+import { NEUTRAL_STYLE, type Contest, type Decision, type PlayStyle, type World } from './world'
+import { ATK_FX, MATCHUP, stylesOf, type AtkStyle, type DefStyle } from '../styles'
+import { callsOf } from '../moves'
+import type { Tactic } from '../model'
 
 /** a side as a reader needs it, to print names: the starting 15 in shirt order, then the bench */
 export interface SimSide {
@@ -197,6 +200,14 @@ const clampStr = (v: number) => Math.max(0.6, Math.min(1.5, v))
 // own 150-match noise, about 1.4 points of margin, is in the target.)
 export const UNIT_EXP: Record<UnitKey, number> = { scrum: 1.43, lineout: 1.15, breakdown: 0.91, attack: 0.95, defence: 1.3, kicking: 0.62, goal: 1, overall: 1 }
 
+/** HOW HARD THE STYLES LEAN (round 4): the kicking dial's reach on how often a side kicks (a dial
+ *  of 50 + STYLE_KICK doubles it), the style dial's reach on how often it goes wide (the share runs
+ *  from 1 - STYLE_WIDTH / 2 to 1 + STYLE_WIDTH / 2 of the average), and its reach on mauls and the
+ *  pick and go. Set so two clubs look different and still score what the old engine says they do. */
+export const STYLE_KICK = 80, STYLE_WIDTH = 0.45, STYLE_PACK = 0.4
+/** the old engine's own try lean for each defence (styles.ts DEF_FX tryF, which it does not export) */
+const DEF_FX_TRY: Record<DefStyle, number> = { drift: 1.015, blitz: 0.96, pendulum: 1.04, man: 0.985, choke: 0.99 }
+
 export interface FromMatchOpts {
   /** for measuring only: change the kicked-off sides (on the private copy) before the world reads them */
   tweak?: (ctx: LiveCtx) => void
@@ -243,22 +254,72 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
   }
   /** the bench men already used, who cannot come on again */
   const used: [Set<number>, Set<number>] = [new Set(), new Set()]
+  /** the men taken off, who cannot come back on (the bench slot he leaves holds his id) */
+  const gone: [Set<number>, Set<number>] = [new Set(), new Set()]
+  /** EVERY MATCH ON THIS WORLD STARTS AT THE KICK-OFF IT WAS BUILT AT (newMatch). A decision
+   *  changes the private copy; the first one in a match takes a copy of what it changes, and
+   *  newMatch puts it all back, so a World can be handed to match after match. */
+  const shirts0 = shirts.map(a => a.slice()) as typeof shirts
+  const tank00 = tank0.map(a => a.slice())
+  let saved: { sides: unknown[]; tactics: unknown[]; ctx: Record<string, unknown> } | null = null
+  const CTX_KEYS = ['subsUsed', 'lastSub', 'talkUsed', 'htTone', 'htReads', 'lastMin'] as const
+  const keep = () => {
+    if (saved) return
+    saved = {
+      sides: sides.map(sd => structuredClone({ ...sd })),
+      tactics: sides.map(sd => structuredClone(clone.clubs[sd.teamId]?.tactic ?? null)),
+      ctx: Object.fromEntries(CTX_KEYS.map(k => [k, structuredClone((ctx as unknown as Record<string, unknown>)[k])])),
+    }
+  }
+  const newMatch = () => {
+    for (const m of off) m.clear()
+    for (const u of used) u.clear()
+    for (const g2 of gone) g2.clear()
+    for (const s of [0, 1] as const) { shirts[s] = shirts0[s].slice(); tank0[s] = tank00[s].slice(); onAt[s].fill(0) }
+    injured[0].clear(); injured[1].clear()
+    if (!saved) return
+    const sv = saved
+    sides.forEach((sd, i) => {
+      const snap = structuredClone(sv.sides[i]) as Record<string, unknown>
+      const live = sd as unknown as Record<string, unknown>
+      for (const k of Object.keys(live)) if (!(k in snap)) delete live[k]
+      Object.assign(live, snap)
+      const club = clone.clubs[sd.teamId]
+      if (club && sv.tactics[i]) club.tactic = structuredClone(sv.tactics[i]) as typeof club.tactic
+    })
+    Object.assign(ctx, structuredClone(sv.ctx))
+    saved = null
+    styles = [buildStyle(0), buildStyle(1)]
+  }
+  /** men taken off hurt and not yet replaced */
+  const injured: [Set<number>, Set<number>] = [new Set(), new Set()]
   const isUserSide = (s: 0 | 1) => ctx.userSideId != null && sides[s].teamId === ctx.userSideId
   /** THE MANAGER'S HAND on the private copy, through the old engine's own functions where it has them.
    *  It changes this World for good: after a decision, build a new World for the next match. */
   const decide = (d: Decision, t: number): string => {
     now = t
     if (d.kind === 'world' || d.kind === 'strength' || d.kind === 'penaltyCall') return 'not a decision for the World'
+    if (d.kind === 'bench') return ''
     const s = d.side, side = sides[s], min = Math.min(79, Math.max(1, Math.floor(t / 60)))
+    keep()
     ctx.lastMin = min
+    if (d.kind === 'injury') {
+      const id = Number(d.who)
+      if (!shirts[s].includes(id) || isOff(s, id)) return 'not on the field'
+      injured[s].add(id)
+      off[s].set(String(id), Infinity)
+      return ''
+    }
     if (d.kind === 'substitution') {
       const outId = Number(d.off), inId = Number(d.on)
       const slot = shirts[s].indexOf(outId)
       if (slot < 0) return 'not on the field'
-      if (isOff(s, outId)) return 'in the bin or sent off'
+      const hurt = !!d.injury && injured[s].has(outId)
+      if (!hurt && isOff(s, outId)) return 'in the bin or sent off'
       const benchAt = side.lineup.indexOf(inId)
-      if (benchAt < 15 || used[s].has(inId)) return 'not on the bench'
-      if (isUserSide(s)) {
+      if (benchAt < 15 || used[s].has(inId) || gone[s].has(inId)) return 'not on the bench'
+      if (hurt) { off[s].delete(String(outId)); injured[s].delete(outId) }
+      if (isUserSide(s) && !d.auto && !hurt) {
         // the manager's own side: the old engine's makeSubstitution, with every law it checks
         // (the front row, the bin, the count) and its bill for a shirt that does not fit
         makeSubstitution(clone, ctx, outId, inId)
@@ -269,8 +330,9 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
         side.energy.set(inId, benchTank(clone.players[inId]))
         fieldChanged(clone, ctx, side, min)
       }
-      used[s].add(inId)
+      used[s].add(inId); gone[s].add(outId)
       shirts[s][slot] = inId
+      if (hurt) off[s].delete(String(outId))
       tank0[s][slot] = (side.energy.get(inId) ?? 70) / 100
       onAt[s][slot] = t
       return ''
@@ -279,8 +341,9 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
       const tac = clone.clubs[side.teamId]?.tactic as unknown as Record<string, unknown> | undefined
       if (!tac) return 'no club'
       Object.assign(tac, d.set)
-      // as applyTacticsChange: the units rebuilt with the new dials, nothing else
+      // as applyTacticsChange: the units rebuilt with the new dials; and the way the side plays
       recomputeSideUnits(clone, ctx, side)
+      styles = [buildStyle(0), buildStyle(1)]
       return ''
     }
     if (d.kind === 'talk') {
@@ -352,7 +415,80 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
     return best
   }
 
+  /**
+   * HOW EACH SIDE PLAYS, from the old engine's own settings for it: the four
+   * dials (style, tempo, kicking, aggression), the without-ball dials (line
+   * speed, width), the kicking style and the exit, the zonal game plan, the
+   * attack and defence styles (styles.ts stylesOf: the manager's own, or the
+   * head coach's philosophy for every other club) and the called moves
+   * (moves.ts callsOf). Each number is a lean on a decision the simulation
+   * makes, and each is 1 (or the average) for a club on the middle of every
+   * dial, so the world's averages hold.
+   */
+  function buildStyle(s: 0 | 1): PlayStyle {
+    const side = sides[s], club = clone.clubs[side.teamId]
+    const tac = (club?.tactic ?? {}) as Partial<Tactic>
+    const dial = (v: number | undefined) => (Number.isFinite(v) ? (v as number) : 50)
+    const sty = club ? stylesOf(clone, club) : null
+    const oppClub = clone.clubs[sides[s === 0 ? 1 : 0].teamId]
+    const oppSty = oppClub ? stylesOf(clone, oppClub) : null
+    const atk = sty?.atk ?? '', def = sty?.def ?? ''
+    const kickD = dial(tac.kicking), styleD = dial(tac.style), tempoD = dial(tac.tempo)
+    const A = (m: Partial<Record<string, number>>) => m[atk] ?? 1
+    const zones = tac.zones ?? {}
+    const kickMix = { ...NEUTRAL_STYLE.kickMix }
+    const ks = tac.kickStyle ?? 'balanced'
+    if (ks === 'territory') Object.assign(kickMix, { long: 1.5, touch: 1.5, clearance: 1.2, box: 0.8, upAndUnder: 0.7, grubber: 0.6, chip: 0.5, crossField: 0.5 })
+    if (ks === 'contest') Object.assign(kickMix, { box: 1.5, upAndUnder: 1.8, long: 0.7, touch: 0.8, grubber: 0.8, chip: 1, crossField: 0.8 })
+    if (ks === 'attack') Object.assign(kickMix, { grubber: 1.6, chip: 2.2, crossField: 2.4, long: 0.7, touch: 0.8, box: 0.8 })
+    if (tac.exit === 'box') kickMix.box *= 2
+    if (tac.exit === 'long') { kickMix.long *= 1.6; kickMix.clearance *= 0.8 }
+    if (tac.exit === 'fifty22') kickMix.touch *= 2
+    const kickZone: [number, number, number] = [
+      zones.own22 === 'long' ? 1.3 : zones.own22 === 'play' ? 0.55 : tac.exit === 'counter' ? 0.65 : 1,
+      zones.middle === 'terr' ? 1.3 : zones.middle === 'hand' ? 0.7 : 1,
+      zones.opp22 === 'drive' ? 0.6 : zones.opp22 === 'spread' ? 0.8 : 1,
+    ]
+    const calls = club ? callsOf(clone, club) : {}
+    const move = calls.lineout ?? calls.main ?? calls.scrum ?? calls.alt
+    // the hash the old engine's AI reads for its appetite for the corner (scoring.ts aiPenaltyCall)
+    let h = 0
+    for (const ch of side.teamId) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+    const appetite = (h % 1000) / 1000
+    const pack = 1 + STYLE_PACK * (50 - styleD) / 100
+    return {
+      atk, def,
+      kick: Math.max(0.5, Math.min(1.7, (1 + (kickD - 50) / STYLE_KICK) * A({ kick: 1.1, width: 0.92, offload: 0.9 }))),
+      kickZone, kickMix,
+      width: Math.max(0.18, Math.min(0.45, 0.30 * (1 - STYLE_WIDTH / 2 + STYLE_WIDTH * styleD / 100) * A({ width: 1.08, direct: 0.9, offload: 1.04 }))),
+      tempo: 1.18 - 0.36 * tempoD / 100,
+      // (divided by the world's mean, 1.2, so the average club offloads as the even world does)
+      offload: A({ offload: 2.6, width: 1.2, direct: 0.8, kick: 0.8 }) / 1.2,
+      maul: pack * A({ direct: 1.15, pods: 1.1, width: 0.8, offload: 0.85 }) * (zones.opp22 === 'drive' ? 1.6 : zones.opp22 === 'spread' ? 0.7 : 1),
+      pick: pack * A({ direct: 1.2, width: 0.8 }) * (zones.opp22 === 'drive' ? 1.5 : 1),
+      corner: Math.max(0, Math.min(0.75, 0.12 + appetite * 0.35 + (50 - styleD) / 250 + (zones.opp22 === 'drive' ? 0.15 : 0))),
+      quick: 0.5 + tempoD / 100,
+      blitz: Math.max(-1, Math.min(1, (dial(tac.defLine) - 50) / 40 + (def === 'blitz' ? 0.3 : def === 'drift' ? -0.3 : 0))),
+      narrow: Math.max(-1, Math.min(1, (50 - dial(tac.defWidth)) / 40 + (def === 'choke' ? 0.25 : 0))),
+      // (nearly every club calls a move: one that does not plays its first phase a little worse)
+      launch: move ? 1.1 : 0.8,
+      ...(move ? { launchMove: move } : {}),
+      matchup: atk && oppSty?.def ? MATCHUP[atk as AtkStyle]?.[oppSty.def as DefStyle] ?? 0 : 0,
+      tryF: (ATK_FX[atk as AtkStyle]?.tryF ?? 1) * (DEF_FX_TRY[oppSty?.def as DefStyle] ?? 1),
+    }
+  }
+  let styles: [PlayStyle, PlayStyle] = [buildStyle(0), buildStyle(1)]
+
   const world: MatchWorld = {
+    style: s => styles[s],
+    managed: ctx.userSideId == null ? null : sides[0].teamId === ctx.userSideId ? 0 : 1,
+    weather: ctx.weather,
+    newMatch,
+    lineup: s => ({
+      field: shirts[s].map(id => (id == null ? '' : String(id))),
+      off: shirts[s].map(id => id == null || isOff(s, id)),
+      bench: sides[s].lineup.slice(15, 23).map(id => (id == null || used[s].has(id) || gone[s].has(id) ? '' : String(id))),
+    }),
     str,
     ruck: (s, hasBall, t) => { now = t; return clampStr(ruckRaw(s, hasBall) * hfa(s) * fade(s, t)) },
     setClock: t => { now = t },
