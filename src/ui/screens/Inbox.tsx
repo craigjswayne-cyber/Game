@@ -141,9 +141,7 @@ export function InboxList({ compact }: { compact?: boolean }) {
   const touch = useStore(s => s.touch)
   const news = [...game.news].filter(n => inInbox(game, n)).sort((a, b) => b.id - a.id)
   if (news.length === 0) {
-    // an empty inbox had no banner at all (owner, 1.9.17): the floor is the
-    // same floor whether or not there is a story on it
-    return <><div className="muted" style={{ padding: 14 }}>{t('inbox.nothingYet')}</div><AdSlot place="news-foot" /></>
+    return <div className="muted" style={{ padding: 14 }}>{t('inbox.nothingYet')}</div>
   }
   return (
     <>
@@ -205,10 +203,15 @@ export default function Inbox() {
   const n = live.find(x => x.id === inboxId) ?? window20[0]
 
   if (!n) {
+    // an empty News page had no banner at all (owner, 1.9.17): the floor is
+    // the same floor whether or not there is a story on it
     return (
-      <div className="muted" style={{ padding: 14 }}>
-        {t('inbox.emptyReader', { days: RECALL_DAYS })}
-      </div>
+      <>
+        <div className="muted" style={{ padding: 14 }}>
+          {t('inbox.emptyReader', { days: RECALL_DAYS })}
+        </div>
+        <AdSlot place="news-foot" />
+      </>
     )
   }
 
