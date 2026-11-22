@@ -84,7 +84,11 @@ export function oddsWord(odds: number): string {
   return odds >= 0.6 ? 'training.retrainOddsLikely' : odds >= 0.35 ? 'training.retrainOddsEven' : odds >= 0.15 ? 'training.retrainOddsUnlikely' : 'training.retrainOddsLongShot'
 }
 
-const mine = (state: GameState, id: number) => state.players[id]?.clubId === state.userClubId
+// AT THE CLUB, AND HERE (1.9.17). A man out on loan is still the club's player
+// on paper, so he went on holding a development-focus place and a personal
+// plan all season while he trained somewhere else (a French player's report,
+// 22 Nov 2026). He trains where he is; the place is free for a man who is here.
+const mine = (state: GameState, id: number) => state.players[id]?.clubId === state.userClubId && !state.players[id]?.onLoan
 
 /** The retrains that count: men still at the club. */
 export function activeRetrains(state: GameState): NonNullable<GameState['retrains']> {

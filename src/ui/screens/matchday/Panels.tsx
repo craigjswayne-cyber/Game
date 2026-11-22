@@ -2,6 +2,7 @@
 
 import { useStore } from '../../../store'
 import { goalKicker, teamShort, refFor } from '../../../game/matchEngine'
+import { markAdj, penMark } from '../../../game/match/kicking'
 import { halfTimeHints } from '../../../game/conditions'
 import { LEVERS, buildEvidence, halfSides, htEvidence, type WhyCause } from '../../../game/evidence'
 import { SLIDER_INFO } from '../../../game/tactics'
@@ -70,11 +71,18 @@ export function DecisionPanel() {
   const diff = mine.score - opp.score
   // whoever will actually take it: the first choice may be in the bin
   const kicker = goalKicker(game, mine)
+  // where the referee's mark is: how far out, how far across (1.9.17)
+  const d = ctx.decision
+  const mark = penMark(ctx, mine, d?.wide ?? 0, d?.fld ?? ctx.field)
+  const acrossM = Math.round(Math.abs(mark.wide))
+  const adj = markAdj(mark)
+  const markLine = t(acrossM < 5 ? 'matchday.penMarkFront' : mark.wide < 0 ? 'matchday.penMarkLeft' : 'matchday.penMarkRight', { dist: mark.dist, wide: acrossM })
+  const markWord = t(adj >= 0.04 ? 'matchday.penMarkEasy' : adj <= -0.1 ? 'matchday.penMarkHard' : 'matchday.penMarkFair')
 
   const options = [
     {
       id: 'posts' as const, icon: 'posts', name: t('matchday.optPosts'),
-      desc: t(diff < 0 && diff >= -3 ? 'matchday.optPostsDLead' : 'matchday.optPostsD',
+      desc: t(adj <= -0.1 ? 'matchday.optPostsDHard' : diff < 0 && diff >= -3 ? 'matchday.optPostsDLead' : 'matchday.optPostsD',
         { kicker: kicker ? kicker.name : t('matchday.yourKicker') }),
     },
     {
@@ -94,6 +102,9 @@ export function DecisionPanel() {
         {t('matchday.penScore', { home: teamShort(game, mine.teamId), hs: mine.score, as: opp.score, away: teamShort(game, opp.teamId) })}
         {diff < 0 ? t('matchday.penBehind', { n: -diff }) : diff > 0 ? t('matchday.penAhead', { n: diff }) : t('matchday.penLevel')}
         {t('matchday.penMin', { min: ctx.lastMin })}
+      </div>
+      <div data-pen-mark style={{ fontSize: '0.8125rem', marginBottom: 8 }}>
+        <b>{markLine}</b> {markWord}
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
         {options.map(o => (

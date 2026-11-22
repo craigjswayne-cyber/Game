@@ -878,3 +878,9 @@
 .tense-band.test { animation: tense-pulse 1.2s ease-in-out infinite; }
 @keyframes tense-pulse { 50% { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) { .tense-band.test { animation: none; } }
+
+/* cards on the live scoreboard (1.9.17): binned men with minutes left, reds */
+.scoreboard .sb-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; font-size: 0.6875rem; color: var(--on-hero-soft); }
+.scoreboard .sb-cards > div { display: flex; flex-wrap: wrap; gap: 2px 8px; min-width: 0; }
+.scoreboard .sb-cards > div:last-child { justify-content: flex-end; }
+.scoreboard .sb-card { white-space: nowrap; }

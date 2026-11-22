@@ -53,6 +53,48 @@ export function noteKick(ctx: LiveCtx, side: SideCtx, made: boolean) {
   if (ctx.detail) (ctx.kickLog ??= []).push([ctx.events.length, side === ctx.home ? 0 : 1, made ? 1 : 0])
 }
 
+// ---- WHERE THE PENALTY IS (1.9.17) ----
+//
+// A player's report (French, 22 Nov 2026): when the call comes to kick at
+// goal, tap or go to the corner, "il serait interessant de savoir ou se
+// trouve le ballon a taper (distance et angle de tir par rapport aux
+// poteaux)". There was nothing to show: a penalty had a distance (the field)
+// that the kick never read, and no side of the pitch at all. Thirty metres in
+// front and forty-eight on the touchline were the same kick.
+//
+// So a penalty has a mark: how far out, and how far from the middle of the
+// posts. The width is the mark's own (its own dice: the match's stream is not
+// drawn on), the kick is longer and the posts narrower for it, and the chance
+// moves with both - up to +12% for a short one in front, down to -22% for a
+// long one from the touchline. The average kick is the kick it always was
+// (PEN_LEN0 and PEN_WIDE0 are the average mark, measured over two seasons of
+// the world: 74% of penalties before and after), so the scoreboard's bands
+// hold; what changes is that the call now has something to weigh.
+const PEN_LEN0 = 29.5  // two seasons: 74.5% of 9,296 against 74.0% before the mark existed (28 to 31 all landed 73.2 to 74.9)
+const PEN_WIDE0 = 15
+const PEN_LEN_K = 0.0065
+const PEN_WIDE_K = 0.002
+
+/** How far from the middle of the posts this penalty is, in metres: negative
+ *  to the kicker's left. Up to the fifteen-metre line from touch. */
+export function penWide(ctx: LiveCtx, side: SideCtx, min: number): number {
+  const r = incRng(ctx, min, side, 0x9E4A)
+  const w = Math.round(r() * 30)
+  return r() < 0.5 ? -w : w
+}
+
+/** The mark: metres out from the goal line, metres wide, and the length of
+ *  the kick to the middle of the posts. */
+export function penMark(ctx: LiveCtx, side: SideCtx, wide: number, field = ctx.field): { dist: number; wide: number; len: number } {
+  const dist = clamp(Math.round(side === ctx.home ? 100 - field : field), 5, 60)
+  return { dist, wide, len: Math.round(Math.hypot(dist, wide)) }
+}
+
+/** What the mark does to the kick's chance. */
+export function markAdj(m: { len: number; wide: number }): number {
+  return clamp(PEN_LEN_K * (PEN_LEN0 - m.len) - PEN_WIDE_K * (Math.abs(m.wide) - PEN_WIDE0), -0.22, 0.12)
+}
+
 /** how often the shot clock beats a kicker (1.8.16) */
 const SHOT_CLOCK_P = 0.006
 /** Take the three points: roll the kick at goal. */
@@ -72,7 +114,10 @@ export function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, m
   // the walk to the tee, said before the strike in a one-score Test (tension.ts)
   pressureKick(state, ctx, side, other, kicker, min)
   // the kicker's nerve with the match on the line (habits.ts): a threshold, never a draw
-  const pPen = clamp(kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side) + clutchKick(state.seed, kicker, min, side.score - other.score), 0.3, 0.92)
+  // the mark (above): the manager's own is carried from the call, the AI's is read here
+  const mark = penMark(ctx, side, ctx.penWide ?? penWide(ctx, side, min))
+  ctx.penWide = undefined
+  const pPen = clamp(kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side) + markAdj(mark) + clutchKick(state.seed, kicker, min, side.score - other.score), 0.3, 0.92)
   const penOver = rng() < pPen
   noteKick(ctx, side, penOver)
   // every kick taken, over or not (1.9.12). The shot clock above is not a

@@ -992,6 +992,29 @@ export function renewalDemand(p: Player): number {
   return Math.max(scale, floor)
 }
 
+/**
+ * ---- THE LENGTH OF A RENEWAL IS ON THE TABLE TOO (1.9.17) ----
+ *
+ * A player's report (French, 22 Nov 2026): opening talks with one of your own
+ * men "ne permet de definir qu'un montant, pas de duree de contrat", unlike
+ * the free agents 1.9.14 gave a length to. The term was decided for the
+ * manager by the player's age and never shown.
+ *
+ * The same idiom as a free agent's deal: the length he would choose himself
+ * (renewalTerm, the one every renewal used to get) at his ordinary demand, and
+ * 6% more for every season away from it. Nothing moves for a manager who
+ * leaves the length alone.
+ */
+export function renewalTerm(p: Player): FreeTerm {
+  return p.age >= 32 ? 1 : p.age <= 26 ? 3 : 2
+}
+
+export function renewalDemandFor(p: Player, years: number): number {
+  const base = renewalDemand(p)
+  const f = 1 + 0.06 * Math.abs(years - renewalTerm(p))
+  return Math.max(Math.round((base * f) / 50) * 50, base)
+}
+
 export function offerRenewal(state: GameState, playerId: number): { ok: boolean; msg: string } {
   const p = state.players[playerId]
   if (!p) return { ok: false, msg: t('reply.notYourPlayer') }
@@ -999,7 +1022,7 @@ export function offerRenewal(state: GameState, playerId: number): { ok: boolean;
 }
 
 /** Haggled renewal: offer any wage; the agent accepts, counters or walks. */
-export function offerRenewalAt(state: GameState, playerId: number, offer: number): { ok: boolean; msg: string; counter?: number } {
+export function offerRenewalAt(state: GameState, playerId: number, offer: number, years?: number): { ok: boolean; msg: string; counter?: number } {
   if (!realMoney(offer)) return notAFigure()
   if (state.unemployed) return noDesk()
   const p = state.players[playerId]
@@ -1024,7 +1047,8 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   const outsideBill = onBill === 0
   const capMsgR = (user.marquee ?? []).includes(p.id) ? null : capBreak(state, user.id, outsideBill ? 0 : offer, onBill)
   if (capMsgR) return { ok: false, msg: capMsgR }
-  const demand = renewalDemand(p)
+  const term: FreeTerm = (FREE_TERMS as readonly number[]).includes(years as number) ? years as FreeTerm : renewalTerm(p)
+  const demand = renewalDemandFor(p, term)
   const squadWages = capBill(state, user)
   if (!outsideBill && squadWages - onBill + offer > userWageBudget(state, user)) {
     return { ok: false, msg: t('reply.termsExceedBudget') }
@@ -1077,7 +1101,6 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   // so a 27-year-old with three years left was being handed a two-year extension
   // and losing a year for signing it. Nobody signs that. Found by
   // scripts/renewprobe.ts.
-  const term = p.age >= 32 ? 1 : 2 + (p.age <= 26 ? 1 : 0)
   p.contractEnds = Math.max(p.contractEnds, state.season + term)
   p.morale = clamp(p.morale + (wage >= demand * 1.12 ? 1.5 : 1), 1, 10) // generosity is remembered
   if ((p.wantsDeal ?? 0) > 0) { p.wantsDeal = 0; p.morale = clamp(p.morale + 0.5, 1, 10) } // demand settled

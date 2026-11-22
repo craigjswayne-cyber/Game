@@ -27,7 +27,7 @@ import { lastTenCall, tenseLine } from './tension'
 import { FLAVOR, FLAVOR_DERBY, FLAVOR_FUN, FLAVOR_GRASSROOTS, FLAVOR_PACIFIC, FLAVOR_WET, FLAVOR_WIND, SCRUM_CONTEST_FLAV, TIRED_LINES } from './lines'
 import { type LiveCtx, binUntil, pushLine, styledKick } from './live'
 import { drainEnergy, sideEnergy } from './energy'
-import { takePenaltyShot } from './kicking'
+import { takePenaltyShot, penWide } from './kicking'
 
 /** Base try chance per tick at ratio 1. Was a flat 0.115 for the whole match;
  *  the last-quarter surge in simTick spends the difference, so the season's
@@ -555,7 +555,7 @@ export function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         // phone during a nine-penalty afternoon, so the choice is the manager's.
         const standing = state.clubs[side.teamId]?.tactic.penaltyCall ?? 'ask'
         if (side.isUser && !ctx.decision) {
-          ctx.decision = { kind: 'penalty', min, fld: ctx.field }
+          ctx.decision = { kind: 'penalty', min, fld: ctx.field, wide: penWide(ctx, side, min) }
           if (standing === 'ask') {
             // WATCHED OR NOT, THE CALL WAITS FOR THE END OF THE TICK (1.8.1).
             // A silent match used to kick at once while a watched one held

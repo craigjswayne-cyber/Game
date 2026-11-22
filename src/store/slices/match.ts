@@ -518,13 +518,13 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     return msg
   },
 
-  undoSub: () => {
+  undoSub: (inId?: number) => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return t('touch.playResumed')
     // same cursor discipline as halfTimeSub: the undo pushes its own line
     const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
-    get().noteCmd({ kind: 'undo' })
-    const msg = undoSubstitution(game, liveMatch.ctx)
+    get().noteCmd(inId != null ? { kind: 'undo', inId } : { kind: 'undo' })
+    const msg = undoSubstitution(game, liveMatch.ctx, inId)
     set(s => ({
       liveMatch: s.liveMatch && wasCaughtUp
         ? { ...s.liveMatch, cursor: s.liveMatch.ctx.events.length }

@@ -218,7 +218,7 @@ export interface Store {
    *  (1.9.1, matchEngine coverInjury). inId null lets the assistant pick. */
   injuryPick: (hurtId: number, inId: number | null) => string
   /** Take back the last substitution, before play resumes (16B). */
-  undoSub: () => string
+  undoSub: (inId?: number) => string
   /** Swap two on-pitch men's shirts - a positional switch, free (16B). */
   swapPositions: (aId: number, bId: number) => string
   liveTactics: () => void

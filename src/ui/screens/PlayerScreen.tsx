@@ -5,7 +5,8 @@ import { scrollContentTo } from '../pageReset'
 import AttrGrid, { bestInShirt } from '../AttrGrid'
 import { POS_ORDER, SEASON_WEEKS, careerRows, kickRecord, fmtMoney, fmtWage, shownMoney, injuryDesc, type GameState, type Player, type Pos, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
-import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, offerFreeAgent, freeAgentDemand, freeAgentTerm, FREE_TERMS, signOnTerms } from '../../game/ai'
+import { keepJoker, keepJokerTerms } from '../../game/joker'
+import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, renewalDemandFor, renewalTerm, offerFreeAgent, freeAgentDemand, freeAgentTerm, FREE_TERMS, signOnTerms } from '../../game/ai'
 import { openDate } from '../../game/window'
 import { FormPill, InjuryMark, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton, spotNote } from '../components'
 import { deskNat, natBarOf, natCallUp, natDrop, natWindow } from '../../game/country'
@@ -107,6 +108,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [wageCounter, setWageCounter] = useState<number | null>(null)
   /** the length on the table in free-agent talks (1.9.14) */
   const [faYears, setFaYears] = useState(2)
+  /** the length on the table when renewing one of his own men (1.9.17) */
+  const [rnYears, setRnYears] = useState(2)
   const [compare, setCompare] = useState(false)
   // another club's man: his development card is folded (1.8.2 trim, see below)
   const [devOpen, setDevOpen] = useState(false)
@@ -446,7 +449,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           return <span className="chip" title={t('player.ceilingTitle')}>{t('player.ceiling')} <b>{r ? (r[0] === r[1] ? r[0] : `${r[0]}-${r[1]}`) : '?'}</b></span>
         })()}
         {!natOnly && <span className="chip" title={t('player.wageTitle')}>{t('player.wage')} <b>{fmtWage(p.wage)}{t('common.perWeek')}</b></span>}
-        <span className="chip" title={t('player.contractToTitle')}>{t('player.contractTo')} <b>{2026 + p.contractEnds}</b></span>
+        {/* the month too (1.9.17, a player's report): every deal runs to the end of June */}
+        <span className="chip" title={t('player.contractToTitle')}>{t('player.contractTo')} <b>{new Intl.DateTimeFormat(localeTag(), { month: 'short', year: 'numeric' }).format(new Date(2026 + p.contractEnds, 5, 30))}</b></span>
         {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 }}>
           {t('player.agentWantsTerms')}</span>}
         {(p.wantsOut ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--text-negative)', color: 'var(--text-negative)', fontWeight: 700 }}
@@ -460,7 +464,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {p.bans > 0 && <span className="chip" style={{ color: 'var(--text-negative)' }}>{t(p.bans === 1 ? 'player.suspendedChipOne' : 'player.suspendedChip', { n: p.bans })}</span>}
         {p.acad && <span className="chip" style={{ color: 'var(--info)', fontWeight: 700 }}>{t('player.academySquad')}</span>}
         {p.natSquad && <span className="chip">{t('player.onIntlDuty')}</span>}
-        {p.onLoan && <span className="chip" style={{ color: 'var(--gold)' }}>{t('player.awayOnLoan')}</span>}
+        {/* where he is, not only that he is away (1.9.17, a player's report) */}
+        {p.onLoan && <span className="chip" style={{ color: 'var(--gold)' }}>{p.loanClub && game.clubs[p.loanClub] ? t('player.onLoanAt', { club: game.clubs[p.loanClub].short }) : t('player.awayOnLoan')}</span>}
         {p.transferListed && <span className="chip" style={{ color: 'var(--gold)' }}>{t('player.transferListed')}</span>}
       </div>
 
@@ -803,6 +808,20 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           report on how they are doing... they should also be able to be
           recalled at any point"). The verdict mirrors the loan-watch postcard's
           own deterministic roll, so the page and the letters agree. */}
+      {/* THE MEDICAL JOKER'S OTHER ENDING (1.9.17): a full contract, offered
+          here from the day he arrives, and not only a goodbye in the inbox */}
+      {mine && p.joker != null && (() => {
+        const hurt = game.players[p.joker]
+        const terms = keepJokerTerms(game, p)
+        return (
+          <div className="card" data-joker-card style={{ ...acc('var(--gold)') }}>
+            <div className="meta">{t('player.jokerCard', { hurt: hurt?.name ?? '' })}</div>
+            <button className="btn gold block" data-joker-keep style={{ marginTop: 8 }} onClick={() => { setMsg(keepJoker(game, p.id).msg); touch() }}>
+              {t('player.jokerKeep', { wage: fmtWage(terms.wage), until: String(2026 + terms.until) })}
+            </button>
+          </div>
+        )
+      })()}
       {mine && p.onLoan && (() => {
         const boost = loanOutBoost(game, p)
         const verdict = t(p.ca >= p.pa ? 'player.loanHisLevel'
@@ -811,7 +830,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           : 'player.loanSteady')
         return (
           <div className="card" style={{ ...acc('var(--gold)') }}>
-            <div className="fact-label">{t('player.outOnLoan')}</div>
+            <div className="fact-label">{p.loanClub && game.clubs[p.loanClub] ? t('player.onLoanAt', { club: game.clubs[p.loanClub].name }) : t('player.outOnLoan')}</div>
             <div className="meta" style={{ marginTop: 4 }}>{verdict}</div>
             <div className="meta" style={{ marginTop: 4 }}>
               {t('player.loanRecallNote')}
@@ -963,7 +982,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   </div>
                   {!talkSigned && wageCounter != null && (
                     <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
-                      const r = offerRenewalAt(game, p.id, wageCounter)
+                      const r = offerRenewalAt(game, p.id, wageCounter, rnYears)
                       noteUse('renew')
                       setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
                       setWageCounter(r.counter ?? null); setWageText(String(wageCounter)); touch()
@@ -972,12 +991,32 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 </>
               ) : (
                 <>
-                  <div className="meta">{t('player.campWants', { demand: fmtWage(renewalDemand(p)), wage: fmtWage(p.wage) })}</div>
+                  <div className="meta">{t('player.campWants', { demand: fmtWage(renewalDemandFor(p, rnYears)), wage: fmtWage(p.wage) })}</div>
+                  {/* THE LENGTH, AS WITH A FREE AGENT (1.9.17). Only lengths
+                      that run past the deal he already has: a new contract
+                      is never shorter than the old one. */}
+                  {(() => {
+                    const opts = FREE_TERMS.filter(y => game.season + y > p.contractEnds || y === renewalTerm(p))
+                    if (opts.length < 2) return null
+                    return (
+                      <>
+                        <div className="fact-label" style={{ marginTop: 8 }}>{t('player.faLength')}</div>
+                        <div className="pp-opts" role="radiogroup" aria-label={t('player.faLength')}>
+                          {opts.map(y => (
+                            <button key={y} type="button" className={`pp-opt${rnYears === y ? ' sel' : ''}`} role="radio" aria-checked={rnYears === y} data-rn-term={y}
+                              onClick={() => { setRnYears(y); setWageText(String(Math.round(renewalDemandFor(p, y) * 0.9 / 50) * 50)) }}>
+                              <b>{t('player.faYears', { n: y })}</b><small>{t('player.faAsks', { wage: fmtWage(renewalDemandFor(p, y)) })}</small>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )
+                  })()}
                   <input className="inline-input" type="text" inputMode="numeric" value={wageText} aria-label={t('player.yourOfferWage')}
                     onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
                   <div className="btn-row" style={{ margin: '10px 0 0' }}>
                     <button className="btn gold" onClick={() => {
-                      const r = offerRenewalAt(game, p.id, wageOffer)
+                      const r = offerRenewalAt(game, p.id, wageOffer, rnYears)
                       noteUse('renew')
                       setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
                       setWageCounter(r.counter ?? null); touch()
@@ -1009,6 +1048,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <div className="btn-row">
             {!negotiating && !p.loanFrom && (
               <button className="btn" onClick={() => {
+                setRnYears(renewalTerm(p))
                 setNegotiating(true); setWageText(String(Math.round(renewalDemand(p) * 0.9 / 50) * 50))
                 setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
               }}>{t('player.openContractTalks')}</button>

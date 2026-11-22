@@ -18,7 +18,7 @@ import { tryScorer } from './setup'
 import { CON_LINES, TOUCHLINE_CON, TRY_LINES, TRY_LINES_DERBY, TRY_LINES_WET, UNDER_POSTS, fitTryLine } from './lines'
 import { DEPICTS, type LiveCtx, binUntil, pushLine } from './live'
 import { FW_POS } from './energy'
-import { kickChance, noteKick, takePenaltyShot } from './kicking'
+import { kickChance, noteKick, takePenaltyShot, markAdj, penMark, penWide } from './kicking'
 
 /** How often a try goes to the TMO, and how often a review chalks it off.
  *  Together about one try in twenty is disallowed (the four-seed balance in
@@ -379,7 +379,7 @@ function syncResult(ctx: LiveCtx) {
 }
 
 function decide(
-  state: GameState, ctx: LiveCtx, d: { kind: 'penalty'; min: number; fld?: number },
+  state: GameState, ctx: LiveCtx, d: { kind: 'penalty'; min: number; fld?: number; wide?: number },
   choice: 'posts' | 'corner' | 'tap',
 ): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
@@ -394,6 +394,7 @@ function decide(
   // decision saved before 1.8.0, which keeps the old behaviour.
   if (d.fld != null) ctx.field = d.fld
   if (choice === 'posts') {
+    ctx.penWide = d.wide // the kick is taken from the mark he was shown (1.9.17)
     takePenaltyShot(state, ctx, mine, min)
     return t('touch.pointsOnBoard')
   }
@@ -433,6 +434,10 @@ export function aiPenaltyCall(_state: GameState, ctx: LiveCtx, side: SideCtx, op
   // posts by a distance, as it is in the Premiership: the tries it makes were
   // measured against the bands (bandcheck), not added on top of them
   if (toLine <= 12 && maul > 3.8 - appetite * 2.4 && behind > -10) return 'corner'
+  // A LONG ONE FROM THE TOUCHLINE IS NOT THREE POINTS (1.9.17): the mark now
+  // decides the kick (kicking.ts markAdj), so a captain looking at the worst
+  // of them puts it in the corner unless his pack is being beaten there
+  if (markAdj(penMark(ctx, side, penWide(ctx, side, min))) <= -0.15 && maul > -1.5) return 'corner'
   return 'posts'
 }
 

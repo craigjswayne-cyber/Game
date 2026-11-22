@@ -386,6 +386,9 @@ export function loanOut(state: GameState, playerId: number): LoanReply {
   }
   p.onLoan = true
   p.loanSince = absWeek(state.season, state.week)
+  // his places in the week's individual work go with him (1.9.17)
+  if (state.devFocus) state.devFocus = state.devFocus.filter(id => id !== p.id)
+  if (state.plans) state.plans = state.plans.filter(x => x.id !== p.id)
   // a NAMED feeder club (round 25, user: "say what club they are playing
   // for"): a real lower-tier side, picked deterministically per player, so
   // every postcard about him can say where he is. Cosmetic - he does not

@@ -328,14 +328,16 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
       {/* the wrong tap can be taken back at the same stoppage (16B, user:
           "i made a substitution but selected the wrong player, i couldnt
           undo it"). Only the LAST change, and only until play resumes. */}
-      {ctx.lastSub && (
-        <button className="btn ghost block" onClick={() => {
-          const msg = undoSub()
+      {/* 1.9.17 (player feedback): ANY change of this stoppage, not only the
+          newest. One button each, named, so the right one is taken back. */}
+      {(ctx.subStack ?? (ctx.lastSub ? [ctx.lastSub] : [])).filter(u => mine.onPitch.has(u.inId) && !mine.onPitch.has(u.outId)).map(u => (
+        <button key={u.inId} className="btn ghost block" data-take-back={u.inId} onClick={() => {
+          const msg = undoSub(u.inId)
           setLog(l => [msg, ...l].slice(0, MAX_SUBS))
           setMade(n => Math.max(0, n - 1))
           setOffId(null)
-        }}>{t('matchday.takeBack')}</button>
-      )}
+        }}>{t('matchday.takeBackOne', { on: game.players[u.inId]?.name ?? '', off: game.players[u.outId]?.name ?? '' })}</button>
+      ))}
       {mustDecide && !settled && (
         <div className="meta sheet-log" style={{ color: 'var(--danger)', fontWeight: 700 }}>
           {t(waitP ? 'matchday.mustDecideWait' : 'matchday.mustDecide')}

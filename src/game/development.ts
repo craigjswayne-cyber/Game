@@ -51,7 +51,11 @@ export function planBlock(p: Player): string | null {
   return null
 }
 
-const mine = (state: GameState, id: number) => state.players[id]?.clubId === state.userClubId
+// AT THE CLUB, AND HERE (1.9.17). A man out on loan is still the club's player
+// on paper, so he went on holding a development-focus place and a personal
+// plan all season while he trained somewhere else (a French player's report,
+// 22 Nov 2026). He trains where he is; the place is free for a man who is here.
+const mine = (state: GameState, id: number) => state.players[id]?.clubId === state.userClubId && !state.players[id]?.onLoan
 
 /** The focus list as it counts: men still at the club, the first FOCUS_SLOTS
  *  (the weekly roll in season.ts reads this list). */

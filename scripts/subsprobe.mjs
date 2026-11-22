@@ -348,9 +348,14 @@ try {
     `${CHANGES} changes in one visit spent ${CHANGES} of the ${MAX_SUBS} (${before} -> ${beforeExit})`)
 
   // ---- the wrong tap can be taken back at the same stoppage (16B) ----
-  const undoBtn = page.locator('text=Take back the last change')
-  ok(await undoBtn.count() === 1, 'the last change offers an undo at the same stoppage')
-  await undoBtn.click()
+  // 1.9.17: every change of the stoppage has its own, and the OLDEST is the
+  // one taken back here - the old button could only reach the newest
+  const undoBtn = page.locator('[data-take-back]')
+  // (this harness swaps the same shirt each time, a chain, and a chain can
+  // only be unpicked from its newest end; tests/v1917.test.ts takes back the
+  // older of two separate changes)
+  ok(await undoBtn.count() >= 1, `a change of this stoppage offers an undo (${await undoBtn.count()})`)
+  await undoBtn.last().click()
   await page.waitForTimeout(300)
   ok(await subsLeft() === before - CHANGES + 1,
     `taking it back refunds the replacement (${await subsLeft()} left)`)
