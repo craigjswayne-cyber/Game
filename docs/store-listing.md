@@ -122,23 +122,23 @@ First release.
 
 ### What's new (500 max) - v1.9.17, Play version code 80 (confirm 79 is accepted on the Console first)
 
-**en-GB, Play and App Store** (483)
-New from your feedback: cards on the live scoreboard, with the minutes left in the sin-bin. Penalties show how far out and how wide the mark is, and it changes the kick. Choose the contract length when you renew, and see the month a deal ends. Keep a medical joker when his spell is up. Take back any substitution made at the same stoppage. Loaned players free their training places. Fixed: the wrong club under news stories for national coaches, and a debut still shown as uncapped.
+**en-GB, Play and App Store** (485)
+New from your feedback: cards on the live scoreboard, with the minutes left in the sin-bin. Penalties show how far out and how wide the mark is, and it changes the kick. Choose the contract length when you renew, and see the month a deal ends. Keep a medical joker when his spell is up. Reset all your changes before you go back to the match. Loaned players free their training places. Fixed: the wrong club under news stories for national coaches, and a debut still shown as uncapped.
 
 **fr-FR, Play and App Store** (491)
-Nouveau, d'après vos retours : cartons au tableau d'affichage en direct, avec les minutes d'exclusion restantes. Les pénalités indiquent la distance et l'angle, et cela change le tir. Choisissez la durée d'une prolongation et voyez le mois de fin de contrat. Gardez un joker médical à la fin de sa pige. Annulez n'importe quel changement du même arrêt de jeu. Les joueurs prêtés libèrent leur place à l'entraînement. Corrigé : mauvais club sous les articles, débutant affiché sans sélection.
+Nouveau, d'après vos retours : cartons au tableau d'affichage en direct, avec les minutes d'exclusion restantes. Les pénalités indiquent la distance et l'angle, et cela change le tir. Choisissez la durée d'une prolongation et voyez le mois de fin de contrat. Gardez un joker médical à la fin de sa pige. Annulez tous vos changements avant de revenir au match. Les joueurs prêtés libèrent leur place à l'entraînement. Corrigé : mauvais club sous les articles, débutant affiché sans sélection.
 
-**es-ES, Play and App Store** (488)
-Nuevo, con vuestros comentarios: tarjetas en el marcador en directo, con los minutos que quedan en la nevera. Los golpes de castigo muestran distancia y ángulo, y eso cambia la patada. Elige la duración al renovar y mira el mes en que acaba un contrato. Quédate con un joker médico al terminar su periodo. Deshaz cualquier cambio de la misma parada. Los cedidos liberan su plaza de entrenamiento. Corregido: club equivocado bajo las noticias, debutante que seguía sin internacionalidades.
+**es-ES, Play and App Store** (497)
+Nuevo, con vuestros comentarios: tarjetas en el marcador en directo, con los minutos que quedan en la nevera. Los golpes de castigo muestran distancia y ángulo, y eso cambia la patada. Elige la duración al renovar y mira el mes en que acaba un contrato. Quédate con un joker médico al terminar su periodo. Deshaz todos tus cambios antes de volver al partido. Los cedidos liberan su plaza de entrenamiento. Corregido: club equivocado bajo las noticias, debutante que seguía sin internacionalidades.
 
-**it-IT, Play and App Store** (474)
-Novità, dai vostri commenti: cartellini sul tabellone in diretta, con i minuti che restano in sin bin. Le punizioni mostrano distanza e angolo, e questo cambia il calcio. Scegli la durata quando rinnovi e vedi il mese di scadenza del contratto. Tieni un joker medico a fine periodo. Annulla qualsiasi cambio fatto alla stessa interruzione. I giocatori in prestito liberano il posto in allenamento. Corretto: club sbagliato sotto le notizie, esordiente ancora senza presenze.
+**it-IT, Play and App Store** (470)
+Novità, dai vostri commenti: cartellini sul tabellone in diretta, con i minuti che restano in sin bin. Le punizioni mostrano distanza e angolo, e questo cambia il calcio. Scegli la durata quando rinnovi e vedi il mese di scadenza del contratto. Tieni un joker medico a fine periodo. Annulla tutti i cambi prima di tornare alla partita. I giocatori in prestito liberano il posto in allenamento. Corretto: club sbagliato sotto le notizie, esordiente ancora senza presenze.
 
-**ja-JP, Play and App Store** (178)
-皆さんの声から：ライブのスコアボードにカードとシンビンの残り時間を表示。ペナルティは距離と角度が出て、キックの難しさが変わる。契約更新で年数を選べ、契約満了の月も表示。メディカルジョーカーを期間終了時に残せる。同じ中断中の交代はどれでも取り消せる。レンタル中の選手は練習枠を空ける。修正：代表監督のニュース下に出るクラブ、デビュー後も未キャップと出る問題。
+**ja-JP, Play and App Store** (180)
+皆さんの声から：ライブのスコアボードにカードとシンビンの残り時間を表示。ペナルティは距離と角度が出て、キックの難しさが変わる。契約更新で年数を選べ、契約満了の月も表示。メディカルジョーカーを期間終了時に残せる。試合に戻る前なら交代をまとめて取り消せる。レンタル中の選手は練習枠を空ける。修正：代表監督のニュース下に出るクラブ、デビュー後も未キャップと出る問題。
 
-**af, Play and App Store** (497)
-Nuut, uit julle terugvoer: kaarte op die regstreekse telbord, met die minute wat op die sondebank oorbly. Strafskoppe wys hoe ver en hoe wyd die merk is, en dit verander die skop. Kies die kontraklengte wanneer jy hernu en sien die maand waarin 'n kontrak eindig. Hou 'n mediese joker wanneer sy tyd verby is. Maak enige plaasvervanging van dieselfde onderbreking ongedaan. Geleende spelers maak oefenplekke vry. Reggestel: verkeerde klub onder nuusberigte, 'n debutant steeds sonder toetse gewys.
+**af, Play and App Store** (499)
+Nuut, uit julle terugvoer: kaarte op die regstreekse telbord, met die minute wat op die sondebank oorbly. Strafskoppe wys hoe ver en hoe wyd die merk is, en dit verander die skop. Kies die kontraklengte wanneer jy hernu en sien die maand waarin 'n kontrak eindig. Hou 'n mediese joker wanneer sy tyd verby is. Stel al jou veranderinge terug voor jy na die wedstryd terugkeer. Geleende spelers maak oefenplekke vry. Reggestel: verkeerde klub onder nuusberigte, 'n debutant steeds sonder toetse gewys.
 
 ### What's new (500 max) - v1.9.16, Play version code 79 (confirm 78 is accepted on the Console first)
 

@@ -1561,7 +1561,7 @@
   "tabTalk": "トーク",
   "tabTeam": "チーム",
   "tacticsBtn": "戦術",
-  "takeBackOne": "{off}→{on}の交代を取り消す",
+  "takeBackAll": "元の布陣に戻す",
   "takeField": "ピッチへ",
   "talkCalm": "冷静に",
   "talkCriticise": "叱責する",
@@ -2971,7 +2971,8 @@
   "drops": "DG",
   "kickLine": "{made}/{att}（{pct}%）",
   "tackles": "タックル",
-  "cards": "カード",
+  "yellows": "イエローカード",
+  "reds": "レッドカード",
   "motm": "MOTM",
   "lions": "アイルズXV遠征メンバー",
   "wcWinner": "ワールドチャンピオンシップ優勝",
@@ -9735,8 +9736,7 @@
    "role": "先発の座"
   },
   "reqRefused": "{season}に移籍を志願し、あなたは却下した。",
-  "reqGranted": "{season}に移籍を志願し、あなたは受け入れた。",
-  "service": {"one": "{club}で{n}試合出場。", "other": "{club}で{n}試合出場。"}
+  "reqGranted": "{season}に移籍を志願し、あなたは受け入れた。"
  },
  "tp": {
   "era": "転機",

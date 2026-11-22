@@ -1617,7 +1617,7 @@
   "tabTalk": "Discorso",
   "tabTeam": "Squadra",
   "tacticsBtn": "Tattiche",
-  "takeBackOne": "Annulla {on} per {off}",
+  "takeBackAll": "Torna com'era",
   "takeField": "Scendi in campo",
   "talkCalm": "Calma",
   "talkCriticise": "Criticare",
@@ -3102,7 +3102,8 @@
   "drops": "Drop",
   "kickLine": "{made}/{att} ({pct}%)",
   "tackles": "Placcaggi",
-  "cards": "Cartellini",
+  "yellows": "Cartellini gialli",
+  "reds": "Cartellini rossi",
   "motm": "MOTM",
   "lions": "In tour con il XV delle Isole",
   "wcWinner": "Vincitore del Campionato del Mondo",
@@ -10270,8 +10271,7 @@
    "role": "un posto da titolare"
   },
   "reqRefused": "Ha chiesto di partire nel {season}, e hai detto di no.",
-  "reqGranted": "Ha chiesto di partire nel {season}, e hai accettato.",
-  "service": {"one": "{n} presenza con {club}.", "other": "{n} presenze con {club}."}
+  "reqGranted": "Ha chiesto di partire nel {season}, e hai accettato."
  },
  "tp": {
   "era": "Svolte",

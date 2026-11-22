@@ -1624,7 +1624,7 @@
     "tabTalk": "Causerie",
     "tabTeam": "Équipe",
     "tacticsBtn": "Tactique",
-    "takeBackOne": "Annuler {on} pour {off}",
+    "takeBackAll": "Revenir à l'équipe d'avant",
     "takeField": "Entrer sur le terrain",
     "talkCalm": "Rester calme",
     "talkCriticise": "Critiquer",
@@ -3121,7 +3121,8 @@
     "drops": "Drops",
     "kickLine": "{made}/{att} ({pct} %)",
     "tackles": "Plaquages",
-    "cards": "Cartons",
+    "yellows": "Cartons jaunes",
+    "reds": "Cartons rouges",
     "motm": "Joueur vedette",
     "lions": "Tournée des Îles",
     "wcWinner": "Champion du monde",
@@ -10454,8 +10455,7 @@
       "role": "une place de titulaire"
     },
     "reqRefused": "A demandé à partir en {season}, et vous avez dit non.",
-    "reqGranted": "A demandé à partir en {season}, et vous avez accepté.",
-    "service": {"one": "{n} match avec {club}.", "other": "{n} matchs avec {club}."}
+    "reqGranted": "A demandé à partir en {season}, et vous avez accepté."
   },
   "tp": {
     "era": "Tournants",

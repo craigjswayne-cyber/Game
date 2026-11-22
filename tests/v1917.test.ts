@@ -46,6 +46,21 @@ describe('1.9.17', () => {
     expect(ctx.subStack?.length ?? 0).toBe(0)
   })
 
+  it('a chain of changes unpicks from the newest end, back to how it was', () => {
+    const { g, ctx, mine } = match(99)
+    const before = [...mine.lineup]
+    const a = mine.lineup[9]!
+    const bench = mine.lineup.slice(15).filter(id => id != null && !mine.onPitch.has(id) && !mine.ratings.has(id)) as number[]
+    const used = ctx.subsUsed
+    makeSubstitution(g, ctx, a, bench[0])
+    makeSubstitution(g, ctx, bench[0], bench[1])
+    for (const u of [...(ctx.subStack ?? [])].reverse()) undoSubstitution(g, ctx, u.inId)
+    expect(ctx.subsUsed).toBe(used)
+    expect(mine.onPitch.has(a)).toBe(true)
+    expect([...mine.lineup].sort()).toEqual([...before].sort())
+    expect(ctx.subStack?.length ?? 0).toBe(0)
+  })
+
   it('a longer, wider penalty is a harder kick, and the mark is the same every time it is asked', () => {
     const { ctx, mine } = match(7)
     expect(markAdj({ len: 20, wide: 0 })).toBeGreaterThan(markAdj({ len: 45, wide: 0 }))

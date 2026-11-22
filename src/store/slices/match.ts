@@ -518,6 +518,14 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     return msg
   },
 
+  commitSubs: () => {
+    const { liveMatch } = get()
+    if (!liveMatch || !(liveMatch.ctx.subStack?.length || liveMatch.ctx.lastSub)) return
+    liveMatch.ctx.subStack = []
+    liveMatch.ctx.lastSub = null
+    set(s => ({ tick: s.tick + 1 }))
+  },
+
   undoSub: (inId?: number) => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return t('touch.playResumed')

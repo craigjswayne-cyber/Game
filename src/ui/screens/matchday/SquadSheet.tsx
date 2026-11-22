@@ -57,7 +57,9 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
 }) {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
-  const { halfTimeSub, injuryCover, injuryPick, undoSub, swapPositions } = useStore.getState()
+  const { halfTimeSub, injuryCover, injuryPick, undoSub, swapPositions, commitSubs } = useStore.getState()
+  // back to the game is the commitment (owner, 1.9.17): nothing is undone after
+  const close = () => { commitSubs(); onClose() }
   const waiting = () => waitId != null && !!live.ctx.injWait?.some(w => w.hurtId === waitId)
   // THE FREE OVERRIDE ONLY EXISTS WHILE THE ASSISTANT'S MAN IS OUT THERE TO BE
   // TAPPED. If he is not (nobody could go on, or the law took him straight back
@@ -174,7 +176,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // man - tapping him again is a decision, it is just the same decision
   const settled = waitId != null ? !waiting() : !mustDecide || decided || !freeLeft
   return (
-    <Veil portal onClose={() => { if (settled) onClose() }} boxClassName="modal squad-sheet">
+    <Veil portal onClose={() => { if (settled) close() }} boxClassName="modal squad-sheet">
       <div className="grab" />
       {/* THE WHOLE BRIEF STICKS, not just the title.
           The title was made sticky on its own after a screenshot showed the
@@ -328,16 +330,19 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
       {/* the wrong tap can be taken back at the same stoppage (16B, user:
           "i made a substitution but selected the wrong player, i couldnt
           undo it"). Only the LAST change, and only until play resumes. */}
-      {/* 1.9.17 (player feedback): ANY change of this stoppage, not only the
-          newest. One button each, named, so the right one is taken back. */}
-      {(ctx.subStack ?? (ctx.lastSub ? [ctx.lastSub] : [])).filter(u => mine.onPitch.has(u.inId) && !mine.onPitch.has(u.outId)).map(u => (
-        <button key={u.inId} className="btn ghost block" data-take-back={u.inId} onClick={() => {
-          const msg = undoSub(u.inId)
-          setLog(l => [msg, ...l].slice(0, MAX_SUBS))
-          setMade(n => Math.max(0, n - 1))
+      {/* 1.9.17 (player feedback, then the owner): ONE reset that puts the
+          side back as it was when the sheet opened, however many changes
+          were made. Leaving the sheet commits them (close below). */}
+      {(ctx.subStack ?? (ctx.lastSub ? [ctx.lastSub] : [])).length > 0 && (
+        <button className="btn ghost block" data-take-back onClick={() => {
+          const stack = [...(ctx.subStack ?? (ctx.lastSub ? [ctx.lastSub] : []))].reverse()
+          const before = ctx.subsUsed
+          const msgs = stack.map(u => undoSub(u.inId))
+          setLog(l => [...msgs.reverse(), ...l].slice(0, MAX_SUBS))
+          setMade(n => Math.max(0, n - (before - ctx.subsUsed)))
           setOffId(null)
-        }}>{t('matchday.takeBackOne', { on: game.players[u.inId]?.name ?? '', off: game.players[u.outId]?.name ?? '' })}</button>
-      ))}
+        }}>{t('matchday.takeBackAll')}</button>
+      )}
       {mustDecide && !settled && (
         <div className="meta sheet-log" style={{ color: 'var(--danger)', fontWeight: 700 }}>
           {t(waitP ? 'matchday.mustDecideWait' : 'matchday.mustDecide')}
@@ -347,7 +352,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
         {onTactics && (
           <button className="btn ghost" onClick={onTactics}>{t('matchday.tacticsBtn')}</button>
         )}
-        <button className="btn gold" style={{ flex: 1.6 }} disabled={!settled} onClick={onClose}>
+        <button className="btn gold" style={{ flex: 1.6 }} disabled={!settled} onClick={close}>
           {made ? t('matchday.doneChanges', { n: made })
             : t(settled ? 'matchday.backToMatch' : 'matchday.nameFirst')}
         </button>

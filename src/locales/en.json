@@ -1577,7 +1577,7 @@
   "tabTalk": "Talk",
   "tabTeam": "Team",
   "tacticsBtn": "Tactics",
-  "takeBackOne": "Take back {on} for {off}",
+  "takeBackAll": "Reset to how it was",
   "takeField": "Take the Field",
   "talkCalm": "Stay calm",
   "talkCriticise": "Criticise",
@@ -3046,7 +3046,8 @@
   "drops": "Drop goals",
   "kickLine": "{made}/{att} ({pct}%)",
   "tackles": "Tackles",
-  "cards": "Cards",
+  "yellows": "Yellow cards",
+  "reds": "Red cards",
   "motm": "MOTM",
   "lions": "Isles XV tourist",
   "wcWinner": "World Championship winner",
@@ -10214,8 +10215,7 @@
    "role": "a starting role"
   },
   "reqRefused": "Asked to leave in {season}, and you said no.",
-  "reqGranted": "Asked to leave in {season}, and you agreed.",
-  "service": {"one": "{n} appearance for {club}.", "other": "{n} appearances for {club}."}
+  "reqGranted": "Asked to leave in {season}, and you agreed."
  },
  "tp": {
   "era": "Turning points",

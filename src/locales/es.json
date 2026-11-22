@@ -1622,7 +1622,7 @@
   "tabTalk": "Charla",
   "tabTeam": "Equipo",
   "tacticsBtn": "Tácticas",
-  "takeBackOne": "Deshacer {on} por {off}",
+  "takeBackAll": "Volver a como estaba",
   "takeField": "Saltar al campo",
   "talkCalm": "Calma",
   "talkCriticise": "Criticar",
@@ -3098,7 +3098,8 @@
   "drops": "Drops",
   "kickLine": "{made}/{att} ({pct}%)",
   "tackles": "Placajes",
-  "cards": "Tarjetas",
+  "yellows": "Tarjetas amarillas",
+  "reds": "Tarjetas rojas",
   "motm": "MVP",
   "lions": "De gira con el XV de las Islas",
   "wcWinner": "Campeón del Campeonato del Mundo",
@@ -10209,8 +10210,7 @@
    "role": "un puesto de titular"
   },
   "reqRefused": "Pidió salir en {season}, y dijiste que no.",
-  "reqGranted": "Pidió salir en {season}, y aceptaste.",
-  "service": {"one": "{n} partido con {club}.", "other": "{n} partidos con {club}."}
+  "reqGranted": "Pidió salir en {season}, y aceptaste."
  },
  "tp": {
   "era": "Momentos clave",

@@ -9,13 +9,15 @@ A French player's feedback, points 1 to 7, plus two bugs the owner hit as Englan
 4. The contract chip shows the month and year the deal ends.
 5. Medical jokers: a news warning one week before he goes, and a Keep button on his page (full contract, to the end of next season).
 6. A man out on loan leaves the development focus and personal plans, and no longer counts against them.
-7. Any substitution made at a stoppage can be taken back, not only the newest. A chain (A off for X, X off for Y) unpicks from the newest end.
+7. One reset on the squad sheet puts the side back as it was, however many changes were made at the stoppage. Closing the sheet (back to the match) commits them: no undo after. The engine can still take back any one change by name (`undoSubstitution(state, ctx, inId)`).
 - The loan card names the loan club.
 - The shop row names the three Pro challenges.
 
 ## Fixed
 - A national coach with no club saw his host club under every news story. Stories now show the club they name, or his nation.
 - The debut promise card still said "Uncapped" after the man had played.
+
+- Player page: yellow cards and red cards are separate chips. The bare "N appearances for the club" line is gone (owner: the count before the career is invented).
 
 ## Left out (owner's call)
 - International tries and points. Loan matches in career history and per-club history.

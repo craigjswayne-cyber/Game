@@ -583,7 +583,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         })()}
         {p.stats.tkl != null && <span className="chip">{t('player.tackles')} <b>{p.stats.tkl}</b></span>}
         {p.stats.drops > 0 && <span className="chip">{t('player.drops')} <b>{p.stats.drops}</b></span>}
-        <span className="chip">{t('player.cards')} <b>{p.stats.yc}{t('squad.colYC').slice(0, 1)} {p.stats.rc}{t('squad.colRC').slice(0, 1)}</b></span>
+        <span className="chip">{t('player.yellows')} <b>{p.stats.yc}</b></span>
+        <span className="chip">{t('player.reds')} <b>{p.stats.rc}</b></span>
         {p.stats.motm > 0 && <span className="chip">{t('player.motm')} <b>{p.stats.motm}</b></span>}
         {(p.lions ?? 0) > 0 && <span className="chip">{t('player.lions')}{(p.lions ?? 0) > 1 ? <b> ×{p.lions}</b> : null}</span>}
         {(p.wcWins ?? 0) > 0 && <span className="chip">{t('player.wcWinner')}{(p.wcWins ?? 0) > 1 ? <b> ×{p.wcWins}</b> : null}</span>}

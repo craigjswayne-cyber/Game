@@ -1575,7 +1575,7 @@
   "tabTalk": "Praatjie",
   "tabTeam": "Span",
   "tacticsBtn": "Taktiek",
-  "takeBackOne": "Maak {on} vir {off} ongedaan",
+  "takeBackAll": "Stel terug soos dit was",
   "takeField": "Draf uit",
   "talkCalm": "Bly kalm",
   "talkCriticise": "Kritiseer",
@@ -3044,7 +3044,8 @@
   "drops": "Skepdoele",
   "kickLine": "{made}/{att} ({pct}%)",
   "tackles": "Laagvattes",
-  "cards": "Kaarte",
+  "yellows": "Geelkaarte",
+  "reds": "Rooikaarte",
   "motm": "Speler v.d. wedstryd",
   "lions": "Eilande-XV-toerlid",
   "wcWinner": "Wêreldkampioenskap-wenner",
@@ -10258,8 +10259,7 @@
    "role": "'n plek in die beginspan"
   },
   "reqRefused": "Het in {season} gevra om te gaan, en jy het nee gesê.",
-  "reqGranted": "Het in {season} gevra om te gaan, en jy het ingestem.",
-  "service": {"one": "{n} wedstryd vir {club}.", "other": "{n} wedstryde vir {club}."}
+  "reqGranted": "Het in {season} gevra om te gaan, en jy het ingestem."
  },
  "tp": {
   "era": "Keerpunte",
