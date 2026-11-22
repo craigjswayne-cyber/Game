@@ -195,6 +195,14 @@ try {
     const start = Math.max(1, Math.min(first < 0 ? evs.length : first, evs.length - 1 - k))
     if (start + k >= evs.length) return { bad: `no ${fromMin}' tail (${evs.length} events)` }
     for (const e of evs) { e.homeScore = 40; e.awayScore = 40 - margin }
+    // THE MINUTE IS FABRICATED TOO (1.9.17), as bandAt's is below and for the
+    // same reason. The stretch is late x close, so three lines at 68' stretch
+    // far less than three at 76', and which minutes one generated match puts
+    // its lines on is not what this measures: 1.9.17's penalty mark re-dealt
+    // the match, the window landed earlier, and the ratio read 1.12x with the
+    // pacing code untouched. Both runs now replay the same lines at 76'.
+    const kept = evs.slice(start - 1, start + k + 1).map(e => e.min)
+    for (let i = start - 1; i <= start + k; i++) if (evs[i]) evs[i].min = Math.max(evs[i].min, 76)
     S().matchCursor(start, true)
     await frame()
     const t0 = performance.now()
@@ -204,6 +212,7 @@ try {
     }
     const ms = performance.now() - t0
     S().matchCursor(start, false)
+    kept.forEach((m, j) => { if (evs[start - 1 + j]) evs[start - 1 + j].min = m })
     return { ms, per: ms / k }
   }, [margin, fromMin, k])
 
