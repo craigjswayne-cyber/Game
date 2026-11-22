@@ -25,7 +25,7 @@ A French player's feedback, points 1 to 7, plus two bugs the owner hit as Englan
 - Advert boxes: Team Report (every tab, Where We Stand included), the Roles tab on Tactics, the Medical Centre, and the News page when the inbox is empty. Three new places (report-foot, roles-foot, medical-foot) use the Home unit until they have their own in AdMob.
 
 ## Owner's four calls, 22 Nov afternoon
-- Captain and legend lines no longer quote an appearance count (six languages).
+- Captain, legend, sold, released and let-go lines no longer quote an appearance count (six languages).
 - The result story for a match with no event log no longer says "No tries scored".
 - Job Centre heading for a national coach with no club: "No club job". Legacy drops the league-title goal for him.
 - Four more advert floors, each at the very bottom as Home's is: Profile, Roll of Honour, Country, Transfer Centre (profile-foot, history-foot, country-foot, transfers-foot). scripts/adsprobe.mjs now uses the Squad as its screen with no slot.

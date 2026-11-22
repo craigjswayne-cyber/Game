@@ -10289,10 +10289,10 @@
   "legend": "'n {club}-legende sedert {season}.",
   "legendOld": "'n {club}-legende.",
   "captainLegend": "Jou kaptein, 'n {club}-legende sedert {season}.",
-  "sold": {"one": "In {season} vir {fee} aan {buyer} verkoop, ná {n} wedstryd vir {club}.", "other": "In {season} vir {fee} aan {buyer} verkoop, ná {n} wedstryde vir {club}."},
+  "sold": "In {season} vir {fee} aan {buyer} verkoop.",
   "soldYoung": "In {season} vir {fee} aan {buyer} verkoop, voor 'n eerstespanwedstryd vir {club}.",
-  "released": {"one": "In {season} deur {club} vrygestel, ná {n} wedstryd.", "other": "In {season} deur {club} vrygestel, ná {n} wedstryde."},
-  "letGo": {"one": "In {season} deur {club} laat gaan, ná {n} wedstryd.", "other": "In {season} deur {club} laat gaan, ná {n} wedstryde."},
+  "released": "In {season} deur {club} vrygestel.",
+  "letGo": "In {season} deur {club} laat gaan.",
   "promiseKept": "Jy het in {season} {what_k} belowe, en jou woord gehou.",
   "promiseBroken": "Jy het in {season} {what_k} belowe, en jou woord gebreek.",
   "what": {

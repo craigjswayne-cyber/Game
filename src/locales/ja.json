@@ -9766,10 +9766,10 @@
   "legend": "{season}から{club}のレジェンド。",
   "legendOld": "{club}のレジェンド。",
   "captainLegend": "キャプテン。{season}から{club}のレジェンド。",
-  "sold": {"one": "{season}に{fee}で{buyer}へ売却。{club}では{n}試合出場。", "other": "{season}に{fee}で{buyer}へ売却。{club}では{n}試合出場。"},
+  "sold": "{season}に{fee}で{buyer}へ売却。",
   "soldYoung": "{season}に{fee}で{buyer}へ売却。{club}でのトップチーム出場はなかった。",
-  "released": {"one": "{season}に{club}から放出。在籍中{n}試合出場。", "other": "{season}に{club}から放出。在籍中{n}試合出場。"},
-  "letGo": {"one": "{season}に{club}を退団。在籍中{n}試合出場。", "other": "{season}に{club}を退団。在籍中{n}試合出場。"},
+  "released": "{season}に{club}から放出。",
+  "letGo": "{season}に{club}を退団。",
   "promiseKept": "{season}に{what_k}を約束し、約束を守った。",
   "promiseBroken": "{season}に{what_k}を約束し、約束を破った。",
   "what": {

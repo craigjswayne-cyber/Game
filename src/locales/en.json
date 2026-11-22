@@ -10245,10 +10245,10 @@
   "legend": "A {club} legend since {season}.",
   "legendOld": "A {club} legend.",
   "captainLegend": "Your captain, and a {club} legend since {season}.",
-  "sold": {"one": "Sold to {buyer} for {fee} in {season}, after {n} appearance for {club}.", "other": "Sold to {buyer} for {fee} in {season}, after {n} appearances for {club}."},
+  "sold": "Sold to {buyer} for {fee} in {season}.",
   "soldYoung": "Sold to {buyer} for {fee} in {season}, before a first-team game for {club}.",
-  "released": {"one": "Released by {club} in {season}, after {n} appearance.", "other": "Released by {club} in {season}, after {n} appearances."},
-  "letGo": {"one": "Let go by {club} in {season}, after {n} appearance.", "other": "Let go by {club} in {season}, after {n} appearances."},
+  "released": "Released by {club} in {season}.",
+  "letGo": "Let go by {club} in {season}.",
   "promiseKept": "You promised {what_k} in {season}, and kept your word.",
   "promiseBroken": "You promised {what_k} in {season}, and broke your word.",
   "what": {
