@@ -16,7 +16,11 @@ export function matchReport(state: GameState, fx: Fixture) {
   // a second VICTORY/DEFEAT item on the same result is just noise
   if (fx.events?.length) return
   const comp = state.comps[fx.compId]
-  const isHome = fx.homeId === state.userClubId
+  // A TEST IS THE COACH'S COUNTRY'S (1.9.17). This asked only whether his CLUB
+  // was at home, so every home Test was written up from the visitors' side:
+  // England 24-5 Ireland was filed "DEFEAT: 5-24 to England" for England's
+  // own coach, and a home defeat as a victory over England.
+  const isHome = fx.homeId === state.userClubId || (!state.clubs[fx.homeId] && (fx.homeId === state.natTeam || fx.homeId === 'LIO'))
   const us = isHome ? fx.homeScore : fx.awayScore
   const them = isHome ? fx.awayScore : fx.homeScore
   const verdict = us > them ? 'VICTORY' : us < them ? 'DEFEAT' : 'DRAW'

@@ -136,6 +136,8 @@ export default function Legacy() {
             </div>
           )
         }
+        // nothing to say yet: no card at all, not an empty one (1.9.17)
+        if (!clockLine(game) && !mayRetire(game)) return null
         return (
           <div className="card">
             {clockLine(game) && <div className="meta">{clockLine(game)}</div>}

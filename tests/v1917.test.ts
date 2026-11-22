@@ -116,6 +116,13 @@ describe('1.9.17', () => {
     const reads = userResults(g)
     expect(reads.length).toBe(tests)
     expect(reads.every(r => r.fx.homeId === 'ENG' || r.fx.awayId === 'ENG')).toBe(true)
+    // and a home Test is written up from his side, not the visitors'
+    for (const n of g.news.filter(x => x.k === 'news.result')) {
+      const fx = g.fixtures.find(f => f.played && f.week === n.week && (f.homeId === 'ENG' || f.awayId === 'ENG'))
+      if (!fx) continue
+      const us = fx.homeId === 'ENG' ? fx.homeScore : fx.awayScore
+      expect(n.v?.us).toBe(us)
+    }
     const why = pressWhy(g)
     expect(JSON.stringify(why)).not.toContain('Bath')
   })
