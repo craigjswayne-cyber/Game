@@ -58,6 +58,11 @@ export const RULES: Rule[] = [
   { id: 'R24-cards', title: 'a card follows a penalty against the carded side and names a man on that side', owner: 'GAMEPLAY', kind: 'match' },
   { id: 'R25-binned', title: 'a man in the bin (ten minutes) or sent off is never named in play while off', owner: 'GAMEPLAY', kind: 'match' },
   { id: 'R26-names', title: 'who is on the side the entry is about, vs on the other side, all on the field (real fixtures)', owner: 'GAMEPLAY', kind: 'match' },
+  { id: 'R36-substitution', title: 'a substitution only with the ball dead; the man off was on, the man on was on the bench; the man off is never named again', owner: 'GAMEPLAY', kind: 'match' },
+  { id: 'R37-dec-sub', title: 'a substitution at minute 50 (real sheets): nothing before it changes, it is made at a dead ball, the man on plays, the man off is never seen again', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'R38-dec-call', title: 'the manager\'s penalty call is obeyed: posts a kick at goal, corner a kick to touch, tap a tap, scrum a scrum', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'R39-dec-tactics', title: 'a tactics change at minute 50 leaves every play before it the same, and changes the match after it', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'R40-dec-talk', title: 'a half-time team talk leaves the first half the same, and changes the second', owner: 'GAMEPLAY', kind: 'rate' },
   { id: 'R27-clock-mono', title: 'the clock never goes backwards', owner: 'GAMEPLAY', kind: 'match' },
   { id: 'R28-clock-sum', title: 'the clock moves by exactly the live and dead seconds the record gives', owner: 'GAMEPLAY', kind: 'match' },
   { id: 'R29-score', title: 'score arithmetic: try 5, conversion 2, penalty goal 3, drop goal 3; tries and final score agree', owner: 'GAMEPLAY', kind: 'match' },
@@ -96,13 +101,17 @@ export interface Match {
   names?: Map<string, string>
   /** the two clubs' names (real fixtures), for the commentary */
   teams?: [string, string]
+  /** each side's players with the shirt they started in, as the pitch wants them */
+  sides?: [{ players: { id: string; shirt: number }[] }, { players: { id: string; shirt: number }[] }]
 }
 
 const other = (s: 0 | 1): 0 | 1 => (s === 0 ? 1 : 0)
 const toLine = (s: 0 | 1, x: number) => (s === 0 ? 100 - x : x)
 const adv = (s: 0 | 1, from: number, m: number) => (s === 0 ? from + m : from - m)
 const near = (a: number, b: number, tol = 0.25) => Math.abs(a - b) <= tol
-const CARD = new Set(['yellowCard', 'redCard'])
+/** plays that sit between two others without being part of the flow (prevReal / nextReal step over them) */
+const CARD = new Set(['yellowCard', 'redCard', 'substitution'])
+const CARDS_ONLY = new Set(['yellowCard', 'redCard'])
 const TOUCH_KICK = new Set(['touch', 'penaltyToTouch', 'fiftyTwentyTwo', 'outOnFull'])
 const SCORE_GOOD = (p: Play) => p.kind === 'conversion' || p.kind === 'penaltyTry' || ((p.kind === 'penaltyGoal' || p.kind === 'dropGoal') && p.good === true)
 
@@ -130,7 +139,17 @@ export function lawOf(p: Play): LawEvent | null {
 
 /** a card is shown at the clock before its own dead time (the record's t is after it); the man is back ten minutes later */
 export const offAt = (c: Play) => c.t - c.dead
-export const backAt = (c: Play) => c.t - c.dead + 600
+/** the record's own return time when it gives one (Play.until, since 21 Nov), else ten minutes on */
+export const backAt = (c: Play) => c.until ?? c.t - c.dead + 600
+
+/** the offences the record may give for a penalty, by where it happened (record.ts Play.cause) */
+export const PEN_CAUSES: Record<'ruck' | 'scrum' | 'lineout' | 'maul' | 'kick', string[]> = {
+  ruck: ['handsInRuck', 'offside', 'notRollingAway', 'highTackle', 'holdingOn', 'sealingOff', 'obstruction', 'notReleasing'],
+  scrum: ['collapsing', 'standingUp', 'notBinding', 'earlyEngagement'],
+  lineout: ['obstruction', 'offsideAtLineout', 'closingTheGap'],
+  maul: ['collapsingMaul', 'obstruction'],
+  kick: ['offsideAtKick', 'obstruction', 'highTackle', 'notReleasing'],
+}
 
 /** the play before k that is not a card */
 const prevReal = (plays: Play[], k: number): number => { let j = k - 1; while (j >= 0 && CARD.has(plays[j].kind)) j--; return j }
@@ -163,6 +182,9 @@ export function checkRecord(m: Match): Fail[] {
   let s0 = 0, s1 = 0
   const tries: [number, number] = [0, 0]
   let firstKO: 0 | 1 | null = null
+  /** who is on the field, through the substitutions (real fixtures) */
+  const onField: [Set<string>, Set<string>] = [new Set(m.xv?.[0] ?? []), new Set(m.xv?.[1] ?? [])]
+  const usedBench = new Set<string>(), subbedOff = new Set<string>()
 
   for (let k = 0; k < P.length; k++) {
     const p = P[k], a = k > 0 ? P[k - 1] : null
@@ -179,6 +201,7 @@ export function checkRecord(m: Match): Fail[] {
       const ok =
         p.kind === 'catch' ||
         (p.kind === 'ruck' && p.result === 'turnover') ||
+        (p.kind === 'carry' && p.result === 'intercepted') ||
         (p.kind === 'lineout') || (p.kind === 'scrum') ||
         p.kind === 'penalty' || p.kind === 'freeKick' ||
         p.kind === 'kickoff' || p.kind === 'dropout22' || p.kind === 'goalLineDropout' ||
@@ -288,21 +311,38 @@ export function checkRecord(m: Match): Fail[] {
     // R13 / R14 50:22
     if (p.kind === 'kick' && pr && (p.result === 'fiftyTwentyTwo' || p.result === 'touch')) {
       const start = pr.x
-      const fromOwnHalf = toLine(p.side, start) > 50
-      const intoTheir22 = toLine(p.side, p.x) < 22
+      // the halfway line is in a side's own half and the 22 line is in the 22 (the record is to 0.1 m)
+      const out = p.land ? p.land[0] : p.x
+      // a kick from exactly on halfway (x 50.0) is left alone either way: the law says "inside its own half"
+      // and the record does not say which side of the line the boot was (listed for the owner in the checklist)
+      // the same for a kick that comes down exactly on the 22 line
+      const onHalfway = Math.abs(toLine(p.side, start) - 50) < 0.05 || Math.abs(toLine(p.side, p.land ? p.land[0] : p.x) - 22) < 0.05
+      const fromOwnHalf = toLine(p.side, start) >= 50
+      const intoTheir22 = toLine(p.side, out) <= 22
       const openPlay = pr.kind !== 'penalty' && pr.kind !== 'freeKick' && !CARD.has(pr.kind)
-      const real5022 = fromOwnHalf && intoTheir22 && openPlay
-      if (p.result === 'fiftyTwentyTwo' && !real5022) fail('R13-5022', k, `50:22 called from x ${start} (own half: ${fromOwnHalf}) to x ${p.x} (their 22: ${intoTheir22}), open play: ${openPlay}`)
+      const real5022 = fromOwnHalf && intoTheir22 && openPlay && !onHalfway
+      if (p.result === 'fiftyTwentyTwo' && !real5022 && !onHalfway) fail('R13-5022', k, `50:22 called from x ${start} (own half: ${fromOwnHalf}) to x ${p.x} (their 22: ${intoTheir22}), open play: ${openPlay}`)
       // a kick from inside the kicker's own 22 can still be a 50:22 in law; the record cannot tell a bounce, so only non-full kicks to touch count
       if (p.result === 'touch' && real5022) fail('R14-5022-missed', k, `kick from own half (x ${start}) bounced into touch in their 22 (x ${p.x}) but was not called a 50:22: the throw is given to the wrong side`)
     }
 
-    // R15 penalty cause
+    // R15 penalty cause: the record names the offence (Play.cause), it fits the play before, and the offender is on the other side
     if ((p.kind === 'penalty' || p.kind === 'freeKick') && pr) {
-      const ok = (pr.kind === 'ruck' && /penalty/.test(pr.result)) || (pr.kind === 'scrum' && /penalty|freeKick/.test(pr.result)) ||
-        (pr.kind === 'lineout' && pr.result === 'penalty') || (pr.kind === 'maul' && pr.result === 'pulledDown')
-      if (!ok) fail('R15-penalty-cause', k, `${p.kind} to ${p.side} after ${pr.kind}/${pr.result}: no offence in the record`)
+      const fam = pr.kind === 'ruck' && /penalty/.test(pr.result) ? 'ruck' : pr.kind === 'scrum' && /penalty|freeKick/.test(pr.result) ? 'scrum'
+        : pr.kind === 'lineout' && pr.result === 'penalty' ? 'lineout' : pr.kind === 'maul' && pr.result === 'pulledDown' ? 'maul'
+        : (pr.kind === 'kick' || pr.kind === 'catch') ? 'kick' : null
+      if (!fam) fail('R15-penalty-cause', k, `${p.kind} to ${p.side} after ${pr.kind}/${pr.result}: no place for an offence`)
+      else if (!p.cause) fail('R15-penalty-cause', k, `${p.kind} to ${p.side} after ${pr.kind}/${pr.result} with no cause`)
+      else if (!PEN_CAUSES[fam].includes(p.cause)) fail('R15-penalty-cause', k, `${p.kind} for ${p.cause} after ${pr.kind}/${pr.result}: not an offence of the ${fam}`)
+      if (real && p.offender) {
+        const os = sideOf(p.offender)
+        if (os !== other(p.side)) fail('R15-penalty-cause', k, `${p.kind} to side ${p.side}: offender ${m.names?.get(p.offender) ?? p.offender} is on side ${os}`)
+        const o = offUntil.get(p.offender)
+        if (o && p.t >= o.from && p.t < o.until) fail('R15-penalty-cause', k, `offender ${m.names?.get(p.offender) ?? p.offender} is off the field`)
+        if (!onField[os === -1 ? 0 : os].has(p.offender)) fail('R15-penalty-cause', k, `offender ${m.names?.get(p.offender) ?? p.offender} is not on the field`)
+      } else if (real && p.kind === 'penalty') fail('R15-penalty-cause', k, `penalty for ${p.cause} with no offender named`)
     }
+    if (p.kind === 'penaltyTry' && pr && pr.kind !== 'penalty') fail('R15-penalty-cause', k, `penalty try after ${pr.kind}`)
 
     // R16 kick at goal from the mark
     if (p.kind === 'penaltyGoal') {
@@ -314,10 +354,13 @@ export function checkRecord(m: Match): Fail[] {
 
     // R17 turnovers
     if (p.kind === 'ruck' && p.result === 'turnover' && real && !(p.vs && p.vs[0])) fail('R17-turnover', k, 'turnover at the ruck with no man named for the steal')
+    if (p.kind === 'carry' && p.result === 'intercepted') {
+      if (p.ball !== other(p.side)) fail('R17-turnover', k, `intercepted pass by side ${p.side} but the ball stays with ${p.ball}`)
+      if (real && !(p.vs && p.vs[0])) fail('R17-turnover', k, 'interception with nobody named for it')
+    }
 
     // R18 restarts after scores
     if (p.kind === 'conversion' && (!pr || pr.kind !== 'try' || pr.side !== p.side)) fail('R18-restart-score', k, `conversion by ${p.side} after ${pr?.kind} (${pr?.side})`)
-    if (p.kind === 'penaltyTry' && pr && pr.kind !== 'penalty') fail('R15-penalty-cause', k, `penalty try after ${pr.kind}: no penalty given`)
     if (p.kind === 'try' && (!nx || nx.kind !== 'conversion' || nx.side !== p.side)) fail('R18-restart-score', k, `try by ${p.side} followed by ${nx?.kind} (${nx?.side})`)
     if (SCORE_GOOD(p) && nx && nx.kind !== 'halfTime' && nx.kind !== 'fullTime') {
       if (nx.kind !== 'kickoff') fail('R18-restart-score', k, `${p.kind} followed by ${nx.kind}, not a kick-off`)
@@ -350,14 +393,22 @@ export function checkRecord(m: Match): Fail[] {
     if (p.kind === 'kickoff' && k > 0) {
       if (!pr || !(SCORE_GOOD(pr) || pr.kind === 'halfTime')) fail('R23-restart-cause', k, `kick-off after ${pr?.kind}/${pr?.result}`)
     }
-    if (p.kind === 'kickoff' && toLine(p.side, p.x) > 40) fail('R23-restart-cause', k, `kick-off lands at x ${p.x}: short of the 10 m line`)
+    // a kick-off short of ten metres or out on the full is fine when the record calls it (restartError next)
+    if (p.kind === 'kickoff') {
+      const short = toLine(p.side, p.x) > 40, outFull = p.y <= 0 || p.y >= 70
+      const called = nx?.kind === 'restartError' ? nx.result : null
+      if (short && called !== 'notTen') fail('R23-restart-cause', k, `kick-off lands at x ${p.x}, short of the 10 m line, and is played on (next ${nx?.kind}/${nx?.result})`)
+      if (outFull && !short && called !== 'outOnFull') fail('R23-restart-cause', k, `kick-off lands on the touchline (y ${p.y}) and is played on`)
+      if (called === 'notTen' && !short) fail('R23-restart-cause', k, `called not ten metres but the kick-off went to x ${p.x}`)
+      if (called === 'outOnFull' && !outFull) fail('R23-restart-cause', k, `called out on the full but the kick-off landed at y ${p.y}`)
+    }
     if (p.kind === 'dropout22' || p.kind === 'goalLineDropout') {
       if (!pr || !(pr.kind === 'deadBall' || pr.kind === 'heldUp' || ((pr.kind === 'penaltyGoal' || pr.kind === 'dropGoal') && !pr.good))) fail('R23-restart-cause', k, `${p.kind} after ${pr?.kind}/${pr?.result}`)
       if (p.kind === 'dropout22' && toLine(p.side, p.x) > 78) fail('R23-restart-cause', k, `22 drop-out lands at x ${p.x}: it has not crossed the 22`)
     }
 
     // R24 cards
-    if (CARD.has(p.kind)) {
+    if (CARDS_ONLY.has(p.kind)) {
       const c = P[k - 1]
       if (!c || c.kind !== 'penalty') fail('R24-cards', k, `${p.kind} after ${c?.kind}`)
       else if (c.side !== other(p.side)) fail('R24-cards', k, `penalty to ${c.side}, card to ${p.side}`)
@@ -367,8 +418,21 @@ export function checkRecord(m: Match): Fail[] {
       }
       if (p.who) offUntil.set(p.who, { from: offAt(p), until: p.kind === 'redCard' ? Infinity : backAt(p), side: p.side })
     }
+    // R36 substitutions: only with the ball dead, the man off was on, the man on is from that side's bench
+    if (p.kind === 'substitution' && p.result === 'made') {
+      const off = p.who ?? '', on = p.with?.[0] ?? ''
+      const before = pr, after = nx
+      const DEAD_AFTER = new Set(['kickoff', 'dropout22', 'goalLineDropout', 'scrum', 'lineout', 'penalty', 'freeKick', 'halfTime', 'fullTime', 'substitution'])
+      if (after && !DEAD_AFTER.has(after.kind)) fail('R36-substitution', k, `substitution made in open play: next is ${after.kind}/${after.result}`)
+      if (before && ['carry', 'ruck', 'catch', 'tap', 'lineBreak'].includes(before.kind) && !(before.kind === 'carry' && before.result === 'intoTouch')) fail('R36-substitution', k, `substitution straight after ${before.kind}/${before.result}: the ball is live`)
+      if (real) {
+        if (!onField[p.side].has(off)) fail('R36-substitution', k, `${m.names?.get(off) ?? off} taken off but he is not on the field`)
+        if (!m.bench?.[p.side].has(on) || usedBench.has(on)) fail('R36-substitution', k, `${m.names?.get(on) ?? on} brought on but he is not on this side's bench (or already used)`)
+        onField[p.side].delete(off); onField[p.side].add(on); usedBench.add(on); subbedOff.add(off)
+      }
+    }
     // R25 / R26 names on the field and on the right side
-    if (real && !CARD.has(p.kind)) {
+    if (real && !CARD.has(p.kind) && p.kind !== 'substitution') {
       const named: [string, 'who' | 'vs' | 'with'][] = []
       if (p.who) named.push([p.who, 'who'])
       for (const v of p.vs ?? []) if (v) named.push([v, 'vs'])
@@ -380,7 +444,8 @@ export function checkRecord(m: Match): Fail[] {
         const want = role === 'vs' ? other(p.side) : p.side
         if (s === -1) fail('R26-names', k, `${id} in ${p.kind} is on neither team sheet`)
         else if (s !== want) fail('R26-names', k, `${p.kind}/${p.result} about side ${p.side}: ${role} ${m.names?.get(id) ?? id} is on side ${s}`)
-        else if (!m.xv![s].has(id)) fail('R26-names', k, `${m.names?.get(id) ?? id} is on the bench and was never brought on`)
+        else if (subbedOff.has(id)) fail('R26-names', k, `${m.names?.get(id) ?? id} named (${role}) in ${p.kind} after he was substituted`)
+        else if (!onField[s].has(id)) fail('R26-names', k, `${m.names?.get(id) ?? id} is on the bench and was never brought on`)
       }
     }
 
@@ -486,6 +551,98 @@ export function checkDecision(seeds: number[], from = 2400): RateRow {
     msg: `${prefixBroken} matches changed before minute ${from / 60}; side 0 margin after it moved ${lift >= 0 ? '+' : ''}${lift.toFixed(2)} points a match` }
 }
 
+// ------------------------------------------------------------ the manager's hand, on real team sheets
+
+interface RealFixture { seed: number; build: () => { world: World; home: { teamId: string; name: string; players: { id: string; name: string; shirt: number }[] }; away: { teamId: string; name: string; players: { id: string; name: string; shirt: number }[] } }; userSide: 0 | 1; match: Match }
+
+/**
+ * R37 to R40: each of the manager's calls, made at its moment on a real
+ * fixture, against the same fixture with nothing done. Every play written
+ * before the call must be the same; after it the match must be legal, and
+ * (for tactics and talks) must change in at least some matches.
+ */
+export async function checkDecisionsReal(fixtures: RealFixture[]): Promise<RateRow[]> {
+  const { MatchSim } = await import('../src/game/sim/skeleton')
+  const same = (a: Play[], b: Play[], upto: number) => JSON.stringify(a.slice(0, upto)) === JSON.stringify(b.slice(0, upto))
+  const rows: RateRow[] = []
+  const recFails = (f: RealFixture, res: SimResult) => checkRecord({ ...f.match, res }).filter(x => ['R26-names', 'R36-substitution', 'R25-binned', 'R01-laws'].includes(x.rule))
+
+  // R37 substitution: the No. 8 off, the shirt 20 on, at the first dead ball after 50:00
+  { let bad = 0, made = 0; let first: RateRow['first']; let why = ''
+    for (const f of fixtures) {
+      const base = new MatchSim({ seed: f.seed, world: f.build().world }).runUntil().result()
+      const b = f.build(), sheet = (f.userSide === 0 ? b.home : b.away).players
+      const off = sheet.find(p => p.shirt === 8)?.id, on = sheet.find(p => p.shirt === 20)?.id
+      if (!off || !on) continue
+      const m = new MatchSim({ seed: f.seed, world: b.world }).runUntil({ clock: 3000, dead: true })
+      const at = m.plays.length
+      m.apply({ kind: 'substitution', side: f.userSide, off, on })
+      const r = m.runUntil().result()
+      const k = r.plays.findIndex(p => p.kind === 'substitution')
+      const sub = r.plays[k]
+      const problems: string[] = []
+      if (!same(r.plays, base.plays, at)) problems.push('plays before the substitution changed')
+      if (!sub) problems.push('no substitution play')
+      // refused because the man is in the bin is the law (a binned man cannot be replaced): not a fault
+      else if (sub.result !== 'made') { if (!/bin|sent off/.test(sub.cause ?? '')) problems.push(`substitution ${sub.result} (${sub.cause})`) }
+      else {
+        made++
+        if (!r.plays.slice(k + 1).some(p => p.who === on || p.vs?.includes(on) || p.with?.includes(on))) problems.push('the man on is never named')
+        if (r.plays.slice(k + 1).some(p => p.who === off || p.vs?.includes(off) || p.with?.includes(off) || p.offender === off)) problems.push('the man off is named again')
+      }
+      const rf = recFails(f, r)
+      if (rf.length) problems.push(`${rf[0].rule} #${rf[0].n}: ${rf[0].msg}`)
+      if (problems.length) { bad++; if (!first) { first = { seed: f.seed, n: k }; why = problems.join('; ') } }
+    }
+    rows.push({ id: 'R37-dec-sub', ok: bad === 0 && made > 0, failing: bad, first, msg: bad ? why : `${made} of ${fixtures.length} made at a dead ball, before unchanged, man on plays, man off gone` })
+  }
+
+  // R38 penalty calls: the manager asked at every penalty to his side, the calls taken in turn
+  { let asked = 0, wrong = 0; let first: RateRow['first']; let why = ''
+    const want: Record<string, (p: Play) => boolean> = {
+      posts: p => p.kind === 'penaltyGoal', corner: p => p.kind === 'kick' && p.result === 'penaltyToTouch',
+      tap: p => p.kind === 'tap', scrum: p => p.kind === 'scrum',
+    }
+    for (const f of fixtures) {
+      const m = new MatchSim({ seed: f.seed, world: f.build().world })
+      m.apply({ kind: 'penaltyCall', side: f.userSide, call: 'ask' })
+      for (let g = 0; g < 200 && !m.done; g++) {
+        m.runUntil()
+        const pend = m.pending
+        if (!pend) break
+        const call = pend.options[asked % pend.options.length]
+        asked++
+        const at = m.plays.length
+        m.answer(call)
+        for (let i = 0; i < 3 && m.plays.length === at; i++) m.step()
+        const next = m.plays.slice(at).find(p => !CARD.has(p.kind))
+        if (!next || !want[call](next)) { wrong++; if (!first) { first = { seed: f.seed, n: at }; why = `called ${call}, next play ${next?.kind}/${next?.result}` } }
+      }
+    }
+    rows.push({ id: 'R38-dec-call', ok: wrong === 0 && asked > 0, failing: wrong, first, msg: wrong ? `${wrong} of ${asked} calls not obeyed; first: ${why}` : `${asked} calls asked over ${fixtures.length} matches, all obeyed` })
+  }
+
+  // R39 tactics and R40 talk: before the same, after changed
+  const before = async (id: string, stop: { clock: number; dead?: boolean }, d: (f: RealFixture) => Parameters<InstanceType<typeof MatchSim>['apply']>[0]) => {
+    let broke = 0, changed = 0; const refused = 0; let first: RateRow['first']
+    for (const f of fixtures) {
+      const base = new MatchSim({ seed: f.seed, world: f.build().world }).runUntil().result()
+      const m = new MatchSim({ seed: f.seed, world: f.build().world }).runUntil(stop)
+      const at = m.plays.length
+      m.apply(d(f))
+      const r = m.runUntil().result()
+      if (!same(r.plays, base.plays, at)) { broke++; first ??= { seed: f.seed, n: at } }
+      if (JSON.stringify(r.plays.slice(at)) !== JSON.stringify(base.plays.slice(at))) changed++
+    }
+    const ok = broke === 0 && changed > 0
+    rows.push({ id, ok, failing: broke + (changed ? 0 : fixtures.length), first,
+      msg: `${broke} of ${fixtures.length} changed before the call; ${changed} changed after it${refused ? `; refused in ${refused}` : ''}` })
+  }
+  await before('R39-dec-tactics', { clock: 3000 }, f => ({ kind: 'tactics', side: f.userSide, set: { tempo: 85, kicking: 20, aggression: 80 } }))
+  await before('R40-dec-talk', { clock: 2400, dead: true }, f => ({ kind: 'talk', side: f.userSide, tone: 'fire' }))
+  return rows
+}
+
 // ------------------------------------------------------------ commentary
 
 /** the commentary's summary lines (about the match so far, not one play); copied from commentary.ts SUMMARY and refreshed from it when it loads */
@@ -504,7 +661,8 @@ export function checkLines(m: Match, lines: LineLike[], text: (l: LineLike) => s
   const byName = new Map<string, string>()
   for (const [id, nm] of names) { byName.set(nm, id); const sur = nm.split(' ').slice(-1)[0]; if (sur && sur.length > 3) byName.set(sur, id) }
   const binSaid = new Set<number>()
-  const isOff = (id: string, t: number) => P.some(c => CARD.has(c.kind) && c.who === id && t >= offAt(c) && (c.kind === 'redCard' || t < backAt(c)))
+  /** off at play n: carded at an earlier play (a man penalised and then carded is on the field when penalised) */
+  const isOff = (id: string, t: number, n: number) => P.some(c => c.n < n && CARDS_ONLY.has(c.kind) && c.who === id && t >= offAt(c) && (c.kind === 'redCard' || t < backAt(c)))
 
   for (const l of lines) {
     const p = P[l.n]
@@ -522,7 +680,7 @@ export function checkLines(m: Match, lines: LineLike[], text: (l: LineLike) => s
     const summary = SUMMARY_BASES.has(base)
     // a set piece or penalty line may give its reason: the play (or two) before it
     const cause = P[prevReal(P, l.n)], cause2 = cause ? P[prevReal(P, cause.n)] : undefined
-    const cands = ['scrum', 'lineout', 'penalty', 'freeKick', 'tap', 'kickoff', 'dropout22', 'goalLineDropout', 'conversion', 'penaltyGoal'].includes(p.kind) ? [p, cause, cause2].filter(Boolean) as Play[] : [p]
+    const cands = ['restartError', 'scrum', 'lineout', 'penalty', 'freeKick', 'tap', 'kickoff', 'dropout22', 'goalLineDropout', 'conversion', 'penaltyGoal'].includes(p.kind) ? [p, cause, cause2].filter(Boolean) as Play[] : [p]
     const any = (f: (q: Play) => boolean) => cands.some(f)
 
     // C02 side (summary lines are about the match so far, not this play)
@@ -530,7 +688,7 @@ export function checkLines(m: Match, lines: LineLike[], text: (l: LineLike) => s
       fail('C02-line-side', l.n, `"${s}" is about side ${l.side}; play ${p.kind}/${p.result} is about ${p.side}, ball with ${p.ball}`)
 
     // C03 the words name what the record has (in this play or, at a set piece, the reason for it)
-    const kickTouch = (q: Play) => (q.kind === 'kick' && TOUCH_KICK.has(q.result)) || (q.kind === 'intoTouch' && q.result === 'bounced')
+    const kickTouch = (q: Play) => (q.kind === 'kick' && TOUCH_KICK.has(q.result)) || (q.kind === 'intoTouch' && q.result === 'bounced') || (q.kind === 'restartError' && q.result === 'outOnFull')
     if (/50[:/ -]?22|fifty/.test(low) && !any(q => q.kind === 'kick' && q.result === 'fiftyTwentyTwo')) fail('C03-line-kind', l.n, `"${s}" says 50:22; record has ${p.kind}/${p.result}`)
     if (/(kick|kicks|kicked|finds|find)\b[a-z ]{0,20}\btouch/.test(low) && !any(kickTouch)) fail('C03-line-kind', l.n, `"${s}" says kick to touch; record has ${cands.map(q => `${q.kind}/${q.result}`).join(' < ')}`)
     if (/knock[- ]?on|knocks? (it )?on|knocked on/.test(low) && !any(q => q.kind === 'knockOn' || (q.kind === 'carry' && q.result === 'knockedOn'))) fail('C03-line-kind', l.n, `"${s}" says knock-on; record has ${cands.map(q => `${q.kind}/${q.result}`).join(' < ')}`)
@@ -556,11 +714,11 @@ export function checkLines(m: Match, lines: LineLike[], text: (l: LineLike) => s
     for (const v of Object.values(l.params ?? {})) if (typeof v === 'string' && names.has(v)) ids.add(v)
     for (const [id, nm] of names) if (nm && s.includes(nm)) ids.add(id)
     if (m.xv) for (const id of ids) {
-      const inPlay = cands.concat(cause ? [cause] : []).some(q => q.who === id || q.vs?.includes(id) || q.with?.includes(id))
+      const inPlay = cands.concat(cause ? [cause] : []).some(q => q.who === id || q.vs?.includes(id) || q.with?.includes(id) || q.offender === id)
       if (!inPlay) fail('C05-line-player', l.n, `"${s}" names ${names.get(id)}, who is not in ${cands.map(q => `${q.kind}/${q.result}`).join(' < ')}`)
       const side = m.xv[0].has(id) ? 0 : m.xv[1].has(id) ? 1 : -1
       if (side === -1) fail('C05-line-player', l.n, `"${s}" names ${names.get(id)}, who is not in either starting XV`)
-      if (isOff(id, p.t) && !CARD.has(p.kind)) fail('C05-line-player', l.n, `"${s}" names ${names.get(id)}, who is off the field`)
+      if (isOff(id, p.t, l.n) && !CARD.has(p.kind)) fail('C05-line-player', l.n, `"${s}" names ${names.get(id)}, who is off the field`)
     }
 
     // C06 territory and possession: the number said is the number in the record, and never in the opening minutes
@@ -597,7 +755,7 @@ export function checkLines(m: Match, lines: LineLike[], text: (l: LineLike) => s
         const card = due[0]; binSaid.add(card.n)
         const firstAfter = P.find(q => q.n > card.n && q.t >= backAt(card))
         if (firstAfter && p.t - firstAfter.t > 120) fail('C09-line-binback', l.n, `"${s}" said at ${p.t}s; the man was due back at ${backAt(card)}s`)
-        const stillOff = P.filter(q => q.side === side && ((q.kind === 'yellowCard' && offAt(q) < p.t && backAt(q) > p.t) || (q.kind === 'redCard' && offAt(q) < p.t))).length
+        const stillOff = P.filter(q => q.n < l.n && q.side === side && ((q.kind === 'yellowCard' && backAt(q) > p.t) || q.kind === 'redCard')).length
         const men = Number(l.params?.men ?? NaN)
         if (!Number.isNaN(men) && men !== 15 - stillOff) fail('C09-line-binback', l.n, `"${s}": the record has ${15 - stillOff} men on the field for side ${side}`)
       }
@@ -625,16 +783,19 @@ interface Slot { n: number; at: number; dur: number; fade?: boolean }
 function readSchedule(raw: unknown): { slots: Slot[] | null; how: string } {
   const arr = Array.isArray(raw) ? raw : raw && typeof raw === 'object' ? (raw as Record<string, unknown>).items ?? (raw as Record<string, unknown>).slots ?? (raw as Record<string, unknown>).beats ?? (raw as Record<string, unknown>).steps : null
   if (!Array.isArray(arr)) return { slots: null, how: `schedule returned ${typeof raw}${raw && typeof raw === 'object' ? ` with keys ${Object.keys(raw).join(',')}` : ''}` }
-  const num = (o: Record<string, unknown>, ...k: string[]) => { for (const x of k) if (typeof o[x] === 'number') return o[x] as number; return NaN }
+  /** the first of the fields that is a number (0 is a number: play 0 and a start at 0 are real) */
+  const num = (o: Record<string, unknown>, ...k: string[]) => { for (const x of k) if (typeof o[x] === 'number' && !Number.isNaN(o[x])) return o[x] as number; return NaN }
   const slots: Slot[] = arr.map(it => {
     const o = it as Record<string, unknown>
     const pl = o.play as Record<string, unknown> | undefined
-    const n = num(o, 'n', 'index', 'i', 'play') || (pl && typeof pl.n === 'number' ? pl.n : NaN)
-    const at = num(o, 'at', 'start', 't0', 'from', 'begin')
+    let n = num(o, 'n', 'index', 'i')
+    if (Number.isNaN(n) && pl && typeof pl.n === 'number') n = pl.n
+    const at = num(o, 'start', 'at', 't0', 'from', 'begin')
     const end = num(o, 'end', 't1', 'to')
-    const dur = num(o, 'dur', 'duration', 'ms', 'len') || (!Number.isNaN(end) && !Number.isNaN(at) ? end - at : NaN)
+    let dur = num(o, 'dur', 'duration', 'len')
+    if (Number.isNaN(dur) && !Number.isNaN(end) && !Number.isNaN(at)) dur = end - at
     const fade = typeof o.fade === 'boolean' ? o.fade : typeof o.fade === 'string' ? o.fade !== 'none' && o.fade !== '' : undefined
-    return { n: Number.isNaN(n) && typeof o.n !== 'number' ? (typeof o.n === 'number' ? o.n : NaN) : n, at, dur, fade }
+    return { n, at, dur, fade }
   })
   return { slots, how: `${arr.length} items; fields ${Object.keys((arr[0] ?? {}) as object).join(',')}` }
 }
@@ -683,11 +844,15 @@ export function skeletonMatches(seeds: number[]): Match[] {
 }
 
 async function realMatches(seeds: number[]): Promise<Match[]> {
+  return (await realFixtures(seeds)).map(f => f.match)
+}
+
+async function realFixtures(seeds: number[]): Promise<RealFixture[]> {
   const { newGame } = await import('../src/game/newgame')
   const { processWeekAndAdvance, userFixtureThisWeek } = await import('../src/game/season')
   const { mulberry32 } = await import('../src/game/rng')
   const { worldFromMatch } = await import('../src/game/sim/fromMatch')
-  const out: Match[] = []
+  const out: RealFixture[] = []
   for (const seed of seeds) {
     const g = newGame('leicester', 'T', seed)
     let fx = userFixtureThisWeek(g)
@@ -698,7 +863,11 @@ async function realMatches(seeds: number[]): Promise<Match[]> {
     const bench: [Set<string>, Set<string>] = [new Set(home.players.filter(p => p.shirt > 15).map(p => p.id)), new Set(away.players.filter(p => p.shirt > 15).map(p => p.id))]
     const names = new Map<string, string>()
     for (const p of [...home.players, ...away.players]) names.set(p.id, p.name)
-    out.push({ label: `real ${seed} (${home.name} v ${away.name})`, seed, res: simSkeleton({ seed, world }), xv, bench, names, teams: [home.name, away.name] })
+    const match: Match = { label: `real ${seed} (${home.name} v ${away.name})`, seed, res: simSkeleton({ seed, world }), xv, bench, names, teams: [home.name, away.name], sides: [{ players: home.players }, { players: away.players }] }
+    const fxd = fx
+    // the same world again, fresh (a decision changes the world it is made in); worldFromMatch never touches g
+    const build = () => worldFromMatch(g, fxd, mulberry32(seed))
+    out.push({ seed, build, userSide: home.teamId === g.userClubId ? 0 : 1, match })
   }
   return out
 }
@@ -711,6 +880,7 @@ async function dump(argv: string[]) {
   for (const p of m.res.plays.slice(from, to + 1)) {
     console.log(`#${p.n} t${p.t} ${p.kind}/${p.result} side ${p.side} ball ${p.ball} x ${p.x} y ${p.y}` +
       `${p.gain != null ? ` gain ${p.gain.toFixed(1)}` : ''}${p.kick ? ` kick ${p.kick}` : ''}${p.good != null ? ` good ${p.good}` : ''} live ${p.live} dead ${p.dead} score ${p.score.join('-')}` +
+      `${p.clock != null ? ` clock ${p.clock}` : ''}${p.pre ? ` pre ${p.pre}` : ''}${p.cause ? ` cause ${p.cause}` : ''}${p.offender ? ` offender ${nm(p.offender)}` : ''}${p.until != null ? ` until ${p.until}` : ''}${p.land ? ` land ${p.land.join(',')}` : ''}${p.passes ? ` passes ${p.passes}` : ''}` +
       `${p.who ? ` who ${nm(p.who)}` : ''}${p.vs?.length ? ` vs ${p.vs.map(nm).join(',')}` : ''}${p.with?.length ? ` with ${p.with.map(nm).join(',')}` : ''}`)
   }
   try {
@@ -723,7 +893,39 @@ async function dump(argv: string[]) {
   for (const f of fs) console.log(`FAIL ${f.rule} #${f.n}: ${f.msg}`)
 }
 
+/** `moments`: for the owner's recording list, the first play of each kind worth watching in real fixtures 1 to 8 */
+async function moments() {
+  const fs = await realFixtures([1, 2, 3, 4, 5, 6, 7, 8])
+  const want: [string, (p: Play, P: Play[]) => boolean][] = [
+    ['knock-on in contact', p => p.kind === 'knockOn' && p.result === 'inContact'],
+    ['knock-on under a high ball', p => p.kind === 'knockOn' && p.result === 'underTheHighBall'],
+    ['wide carry, 2+ passes, 15 m+ across', (p, P) => p.kind === 'carry' && (p.passes ?? 0) >= 2 && Math.abs(p.y - P[p.n - 1].y) >= 15],
+    ['carry stopped by two tacklers', p => p.kind === 'carry' && (p.vs?.length ?? 0) >= 2 && p.result === 'held'],
+    ['line break hauled down', p => p.kind === 'lineBreak' && p.result === 'hauledDown'],
+    ['forward pass', p => p.kind === 'forwardPass'],
+    ['interception', p => p.kind === 'carry' && p.result === 'intercepted'],
+    ['scrum after a knock-on', (p, P) => p.kind === 'scrum' && P[p.n - 1]?.kind === 'knockOn'],
+    ['kick-off after a score', (p, P) => p.kind === 'kickoff' && p.n > 0 && P[p.n - 1]?.kind !== 'halfTime'],
+    ['22 drop-out', p => p.kind === 'dropout22'],
+    ['goal-line drop-out', p => p.kind === 'goalLineDropout'],
+    ['lineout', p => p.kind === 'lineout' && p.result === 'won'],
+    ['try', p => p.kind === 'try'],
+    ['yellow card', p => p.kind === 'yellowCard'],
+    ['half-time and second-half kick-off', p => p.kind === 'halfTime'],
+  ]
+  for (const [what, f] of want) {
+    let found = ''
+    for (const fx of fs) {
+      const P = fx.match.res.plays
+      const p = P.find(q => f(q, P))
+      if (p) { found = `real ${fx.seed} (${fx.match.teams?.join(' v ')}) play ${p.n}, minute ${Math.floor((p.clock ?? p.t) / 60) + 1}: ${p.kind}/${p.result}${p.who ? ` ${fx.match.names?.get(p.who) ?? ''}` : ''}`; break }
+    }
+    console.log(`${what}: ${found || 'none in fixtures 1-8'}`)
+  }
+}
+
 async function main() {
+  if (process.argv.includes('moments')) return moments()
   if (process.argv.includes('dump')) return dump(process.argv.slice(process.argv.indexOf('dump') + 1))
   const args = process.argv.slice(2).filter(a => /^\d+$/.test(a)).map(Number)
   const N = args[0] ?? 300, R = args[1] ?? 20
@@ -734,8 +936,8 @@ async function main() {
   for (const seed of seeds) {
     try { matches.push({ label: `seed ${seed}`, seed, res: simSkeleton({ seed }) }) } catch (e) { crashed.push({ seed, msg: (e as Error).message }) }
   }
-  let reals: Match[] = []
-  try { reals = await realMatches(Array.from({ length: R }, (_, i) => 1 + i)) } catch (e) { crashed.push({ seed: -1, msg: `real fixtures: ${(e as Error).message}` }) }
+  let reals: Match[] = [], fixtures: RealFixture[] = []
+  try { fixtures = await realFixtures(Array.from({ length: R }, (_, i) => 1 + i)); reals = fixtures.map(f => f.match) } catch (e) { crashed.push({ seed: -1, msg: `real fixtures: ${(e as Error).message}` }) }
   const all = [...matches, ...reals]
 
   // per-rule tallies
@@ -766,6 +968,14 @@ async function main() {
   const dec = checkDecision(Array.from({ length: Math.min(100, N) }, (_, i) => 1 + i))
   { const t = T.get('R35-decision')!; t.ran = true; t.failing = dec.ok ? 0 : Math.max(1, dec.failing); t.first = { label: dec.first ? `seed ${dec.first.seed}` : '100 seeds', seed: dec.first?.seed ?? -1, n: dec.first?.n ?? -1, msg: dec.msg } }
 
+  // the manager's hand on real sheets (8 fixtures; four runs of each)
+  try {
+    for (const row of await checkDecisionsReal(fixtures.slice(0, Number(process.argv.find(a => a.startsWith('--dec='))?.slice(6) ?? 8)))) {
+      const t = T.get(row.id)!; t.ran = true; t.failing = row.ok ? 0 : Math.max(1, row.failing)
+      t.first = { label: row.first ? `real ${row.first.seed}` : 'real fixtures', seed: row.first?.seed ?? -1, n: row.first?.n ?? -1, msg: row.msg }
+    }
+  } catch (e) { crashed.push({ seed: -1, msg: `decision checks: ${(e as Error).message}` }) }
+
   // commentary
   const notes: string[] = []
   try {
@@ -788,14 +998,17 @@ async function main() {
 
   // animation
   try {
-    const A = await import('../src/ui/livepitch/fromRecord') as unknown as { schedule?: (plays: Play[]) => unknown }
+    const A = await import('../src/ui/livepitch/fromRecord') as unknown as { schedule?: (plays: Play[], sides?: Match['sides']) => unknown }
     if (typeof A.schedule !== 'function') throw new Error('fromRecord.ts has no schedule()')
+    // the bake is about 0.7 s and a lot of memory a match: a sample, half skeleton and half real
+    const AN = Number(process.argv.find(a => a.startsWith('--anim='))?.slice(7) ?? 24)
+    const sample = [...matches.slice(0, Math.ceil(AN / 2)), ...reals.slice(0, Math.floor(AN / 2))]
     const ids = ['A01-schedule-cover', 'A02-schedule-time', 'A03-fades']
     const totals: number[] = []
     let how = ''
-    for (const m of all) {
+    for (const m of sample) {
       try {
-        const r = checkSchedule(m, A.schedule(m.res.plays))
+        const r = checkSchedule(m, A.schedule(m.res.plays, m.sides))
         how = r.how
         if (r.total != null) totals.push(r.total)
         add(m, r.fails, ids)
@@ -810,7 +1023,7 @@ async function main() {
       t.failing = ok ? 0 : 1
       t.first = { label: 'all matches', seed: -1, n: -1, msg: `mean ${(sec / 60).toFixed(2)} min to watch (read as ${mean > 2000 ? 'ms' : 's'})` }
     }
-    notes.push(`animation: schedule read (${how})`)
+    notes.push(`animation: schedule of ${sample.length} matches read (${how})`)
   } catch (e) { notes.push(`animation: not checked (${(e as Error).message.split('\n')[0]})`) }
 
   // the table
@@ -826,6 +1039,13 @@ async function main() {
     const first = t.first ? `${t.first.label}${t.first.n >= 0 ? ` #${t.first.n}` : ''}` : ''
     const why = t.first ? t.first.msg : !t.ran ? '' : r.title
     console.log(pad(r.id, 22) + pad(r.owner, 11) + pad(st, 9) + pad(first, 36) + why)
+  }
+  {
+    // R31's distribution, for the owner to set the band
+    const pens = all.map(m => countMatch(m.res).pens).sort((a, b) => a - b)
+    const h = new Map<number, number>(); for (const v of pens) h.set(v, (h.get(v) ?? 0) + 1)
+    const q = (f: number) => pens[Math.min(pens.length - 1, Math.floor(f * pens.length))]
+    notes.push(`penalties and free kicks a match (${pens.length} matches): ${[...h.entries()].map(([v, c]) => `${v}:${c}`).join(' ')}; 5th percentile ${q(0.05)}, median ${q(0.5)}, 95th ${q(0.95)}`)
   }
   for (const n of notes) console.log(n)
   if (process.argv.includes('--why')) for (const [rule, g] of why) {

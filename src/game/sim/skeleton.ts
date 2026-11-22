@@ -202,7 +202,9 @@ export class MatchSim {
     const st = this.st, n = st.next
     if (n.k !== 'penaltyCall' || st.calls[n.to] !== 'ask' || st.answer) return null
     const d = n.to === 0 ? 100 - st.x : st.x
-    const options: PenaltyCall[] = d <= K.GOAL_RANGE ? ['posts', 'corner', 'tap', 'scrum'] : ['corner', 'tap', 'scrum']
+    // inside five metres nobody kicks to touch, so the corner is not offered
+    const options: PenaltyCall[] = (d <= K.GOAL_RANGE ? ['posts', 'corner', 'tap', 'scrum'] : ['corner', 'tap', 'scrum'])
+      .filter(o => o !== 'corner' || d > 5) as PenaltyCall[]
     return { kind: 'penalty', side: n.to, x: st.x, y: st.y, toLine: d, t: st.t, options }
   }
   /** a copy of the whole state, to put the match down and pick it up later (with the same World) */
