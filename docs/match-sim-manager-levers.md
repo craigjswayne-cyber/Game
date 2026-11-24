@@ -71,3 +71,26 @@ One real fixture: Leicester (the manager's side, at home) v Glasgow, from a new 
 - **Larger than the old engine:** out-of-position selection (-9 against -2 to -4), form and morale (1.6 to 1.8 times), and the corner call (+13 points of win rate). The corner looks too strong: a lineout near the line converts too often. That is a balance call for the owner.
 - **Different from the old engine:** blitz against drift (new no change, old -4.7); the offload style against the kicking style (new -5.3, old -0.6); and the kicking dial (new -3.9, old +0.7). In the new engine kicking more gives the ball away more than the territory pays back.
 - **Does nothing in either engine:** the captain (only the referee's words use him), and chemistry and called moves (small, within the dice at 2,000).
+
+## Round 6 (24 November, later): the out-of-line levers fixed and re-measured
+
+Same fixture and method, new engine, 2,000 paired matches each way. "Round 5" is the table above; "now" is the engine after this round's tuning to the sourced real figures. The old engine's figure is repeated for comparison.
+
+| Decision | Round 5 | Now | Old engine | What changed |
+|---|---|---|---|---|
+| Every penalty to the posts v to the corner | +13.3 | +7.4 | not measured | The near-line lineout converts less (held up 15% to 25%, goal-line carries 0.5 to 0.3 of their metres, defenders infringe and counter-ruck more on their line). Our lineout inside 7 m is still worth 3.7 points against about 3.0 in the Premiership study (docs/match-sim-sources.md section 7, arxiv 2512.00312). That study also has the corner beating the posts from range, so "always the corner" winning is not wrong in itself. |
+| Form 3 v 8 (whole XV) | +24.9 | +14.4 | +15.7 | A change of form across a whole fifteen is damped (`FORM_DAMP` 0.32 in fromMatch.ts); a man in form against his team-mates still counts in full. |
+| Morale 3 v 9 | +10.0 | +5.8 | +5.4 | Unit exponents times 0.8 (fromMatch.ts `UNIT_EXP`). |
+| Loosehead prop and left wing swapped | -9.2 | -12.5 | -2.2 | Not fixed: see below. |
+| Lock and outside centre swapped | -8.9 | -11.6 | -4.0 | Not fixed: see below. |
+| Drift v blitz | -0.5 | -1.7 | -4.7 | The old engine's defence penalty lean is back (a blitz gives away more at the breakdown); breaks conceded 7.8 to 9.7, turnovers won 4.1 to 5.1. |
+| Kicking 20 v 80 | -3.9 | +0.3 | +0.7 | A kick's territory is worth more to the side kicking (`COMP_KICK` 0.123 to 0.26). |
+| Best captain v worst | -0.3 | -2.0 | -0.8 | New, a design choice. His leadership rating (12 is the middle; captains average about 13) means 5% fewer penalties given away in his own 22 per unit, a 0.8% lift to the carry when behind, and a poor captain gets a late close penalty call wrong a quarter of the time per unit. |
+| Chemistry wiped v every pair at 60 games | +1.4 (dice) | knock-ons 6.3 to 5.2 a match | -2.3 (dice) | New: the key partnerships (9 and 10, the centres, the front row, the locks) drop up to 15% less. The lever changes both sides' partnerships, so the win % is not a clean read. |
+| No called move v the crash ball | +0.7 (dice) | first-phase breaks 1.11 to 1.56 | -0.9 (dice) | First-phase ball off a won set piece with a called move gains 8% more ground. |
+| Bench front row on at 55:00 v none | not measured | +3.7; own scrum results after 55:00 (won and penalties won, minus lost) 1.63 to 1.93 | not measured | New: the front rows' legs decide the scrum (`FRONT_LEGS`). |
+| Aggression 20 v 80 | +1.9 | -2.3; penalties conceded 5.4 to 5.7, cards 0.34 to 0.63 | -1.6 | Cards follow the dial and the referee's patience. |
+| Half-time talk: praise v criticise | dice | -0.6 (dice); second-half points 14.7 v 14.7 | not measured | Still can't be told from the dice at 2,000 here: the old engine's talk model moves this XV very little. |
+| The bench from 50:00 v none | +4.5 | +8.3 | spec +1.3 points | Larger with this round's fatigue and front-row legs. |
+
+Why out-of-position selection is still costly: with the named man switched off entirely (`World.man`), the prop and wing swap still costs -11.0 and the lock and centre swap -8.8, and with the styles switched off -11.1 and -7.7. So it is not counted twice through the man. It comes through the units. The game's own `teamUnits` already charges a non-prop at prop (`SPEC_PROP` 0.84), and this round scrums end in a penalty or free kick 30% of the time (the sourced figure), up from 16%. A weak scrum now gives away far more. I left it there: a wing at loosehead is the absurd case, and the owner can say if a lock at 13 should cost less.

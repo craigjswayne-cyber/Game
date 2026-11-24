@@ -34,7 +34,7 @@ import type { LiveCtx } from '../match/live'
 import { NEUTRAL_STYLE, type Contest, type Decision, type ManForm, type PlayStyle, type World } from './world'
 import { MATCHUP, styleTick, stylesOf, type AtkStyle, type DefStyle } from '../styles'
 import { callsOf } from '../moves'
-import type { Tactic } from '../model'
+import { chemKey, type Tactic } from '../model'
 
 /** a side as a reader needs it, to print names: the starting 15 in shirt order, then the bench */
 export interface SimSide {
@@ -89,7 +89,10 @@ export const GAMMA = 1.0
 // 0.45 from 0.5 (22 Nov): with the units above, 0.5 left the new home margin
 // 0.7 points over the old engine's across the parity pairings, and 0.42 left
 // it 0.2 under.
-export const HFA_SHARE = 0.45
+// 0.48 from 0.45 (round 6), on a balanced set (scripts/tmp/gp/home.ts: one round of every league in
+// a game, 56 fixtures, each home and away club once, 100 matches each): old engine 56.8% home wins
+// and +4.12 points; new 56.3% and +3.55 at 0.45, 58.2% and +4.40 at 0.5.
+export const HFA_SHARE = 0.48
 
 /** THE LATE FADE. The old engine multiplies a side's attack and defence by
  *  0.78 + 0.22 x (average energy / 100) (tick.ts eF). This World is built
@@ -202,7 +205,11 @@ const clampStr = (v: number) => Math.max(0.6, Math.min(1.5, v))
 // 40 pairings, slope 0.94 to 1.01 across the two runs either side of this.
 // (Tuned against the same 40 pairings it is measured on: the old engine's
 // own 150-match noise, about 1.4 points of margin, is in the target.)
-export const UNIT_EXP: Record<UnitKey, number> = { scrum: 1.43, lineout: 1.15, breakdown: 0.91, attack: 0.95, defence: 1.3, kicking: 0.62, goal: 1, overall: 1 }
+// ROUND 6: all of them times 0.8. The 1.3 above made up for what the new engine did not have (styles,
+// moves, the men themselves); now it has them, a change across a whole XV (form 3 against 8) was worth
+// 1.6 times what it is in the old engine, and across the parity pairings the per-fixture margin gap
+// fell from 3.8 to 3.1 points (rms, scripts/tmp/gp/newonly.ts) at a slope of 0.86 to 0.93.
+export const UNIT_EXP: Record<UnitKey, number> = { scrum: 1.14, lineout: 0.92, breakdown: 0.73, attack: 0.76, defence: 1.04, kicking: 0.5, goal: 1, overall: 1 }
 
 /** HOW HARD THE STYLES LEAN (round 4): the kicking dial's reach on how often a side kicks (a dial
  *  of 50 + STYLE_KICK doubles it), the style dial's reach on how often it goes wide (the share runs
@@ -211,7 +218,9 @@ export const UNIT_EXP: Record<UnitKey, number> = { scrum: 1.43, lineout: 1.15, b
 /** HOW MUCH THE MAN NAMED IN A PLAY MATTERS against his side's average (round 5, owner: "everything
  *  in the game is affected by the decisions of the manager"): his own rating for the job relative to
  *  his side's, to this power, and how much his own tank (tired, or fresh off the bench) moves him */
-export const MAN_W = 0.5, MAN_FADE = 0.5
+export const MAN_W = 0.35, MAN_FADE = 0.5, FORM_DAMP = 0.32
+/** the old engine's own penalty lean for each defence (styles.ts DEF_FX penF, not exported there) */
+const DEF_PEN: Record<DefStyle, number> = { drift: 0.94, blitz: 1.08, pendulum: 0.98, man: 1.0, choke: 1.02 }
 export const STYLE_KICK = 80, STYLE_WIDTH = 0.45, STYLE_PACK = 0.4, STYLE_MAUL = 1.0
 
 export interface FromMatchOpts {
@@ -401,13 +410,22 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
       case 'discipline': return mean.penRisk / Math.max(1e-6, sides[s].penRisk)
     }
   }
+  // FORM ACROSS A WHOLE XV (round 6): the units carry each man's form (0.9 + 0.02 x form), and a change
+  // to all fifteen at once moved the new engine 1.6 times as far as the old one (+25 win % for form 3
+  // against 8, old +16). Part of that common shift is taken back, FORM_DAMP of it on the log scale; a
+  // man in form against his team-mates still counts in full (World.man).
+  const formF = ([0, 1] as const).map(s => {
+    const ps = shirts0[s].filter((x): x is number => x != null).map(id => clone.players[id]).filter(Boolean)
+    const m = ps.reduce((a, p) => a + (0.9 + 0.02 * (p.form ?? 5)), 0) / Math.max(1, ps.length)
+    return Math.pow(m, -FORM_DAMP)
+  })
   const str = (s: 0 | 1, c: Contest, t: number): number => {
     now = t
     // a kick at goal is one man and a tee: no crowd, no fade
     if (c === 'goal') return clampStr(raw(s, c))
     // a tired side gives away more, but the crowd is already in refPenF
     if (c === 'discipline') return clampStr(raw(s, c) * fade(s, t))
-    return clampStr(raw(s, c) * hfa(s) * fade(s, t))
+    return clampStr(raw(s, c) * hfa(s) * fade(s, t) * formF[s])
   }
 
   const isOff = (s: 0 | 1, id: number) => (off[s].get(String(id)) ?? -1) > now
@@ -505,6 +523,23 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
       })(),
       // how readily this side's men are carded (setup.ts cardRisk: the aggression dial), against the plain 0.012
       cards: (side.cardRisk ?? 0.012) / 0.012,
+      // THE CAPTAIN (round 6, a design choice: the old engine only has him in the referee's words). His
+      // leadership rating, 12 the middle of a club captain's range (1 to 20; captains average about 13):
+      // discipline in his own 22, the call at a late close penalty, and a lift when his side is behind
+      lead: (() => {
+        const ids = [club?.captain, club?.vice].filter((x): x is number => x != null && shirts[s].includes(x))
+        const cap = ids.length ? clone.players[ids[0]] : shirts[s].map(id => (id != null ? clone.players[id] : null)).filter(Boolean).sort((a, b) => b!.a.lea - a!.a.lea)[0]
+        return cap ? Math.max(-1, Math.min(1, (cap.a.lea - 12) / 6)) : 0
+      })(),
+      // CHEMISTRY (round 6): games played together by the key partnerships (state.chem, as teamUnits reads
+      // it), each counted up to 50, centred so a side whose pairs have played 25 games each is 0
+      chem: (() => {
+        const pairs: [number, number][] = [[8, 9], [11, 12], [0, 1], [1, 2], [3, 4]]
+        let t = 0
+        for (const [i, j] of pairs) { const a = side.lineup[i], b = side.lineup[j]; t += a != null && b != null ? Math.min(1, (clone.chem?.[chemKey(a, b)] ?? 0) / 50) : 0 }
+        return t / pairs.length - 0.5
+      })(),
+      defPen: DEF_PEN[def as DefStyle] ?? 1,
     }
   }
   let styles: [PlayStyle, PlayStyle] = [buildStyle(0), buildStyle(1)]
@@ -516,7 +551,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
   // average of his own starting fifteen, raised to MAN_W so the best carrier
   // in a side is a better carrier without the side as a whole moving. Then his
   // own legs: his tank from when he came on, against the side's average now.
-  type Job = keyof ManForm
+  type Job = Exclude<keyof ManForm, 'legs'>
   const JOBS: Job[] = ['carry', 'tackle', 'kick', 'hands', 'ruck']
   const rawMan = (id: number): Record<Job, number> => {
     const p = clone.players[id]
@@ -553,7 +588,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
   }
   const man = (s: 0 | 1, id: string, t: number): ManForm => {
     const n = Number(id), slot = shirts[s].indexOf(n)
-    if (!id || slot < 0) return { carry: 1, tackle: 1, kick: 1, hands: 1, ruck: 1 }
+    if (!id || slot < 0) return { carry: 1, tackle: 1, kick: 1, hands: 1, ruck: 1, legs: 1 }
     const r = rawOf(n)
     let e = 0
     for (let i = 0; i < 15; i++) e += tankAt(s, i, t)
@@ -561,7 +596,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
     // his legs against his side's: a tired man tackles, carries and rucks worse; his hands and boot a little
     const legs = (1 - MAN_FADE + MAN_FADE * tankAt(s, slot, t)) / (1 - MAN_FADE + MAN_FADE * e)
     const rel = (j: Job) => Math.pow(r[j] / sideAvg[s][j], MAN_W)
-    return { carry: rel('carry') * legs, tackle: rel('tackle') * legs, kick: rel('kick') * Math.sqrt(legs), hands: rel('hands') * Math.sqrt(legs), ruck: rel('ruck') * legs }
+    return { carry: rel('carry') * legs, tackle: rel('tackle') * legs, kick: rel('kick') * Math.sqrt(legs), hands: rel('hands') * Math.sqrt(legs), ruck: rel('ruck') * legs, legs }
   }
 
   const world: MatchWorld = {

@@ -22,7 +22,7 @@ import type { Rng } from '../rng'
 import { Laws, type LawEvent, type LawState } from './law'
 import type { KickType, PenaltyCall, Play, PlayKind, SimResult } from './record'
 import { evenWorld, NEUTRAL_STYLE, type Contest, type Decision, type ManForm, type PlayStyle, type World } from './world'
-const NO_MAN: ManForm = { carry: 1, tackle: 1, kick: 1, hands: 1, ruck: 1 }
+const NO_MAN: ManForm = { carry: 1, tackle: 1, kick: 1, hands: 1, ruck: 1, legs: 1 }
 
 export interface SkeletonOpts {
   seed: number
@@ -35,20 +35,30 @@ export interface SkeletonOpts {
 /** every number the shape of a match hangs on, in one place */
 export const K = {
   // seconds of ball in play
-  CARRY_S: 3.3, RUCK_S: 4.7, KICK_S: 6.2, CATCH_S: 2.2, SCRUM_S: 6, LINEOUT_S: 4, MAUL_S: 9, RESTART_S: 6.5, BREAK_S: 5,
+  CARRY_S: 3.3, RUCK_S: 4.6, KICK_S: 6.2, CATCH_S: 2.2, SCRUM_S: 6, LINEOUT_S: 4, MAUL_S: 7, RESTART_S: 6.5, BREAK_S: 5,
   // seconds of dead time before a restart
   SCRUM_DEAD: 58, SCRUM_RESET_DEAD: 28, LINEOUT_DEAD: 31, PENALTY_DEAD: 18, GOAL_DEAD: 55, TRY_DEAD: 48, CON_DEAD: 48, KICKOFF_DEAD: 22, DROPOUT_DEAD: 24,
   // the decision: how often the side with the ball kicks, by where it is
   KICK_OWN22: 0.45, KICK_OWNHALF: 0.27, KICK_OPPHALF: 0.095, KICK_OPP22: 0.02, KICK_PER_PHASE: 0.012, KICK_PHASE_FROM: 4,
   // the carry
   WIDE: 0.30, WIDE_BLIND: 0.2, GAIN_TIGHT: 2.5, GAIN_TIGHT_SD: 2.4, GAIN_WIDE: 4.3, GAIN_WIDE_SD: 5.2,
-  LINE_NEAR: 8, LINE_GAIN: 0.6,
-  P_BREAK: 0.0175, BREAK_MIN: 14, BREAK_SPAN: 40,
-  P_KNOCK_ON: 0.042, P_FORWARD: 0.004, P_INTO_TOUCH: 0.011, P_HELD_UP: 0.15,
+  LINE_NEAR: 8, LINE_GAIN: 0.3,
+  // LINE BREAKS (round 6, to the sources: about 10 a match, most run down): a break makes BREAK_MIN plus
+  // up to BREAK_SPAN metres, and one in BREAK_LONG_P runs on up to BREAK_LONG more; inside five metres
+  // of the line the cover gets there ('heldShort'); a runner hauled down is isolated, so the next ruck
+  // is turned over ISOLATED_TURN times as often
+  P_BREAK: 0.044, BREAK_MIN: 6, BREAK_SPAN: 20, BREAK_LONG_P: 0.35, BREAK_LONG: 50, ISOLATED_TURN: 2.2,
+  // first-phase ball off a won set piece and the first two phases after a turnover meet a defence not set
+  LAUNCH_B: 4.0, LAUNCH_B_22: 12.0, LAUNCH_B_OWN: 1.5, TURN_B: 1.8, LAUNCH_SCRUM: 0.6,
+  // on their line the defence infringes and counter-rucks more: phase after phase there ends in a penalty or a turnover
+  LINE_PEN: 1.3, LINE_TURN: 1.3,
+  // the first two phases after catching the other side's kick (or a restart) meet a chasing line already up
+  RETURN_B: 0.6,
+  P_KNOCK_ON: 0.042, P_FORWARD: 0.004, P_INTO_TOUCH: 0.011, P_HELD_UP: 0.25,
   // an interception on a wide carry: how often, and how often the man who took it is away
   P_INTERCEPT: 0.006, INTERCEPT_AWAY: 0.45,
   // the ruck
-  P_TURNOVER: 0.034, P_PEN_ATTACK: 0.026, P_PEN_DEFENCE: 0.017, P_UNPLAYABLE: 0.004,
+  P_TURNOVER: 0.046, P_PEN_ATTACK: 0.017, P_PEN_DEFENCE: 0.01, P_UNPLAYABLE: 0.004,
   // kicks
   // what kind of kick: from the own 22 a clearance to touch or a long one; from the rest of the own half a box
   // kick, a long one, an up-and-under or one to touch
@@ -56,8 +66,10 @@ export const K = {
   P_OUT_FULL: 0.06, P_FIFTY22: 0.012,
   // set pieces
   LINEOUT_WON: 0.87, LINEOUT_STOLEN: 0.07, LINEOUT_NOT_STRAIGHT: 0.025, LINEOUT_PEN: 0.035,
-  MAUL_FROM: 30, P_MAUL: 0.45, MAUL_PEN: 0.10, MAUL_STOPPED: 0.07,
-  SCRUM_PEN_FEED: 0.085, SCRUM_PEN_AGAINST: 0.045, SCRUM_FREE: 0.035, SCRUM_HEAD: 0.03, SCRUM_RESET: 0.22,
+  // the driving maul (round 6, to the sources: about 10 a match): near their line, in the middle, and deep in
+  // the side's own half, times the pack's lean squared; most make a few metres and the ball is used
+  MAUL_FROM: 30, P_MAUL: 0.55, P_MAUL_MID: 0.40, P_MAUL_DEEP: 0.12, MAUL_GAIN: 4.5, MAUL_PEN: 0.10, MAUL_STOPPED: 0.08,
+  SCRUM_PEN_FEED: 0.15, SCRUM_PEN_AGAINST: 0.08, SCRUM_FREE: 0.07, SCRUM_HEAD: 0.03, SCRUM_RESET: 0.22,
   // penalties. GOAL_TAKE set 21 Nov (was 0.66, +0.12 inside 30 m): the old engine takes about 3.5
   // shots at goal a match on the same fixtures and the simulation took 4.4 (scripts/tmp/gp/kicks.ts)
   GOAL_RANGE: 50, GOAL_TAKE: 0.52, GOAL_TAKE_NEAR: 0.10, LATE_CHASE_S: 4200, LATE_POSTS_S: 3600,
@@ -70,7 +82,13 @@ export const K = {
   // world that knows the kicker's own chance (World.goalP) keeps it on average
   CON_WIDE: 0.34, CON_WIDE_MEAN: 0.54, PEN_FAR: 0.008, PEN_FAR_MEAN: 15.0, PEN_WIDE: 0.16, PEN_WIDE_MEAN: 0.54,
   // cards: a man in the bin for ten minutes, and what being a man down costs each contest
-  P_YELLOW: 0.05, P_RED: 0.006, BIN_S: 600, SHORT_COST: 0.09,
+  P_YELLOW: 0.05, P_RED: 0.013, BIN_S: 600, SHORT_COST: 0.09,
+  // THE CAPTAIN (a design choice, round 6): his side gives away this much fewer penalties in its own 22 a
+  // unit of leadership, lifts the carry this much when behind, and a poor one gets a late close call wrong
+  // this often a unit. CHEMISTRY: knock-ons this much fewer a unit (-0.5 to 0.5). A CALLED MOVE: first-phase gain.
+  CAPTAIN_PEN: 0.05, CAPTAIN_LIFT: 0.008, CAPTAIN_WRONG: 0.25, CHEM_KNOCK: 0.3, MOVE_GAIN: 1.08,
+  // a front row's legs against the other's, at the scrum, to this power
+  FRONT_LEGS: 1.0,
   // the referee's patience: from this many penalties conceded a side has been warned, and a card is this much likelier
   WARN_AT: 6, WARN_CARD: 2,
   // the in-goal's depth behind each goal line (as the pitch draws it, fromRecord.ts IN_GOAL), and how far
@@ -79,12 +97,12 @@ export const K = {
   // quick and slow ruck ball: how often it is quick for an average side, and what it does to the next phase
   P_QUICK_BALL: 0.45, QUICK_GAIN: 1.1, SLOW_GAIN: 0.92, SLOW_KICK: 1.15,
   // a drop at goal, taken from in range when a possession has gone a few phases; and a kick charged down
-  DROP_RANGE: 36, DROP_PHASE: 3, P_DROP: 0.007, DROP_GOOD: 0.45, P_CHARGE: 0.011,
+  DROP_RANGE: 36, DROP_PHASE: 3, P_DROP: 0.005, DROP_GOOD: 0.36, P_CHARGE: 0.011,
   // ROUND 4 (variety). A drop at goal is six times as likely with the scores level or a kick
   // behind in the last ten minutes
   DROP_LATE: 6,
   // offloads out of the tackle (times the side's style), and twice as often off a man hauled down after a break
-  P_OFFLOAD: 0.05,
+  P_OFFLOAD: 0.065,
   // near their line: the pick and go (times the side's style), from inside this many metres
   PICK_ZONE: 6, P_PICK: 0.3,
   // a quick lineout and a quick tap (times the side's style)
@@ -109,9 +127,11 @@ export const K = {
   // Each is taken back off the side's own carry, so a style changes how a side plays and leaves
   // what it wins to the old engine's own style leans (PlayStyle.tryF, matchup) and to the men.
   // Without it, the per-fixture margin gap to the old engine went from 2.3 to 3.4 points (rms).
-  COMP_KICK: 0.123, COMP_WIDTH: -0.086, COMP_PACK: -0.074, COMP_OFFLOAD: -0.053, COMP_TEMPO: 0.080, COMP_BLITZ: -0.115, COMP_NARROW: -0.037, COMP_QUICK: 0.018, COMP_CORNER: -0.061,
+  COMP_KICK: 0.26, COMP_WIDTH: -0.086, COMP_PACK: -0.015, COMP_OFFLOAD: -0.053, COMP_TEMPO: 0.080, COMP_BLITZ: -0.059, COMP_NARROW: -0.037, COMP_QUICK: 0.018, COMP_CORNER: -0.061,
   // (round 5, re-measured after the driving maul, quick ruck ball and the corner call came in: the pack
   // -0.025 to -0.074, tempo 0.008 to 0.080, and the corner -0.061 a unit of its lean)
+  // (round 6, after mauls across the field and the realism retune: the pack -0.074 to -0.015, the blitz -0.115
+  // to -0.059; the kick 0.123 to 0.26, set on the real fixture so the kicking dial moves the result as the old engine's does)
 } as const
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -231,6 +251,9 @@ export interface SimState {
   penaltyOn?: boolean
   /** dead time waited since the last play, written as the next play's `pre` */
   preAcc?: number
+  /** a runner hauled down after a break, alone at the next ruck; phases left against a defence not set after a turnover */
+  isolated?: boolean
+  turnPhases?: number
   /** the last ruck's ball: quick or slow ('' when the phase did not come off a ruck) */
   ruckSpeed?: '' | 'quick' | 'slow'
 }
@@ -562,7 +585,7 @@ export class MatchSim {
     if (u >= 0.98) st.y = st.y < 35 ? 0 : 70
     else if (u >= 0.96) st.x = this.adv(by, 50, 3 + Math.abs(st.x - 50) * 0.2)
     this.emit('kickoff', by, 'kicked', 'KICKOFF', K.RESTART_S, 0, { kick: 'restart', who: W.kicker(by, false, pick), land: [r1(st.x), r1(st.y)] })
-    if (u < 0.82) { st.ball = rec; st.phase = 1; st.carrierId = W.jumper(rec, pick); this.emit('catch', rec, 'caught', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }); return { k: 'phase' } }
+    if (u < 0.82) { st.ball = rec; st.phase = 1; st.turnPhases = -2; st.carrierId = W.jumper(rec, pick); this.emit('catch', rec, 'caught', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }); return { k: 'phase' } }
     if (u < 0.91) { st.ball = by; st.phase = 1; st.carrierId = W.jumper(by, pick); this.emit('catch', by, 'regathered', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }); return { k: 'phase' } }
     if (u < 0.96) { this.emit('knockOn', rec, 'underTheRestart', 'STOP', 0, 0, { who: W.jumper(rec, pick) }); return { k: 'scrum', to: by } }
     // not ten metres, or straight out: a scrum on halfway to the side that did not kick
@@ -579,7 +602,7 @@ export class MatchSim {
     this.emit(goalLine ? 'goalLineDropout' : 'dropout22', by, 'kicked', 'DROPOUT', K.RESTART_S, 0, { kick: 'restart', who: W.kicker(by, false, pick), land: [r1(st.x), r1(st.y)] })
     // (the dead time is before it: the sides walking back)
     st.plays[st.plays.length - 1].dead = K.DROPOUT_DEAD; st.t += K.DROPOUT_DEAD; st.clock += K.DROPOUT_DEAD
-    if (rng() < 0.88) { st.ball = this.other(by); st.phase = 1; st.carrierId = W.catcher(st.ball, pick); this.emit('catch', st.ball, 'caught', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }) }
+    if (rng() < 0.88) { st.ball = this.other(by); st.phase = 1; st.turnPhases = -2; st.carrierId = W.catcher(st.ball, pick); this.emit('catch', st.ball, 'caught', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }) }
     else { st.ball = by; st.phase = 1; st.carrierId = W.catcher(by, pick); this.emit('catch', by, 'regathered', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }) }
     return { k: 'phase' }
   }
@@ -591,7 +614,9 @@ export class MatchSim {
     let dead = K.SCRUM_DEAD, resets = 0
     while (rng() < K.SCRUM_RESET) { dead += K.SCRUM_RESET_DEAD; resets++ }
     const pre = this.wait(dead)
-    const u = rng(), feed = this.vs(to, 'scrum')
+    // the front rows' own legs: a tired front row against a fresh one off the bench
+    const fr = (s2: 0 | 1) => { const f = W.lineup?.(s2).field; if (!f || !W.man) return 1; return (this.man(s2, f[0]).legs + this.man(s2, f[1]).legs + this.man(s2, f[2]).legs) / 3 }
+    const u = rng(), feed = this.vs(to, 'scrum') * Math.pow(fr(to) / fr(this.other(to)), K.FRONT_LEGS)
     const pf = K.SCRUM_PEN_FEED * feed, pa = K.SCRUM_PEN_AGAINST / feed
     const base = { pre, resets: resets || undefined }
     if (u < pf) {
@@ -657,10 +682,12 @@ export class MatchSim {
     st.carrierId = jumper
     // close to their line it is driven (a pack side drives more of them, and from further out)
     const ms = this.sty(to).maul
-    if (this.toLine(to, st.x) < K.MAUL_FROM * Math.max(1, ms) && rng() < Math.min(0.9, K.P_MAUL * ms * ms)) {
+    const dl = this.toLine(to, st.x)
+    const pMaul = dl < K.MAUL_FROM * Math.max(1, ms) ? K.P_MAUL : dl < 70 ? K.P_MAUL_MID : K.P_MAUL_DEEP
+    if (rng() < Math.min(0.9, pMaul * ms * ms)) {
       st.launch = ''
       const before = st.x
-      const gain = Math.max(0, this.gauss(5.5 * this.vs(to, 'maul'), 4))
+      const gain = Math.max(0, this.gauss(K.MAUL_GAIN * this.vs(to, 'maul'), 3.5))
       st.x = this.adv(to, st.x, gain)
       st.carrierId = W.forward(to, pick)
       const moved = r1(Math.abs(clamp(st.x, 0, 100) - before))
@@ -772,11 +799,14 @@ export class MatchSim {
     // a side that backs its pack goes to the corner from their 22 more than one that takes the points
     const sty = this.sty(to)
     const lean = d <= 22 ? clamp(1 - 2 * (sty.corner - NEUTRAL_STYLE.corner), 0.2, 1.5) : 1
-    const take = st.clock >= K.LATE_CHASE_S && behind > 3 ? 0 : st.clock >= K.LATE_POSTS_S && behind <= 0 ? 1 : (K.GOAL_TAKE + (d < 30 ? K.GOAL_TAKE_NEAR : 0)) * lean
+    let take = st.clock >= K.LATE_CHASE_S && behind > 3 ? 0 : st.clock >= K.LATE_POSTS_S && behind <= 0 ? 1 : (K.GOAL_TAKE + (d < 30 ? K.GOAL_TAKE_NEAR : 0)) * lean
+    // THE CAPTAIN'S CALL in a close finish: a poor leader sometimes gets it wrong (the corner when the
+    // three would win it, the posts when only a try will do)
+    if (st.clock >= K.LATE_CHASE_S && Math.abs(behind) <= 7 && sty.lead < 0 && (take === 0 || take === 1) && rng() < -sty.lead * K.CAPTAIN_WRONG) take = 1 - take
     if (d <= K.GOAL_RANGE && u < take) return waitThen(posts)
     const v = rng()
     // the quick tap: a high-tempo side, a side chasing the game, and close to their line
-    if (v < K.PEN_TAP * sty.quick * (this.chasing(to) ? 2 : 1) * (d <= 10 ? 2.5 : 1)) return tap()
+    if (v < K.PEN_TAP * sty.quick * (this.chasing(to) ? 2 : 1) * (d <= 10 ? 1.5 : 1)) return tap()
     if (v < K.PEN_TAP + K.PEN_SCRUM && d < 30) return waitThen(() => ({ k: 'scrum', to }))
     return d <= 5 ? tap() : waitThen(corner)
   }
@@ -855,7 +885,7 @@ export class MatchSim {
     const pRegather = type === 'crossField' ? 0.30 * aerial : type === 'chip' ? 0.32 * aerial : contest ? 0.17 * aerial : 0.04
     const air = contest && type !== 'grubber' ? { contested: true } : {}
     st.launch = ''
-    if (v < pCaught) { st.ball = o2; st.phase = 1; st.carrierId = W.catcher(o2, pick); this.emit('catch', o2, 'caught', 'PLAY', K.CATCH_S, 0, { who: st.carrierId, ...air }); return { k: 'phase' } }
+    if (v < pCaught) { st.ball = o2; st.phase = 1; st.turnPhases = -2; st.carrierId = W.catcher(o2, pick); this.emit('catch', o2, 'caught', 'PLAY', K.CATCH_S, 0, { who: st.carrierId, ...air }); return { k: 'phase' } }
     if (v < pCaught + pRegather) { st.ball = s; st.phase = 1; st.carrierId = W.catcher(s, pick); this.emit('catch', s, 'regathered', 'PLAY', K.CATCH_S, 0, { who: st.carrierId, ...air }); return { k: 'phase' } }
     if (v < pCaught + pRegather + 0.07) { this.emit('knockOn', o2, 'underTheHighBall', 'STOP', 0, 0, { who: W.catcher(o2, pick) }); return { k: 'scrum', to: s } }
     if (v < pCaught + pRegather + 0.11) { this.emit('knockOn', s, 'inTheChase', 'STOP', 0, 0, { who: W.catcher(s, pick) }); return { k: 'scrum', to: o2 } }
@@ -912,7 +942,8 @@ export class MatchSim {
     const wide = !pickGo && rng() < widthP
     // the defence: a narrow defence gives up the outside and holds the inside, a blitz holds the
     // gain line and gives up more breaks and intercepts
-    const edge = qb * this.vs(s, 'carry', 'tackle') * this.comp(me) * (wide ? 1 + 0.12 * them.narrow : 1 - 0.12 * them.narrow) * (1 - 0.1 * them.blitz)
+    // (behind on the scoreboard, a good captain lifts them; the called move off first-phase ball is a drilled play)
+    const edge = qb * (this.lead(s) < 0 ? 1 + K.CAPTAIN_LIFT * me.lead : 1) * (launch && me.launchMove ? K.MOVE_GAIN : 1) * this.vs(s, 'carry', 'tackle') * this.comp(me) * (wide ? 1 + 0.12 * them.narrow : 1 - 0.12 * them.narrow) * (1 - 0.1 * them.blitz)
     // (on their own line a defence is at its tightest: every metre is fought for)
     const near = d <= K.LINE_NEAR ? K.LINE_GAIN : 1
     // the shape it is run in (a pick and go, a launch play off set-piece ball and an offload's run are their own)
@@ -956,19 +987,21 @@ export class MatchSim {
     const info = { phase: st.phase, who, ...pass, ...shape }
     // out over the touchline with it
     if (wide && (st.y <= 0 || st.y >= 70)) {
-      if (rng() < 0.45) { st.x = this.adv(s, st.x, Math.max(0, gain)); st.y = st.y <= 0 ? 0 : 70; this.emit('carry', s, 'intoTouch', 'PLAY', K.CARRY_S, 0, { gain: moved(), vs: tk, ...info }); this.emit('intoTouch', s, 'carried', 'TOUCH', 0, 0, { who, out: [r1(clamp(st.x, 0, 100)), st.y === 0 ? -K.OUT_BY : 70 + K.OUT_BY] }); return { k: 'lineout', to: o2 } }
+      if (rng() < 0.45) { st.x = this.adv(s, st.x, Math.max(0, gain)); if (this.toLine(s, st.x) >= 99) st.x = s === 0 ? 1 : 99; st.y = st.y <= 0 ? 0 : 70; this.emit('carry', s, 'intoTouch', 'PLAY', K.CARRY_S, 0, { gain: moved(), vs: tk, ...info }); this.emit('intoTouch', s, 'carried', 'TOUCH', 0, 0, { who, out: [r1(clamp(st.x, 0, 100)), st.y === 0 ? -K.OUT_BY : 70 + K.OUT_BY] }); return { k: 'lineout', to: o2 } }
       st.y = clamp(st.y, 3, 67)
     }
     // (in the field of play, never on the touchline itself)
     st.y = clamp(st.y, 0.5, 69.5)
     // a wet ball is a slippery one
-    const pKnock = K.P_KNOCK_ON / Math.sqrt(this.S(s, 'handling')) / mc.hands * (1 + 0.3 * wet) * (SH?.k ?? 1)
+    // (partnerships that have played together drop less)
+    const pKnock = K.P_KNOCK_ON / Math.sqrt(this.S(s, 'handling')) / mc.hands * (1 + 0.3 * wet) * (SH?.k ?? 1) * (1 - K.CHEM_KNOCK * me.chem)
     if (u < pKnock) { this.emit('carry', s, 'knockedOn', 'PLAY', K.CARRY_S * 0.6, 0, { vs: tk, ...info }); this.emit('knockOn', s, 'inContact', 'STOP', 0, 0, { who, vs: tk.slice(0, 1) }); return { k: 'scrum', to: o2 } }
     if (u < pKnock + K.P_FORWARD) { this.emit('carry', s, 'forwardPass', 'PLAY', K.CARRY_S * 0.6, 0, info); this.emit('forwardPass', s, 'forward', 'STOP', 0, 0, { who: st.passerId || who, with: st.passerId ? [who] : undefined }); return { k: 'scrum', to: o2 } }
     // AN INTERCEPTION (owner's key moments): a wide pass read by a defender, who is sometimes gone
     if (wide && rng() < K.P_INTERCEPT * (1 + 0.9 * them.blitz) * (1 - 0.2 * wet) * (SH ? SH.i : 1)) {
       const thief = W.catcher(o2, pick) || tk[0] || ''
       st.ball = o2; st.phase = 1; st.carrierId = thief; st.passerId = ''
+      st.turnPhases = 2
       this.emit('carry', s, 'intercepted', 'PLAY', K.CARRY_S * 0.6, 0, { phase: st.phase, who, vs: this.ids([thief]), passes })
       this.bump(o2, K.MOM_TURN)
       if (rng() < K.INTERCEPT_AWAY) {
@@ -988,15 +1021,21 @@ export class MatchSim {
       : st.clock >= 3600 ? (1 + K.TIRED_DEF * (1 - W.legs(o2, st.t))) * (1 - K.TIRED_ATT * (1 - W.legs(s, st.t))) : 1
     // (a blitz is beaten by the ball behind it, a drift by a change of direction)
     const shapeB = !SH ? 1 : SH.b * (shapeId === 'pullBack' || shapeId === 'kickPass' ? 1 + 0.3 * Math.max(0, them.blitz) : shapeId === 'switch' || shapeId === 'snipe' ? 1 + 0.3 * Math.max(0, -them.blitz) : 1)
-    const pBreak = K.P_BREAK * shapeB * edge * (mc.carry / mt.tackle) * me.tryF * (1 + 0.25 * them.blitz) * (launch ? me.launch : 1) * tired * (pickGo ? 0.3 : 1) * (offloaded ? 1.8 : 1)
+    const tp = st.turnPhases ?? 0
+    const unset = (launch ? (d < 30 ? K.LAUNCH_B_22 : d < 50 ? K.LAUNCH_B : K.LAUNCH_B_OWN) * me.launch * (launch === 'scrum' ? K.LAUNCH_SCRUM : 1) : 1) * (tp > 0 ? K.TURN_B : tp < 0 ? K.RETURN_B : 1)
+    st.turnPhases = tp > 0 ? tp - 1 : tp < 0 ? tp + 1 : 0
+    const pBreak = K.P_BREAK * shapeB * edge * (mc.carry / mt.tackle) * me.tryF * (1 + 0.25 * them.blitz) * unset * tired * (pickGo ? 0.3 : 1) * (offloaded ? 1.3 : 1)
     let broke = false
     if (u < pKnock + K.P_FORWARD + pBreak) {
       broke = true
       gain = K.BREAK_MIN + rng() * K.BREAK_SPAN
+      if (rng() < K.BREAK_LONG_P) gain += rng() * K.BREAK_LONG
       st.x = this.adv(s, st.x, gain)
       this.bump(s, K.MOM_BREAK)
       if (this.toLine(s, st.x) <= 0) { this.bump(s, K.MOM_TRY); this.emit('lineBreak', s, 'clean', 'PLAY', K.BREAK_S, 0, { gain: moved(), ...info }); return this.scoreTry(s, 'break') }
-      this.emit('lineBreak', s, 'hauledDown', 'PLAY', K.BREAK_S, 0, { gain: moved(), vs: this.ids([W.catcher(o2, pick)]), ...info })
+      // the cover: hauled down in the open, or held up short of the line by the last man
+      st.isolated = true
+      this.emit('lineBreak', s, this.toLine(s, st.x) <= 5 ? 'heldShort' : 'hauledDown', 'PLAY', K.BREAK_S, 0, { gain: moved(), vs: this.ids([W.catcher(o2, pick)]), ...info })
     } else {
       st.x = this.adv(s, st.x, gain)
       if (this.toLine(s, st.x) >= 99) st.x = s === 0 ? 1 : 99
@@ -1036,13 +1075,18 @@ export class MatchSim {
     // the breakdown: quick ball for a high-tempo side; a blitz forces a few more turnovers
     const r = rng(), def = 1 / this.vs(s, 'breakdown')
     // the defence gives away fewer penalties when it is disciplined, and so does the side with the ball
-    const penFor = K.P_PEN_ATTACK * me.penF / this.S(o2, 'discipline'), penAgainst = K.P_PEN_DEFENCE * def / this.S(s, 'discipline')
+    const onLine = this.toLine(s, st.x) <= 12
+    // (a blitz gives away more at the breakdown; a good captain keeps his side onside in its own 22)
+    const penFor = K.P_PEN_ATTACK * me.penF * them.defPen / this.S(o2, 'discipline') * (onLine ? K.LINE_PEN : 1) * (d <= 22 ? 1 - K.CAPTAIN_PEN * them.lead : 1), penAgainst = K.P_PEN_DEFENCE * def / this.S(s, 'discipline')
     // (the carrier, unless he has just been hurt and is off)
     const carrier = st.carrierId
     // the man over the ball, and his own work at the breakdown
     const jk = W.jackal(o2, pick)
-    const pTurn = K.P_TURNOVER * def * (1 + 0.15 * them.blitz) * this.man(o2, jk).ruck * (SH?.t ?? 1) * me.turnF
-    if (r < pTurn) { st.ball = o2; st.phase = 1; st.carrierId = jk; st.passerId = ''; this.bump(o2, K.MOM_TURN); this.emit('ruck', s, 'turnover', 'PLAY', K.RUCK_S * 0.7, 0, { who: carrier, vs: this.ids([jk]) }); return { k: 'phase' } }
+    // (a runner who broke and was hauled down is on his own: his support is still coming)
+    const iso = st.isolated && !st.offloaded ? K.ISOLATED_TURN : 1
+    st.isolated = false
+    const pTurn = K.P_TURNOVER * def * (1 + 0.15 * them.blitz) * this.man(o2, jk).ruck * (SH?.t ?? 1) * me.turnF * iso * (onLine ? K.LINE_TURN : 1)
+    if (r < pTurn) { st.ball = o2; st.phase = 1; st.turnPhases = 2; st.carrierId = jk; st.passerId = ''; this.bump(o2, K.MOM_TURN); this.emit('ruck', s, 'turnover', 'PLAY', K.RUCK_S * 0.7, 0, { who: carrier, vs: this.ids([jk]) }); return { k: 'phase' } }
     if (r < pTurn + penFor) {
       this.emit('ruck', s, 'penaltyWon', 'PLAY', K.RUCK_S * 0.7, 0, { who: carrier, vs: this.ids([jk]) })
       return { k: 'penalty', to: s, free: false, cause: this.oneOf(['handsInRuck', 'offside', 'notRollingAway', 'highTackle']), offender: jk }

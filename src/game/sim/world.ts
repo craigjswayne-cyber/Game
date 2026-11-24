@@ -67,12 +67,18 @@ export interface PlayStyle {
   turnF: number
   /** how readily its men are carded (the aggression dial), 1 for the plain side */
   cards: number
+  /** the captain on the field: -1 a poor leader .. 1 a fine one (his leadership rating), 0 for the plain side */
+  lead: number
+  /** how long the key partnerships have played together (9 and 10, the centres, the front row, the locks): -0.5 .. 0.5, 0 for the plain side */
+  chem: number
+  /** the defence style's own lean on the penalties it gives away (styles.ts DEF_FX penF: a blitz gives away more) */
+  defPen: number
 }
 
 export const NEUTRAL_STYLE: PlayStyle = {
   atk: '', def: '', kick: 1, kickZone: [1, 1, 1],
   kickMix: { box: 1, long: 1, touch: 1, upAndUnder: 1, grubber: 1, crossField: 1, chip: 1, clearance: 1 },
-  width: 0.30, tempo: 1, offload: 1, maul: 1, pick: 1, corner: 0.3, quick: 1, blitz: 0, narrow: 0, launch: 1, matchup: 0, tryF: 1, penF: 1, turnF: 1, cards: 1,
+  width: 0.30, tempo: 1, offload: 1, maul: 1, pick: 1, corner: 0.3, quick: 1, blitz: 0, narrow: 0, launch: 1, matchup: 0, tryF: 1, penF: 1, turnF: 1, cards: 1, lead: 0, chem: 0, defPen: 1,
 }
 
 /** THE MANAGER'S HAND (spec 1.2): what can change during a match. MatchSim.apply takes these. */
@@ -144,7 +150,7 @@ export interface World {
 }
 
 /** a man against his own side's average, at each thing he can be asked to do (1 is his side's average) */
-export interface ManForm { carry: number; tackle: number; kick: number; hands: number; ruck: number
+export interface ManForm { carry: number; tackle: number; kick: number; hands: number; ruck: number; legs: number
 }
 
 /** stage 1: two sides with no players, of the strengths given (1 is average) */
