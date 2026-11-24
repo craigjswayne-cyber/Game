@@ -48,6 +48,12 @@ export interface PlayStyle {
   /** times the chance of driving a lineout near their line, and of picking and going on it */
   maul: number
   pick: number
+  /** the plan inside their 22 (the manager's zone plan): times the maul and the pick and go there,
+   *  and times the chance a carry goes wide there. Only inside their 22, so not taken back off the
+   *  side's carry elsewhere (COMP_*). Absent: 1 each. */
+  in22?: { maul: number; pick: number; width: number }
+  /** times a wide carry's edge and a tight one's (and a maul's): how the plan suits the squad. Absent: 1. */
+  fit?: { wide: number; tight: number }
   /** 0..1: how often a kickable penalty in their 22 goes to the corner rather than the posts */
   corner: number
   /** times the chance of a quick tap or a quick lineout */
@@ -129,7 +135,7 @@ export interface World {
   goalP?(s: 0 | 1, kind: 'con' | 'pen', t: number, lead: number): number
   /** a substitution, a tactics change or a team talk, made at clock second t on the World's own
    *  sides: '' when it is done, else why not. A World without it has no bench and no dials. */
-  decide?(d: Decision, t: number): string
+  decide?(d: Decision, t: number, score?: [number, number]): string
   /** how each side plays (absent: NEUTRAL_STYLE) */
   style?(s: 0 | 1): PlayStyle
   /** the day's weather (model Weather: 'Dry' | 'Damp' | 'Rain' | 'Wind' | 'Snow') */

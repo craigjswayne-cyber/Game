@@ -16,7 +16,7 @@
 // clone's own copy of the fixture, with dice of its own. The state and the
 // fixture the caller holds are the ones he handed over, and the old engine's
 // dice are never drawn (scripts/fingerprint.ts still passes).
-import type { Fixture, GameState } from '../model'
+import type { Fixture, GameState, Player, Pos } from '../model'
 import { mulberry32, wpick, type Rng } from '../rng'
 import { beginMatch } from '../match/begin'
 import { mkSide } from '../match/setup'
@@ -28,7 +28,9 @@ import { styleWx } from '../conditions'
 import { kickChance } from '../match/kicking'
 import { clutchKick } from '../habits'
 import { clamp } from '../rng'
-import { teamName } from '../match/selection'
+import { specialistGaps, teamName, teamUnits } from '../match/selection'
+import { effAt } from '../attributes'
+import { fieldLineup } from '../match/side'
 import type { SideCtx } from '../match/side'
 import type { LiveCtx } from '../match/live'
 import { NEUTRAL_STYLE, type Contest, type Decision, type ManForm, type PlayStyle, type World } from './world'
@@ -113,7 +115,14 @@ export const END_TANK = 0.27
 /** the units a strength is read from, and the league's mean of each */
 export type UnitKey = 'scrum' | 'lineout' | 'breakdown' | 'attack' | 'defence' | 'kicking' | 'goal' | 'overall'
 const UNIT_KEYS: UnitKey[] = ['scrum', 'lineout', 'breakdown', 'attack', 'defence', 'kicking', 'goal', 'overall']
-export type LeagueMeans = Record<UnitKey, number> & { penRisk: number; energy: number; n: number }
+export type LeagueMeans = Record<UnitKey, number> & { penRisk: number; energy: number; n: number; lean: number }
+
+/** a fifteen's lean, backs against pack: the log of its attack over its tight five and back row's
+ *  set piece and breakdown, from its own men before any dial (selection.ts teamUnits) */
+export function leanOf(state: GameState, lineup: (number | null)[]): number {
+  const u = teamUnits(state, lineup)
+  return Math.log(Math.max(1e-6, u.attack)) - Math.log(Math.max(1e-6, Math.cbrt(u.scrum * u.lineout * u.breakdown)))
+}
 
 /**
  * THE AVERAGE SIDE, MEASURED AND NOT ASSUMED: every side in the fixture's
@@ -136,18 +145,20 @@ function leagueMeans(clone: GameState, fx: Fixture): LeagueMeans {
   const own = [fx.homeId, fx.awayId].flatMap(id => clone.comps[clone.clubs[id]?.leagueId ?? '']?.teamIds ?? [])
     .filter((id, i, a) => a.indexOf(id) === i && (clone.clubs[id] || clone.natSquads[id]))
   const ids = inComp.length >= 6 ? inComp : own.length >= 6 ? own : Object.keys(clone.clubs)
-  const sum: LeagueMeans = { scrum: 0, lineout: 0, breakdown: 0, attack: 0, defence: 0, kicking: 0, goal: 0, overall: 0, penRisk: 0, energy: 0, n: 0 }
+  const sum: LeagueMeans = { scrum: 0, lineout: 0, breakdown: 0, attack: 0, defence: 0, kicking: 0, goal: 0, overall: 0, penRisk: 0, energy: 0, n: 0, lean: 0 }
   for (const id of ids) {
     const side = mkSide(clone, id, clone.userClubId, fx.id, false)
     for (const k of UNIT_KEYS) sum[k] += side.units[k]
     sum.penRisk += side.penRisk
     sum.energy += sideEnergy(side)
+    sum.lean += leanOf(clone, side.lineup.slice(0, 15))
     sum.n++
   }
   const n = Math.max(1, sum.n)
   for (const k of UNIT_KEYS) sum[k] /= n
   sum.penRisk /= n
   sum.energy /= n
+  sum.lean /= n
   return sum
 }
 
@@ -219,6 +230,68 @@ export const UNIT_EXP: Record<UnitKey, number> = { scrum: 1.14, lineout: 0.92, b
  *  in the game is affected by the decisions of the manager"): his own rating for the job relative to
  *  his side's, to this power, and how much his own tank (tired, or fresh off the bench) moves him */
 export const MAN_W = 0.35, MAN_FADE = 0.5, FORM_DAMP = 0.32
+/** a half-time talk's lift: this many times the old engine's own effect on the men, fading to nothing over this many seconds */
+export const TALK_GAIN = 3, TALK_SPELL_S = 1200
+/** the pre-match talk, kept for the whole match at this share of the old engine's effect on the units
+ *  (at the full size the best and worst talk before kick-off were 12.9 win % apart on the lever table, at 0.35 5.9) */
+export const PRE_TALK_GAIN = 0.25
+/** take the old engine's style-dial and line-speed leans off the units (fromMatch dialLean) */
+export const DIAL_NEUTRAL = true
+
+/** THE SHIRT EACH MAN KNOWS (round 7, owner: a lock at 13 should cost about
+ *  half a prop on the wing). The old units already charge a man for the shirt
+ *  he wears (a lock has no pace for 13, a wing no tight-five strength), and
+ *  this world's units are steeper than the old engine's, so every swap cost
+ *  2 to 5 times what it did there. The game's own familiarity (effAt: his
+ *  position 1, a listed second position 0.92, a near position 0.8, anything
+ *  else 0.55) says how much of that loss is kept: SHIRT_KEEP by the least
+ *  familiar man in the XV, and all of it for a non-specialist at prop, hooker
+ *  or nine (specialistGaps), which stays the absurd case. */
+/** WHO THE PLAN SUITS (round 7, owner: no style simply better; a strong pack suits direct and the
+ *  drive, quick backs suit width). A tight carry is the pack's and a wide one the backs': each is
+ *  times exp(+-b x z), z the fifteen's lean (leanOf) against its league's in sds of the world's
+ *  squads (sd, measured over the Premiership: 0.106), held to +-z. 1 for a level squad. */
+export const FIT = { b: 0.02, sd: 0.106, z: 2 }
+export const SHIRT_KEEP = { alt: 0.25, near: 0.3, odd: 0.55, specialist: 1 }
+const SHIRTS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'WG', 'CE', 'CE', 'WG', 'FB']
+type ShirtCost = { loss: Record<UnitKey, number>; keep: number }
+const NO_SHIRT_COST: ShirtCost = { loss: { scrum: 1, lineout: 1, breakdown: 1, attack: 1, defence: 1, kicking: 1, goal: 1, overall: 1 }, keep: 1 }
+/** how much of a man's own edge or shortfall counts in a shirt: all of it in his own, or for anybody at
+ *  prop, hooker or nine who is not one; SHIRT_KEEP by his familiarity otherwise */
+function shirtKeep(p: Player, slot: number): number {
+  const fam = effAt(p, SHIRTS[slot]) / Math.max(1e-6, p.ca)
+  if (fam >= 0.999) return 1
+  if (specialistGaps(Array.from({ length: 15 }, (_, i) => (i === slot ? p : null))).length) return SHIRT_KEEP.specialist
+  return fam >= 0.92 ? SHIRT_KEEP.alt : fam >= 0.8 ? SHIRT_KEEP.near : SHIRT_KEEP.odd
+}
+function shirtCost(state: GameState, lu: (number | null)[], unitsOf: (own: (number | null)[]) => SideCtx['units'], now: SideCtx['units']): ShirtCost {
+  const men = lu.map(id => (id != null ? state.players[id] : undefined))
+  let fam = 1
+  men.forEach((p, i) => { if (p) fam = Math.min(fam, effAt(p, SHIRTS[i]) / Math.max(1e-6, p.ca)) })
+  if (fam >= 0.999) return NO_SHIRT_COST
+  // the same men in their own shirts: first by position, then by a listed
+  // second position, the rest where they stand
+  const own: (number | null)[] = Array(15).fill(null)
+  const left = new Set(lu.map((_, i) => i))
+  const place = (fits: (p: Player, pos: Pos) => boolean) => {
+    for (const i of [...left]) {
+      const p = men[i]
+      if (!p) continue
+      const j = SHIRTS.findIndex((pos, j) => own[j] == null && fits(p, pos))
+      if (j >= 0) { own[j] = lu[i]; left.delete(i) }
+    }
+  }
+  place((p, pos) => p.pos === pos)
+  place((p, pos) => p.alt.includes(pos))
+  for (const i of [...left]) { const j = own.indexOf(null); if (j >= 0) { own[j] = lu[i]; left.delete(i) } }
+  const keep = specialistGaps(men).length ? SHIRT_KEEP.specialist
+    : fam >= 0.92 ? SHIRT_KEEP.alt : fam >= 0.8 ? SHIRT_KEEP.near : SHIRT_KEEP.odd
+  if (keep >= 1) return NO_SHIRT_COST
+  const a = now, b = unitsOf(own)
+  const loss = {} as Record<UnitKey, number>
+  for (const k of Object.keys(NO_SHIRT_COST.loss) as UnitKey[]) loss[k] = Math.min(1, a[k] / Math.max(1e-6, b[k]))
+  return { loss, keep }
+}
 /** the old engine's own penalty lean for each defence (styles.ts DEF_FX penF, not exported there) */
 const DEF_PEN: Record<DefStyle, number> = { drift: 0.94, blitz: 1.08, pendulum: 0.98, man: 1.0, choke: 1.02 }
 export const STYLE_KICK = 80, STYLE_WIDTH = 0.45, STYLE_PACK = 0.4, STYLE_MAUL = 1.0
@@ -253,7 +326,61 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
   let now = 0
 
   const exps = { ...UNIT_EXP, ...opts.exp }
-  const unitStr = (s: 0 | 1, k: UnitKey) => Math.pow(sides[s].units[k] / Math.max(1e-6, mean[k]), GAMMA * exps[k])
+  /** a half-time talk's spell on each side: the units before and after it, and when it was given */
+  type Spell = { t0: number; before: SideCtx['units']; after: SideCtx['units'] }
+  const spell: [Spell | null, Spell | null] = [null, null]
+  /** the pre-match talk's effect on each unit (after over before), kept at PRE_TALK_GAIN of the old engine's size */
+  const preTalk: [Partial<Record<UnitKey, number>> | null, Partial<Record<UnitKey, number>> | null] = [null, null]
+  /** the old engine's own lean of two dials on the units (setup.ts applyModifiers: the style dial on the
+   *  attack, scrum and breakdown, line speed on the defence), which this simulation plays out itself
+   *  (PlayStyle width, maul, pick, blitz), so it is taken back off here and not counted twice. What a
+   *  plan the squad cannot play costs (styleMisfit) stays: that is the squad's fit. */
+  const dialLean = (s: 0 | 1, k: UnitKey) => {
+    const tac = clone.clubs[sides[s].teamId]?.tactic as Partial<Tactic> | undefined
+    if (!tac) return 1
+    const f = (v: number | undefined) => (Number.isFinite(v) ? Math.max(0, Math.min(100, v as number)) - 50 : 0) / 50
+    const st = f(tac.style), dl = f(tac.defLine ?? 50)
+    return k === 'attack' ? 1 + st * 0.06 : k === 'scrum' ? 1 - st * 0.05 : k === 'breakdown' ? 1 - st * 0.03 : k === 'defence' ? 1 + dl * 0.04 : 1
+  }
+  const unitOf = (s: 0 | 1, k: UnitKey) => {
+    let u = sides[s].units[k] / (DIAL_NEUTRAL ? dialLean(s, k) : 1)
+    // the units now carry the talks at the old engine's size (its talk factors stay on the men through
+    // every rebuild, a replacement's included): take each back to its own size here
+    const pr = preTalk[s]?.[k]
+    if (pr) u *= Math.pow(pr, PRE_TALK_GAIN - 1)
+    const sp = spell[s]
+    if (sp) {
+      const w = Math.max(0, 1 - (now - sp.t0) / TALK_SPELL_S)
+      u *= Math.pow(sp.after[k] / Math.max(1e-6, sp.before[k]), TALK_GAIN * w - 1)
+    }
+    return u
+  }
+  /** what playing men out of position costs each unit (the units against the
+   *  same fifteen men in their own shirts), and how much of it to keep: a
+   *  plausible swap keeps part, a non-specialist in the front row or at nine
+   *  keeps all (shirtCost) */
+  const shirtMemo: [Map<string, ShirtCost>, Map<string, ShirtCost>] = [new Map(), new Map()]
+  const shirtOf = (s: 0 | 1): ShirtCost => {
+    const lu = fieldLineup(sides[s]).slice(0, 15)
+    const key = lu.join(',')
+    let c = shirtMemo[s].get(key)
+    if (!c) {
+      c = shirtCost(clone, lu, own => {
+        // the same side with the men in their own shirts, through the old engine's own
+        // modifiers as well (a plan that no longer fits the squad costs it there too)
+        const copy = { ...sides[s], lineup: [...own, ...sides[s].lineup.slice(15)], hia: null } as SideCtx
+        recomputeSideUnits(clone, ctx, copy)
+        return copy.units
+      }, sides[s].units)
+      shirtMemo[s].set(key, c)
+    }
+    return c
+  }
+  const unitStr = (s: 0 | 1, k: UnitKey) => {
+    const c = shirtOf(s)
+    return Math.pow(unitOf(s, k) / Math.max(1e-6, mean[k]), GAMMA * exps[k])
+      * (c.keep < 1 ? Math.pow(c.loss[k], GAMMA * exps[k] * (c.keep - 1)) : 1)
+  }
   const hfaShare = opts.hfaShare ?? HFA_SHARE
   const hfa = (s: 0 | 1) => (s === 0 ? Math.pow(ctx.hfa, hfaShare) : 1)
   // each shirt's tank when its man came on, and the second he came on (0 for a starter), so a
@@ -299,6 +426,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
     for (const g2 of gone) g2.clear()
     for (const s of [0, 1] as const) { shirts[s] = shirts0[s].slice(); tank0[s] = tank00[s].slice(); onAt[s].fill(0) }
     injured[0].clear(); injured[1].clear()
+    spell[0] = null; spell[1] = null; preTalk[0] = null; preTalk[1] = null; shirtMemo[0].clear(); shirtMemo[1].clear()
     if (!saved) return
     const sv = saved
     sides.forEach((sd, i) => {
@@ -318,7 +446,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
   const isUserSide = (s: 0 | 1) => ctx.userSideId != null && sides[s].teamId === ctx.userSideId
   /** THE MANAGER'S HAND on the private copy, through the old engine's own functions where it has them.
    *  It changes this World for good: after a decision, build a new World for the next match. */
-  const decide = (d: Decision, t: number): string => {
+  const decide = (d: Decision, t: number, score?: [number, number]): string => {
     now = t
     if (d.kind === 'world' || d.kind === 'strength' || d.kind === 'penaltyCall') return 'not a decision for the World'
     if (d.kind === 'bench') return ''
@@ -370,14 +498,26 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
     }
     if (d.kind === 'talk') {
       if (!isUserSide(s)) return 'only the manager gives a talk'
+      // the room hears the talk at the real score (the old engine reads the margin into the talk's setting)
+      if (score) { sides[0].score = score[0]; sides[1].score = score[1] }
+      const before = { ...side.units }
       // before the kick-off it is the pre-match talk (teamtalk.ts PRE_TONES), after it the half-time one
       if (d.pre) {
         const said = applyPreTalk(clone, ctx, d.tone as Parameters<typeof applyPreTalk>[2])
         recomputeSideUnits(clone, ctx, side)
+        const r: Partial<Record<UnitKey, number>> = {}
+        for (const k of UNIT_KEYS) r[k] = side.units[k] / Math.max(1e-6, before[k])
+        preTalk[s] = r
+        shirtMemo[s].clear()
         return said && ctx.preTalk !== d.tone ? said : ''
       }
       const said = applyTeamTalk(clone, ctx, d.tone as Parameters<typeof applyTeamTalk>[2])
       recomputeSideUnits(clone, ctx, side)
+      // A SPELL, NOT A SETTING (round 7): what the talk did to each man's units is a lift (or a cost)
+      // that is felt at once and has gone by TALK_SPELL_S later, TALK_GAIN times the old engine's size
+      spell[s] = { t0: t, before, after: { ...side.units } }
+      shirtMemo[s].clear()
+      styles = [buildStyle(0), buildStyle(1)]
       return said && ctx.htTone !== d.tone ? said : ''
     }
     return 'unknown decision'
@@ -500,10 +640,16 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
       width: Math.max(0.18, Math.min(0.45, 0.30 * (1 - STYLE_WIDTH / 2 + STYLE_WIDTH * styleD / 100) * A({ width: 1.08, direct: 0.9, offload: 1.04 }))),
       tempo: 1.18 - 0.36 * tempoD / 100,
       // (divided by the world's mean, 1.2, so the average club offloads as the even world does)
-      offload: A({ offload: 2.6, width: 1.2, direct: 0.8, kick: 0.8 }) / 1.2,
-      maul: (1 + STYLE_MAUL * (50 - styleD) / 100) * A({ direct: 1.15, pods: 1.1, width: 0.8, offload: 0.85 }) * (zones.opp22 === 'drive' ? 1.6 : zones.opp22 === 'spread' ? 0.7 : 1),
-      pick: pack * A({ direct: 1.2, width: 0.8 }) * (zones.opp22 === 'drive' ? 1.5 : 1),
-      corner: Math.max(0, Math.min(0.85, 0.08 + appetite * 0.45 + (50 - styleD) / 150 + (zones.opp22 === 'drive' ? 0.2 : 0))),
+      offload: A({ offload: 2.6, width: 1.0, direct: 0.8, kick: 0.8 }) / 1.2,
+      maul: (1 + STYLE_MAUL * (50 - styleD) / 100) * A({ direct: 1.15, pods: 1.1, width: 0.8, offload: 0.85 }) ,
+      pick: pack * A({ direct: 1.2, width: 0.8 }),
+      // the plan in their 22 is played only there (skeleton.ts), so the side's carry elsewhere does not pay for it
+      fit: (() => {
+        const z = Math.max(-FIT.z, Math.min(FIT.z, (leanOf(clone, shirts0[s]) - mean.lean) / FIT.sd))
+        return { wide: Math.exp(FIT.b * z), tight: Math.exp(-FIT.b * z) }
+      })(),
+      in22: zones.opp22 === 'drive' ? { maul: 2.0, pick: 1.5, width: 1 } : zones.opp22 === 'spread' ? { maul: 0.7, pick: 0.7, width: 1.05 } : { maul: 1, pick: 1, width: 1 },
+      corner: Math.max(0, Math.min(0.85, 0.08 + appetite * 0.45 + (50 - styleD) / 150 + (zones.opp22 === 'drive' ? 0.1 : 0))),
       quick: 0.5 + tempoD / 100,
       blitz: Math.max(-1, Math.min(1, (dial(tac.defLine) - 50) / 40 + (def === 'blitz' ? 0.3 : def === 'drift' ? -0.3 : 0))),
       narrow: Math.max(-1, Math.min(1, (50 - dial(tac.defWidth)) / 40 + (def === 'choke' ? 0.25 : 0))),
@@ -586,6 +732,17 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
     const side = sides[s], rate = (1 - END_TANK) * side.tempoF * side.drainF
     return tank0[s][slot] * Math.max(0, 1 - Math.min(1, Math.max(0, t - onAt[s][slot]) / 4800) * rate)
   }
+  const keepMemo = new Map<string, number>()
+  const manKeep = (s: 0 | 1, slot: number, n: number) => {
+    const key = `${s}|${slot}|${n}`
+    let k = keepMemo.get(key)
+    if (k == null) {
+      const p = clone.players[n]
+      k = p ? shirtKeep(p, slot) : 1
+      keepMemo.set(key, k)
+    }
+    return k
+  }
   const man = (s: 0 | 1, id: string, t: number): ManForm => {
     const n = Number(id), slot = shirts[s].indexOf(n)
     if (!id || slot < 0) return { carry: 1, tackle: 1, kick: 1, hands: 1, ruck: 1, legs: 1 }
@@ -595,7 +752,10 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
     e /= 15
     // his legs against his side's: a tired man tackles, carries and rucks worse; his hands and boot a little
     const legs = (1 - MAN_FADE + MAN_FADE * tankAt(s, slot, t)) / (1 - MAN_FADE + MAN_FADE * e)
-    const rel = (j: Job) => Math.pow(r[j] / sideAvg[s][j], MAN_W)
+    // a man out of his own shirt: the units already charge the side for him, so his own edge or
+    // shortfall at the jobs the shirt gives him counts only as much as the units' loss does (SHIRT_KEEP)
+    const k = MAN_W * manKeep(s, slot, n)
+    const rel = (j: Job) => Math.pow(r[j] / sideAvg[s][j], k)
     return { carry: rel('carry') * legs, tackle: rel('tackle') * legs, kick: rel('kick') * Math.sqrt(legs), hands: rel('hands') * Math.sqrt(legs), ruck: rel('ruck') * legs, legs }
   }
 

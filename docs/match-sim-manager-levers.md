@@ -94,3 +94,70 @@ Same fixture and method, new engine, 2,000 paired matches each way. "Round 5" is
 | The bench from 50:00 v none | +4.5 | +8.3 | spec +1.3 points | Larger with this round's fatigue and front-row legs. |
 
 Why out-of-position selection is still costly: with the named man switched off entirely (`World.man`), the prop and wing swap still costs -11.0 and the lock and centre swap -8.8, and with the styles switched off -11.1 and -7.7. So it is not counted twice through the man. It comes through the units. The game's own `teamUnits` already charges a non-prop at prop (`SPEC_PROP` 0.84), and this round scrums end in a penalty or free kick 30% of the time (the sourced figure), up from 16%. A weak scrum now gives away far more. I left it there: a wing at loosehead is the absurd case, and the owner can say if a lock at 13 should cost less.
+
+## Round 7 (24 November, evening): talks, positions and the style levers
+
+Same fixture (Leicester v Glasgow, seed 4242, Leicester at home), new engine, paired seeds. The number of pairs is given for each table. At 1,500 pairs the dice alone move a win % difference by about 2 either way, so a gap under 2 is not a finding.
+
+### Team talks
+
+A half-time talk is now heard at the real score (it was read at 0-0 before, so the room could not tell a lead from a deficit) and acts as a spell: what the old engine's talk does to the units, times 3 (`TALK_GAIN`), felt at once and gone 20 minutes later (`TALK_SPELL_S` 1200). A pre-match talk stays all match at a quarter of the old engine's effect (`PRE_TALK_GAIN` 0.25; at full size the best and worst pre-match talks were 12.9 win % apart). 2,000 pairs, against no talk:
+
+| Half-time talk | Win % | Second-half points | Penalties against after half-time | Win % when ahead at half-time (none 70.5) | Win % when behind (none 23.9) |
+|---|---|---|---|---|---|
+| None | 47.2 | 14.83 | 3.12 | 70.5 | 23.9 |
+| Calm | +1.8 | 15.34 | 3.08 | 71.3 | 26.5 |
+| Fire | -0.5 | 14.64 | 3.13 | 68.8 | 24.9 |
+| Demand | -1.4 | 14.65 | 3.11 | 70.5 | 21.7 |
+| Faith | -1.6 | 14.83 | 3.18 | 67.0 | 23.1 |
+| Praise | -1.7 | 14.80 | 3.10 | 68.1 | 22.7 |
+| Criticise | -1.9 | 14.79 | 3.15 | 70.7 | 19.9 |
+
+Best to worst at half-time: 3.7 win % (calm against criticise). The right talk depends on the score: behind, fire and calm lift the side and criticism costs 4 points of win %; ahead, praise and faith cost 2 to 3.5. Penalties do not move with the talk.
+
+| Pre-match talk | Win % against none | Tries | Penalties against |
+|---|---|---|---|
+| Fire | +2.4 | 3.66 to 3.73 | 5.74 to 5.57 |
+| Faith | +1.7 | 3.74 | 5.58 |
+| Calm | +1.3 | 3.68 | 5.71 |
+| Expect | -0.5 | 3.65 | 5.81 |
+
+Best to worst before kick-off: 2.9 win %.
+
+### Out of position
+
+Each player's familiarity with his shirt now comes from the game's own data (`effAt`: his position 1, a listed second position 0.92, a near position 0.8, anything else 0.55). The units already charge a side for a man in the wrong shirt, and they are steeper here than in the old engine, so part of that loss is handed back: the share kept is set by the least familiar man (`SHIRT_KEEP`: 0.25 for a second position, 0.3 for a near one, 0.55 for anything else, and all of it for a non-specialist at prop, hooker or nine). The same share applies to that man's own edge in the jobs his shirt gives him. The loss is measured through the old engine's own modifiers, so a plan that no longer fits the reshuffled XV is counted too.
+
+| Swap (each man out of position) | Round 6 | Now | Old engine | Pairs |
+|---|---|---|---|---|
+| Loosehead prop and left wing (a non-prop at prop) | -12.5 | -10.1 | -2.2 | 2,000 |
+| Lock and outside centre | -11.6 | -6.5 | -4.0 | 2,000 |
+| Fly-half and inside centre | -7.2 | +0.8 | not measured | 1,500 |
+| Fullback and right wing | -7.2 | -2.6 | not measured | 1,500 |
+| The two centres | -2.8 | +1.8 | not measured | 1,500 |
+| The two flankers | -1.9 | +0.1 | not measured | 1,500 |
+
+### The four style levers by squad
+
+Two versions of Leicester's squad: every forward one point up and every back one point down on all attributes ("pack-heavy"), and the other way round ("backs-heavy"). Their lean, backs against pack, is about 1.2 standard deviations of the Premiership's spread each way (the real Premiership runs from -1.3 to +1.5). Win % change from the first setting to the second, 1,500 pairs each.
+
+| Lever | Pack-heavy | Backs-heavy | Leicester as it is | Old engine (Leicester) | Old engine, pack / backs (800) |
+|---|---|---|---|---|---|
+| Style dial, forwards 20 v expansive 80 | -8.8 | +5.8 | -2.3 | +1.6 | -4.0 / +2.7 |
+| Line speed, drift 20 v blitz 80 | -0.7 | +4.2 | -0.7 | +1.0 | +0.1 / +0.3 |
+| Attack style, direct v width | -19.4 | +4.5 | -7.5 | -6.1 | -14.1 / -0.1 |
+| Their 22, drive v spread | +3.0 | +4.6 | +2.7 | +0.3 | +0.6 / -1.5 |
+
+Against a narrow defence (Glasgow set to choke) attack width moves towards width: pack-heavy -12.2, backs-heavy +9.2. Line speed with Leicester as it is: +4.9 against a direct Glasgow and +6.5 against a wide one (measured before the dial change below, so these show the direction only).
+
+What changed:
+- A tight carry and a maul lean on the pack and a wide carry on the backs (`FIT` in fromMatch.ts, 2% a standard deviation of lean, four times that inside their 22).
+- The old engine's style dial and line speed no longer also move the units (`dialLean`, `DIAL_NEUTRAL`). This simulation plays those dials out itself, so they were being counted twice. What a plan the squad cannot play costs in the old engine (`styleMisfit`) still applies.
+- A blitz now shuts down a wide carry (`BLITZ_WIDE` 0.25) and gives up a little on a tight one (`BLITZ_TIGHT` -0.04). It used to be 0.1 off every carry.
+- The plan for their 22 applies only inside their 22 (`PlayStyle.in22`), so the rest of the field no longer pays for it.
+- The compensations for the blitz, the pack and the corner were re-set in the even world (calib.ts).
+
+Not yet right:
+- Attack width is far too costly for a pack-heavy squad (-19 against the old engine's -14), and on average across these two squads direct beats width by 7 points, about the same as the old engine's lean. Width also gives away 2.5 to 4.5 more points a match whatever the squad.
+- Spreading it in their 22 still beats driving for both squads (+3 and +5). Driving gives only about 0.7 more mauls a match, and a maul or pick and go near their line converts too seldom here. That is the same shortfall as in tries from lineouts.
+- A zero-ruck try step (more tries off set-piece strike moves and turnover ball) was not tried this round.

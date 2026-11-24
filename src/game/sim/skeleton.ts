@@ -127,11 +127,22 @@ export const K = {
   // Each is taken back off the side's own carry, so a style changes how a side plays and leaves
   // what it wins to the old engine's own style leans (PlayStyle.tryF, matchup) and to the men.
   // Without it, the per-fixture margin gap to the old engine went from 2.3 to 3.4 points (rms).
-  COMP_KICK: 0.26, COMP_WIDTH: -0.086, COMP_PACK: -0.015, COMP_OFFLOAD: -0.053, COMP_TEMPO: 0.080, COMP_BLITZ: -0.059, COMP_NARROW: -0.037, COMP_QUICK: 0.018, COMP_CORNER: -0.061,
+  // A BLITZ IS A BET ON THE BALL GOING WIDE (round 7): it shuts down the outside (BLITZ_WIDE off a wide
+  // carry's edge) and is beaten on the inside by the carry it rushed past (BLITZ_TIGHT, negative, onto a
+  // tight one), so line speed pays against a side that spreads it and costs against one that goes direct.
+  // (Was 0.1 on every carry, which made the blitz simply better: +4.0 win % on the lever table.)
+  BLITZ_WIDE: 0.25, BLITZ_TIGHT: -0.04,
+  // how much more a squad's fit to tight or wide play (PlayStyle.fit) counts inside their 22, where a
+  // pack's weight in the pick and go and the maul, or a back three's pace, decides the try
+  FIT_22: 4,
+  COMP_KICK: 0.26, COMP_WIDTH: -0.086, COMP_PACK: 0.020, COMP_OFFLOAD: -0.053, COMP_TEMPO: 0.080, COMP_BLITZ: -0.005, COMP_NARROW: -0.037, COMP_QUICK: 0.018, COMP_CORNER: -0.030,
   // (round 5, re-measured after the driving maul, quick ruck ball and the corner call came in: the pack
   // -0.025 to -0.074, tempo 0.008 to 0.080, and the corner -0.061 a unit of its lean)
   // (round 6, after mauls across the field and the realism retune: the pack -0.074 to -0.015, the blitz -0.115
   // to -0.059; the kick 0.123 to 0.26, set on the real fixture so the kicking dial moves the result as the old engine's does)
+  // (round 7, after the blitz split by width and the plan in their 22 taken off the side's carry: the
+  // blitz -0.059 to -0.005, the pack -0.015 to 0.020, the corner -0.061 to -0.030, each from calib.ts
+  // in the even world, so the style dial and line speed are worth nothing to a level squad there)
 } as const
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -397,14 +408,14 @@ export class MatchSim {
         // (whose offender is already named) is being given and taken
         const nk = this.st.next.k
         if (nk === 'phase' || nk === 'penalty' || nk === 'penaltyCall') { keep.push(d); continue }
-        const why = this.world.decide ? this.world.decide(d, this.st.t) : 'this world has no bench'
+        const why = this.world.decide ? this.world.decide(d, this.st.t, this.st.score) : 'this world has no bench'
         const st = this.st
         // the game's own changes are only written when they are made
         if (why && (d.auto || d.injury)) continue
         if (d.injury) st.hurt![d.side] = st.hurt![d.side].filter(id => id !== d.off)
         st.plays.push({ n: st.plays.length, t: Math.round(st.t), clock: Math.round(st.clock), kind: 'substitution', side: d.side, ball: st.ball,
           x: r1(st.x), y: r1(st.y), result: why ? 'refused' : 'made', who: d.off, with: [d.on], live: 0, dead: 0, score: [st.score[0], st.score[1]], ...(why ? { cause: why } : d.injury ? { cause: 'injury' } : d.auto ? { cause: 'tactical' } : {}) })
-      } else if (this.world.decide) this.world.decide(d, this.st.t)
+      } else if (this.world.decide) this.world.decide(d, this.st.t, this.st.score)
     }
     this.queue = keep
   }
@@ -681,13 +692,13 @@ export class MatchSim {
     this.emit('lineout', to, 'won', 'LINEOUT', K.LINEOUT_S, 0, { pre, who: W.thrower(to), with: this.ids([jumper]) })
     st.carrierId = jumper
     // close to their line it is driven (a pack side drives more of them, and from further out)
-    const ms = this.sty(to).maul
     const dl = this.toLine(to, st.x)
+    const ms = this.sty(to).maul * (dl <= 22 ? this.sty(to).in22?.maul ?? 1 : 1)
     const pMaul = dl < K.MAUL_FROM * Math.max(1, ms) ? K.P_MAUL : dl < 70 ? K.P_MAUL_MID : K.P_MAUL_DEEP
     if (rng() < Math.min(0.9, pMaul * ms * ms)) {
       st.launch = ''
       const before = st.x
-      const gain = Math.max(0, this.gauss(K.MAUL_GAIN * this.vs(to, 'maul'), 3.5))
+      const gain = Math.max(0, this.gauss(K.MAUL_GAIN * this.vs(to, 'maul') * Math.pow(this.sty(to).fit?.tight ?? 1, dl <= 22 ? K.FIT_22 : 1), 3.5))
       st.x = this.adv(to, st.x, gain)
       st.carrierId = W.forward(to, pick)
       const moved = r1(Math.abs(clamp(st.x, 0, 100) - before))
@@ -937,13 +948,14 @@ export class MatchSim {
     }
     // TIGHT OR WIDE. On their line a pack side picks and goes; elsewhere the side's own width, wider
     // a man up or chasing the game, narrower a man down or on a wet ball
-    const pickGo = d <= K.PICK_ZONE && rng() < Math.min(0.9, K.P_PICK * me.pick)
-    const widthP = me.width * (up > 0 ? 1.25 : up < 0 ? 0.8 : 1) * (chase ? 1.2 : 1) * (1 - 0.3 * wet)
+    const plan = d <= 22 ? me.in22 : undefined
+    const pickGo = d <= K.PICK_ZONE && rng() < Math.min(0.9, K.P_PICK * me.pick * (plan?.pick ?? 1))
+    const widthP = me.width * (plan?.width ?? 1) * (up > 0 ? 1.25 : up < 0 ? 0.8 : 1) * (chase ? 1.2 : 1) * (1 - 0.3 * wet)
     const wide = !pickGo && rng() < widthP
     // the defence: a narrow defence gives up the outside and holds the inside, a blitz holds the
     // gain line and gives up more breaks and intercepts
     // (behind on the scoreboard, a good captain lifts them; the called move off first-phase ball is a drilled play)
-    const edge = qb * (this.lead(s) < 0 ? 1 + K.CAPTAIN_LIFT * me.lead : 1) * (launch && me.launchMove ? K.MOVE_GAIN : 1) * this.vs(s, 'carry', 'tackle') * this.comp(me) * (wide ? 1 + 0.12 * them.narrow : 1 - 0.12 * them.narrow) * (1 - 0.1 * them.blitz)
+    const edge = qb * (this.lead(s) < 0 ? 1 + K.CAPTAIN_LIFT * me.lead : 1) * (launch && me.launchMove ? K.MOVE_GAIN : 1) * this.vs(s, 'carry', 'tackle') * this.comp(me) * (wide ? 1 + 0.12 * them.narrow : 1 - 0.12 * them.narrow) * (1 - (wide ? K.BLITZ_WIDE : K.BLITZ_TIGHT) * them.blitz) * (me.fit ? Math.pow(wide ? me.fit.wide : me.fit.tight, plan ? K.FIT_22 : 1) : 1)
     // (on their own line a defence is at its tightest: every metre is fought for)
     const near = d <= K.LINE_NEAR ? K.LINE_GAIN : 1
     // the shape it is run in (a pick and go, a launch play off set-piece ball and an offload's run are their own)
