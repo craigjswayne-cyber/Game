@@ -368,7 +368,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
       c = shirtCost(clone, lu, own => {
         // the same side with the men in their own shirts, through the old engine's own
         // modifiers as well (a plan that no longer fits the squad costs it there too)
-        const copy = { ...sides[s], lineup: [...own, ...sides[s].lineup.slice(15)], hia: null } as SideCtx
+        const copy = { ...sides[s], lineup: [...own, ...sides[s].lineup.slice(15)], hia: undefined } as SideCtx
         recomputeSideUnits(clone, ctx, copy)
         return copy.units
       }, sides[s].units)
