@@ -86,21 +86,31 @@ export const RULES: Rule[] = [
   { id: 'A01-schedule-cover', title: 'the schedule covers every Play once, in order', owner: 'ANIMATION', kind: 'match' },
   { id: 'A02-schedule-time', title: 'the schedule never goes back in time', owner: 'ANIMATION', kind: 'match' },
   { id: 'A03-fades', title: 'fades only on lineouts, conversions, kicks at goal and after half-time', owner: 'ANIMATION', kind: 'match' },
-  { id: 'P01-length', title: 'an Extended match takes 7 to 9 minutes to watch (owner, 22 Nov: "8 mins is fine")', owner: 'ANIMATION', kind: 'rate' },
+  { id: 'P01-length', title: 'an Extended match takes 7 to 9 minutes to watch, or longer when it has more than 10 tries (owner, 22 and 24 Nov)', owner: 'ANIMATION', kind: 'rate' },
   { id: 'P02-every-play', title: 'every play is shown: none condensed, every play with ball in play has time on screen', owner: 'ANIMATION', kind: 'match' },
-  { id: 'P03-key-1x', title: 'every key moment at normal speed (no frame of it above 1.15x)', owner: 'ANIMATION', kind: 'match' },
-  { id: 'P04-buildup-1x', title: 'the possession that ends in each try at normal speed back to its start or the cap (90% of its frames at 1.15x or less)', owner: 'ANIMATION', kind: 'match' },
+  { id: 'P03-key-1x', title: 'every key moment at the highlight clips\' pace (every frame within 15% of it)', owner: 'ANIMATION', kind: 'match' },
+  { id: 'P04-buildup-1x', title: 'the whole possession that ends in each try at the clips\' pace from its first play, never shortened (90% of its frames within 15%)', owner: 'ANIMATION', kind: 'match' },
   { id: 'P05-ff', title: 'fast forward elsewhere: 80% of the other frames at 1.5x or more', owner: 'ANIMATION', kind: 'match' },
   { id: 'P06-close', title: 'margin 7 or fewer at 75:00: the rest at no more than 2.2x; margin 15 or more: not slowed (median over 2.2x)', owner: 'ANIMATION', kind: 'match' },
   { id: 'P07-ease', title: 'no step in speed: never more than 10% faster or slower from one screen frame to the next', owner: 'ANIMATION', kind: 'match' },
   { id: 'S01-steps', title: 'smooth on screen (60 fps, 3.3 px a metre): men 99th percentile step 5 px or less in fast forward, change in step 99th percentile 1 px or less; ball 99th percentile 14 px or less', owner: 'ANIMATION', kind: 'match' },
   { id: 'S02-jitter', title: 'no shaking: a man\'s step reverses between two screen frames (both 0.3 px+) for under 0.5 men on average, and 3 or more at once in under 1% of frames', owner: 'ANIMATION', kind: 'match' },
   { id: 'S03-positions', title: 'positions (scripts/tmp/oddruns.ts): odd runs 196 or fewer a match, no side sliding 5 m or more, wings in lane 90%, flat line at 80% of rucks', owner: 'ANIMATION', kind: 'match' },
-  { id: 'W01-load', title: 'readable: no more than one new line every 1.4 s in fast forward or at normal speed, and no more than 7 in any 10 s', owner: 'COMMENTARY', kind: 'match' },
-  { id: 'W02-gaps', title: 'engaging: never more than 15 s on screen with no new line', owner: 'COMMENTARY', kind: 'match' },
+  // (W01, one line every 1.4 s and 7 in 10 s, retired 24 Nov by the owner's "a lot faster paced, a bit like the old Football Manager": T01 to T05 replace it)
+  // (W02, 15 s of silence, replaced 24 Nov by T02's 1.2 s while the ball is in play)
   { id: 'W03-key-words', title: 'every key moment has a line on screen while it happens', owner: 'COMMENTARY', kind: 'match' },
   { id: 'W04-repeat', title: 'not repetitive in a match: no more than 15% of lines word for word an earlier line, and no wording three times running', owner: 'COMMENTARY', kind: 'match' },
   { id: 'W05-sameness', title: 'not repetitive across matches: sameness score 60 or less over 20 pairings, 70 or less over 20 matches of one pairing', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'B01-record-bounds', title: 'the record puts the ball where it went: a kick that ran dead lands beyond the try line, a kick to touch on a touchline, a try on the line', owner: 'GAMEPLAY', kind: 'match' },
+  { id: 'B02-picture-bounds', title: 'on screen the ball crosses the line the record says and stops beyond it: dead-ball line, touchline; tries over the try line; kicks at goal between the posts and over the bar only when good', owner: 'ANIMATION', kind: 'match' },
+  { id: 'T01-build-said', title: 'ticker: every play of a try build-up has its own line', owner: 'COMMENTARY', kind: 'match' },
+  { id: 'T02-tick', title: 'ticker: never more than 1.2 s on screen without a new line while the ball is in play', owner: 'COMMENTARY', kind: 'match' },
+  { id: 'T03-flash', title: 'ticker: every try, goal and card line is there and stays up 2 s before the next line', owner: 'COMMENTARY', kind: 'match' },
+  { id: 'T04-in-step', title: 'ticker: the line on screen is never about a play still to come, and is more than one play behind for under 2% of the time the ball is in play', owner: 'COMMENTARY', kind: 'match' },
+  { id: 'T05-short', title: 'ticker: lines of 70 characters or fewer, flash lines 48 or fewer', owner: 'COMMENTARY', kind: 'match' },
+  { id: 'F01-realism', title: 'fundamentals: every sourced real-rugby figure (docs/match-sim-sources.md) within the sources\' range widened by 20%', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'M01-levers', title: 'every manager lever leaves every play before the call the same and changes the match after it (which way and how much: `levers 80`, paired t)', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'M02-card-cost', title: 'a yellow card costs the carded side: worse points margin a minute in the bin than out of it', owner: 'GAMEPLAY', kind: 'rate' },
   // (A04, about 4 minutes, retired 22 Nov by the owner's "8 mins is fine": P01 replaces it)
 ]
 
@@ -905,7 +915,13 @@ interface Pitch {
   oddRuns?: (bk: unknown, sides?: Match['sides']) => { runs: number; odd: number; slide: number; slideAt: number; wingShare: number; flat: number; spreadMedian: number }
   FPS: number
   BUILD_MAX?: number
+  /** the measured pace of the 1.9.16/1.9.17 highlight clips, as a rate against the bake's clock (owner, 24 Nov) */
+  CLIP_RATE?: number; CLIP_PACE?: number; HIGHLIGHT_RATE?: number
 }
+/** "normal speed" is now the highlight clips' pace (owner, 24 Nov), as the pitch publishes it; 1 until it does */
+export const clipRate = (A: Pitch) => A.CLIP_RATE ?? A.CLIP_PACE ?? A.HIGHLIGHT_RATE ?? 1
+/** a frame at clip pace: within 15% of it */
+const atClip = (r: number, c: number) => r <= c * 1.15 && r >= c * 0.85
 
 export interface PitchReport {
   label: string; seed: number
@@ -934,26 +950,29 @@ export function checkPitch(A: Pitch, m: Match): PitchReport {
   const fr = (a: number) => Math.max(0, Math.min(N - 1, Math.round(a * FPS)))
   // the frames that are meant to be at life speed (key moments and try build-ups) and the close finish
   const life = new Uint8Array(N)
+  const clip = clipRate(A)
   let keyPlays = 0, keySlow = 0, keyWorst: PitchReport['keyWorst']
   for (let n = 0; n < P.length; n++) {
     if (!isKeyPlay(P, n)) continue
     const g = segOf(n); if (!g) continue
     keyPlays++
-    let worst = 0
-    for (let f = fr(g.a0); f < fr(g.a0 + g.act); f++) { life[f] = 1; worst = Math.max(worst, tl.rate[f]) }
-    if (g.act <= 0 || worst <= 1.15) keySlow++
-    else if (!keyWorst || worst > keyWorst.rate) keyWorst = { n, rate: worst }
+    let worst = 0, off = 0, all = 0
+    for (let f = fr(g.a0); f < fr(g.a0 + g.act); f++) { life[f] = 1; all++; if (!atClip(tl.rate[f], clip)) { off++; if (Math.abs(tl.rate[f] - clip) > Math.abs(worst - clip)) worst = tl.rate[f] } }
+    if (g.act <= 0 || off === 0) keySlow++
+    else if (!keyWorst || Math.abs(worst - clip) > Math.abs(keyWorst.rate - clip)) keyWorst = { n, rate: worst }
+    void all
   }
-  const cap = A.BUILD_MAX ?? 35
+  // (owner, 24 Nov: "no shortening of build-ups": the whole move, however long; longMoves counts those past the pitch's old BUILD_MAX)
+  const cap = Infinity, oldCap = A.BUILD_MAX ?? 35
   let tries = 0, buildSlow = 0, longMoves = 0, buildWorst: PitchReport['buildWorst']
   for (let k = 0; k < P.length; k++) {
     if (P[k].kind !== 'try') continue
     tries++
     // from the start of the move (or the cap) to the grounding; the walk back after it is not the build-up
     const j = possessionStart(P, k), end = segOf(k).a0 + segOf(k).act, start = Math.max(segOf(j).a0, end - cap)
-    if (segOf(j).a0 < end - cap) longMoves++
+    if (segOf(j).a0 < end - oldCap) longMoves++
     let n1 = 0, ok = 0
-    for (let f = fr(start); f < fr(end); f++) { life[f] = 1; n1++; if (tl.rate[f] <= 1.15) ok++ }
+    for (let f = fr(start); f < fr(end); f++) { life[f] = 1; n1++; if (atClip(tl.rate[f], clip)) ok++ }
     const share = n1 ? ok / n1 : 1
     if (share >= 0.9) buildSlow++
     else if (!buildWorst || share < buildWorst.share) buildWorst = { n: k, share }
@@ -1173,6 +1192,444 @@ export function repeatWithin(sh: MatchShape, m: Match): { tmplRun: number; tmplR
   return { tmplRun: tBest, tmplRunText: tText, repeatShare: sh.texts.length ? rep / sh.texts.length : 0, longestRun: best, runKey: bestKey, topRepeat: top[0], topCount: top[1] }
 }
 
+// ------------------------------------------------------------ round 5: boundaries, clip pace, ticker, levers, realism
+
+/** the in-goal drawn on the pitch, try line to dead-ball line (src/ui/livepitch/LivePitch.tsx GOAL); Law 1 allows 6 to 22 m */
+export const IN_GOAL_M = 8
+/** the posts (Law 1): 5.6 m apart, the crossbar 3.0 m up */
+export const POSTS_HALF = 2.8, CROSSBAR = 3.0
+const TOUCH_OUT = new Set(['touch', 'penaltyToTouch', 'fiftyTwentyTwo', 'outOnFull'])
+
+/**
+ * THE RECORD'S BOUNDARIES (owner, 24 Nov: "a moment early on said the ball went dead, but on
+ * screen it did not cross the dead-ball line"). What the record itself says about where the
+ * ball went: a kick that ran dead has a landing point beyond the try line (it cannot be drawn
+ * over the dead-ball line if the record puts it on the try line); a kick to touch lands on a
+ * touchline; a try is on the line.
+ */
+export function checkRecordBounds(m: Match): Fail[] {
+  const P = m.res.plays, out: Fail[] = []
+  for (const p of P) {
+    if (p.kind === 'kick' && p.result === 'dead') {
+      const lx = p.land ? p.land[0] : p.x
+      if (toLine(p.side, lx) >= 0) out.push({ rule: 'B01-record-bounds', n: p.n, msg: `kick/dead by side ${p.side} from x ${P[p.n - 1]?.x}: the record lands it at x ${lx} (on the try line), so nothing says it crossed the dead-ball line; gain ${fmt(p.gain ?? 0)} m is cut at the line` })
+    }
+    if (p.kind === 'kick' && TOUCH_OUT.has(p.result) && p.land && p.land[1] !== 0 && p.land[1] !== 70) out.push({ rule: 'B01-record-bounds', n: p.n, msg: `kick/${p.result} lands at y ${p.land[1]}, not on a touchline` })
+    if ((p.kind === 'try') && toLine(p.side, p.x) > 0) out.push({ rule: 'B01-record-bounds', n: p.n, msg: `try at x ${p.x}: not on or over the line` })
+  }
+  return out
+}
+
+export interface BoundReport { checked: number; fails: Fail[]; byKind: Record<string, [number, number]> }
+
+/**
+ * THE PICTURE'S BOUNDARIES: the baked ball crosses the line the record says it went over and
+ * ends beyond it. Dead: past the dead-ball line (IN_GOAL_M beyond the try line). Touch, out on
+ * the full, carried into touch: past the touchline. A try: the ball over the try line while the
+ * try is shown. A kick at goal that is over: it passes the goal line between the posts and over
+ * the bar; one that is missed does not.
+ */
+export function checkPictureBounds(A: Pitch, m: Match): BoundReport {
+  const P = m.res.plays
+  const bk = A.bakeOf(P, m.sides), F = A.FPS
+  const fails: Fail[] = []
+  const byKind: Record<string, [number, number]> = {}
+  const tally = (k: string, ok: boolean) => { const t = byKind[k] ?? (byKind[k] = [0, 0]); t[0]++; if (!ok) t[1]++ }
+  const frames = (a: number, b: number) => { const o: number[] = []; for (let f = Math.max(0, Math.floor(a * F)); f <= Math.min(bk.n - 1, Math.ceil(b * F)); f++) o.push(f); return o }
+  const bx = (f: number) => bk.ball[f * 3], by = (f: number) => bk.ball[f * 3 + 1], bz = (f: number) => bk.ball[f * 3 + 2]
+  let checked = 0
+  for (const p of P) {
+    const g = bk.segs[p.n]; if (!g) continue
+    const nx = P[p.n + 1], gn = nx ? bk.segs[nx.n] : undefined
+    if (p.kind === 'kick' && p.result === 'dead') {
+      // from the kick to the end of the dead-ball play that follows
+      const end = nx?.kind === 'deadBall' && gn ? gn.a0 + gn.act : g.a1
+      const fs = frames(g.a0, end)
+      const far = Math.min(...fs.map(f => toLine(p.side, bx(f))))
+      const last = toLine(p.side, bx(fs[fs.length - 1]))
+      const ok = far <= -IN_GOAL_M && last <= -IN_GOAL_M + 0.5
+      checked++; tally('dead', ok)
+      if (!ok) fails.push({ rule: 'B02-picture-bounds', n: p.n, msg: `kick ran dead (record) but on screen the ball gets ${fmt(-far)} m past the try line and stops ${fmt(-last)} m past it; the dead-ball line is ${IN_GOAL_M} m past it` })
+    }
+    const toTouch = (p.kind === 'kick' && TOUCH_OUT.has(p.result)) || (p.kind === 'carry' && p.result === 'intoTouch')
+    if (toTouch) {
+      const line = p.y < 35 ? 0 : 70
+      const end = gn && (nx!.kind === 'intoTouch') ? gn.a0 + gn.act : g.a0 + g.act
+      const fs = frames(g.a0, end)
+      const beyond = (f: number) => (line === 0 ? by(f) <= 0 : by(f) >= 70)
+      const crossed = fs.some(beyond), stops = beyond(fs[fs.length - 1])
+      checked++; tally(p.kind === 'carry' ? 'carried into touch' : p.result === 'outOnFull' ? 'out on the full' : 'kick to touch', crossed && stops)
+      if (!(crossed && stops)) fails.push({ rule: 'B02-picture-bounds', n: p.n, msg: `${p.kind}/${p.result}: record has it in touch at y ${line}; on screen the ball ${crossed ? 'crosses but comes back' : `never crosses (closest y ${fmt(line === 0 ? Math.min(...fs.map(by)) : Math.max(...fs.map(by)))})`}` })
+    }
+    if (p.kind === 'try') {
+      const fs = frames(g.a0, g.a0 + g.act)
+      const ok = fs.some(f => toLine(p.side, bx(f)) <= 0)
+      checked++; tally('try', ok)
+      if (!ok) fails.push({ rule: 'B02-picture-bounds', n: p.n, msg: `try: on screen the ball is never over the try line (closest ${fmt(Math.min(...fs.map(f => toLine(p.side, bx(f)))))} m short)` })
+    }
+    if ((p.kind === 'penaltyGoal' || p.kind === 'conversion' || p.kind === 'dropGoal') && p.good != null) {
+      const fs = frames(g.a0, g.a1)
+      let through = false, crossedAt: { y: number; z: number } | null = null
+      for (let i = 1; i < fs.length; i++) {
+        const a = toLine(p.side, bx(fs[i - 1])), b = toLine(p.side, bx(fs[i]))
+        if (a > 0 && b <= 0) { const y = by(fs[i]), z = bz(fs[i]); crossedAt = { y, z }; through = Math.abs(y - 35) < POSTS_HALF && z > CROSSBAR; break }
+      }
+      const ok = p.good ? through : !through
+      checked++; tally(p.good ? 'goal over' : 'goal missed', ok)
+      if (!ok) fails.push({ rule: 'B02-picture-bounds', n: p.n, msg: `${p.kind} ${p.good ? 'over' : 'missed'} (record); on screen the ball ${crossedAt ? `crosses the goal line at y ${fmt(crossedAt.y)}, ${fmt(crossedAt.z)} m up (posts y ${35 - POSTS_HALF} to ${35 + POSTS_HALF}, bar ${CROSSBAR} m)` : 'never reaches the goal line'}` })
+    }
+  }
+  return { checked, fails, byKind }
+}
+
+/**
+ * THE TICKER (owner, 24 Nov: "a lot faster paced, a bit like the old Football Manager, where it's
+ * flicking through and then it flashes when there's a key [moment], a try or a penalty goal". It
+ * must fit what is shown on the pitch). On the pitch's schedule, after commentary.ts thin():
+ *  - every play of a try build-up has its own line;
+ *  - while the ball is in play, never more than TICK_GAP s on screen without a new line;
+ *  - the flash lines (try, goal, card) are all there and stay up FLASH_HOLD s before the next line;
+ *  - the line on screen is about the play on screen: never a play ahead, at most one behind;
+ *  - lines are short enough to read at that pace.
+ */
+export const TICK_GAP = 1.2, FLASH_HOLD = 2.0, TICK_MAX_CHARS = 70, FLASH_MAX_CHARS = 48, BEHIND_SHARE = 0.02
+const FLASH_KINDS = new Set(['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'yellowCard', 'redCard'])
+
+export interface TickerReport {
+  buildPlays: number; buildSaid: number; buildMissed?: number
+  inPlayGaps: number; worstGap: number; worstGapAt: number; gapP95: number
+  flashes: number; flashLines: number; flashDropped?: number; flashShort: number; flashShortAt?: number; holdMin: number
+  ahead: number; aheadAt?: number; behindShare: number; behindAt?: number
+  long: number; longest: number; longestText: string; flashLong: number
+  linesPerSecFF: number; linesPerSec1x: number
+}
+
+export function checkTicker(A: Pitch, m: Match, lines: LineLike[], text: (l: LineLike) => string): TickerReport {
+  const P = m.res.plays
+  const bk = A.bakeOf(P, m.sides), tl = A.timeline(bk), sch = A.schedule(P, m.sides), F = A.FPS
+  const times = lineTimes(lines, sch)
+  const order = lines.map((_, i) => i).sort((a, b) => times[a] - times[b] || lines[a].n - lines[b].n)
+  // build-ups: every play from the start of the move to the try
+  const said = new Set(lines.map(l => l.n))
+  let buildPlays = 0, buildSaid = 0, buildMissed: number | undefined
+  for (const p of P) if (p.kind === 'try') {
+    for (let n = possessionStart(P, p.n); n <= p.n; n++) { buildPlays++; if (said.has(n)) buildSaid++; else buildMissed ??= n }
+  }
+  // screen seconds while the ball is in play
+  const live = new Uint8Array(bk.n)
+  for (let f = 0; f < bk.n; f++) { const g = bk.segs[bk.seg[f]] as unknown as { live?: boolean; a0: number; act: number }; live[f] = g && g.live && f / F < g.a0 + g.act ? 1 : 0 }
+  const frameAtView = (v: number) => { let lo = 0, hi = bk.n - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (tl.V[mid] <= v) lo = mid; else hi = mid - 1 } return lo }
+  const liveSeconds = (a: number, b: number) => {
+    let sum = 0
+    for (let f = frameAtView(a); f < bk.n && tl.V[f] < b; f++) if (live[f]) sum += Math.min(b, tl.V[f + 1]) - Math.max(a, tl.V[f])
+    return sum
+  }
+  const ts = order.map(i => times[i])
+  let inPlayGaps = 0, worstGap = 0, worstGapAt = -1
+  const gaps: number[] = []
+  for (let i = 1; i < ts.length; i++) {
+    const g = liveSeconds(ts[i - 1], ts[i]); gaps.push(g)
+    if (g > TICK_GAP + 0.05) inPlayGaps++
+    if (g > worstGap) { worstGap = g; worstGapAt = lines[order[i - 1]].n }
+  }
+  // flashes
+  let flashes = 0, flashLines = 0, flashDropped: number | undefined, flashShort = 0, flashShortAt: number | undefined, holdMin = Infinity
+  for (const p of P) {
+    if (!FLASH_KINDS.has(p.kind) || (p.kind !== 'try' && p.kind !== 'penaltyTry' && p.kind !== 'yellowCard' && p.kind !== 'redCard' && !p.good)) continue
+    flashes++
+    const k = order.findIndex(i => lines[i].n === p.n)
+    if (k < 0) { flashDropped ??= p.n; continue }
+    flashLines++
+    const own = (lines[order[k]] as unknown as { hold?: number }).hold
+    const hold = typeof own === 'number' ? own : (k + 1 < order.length ? ts[k + 1] - ts[k] : Infinity)
+    holdMin = Math.min(holdMin, hold)
+    if (hold < FLASH_HOLD) { flashShort++; flashShortAt ??= p.n }
+  }
+  // the line on screen against the play on screen, ten times a second while the ball is in play
+  let ahead = 0, aheadAt: number | undefined, behind = 0, samples = 0, behindAt: number | undefined
+  for (let v = 0, k = -1; v < tl.total; v += 0.1) {
+    while (k + 1 < ts.length && ts[k + 1] <= v) k++
+    const f = frameAtView(v)
+    if (!live[f] || k < 0) continue
+    samples++
+    const onScreen = bk.seg[f], shown = lines[order[k]].n
+    if (shown > onScreen) { ahead++; aheadAt ??= shown }
+    else if (shown < onScreen - 1) { behind++; behindAt ??= onScreen }
+  }
+  // length
+  let long = 0, longest = 0, longestText = '', flashLong = 0
+  for (const l of lines) {
+    const t = text(l)
+    const isFlash = FLASH_KINDS.has(P[l.n]?.kind ?? '') && l.priority === 3
+    if (isFlash ? t.length > FLASH_MAX_CHARS : t.length > TICK_MAX_CHARS) { if (isFlash) flashLong++; else long++ }
+    if (t.length > longest) { longest = t.length; longestText = t }
+  }
+  let ffT = 0, nT = 0, ffL = 0, nL = 0
+  for (const x of sch) { if (x.speed <= 1.15) nT += x.dur; else ffT += x.dur }
+  for (const l of lines) { const x = sch[l.n]; if (!x) continue; if (x.speed <= 1.15) nL++; else ffL++ }
+  return {
+    buildPlays, buildSaid, buildMissed, inPlayGaps, worstGap, worstGapAt, gapP95: pct(gaps, 0.95),
+    flashes, flashLines, flashDropped, flashShort, flashShortAt, holdMin,
+    ahead, aheadAt, behindShare: samples ? behind / samples : 0, behindAt,
+    long, longest, longestText, flashLong, linesPerSecFF: ffT ? ffL / ffT : 0, linesPerSec1x: nT ? nL / nT : 0,
+  }
+}
+
+/**
+ * THE MANAGER'S LEVERS (owner, 24 Nov: "Make sure everything in the game is affected by the
+ * decisions of the manager. This can't be a preset result."). For each lever the engine takes,
+ * on one real pairing over N match seeds: the same seed with and without the call. Every play
+ * before the call must be the same; after it the measure the lever should move is compared over
+ * the pairs (mean difference, the share of pairs that moved at all, and a sign test), and the
+ * direction is checked where rugby says which way it should go.
+ */
+export interface LeverRow { t: number; verdict: 'acts' | 'weak' | 'wrong' | 'nothing'; lever: string; from: string; measure: string; want: '+' | '-' | 'any'; base: number; with: number; diff: number; moved: number; pairs: number; prefixBroken: number; z: number; ok: boolean; note: string }
+
+export async function checkLevers(f: RealFixture, N: number): Promise<LeverRow[]> {
+  const { MatchSim } = await import('../src/game/sim/skeleton')
+  const us = f.userSide, them = other(us)
+  const sheet = (b: ReturnType<RealFixture['build']>) => (us === 0 ? b.home : b.away).players
+  type Dec = Parameters<InstanceType<typeof MatchSim>['apply']>[0]
+  type Run = { res: SimResult; at: number }
+  const run = (seed: number, stop: { clock: number; dead?: boolean } | null, decs: (b: ReturnType<RealFixture['build']>) => Dec[]): Run => {
+    const b = f.build()
+    const ds = decs(b)
+    const m = new MatchSim({ seed, world: b.world })
+    if (stop) m.runUntil(stop)
+    const at = m.plays.length
+    for (const d of ds) m.apply(d)
+    for (let g = 0; g < 400 && !m.done; g++) { m.runUntil(); const pd = m.pending; if (pd) m.answer(pd.options.includes('posts') ? 'posts' : 'corner') }
+    return { res: m.result(), at }
+  }
+  const after = (r: Run, fn: (p: Play) => number) => r.res.plays.slice(r.at).reduce((a, p) => a + fn(p), 0)
+  const ptsAfter = (side: 0 | 1) => (r: Run) => { const P = r.res.plays, s0 = P[r.at - 1]?.score[side] ?? 0; return r.res.score[side] - s0 }
+  const margin = (r: Run) => ptsAfter(us)(r) - ptsAfter(them)(r)
+  const levers: { lever: string; from: string; stop: { clock: number; dead?: boolean } | null; decs: (b: ReturnType<RealFixture['build']>) => Dec[]; measure: string; fn: (r: Run) => number; want: LeverRow['want'] }[] = [
+    { lever: 'strength x1.12 (any change of World)', from: '40:00', stop: { clock: 2400 }, decs: () => [{ kind: 'strength', side: us, factor: 1.12 }], measure: 'margin after the call', fn: margin, want: '+' },
+    { lever: 'bench: props and hooker on at 55:00', from: '55:00', stop: { clock: 3300, dead: true }, decs: b => { const sh = sheet(b); return ([[1, 17], [2, 16], [3, 18]] as const).map(([o, n]) => ({ kind: 'substitution' as const, side: us, off: sh.find(p => p.shirt === o)!.id, on: sh.find(p => p.shirt === n)!.id })) }, measure: 'own points after 55:00', fn: ptsAfter(us), want: '+' },
+    { lever: 'third-choice 10: the No. 10 off at 1:00 for the No. 23', from: '1:00', stop: { clock: 60, dead: true }, decs: b => { const sh = sheet(b); return [{ kind: 'substitution', side: us, off: sh.find(p => p.shirt === 10)!.id, on: sh.find(p => p.shirt === 23)!.id }] }, measure: 'margin after the call', fn: margin, want: '-' },
+    { lever: 'bench: props and hooker on at 55:00 (the scrum)', from: '55:00', stop: { clock: 3300, dead: true }, decs: b => { const sh = sheet(b); return ([[1, 17], [2, 16], [3, 18]] as const).map(([o, n]) => ({ kind: 'substitution' as const, side: us, off: sh.find(p => p.shirt === o)!.id, on: sh.find(p => p.shirt === n)!.id })) }, measure: 'own scrums won or penalty won, minus lost, after 55:00', fn: r => after(r, p => (p.kind !== 'scrum' ? 0 : (p.side === us && ['won', 'penaltyWon'].includes(p.result)) || (p.side === them && ['penaltyLost', 'againstTheHead'].includes(p.result)) ? 1 : (p.side === us && ['penaltyLost', 'againstTheHead'].includes(p.result)) || (p.side === them && p.result === 'penaltyWon') ? -1 : 0)), want: '+' },
+    { lever: 'third-choice 10 (goal kicking)', from: '1:00', stop: { clock: 60, dead: true }, decs: b => { const sh = sheet(b); return [{ kind: 'substitution', side: us, off: sh.find(p => p.shirt === 10)!.id, on: sh.find(p => p.shirt === 23)!.id }] }, measure: 'own kicks at goal missed minus made', fn: r => after(r, p => ((p.kind === 'penaltyGoal' || p.kind === 'conversion') && p.side === us ? (p.good ? -1 : 1) : 0)), want: '+' },
+    { lever: 'tactics: kicking 15 to 90', from: '20:00', stop: { clock: 1200 }, decs: () => [{ kind: 'tactics', side: us, set: { kicking: 90 } }], measure: 'own kicks from hand after the call', fn: r => after(r, p => (p.kind === 'kick' && p.side === us && p.kick !== 'restart' && p.result !== 'penaltyToTouch' ? 1 : 0)), want: '+' },
+    { lever: 'tactics: aggression 90', from: '20:00', stop: { clock: 1200 }, decs: () => [{ kind: 'tactics', side: us, set: { aggression: 90 } }], measure: 'penalties conceded after the call', fn: r => after(r, p => ((p.kind === 'penalty' || p.kind === 'freeKick') && p.side === them ? 1 : 0)), want: '+' },
+    { lever: 'tactics: tempo 90', from: '20:00', stop: { clock: 1200 }, decs: () => [{ kind: 'tactics', side: us, set: { tempo: 90 } }], measure: 'own carries after the call', fn: r => after(r, p => (p.kind === 'carry' && p.side === us ? 1 : 0)), want: '+' },
+    { lever: 'team talk: fire at half-time', from: '40:00', stop: { clock: 2400, dead: true }, decs: () => [{ kind: 'talk', side: us, tone: 'fire' }], measure: 'margin after the call', fn: margin, want: 'any' },
+    { lever: 'team talk: criticise at half-time', from: '40:00', stop: { clock: 2400, dead: true }, decs: () => [{ kind: 'talk', side: us, tone: 'criticise' }], measure: 'margin after the call', fn: margin, want: 'any' },
+    { lever: 'penalty call: always posts', from: '0:00', stop: null, decs: () => [{ kind: 'penaltyCall', side: us, call: 'posts' }], measure: 'own kicks at goal', fn: r => after(r, p => (p.kind === 'penaltyGoal' && p.side === us ? 1 : 0)), want: '+' },
+    { lever: 'penalty call: always corner', from: '0:00', stop: null, decs: () => [{ kind: 'penaltyCall', side: us, call: 'corner' }], measure: 'own lineouts after a penalty to touch', fn: r => after(r, p => (p.kind === 'kick' && p.result === 'penaltyToTouch' && p.side === us ? 1 : 0)), want: '+' },
+  ]
+  const rows: LeverRow[] = []
+  const bases = new Map<number, SimResult>()
+  for (let i = 0; i < N; i++) { const seed = 2000 + i; bases.set(seed, run(seed, null, () => []).res) }
+  for (const L of levers) {
+    let sb = 0, sw = 0, moved = 0, plus = 0, minus = 0, broke = 0, note = ''
+    const ds: number[] = []
+    for (let i = 0; i < N; i++) {
+      const seed = 2000 + i, base = bases.get(seed)!
+      let w: Run
+      try { w = run(seed, L.stop, L.decs) } catch (e) { note = `threw: ${(e as Error).message}`; break }
+      const b: Run = { res: base, at: w.at }
+      if (JSON.stringify(base.plays.slice(0, w.at)) !== JSON.stringify(w.res.plays.slice(0, w.at))) broke++
+      const refused = w.res.plays.filter(p => p.kind === 'substitution' && p.result === 'refused' && p.side === us).length
+      if (refused && !note) note = `${refused} substitution(s) refused (${w.res.plays.find(p => p.kind === 'substitution' && p.result === 'refused' && p.side === us)?.cause})`
+      const x = L.fn(b), y = L.fn(w)
+      sb += x; sw += y; ds.push(y - x)
+      if (JSON.stringify(base.plays.slice(w.at)) !== JSON.stringify(w.res.plays.slice(w.at))) moved++
+      if (y > x) plus++; else if (y < x) minus++
+    }
+    const diff = (sw - sb) / N
+    // a sign test: how many standard deviations the split of ups and downs is from even
+    const k = plus + minus, z = k ? (plus - minus) / Math.sqrt(k) : 0
+    // a paired t on the measure: the mean change over its standard error
+    const md = ds.reduce((a, b) => a + b, 0) / Math.max(1, ds.length)
+    const sd = Math.sqrt(ds.reduce((a, b) => a + (b - md) ** 2, 0) / Math.max(1, ds.length - 1))
+    const t = sd > 0 ? md / (sd / Math.sqrt(ds.length)) : md === 0 ? 0 : Infinity
+    const signed = L.want === '-' ? -t : t
+    const verdict: LeverRow['verdict'] = moved === 0 || md === 0 ? 'nothing' : L.want === 'any' ? (Math.abs(t) >= 2 ? 'acts' : 'weak') : signed >= 2 ? 'acts' : signed <= -2 ? 'wrong' : 'weak'
+    const dirOk = verdict === 'acts'
+    rows.push({ t, verdict, lever: L.lever, from: L.from, measure: L.measure, want: L.want, base: sb / N, with: sw / N, diff, moved, pairs: N, prefixBroken: broke, z, ok: broke === 0 && moved > 0 && dirOk, note })
+  }
+  return rows
+}
+
+/** what a yellow card costs, from the record: the carded side's points for minus against a minute, in the bin and out of it */
+export function cardCost(ms: Match[]): { inBin: number; outBin: number; minutesIn: number; cards: number } {
+  let pin = 0, tin = 0, pout = 0, tout = 0, cards = 0
+  for (const m of ms) {
+    const P = m.res.plays
+    for (const c of P) {
+      if (c.kind !== 'yellowCard') continue
+      cards++
+      const s = c.side, o = other(s), from = offAt(c), to = Math.min(backAt(c), P[P.length - 1].t)
+      const at = (t: number) => { let q = P[0]; for (const p of P) { if (p.t > t) break; q = p } return q.score }
+      const a = at(from), b = at(to)
+      pin += (b[s] - a[s]) - (b[o] - a[o]); tin += (to - from) / 60
+      const end = P[P.length - 1].score
+      pout += (end[s] - end[o]) - ((b[s] - a[s]) - (b[o] - a[o])); tout += (P[P.length - 1].t - (to - from)) / 60
+    }
+  }
+  return { inBin: tin ? pin / tin : 0, outBin: tout ? pout / tout : 0, minutesIn: tin, cards }
+}
+
+/**
+ * FUNDAMENTALS AGAINST REAL RUGBY (owner, 24 Nov: "check all the fundamentals of the game, making
+ * sure it's as realistic as possible from what you can see and from what data you have"). Our
+ * per-match figures on real fixtures beside the sourced ones in docs/match-sim-sources.md. The
+ * band for each row is the range the sources give, widened by 20% either way; a row with no
+ * source says so and is not judged.
+ */
+export function ourRates(ms: Match[]): Record<string, number> {
+  const N = Math.max(1, ms.length)
+  const sum = (f: (p: Play, P: Play[]) => number) => ms.reduce((a, m) => a + m.res.plays.reduce((b, p) => b + f(p, m.res.plays), 0), 0) / N
+  const share = (num: (p: Play) => boolean, den: (p: Play) => boolean) => { let a = 0, b = 0; for (const m of ms) for (const p of m.res.plays) { if (den(p)) { b++; if (num(p)) a++ } } return b ? 100 * a / b : NaN }
+  // 22 entries: a side's possession reaching the other 22 (counted once until the ball changes hands or play restarts)
+  let entries = 0, entryPts = 0
+  let poss = 0, phases = 0
+  for (const m of ms) {
+    const P = m.res.plays
+    let inside = false, owner = -1, ptsAt = 0
+    for (let i = 0; i < P.length; i++) {
+      const p = P[i]
+      if (p.ball !== owner || ['kickoff', 'dropout22', 'goalLineDropout', 'halfTime'].includes(p.kind)) {
+        if (inside) entryPts += P[i - 1].score[owner as 0 | 1] - ptsAt
+        inside = false; if (p.ball !== owner) { poss++; owner = p.ball }
+      }
+      if (!inside && p.live > 0 && toLine(p.ball, p.x) <= 22 && p.kind !== 'conversion') { inside = true; entries++; ptsAt = p.score[p.ball] }
+      if (p.kind === 'ruck' && p.result === 'recycled') phases++
+    }
+  }
+  const home = ms.filter(m => m.res.score[0] > m.res.score[1]).length, draws = ms.filter(m => m.res.score[0] === m.res.score[1]).length
+  return {
+    yellow: sum(p => (p.kind === 'yellowCard' ? 1 : 0)),
+    red: sum(p => (p.kind === 'redCard' ? 1 : 0)),
+    cards: sum(p => (p.kind === 'yellowCard' || p.kind === 'redCard' ? 1 : 0)),
+    lineBreaks: sum(p => (p.kind === 'lineBreak' ? 1 : 0)),
+    offloads: sum(p => (p.kind === 'offload' ? 1 : 0)),
+    tackles: sum(p => ((p.kind === 'carry' || p.kind === 'lineBreak') && p.result !== 'clean' && p.result !== 'interception' ? (p.vs?.length || 1) : 0)),
+    carries: sum(p => (p.kind === 'carry' ? 1 : 0)),
+    rucks: sum(p => (p.kind === 'ruck' || p.kind === 'maul' ? 1 : 0)),
+    turnoversRuck: sum(p => (p.kind === 'ruck' && p.result === 'turnover' ? 1 : 0)),
+    turnoversAll: sum(p => ((p.kind === 'ruck' && p.result === 'turnover') || (p.kind === 'carry' && p.result === 'intercepted') || (p.kind === 'lineout' && p.result === 'stolen') || (p.kind === 'scrum' && p.result === 'againstTheHead') ? 1 : 0)),
+    knockOns: sum(p => (p.kind === 'knockOn' ? 1 : 0)),
+    handlingErrors: sum(p => (p.kind === 'knockOn' || p.kind === 'forwardPass' ? 1 : 0)),
+    penalties: sum(p => (p.kind === 'penalty' ? 1 : 0)),
+    pensAndFK: sum(p => (p.kind === 'penalty' || p.kind === 'freeKick' ? 1 : 0)),
+    outOnFull: sum(p => (p.kind === 'kick' && p.result === 'outOnFull' ? 1 : 0)),
+    kicksInPlay: sum(p => (p.kind === 'kick' && p.kick !== 'restart' && p.result !== 'penaltyToTouch' ? 1 : 0)),
+    scrums: sum(p => (p.kind === 'scrum' ? 1 : 0)),
+    lineouts: sum(p => (p.kind === 'lineout' ? 1 : 0)),
+    scrumWonPct: share(p => p.result === 'won' || p.result === 'penaltyWon' || p.result === 'freeKick', p => p.kind === 'scrum'),
+    lineoutWonPct: share(p => p.result === 'won' || p.result === 'quick', p => p.kind === 'lineout'),
+    goalPct: share(p => !!p.good, p => p.kind === 'penaltyGoal' || p.kind === 'conversion'),
+    penGoalPct: share(p => !!p.good, p => p.kind === 'penaltyGoal'),
+    conPct: share(p => !!p.good, p => p.kind === 'conversion'),
+    tries: sum(p => (p.kind === 'try' || p.kind === 'penaltyTry' ? 1 : 0)),
+    points: ms.reduce((a, m) => a + m.res.score[0] + m.res.score[1], 0) / N,
+    homeTries: sum(p => ((p.kind === 'try' || p.kind === 'penaltyTry') && p.side === 0 ? 1 : 0)),
+    awayTries: sum(p => ((p.kind === 'try' || p.kind === 'penaltyTry') && p.side === 1 ? 1 : 0)),
+    homeWinPct: 100 * home / N, drawPct: 100 * draws / N,
+    homeMargin: ms.reduce((a, m) => a + m.res.score[0] - m.res.score[1], 0) / N,
+    entries22: entries / N, pointsPerEntry: entries ? entryPts / entries : NaN,
+    possessions: poss / N, phasesPerPossession: poss ? phases / poss : NaN,
+    injuries: sum(p => (p.kind === ('injury' as Play['kind']) ? 1 : 0)),
+    subs: sum(p => (p.kind === 'substitution' && p.result === 'made' ? 1 : 0)),
+    ruckRetention: share(p => p.result === 'recycled' || p.result === 'penaltyWon', p => p.kind === 'ruck'),
+    scrumPens: sum(p => (p.kind === 'scrum' && (p.result === 'penaltyWon' || p.result === 'penaltyLost') ? 1 : 0)),
+    scrumPenPct: share(p => p.result === 'penaltyWon' || p.result === 'penaltyLost' || p.result === 'freeKick', p => p.kind === 'scrum'),
+    mauls: sum(p => (p.kind === 'maul' ? 1 : 0)),
+    dropGoals: sum(p => (p.kind === 'dropGoal' && p.good ? 1 : 0)),
+    dropPct: share(p => !!p.good, p => p.kind === 'dropGoal'),
+    penGoalsMade: sum(p => (p.kind === 'penaltyGoal' && p.good ? 1 : 0)),
+    penToTouchPct: (() => { let t = 0, a = 0; for (const m of ms) for (const p of m.res.plays) { if (p.kind === 'kick' && p.result === 'penaltyToTouch') t++; if (p.kind === 'penalty') a++ } return a ? 100 * t / a : NaN })(),
+    ...tryOrigins(ms),
+    ballInPlayMin: ms.reduce((a, m) => a + m.res.plays.reduce((b, p) => b + p.live, 0), 0) / N / 60,
+  }
+}
+
+/** where each try's move began (World Rugby's categories: lineout, scrum, opposition kick, turnover, restart, penalty or free kick), as shares */
+export function tryOrigins(ms: Match[]): Record<string, number> {
+  const c: Record<string, number> = { lineout: 0, scrum: 0, kick: 0, turnover: 0, restart: 0, penalty: 0 }
+  let n = 0
+  for (const m of ms) {
+    const P = m.res.plays
+    for (const p of P) if (p.kind === 'try') {
+      n++
+      const o = P[possessionStart(P, p.n)], before = P[o.n - 1]
+      const k = o.kind === 'lineout' ? 'lineout' : o.kind === 'scrum' ? 'scrum' : o.kind === 'tap' ? 'penalty'
+        : o.kind === 'catch' ? (before && ['kickoff', 'dropout22', 'goalLineDropout'].includes(before.kind) ? 'restart' : 'kick')
+        : 'turnover'
+      c[k]++
+    }
+  }
+  return Object.fromEntries(Object.entries(c).map(([k, v]) => [`origin_${k}`, n ? 100 * v / n : NaN]))
+}
+
+/** THE SOURCED FIGURES (docs/match-sim-sources.md, commit 77b49a5f, section numbers given), per match unless said. A band is
+ *  the range of the sources' own figures; per-team figures are doubled to per match only where the source gives them per team. */
+export const TARGETS: Target[] = [
+  { what: 'Yellow cards a match', key: 'yellow', lo: 0.53, hi: 2.4, source: 's1: 0.53 6N 2017, 0.64 RWC 2019; Top 14 2024-25 0.6 to 1.2 a team' },
+  { what: 'Red cards a match', key: 'red', lo: 0.12, hi: 0.18, source: 's1: URC 2024-25 0.12, RWC 2019 0.18' },
+  { what: 'Line breaks a match', key: 'lineBreaks', lo: 9.6, hi: 10.7, source: 's3: 6N 2026 9.6, Prem 2022-23 10.5, URC 2025-26 10.7' },
+  { what: 'Offloads a match', key: 'offloads', lo: 10, hi: 15, source: 's3: 6N 2026 10 (medium-low); RWC 2023 under 15' },
+  { what: 'Tackles a match (named tacklers on stopped carries)', key: 'tackles', lo: 258, hi: 344, source: 's4: RWC 2019 129 a team, URC 2025-26 344' },
+  { what: 'Tackle completion %', key: 'none', source: 'no record: the record has no missed tackles (s4: 84% to 89%)' },
+  { what: 'Carries a match', key: 'carries', lo: 228, hi: 230, source: 's4: RWC 2019 and 2023, 114 to 115 a team' },
+  { what: 'Rucks and mauls a match', key: 'rucks', lo: 158, hi: 164, source: 's4: RWC, 79 to 82 rucks a team' },
+  { what: 'Ruck retention %, side in possession', key: 'ruckRetention', lo: 92, hi: 98, source: 's2: RWC 2019 94% (92% to 98% by team)' },
+  { what: 'Turnovers won a match (ruck, interception, lineout steal, against the head)', key: 'turnoversAll', lo: 10.6, hi: 16.8, source: 's2: 5.3 to 8.4 a team, RWC 2023 and 6N 2026 (definitions differ)' },
+  { what: 'Conversion success %', key: 'conPct', lo: 75, hi: 83, source: 's5: RWC 2019 75%, 6N 2017 83%' },
+  { what: 'Penalty goal success %', key: 'penGoalPct', lo: 76, hi: 89, source: 's5: RWC 2019 76%, 6N 2017 80%, Prem 2022-23 84% to 89%' },
+  { what: 'Drop goal success %', key: 'dropPct', lo: 35, hi: 35, source: 's5: RWC 2019 6 of 17' },
+  { what: 'Penalty goals kicked a match', key: 'penGoalsMade', lo: 2.0, hi: 2.43, source: 's10: 6N 2026 2.0; s5: Prem 2022-23 2.43' },
+  { what: 'Drop goals a match', key: 'dropGoals', lo: 0.07, hi: 0.13, source: 's10: Prem 2024-25 0.07, RWC 2019 and 6N 2017 0.13' },
+  { what: 'Own lineout won %', key: 'lineoutWonPct', lo: 87, hi: 91, source: 's6: 6N 2017 87%, RWC 2019 88% to 91%' },
+  { what: 'Own scrum won %', key: 'scrumWonPct', lo: 84, hi: 95, source: 's6: RWC 2019 93% to 95%, RWC 2023 84%, Prem 85% to 88%' },
+  { what: 'Scrums ending in a penalty or free kick %', key: 'scrumPenPct', lo: 27, hi: 33, source: 's6: RWC 2019 27%, 6N 2022 one in three' },
+  { what: 'Scrum penalties a match', key: 'scrumPens', lo: 3.1, hi: 3.7, source: 's6: RWC 2019 3.7, RWC 2023 3.1' },
+  { what: 'Mauls a match', key: 'mauls', lo: 8.3, hi: 12.3, source: 's6: ROE 2025, Super Rugby 8.3 to Rugby Championship 12.3 (unit unclear)' },
+  { what: 'Scrums a match', key: 'scrums', lo: 10.2, hi: 14.4, source: 's8: 6N 2025 10.2 to RWC 14.4' },
+  { what: 'Lineouts a match', key: 'lineouts', lo: 24, hi: 28.1, source: 's6, s8: 6N 2017 24, domestic leagues 28.1' },
+  { what: 'Possessions a match', key: 'possessions', lo: 84.8, hi: 100, source: 's7: RWC 84.8 to 85.5; 6N 2025 about 50 a team' },
+  { what: 'Phases (rucks) a possession', key: 'phasesPerPossession', lo: 1.8, hi: 3.0, source: 's7: RWC 2023 1.8, RWC 2019 3.0, Prem 2.7 to 2.9' },
+  { what: 'Points per 22 entry', key: 'pointsPerEntry', lo: 1.49, hi: 3.4, source: 's7: 6N 2024 and 2026, Italy 1.49 to Ireland 3.4 (team range)' },
+  { what: '22 entries a match', key: 'entries22', source: 'no source' },
+  { what: 'Tries from a lineout %', key: 'origin_lineout', lo: 47, hi: 49, source: 's7: 6N 2017 47%, RWC 2019 49%' },
+  { what: 'Tries from a scrum %', key: 'origin_scrum', lo: 16, hi: 20, source: 's7: RWC 2019 16%, 6N 2017 20%' },
+  { what: 'Tries from an opposition kick %', key: 'origin_kick', lo: 15, hi: 15, source: 's7: RWC 2019 15%' },
+  { what: 'Tries from a turnover %', key: 'origin_turnover', lo: 11, hi: 12, source: 's7: 6N 2017 11%, RWC 2019 12%' },
+  { what: 'Tries from a restart %', key: 'origin_restart', lo: 6, hi: 6, source: 's7: RWC 2019 6%' },
+  { what: 'Tries from a penalty or free kick tap %', key: 'origin_penalty', lo: 2, hi: 2, source: 's7: RWC 2019 2%' },
+  { what: 'Penalties and free kicks a match', key: 'pensAndFK', lo: 17, hi: 22.9, source: 's10: RWC 2019 17, 6N 2017 21, Prem 2022-23 22.9 (the owner chose 11 to 12, 20 Nov)' },
+  { what: 'Penalties sent to touch % of penalties', key: 'penToTouchPct', lo: 67, hi: 67, source: 's10: RWC 2019 67% of penalty options' },
+  { what: 'Knock-ons a match', key: 'knockOns', lo: 7, hi: 14, source: 's11: about 7 knock-on scrums (6N 2025, low); handling errors about 7 a team (low)' },
+  { what: 'Kicks from hand a match', key: 'kicksInPlay', lo: 46, hi: 60, source: 's12: RWC 2019 46, URC 2021-22 46, 6N 2026 about 30 a team' },
+  { what: 'Kicks out on the full a match', key: 'outOnFull', source: 'no source (s12: not found)' },
+  { what: 'Replacements used a match', key: 'subs', lo: 15.6, hi: 15.6, source: 's14: RWC 2019 15.6' },
+  { what: 'Injury stoppages a match', key: 'injuries', source: 'no source (s13 gives 3.0 time-loss injuries a match, a different measure)' },
+  { what: 'Home win %', key: 'homeWinPct', lo: 58.9, hi: 71.5, source: 's9: pooled 58.9 to 63.9, Prem 65.6 and 69, Top 14 71.5' },
+  { what: 'Home points margin', key: 'homeMargin', lo: 4.6, hi: 6.8, source: 's9: pooled +4.6 to +6.7, Prem 2024-25 +6.8' },
+  { what: 'Tries a match', key: 'tries', lo: 5.97, hi: 8.0, source: 's9: Prem 2022-23 3.36 + 2.61; spec 4: RWC 2019 6.3, Prem 2024-25 8.0' },
+  { what: 'Points a match', key: 'points', lo: 40, hi: 56.3, source: 'spec 4: RWC 2019 40, Prem 2024-25 56.3 (the game band is 48 to 53)' },
+  { what: 'Ball in play, minutes', key: 'ballInPlayMin', lo: 33.4, hi: 35.7, source: 'spec 4: RWC 2019 35:44, Oval Insights 33.4 to 35.3' },
+]
+
+/** a sourced figure: what it is, the sources' range (per match unless stated), and where it comes from in docs/match-sim-sources.md */
+export interface Target { what: string; key: string; lo?: number; hi?: number; source: string; unit?: string }
+
+/** the realism table: our figure, the sources' band widened by 20%, and the verdict */
+export function realism(ours: Record<string, number>, targets: Target[]): { rows: string[]; misses: string[] } {
+  const rows: string[] = [], misses: string[] = []
+  for (const t of targets) {
+    const v = ours[t.key]
+    if (t.lo == null || t.hi == null) { rows.push(`| ${t.what} | ${fmt(v, 2)} | no source | | ${t.source || 'no source'} |`); continue }
+    const lo = t.lo * 0.8, hi = t.hi * 1.2
+    const ok = v >= lo && v <= hi
+    rows.push(`| ${t.what} | ${fmt(v, 2)} | ${t.lo === t.hi ? fmt(t.lo, 2) : `${fmt(t.lo, 2)} to ${fmt(t.hi, 2)}`} | ${ok ? 'in line' : v < lo ? 'LOW' : 'HIGH'} | ${t.source} |`)
+    if (!ok) misses.push(`${t.what}: ours ${fmt(v, 2)}, real ${t.lo === t.hi ? fmt(t.lo, 2) : `${fmt(t.lo, 2)} to ${fmt(t.hi, 2)}`} (${t.source})`)
+  }
+  return { rows, misses }
+}
+
 // ------------------------------------------------------------ the run
 
 /** the record-only check over a set of seeds of the plain skeleton (used by the test) */
@@ -1281,17 +1738,19 @@ async function eyes() {
   const at75 = (P: Play[]) => P.find(x => (x.clock ?? x.t) >= 4500 && P.some(h => h.kind === 'halfTime' && h.n < x.n))
   type Want = [string, (P: Play[]) => number | undefined, string]
   const want: Want[] = [
-    ['a try build-up at normal speed', P => { const t = P.find(p => p.kind === 'try' && p.n - possessionStart(P, p.n) >= 6); return t ? possessionStart(P, t.n) : undefined }, 'the whole move from its first phase at life speed, every pass and ruck, to the grounding'],
-    ['plain fast forward in midfield', P => { for (let i = 20; i < P.length - 10; i++) if (P.slice(i, i + 10).every(p => p.x > 30 && p.x < 70 && !isKeyPlay(P, p.n) && (p.kind === 'carry' || p.kind === 'ruck'))) return i; return undefined }, 'ten phases between the 30s wound on: every carry and ruck still there, men moving smoothly, no flicker'],
-    ['a close finish', P => { const q = at75(P); return q && Math.abs(q.score[0] - q.score[1]) <= 7 ? q.n : undefined }, 'from 75:00 the game slows to under 2x and stays there to the whistle'],
-    ['a blow-out finish', P => { const q = at75(P); return q && Math.abs(q.score[0] - q.score[1]) >= 20 ? q.n : undefined }, 'from 75:00 it stays on fast forward'],
-    ['a kick exchange', P => { for (let i = 5; i < P.length - 6; i++) { const k = P.slice(i, i + 6).filter(p => p.kind === 'kick' && p.result === 'inPlay'); if (k.length >= 3 && new Set(k.map(p => p.side)).size === 2) return i } return undefined }, 'kicks back and forth: the ball\'s flight, the catchers under it, the chasers, each kick named'],
-    ['a maul try', P => { const t = P.find(p => p.kind === 'try' && p.result === 'maul'); return t ? Math.max(0, t.n - 2) : undefined }, 'lineout, the maul forms and drives over, at life speed'],
-    ['a card period', P => P.find(p => p.kind === 'yellowCard')?.n, 'the card shown, 14 men for ten minutes of clock, and the return said and seen'],
-    ['an interception', P => { const p = P.find(q => q.kind === 'carry' && q.result === 'intercepted'); return p ? Math.max(0, p.n - 2) : undefined }, 'the pass, the interceptor, the ball turning round with no jump'],
-    ['a 50:22', P => { const p = P.find(q => q.kind === 'kick' && q.result === 'fiftyTwentyTwo'); return p ? Math.max(0, p.n - 1) : undefined }, 'the kick bounces into touch in the 22 and the kicking side throws in'],
-    ['a scrum and a 22 drop-out forming up', P => P.find(q => q.kind === 'dropout22')?.n, 'the men walk into place on screen, no fade'],
+    ['the dead ball he saw (real 4242)', P => P.find(p => p.kind === 'kick' && p.result === 'dead')?.n, 'the kick goes over the try line and the dead-ball line before the 22 drop-out'],
+    ['a try build-up at clip pace', P => { const t = P.find(p => p.kind === 'try' && p.n - possessionStart(P, p.n) >= 8); return t ? possessionStart(P, t.n) : undefined }, 'the whole move, from its first phase, at the 1.9.16 clips\' pace: not slower, not faster, nothing cut'],
+    ['the ticker in fast forward', P => { for (let i = 20; i < P.length - 12; i++) if (P.slice(i, i + 12).every(p => !isKeyPlay(P, p.n) && (p.kind === 'carry' || p.kind === 'ruck'))) return i; return undefined }, 'a line for almost every phase, flicking through, each one about the play on screen'],
+    ['a flash: a penalty goal', P => { const p = P.find(q => q.kind === 'penaltyGoal' && q.good); return p ? Math.max(0, p.n - 1) : undefined }, 'the flash comes up with the kick, stays long enough to read, and the ball goes between the posts over the bar'],
+    ['a conversion from wide', P => { const t = P.find(p => p.kind === 'try' && (p.y < 15 || p.y > 55)); return t ? t.n + 1 : undefined }, 'the ball passes between the posts, not round the outside of an upright'],
+    ['a kick to touch and a kick out on the full', P => P.find(q => q.kind === 'kick' && q.result === 'outOnFull')?.n, 'the ball crosses the touchline in the air and the lineout is back where it was kicked'],
+    ['a card period', P => P.find(p => p.kind === 'yellowCard')?.n, 'the card flashes, 14 men for ten minutes, the return said and seen'],
+    ['a substitution', P => P.find(p => p.kind === 'substitution' && p.result === 'made')?.n, 'made at a dead ball, the man off leaves the field, the man on plays'],
+    ['a close finish', P => { const q = at75(P); return q && Math.abs(q.score[0] - q.score[1]) <= 7 ? q.n : undefined }, 'from 75:00 slower, at about 2x, to the whistle'],
+    ['a maul try', P => { const t = P.find(p => p.kind === 'try' && p.result === 'maul'); return t ? Math.max(0, t.n - 3) : undefined }, 'lineout, maul, drive, grounded over the line, at clip pace'],
   ]
+  const fs4242 = await realFixtures([4242])
+  fs.unshift(...fs4242)
   const A = await import('../src/ui/livepitch/fromRecord') as unknown as Pitch
   const used = new Map<number, ReturnType<Pitch['schedule']>>()
   for (const [what, f, look] of want) {
@@ -1321,7 +1780,31 @@ async function wordsDump(argv: string[]) {
   ls.forEach((l, i) => { if (ts[i] >= from && ts[i] <= to) console.log(`${fmt(ts[i])} s  #${l.n} ${m.res.plays[l.n].kind}/${m.res.plays[l.n].result} ${fmt(sch[l.n].speed)}x  [${l.key} p${(l as unknown as { priority?: number }).priority}] ${C.render(l)}`) })
 }
 
+/** `levers [pairs]`: every manager lever on fixture 1's pairing over many paired seeds */
+async function leversDump(argv: string[]) {
+  const N = Number(argv[0] ?? 40)
+  const f = (await realFixtures([1]))[0]
+  const rows = await checkLevers(f, N)
+  console.log(`levers, ${f.match.teams?.join(' v ')}, user side ${f.userSide}, ${N} paired seeds (2000 to ${2000 + N - 1})`)
+  console.log('| Lever | From | Measure | Without | With | Change a match | Matches changed after | Paired t | Wanted | Changed before | Verdict |')
+  console.log('|---|---|---|---|---|---|---|---|---|---|---|')
+  for (const r of rows) console.log(`| ${r.lever} | ${r.from} | ${r.measure} | ${fmt(r.base, 2)} | ${fmt(r.with, 2)} | ${r.diff >= 0 ? '+' : ''}${fmt(r.diff, 2)} | ${r.moved}/${r.pairs} | ${fmt(r.t, 1)} | ${r.want} | ${r.prefixBroken} | ${r.verdict}${r.note ? ` (${r.note})` : ''} |`)
+}
+
+/** `realism [fixtures]`: the realism table over that many real fixtures (seeds 1 to N) */
+async function realismDump(argv: string[]) {
+  const N = Number(argv[0] ?? 60)
+  const ms = await realMatches(Array.from({ length: N }, (_, i) => i + 1))
+  const r = realism(ourRates(ms), TARGETS)
+  console.log(`realism over ${ms.length} real fixtures (seeds 1 to ${N}; Leicester's first fixture in a new game on each seed)`)
+  console.log('| Figure | Ours | Real | Verdict (band widened 20%) | Source |\n|---|---|---|---|---|')
+  for (const x of r.rows) console.log(x)
+  console.log(`\n${r.misses.length} out of line:\n` + r.misses.map(x => `- ${x}`).join('\n'))
+}
+
 async function main() {
+  if (process.argv.includes('realism')) return realismDump(process.argv.slice(process.argv.indexOf('realism') + 1))
+  if (process.argv.includes('levers')) return leversDump(process.argv.slice(process.argv.indexOf('levers') + 1))
   if (process.argv.includes('words')) return wordsDump(process.argv.slice(process.argv.indexOf('words') + 1))
   if (process.argv.includes('eyes')) return eyes()
   if (process.argv.includes('pace')) return paceDump(process.argv.slice(process.argv.indexOf('pace') + 1))
@@ -1362,7 +1845,7 @@ async function main() {
     }
   }
   const matchRuleIds = RULES.filter(r => r.kind === 'match' && r.id.startsWith('R')).map(r => r.id)
-  for (const m of all) add(m, checkRecord(m), matchRuleIds)
+  for (const m of all) add(m, [...checkRecord(m), ...checkRecordBounds(m)], [...matchRuleIds, 'B01-record-bounds'])
 
   for (const row of checkRates(all)) { const t = T.get(row.id)!; t.ran = true; t.failing = row.ok ? 0 : Math.max(1, row.failing); t.first = { label: 'all matches', seed: row.first?.seed ?? -1, n: row.first?.n ?? -1, msg: row.msg } }
   const dec = checkDecision(Array.from({ length: Math.min(100, N) }, (_, i) => 1 + i))
@@ -1386,14 +1869,16 @@ async function main() {
     const render = typeof C.render === 'function' ? C.render : (l: LineLike) => l.key
     const ids = RULES.filter(r => r.owner === 'COMMENTARY').map(r => r.id)
     let lines = 0
-    for (const m of all) {
+    // (the commentary is about 840 lines a match now: its truth checks run on the 20 real fixtures and the first 100 seeds; --words=all for every match)
+    const wordsOn = process.argv.includes('--words=all') ? all : [...matches.slice(0, 100), ...reals]
+    for (const m of wordsOn) {
       let ls: LineLike[]
       const names = { teams: m.teams ?? ['Home', 'Away'] as [string, string], player: (id: string) => m.names?.get(id) ?? '' }
       try { ls = C.commentate(m.res, names) } catch (e) { add(m, [{ rule: 'C01-line-play', n: -1, msg: `commentate threw: ${(e as Error).message}` }], ids); continue }
       lines += ls.length
       add(m, checkLines(m, ls, render), ids)
     }
-    notes.push(`commentary: ${lines} lines over ${all.length} matches (${(lines / Math.max(1, all.length)).toFixed(0)} a match)`)
+    notes.push(`commentary: ${lines} lines over ${wordsOn.length} matches (${(lines / Math.max(1, wordsOn.length)).toFixed(0)} a match)`)
   } catch (e) { notes.push(`commentary: not checked (${(e as Error).message.split('\n')[0]})`) }
 
   // animation
@@ -1428,22 +1913,30 @@ async function main() {
     const at75 = (m: Match) => { const q = m.res.plays.find(x => (x.clock ?? x.t) >= 4500 && m.res.plays.some(h => h.kind === 'halfTime' && h.n < x.n)); return q ? Math.abs(q.score[0] - q.score[1]) : 99 }
     const byMargin = [...reals].sort((a, b) => at75(a) - at75(b))
     const pick = [...byMargin.slice(0, Math.ceil(PN / 2)), ...byMargin.slice(-Math.floor(PN / 2))]
+    // and the owner's own match (seed 4242: "a moment early on said the ball went dead")
+    try { const own = await realFixtures([4242]); if (own[0]) pick.push(own[0].match) } catch { /* no fixture */ }
     const C = await import('../src/game/sim/commentary').catch(() => null) as unknown as { commentate?: (r: SimResult, n: unknown) => LineLike[]; render?: (l: LineLike) => string; thin?: (l: LineLike[], s: unknown) => LineLike[] } | null
-    const views: number[] = []
+    const views: number[] = [], viewTries: number[] = []
+    const bounds: Record<string, [number, number]> = {}
     let worstMan = 0
     const mStepFF: number[] = [], mStepN: number[] = [], bStepFF: number[] = [], bStepN: number[] = [], mJerk: number[] = [], bJerk: number[] = []
-    const loads: LoadReport[] = [], rawLoads: LoadReport[] = []
+    const loads: LoadReport[] = [], rawLoads: LoadReport[] = [], tickers: string[] = []
     for (const m of pick) {
       const t0 = Date.now()
       let r: PitchReport
       try { r = checkPitch(A, m) } catch (e) { add(m, [{ rule: 'P01-length', n: -1, msg: `the pitch threw: ${(e as Error).message}` }], ['P01-length']); continue }
-      views.push(r.view)
+      if (m.seed === 4242) add(m, checkRecordBounds(m), ['B01-record-bounds'])
+      views.push(r.view); viewTries.push(r.tries + m.res.plays.filter(q => q.kind === 'penaltyTry').length)
+      // the boundaries on the picture
+      const bd = checkPictureBounds(A, m)
+      add(m, bd.fails, ['B02-picture-bounds'])
+      for (const [k, [c, bad]] of Object.entries(bd.byKind)) { const t = bounds[k] ?? (bounds[k] = [0, 0]); t[0] += c; t[1] += bad }
       worstMan = Math.max(worstMan, r.worstFrame.px)
       const ids = ['P02-every-play', 'P03-key-1x', 'P04-buildup-1x', 'P05-ff', 'P06-close', 'P07-ease', 'S01-steps', 'S02-jitter', 'S03-positions']
       const f: Fail[] = []
       if (r.condensed || r.shown < r.plays) f.push({ rule: 'P02-every-play', n: -1, msg: `${r.condensed} plays condensed, ${r.plays - r.shown} with ball in play and no time on screen` })
-      if (r.keySlow < r.keyPlays) f.push({ rule: 'P03-key-1x', n: r.keyWorst?.n ?? -1, msg: `${r.keyPlays - r.keySlow} of ${r.keyPlays} key moments above 1.15x; worst play ${r.keyWorst?.n} ${m.res.plays[r.keyWorst?.n ?? 0]?.kind} at ${fmt(r.keyWorst?.rate ?? NaN)}x` })
-      if (r.buildSlow < r.tries) f.push({ rule: 'P04-buildup-1x', n: r.buildWorst?.n ?? -1, msg: `${r.tries - r.buildSlow} of ${r.tries} try build-ups not at normal speed; worst the try at play ${r.buildWorst?.n}, ${fmt(100 * (r.buildWorst?.share ?? 0), 0)}% of it at 1.15x or less` })
+      if (r.keySlow < r.keyPlays) f.push({ rule: 'P03-key-1x', n: r.keyWorst?.n ?? -1, msg: `${r.keyPlays - r.keySlow} of ${r.keyPlays} key moments not at clip pace (${fmt(clipRate(A), 2)}x, within 15%); worst play ${r.keyWorst?.n} ${m.res.plays[r.keyWorst?.n ?? 0]?.kind} at ${fmt(r.keyWorst?.rate ?? NaN)}x` })
+      if (r.buildSlow < r.tries) f.push({ rule: 'P04-buildup-1x', n: r.buildWorst?.n ?? -1, msg: `${r.tries - r.buildSlow} of ${r.tries} try build-ups not at clip pace from the start of the move; worst the try at play ${r.buildWorst?.n}, ${fmt(100 * (r.buildWorst?.share ?? 0), 0)}% of it at clip pace` })
       if (r.ffShare < 0.8) f.push({ rule: 'P05-ff', n: -1, msg: `only ${fmt(100 * r.ffShare, 0)}% of ordinary frames at 1.5x or more (median ${fmt(r.ffMedian)}x)` })
       if (r.close === 'close' && r.closeMax > 2.2) f.push({ rule: 'P06-close', n: -1, msg: `${r.margin}-point game at 75:00, but the finish runs up to ${fmt(r.closeMax)}x (median ${fmt(r.closeMedian)}x)` })
       if (r.close === 'blowout' && !(r.closeMedian > 2.2)) f.push({ rule: 'P06-close', n: -1, msg: `${r.margin}-point blow-out at 75:00 slowed to a median ${fmt(r.closeMedian)}x` })
@@ -1469,22 +1962,58 @@ async function main() {
         rawLoads.push(L0)
         loads.push(L)
         const wf: Fail[] = []
-        if (L.ffRate > 1 / 1.4 || L.normalRate > 1 / 1.4 || L.busiest10 > 7) wf.push({ rule: 'W01-load', n: -1, msg: `${fmt(L.ffRate, 2)} lines a second in fast forward, ${fmt(L.normalRate, 2)} at normal speed, ${L.busiest10} in the busiest 10 s (from ${fmt(L.busyAt)} s on screen, play ${L.busyPlay} ${m.res.plays[L.busyPlay]?.kind}/${m.res.plays[L.busyPlay]?.result})` })
-        if (L.longestGap > 15) wf.push({ rule: 'W02-gaps', n: L.gapAt, msg: `${fmt(L.longestGap)} s with no new line, from play ${L.gapAt}` })
+        // the ticker (24 Nov)
+        const tk = checkTicker(A, m, ls, C.render)
+        const tf: Fail[] = []
+        if (tk.buildSaid < tk.buildPlays) tf.push({ rule: 'T01-build-said', n: tk.buildMissed ?? -1, msg: `${tk.buildPlays - tk.buildSaid} of ${tk.buildPlays} plays in try build-ups have no line; first play ${tk.buildMissed} (${m.res.plays[tk.buildMissed ?? 0]?.kind}/${m.res.plays[tk.buildMissed ?? 0]?.result})` })
+        if (tk.inPlayGaps > 0) tf.push({ rule: 'T02-tick', n: tk.worstGapAt, msg: `${tk.inPlayGaps} gaps over ${TICK_GAP} s with the ball in play; worst ${fmt(tk.worstGap)} s after the line for play ${tk.worstGapAt} (${m.res.plays[tk.worstGapAt]?.kind}/${m.res.plays[tk.worstGapAt]?.result}); 95th percentile gap ${fmt(tk.gapP95, 2)} s` })
+        if (tk.flashLines < tk.flashes || tk.flashShort > 0) tf.push({ rule: 'T03-flash', n: tk.flashDropped ?? tk.flashShortAt ?? -1, msg: `${tk.flashes - tk.flashLines} of ${tk.flashes} tries, goals and cards with no line${tk.flashDropped != null ? ` (first play ${tk.flashDropped})` : ''}; ${tk.flashShort} up for under ${FLASH_HOLD} s (shortest ${fmt(tk.holdMin, 2)} s${tk.flashShortAt != null ? `, play ${tk.flashShortAt}` : ''})` })
+        if (tk.ahead > 0 || tk.behindShare > BEHIND_SHARE) tf.push({ rule: 'T04-in-step', n: tk.aheadAt ?? tk.behindAt ?? -1, msg: `line ahead of the picture in ${tk.ahead} samples (first: the line for play ${tk.aheadAt}); more than one play behind ${fmt(100 * tk.behindShare, 1)}% of the time${tk.behindAt != null ? ` (first at play ${tk.behindAt})` : ''}` })
+        if (tk.long > 0 || tk.flashLong > 0) tf.push({ rule: 'T05-short', n: -1, msg: `${tk.long} lines over ${TICK_MAX_CHARS} characters and ${tk.flashLong} flash lines over ${FLASH_MAX_CHARS}; longest ${tk.longest}: "${tk.longestText}"` })
+        add(m, tf, ['T01-build-said', 'T02-tick', 'T03-flash', 'T04-in-step', 'T05-short'])
+        tickers.push(`  ticker ${m.label}: ${fmt(tk.linesPerSecFF, 2)} lines a s in ff, ${fmt(tk.linesPerSec1x, 2)} at clip pace; build-up plays said ${tk.buildSaid}/${tk.buildPlays}; gaps over ${TICK_GAP} s in play ${tk.inPlayGaps} (worst ${fmt(tk.worstGap)} s, 95th pct ${fmt(tk.gapP95, 2)} s); flashes ${tk.flashLines}/${tk.flashes}, shortest hold ${fmt(tk.holdMin, 2)} s; ahead ${tk.ahead}, behind >1 play ${fmt(100 * tk.behindShare, 1)}%; longest line ${tk.longest} chars`)
         if (L.keyCovered < L.keyTotal) wf.push({ rule: 'W03-key-words', n: L.keyMissed ?? -1, msg: `${L.keyTotal - L.keyCovered} of ${L.keyTotal} key moments with no line on screen; first play ${L.keyMissed} (${m.res.plays[L.keyMissed ?? 0]?.kind}/${m.res.plays[L.keyMissed ?? 0]?.result})` })
-        add(m, wf, ['W01-load', 'W02-gaps', 'W03-key-words'])
+        add(m, wf, ['W03-key-words'])
       }
     }
     if (views.length) {
       const mean = views.reduce((a, b) => a + b, 0) / views.length
-      const out = views.filter(v => v < 420 || v > 540).length
+      // more than 10 tries may run longer (owner, 24 Nov): only the 7 minute floor then
+      const out = views.filter((v, i) => v < 420 || (v > 540 && viewTries[i] <= 10)).length
       const t = T.get('P01-length')!; t.ran = true; t.failing = out
-      t.first = { label: `${views.length} real fixtures`, seed: -1, n: -1, msg: `${views.map(v => fmt(v / 60, 2)).join(', ')} min (mean ${fmt(mean / 60, 2)})` }
+      t.first = { label: `${views.length} real fixtures`, seed: -1, n: -1, msg: `${views.map((v, i) => `${fmt(v / 60, 2)} (${viewTries[i]} tries)`).join(', ')} min (mean ${fmt(mean / 60, 2)})` }
     }
     r4.push(`  on screen, all ${pick.length}: men step px p50/p95/p99/max fast forward ${[0.5, 0.95, 0.99].map(q => fmt(pct(mStepFF, q))).join('/')}/${fmt(worstMan)}; normal ${[0.5, 0.95, 0.99].map(q => fmt(pct(mStepN, q))).join('/')}; ball fast forward ${[0.5, 0.95, 0.99].map(q => fmt(pct(bStepFF, q))).join('/')}, normal ${[0.5, 0.95, 0.99].map(q => fmt(pct(bStepN, q))).join('/')}; change in step men p95/p99 ${fmt(pct(mJerk, 0.95), 2)}/${fmt(pct(mJerk, 0.99), 2)}, ball ${fmt(pct(bJerk, 0.95), 2)}/${fmt(pct(bJerk, 0.99), 2)}`)
+    r4.push(`  boundaries on screen (failing/checked): ${Object.entries(bounds).map(([k, [c, b]]) => `${k} ${b}/${c}`).join(', ')}`)
+    r4.push(...tickers)
     if (rawLoads.length) r4.push(`  words before thin(): ${rawLoads.map(L => `${fmt(L.ffRate, 2)} a s in ff, busiest 10 s ${L.busiest10}`).join('; ')}`)
     if (loads.length) r4.push(`  words on screen after thin(): ${loads.map(L => `${fmt(L.ffRate, 2)}/${fmt(L.normalRate, 2)} lines a s (ff/1x), busiest 10 s ${L.busiest10} (play ${L.busyPlay}), longest gap ${fmt(L.longestGap)} s (from play ${L.gapAt}), key moments with words ${L.keyCovered}/${L.keyTotal}`).join('; ')}`)
   } catch (e) { r4.push(`  pace and smoothness not checked: ${(e as Error).message.split('\n')[0]}`) }
+
+  // THE MANAGER'S LEVERS (24 Nov: "this can't be a preset result"), on fixture 1's pairing over paired seeds
+  try {
+    // (a few pairs here: enough to see each lever leaves the past alone and changes the future; which way and how much is `harmonycheck.ts levers 80`)
+    const NL = Number(process.argv.find(a => a.startsWith('--levers='))?.slice(9) ?? 4)
+    if (fixtures[0] && NL > 0) {
+      const rows = await checkLevers(fixtures[0], NL)
+      const bad = rows.filter(r => r.prefixBroken > 0 || r.moved === 0)
+      const t = T.get('M01-levers')!; t.ran = true; t.failing = bad.length
+      t.first = { label: `fixture 1, ${NL} pairs`, seed: -1, n: -1, msg: bad.length ? bad.map(r => `${r.lever}: ${r.prefixBroken ? `${r.prefixBroken} changed before the call; ` : ''}${r.moved === 0 ? 'NOTHING CHANGED after it' : ''}${r.note ? `; ${r.note}` : ''}`).join(' | ') : `all ${rows.length} levers leave the past alone and change the match after the call (direction and size: harmonycheck.ts levers 80)` }
+      r4.push(`  levers, fixture 1 (${fixtures[0].match.teams?.join(' v ')}), ${NL} paired seeds (too few for direction: see harmonycheck.ts levers 80):`)
+      for (const r of rows) r4.push(`    ${r.verdict.padEnd(7)} ${r.lever} (from ${r.from}): ${r.measure} ${fmt(r.base, 2)} -> ${fmt(r.with, 2)} (${r.diff >= 0 ? '+' : ''}${fmt(r.diff, 2)} a match; changed after in ${r.moved}/${r.pairs}; paired t ${fmt(r.t, 1)}, wanted ${r.want}: ${r.verdict}; changed before in ${r.prefixBroken})${r.note ? ` [${r.note}]` : ''}`)
+    }
+    const cc = cardCost(all)
+    const t2 = T.get('M02-card-cost')!; t2.ran = true; t2.failing = cc.inBin < cc.outBin ? 0 : 1
+    t2.first = { label: `${cc.cards} yellow cards`, seed: -1, n: -1, msg: `carded side's points margin a minute: ${cc.inBin >= 0 ? '+' : ''}${fmt(cc.inBin, 3)} in the bin, ${cc.outBin >= 0 ? '+' : ''}${fmt(cc.outBin, 3)} out of it (${fmt(cc.minutesIn, 0)} minutes in the bin)` }
+  } catch (e) { r4.push(`  levers not checked: ${(e as Error).message.split('\n')[0]}`) }
+
+  // FUNDAMENTALS against the sources (on the 20 real fixtures; `realism 60` for a steadier table)
+  {
+    const r = realism(ourRates(reals), TARGETS)
+    const t = T.get('F01-realism')!; t.ran = true; t.failing = r.misses.length
+    t.first = { label: `${reals.length} real fixtures`, seed: -1, n: -1, msg: r.misses.length ? `${r.misses.length} of ${TARGETS.filter(x => x.lo != null).length} sourced figures out of line: ${r.misses.map(x => x.split(':')[0]).join('; ')}` : 'all sourced figures in line' }
+    r4.push('  realism (20 real fixtures):', ...r.misses.map(x => `    ${x}`))
+  }
 
   // SAMENESS: within each match, across 20 pairings, across 20 matches of one pairing
   try {

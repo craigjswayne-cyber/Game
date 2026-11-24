@@ -66,22 +66,32 @@ Three allowances are mine, not the owner's, and he should confirm them: up to 10
 | 46 | "Perfect speed, perfect movement" of the 1.9.16 highlight clips (AGENTS.md) | The new pitch feels as good | Eyes list, 1 and 6 | NEEDS HIS EYES |
 | 47 | "Vertical phone, full pitch in view, no moving camera; fast-forward between key moments, slow for key moments" (AGENTS.md; 20 Nov, 22:51) | So on screen | Recording list | RETIRED 22 Nov in part: the pace half is replaced by items 50 to 53; the screen half (full pitch in view, still camera) is item 62 |
 
-| 48 | "8 mins is fine." (22 Nov, 22:13) | An Extended match takes 7 to 9 minutes to watch | P01-length | PASS (8.00 to 8.89 min over 6 fixtures) |
+| 48 | "8 mins is fine." (22 Nov, 22:13); "More than 10 tries makes the match longer: that's okay, that's fine" (24 Nov) | An Extended match takes 7 to 9 minutes to watch; with more than 10 tries only the 7 minute floor holds (the 9 minute ceiling retired 24 Nov for those matches) | P01-length | FAIL (10.13 min with 10 tries, 9.78 with 9) |
 | 49 | "Everything else is on fast forward BUT still happening, not just being ignored." (22 Nov, 22:13) | Every play is shown: none condensed, every play with the ball in play has time on screen | P02-every-play | PASS |
-| 50 | "For build ups to tries and key moments the game should be normal speed" (22 Nov, 22:13): key moments | Every key moment (spec section 8, read from the record by the checker, not from the pitch's own list) at 1x: no frame of it above 1.15x | P03-key-1x | PASS |
-| 51 | Same: build-ups | The possession that ends in each try is at 1x from its first play (the set piece, turnover, catch or tap it began with), or from 35 s before the grounding (the pitch's BUILD_MAX) if longer: 90% of its frames at 1.15x or less | P04-buildup-1x | FAIL |
-| 52 | "then everything else is on fast forward" (22 Nov, 22:13) | 80% of all other frames at 1.5x or more | P05-ff | PASS (median 7.5x to 9.1x) |
+| 50 | "For build ups to tries and key moments the game should be normal speed" (22 Nov, 22:13): key moments. "Normal speed" redefined 24 Nov: "the normal speed of what was released in 1.9.16 and 1.9.17... it feels natural, the right speed" (life speed as the rule RETIRED 24 Nov) | Every key moment (spec section 8, read from the record by the checker) at the highlight clips' pace as the pitch publishes it (CLIP_RATE), every frame within 15% of it | P03-key-1x | PASS (CLIP_RATE 1.11x) |
+| 51 | Same: build-ups. "No shortening of build-ups" (24 Nov; the 35 s cap RETIRED) | The whole possession that ends in each try, from its first play (the set piece, turnover, catch or tap it began with), at the clips' pace: 90% of its frames within 15% | P04-buildup-1x | FAIL (rucks inside build-ups at up to 2.5x; BUILD_MAX still applied) |
+| 52 | "then everything else is on fast forward" (22 Nov, 22:13) | 80% of all other frames at 1.5x or more | P05-ff | PASS |
 | 53 | "If a [close] game the last few mins should be slower." (22 Nov, 22:13) | Margin 7 or fewer at 75:00: the rest of the match at 2.2x or less; margin 15 or more: not slowed (median over 2.2x) | P06-close | PASS (close finishes at 2.0x) |
 | 54 | "I believe we can get there with smoothness." (22 Nov, 22:13); "It feels jumpy not smooth" (22 Nov, quoted in fromRecord.ts) | No step in speed: never more than 10% faster or slower between two screen frames | P07-ease | PASS (largest 6%) |
-| 55 | Same | Small, even steps on screen at 60 frames a second and 3.3 px a metre: men's step 99th percentile 5 px or less in fast forward; change in step 99th percentile 1 px or less; ball's step 99th percentile 14 px or less | S01-steps | PASS (men 4.0 px, change 0.81 px, ball 9.8 px) |
-| 56 | Same | No shaking: a man's step reverses between two screen frames (both 0.3 px or more) for under 0.5 men on average, 3 or more at once in under 1% of frames (men bound in a ruck, scrum or maul, lifted, or off are left out) | S02-jitter | PASS (0.01 to 0.02 men; 3 or more in 0.06% to 0.14% of frames) |
-| 57 | "Players just randomly travel a strange angle" (22 Nov, quoted in tests/simpitch.test.ts) | The lead's scripts/tmp/oddruns.ts, as fromRecord.ts oddRuns(): 196 or fewer odd runs a match (15% of the 1,309 measured before), no side sliding 5 m or more sideways in two seconds, wings in their lane 90% of the time, a flat defensive line at 80% of rucks | S03-positions | FAIL (side slide 5.3 m and 5.5 m) |
-| 58 | "We need more commentary notes to keep it engaging and clear." (22 Nov, 22:13): clear | Readable: no more than one new line every 1.4 s in fast forward or at normal speed, and no more than 7 in any 10 s on screen | W01-load | FAIL (busiest 10 s: 10 to 18 lines) |
-| 59 | Same: engaging | Never more than 15 s on screen with no new line | W02-gaps | FAIL (up to 36.2 s) |
+| 55 | Same | Small, even steps on screen at 60 frames a second and 3.3 px a metre: men's step 99th percentile 5 px or less in fast forward; change in step 99th percentile 1 px or less; ball's step 99th percentile 14 px or less | S01-steps | PASS (men 3.8 px, change 0.68 px, ball 9.2 px) |
+| 56 | Same | No shaking: a man's step reverses between two screen frames (both 0.3 px or more) for under 0.5 men on average, 3 or more at once in under 1% of frames (men bound in a ruck, scrum or maul, lifted, or off are left out) | S02-jitter | PASS |
+| 57 | "Players just randomly travel a strange angle" (22 Nov, quoted in tests/simpitch.test.ts) | The lead's scripts/tmp/oddruns.ts, as fromRecord.ts oddRuns(): 196 or fewer odd runs a match (15% of the 1,309 measured before), no side sliding 5 m or more sideways in two seconds, wings in their lane 90% of the time, a flat defensive line at 80% of rucks | S03-positions | FAIL (side slide 5.4 m) |
+| 58 | "We need more commentary notes to keep it engaging and clear." (22 Nov, 22:13): clear | Readable: no more than one new line every 1.4 s, no more than 7 in any 10 s | W01-load | RETIRED 24 Nov (replaced by items 67 to 71: "a lot faster paced, a bit like the old Football Manager") |
+| 59 | Same: engaging | Never more than 15 s on screen with no new line | W02-gaps | RETIRED 24 Nov (replaced by item 68, 1.2 s) |
 | 60 | Same: clear | Every key moment has a line on screen while it happens | W03-key-words | PASS (199 of 199) |
 | 61 | "The games shouldn't feel repetitive." (22 Nov, 22:13): within a match | No more than 15% of lines word for word an earlier line, and no wording three times running | W04-repeat | PASS (worst 5%) |
-| 62 | Same: across matches | Sameness score (below) 60 or less over 20 pairings, 70 or less over 20 matches of one pairing | W05-sameness | PASS (58.7 and 59.2) |
+| 62 | Same: across matches | Sameness score (below) 60 or less over 20 pairings, 70 or less over 20 matches of one pairing | W05-sameness | FAIL (64.9 and 63.1: the ticker's phase lines) |
 | 63 | "Full pitch in view, no moving camera" (AGENTS.md), and the smoothness he will judge | So on screen, and smooth to his eye | Eyes list, all ten | NEEDS HIS EYES |
+| 64 | "A moment early on said the ball went dead, but on screen it did not cross the dead-ball line. Check and fix." (24 Nov): the record | The record says where the ball went: a kick that ran dead lands beyond the try line (it cannot be drawn over the dead-ball line if the record lands it on the try line); a kick to touch lands on a touchline; a try is on the line | B01-record-bounds | PASS (fixed this round: dead kicks now land beyond the try line) |
+| 65 | Same: the picture | On screen the ball crosses the line the record says and stops beyond it: past the dead-ball line (8 m beyond the try line, as drawn), past the touchline for touch, out on the full and carried into touch; over the try line at a try; a kick at goal that is over passes between the posts (5.6 m apart) above the bar (3 m), one that misses does not (Law 1) | B02-picture-bounds | FAIL (every dead ball stops 5.2 m past the try line, 11 of 11; all other boundaries pass) |
+| 66 | "Make sure everything in the game is affected by the decisions of the manager. This can't be a preset result." (24 Nov) | Every lever the engine takes (World strength, substitution, tactics kicking / aggression / tempo, team talks, penalty calls): every play before the call the same, the match different after it, and its measure moved the way rugby says, judged by a paired t of 2 or more over paired seeds | M01-levers (and `harmonycheck.ts levers 40`) | FAIL (2 levers do nothing measurable, see table) |
+| 67 | "Significantly increase the amount of commentary notes, so it's a lot faster paced, a bit like the old Football Manager" (24 Nov): every play of a try | Every play of a try build-up has its own line | T01-build-said | FAIL (2 of 86 plays) |
+| 68 | Same: "flicking through" | While the ball is in play, never more than 1.2 s on screen without a new line | T02-tick | FAIL (95th percentile gap 1.4 to 2.0 s; worst 6.3 s) |
+| 69 | Same: "then it flashes when there's a key [moment], a try or a penalty goal" | Every try, goal and card has its line (never thinned out), and it stays up at least 2 s before the next line | T03-flash | PASS (every flash there, shortest up 2.0 s) |
+| 70 | "It must fit what is shown on the pitch" (24 Nov) | The line on screen is never about a play still to come, and more than one play behind for under 2% of the time the ball is in play | T04-in-step | FAIL (never ahead; more than one behind 3.3% to 4.9%) |
+| 71 | Same: a ticker can be read | Lines of 70 characters or fewer, flash lines 48 or fewer (two lines of a phone ticker; my proposal) | T05-short | FAIL (36 lines over 70 characters, longest 131) |
+| 72 | "Check all the fundamentals of the game, making sure it's as realistic as possible from what you can see and from what data you have" (24 Nov) | Our per-match figures on real fixtures within the range the sources give, widened by 20%; no source, no verdict | Realism table below (`harmonycheck.ts realism`) | FAIL (15 of 40 sourced figures out of line) |
+| 73 | "A card costs" (coordinator, 24 Nov, on the manager's levers) | A side with a man in the bin does worse a minute than with 15 | M02-card-cost | PASS (-0.44 points a minute in the bin, -0.01 out of it) |
 
 ## The four test failures of round 2, judged (22 Nov)
 
@@ -121,7 +131,7 @@ What a watcher would find samey today, plainly:
 
 ## Open engine faults
 
-None in the record. The round 2 fault (a corner offered from inside 5 m and then tapped, real fixture 4 play 28) is fixed: 52 penalty calls over 8 real fixtures, all obeyed. The open faults of round 4 are in the pitch and the words: see Final status and `scripts/tmp/requests.md` (22 Nov, 23:10).
+The record breaks no law the checks know (R01 to R40 and B01 all pass, 24 Nov). What is open in the engine is realism and reach, not law: the levers that do nothing and the figures out of line with real rugby (round 5 section below, and scripts/tmp/requests.md, 24 Nov items 10 to 12).
 
 ## Penalties a match (R31, for the owner to decide)
 
@@ -133,36 +143,114 @@ None in the record. The round 2 fault (a corner offered from inside 5 m and then
 
 Mean 11.53, median 11, 5th percentile 7, 95th percentile 17. 3 matches have fewer than 6 and 9 have more than 17: 12 of 320 (3.8%) outside his 6 to 17. The question for him stands: is 6 to 17 a band every match must sit in, or the range the average should sit in?
 
-## Eyes list (refreshed 22 Nov for the owner's new rules)
+## Eyes list (refreshed 24 Nov for the owner's new rules)
 
-Open each link on the dev server; `from` is seconds on screen. The preview builds the same real fixture as `harmonycheck` and `simread real`. Found with `npx vite-node scripts/harmonycheck.ts eyes`, on the pitch as saved 23:01; if ANIMATION changes the speeds, the seconds move (re-run `eyes`).
+Open each link on the dev server; `from` is seconds on screen. Found with `npx vite-node scripts/harmonycheck.ts eyes` on the pitch as saved 14:29 and the engine as saved 14:53; when either changes, the seconds and even the plays move (re-run `eyes`). The early dead ball he saw in 4242 (play 23 on 22 Nov) is no longer in the record: the engine has changed since, so the first dead ball in 4242 is now at play 227, minute 29.
 
 | | Moment | Where | Link | What to look for |
 |---|---|---|---|---|
-| 1 | A try build-up at normal speed | Real 1 (Leicester v La Rochelle), minute 2, from play 2 | `/lp-record.html?rec=1&from=0` | The whole move at life speed from its first phase, every pass and ruck, to the grounding |
-| 2 | Plain fast forward in midfield | Real 1, minute 31, play 183 | `/lp-record.html?rec=1&from=256` | Ten phases between the 30 m lines wound on: every carry and ruck still there, men moving smoothly, no flicker |
-| 3 | A close finish | Real 1, minute 76, play 492 | `/lp-record.html?rec=1&from=469` | From 75:00 the game slows to about 2x and stays there to the whistle |
-| 4 | A blow-out finish | Real 5 (Leicester v Fuchu), minute 76, play 546 | `/lp-record.html?rec=5&from=456` | From 75:00 it stays on fast forward |
-| 5 | A kick exchange | Real 2 (Leicester v Munster), minute 30, play 216 | `/lp-record.html?rec=2&from=151` | Kicks back and forth: the ball's flight, the catchers under it, the chasers, each kick named |
-| 6 | A maul try | Real 1, minute 18, play 110 | `/lp-record.html?rec=1&from=157` | Lineout, the maul forms and drives over, at life speed |
-| 7 | A card period | Real 1, minute 6, play 35 | `/lp-record.html?rec=1&from=51` | The card shown, 14 men for ten minutes, and the return said and seen |
-| 8 | An interception | Real 1, minute 10, play 68 | `/lp-record.html?rec=1&from=76` | The pass, the interceptor, the ball turning round with no jump; the knock-on plates elsewhere name the man at the ball |
-| 9 | A 50:22 | Real 2, minute 26, play 183 | `/lp-record.html?rec=2&from=119` | The kick bounces into touch in the 22 and the kicking side throws in |
-| 10 | A 22 drop-out forming up | Real 1, minute 9, play 60 | `/lp-record.html?rec=1&from=73` | The men walk into place on screen, no fade |
+| 1 | the dead ball he saw (real 4242) | Real 4242 (Leicester RFC v Glasgow RFC), minute 29, play 227 | `/lp-record.html?rec=4242&from=130` | The kick goes over the try line and the dead-ball line before the 22 drop-out |
+| 2 | a try build-up at clip pace | Real 4242 (Leicester RFC v Glasgow RFC), minute 4, play 29 | `/lp-record.html?rec=4242&from=19` | The whole move, from its first phase, at the 1.9.16 clips' pace: not slower, not faster, nothing cut |
+| 3 | the ticker in fast forward | Real 4242 (Leicester RFC v Glasgow RFC), minute 4, play 30 | `/lp-record.html?rec=4242&from=19` | A line for almost every phase, flicking through, each one about the play on screen |
+| 4 | a flash: a penalty goal | Real 4242 (Leicester RFC v Glasgow RFC), minute 3, play 26 | `/lp-record.html?rec=4242&from=9` | The flash comes up with the kick, stays long enough to read, and the ball goes between the posts over the bar |
+| 5 | a conversion from wide | Real 4242 (Leicester RFC v Glasgow RFC), minute 32, play 243 | `/lp-record.html?rec=4242&from=159` | The ball passes between the posts, not round the outside of an upright |
+| 6 | a kick to touch and a kick out on the full | Real 1 (Leicester RFC v RC La Rochelle), minute 42, play 270 | `/lp-record.html?rec=1&from=267` | The ball crosses the touchline in the air and the lineout is back where it was kicked |
+| 7 | a card period | Real 1 (Leicester RFC v RC La Rochelle), minute 32, play 214 | `/lp-record.html?rec=1&from=207` | The card flashes, 14 men for ten minutes, the return said and seen |
+| 8 | a substitution | Real 4242 (Leicester RFC v Glasgow RFC), minute 11, play 86 | `/lp-record.html?rec=4242&from=66` | Made at a dead ball, the man off leaves the field, the man on plays |
+| 9 | a close finish | Real 4242 (Leicester RFC v Glasgow RFC), minute 76, play 548 | `/lp-record.html?rec=4242&from=484` | From 75:00 slower, at about 2x, to the whistle |
+| 10 | a maul try | Real 1 (Leicester RFC v RC La Rochelle), minute 36, play 237 | `/lp-record.html?rec=1&from=233` | Lineout, maul, drive, grounded over the line, at clip pace |
 
-Note for item 3: the preview does not call `thin()` yet, so what he reads there today is about twice as many lines as the checked feed (request 3 to ANIMATION).
+## Round 5 (24 Nov): realism, levers, boundaries, ticker
 
-## Final status (22 November 2026, 23:10)
+### Fundamentals against real rugby (item 72)
 
-Run: `npx vite-node scripts/harmonycheck.ts` after GAMEPLAY f5318296 and COMMENTARY 614cea72, with fromRecord.ts as saved at 23:01 (ANIMATION had not committed). 37 s. HARMONY FAILED: 63 rules pass, 4 fail, none not run. Quick test: `npx vitest run tests/simharmony.test.ts`, 32 of 32 pass.
+`npx vite-node scripts/harmonycheck.ts realism 60`: 60 real fixtures (Leicester's first fixture in a new game on seeds 1 to 60; engine as saved 14:53), against docs/match-sim-sources.md (commit 77b49a5f). The real band is the range of the sources' own figures; the verdict allows 20% either side of it; a figure with no source is not judged. Per match, both sides, unless stated.
 
-Checklist totals: 49 PASS, 4 FAIL (items 51, 57, 58, 59), 7 NEEDS HIS EYES (items 3, 5, 7, 19, 36, 46, 63), 3 RETIRED (34, 35, 47). 63 items.
+| Figure | Ours | Real | Verdict (band widened 20%) | Source |
+|---|---|---|---|---|
+| Yellow cards a match | 0.97 | 0.53 to 2.40 | in line | s1: 0.53 6N 2017, 0.64 RWC 2019; Top 14 2024-25 0.6 to 1.2 a team |
+| Red cards a match | 0.05 | 0.12 to 0.18 | LOW | s1: URC 2024-25 0.12, RWC 2019 0.18 |
+| Line breaks a match | 4.58 | 9.60 to 10.70 | LOW | s3: 6N 2026 9.6, Prem 2022-23 10.5, URC 2025-26 10.7 |
+| Offloads a match | 6.77 | 10.00 to 15.00 | LOW | s3: 6N 2026 10 (medium-low); RWC 2023 under 15 |
+| Tackles a match (named tacklers on stopped carries) | 275.57 | 258.00 to 344.00 | in line | s4: RWC 2019 129 a team, URC 2025-26 344 |
+| Tackle completion % | - | no source | | no record: the record has no missed tackles (s4: 84% to 89%) |
+| Carries a match | 188.62 | 228.00 to 230.00 | in line | s4: RWC 2019 and 2023, 114 to 115 a team |
+| Rucks and mauls a match | 168.52 | 158.00 to 164.00 | in line | s4: RWC, 79 to 82 rucks a team |
+| Ruck retention %, side in possession | 94.72 | 92.00 to 98.00 | in line | s2: RWC 2019 94% (92% to 98% by team) |
+| Turnovers won a match (ruck, interception, lineout steal, against the head) | 8.00 | 10.60 to 16.80 | LOW | s2: 5.3 to 8.4 a team, RWC 2023 and 6N 2026 (definitions differ) |
+| Conversion success % | 80.85 | 75.00 to 83.00 | in line | s5: RWC 2019 75%, 6N 2017 83% |
+| Penalty goal success % | 81.91 | 76.00 to 89.00 | in line | s5: RWC 2019 76%, 6N 2017 80%, Prem 2022-23 84% to 89% |
+| Drop goal success % | 33.33 | 35.00 | in line | s5: RWC 2019 6 of 17 |
+| Penalty goals kicked a match | 2.72 | 2.00 to 2.43 | in line | s10: 6N 2026 2.0; s5: Prem 2022-23 2.43 |
+| Drop goals a match | 0.12 | 0.07 to 0.13 | in line | s10: Prem 2024-25 0.07, RWC 2019 and 6N 2017 0.13 |
+| Own lineout won % | 86.54 | 87.00 to 91.00 | in line | s6: 6N 2017 87%, RWC 2019 88% to 91% |
+| Own scrum won % | 93.35 | 84.00 to 95.00 | in line | s6: RWC 2019 93% to 95%, RWC 2023 84%, Prem 85% to 88% |
+| Scrums ending in a penalty or free kick % | 16.51 | 27.00 to 33.00 | LOW | s6: RWC 2019 27%, 6N 2022 one in three |
+| Scrum penalties a match | 1.92 | 3.10 to 3.70 | LOW | s6: RWC 2019 3.7, RWC 2023 3.1 |
+| Mauls a match | 2.80 | 8.30 to 12.30 | LOW | s6: ROE 2025, Super Rugby 8.3 to Rugby Championship 12.3 (unit unclear) |
+| Scrums a match | 15.55 | 10.20 to 14.40 | in line | s8: 6N 2025 10.2 to RWC 14.4 |
+| Lineouts a match | 24.15 | 24.00 to 28.10 | in line | s6, s8: 6N 2017 24, domestic leagues 28.1 |
+| Possessions a match | 79.62 | 84.80 to 100.00 | in line | s7: RWC 84.8 to 85.5; 6N 2025 about 50 a team |
+| Phases (rucks) a possession | 1.91 | 1.80 to 3.00 | in line | s7: RWC 2023 1.8, RWC 2019 3.0, Prem 2.7 to 2.9 |
+| Points per 22 entry | 1.88 | 1.49 to 3.40 | in line | s7: 6N 2024 and 2026, Italy 1.49 to Ireland 3.4 (team range) |
+| 22 entries a match | 24.03 | no source | | no source |
+| Tries from a lineout % | 37.56 | 47.00 to 49.00 | LOW | s7: 6N 2017 47%, RWC 2019 49% |
+| Tries from a scrum % | 22.39 | 16.00 to 20.00 | in line | s7: RWC 2019 16%, 6N 2017 20% |
+| Tries from an opposition kick % | 17.91 | 15.00 | in line | s7: RWC 2019 15% |
+| Tries from a turnover % | 8.71 | 11.00 to 12.00 | LOW | s7: 6N 2017 11%, RWC 2019 12% |
+| Tries from a restart % | 9.70 | 6.00 | HIGH | s7: RWC 2019 6% |
+| Tries from a penalty or free kick tap % | 3.73 | 2.00 | HIGH | s7: RWC 2019 2% |
+| Penalties and free kicks a match | 11.62 | 17.00 to 22.90 | LOW | s10: RWC 2019 17, 6N 2017 21, Prem 2022-23 22.9 (the owner chose 11 to 12, 20 Nov) |
+| Penalties sent to touch % of penalties | 60.78 | 67.00 | in line | s10: RWC 2019 67% of penalty options |
+| Knock-ons a match | 13.25 | 7.00 to 14.00 | in line | s11: about 7 knock-on scrums (6N 2025, low); handling errors about 7 a team (low) |
+| Kicks from hand a match | 40.17 | 46.00 to 60.00 | in line | s12: RWC 2019 46, URC 2021-22 46, 6N 2026 about 30 a team |
+| Kicks out on the full a match | 1.65 | no source | | no source (s12: not found) |
+| Replacements used a match | 8.12 | 15.60 | LOW | s14: RWC 2019 15.6 |
+| Injury stoppages a match | 0.37 | no source | | no source (s13 gives 3.0 time-loss injuries a match, a different measure) |
+| Home win % | 43.33 | 58.90 to 71.50 | LOW | s9: pooled 58.9 to 63.9, Prem 65.6 and 69, Top 14 71.5 |
+| Home points margin | -0.52 | 4.60 to 6.80 | LOW | s9: pooled +4.6 to +6.7, Prem 2024-25 +6.8 |
+| Tries a match | 6.85 | 5.97 to 8.00 | in line | s9: Prem 2022-23 3.36 + 2.61; spec 4: RWC 2019 6.3, Prem 2024-25 8.0 |
+| Points a match | 53.88 | 40.00 to 56.30 | in line | spec 4: RWC 2019 40, Prem 2024-25 56.3 (the game band is 48 to 53) |
+| Ball in play, minutes | 35.10 | 33.40 to 35.70 | in line | spec 4: RWC 2019 35:44, Oval Insights 33.4 to 35.3 |
 
-The four failures, worst first:
-1. Item 59, W02: 36.2 s with no new line, real fixture 14, from play 283 (clock 40:49), through a 13-phase build-up at 1x to the try at play 300. COMMENTARY.
-2. Item 58, W01: 18 lines in 10 s, real fixture 3, from 294 s on screen (plays 358 to 390, a run of stoppages and substitutions at 8 to 20x). All six sampled matches have 10 to 18 in their busiest 10 s. COMMENTARY (`thin()` keeps every priority 3 line).
-3. Item 51, P04: try build-ups reach 1x two phases late. Real fixture 2, try at play 362: plays 356 to 358 at 9 to 10x. 14 of 39 tries in the sample. ANIMATION.
-4. Item 57, S03: a side slides 5.3 m (real 3, play 315) and 5.5 m (real 14) in two seconds; the limit is under 5 m. ANIMATION.
-And not a rule but the biggest thing he will see: the preview does not call `thin()`, so it shows about one line a second in fast forward. ANIMATION.
+What is out of line, in plain words: about half the line breaks and a third of the mauls real rugby has; too few scrum penalties, offloads, turnovers and red cards; half the replacements; tries come too little from lineouts and too much from restarts; and no home advantage at all (43% home wins over these 60, though 60 fixtures of one club is about 6 points either way). Penalties are below Test rugby because the owner chose 11 to 12 on 20 Nov. In line: tackles, carries, rucks, ruck retention, goal kicking, set-piece success, scrums and lineouts a match, possessions, phases, points per 22 entry, knock-ons, kicks, tries, points, ball in play.
 
-What the passes do not prove: the smoothness numbers are steps between frames, computed from the bake at 3.3 px a metre; they do not see drawing, frame drops on a phone, or whether running looks like running. That is the eyes list.
+### The manager's levers (item 66)
+
+`npx vite-node scripts/harmonycheck.ts levers 80`: fixture 1 (Leicester v La Rochelle, Leicester at home and managed), match seeds 2000 to 2079, each played with and without the call. "Acts" is a paired t of 2 or more the way rugby says; "weak" is the right way but not clearly; with 80 pairs an effect on the final margin smaller than about 4 points cannot be told from chance, so the levers are also measured on what they act on directly (kicks, scrums, goal kicks, penalties).
+
+| Lever | From | Measure | Without | With | Change a match | Matches changed after | Paired t | Wanted | Changed before | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|
+| strength x1.12 (any change of World) | 40:00 | margin after the call | -4.35 | 0.88 | +5.22 | 80/80 | 2.6 | + | 0 | acts |
+| bench: props and hooker on at 55:00 | 55:00 | own points after 55:00 | 6.49 | 7.53 | +1.04 | 80/80 | 1.4 | + | 0 | weak (1 substitution(s) refused (not on the field)) |
+| third-choice 10: the No. 10 off at 1:00 for the No. 23 | 1:00 | margin after the call | -6.36 | -8.49 | -2.13 | 80/80 | -1.0 | - | 0 | weak |
+| bench: props and hooker on at 55:00 (the scrum) | 55:00 | own scrums won or penalty won, minus lost, after 55:00 | 1.65 | 1.71 | +0.06 | 80/80 | 0.4 | + | 0 | weak (1 substitution(s) refused (not on the field)) |
+| third-choice 10 (goal kicking) | 1:00 | own kicks at goal missed minus made | -2.98 | -2.04 | +0.94 | 80/80 | 3.2 | + | 0 | acts |
+| tactics: kicking 15 to 90 | 20:00 | own kicks from hand after the call | 14.68 | 18.65 | +3.98 | 80/80 | 5.6 | + | 0 | acts |
+| tactics: aggression 90 | 20:00 | penalties conceded after the call | 5.15 | 5.00 | -0.15 | 80/80 | -0.5 | + | 0 | weak |
+| tactics: tempo 90 | 20:00 | own carries after the call | 69.66 | 74.35 | +4.69 | 80/80 | 2.0 | + | 0 | acts |
+| team talk: fire at half-time | 40:00 | margin after the call | -4.09 | -4.65 | -0.56 | 80/80 | -0.4 | any | 0 | weak |
+| team talk: criticise at half-time | 40:00 | margin after the call | -4.09 | -5.65 | -1.56 | 80/80 | -1.0 | any | 0 | weak |
+| penalty call: always posts | 0:00 | own kicks at goal | 1.40 | 2.41 | +1.01 | 53/80 | 6.7 | + | 0 | acts |
+| penalty call: always corner | 0:00 | own lineouts after a penalty to touch | 3.26 | 5.13 | +1.86 | 80/80 | 8.4 | + | 0 | acts |
+
+Every lever leaves every play before the call the same (0 changed before, every row) and changes the match after it. Two do nothing measurable: the front row off the bench (scrums t 0.4; fromMatch.ts says it does not model fresh legs), and aggression 90 (penalties conceded t -0.5). The team talks cannot be told from nothing at 80 pairs. A yellow card costs the carded side 0.44 points a minute against 0.01 with 15 men (318 cards, item 73). GAMEPLAY's docs/match-sim-manager-levers.md was not written, so its rows could not be checked; this table is the independent one.
+
+### Boundaries, ticker, pace (items 64 to 71, 48 to 51)
+
+On 7 real fixtures including the owner's 4242: every kick to touch (122), out on the full (12), carried into touch (21), try (48), goal over (59) and goal missed (13) crosses the right line on screen; every dead ball (11 of 11) stops 5.2 m past the try line, short of the dead-ball line 8 m past it. Ticker: 1.2 to 1.5 new lines a second in fast forward and 0.6 to 0.9 at clip pace (after thin()); every flash line there and up at least 2 s; no line ever ahead of the picture.
+
+Thresholds that are mine and need his yes: 1.2 s as the longest silence with the ball in play, 2 s for a flash to stay up, 70 and 48 characters for a line, 2% of the time for a line more than one play behind, 15% either side of clip pace, the 20% allowance on the realism bands, a paired t of 2 for a lever to "act".
+
+## Final status (24 November 2026, 15:05)
+
+Run: `npx vite-node scripts/harmonycheck.ts` on the engine and commentary as saved 14:53 and the pitch as saved 14:29 (none of round 5 committed). 84 s (`--pace=4` for faster). HARMONY FAILED: 65 rules pass, 10 fail. Quick test: `npx vitest run tests/simharmony.test.ts`, 32 of 32 pass. Separately: `levers 80` (3 min) and `realism 60` (50 s).
+
+Checklist totals: 50 PASS, 11 FAIL (items 48, 51, 57, 62, 65, 66, 67, 68, 70, 71, 72), 7 NEEDS HIS EYES (3, 5, 7, 19, 36, 46, 63), 5 RETIRED (34, 35, 47, 58, 59). 73 items.
+
+The worst five open problems:
+1. Item 65, B02 (ANIMATION): the owner's dead ball is still there. Every dead ball stops 5.2 m past the try line on screen (11 of 11). Real 12 play 278. Cause: fromRecord.ts line 1143 rolls the ball to the try line plus 5 m; the in-goal is drawn 8 m deep.
+2. Item 66 (GAMEPLAY): two levers do nothing measurable over 80 paired seeds: fresh front row from the bench (scrums t 0.4), aggression 90 (penalties t -0.5).
+3. Item 72 (GAMEPLAY): line breaks 4.6 a match against 9.6 to 10.7; mauls 2.8 against 8.3 to 12.3; no home advantage (43% home wins, margin -0.5, against 59% to 72% and +4.6 to +6.8).
+4. Items 68, 71 (COMMENTARY): the ticker goes silent up to 6.3 s with the ball in play (real 12 after play 359, an interception break) and 36 lines a match are too long for a ticker (up to 131 characters).
+5. Item 51, P04 (ANIMATION): try build-ups are not all at clip pace: the rucks inside them run at up to 2.5x (real 12, try at play 178), and the 35 s BUILD_MAX is still in the code.
