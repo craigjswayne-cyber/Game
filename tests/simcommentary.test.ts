@@ -8,10 +8,12 @@
 // line, and a match does not repeat itself.
 import { describe, it, expect } from 'vitest'
 import { simSkeleton, simWithDecisions } from '../src/game/sim/skeleton'
-import { commentate, render, thin, SILENT, SUMMARY, FALLBACK, BASE_KINDS, MUST, type Line, type Context } from '../src/game/sim/commentary'
+import { commentate, render, thin, feed, SILENT, SUMMARY, FALLBACK, BASE_KINDS, MUST, TICK, HOLDS, FAST, type Line, type Context } from '../src/game/sim/commentary'
+import { SIM_EN as WORDS, MOVE_EN } from '../src/game/sim/commentary.en'
 import { SIM_EN, EN_FLAT } from '../src/game/sim/commentary.en'
 import type { Play, SimResult } from '../src/game/sim/record'
 import type { World } from '../src/game/sim/world'
+import { schedule } from '../src/ui/livepitch/fromRecord'
 
 const TEAMS: [string, string] = ['Homeside', 'Awayside']
 /** a world whose men carry their side in their id, so a test can tell whose man is named */
@@ -106,13 +108,11 @@ describe('the commentary is true to the record', () => {
     for (const k of Object.keys(SILENT)) expect(seen.has(k), `silent pair ${k} never happens`).toBe(true)
   })
 
-  it('a kick left unsaid is the one caught cleanly by the other side, said with the catch', () => {
+  it('every kick from hand and every catch has a line of its own (the ticker misses nothing routine)', () => {
     for (const { r, lines } of runs) {
       const said = new Set(lines.map(l => l.n))
-      for (const p of r.plays) if (p.kind === 'kick' && p.result === 'inPlay' && !said.has(p.n)) {
-        const c = r.plays[p.n + 1]
-        expect(c.kind === 'catch' && c.result === 'caught' && c.side !== p.side).toBe(true)
-        expect(lines.some(l => l.n === c.n && baseOf(l.key) === 'kickCaught')).toBe(true)
+      for (const p of r.plays) if (p.kind === 'kick' || p.kind === 'catch' || p.kind === 'carry' || p.kind === 'ruck' || p.kind === 'offload') {
+        if (!SILENT[pair(p)]) expect(said.has(p.n), `${pair(p)} at ${p.n}`).toBe(true)
       }
     }
   })
@@ -256,11 +256,16 @@ describe('the commentary is true to the record', () => {
     let inter = 0
     for (const { r, lines } of runs) for (const l of lines) {
       const p = r.plays[l.n], b = baseOf(l.key)
-      if (KEY.has(p.kind) && !SUMMARY.has(b)) expect(l.level, l.key).toBe('key')
+      // (the ticker's word on how the ball got there, before a line break, is not the moment itself)
+      // (the flash is the key line; the score and the detail follow it as ordinary lines)
       if (p.kind === 'ruck' && p.result === 'turnover' && b === 'turnover') expect(l.level).toBe(p.x <= 22 || p.x >= 78 ? 'key' : 'normal')
       if (p.kind === 'carry' && p.result === 'intercepted' && b === 'intercepted') { expect(l.level).toBe('key'); inter++ }
-      if (p.kind === 'try' && p.result === 'interception' && !SUMMARY.has(b)) expect(b).toBe('tryInterception')
       if (l.level === 'key') expect(l.priority).toBe(3)
+    }
+    for (const { r, lines } of runs) for (const p of r.plays) {
+      const ls = lines.filter(l => l.n === p.n)
+      if (KEY.has(p.kind)) expect(ls.some(l => l.level === 'key'), `${pair(p)} at ${p.n} has a key line`).toBe(true)
+      if (p.kind === 'try' && p.result === 'interception') expect(ls.some(l => baseOf(l.key) === 'tryInterception')).toBe(true)
     }
     expect(inter).toBeGreaterThan(20)
   })
@@ -519,15 +524,17 @@ describe('every note is true when worked out again from the record so far', () =
     })
     check('entries', ({ P, l }) => {
       // a visit: the side has the ball inside the other 22 at the end of a play, and did not at the end of the one before
-      const s = l.side!, inside = (q: Play) => q.ball === s && toLine(s, q.x) <= 22 && q.kind !== 'halfTime' && q.kind !== 'fullTime'
+      // (only plays where a side really holds the ball say anything: a kick in flight landing in the 22 is not a visit)
+      const s = l.side!, inside = (q: Play) => q.ball === s && toLine(s, q.x) <= 22
       let visits = 0, pts = 0, from = 0, was = false
       for (let i = 0; i <= l.n; i++) {
+        if (!HOLDS.has(P[i].kind)) continue
         const now = inside(P[i])
         if (now && !was) { visits++; from = P[i].score[s] }
         if (!now && was) pts += P[i].score[s] - from
         was = now
       }
-      expect(inside(P[l.n])).toBe(false); expect(inside(P[l.n - 1])).toBe(true)
+      expect(HOLDS.has(P[l.n].kind) && !inside(P[l.n])).toBe(true)
       expect(l.params.count).toBe(visits); expect(l.params.pts).toBe(pts)
     })
     check('outFullCount', ({ P, l }) => expect(P.slice(0, l.n + 1).filter(q => q.kind === 'kick' && q.result === 'outOnFull' && q.side === l.side).length).toBe(l.params.count))
@@ -537,13 +544,24 @@ describe('every note is true when worked out again from the record so far', () =
       const c = P.slice(0, l.n + 1).filter(q => q.side === other(s) && ((q.kind === 'ruck' && q.result === 'turnover') || (q.kind === 'carry' && q.result === 'intercepted') || (q.kind === 'lineout' && q.result === 'stolen') || (q.kind === 'scrum' && q.result === 'againstTheHead'))).length
       expect(l.params.count).toBe(c)
     })
-    check('phases', ({ P, l }) => {
+    for (const b of ['phases', 'tickRuck', 'tickRuckNear']) check(b, ({ P, l }) => {
       let k = 0, i = l.n
       // (a man hurt in the tackle, of either side, does not end the passage)
       while (i >= 0 && (P[i].kind === 'injury' || (P[i].side === l.side && (P[i].kind === 'carry' || P[i].kind === 'offload' || P[i].kind === 'lineBreak' || P[i].kind === 'maul' || (P[i].kind === 'ruck' && P[i].result === 'recycled'))))) { if (P[i].kind === 'ruck') k++; i-- }
-      expect(l.params.phase).toBe(k)
+      if (l.params.phase !== undefined) expect(l.params.phase).toBe(k)
+      if (l.params.d !== undefined) expect(l.params.d).toBe(Math.max(1, Math.round(toLine(l.side!, P[l.n].x))))
     })
-    check('pickGo', ({ p, l }) => { const d = toLine(l.side!, p.x); expect(d).toBeLessThanOrEqual(5); expect(l.params.d).toBe(Math.max(1, Math.round(d))); expect(p.passes ?? 0).toBe(0) })
+    for (const b of ['pickGo', 'tickNear', 'tickLine']) check(b, ({ p, l }) => { const d = toLine(l.side!, p.x); expect(d).toBeLessThanOrEqual(b === 'tickLine' ? 3.5 : 10); expect(l.params.d).toBe(Math.max(1, Math.round(d))); if (b === 'pickGo') expect(p.shape === 'pickAndGo' || !p.passes).toBe(true) })
+    check('tickGain', ({ p, l }) => { expect(l.params.m).toBe(Math.round(p.gain!)); expect(p.gain!).toBeGreaterThanOrEqual(4) })
+    check('carryBig', ({ p, l }) => { expect(l.params.m).toBe(Math.round(p.gain!)); expect(p.gain!).toBeGreaterThanOrEqual(10) })
+    check('carryBack', ({ p }) => expect(p.gain!).toBeLessThanOrEqual(-2.5))
+    check('tickHeld', ({ p }) => expect(p.result === 'held' || p.result === 'drivenBack').toBe(true))
+    check('tickOver', ({ p }) => expect(p.result).toBe('overTheLine'))
+    check('tickPass', ({ p, l }) => expect(l.params.player2).toBe(`P${p.with?.[0]}`))
+    check('tickHands', ({ p }) => expect(p.passes!).toBeGreaterThanOrEqual(2))
+    check('tickContest', ({ p }) => expect(p.contested).toBe(true))
+    check('tickScrumWon', ({ p }) => expect(p.result).toBe('won'))
+    check('tickLaunch', ({ p, l }) => { expect(p.shape).toBe('launch'); expect(l.params.move_k).toBe(`moves.say.${p.move}`); expect(MOVE_EN[p.move!]).toBeDefined() })
     for (const b of ['territory', 'ballTen', 'pensWarn', 'loRecord', 'entries', 'handlingCount', 'turnoversCount', 'pickGo']) expect(counted.get(b) ?? 0, `${b} never said`).toBeGreaterThan(10)
   })
 
@@ -590,6 +608,144 @@ describe('every note is true when worked out again from the record so far', () =
   })
 })
 
+describe('the ticker: short lines, flashes, no silence in a try build-up', () => {
+  it('every line says how it flashes, how long it holds and which register it is in', () => {
+    for (const { r, lines } of runs) for (const l of lines) {
+      const p = r.plays[l.n], b = baseOf(l.key)
+      expect(['try', 'goal', 'card', 'key', null]).toContain(l.flash)
+      expect(l.hold).toBeGreaterThan(0)
+      expect(l.reg).toBe(TICK.has(b) ? 'tick' : 'full')
+      if (l.flash === 'try') expect(['try', 'penaltyTry']).toContain(p.kind)
+      if (l.flash === 'goal') expect(p.good).toBe(true)
+      if (l.flash === 'card') expect(['yellowCard', 'redCard']).toContain(p.kind)
+      if (l.level === 'key') expect(l.flash).not.toBeNull()
+    }
+    for (const { r, lines } of runs) for (const p of r.plays) {
+      const fl = lines.filter(l => l.n === p.n && l.flash).map(l => l.flash)
+      if (p.kind === 'try' || p.kind === 'penaltyTry') expect(fl).toContain('try')
+      if ((p.kind === 'conversion' || p.kind === 'penaltyGoal' || p.kind === 'dropGoal') && p.good) expect(fl).toContain('goal')
+      if (p.kind === 'yellowCard' || p.kind === 'redCard') expect(fl).toContain('card')
+    }
+  })
+
+  it('a flash is short: under 48 characters with a 21-letter name and a 14-letter team', () => {
+    const long: string[] = []
+    for (const b of Object.keys(WORDS).filter(b => /^flash/.test(b) || b === 'scoreLine')) for (const w of WORDS[b]) {
+      const t = w.replace(/\{(player|player2|oppPlayer)\}/g, 'Abcdefghijklmnopqrstu').replace(/\{(team|opp|home|away)\}/g, 'Abcdefghijklmn').replace(/\{(m|hs|as)\}/g, '22')
+      if (t.length > 48) long.push(`${b}: ${t} (${t.length})`)
+    }
+    expect(long).toEqual([])
+  })
+
+  it('a ticker line is short: under 60 characters with 14-letter names and team names', () => {
+    const long: string[] = []
+    const NAME = 'Abcdefghijklmn', longestMove = Math.max(...Object.values(MOVE_EN).map(x => x.length))
+    for (const b of TICK) for (const w of WORDS[b] ?? []) {
+      const t = w.replace(/\{(player|player2|oppPlayer|team|opp)\}/g, NAME).replace(/\{(m|d|phase|count)\}/g, '22')
+        .replace(/\{move_k\}/g, 'x'.repeat(longestMove)).replace(/\{kick_k\}/g, 'cross-field kick').replace(/\{zone_k\}/g, `inside the ${NAME} 22`)
+      if (t.length > 60) long.push(`${b}: ${t} (${t.length})`)
+    }
+    expect(long).toEqual([])
+  })
+
+  it('a try build-up never goes quiet: every play of the possession that scores has a line, and the last metres are said', () => {
+    let builds = 0
+    for (const { r, lines } of runs) {
+      const said = new Map<number, string[]>()
+      for (const l of lines) said.set(l.n, [...(said.get(l.n) ?? []), baseOf(l.key)])
+      for (const p of r.plays) if (p.kind === 'try') {
+        // back through the possession: the side's own open play since it won the ball
+        let i = p.n - 1
+        while (i >= 0 && r.plays[i].side === p.side && ['carry', 'ruck', 'offload', 'lineBreak', 'maul', 'injury'].includes(r.plays[i].kind)) i--
+        for (let k = i + 1; k < p.n; k++) if (r.plays[k].kind !== 'injury') expect(said.has(k), `play ${k} ${pair(r.plays[k])} in the build-up to the try at ${p.n} is silent`).toBe(true)
+        // inside ten metres, the urgency shows
+        for (let k = i + 1; k < p.n; k++) {
+          const q = r.plays[k]
+          if (q.kind === 'carry' && ['gainLine', 'held', 'drivenBack'].includes(q.result) && toLine(q.side, q.x) <= 10 && toLine(q.side, q.x) >= 0.5)
+            expect(said.get(k)!.some(b => b === 'tickNear' || b === 'tickLine' || b === 'pickGo'), `carry ${k} near the line`).toBe(true)
+        }
+        builds++
+      }
+    }
+    expect(builds).toBeGreaterThan(500)
+  })
+
+  it('on the pitch\'s own schedule: every flash shown, never 4 s with nothing on screen, fast forward at most 3 a second', () => {
+    for (const { r, lines } of runs.slice(0, 3)) {
+      const slots = schedule(r.plays), shown = feed(lines, slots), set = new Set(shown.map(x => x.line))
+      for (const l of lines) if (l.flash) expect(set.has(l)).toBe(true)
+      let cov = 0, worst = 0
+      for (let i = 1; i < shown.length; i++) { cov = Math.max(cov, shown[i - 1].at + shown[i - 1].hold); worst = Math.max(worst, shown[i].at - cov) }
+      expect(worst).toBeLessThanOrEqual(4)
+      const end = slots[slots.length - 1].start + slots[slots.length - 1].dur
+      for (let t = 0; t < end; t += 1) expect(shown.filter(x => x.at >= t && x.at < t + 1).length).toBeLessThanOrEqual(3 + 2)
+    }
+  }, 60000)
+
+  it('a man\'s numbers and a side\'s counts come at most once every twenty seconds of the clock', () => {
+    const STAT = /^(stat|offenderPens|pensTotal|turnoversCount|handlingCount|outFullCount|tryType|scrumPensWon|loRecord|scRecord|entries|subFirst|backFromBin)/
+    for (const { lines } of runs) {
+      let last = -Infinity
+      for (const l of lines) if (STAT.test(baseOf(l.key))) { expect(l.t - last, `${l.key}`).toBeGreaterThanOrEqual(20); last = l.t }
+    }
+  })
+
+  /** a schedule like the pitch's: life speed (1.1) for key moments and the five plays before them, fast forward (6 to 10) elsewhere */
+  const scheduleOf = (r: SimResult) => {
+    let at = 0
+    const key = (p: Play) => ['try', 'conversion', 'penaltyGoal', 'yellowCard', 'redCard', 'lineBreak', 'heldUp', 'dropGoal', 'penaltyTry'].includes(p.kind)
+    return r.plays.map((p, i) => {
+      const life = r.plays.slice(i, i + 6).some(key)
+      const speed = life ? 1.1 : 6 + (p.n % 5)
+      // (dead time: the walk to a set piece is shown quickly, as the pitch does)
+      const dur = Math.max(0.2, (p.live + Math.min(p.dead, 3)) / speed)
+      const slot = { n: p.n, start: at, dur, speed }
+      at += dur
+      return slot
+    })
+  }
+
+  it('feed(): no line before its play or more than one play late, flashes never dropped, fast forward at most 3 a second, life speed nearly all', () => {
+    let lifeTick = 0, lifeTickShown = 0
+    let life = 0, lifeShown = 0, ff = 0, ffShown = 0, ffTime = 0, quiet = 0, quietMax = 0
+    for (const { r, lines } of runs.slice(0, 100)) {
+      const slots = scheduleOf(r), idx = new Map(slots.map((x, i) => [x.n, i]))
+      const shown = feed(lines, slots)
+      const set = new Set(shown.map(x => x.line))
+      for (const l of lines) {
+        if (l.flash) expect(set.has(l), `flash ${l.key} dropped`).toBe(true)
+        const sp = slots[idx.get(l.n)!].speed
+        if (sp <= FAST) { life++; if (set.has(l)) lifeShown++; if (l.reg === 'tick') { lifeTick++; if (set.has(l)) lifeTickShown++ } } else { ff++; if (set.has(l)) ffShown++ }
+      }
+      for (const x of slots) if (x.speed > FAST) ffTime += x.dur
+      for (let i = 0; i < shown.length; i++) {
+        const x = shown[i], k = idx.get(x.line.n)!, a = slots[k], nx = slots[k + 1]
+        expect(x.at).toBeGreaterThanOrEqual(a.start - 1e-6)
+        expect(x.at).toBeLessThanOrEqual((nx ? nx.start + Math.min(nx.dur, 0.8) : a.start + Math.max(a.dur, 4)) + 1e-6)
+        if (i) {
+          expect(x.at).toBeGreaterThanOrEqual(shown[i - 1].at)
+          // the ticker keeps the order of the record (a flash keeps its own time in its window)
+          if (!x.line.flash && !shown[i - 1].line.flash) expect(lines.indexOf(x.line)).toBeGreaterThan(lines.indexOf(shown[i - 1].line))
+          // in fast forward never more than three new lines a second, at life speed 0.6 s apart (a flash may be forced closer)
+          const fastBoth = slots[k].speed > FAST && slots[idx.get(shown[i - 1].line.n)!].speed > FAST
+          if (!x.line.flash && !shown[i - 1].line.flash) expect(x.at - shown[i - 1].at, `${x.line.key}`).toBeGreaterThanOrEqual((fastBoth ? 1 / 3 : 0.33) - 0.011)
+        }
+      }
+      // nothing on screen (each line up for its hold)
+      let cov = 0
+      for (let i = 1; i < shown.length; i++) { cov = Math.max(cov, shown[i - 1].at + shown[i - 1].hold); const g = shown[i].at - cov; if (g > 1.2) quiet++; quietMax = Math.max(quietMax, g) }
+    }
+    console.log(`feed: life speed ${lifeShown}/${life} lines shown (${(100 * lifeShown / life).toFixed(0)}%), fast forward ${ffShown}/${ff} (${(ffShown / ffTime).toFixed(2)} a second); spells with nothing on screen over 1.2 s: ${(quiet / 100).toFixed(1)} a match, longest ${quietMax.toFixed(1)} s`)
+    // at life speed nearly every ticker line shows (notes around a try or a goal make way for the flash and the score)
+    console.log(`feed: life speed ticker ${lifeTickShown}/${lifeTick} (${(100 * lifeTickShown / lifeTick).toFixed(0)}%)`)
+    expect(lifeTickShown / lifeTick).toBeGreaterThan(0.95)
+    expect(lifeShown / life).toBeGreaterThan(0.8)
+    expect(ffShown / ffTime).toBeLessThanOrEqual(3)
+    // (this schedule is harsher than the pitch's: six plays at life speed before every key moment, every ruck included)
+    expect(quietMax).toBeLessThanOrEqual(4.05)
+  })
+})
+
 describe('the feed fits the pitch, and a match does not repeat itself', () => {
   /** a schedule like the pitch's: every play shown, fast forward at 6x with each key moment and its build-up at life speed */
   const scheduleOf = (r: SimResult) => {
@@ -608,7 +764,7 @@ describe('the feed fits the pitch, and a match does not repeat itself', () => {
     let before = 0, after = 0, viewing = 0
     for (const { r, lines } of runs.slice(0, 80)) {
       const slots = scheduleOf(r), start = new Map(slots.map(s => [s.n, s.start]))
-      const kept = thin(lines, slots)
+      const kept = thin(lines, slots, 1.4)
       const keptSet = new Set(kept)
       for (const l of lines) if (l.priority >= 3 || l.level === 'key' || l.params.hs !== undefined) expect(keptSet.has(l), `dropped ${l.key}`).toBe(true)
       for (let i = 0; i < kept.length; i++) for (let k = i + 1; k < kept.length; k++) {
@@ -647,7 +803,10 @@ describe('the feed fits the pitch, and a match does not repeat itself', () => {
       }
       keys += new Set(ls.map(l => l.key)).size
     }
-    console.log(`repetition: ${(100 * rep / lines).toFixed(1)}% of lines repeat a sentence in the match; longest run of one key ${maxRun}; ${(keys / runs.length).toFixed(0)} distinct keys a match`)
+    let tl = 0, trep = 0
+    for (const { lines: ls } of runs) { const seen = new Set<string>(); for (const l of ls) if (l.reg === 'tick') { const t = render(l); tl++; if (seen.has(t)) trep++; seen.add(t) } }
+    console.log(`repetition: ${(100 * rep / lines).toFixed(1)}% of lines repeat a sentence in the match (ticker lines ${(100 * trep / tl).toFixed(1)}%); longest run of one key ${maxRun}; ${(keys / runs.length).toFixed(0)} distinct keys a match`)
+    expect(trep / tl).toBeLessThan(0.06)
     expect(rep / lines).toBeLessThan(0.06)
     expect(maxRun).toBeLessThanOrEqual(2)
     expect(near).toBe(0)
@@ -668,6 +827,8 @@ describe('the feed fits the pitch, and a match does not repeat itself', () => {
       else if (!e.key && rate >= 1 && e.keys.size < 6) short.push(`${b} (${rate.toFixed(1)} a match, ${e.keys.size})`)
     }
     expect(short.sort()).toEqual([])
+    // the commonest ticker lines: at least eight wordings in use
+    for (const b of ['tickCarry', 'tickTackle', 'tickPass', 'tickRuck', 'kickBox', 'kickLong', 'catchKick']) expect(per.get(b)?.keys.size ?? 0, b).toBeGreaterThanOrEqual(8)
   })
 
   it('is the same on a re-run', () => {

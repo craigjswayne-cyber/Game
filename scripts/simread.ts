@@ -1,15 +1,16 @@
 // A MATCH IN WORDS (2.0.0), for a person to read for sense.
-// Run: npx vite-node scripts/simread.ts [seed] [from minute] [to minute] [real] [plays] [thin]
+// Run: npx vite-node scripts/simread.ts [seed] [from minute] [to minute] [real] [plays] [thin] [ticker]
 // The words are the game's own commentary (src/game/sim/commentary.ts), drawn
 // from the match record and nothing else. With "real" the match is the
 // user's first fixture in a new game on that seed: real team sheets, real
 // strengths, and the men named. With "plays" each line is followed by the
 // record entry it was written from, so the two can be checked by eye. With "thin" only
-// the lines the viewer gets on the pitch's schedule are printed (thin() in commentary.ts).
+// the lines the viewer gets on the pitch's schedule are printed (thin() in commentary.ts). With
+// "ticker" the feed as the pitch shows it (feed()): the second on screen, and >> FLASH << lines.
 // Lines marked * are key moments (the viewer slows down for them); minor
 // lines are indented.
 import { simSkeleton } from '../src/game/sim/skeleton'
-import { commentate, render, thin, type Context } from '../src/game/sim/commentary'
+import { commentate, render, thin, feed, type Context } from '../src/game/sim/commentary'
 import { schedule } from '../src/ui/livepitch/fromRecord'
 import { matchConditions, surfaceOf } from '../src/game/conditions'
 import { sortTable } from '../src/game/schedule'
@@ -20,7 +21,7 @@ import type { Fixture } from '../src/game/model'
 import type { SimResult } from '../src/game/sim/record'
 import { worldFromMatch } from '../src/game/sim/fromMatch'
 
-const flags = new Set(process.argv.filter(a => a === 'real' || a === 'plays' || a === 'thin'))
+const flags = new Set(process.argv.filter(a => a === 'real' || a === 'plays' || a === 'thin' || a === 'ticker'))
 const args = process.argv.slice(2).filter(a => !flags.has(a))
 const seed = Number(args[0] ?? 1), from = Number(args[1] ?? 0), to = Number(args[2] ?? 80)
 let T: [string, string] = ['Home', 'Away']
@@ -51,6 +52,17 @@ if (flags.has('real')) {
 } else r = simSkeleton({ seed })
 
 const all = commentate(r, { teams: T, player: id => names.get(id) ?? '' }, context)
+if (flags.has('ticker')) {
+  const shown = feed(all, schedule(r.plays))
+  for (const x of shown) {
+    if (x.line.t < from * 60 || x.line.t >= to * 60) continue
+    const m = String(Math.min(80, Math.floor(x.line.t / 60) + 1)).padStart(2)
+    const f = x.line.flash ? `>> ${x.line.flash.toUpperCase()} << ` : ''
+    console.log(`${x.at.toFixed(1).padStart(6)}s ${m}'  ${f}${render(x.line)}`)
+  }
+  console.log(`\n${all.length} lines written, ${shown.length} shown on the pitch's schedule.`)
+  process.exit(0)
+}
 const lines = flags.has('thin') ? thin(all, schedule(r.plays)) : all
 const minute = (t: number) => Math.min(80, Math.floor(t / 60) + 1)
 let lastN = -1
