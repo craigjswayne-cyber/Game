@@ -39,7 +39,7 @@
  *     stamp - is part of that career's story and travels with it, exactly like
  *     a signing it paid for.)
  */
-import { noteUse } from './usage'
+import { noteBuyFail, noteBuyTap, noteUse } from './usage'
 
 /** Which build this is.
  *
@@ -668,6 +668,19 @@ export const setBillingCause = (c: unknown) => {
   lastCause = typeof c === 'string' && (CAUSES as readonly string[]).includes(c) ? c as BillingCause : null
 }
 export const billingCause = (): BillingCause | null => lastCause
+/**
+ * A SHORT CODE FOR THE FEEDBACK REPORT (1.9.18).
+ *
+ * The reason above is the store's own sentence, for the screen. The feedback
+ * report may only carry fixed words, so the bridges also leave one here: what
+ * kind of error it was ('fastAbort', 'stall', an error's name), never its
+ * message. Anything that is not plain letters and slashes is dropped.
+ */
+let lastCode: string | null = null
+export const setBillingCode = (c: unknown) => {
+  lastCode = typeof c === 'string' && /^[A-Za-z]{1,20}(\/[A-Za-z]{1,20})?$/.test(c) ? c : null
+}
+export const billingCode = (): string | null => lastCode
 /** The bridge's own account of the last refusal wins where it has one: a
  *  native shell knows more about its store than this module does. The
  *  built-in Android and iOS bridges use setBillingReason above; a wrapper
@@ -998,10 +1011,12 @@ export function revokeMissing(skus: readonly string[], session = SESSION, now = 
 
 /** How a Buy tap ended, for the feedback report's STORE line (1.9.14). A
  *  pending payment is left uncounted until the store settles it elsewhere. */
-function noteBuy(out: PurchaseOutcome): PurchaseOutcome {
+function noteBuy(sku: string, out: PurchaseOutcome): PurchaseOutcome {
   if (out === 'owned') noteUse('bought')
   else if (out === 'cancelled') noteUse('buyCancel')
-  else if (out !== 'pending') noteUse('buyFail')
+  // which product, and the store's kind of "no" in fixed words (1.9.18):
+  // the outcome, the shell's cause where it sent one, the bridge's code
+  else if (out !== 'pending') noteBuyFail(sku, [out, billingCause(), billingCode()].filter(Boolean).join('/'))
   return out
 }
 
@@ -1010,15 +1025,20 @@ function noteBuy(out: PurchaseOutcome): PurchaseOutcome {
 export async function buyOwnable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
   setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
-  noteUse('buyTap')
-  if (!b || !(NC_SKUS as readonly string[]).includes(sku)) return noteBuy('unavailable')
+  setBillingCode(null)  // and so does its code
+  noteBuyTap(sku)
+  if (!b || !(NC_SKUS as readonly string[]).includes(sku)) {
+    setBillingCode(b ? 'notOurs' : 'noStore')
+    return noteBuy(sku, 'unavailable')
+  }
   buying++
   try {
     const out = await b.buy(sku)
     if (out === 'owned') grant(sku)
-    return noteBuy(out)
+    return noteBuy(sku, out)
   } catch {
-    return noteBuy('error')
+    setBillingCode('threw')
+    return noteBuy(sku, 'error')
   } finally { buying--; lastBuyEnd = Date.now() }
 }
 
@@ -1050,14 +1070,19 @@ export async function buySupporter(): Promise<PurchaseOutcome> {
 export async function buyConsumable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
   setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
-  noteUse('buyTap')
-  if (!b || typeof b.consume !== 'function' || !CONSUMABLE_SKUS.includes(sku)) return noteBuy('unavailable')
+  setBillingCode(null)  // and so does its code
+  noteBuyTap(sku)
+  if (!b || typeof b.consume !== 'function' || !CONSUMABLE_SKUS.includes(sku)) {
+    setBillingCode(b ? 'notOurs' : 'noStore')
+    return noteBuy(sku, 'unavailable')
+  }
   buying++
   try {
     const out = await b.buy(sku)
-    return noteBuy(out)
+    return noteBuy(sku, out)
   } catch {
-    return noteBuy('error')
+    setBillingCode('threw')
+    return noteBuy(sku, 'error')
   } finally { buying--; lastBuyEnd = Date.now() }
 }
 

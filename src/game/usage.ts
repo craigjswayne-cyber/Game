@@ -50,6 +50,29 @@ export const ACTIONS = [
 const STORE_ACTS: readonly Action[] = ['buyTap', 'bought', 'buyCancel', 'buyFail']
 export type Action = typeof ACTIONS[number]
 
+/**
+ * WHICH PRODUCT, AND WHY IT FAILED (1.9.18).
+ *
+ * A real player's report read "taps 5, bought 0, cancelled 2, failed 3": three
+ * lost sales and no way to tell which product or what the store said. So a
+ * Buy tap is now also counted by product, and a failure by product and reason.
+ *
+ * Still nothing identifying. The product is one of the game's own ids with
+ * "phase." taken off; the reason is built from fixed words only (the outcome,
+ * the shell's cause, a code from monetise.setBillingCode). The store's own
+ * sentence is never kept: it is free text, and free text is not a count.
+ */
+const BUY_ID = /^[a-z]{1,12}(\.[a-z]{1,8})?$/
+const BUY_WHY = /^[A-Za-z]{1,20}(\/[A-Za-z]{1,20}){0,3}$/
+const MAX_BUYS = 40
+/** The report has to fit a mail body: bugreport.MAILTO_LIMIT, held equal by
+ *  the probe (bugreport imports this file, so it cannot be imported here). */
+export const REPORT_ROOM = 1800
+const buyId = (sku: string): string | null => {
+  const id = typeof sku === 'string' ? sku.replace(/^phase\./, '') : ''
+  return BUY_ID.test(id) ? id : null
+}
+
 /** How each reads in the report (developer-facing, English like the bug report). */
 const ACTION_NAMES: Record<Action, string> = {
   tactics: 'Tactics changed',
@@ -138,6 +161,10 @@ export interface Usage {
   cur: string
   /** the season milestones the card has been offered at (FEEDBACK_AT) */
   offeredFor: number[]
+  /** Buy taps by product (1.9.18): the game's own id, "phase." taken off */
+  buys: Record<string, number>
+  /** failed purchases by "product reason" (1.9.18), fixed words only */
+  fails: Record<string, number>
 }
 
 export const USAGE_KEY = 'rm-use'
@@ -145,6 +172,7 @@ export const USAGE_KEY = 'rm-use'
 export const freshUsage = (): Usage => ({
   v: 1, screens: {}, acts: {}, matches: 0, weeks: 0, lastWeek: '', seasons: 0, lastSeason: '', finished: 0, lastFinished: '', seen: [], offered: false, offeredAt: -1,
   secs: 0, time: {}, sessions: 0, lastAt: 0, cur: '', offeredFor: [],
+  buys: {}, fails: {},
 })
 
 /** A stretch on one screen counts at most this long (an idle phone). */
@@ -158,6 +186,16 @@ export const FEEDBACK_AT = [1, 3, 5, 10, 20] as const
 const int = (n: unknown, d: number) => (typeof n === 'number' && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : d)
 const SCREEN_ID = /^[a-z]{1,20}$/
 const MAX_SCREENS = 80
+
+/** A stored tally, keeping only the keys that pass and whole positive counts. */
+function tally(raw: unknown, sound: (k: string) => boolean): Record<string, number> {
+  const out: Record<string, number> = {}
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>).slice(0, MAX_BUYS)) {
+    if (sound(k) && typeof v === 'number' && Number.isFinite(v) && v > 0) out[k] = Math.floor(v)
+  }
+  return out
+}
 
 /** Read back whatever was stored, keeping what is sound and dropping the rest,
  *  so a mangled value heals rather than throws. */
@@ -210,6 +248,9 @@ export function parseUsage(raw: string | null): Usage {
       offeredFor: Array.isArray(o.offeredFor)
         ? [...new Set(o.offeredFor.filter((n): n is number => typeof n === 'number' && (FEEDBACK_AT as readonly number[]).includes(n)))]
         : o.offered === true ? [1] : [],
+      // a ledger from before 1.9.18 has neither: its failures stay uncounted
+      buys: tally(o.buys, k => BUY_ID.test(k)),
+      fails: tally(o.fails, k => { const [id, why, more] = k.split(' '); return more == null && BUY_ID.test(id ?? '') && BUY_WHY.test(why ?? '') }),
     }
   } catch { return freshUsage() }
 }
@@ -239,6 +280,24 @@ function withScreen(u: Usage, screen: string): Usage {
 function withAction(u: Usage, a: Action): Usage {
   if (!(ACTIONS as readonly string[]).includes(a)) return u
   return { ...u, acts: { ...u.acts, [a]: (u.acts[a] ?? 0) + 1 } }
+}
+
+const bump = (m: Record<string, number>, k: string): Record<string, number> =>
+  !(k in m) && Object.keys(m).length >= MAX_BUYS ? m : { ...m, [k]: (m[k] ?? 0) + 1 }
+
+/** A Buy tap, by product. An id that is not one of ours still counts as a tap. */
+export function withBuyTap(u: Usage, sku: string): Usage {
+  const id = buyId(sku)
+  const n = withAction(u, 'buyTap')
+  return id ? { ...n, buys: bump(n.buys, id) } : n
+}
+
+/** A failed purchase, by product and reason. A reason that is not built from
+ *  the fixed words is dropped to 'unknown' rather than kept as written. */
+export function withBuyFail(u: Usage, sku: string, why: string): Usage {
+  const id = buyId(sku)
+  const n = withAction(u, 'buyFail')
+  return id ? { ...n, fails: bump(n.fails, `${id} ${BUY_WHY.test(why) ? why : 'unknown'}`) } : n
 }
 
 /** One competitive match completed. `key` names the match, `season` the
@@ -333,6 +392,18 @@ export function noteUse(a: Action, perVisit = false): void {
   }
   const now = Date.now()
   update(u => withAction(withTime(u, now), a))
+}
+
+/** A Buy was tapped for this product (monetise.ts's two purchase doors). */
+export function noteBuyTap(sku: string): void {
+  const now = Date.now()
+  update(u => withBuyTap(withTime(u, now), sku))
+}
+
+/** That purchase failed, and this is the store's kind of "no". */
+export function noteBuyFail(sku: string, why: string): void {
+  const now = Date.now()
+  update(u => withBuyFail(withTime(u, now), sku, why))
 }
 
 /** A week has turned (store.ts landOnNextWeek, every way a week ends). */
@@ -449,8 +520,11 @@ export function buildFeedbackReport(i: FeedbackInput): string {
   // that ends neither bought nor cancelled nor failed is a pending payment.
   if (i.store) {
     out += 'STORE\n'
-    out += `visits ${u.screens.supporter ?? 0}, taps ${u.acts.buyTap ?? 0}, bought ${u.acts.bought ?? 0}, cancelled ${u.acts.buyCancel ?? 0}, failed ${u.acts.buyFail ?? 0}\n\n`
+    out += `visits ${u.screens.supporter ?? 0}, taps ${u.acts.buyTap ?? 0}, bought ${u.acts.bought ?? 0}, cancelled ${u.acts.buyCancel ?? 0}, failed ${u.acts.buyFail ?? 0}\n`
   }
+  // the product and reason lines go here, once the rest has been measured
+  const head = out
+  out = i.store ? '\n' : ''
 
   // the Store's visits are on its own line when there is one
   const screens = Object.entries(u.screens).filter(([k]) => !(i.store && k === 'supporter')).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
@@ -466,7 +540,26 @@ export function buildFeedbackReport(i: FeedbackInput): string {
 
   // shorter since 1.9.14, to make room for the STORE line in a mail body
   out += 'Counts only: no names, no save.\n'
-  return out
+
+  // WHICH PRODUCT AND WHY (1.9.18), in whatever room the mail body has left.
+  // The reasons are fitted first: a failure with no reason is the line that
+  // cost a morning. Each line gives way an entry at a time rather than push
+  // the report past a mail body, so nothing else in it is ever cut for these.
+  const top = (m: Record<string, number>) => Object.entries(m).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 4)
+  const fit = (label: string, m: Record<string, number>, room: number): string => {
+    for (let n = top(m).length; n > 0; n--) {
+      const l = label + top(m).slice(0, n).map(([k, v]) => `${k} ${v}`).join(', ') + '\n'
+      if (l.length <= room) return l
+    }
+    return ''
+  }
+  let failed = '', tapped = ''
+  if (i.store) {
+    const room = REPORT_ROOM - head.length - out.length
+    failed = fit('failed: ', u.fails, room)
+    tapped = fit('tapped: ', u.buys, room - failed.length)
+  }
+  return head + tapped + failed + out
 }
 
 /** The main screens with no visits, in menu order. */

@@ -18,9 +18,10 @@ import { genderOf } from '../src/game/gender'
 import { DEV_CONTACT, MAILTO_LIMIT, mailtoUrl, noteScreen } from '../src/game/bugreport'
 import {
   ACTIONS, FEEDBACK_SUBJECT, MAIN_SCREENS, USAGE_KEY, buildFeedbackReport, countFinished, countMatch, countWeek,
-  careerSnap, countScreen, dueMilestone, feedbackDue, freshUsage, neverOpened, noteUse, parseUsage, readUsage, withOffered, withTime, writeUsage,
+  REPORT_ROOM, careerSnap, countScreen, dueMilestone, feedbackDue, freshUsage, neverOpened, noteBuyFail, noteBuyTap, noteUse, parseUsage, readUsage, withBuyFail, withBuyTap, withOffered, withTime, writeUsage,
   type Usage,
 } from '../src/game/usage'
+import { bridge, buyConsumable, buyOwnable, CHARTER_SKU, HEAL_SKU, setBillingCause, setBillingCode, SUPPORTER_SKU, type BillingBridge, type PurchaseOutcome } from '../src/game/monetise'
 import { ok, done } from './lib/probe'
 import { storeSource } from './lib/storefiles'
 
@@ -301,6 +302,108 @@ console.log('--- the store (1.9.14)')
   ok(/\nSTORE\nvisits 4, taps 3, bought 1, cancelled 1, failed 1\n/.test(r), 'the STORE line: visits, Buy taps and how they ended')
   ok(!/Buy tapped|Purchase cancelled/.test(r), 'and the purchase counts are not repeated on the ACTIONS line')
   ok(!report(u, { store: false }).includes('\nSTORE\n'), 'a build with no store (the website) has no STORE line')
+}
+
+console.log('--- which product, and why it failed (1.9.18)')
+{
+  ok(REPORT_ROOM === MAILTO_LIMIT, `the report is fitted to the mail body's own limit (${REPORT_ROOM})`)
+  mem.clear()
+  noteBuyTap('phase.supporter'); noteBuyFail('phase.supporter', 'refused/fastAbort/playClosed')
+  noteBuyTap('phase.supporter'); noteBuyFail('phase.supporter', 'refused/fastAbort/playClosed')
+  noteBuyTap('phase.inject.xl'); noteBuyFail('phase.inject.xl', 'refused/unreachable/stall')
+  noteBuyTap('phase.heal')
+  let u = readUsage()
+  ok(u.acts.buyTap === 4 && u.acts.buyFail === 3, 'the totals on the STORE line still count every tap and failure')
+  ok(u.buys.supporter === 2 && u.buys['inject.xl'] === 1 && u.buys.heal === 1, `taps are kept by product (${JSON.stringify(u.buys)})`)
+  ok(u.fails['supporter refused/fastAbort/playClosed'] === 2 && u.fails['inject.xl refused/unreachable/stall'] === 1, 'failures by product and reason')
+  u.screens.supporter = 6
+  const r = report(u)
+  ok(/\nSTORE\nvisits 6, taps 4, bought 0, cancelled 0, failed 3\ntapped: supporter 2, heal 1, inject\.xl 1\nfailed: supporter refused\/fastAbort\/playClosed 2, inject\.xl refused\/unreachable\/stall 1\n\nSCREENS OPENED\n/.test(r), 'the report names the products tapped and why each failure happened')
+  ok(!report(u, { store: false }).includes('tapped:') && !report(u, { store: false }).includes('failed:'), 'a build with no store has neither line')
+  const plain = freshUsage(); plain.screens.supporter = 2; plain.acts.buyTap = 5; plain.acts.buyFail = 3
+  ok(/failed 3\n\nSCREENS OPENED/.test(report(plain)), 'a ledger from before 1.9.18 keeps its totals and adds no empty lines')
+
+  // fixed words only: nothing a store or a wrapper says is kept as written
+  let odd = withBuyFail(freshUsage(), 'phase.heal', 'AbortError: Payment declined for j.smith@example.com')
+  ok(odd.fails['heal unknown'] === 1 && !JSON.stringify(odd).includes('smith'), "a reason that is not fixed words is kept as 'unknown', never as written")
+  odd = withBuyFail(withBuyTap(freshUsage(), 'someone@example.com'), '../../etc 9', 'refused')
+  ok(odd.acts.buyTap === 1 && odd.acts.buyFail === 1 && !Object.keys(odd.buys).length && !Object.keys(odd.fails).length, 'an id that is not one of ours counts in the totals and is named nowhere')
+  const healed = parseUsage(JSON.stringify({ ...freshUsage(), buys: { supporter: 2, 'Bad Key': 3, heal: -1 }, fails: { 'heal refused/stall': 1, 'heal refused stall': 4, 'x y z': 2, 'heal <b>': 1 } }))
+  ok(JSON.stringify(healed.buys) === '{"supporter":2}' && JSON.stringify(healed.fails) === '{"heal refused/stall":1}', 'a mangled tally heals: sound keys kept, the rest dropped')
+  ok(!Object.keys(parseUsage(JSON.stringify({ v: 1, acts: { buyFail: 3 } })).fails).length, 'an old ledger reads back with empty tallies')
+  let many = freshUsage()
+  for (let n = 0; n < 200; n++) many = withBuyFail(many, 'phase.heal', 'refused/' + 'abcdefghij'[n % 10] + 'abcdefghij'[Math.floor(n / 10) % 10] + 'abcdefghij'[Math.floor(n / 100)])
+  ok(Object.keys(many.fails).length === 40 && many.acts.buyFail === 200, 'the tally is capped, the total is not')
+
+  // THE REPORT THAT ASKED FOR THIS: a real 19 hour career, three failures
+  const real = freshUsage()
+  Object.assign(real.screens, { player: 269, squad: 152, matchday: 148, press: 110, offers: 55, transfers: 54, finances: 46, tactics: 40, inbox: 38, training: 37, medical: 32, jobs: 29, club: 26, dreamteam: 14, tables: 12, fixtures: 11, results: 11, agency: 6, academy: 5, draw: 4, legacy: 4, newgame: 4, report: 3, infra: 2, scouting: 2, handbook: 1, profile: 1, saves: 1, settings: 1, supporter: 12 })
+  Object.assign(real.acts, { tactics: 30, playbook: 16, training: 73, bid: 132, loan: 14, renew: 52, press: 236, talk: 116, watched: 113, sub: 32, liveTactics: 68, advert: 2, chat: 13, physio: 11, buyTap: 5, buyCancel: 2, buyFail: 3 })
+  Object.assign(real.time, { matchday: 34140, player: 8700, squad: 8460, press: 2760, tactics: 2280 })
+  real.weeks = 165; real.seasons = 4; real.finished = 3; real.matches = 96; real.secs = 68400; real.sessions = 15
+  real.buys = { supporter: 2, pinnacle: 2, 'inject.m': 1 }
+  real.fails = { 'supporter refused/fastAbort/playClosed': 2, 'pinnacle refused/NotSupportedError': 1 }
+  const career = { w: 31, d: 1, l: 15, fin: [{ pos: 2, tier: 1 }], trophies: 1, clubs: 1, board: 100, fans: 95, debt: false, squad: 41, pro: false }
+  const rr = report(real, { version: 'v1.9.16 · 2026-11-21 17:58 UTC', lang: 'en', career, prefs: { haptics: true, sound: true, night: true, text: 1 } })
+  ok(rr.includes('tapped: pinnacle 2, supporter 2, inject.m 1\nfailed: supporter refused/fastAbort/playClosed 2, pinnacle refused/NotSupportedError 1\n'), 'that report would have said which products and why')
+  ok(rr.length <= MAILTO_LIMIT, `and still fits a mail body whole (${rr.length} of ${MAILTO_LIMIT})`)
+
+  // the heaviest report there can be: the new lines give way, nothing else does
+  const heavy = freshUsage()
+  for (const sc of [...MAIN_SCREENS, 'supporter', 'player', 'matchday', 'results', 'day', 'wire', 'country', 'seasonreview', 'annual', 'draw']) { heavy.screens[sc] = 12345; heavy.time[sc] = 999_999 }
+  for (const a of ACTIONS) heavy.acts[a] = 9999
+  heavy.matches = 9999; heavy.seasons = 99; heavy.finished = 99; heavy.secs = 9_999_999; heavy.sessions = 9999
+  const big = { w: 999, d: 999, l: 999, fin: Array.from({ length: 5 }, () => ({ pos: 12, tier: 3 })), trophies: 99, clubs: 12, board: 100, fans: 100, debt: true, squad: 60, pro: true }
+  const over = { career: big, prefs: { haptics: true, sound: true, night: true, text: 1.3 } }
+  const before = report(heavy, over)
+  for (const id of ['supporter', 'supporter.intro', 'pinnacle', 'inject.xl', 'estate']) { heavy.buys[id] = 9999; heavy.fails[`${id} refused/unreachable/stall`] = 9999 }
+  const after = report(heavy, over)
+  ok(after.length <= MAILTO_LIMIT, `the heaviest report still fits with every tally full (${after.length} of ${MAILTO_LIMIT})`)
+  ok(after.replace(/^(tapped|failed): .*\n/gm, '') === before, 'and nothing else in it was cut to make the room')
+}
+
+console.log('--- the two purchase doors say which product and why')
+{
+  const w = globalThis as unknown as { rmBilling?: BillingBridge }
+  let next: () => Promise<PurchaseOutcome> = async () => 'owned'
+  const fake = { owned: async () => [], ownedState: async () => ({ ok: true, skus: [] }), details: async () => null, buy: () => next(), consume: async () => ({ ok: true }), restore: async () => [] } as unknown as BillingBridge
+  const had = w.rmBilling
+  mem.clear()
+  // no store attached
+  delete w.rmBilling
+  if (!bridge()) {
+    await buyOwnable(SUPPORTER_SKU)
+    ok(readUsage().fails['supporter unavailable/noStore'] === 1, 'no store attached: unavailable/noStore, against the product')
+  } else ok(true, 'a store is attached in this run: the no-store ending is not reachable')
+  w.rmBilling = fake
+  if (bridge() === fake) {
+    mem.clear()
+    next = async () => { setBillingCode('fastAbort/playClosed'); return 'refused' }
+    await buyOwnable(SUPPORTER_SKU)
+    next = async () => { setBillingCause('unreachable'); setBillingCode('stall'); return 'refused' }
+    await buyConsumable(HEAL_SKU)
+    next = async () => { throw new Error('private words from a store') }
+    await buyOwnable(CHARTER_SKU)
+    next = async () => 'cancelled'
+    await buyOwnable(SUPPORTER_SKU)
+    next = async () => 'pending'
+    await buyConsumable(HEAL_SKU)
+    next = async () => { setBillingCode('a sentence, not a code'); return 'refused' }
+    await buyConsumable(HEAL_SKU)
+    await buyOwnable('phase.nothing')
+    const u = readUsage()
+    ok(u.fails['supporter refused/fastAbort/playClosed'] === 1, 'a sheet Play closed at once: refused/fastAbort/playClosed')
+    ok(u.fails['heal refused/unreachable/stall'] === 1, "a sheet that never opened: the shell's cause and the code together")
+    ok(u.fails['uncapped error/threw'] === 1 && !JSON.stringify(u).includes('private'), "a bridge that threw: error/threw, and not a word of the store's message")
+    ok(u.fails['heal refused'] === 1, 'a code that is not fixed words is dropped; the outcome still stands')
+    ok(u.fails['nothing unavailable/notOurs'] === 1, 'a product the door does not sell: unavailable/notOurs')
+    ok(u.acts.buyTap === 7 && u.acts.buyFail === 5 && u.acts.buyCancel === 1, `cancelled and pending are not failures (${u.acts.buyTap} taps, ${u.acts.buyFail} failed, ${u.acts.buyCancel} cancelled)`)
+    ok(u.buys.supporter === 2 && u.buys.heal === 3 && u.buys.uncapped === 1, 'every tap is against its product, however it ended')
+    next = async () => 'refused'
+    await buyOwnable(SUPPORTER_SKU)
+    ok(readUsage().fails['supporter refused'] === 1, "one tap's cause and code do not carry over to the next")
+  } else ok(false, 'the probe could not attach a store bridge')
+  if (had) w.rmBilling = had; else delete w.rmBilling
 }
 
 done('FEEDBACK PROBE', '', { exit: true, blank: false })
