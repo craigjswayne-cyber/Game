@@ -24,7 +24,7 @@ import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture } from '../src/game/model'
 import { worldFromMatch, type SimSide } from '../src/game/sim/fromMatch'
-import { bake, bakeOf, BALL_PX, BUILD_MAX, CLOSE_FROM, CLOSE_MARGIN, CLOSE_RATE, CLIP_RATE, expectedAt, FPS, IN_GOAL, MAN_PX, oddRuns, shapeAtRucks, RUN_BACK, RUN_FWD, schedule, SCREEN_MAN, screenSmooth, TARGET_S, timeline, type Baked } from '../src/ui/livepitch/fromRecord'
+import { bake, bakeOf, BALL_PX, BUILD_MAX, CLOSE_FROM, CLOSE_MARGIN, CLOSE_RATE, CLIP_RATE, expectedAt, FPS, IN_GOAL, MAN_PX, oddRuns, possessionStart, shapeAtRucks, RUN_BACK, RUN_FWD, schedule, SCREEN_MAN, screenSmooth, TARGET_S, timeline, type Baked } from '../src/ui/livepitch/fromRecord'
 
 function realMatch(seed: number): { plays: Play[]; sides: [SimSide, SimSide]; result: ReturnType<typeof simSkeleton> } {
   const g = newGame('leicester', 'T', seed)
@@ -99,15 +99,18 @@ function measure(bk: Baked): Faults {
   }
   f.view = tl.total
   f.smooth = screenSmooth(bk, tl)
-  // THE BUILD-UP TO A TRY AT LIFE SPEED: the last BUILD_MAX seconds (owner 24 Nov: never shortened) of the passage before it
-  // (the whole passage, up to 35 s, when the match has time for it)
+  // THE BUILD-UP TO A TRY AT CLIP PACE (owner: "for build ups to tries... the game should be normal speed";
+  // round 7): every play of the possession that ended in the try, from the set piece, turnover, catch or
+  // restart that began it: no frame above 2.5x (a wound-on ruck pause) and 90% of its time on screen at clip pace
   for (let n = 0; n < P.length; n++) {
-    if (P[n].kind !== 'try') continue
-    const g = bk.segs[n]
-    let st = n
-    while (st > 0 && P[st - 1].ball === P[n].side && !['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'halfTime', 'kickoff', 'yellowCard', 'redCard'].includes(P[st - 1].kind)) st--
-    const from = Math.max(bk.segs[st].a0, g.a0 - BUILD_MAX)
-    for (let fr = Math.ceil(from * FPS) + 1; fr < Math.floor(g.a0 * FPS); fr++) if (!(tl.slow[fr] === 3 || Math.abs(tl.rate[fr] - CLIP_RATE) < 1e-6)) { f.buildNotSlow.push(`try at play ${n}: ${tl.rate[fr].toFixed(2)}x ${((g.a0 - fr / FPS)).toFixed(1)} s before it`); break }
+    if (P[n].kind !== 'try' && P[n].kind !== 'penaltyTry') continue
+    const st = possessionStart(P, n), g = bk.segs[n]
+    let on = 0, clip = 0, worst = 0
+    for (let fr = Math.ceil(bk.segs[st].a0 * FPS); fr < Math.floor((g.a0 + g.act) * FPS); fr++) {
+      const r = tl.rate[fr], v = 1 / FPS / r
+      on += v; if (Math.abs(r - CLIP_RATE) < 1e-3) clip += v; worst = Math.max(worst, r)
+    }
+    if (worst > 2.5 + 1e-6 || clip < 0.9 * on) f.buildNotSlow.push(`try at play ${n} (from play ${st}, ${P[st].kind}): worst ${worst.toFixed(2)}x, ${(100 * clip / Math.max(1e-9, on)).toFixed(0)}% of ${on.toFixed(1)} s at clip pace`)
   }
   // A CLOSE GAME'S LAST FIVE MINUTES are slower: no faster than CLOSE_RATE
   const at75 = P.findIndex(p => (p.clock ?? p.t) >= CLOSE_FROM)
@@ -197,10 +200,13 @@ describe('the stadium pitch plays the record', () => {
   it(`an Extended match takes 7 to 9 minutes to watch (TARGET_S ${TARGET_S} s) (a typical match; more tries run longer), try build-ups at clip pace, close finishes slower`, () => {
     const rows = all()
     console.log('simpitch minutes:', rows.map(r => `${(r.f.view / 60).toFixed(2)} (${r.tries} tries)`).join(' '))
-    // (every match at least 7 minutes and at most 11 (round 6: the record now has many more line breaks; the lead allows try-heavy matches about 10); a typical one, the median, at most 9)
     const mins = rows.map(r => r.f.view).sort((a, b) => a - b)
     // (lead, 24 Nov round 6: "try-heavy matches may run to about 10 minutes")
-    for (const r of rows) { expect(r.f.view).toBeGreaterThanOrEqual(420); expect(r.f.view).toBeLessThanOrEqual(660) }
+    // (round 7, coordinator: 7 to 9 minutes for a match of up to six tries, and no more than 25 s more for each try beyond)
+    const long = rows.filter(r => r.f.view > 540 + 25 * Math.max(0, r.tries - 6)).map(r => `seed ${r.seed}: ${(r.f.view / 60).toFixed(2)} min with ${r.tries} tries`)
+    if (long.length) console.log('too long:', long.join('; '))
+    for (const r of rows) expect(r.f.view).toBeGreaterThanOrEqual(420)
+    expect(long).toEqual([])
     expect(mins[mins.length >> 1]).toBeLessThanOrEqual(540)
     const build = rows.flatMap(r => r.f.buildNotSlow.map(x => `seed ${r.seed} ${x}`)), close = rows.flatMap(r => r.f.closeFast.map(x => `seed ${r.seed} ${x}`))
     if (build.length) console.log(build.slice(0, 8).join('\n'))

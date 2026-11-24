@@ -32,7 +32,7 @@ export interface TickLine {
 
 const ROWS = 3
 /** a row's height and gap: the stack moves up by this as a line comes in */
-const STEP_PX = 34
+const STEP_PX = 38
 /** the flick in, in viewing seconds: quick in fast forward, the clips' pace at normal speed */
 const FLICK_FF = 0.12, FLICK_1X = 0.26
 /** how long a flash holds at full strength (viewing seconds) */

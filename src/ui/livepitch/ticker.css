@@ -1,26 +1,26 @@
 /* THE COMMENTARY TICKER (Ticker.tsx). A fixed height: lines flick through it without moving anything
    round it. The line now at the foot, two older ones above it, fading. */
 .lp-ticker {
-  position: relative; height: 112px; overflow: hidden; margin: 6px 10px 0;
+  position: relative; height: 130px; overflow: hidden; margin: 6px 10px 0;
   border-radius: 10px; background: var(--surface-1, #141a22);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22px);
   mask-image: linear-gradient(to bottom, transparent 0, #000 22px);
   contain: layout paint;
 }
 .lp-tick-row {
-  position: absolute; left: 0; right: 0; height: 30px;
+  position: absolute; left: 0; right: 0; height: 34px;
   display: flex; align-items: center; gap: 8px; padding: 0 10px;
   border-left: 4px solid transparent;
-  font-size: 0.875rem; line-height: 1.2; color: var(--text-secondary, #9aa4b2);
-  white-space: nowrap; overflow: hidden; will-change: transform, opacity;
+  font-size: 0.8125rem; line-height: 1.2; color: var(--text-secondary, #9aa4b2);
+  overflow: hidden; will-change: transform, opacity;
 }
-.lp-tick-row .txt { overflow: hidden; text-overflow: ellipsis; }
+/* (round 7: an older line wraps to two lines rather than being cut off with dots) */
+.lp-tick-row .txt { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .lp-tick-row .min { font-weight: 800; color: var(--info, #6cb4ff); min-width: 26px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
-.lp-tick-row.r0 { bottom: 4px; height: 42px; font-size: 1rem; font-weight: 600; color: var(--text-primary, #eef2f6); white-space: normal; }
-.lp-tick-row.r0 .txt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.lp-tick-row.r0 { bottom: 4px; height: 44px; font-size: 1rem; font-weight: 600; color: var(--text-primary, #eef2f6); }
 .lp-tick-row.r0.stale { color: var(--text-secondary, #9aa4b2); font-weight: 400; opacity: .7; }
-.lp-tick-row.r1 { bottom: 48px; opacity: .7; }
-.lp-tick-row.r2 { bottom: 80px; opacity: .42; }
+.lp-tick-row.r1 { bottom: 52px; opacity: .72; }
+.lp-tick-row.r2 { bottom: 90px; opacity: .45; }
 .lp-tick-row.big .txt { font-weight: 800; }
 /* the flash: the whole bar in the scoring side's colour (or the card's), over the rows */
 .lp-tick-flash {

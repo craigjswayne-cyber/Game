@@ -312,9 +312,19 @@ function deadOf(plays: Play[], n: number): number {
 
 /** the key moments (owner, 20 Nov 2026): tries, kicks at goal, cards, line
  *  breaks, turnovers in either 22, tries held up, and the run that scored */
+/** a line break that gains BIG_BREAK_M or more, ends inside their 22, or leads to a try (round 7, the coordinator's rule; at 30 or 40 m the lengths hardly change: nearly every break ends in the 22 or leads to a try) */
+export const BIG_BREAK_M = 20
+export function bigBreak(plays: Play[], n: number): boolean {
+  const p = plays[n], q = plays[n - 1] ?? p
+  const gain = (p.x - q.x) * dirOf(p.side)
+  const in22 = p.side === 0 ? p.x > 78 : p.x < 22
+  return gain >= BIG_BREAK_M || in22 || plays.slice(n + 1, n + 4).some(r => r.kind === 'try' || r.kind === 'penaltyTry')
+}
 function keyOf(plays: Play[], n: number): boolean {
   const p = plays[n], nx = plays[n + 1]
-  if (['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'yellowCard', 'redCard', 'heldUp', 'lineBreak'].includes(p.kind)) return true
+  if (['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'yellowCard', 'redCard', 'heldUp'].includes(p.kind)) return true
+  // (round 7: about eleven line breaks a match now; the big ones are key, the rest are shown at BREAK_RATE)
+  if (p.kind === 'lineBreak') return bigBreak(plays, n)
   const in22 = p.x < 22 || p.x > 78
   if (in22 && ((p.kind === 'ruck' && p.result === 'turnover') || (p.kind === 'lineout' && p.result === 'stolen') || (p.kind === 'scrum' && p.result === 'againstTheHead'))) return true
   if ((p.kind === 'carry' || p.kind === 'maul') && nx && (nx.kind === 'try' || nx.kind === 'heldUp')) return true
@@ -443,6 +453,10 @@ export const TARGET_S = 480
 export const BUILD_MAX = 35, LEAD_IN = 3, BEAT = 1
 /** a line break that does not score (round 6: the record has more of them, most run down) is shown from 1.5 s before it */
 export const LEAD_BREAK = 1.5
+/** the lead-in to a kick at goal (round 7) */
+export const LEAD_KICK = 1.5
+/** a smaller line break, not a key moment: shown at this speed, with its label, from LEAD_BREAK before it */
+export const BREAK_RATE = 3
 /** CLIP PACE (owner, 24 Nov 2026: "the normal speed of what was released in 1.9.16 and 1.9.17... it
  *  feels natural, the right speed"). The 1.9.16 highlight clips move their men at life pace (a back's
  *  sprint 9.3 m/s, passes about 14 m/s) and Live.tsx plays them at speed 0.9 on Normal, so the clip's
@@ -465,6 +479,20 @@ const F_MIN = 1.5, F_MAX = 20
 
 /** the clock of the screen: the view second each frame starts at, and its rate */
 export interface Timeline { V: Float64Array; rate: Float32Array; total: number; ff: number; slow: Uint8Array; close: boolean }
+
+/** the first play of the possession that ends at play k: the set piece, turnover, catch, tap or restart it
+ *  began with (the overseer's harmonycheck possessionStart, with the restarts added) */
+export function possessionStart(P: Play[], k: number): number {
+  const s = P[k].side
+  let j = k
+  while (j > 0) {
+    const q = P[j - 1]
+    if (q.ball !== s || ['conversion', 'penaltyGoal', 'dropGoal', 'halfTime', 'try', 'penaltyTry'].includes(q.kind)) break
+    j--
+    if (['lineout', 'scrum', 'tap', 'catch', 'kickoff', 'dropout22', 'goalLineDropout'].includes(P[j].kind) || (P[j].kind === 'ruck' && P[j].result === 'turnover') || (P[j].kind === 'carry' && P[j].result === 'intercepted')) break
+  }
+  return j
+}
 
 /** what each frame is: 1 life speed (key, try build-up, lead-in), 2 the close finish, 0 fast forward;
  *  and the most it may be wound on by the pixel limits */
@@ -503,12 +531,18 @@ function capsOf(bk: Baked, build = BUILD_MAX): { cap: Float32Array; slow: Uint8A
     if (g.key !== 2) continue
     const p = P[k]
     if (p.kind === 'try' || p.kind === 'penaltyTry') {
-      // the build-up: back through the passage of possession that ended in the try
-      let st = k
-      while (st > 0 && P[st - 1].ball === p.side && !['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'halfTime', 'kickoff', 'yellowCard', 'redCard'].includes(P[st - 1].kind)) st--
-      const from = Math.max(segs[st].a0, g.a0 - build)
-      mark(from, g.a0 + g.act + BEAT, 1)
-    } else mark(g.a0 - (p.kind === 'lineBreak' ? LEAD_BREAK : LEAD_IN), g.a0 + g.act + (p.kind === 'lineBreak' ? 0.6 : BEAT), 1)
+      // THE BUILD-UP (owner: "for build ups to tries... the game should be normal speed"; round 7): every
+      // play of the possession that ended in the try, from the set piece, turnover, catch or restart that
+      // began it, whatever its length. The ease down to clip pace is finished before that first play.
+      const st = possessionStart(P, k)
+      mark(segs[st].a0, g.a0 + g.act + BEAT, 1)
+    // (a kick at goal is set up in the dissolve before it: two seconds of the kicker over the ball is enough)
+    } else mark(g.a0 - (p.kind === 'lineBreak' ? LEAD_BREAK : p.kind === 'conversion' || p.kind === 'penaltyGoal' ? LEAD_KICK : LEAD_IN), g.a0 + g.act + (p.kind === 'lineBreak' ? 0.6 : BEAT), 1)
+  }
+  // the smaller line breaks (4): slower than fast forward, quicker than the clips, never over a build-up
+  for (let k = 0; k < P.length; k++) if (P[k].kind === 'lineBreak' && segs[k].key !== 2) {
+    const g = segs[k]
+    for (let f = Math.max(0, Math.floor((g.a0 - LEAD_BREAK) * FPS)); f < Math.min(n, Math.ceil((g.a0 + g.act + 0.6) * FPS)); f++) if (slow[f] === 0) slow[f] = 4
   }
   // the long ruck pauses of a build-up (3): after PAUSE_HOLD of a ball lying still with nobody on it, it goes
   // on at PAUSE_RATE until somebody has it. Never inside a key moment itself.
@@ -530,7 +564,7 @@ function capsOf(bk: Baked, build = BUILD_MAX): { cap: Float32Array; slow: Uint8A
 function timelineAt(bk: Baked, F: number, build = BUILD_MAX): Timeline {
   const { cap, slow, close } = capsOf(bk, build)
   const n = bk.n, rate = new Float32Array(n)
-  for (let f = 0; f < n; f++) rate[f] = slow[f] === 1 ? CLIP_RATE : slow[f] === 3 ? Math.min(PAUSE_RATE, cap[f]) : slow[f] === 2 ? Math.min(CLOSE_RATE, cap[f]) : Math.min(F, cap[f])
+  for (let f = 0; f < n; f++) rate[f] = slow[f] === 1 ? CLIP_RATE : slow[f] === 3 ? Math.min(PAUSE_RATE, cap[f]) : slow[f] === 4 ? Math.min(BREAK_RATE, cap[f]) : slow[f] === 2 ? Math.min(CLOSE_RATE, cap[f]) : Math.min(F, cap[f])
   // EASED: the speed changes by the same share every screen frame, so going from life speed to F takes at
   // least EASE_S on screen either way, and near life speed a step is as gentle as near F
   const k = Math.log(Math.max(2, F)) / EASE_S
@@ -762,6 +796,8 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
    *  once (a whole side sliding 20 m), it swings across through the middle at OS_SWING a second */
   const osC: [number, number] = [1, 1]
   const OS_SWING = 0.12
+  /** the most a side in its shape moves across together, on average (m/s): 2 s of it is 3 m, leaving room for the men with a job in the play */
+  const SIDE_VY = 1.5
   const updateAnchors = (fast: boolean) => {
     for (const s of [0, 1] as Side[]) {
       // (the further the ball has gone across, the quicker the side drifts after it: a 25 m switch is
@@ -1198,16 +1234,30 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
           return knocked && !roll && tau >= plan0.act
         }
       }
-      case 'forwardPass': case 'notStraight': case 'unplayable': case 'restartError': case 'deadBall': {
-        let started = false
+      case 'deadBall': {
+        // A DEAD BALL, BY ITS RESULT (round 7). Ran dead: it runs on to the record's `out`, beyond the
+        // dead-ball line (or touch-in-goal), and stops there; nobody picks it up first. Touched down: it rolls
+        // to the record's spot in the in-goal and a defender grounds it there.
+        const dead = p.result !== 'touchedDown'
+        const to2 = p.out ? { x: p.out[0], y: p.out[1] } : dead ? { x: lineOf(s) + d * (IN_GOAL + 2), y: clamp(ball.y, 1.5, 68.5) } : { x: lineOf(s) + d * 2, y: inY(ball.y) }
+        const grounder = dead ? -1 : nearest(other(s), to2, [], false)
+        let started = false, there = false
         return tau => {
           ctx = { k: 'hold' }
-          if (!started) { started = true; if (p.kind === 'deadBall' && holder < 0 && !fly) {
-            // (it runs on over the dead-ball line and stops beyond it, as the words say: "it runs dead")
-            // (to the record's `out` when it gives one; quickly enough to be over before the play is done)
-            const to2 = p.out ? { x: p.out[0], y: p.out[1] } : { x: lineOf(s) + d * (IN_GOAL + 2), y: clamp(ball.y, 1.5, 68.5) }
-            roll = { to: to2, v: Math.max(6, hyp(ball, to2) / Math.max(0.3, plan0.act - 0.2)) }
-          } }
+          if (!started && !fly) {
+            started = true
+            if (holder >= 0) drop()
+            ball.lift = 0
+            roll = { to: to2, v: Math.max(6, hyp(ball, to2) / Math.max(0.3, plan0.act - 0.25)) }
+          }
+          if (started && !roll && hyp(ball, to2) < 0.2) there = true
+          if (grounder >= 0) { ov[grounder] = { x: to2.x - dirOf(other(s)) * 0.35, y: to2.y, v: V_CAP }; if (there && hyp(B[grounder], to2) < 1.2 && down[grounder] <= 0) down[grounder] = 1.2 }
+          return there && tau >= plan0.act && (grounder < 0 || down[grounder] > 0 || tau > plan0.act + 3)
+        }
+      }
+      case 'forwardPass': case 'notStraight': case 'unplayable': case 'restartError': {
+        return tau => {
+          ctx = { k: 'hold' }
           return tau >= plan0.act
         }
       }
@@ -1868,6 +1918,24 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
       if (v > V_CAP) { b.vx *= V_CAP / v; b.vy *= V_CAP / v }
       b.x += b.vx * DT; b.y += b.vy * DT
       if (down[i] > 0) fl[i] |= 1
+    }
+    // NO WHOLE SIDE SLIDES ACROSS (round 7): the men in their shape (no part to play in this play, not off)
+    // move across together no quicker than SIDE_VY on average; any more is taken off them all alike. A
+    // side following a kick or a break is left alone (the chase), as is anyone with a job in the play.
+    if ((ctx as Ctx).k === 'open' || (ctx as Ctx).k === 'hold') {
+      // (the men the record names in this play and those either side of it keep their pace: they have the ball or the tackle)
+      const named = new Set<number>()
+      for (let k = Math.max(0, g.n - 1); k <= Math.min(plays.length - 1, g.n + 2); k++) { const q2 = plays[k]; for (const id of [q2.who, ...(q2.vs ?? []), ...(q2.with ?? []), ...(q2.via ?? [])]) { const sl = id ? idSlot.get(id) : undefined; if (sl != null) named.add(sl) } }
+      if (holder >= 0) named.add(holder)
+      for (const s2 of [0, 1] as Side[]) {
+        let sum = 0, c = 0
+        for (let k = 0; k < 15; k++) { const i = s2 * 15 + k; if (off[i] || named.has(i) || ov[i] || down[i] > 0) continue; sum += B[i].y - py[i]; c++ }
+        if (c < 5) continue
+        const m = sum / c, lim = SIDE_VY * DT
+        if (Math.abs(m) <= lim) continue
+        const cut = m - Math.sign(m) * lim
+        for (let k = 0; k < 15; k++) { const i = s2 * 15 + k; if (off[i] || named.has(i) || ov[i] || down[i] > 0) continue; B[i].y -= cut; B[i].vy -= cut / DT }
+      }
     }
     separate()
     // (and nobody faster than the cap after being eased apart)
