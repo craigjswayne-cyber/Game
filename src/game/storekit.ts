@@ -29,7 +29,7 @@
  * is paid for and not yet spent, and the game's existing pendingConsumables
  * recovery rows work on iOS without knowing iOS exists.
  */
-import { setBillingCause, setBillingReason } from './monetise'
+import { setBillingCause, setBillingCode, setBillingReason } from './monetise'
 import type { BillingBridge, ConsumeResult, OwnedState, Product, PurchaseOutcome } from './monetise'
 
 /** What the Swift plugin promises. Capacitor hands every method an object and
@@ -211,6 +211,7 @@ export function storeKitBridge(): BillingBridge | null {
       // do: that is a build fault on our side, and the screen must not tell
       // the player it is his country, his account or his phone
       setBillingCause('config')
+      setBillingCode('plugin') // for the feedback report: fixed words only
       return 'refused'
     }
   }

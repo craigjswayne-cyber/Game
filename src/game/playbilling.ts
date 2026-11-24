@@ -26,7 +26,7 @@
  * handshake means no bridge, which means no purchase door, which is exactly what
  * the web build should look like.
  */
-import { CONSUMABLE_SKUS, creditAdd, setBillingCause, setBillingReason, setLookupReason } from './monetise'
+import { CONSUMABLE_SKUS, creditAdd, setBillingCause, setBillingCode, setBillingReason, setLookupReason } from './monetise'
 import type { BillingBridge, ConsumeResult, Product, PurchaseOutcome } from './monetise'
 
 /** Play's own identifier for its billing service. */
@@ -225,6 +225,7 @@ export async function playBridge(): Promise<BillingBridge | null> {
           // a silence, not a refusal of this product: the player is told the
           // store could not be reached, never that it is not sold where he is
           setBillingCause('unreachable')
+          setBillingCode('stall')
           return 'refused'
         }
         res = await shown
@@ -267,6 +268,12 @@ export async function playBridge(): Promise<BillingBridge | null> {
         }
       } catch { /* the account cannot be asked; fall through and report */ }
       setBillingReason(`${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'}`)
+      // FOR THE FEEDBACK REPORT (1.9.18): fixed words only, never the message.
+      // A fast AbortError is the sheet refused before anyone could touch it;
+      // where the browser says which side closed it, that is one more word.
+      const msg = String(err?.message ?? '')
+      const side = /RESULT_CANCELED/i.test(msg) ? '/playClosed' : /user closed/i.test(msg) ? '/userClosed' : ''
+      setBillingCode((err?.name === 'AbortError' ? 'fastAbort' : String(err?.name ?? 'Error').replace(/[^A-Za-z]/g, '').slice(0, 20) || 'Error') + side)
       return 'refused'
     }
 
