@@ -1583,7 +1583,7 @@ export const SIM_EN: Record<string, string[]> = {
   flashDropMiss: [
     'Drop goal missed: {player}.',
     '{player} drops for goal: wide.',
-    '{player} snatches at the drop goal.',
+    'Drop goal missed by {player}.',
     'No drop goal from {player}.',
     'The drop goal from {team} misses.',
   ],
@@ -1593,7 +1593,7 @@ export const SIM_EN: Record<string, string[]> = {
     'Yellow card for {player}!',
     'YELLOW CARD for {team}!',
     '{player} is sin-binned!',
-    'YELLOW CARD: {player}, ten minutes.',
+    'YELLOW: {player}, ten minutes.',
   ],
   flashRed: [
     'RED CARD! {player}!',
@@ -1619,11 +1619,18 @@ export const SIM_EN: Record<string, string[]> = {
     '{team} work it wide and score.',
     '{player} finishes out wide for {team}.',
     'Out wide, {player} has the room and goes over for {team}.',
-    '{player} gets outside the last man and scores.',
     'Width from {team}, and {player} finishes it.',
     '{player} dives over out wide for {team}.',
     '{player2} gives the pass and {player} finishes out wide.',
     '{player} takes it from {player2} and finishes out wide.',
+  ],
+  tryMid: [
+    '{player} goes over from {d} metres for {team}.',
+    '{player} beats the cover from {d} out.',
+    '{d} metres out, {player} goes for it and scores.',
+    '{player} takes the pass from {player2} and goes over from {d} metres.',
+    '{team} score: {player} from {d} metres.',
+    '{player} finds a way through from {d} out for {team}.',
   ],
   tryBreak: [
     '{team} run it in.',
@@ -1649,7 +1656,7 @@ export const SIM_EN: Record<string, string[]> = {
     '{player} picks and goes, and is over.',
     '{player} burrows over from the base.',
     '{player} picks it up and dives over.',
-    'From a metre out, {player} gets it down.',
+    '{player} gets it down from short range.',
     '{player} drives over from close range for {team}.',
     '{player} picks from the base and scores.',
   ],
@@ -2012,6 +2019,90 @@ export const SIM_EN: Record<string, string[]> = {
   wxWind: ['A strong wind is blowing.'],
   wxSnow: ['Snow at kick-off.'],
   surfArtificial: ['They play on an artificial pitch today.'],
+
+  // ---- round 7: the flash headline of a key moment (48 letters or fewer); the detail follows as its own line ----
+  hlBreak: [
+    'Line break! {player}!', 'Through goes {player}!', '{player} is through!', 'Break! {player} is away!',
+    '{player} breaks the line!', 'Line break for {team}!', '{team} are through!',
+  ],
+  hlTurnover: [
+    'Turnover! {oppPlayer} wins it!', 'Turnover at the ruck!', '{oppPlayer} wins the turnover!', 'Turnover for {opp}!',
+    'Turnover! {oppPlayer} is over it!', 'Turnover! {opp} have it!',
+  ],
+  hlLastGasp: [
+    'Stopped short! {oppPlayer} saves it!', 'Brought down {d} metres short!', '{player} is stopped {d} out!',
+    'Caught {d} out by {oppPlayer}!', 'So close! Stopped {d} out!',
+    '{player} stopped {d} out!', '{player} caught {d} short!', 'Not quite! {player} stopped!', '{player} brought down {d} out!',
+  ],
+  hlHeldUp: [
+    'Held up! No try for {player}!', '{player} is held up!', 'Held up over the line!', 'Held up! {opp} keep it up!',
+    'No try! {player} is held up!', '{player} is over, but held up!', 'Held up: {player} denied!',
+  ],
+  hlHeldUpMaul: ['The maul is held up!', 'Held up in the maul!', 'The {team} maul is held up!'],
+  hlMaulOver: ['The {team} maul is over!', '{team} drive over!', 'Over they go in the maul!', '{player} at the back, over!'],
+  hlPicked: ['Intercepted! {oppPlayer}!', '{oppPlayer} picks it off!', 'Interception by {oppPlayer}!', 'Intercepted by {opp}!', 'Intercepted!'],
+  hlIntercept: ['Intercepted! {player}!', '{player} picks it off!', 'Interception by {player}!', 'Intercepted by {team}!', 'Intercepted!'],
+
+  // ---- round 7: one line for a run of plays in fast forward (the pitch shows it for the whole run) ----
+  runPhases: [
+    '{count} phases for {team}, {zone_k}.', '{team} go through {count} phases, {zone_k}.', 'Phase after phase from {team}: {count} more.',
+    '{team} recycle {count} times, {zone_k}.', '{team} hold on to it through {count} phases.', '{count} more phases, {team} {zone_k}.',
+    '{team} stay patient: {count} phases, {zone_k}.', 'On and on go {team}: {count} phases.',
+  ],
+  runQuick: [
+    '{count} quick phases, {team} {zone_k}.', 'Quick ball again and again: {count} phases for {team}.', '{team} play fast through {count} phases.',
+    'Rapid recycling from {team}: {count} phases.', 'Fast ball, {count} times over, for {team}.',
+  ],
+  runGain: [
+    '{team} make {m} metres in {count} phases.', '{m} metres over {count} phases for {team}.', '{team} eat up {m} metres, {zone_k} now.',
+    'Good ground for {team}: {m} metres in {count} phases.', '{team} march on: {m} metres, {zone_k}.', '{team} carry it on {m} metres.',
+    '{m} metres for {team}, {zone_k}.',
+  ],
+  runNoGain: [
+    'No way through for {team} after {count} phases.', '{count} phases, and {team} have gone nowhere.', '{opp} keep {team} out: {count} phases, no ground.',
+    '{team} knock at it for {count} phases, no ground.', 'Nothing doing for {team}, {count} phases in.',
+  ],
+  runBack: [
+    '{team} lose {back} metres over {count} phases.', 'Going backwards: {team} give up {back} metres.', '{opp} push {team} back {back} metres.',
+    '{team} are driven back {back} metres.', '{back} metres the wrong way for {team}.',
+  ],
+  runTwentyTwo: [
+    '{team} work their way into the {opp} 22.', 'Into the {opp} 22 go {team}, {count} phases on.', '{count} phases take {team} into the 22.',
+    '{team} are in the {opp} 22 now.', '{team} carry it into the {opp} 22.',
+  ],
+  runHalf: [
+    '{team} work it over halfway.', 'Over halfway go {team}, {count} phases in.', '{count} phases carry {team} past halfway.',
+    '{team} into the {opp} half now.', '{team} cross halfway.',
+  ],
+  runWide: [
+    '{team} shift it wide, {zone_k}.', '{team} move it across the field.', 'Side to side from {team}, {count} phases.',
+    '{team} take it out to the edge, {zone_k}.', '{team} swing it wide.',
+  ],
+  runStart: [
+    '{player} starts it; {count} phases follow.', '{player} takes it on: {count} more phases.', '{player} sets {team} going: {count} phases.',
+    '{player} first up, then {count} phases from {team}.',
+  ],
+  runShort: [
+    '{team} go again, {zone_k}.', 'More from {team}, {zone_k}.', '{team} keep it, {zone_k}.', '{team} still with it, {zone_k}.',
+    '{team} keep it moving.', 'On go {team}, {zone_k}.',
+  ],
+
+  // ---- round 7: short true words for what the picture shows, when a line has been up a while at clip pace ----
+  fillRuck: [
+    'Ball at the back of the ruck.', '{team} set up the next one.', 'The 9 stands over it.', '{team} recycle, {zone_k}.',
+    'Bodies over the ball.', 'Ruck formed, {zone_k}.', 'The 9 looks up.', '{opp} fan out in defence.',
+  ],
+  fillPhase: ['{phase} phases now.', '{team}: {phase} phases and counting.', 'That is {phase} phases.', '{phase} phases in, {zone_k}.'],
+  fillCarry: ['Support arrives for {player}.', '{team} bring their support runners.', 'Bodies arrive around {player}.', '{opp} scramble to cover.', '{team} look for support.'],
+  fillOver: ['{opp} scramble to stop him.', 'Bodies pile in.', 'The defence piles in.', 'Can {player} get it down?'],
+  fillBreak: ['{opp} chase back.', '{player} has the legs.', 'The cover comes across.', '{player} keeps going.'],
+  fillDefence: ['{opp} set their line.', '{opp} defence up and set.', '{opp} reset in defence.', '{opp} count their numbers.'],
+  fillKick: ['The ball hangs in the air.', 'The chasers go up.', 'Up it goes.', 'Eyes on the ball.'],
+  fillGoal: ['{player} lines it up.', 'The kicker takes his time.', 'Quiet for the kick.', '{player} eyes the posts.', 'Tee down, {player} steps back.'],
+  fillLineout: ['The jumpers get set.', '{team} call the throw.', 'The lineout forms.', '{team} line up their jumpers.'],
+  fillScrum: ['The packs crouch and bind.', 'Front rows set.', 'The scrum sets.', 'The packs get down.'],
+  fillMaul: ['The maul forms.', '{team} drive on.', 'Bodies in the maul.', '{team} roll the maul.'],
+  fillClock: ['{left} minutes to go. {home} {hs}, {away} {as}.', '{home} {hs}, {away} {as}, {left} minutes left.', '{left} minutes on the clock, {gap} in it.'],
 }
 
 /** the flat dictionary the game's locale files will hold: 'sim.kickTouch2' -> words */
