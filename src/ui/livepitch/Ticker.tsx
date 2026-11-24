@@ -35,6 +35,8 @@ const ROWS = 3
 const STEP_PX = 34
 /** the flick in, in viewing seconds: quick in fast forward, the clips' pace at normal speed */
 const FLICK_FF = 0.12, FLICK_1X = 0.26
+/** how long a flash holds at full strength (viewing seconds) */
+const FLASH_S = 2
 
 export function Ticker({ lines, feed, kits }: { lines: TickLine[]; feed: RecordFeed; kits: { home: [string, string]; away: [string, string] } }) {
   // the newest line in at the clock now (its index), kept in state so the rows render when it changes
@@ -44,6 +46,7 @@ export function Ticker({ lines, feed, kits }: { lines: TickLine[]; feed: RecordF
   const bar = useRef<HTMLDivElement>(null)
   const flashEl = useRef<HTMLDivElement>(null)
   const sorted = useMemo(() => [...lines].sort((a, b) => a.at - b.at), [lines])
+  const flashFor = useRef(-1), flashAt = useRef(Infinity)
 
   useEffect(() => {
     let raf = 0
@@ -63,14 +66,21 @@ export function Ticker({ lines, feed, kits }: { lines: TickLine[]; feed: RecordF
       const dy = ((1 - e) * STEP_PX).toFixed(1)
       if (r0) { r0.style.transform = `translateY(${dy}px)`; r0.style.opacity = (0.2 + 0.8 * e).toFixed(3) }
       for (let j = 1; j < ROWS; j++) { const r = rowEls.current[j]; if (r) r.style.transform = `translateY(${dy}px)` }
-      // a stale line (its hold over, the pitch a play or more on) fades back with the old ones
-      const stale = L && (age > L.hold && feed.n > L.n + 1)
-      if (r0) r0.classList.toggle('stale', !!stale)
-      // THE FLASH: full for its hold, then eased off over a third of a second
+      // A STALE LINE (round 6): once the pitch has moved on past its play it dims at once, in fast forward
+      // as at normal speed, so a line is never read as describing a play it is not
+      const stale = L && (feed.n > L.n + 1 || (feed.n > L.n && (age > Math.min(L.hold, 1.2) || feed.ff)))
+      if (r0) { r0.classList.toggle('stale', !!stale); if (stale && e >= 1) r0.style.opacity = '0.6' }
+      // THE FLASH starts when the score lands on the pitch (the scoreboard ticks over on the same frame):
+      // a sweep of the side's colour across the bar, held about two seconds, then eased off
       const fl = flashEl.current, b = bar.current
       if (fl && b) {
-        const on = L && L.flash && L.flash !== 'key' ? clampN(1 - (age - L.hold) / 0.35, 0, 1) * clampN(age / 0.08, 0, 1) : 0
+        if (L && L.flash && L.flash !== 'key' && flashFor.current !== i && (feed.n > L.n || (feed.n === L.n && feed.landed))) { flashFor.current = i; flashAt.current = v }
+        if (flashAt.current > v) { flashFor.current = -1; flashAt.current = Infinity }
+        const fa = flashFor.current === i ? v - flashAt.current : Infinity
+        const on = fa < Infinity ? clampN(1 - (fa - FLASH_S) / 0.35, 0, 1) : 0
+        const sweep = clampN(fa / 0.3, 0, 1), se = 1 - (1 - sweep) * (1 - sweep)
         fl.style.opacity = on.toFixed(3)
+        fl.style.clipPath = `inset(0 ${((1 - se) * 100).toFixed(1)}% 0 0)`
         b.classList.toggle('flashing', on > 0.5)
       }
       raf = requestAnimationFrame(tick)

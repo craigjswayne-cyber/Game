@@ -48,6 +48,7 @@ const FROM = Number(q.get('from') ?? 0)
 const X = Number(q.get('x') ?? 1)
 const CAPTURE = q.get('cap') === '1'
 const COMPARE = q.get('compare') === '1'
+if (q.get('disc')) (globalThis as { __lpDisc?: number }).__lpDisc = Number(q.get('disc'))
 
 const tr = (k: string, v?: Record<string, string | number>) => {
   let x: unknown = en

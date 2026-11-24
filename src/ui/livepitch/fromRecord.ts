@@ -123,6 +123,8 @@ function runK(t: number, T: number, ta: number, a0 = 0): number {
 
 /** where a play leaves the ball, as the record has it */
 const spot = (p: Play): Pt => ({ x: p.x, y: p.y })
+/** where a penalty goal is kicked from: the mark, or 5 m out when the mark is on the line (the law) */
+const goalSpot = (p: Play): Pt => (Math.abs(lineOf(p.side) - p.x) < 5 ? { x: lineOf(p.side) - dirOf(p.side) * 5, y: p.y } : spot(p))
 
 /** the record's restart and stoppage entries that stop play: the next play is a set piece */
 const SET_NEXT = new Set(['scrum', 'lineout', 'kickoff', 'dropout22', 'goalLineDropout', 'conversion', 'penaltyGoal'])
@@ -192,7 +194,13 @@ export function kickGeo(plays: Play[], n: number): KickGeo {
   const p = plays[n], q = plays[n - 1] ?? p
   const A = spot(q), dir = dirOf(p.side)
   let L = spot(p)
-  if (p.result === 'outOnFull') L = { x: A.x + dir * 18, y: overTouch(p.y, 1.8) }
+  // (round 6: the record says where it truly came down: `out`, past the line, for a kick into touch or
+  // out on the full; `land` otherwise, which for a kick that runs dead is in the in-goal)
+  if (p.out && p.result === 'outOnFull') L = { x: p.out[0], y: p.out[1] }
+  // (into touch: over the line at the record's spot and on as far as `out` is past it, along its flight)
+  else if (p.out && (p.y <= 0.5 || p.y >= 69.5)) L = pastLine(A, spot(p), Math.max(0.8, hyp(spot(p), { x: p.out[0], y: p.out[1] })))
+  else if (p.land) L = { x: p.land[0], y: p.land[1] }
+  else if (p.result === 'outOnFull') L = { x: A.x + dir * 18, y: overTouch(p.y, 1.8) }
   // (to touch: it lands over the touchline, not on it)
   else if (p.y <= 0.5 || p.y >= 69.5) L = pastLine(A, L, 1.5)
   const fromMark = q.kind === 'penalty' || q.kind === 'freeKick'
@@ -433,6 +441,8 @@ export const TARGET_S = 480
  *  the clock gone) runs its last minutes at CLOSE_RATE. Every change of speed is eased over at
  *  least EASE_S seconds on screen: never a step. */
 export const BUILD_MAX = 35, LEAD_IN = 3, BEAT = 1
+/** a line break that does not score (round 6: the record has more of them, most run down) is shown from 1.5 s before it */
+export const LEAD_BREAK = 1.5
 /** CLIP PACE (owner, 24 Nov 2026: "the normal speed of what was released in 1.9.16 and 1.9.17... it
  *  feels natural, the right speed"). The 1.9.16 highlight clips move their men at life pace (a back's
  *  sprint 9.3 m/s, passes about 14 m/s) and Live.tsx plays them at speed 0.9 on Normal, so the clip's
@@ -498,7 +508,7 @@ function capsOf(bk: Baked, build = BUILD_MAX): { cap: Float32Array; slow: Uint8A
       while (st > 0 && P[st - 1].ball === p.side && !['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'halfTime', 'kickoff', 'yellowCard', 'redCard'].includes(P[st - 1].kind)) st--
       const from = Math.max(segs[st].a0, g.a0 - build)
       mark(from, g.a0 + g.act + BEAT, 1)
-    } else mark(g.a0 - LEAD_IN, g.a0 + g.act + BEAT, 1)
+    } else mark(g.a0 - (p.kind === 'lineBreak' ? LEAD_BREAK : LEAD_IN), g.a0 + g.act + (p.kind === 'lineBreak' ? 0.6 : BEAT), 1)
   }
   // the long ruck pauses of a build-up (3): after PAUSE_HOLD of a ball lying still with nobody on it, it goes
   // on at PAUSE_RATE until somebody has it. Never inside a key moment itself.
@@ -730,6 +740,8 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
   const ay: [number, number] = [35, 35]
   /** the ball's x, followed over about a second: the lines go up and back with the play, not with every pass and step */
   let bxs = 50
+  /** and its y, the same way: the forwards set their pods and their guards off the ruck */
+  let bys = 35
   /** THE DEFENSIVE LINE, HELD STEADY (round 5: it pulsed up and back each phase in fast forward). Where it
    *  wants to be (rawLine) and where it is (dLine), which moves towards it at no more than LINE_V */
   let dLine = 50
@@ -746,6 +758,10 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
   }
   /** the open side (the side of the anchor with more room), held until the play is well over the middle */
   const osOf: [number, number] = [1, 1]
+  /** THE SHAPE TURNS OVER SLOWLY (round 6): when the open side changes, the side's shape does not flip at
+   *  once (a whole side sliding 20 m), it swings across through the middle at OS_SWING a second */
+  const osC: [number, number] = [1, 1]
+  const OS_SWING = 0.12
   const updateAnchors = (fast: boolean) => {
     for (const s of [0, 1] as Side[]) {
       // (the further the ball has gone across, the quicker the side drifts after it: a 25 m switch is
@@ -754,6 +770,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
       ay[s] += clamp(want - ay[s], -dv, dv)
       if (ay[s] < 24) osOf[s] = 1
       else if (ay[s] > 46) osOf[s] = -1
+      osC[s] = fast ? osOf[s] : osC[s] + clamp(osOf[s] - osC[s], -OS_SWING * DT, OS_SWING * DT)
     }
   }
   /** the attack's left, in y: side 0 attacks towards x = 100 with its left at y = 0 (formScrum) */
@@ -765,31 +782,35 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
   }
   /** 1-3-3-1: [metres behind the ball, metres across from the anchor] by shirt index, the open side positive */
   // (round 5: wider, after measuring 17 of the 30 within 10 m across of the ball at a ruck and the attack 30 m wide)
-  const POD: Record<number, [number, number]> = { 0: [2.5, -9], 1: [3.4, -11], 2: [2.5, -13], 3: [2.5, 9], 4: [3.4, 11], 7: [2.5, 13], 5: [3.2, -26], 6: [3.2, 26] }
+  // (round 6: wider again, to the real shape: pods across 45 m and more, the ruck left to three or four a side)
+  const POD: Record<number, [number, number]> = { 0: [2.5, -12], 1: [3.4, -14], 2: [2.5, -16], 3: [2.5, 12], 4: [3.4, 14], 7: [2.5, 16], 5: [3.2, -26], 6: [3.2, 26] }
   const attackSpot = (k: number, s: Side, bx: number): Pt => {
-    const d = dirOf(s), A = ay[s], os = osOf[s]
+    const d = dirOf(s), A = ay[s], os = osC[s], osSide = osOf[s]
     if (k === 10 || k === 13) {
-      const open = (k === 10 ? leftOf(s) : -leftOf(s)) === os
+      const open = (k === 10 ? leftOf(s) : -leftOf(s)) === osSide
       return { x: bx - d * (open ? 10 : 8), y: wingLane(s, k, A) }
     }
-    if (k === 14) return { x: bx - d * 13, y: inY(lerp(A, 35, 0.5) + os * 6) }
-    const BACK: Record<number, [number, number]> = { 8: [1.5, 1], 9: [6, 8.5], 11: [7.5, 18], 12: [9, 28] }
+    if (k === 14) return { x: bx - d * 13, y: inY(A + os * 13) }
+    const BACK: Record<number, [number, number]> = { 8: [1.5, 1], 9: [6, 11], 11: [7.5, 20], 12: [9, 30] }
     const t2 = BACK[k] ?? POD[k] ?? [3, 0]
-    return { x: bx - d * t2[0], y: clamp(A + os * t2[1], 4, 66) }
+    // (the forwards' pods are set off the ruck itself, followed over a second or so; the backs off the slower anchor)
+    return { x: bx - d * t2[0], y: clamp((k < 8 ? bys : A) + os * t2[1], 4, 66) }
   }
   /** the defence: a flat line at lx (the forwards nearest the ruck, then the backs out across), the 9
    *  sweeping behind the ruck, the near wing up in the line, the far wing and the 15 deep */
-  const DEF_ACROSS = [-2.6, 2.4, 6, -6.4, 10, -11, 14, -16.5]
+  // (a guard and a bodyguard each side of the ruck, then the line out across the field 5 m apart)
+  const DEF_ACROSS = [2.2, -2.2, 10.5, -10.5, 15.5, -15.5, 20.5, -20]
   const defenceSpot = (k: number, s: Side, lx: number): Pt => {
-    const da = -dirOf(s), A = ay[s], os = osOf[s]
+    const da = -dirOf(s), A = ay[s], os = osC[s]
     if (k === 8) return { x: lx + da * 5, y: A }
-    if (k === 14) return { x: lx + da * 18, y: inY(lerp(A, 35, 0.5)) }
+    // (the 15 covers the open side's backfield; the far wing drops into the other half of it)
+    if (k === 14) return { x: lx + da * 18, y: inY(A + os * 14) }
     if (k === 10 || k === 13) {
       const lane = wingLane(s, k, A), near = Math.abs(lane - A) < 35
       return { x: lx + da * (near ? 0.5 : 12), y: lane }
     }
-    const across = k < 8 ? DEF_ACROSS[k] : k === 9 ? 19 : k === 11 ? 25.5 : 32
-    return { x: lx + da * (k < 8 ? 0 : 0.6), y: clamp(A + os * across, 3, 67) }
+    const across = k < 8 ? DEF_ACROSS[k] : k === 9 ? 25.5 : k === 11 ? 30.5 : 35.5
+    return { x: lx + da * (k < 8 ? 0 : 0.6), y: clamp((k < 8 ? bys : A) + os * across, 3, 67) }
   }
   const targetOf = (i: number): Ov => {
     const s = sideOfSlot(i), k = i % 15, fwd = k < 8
@@ -822,7 +843,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     // a man whose way to his place is mostly across the field jogs there: nobody sprints sideways off the ball
     const dx = Math.abs(o.x - B[i].x), dyy = Math.abs(o.y - B[i].y)
     // (but a wing gets back to his touchline at a run: holding the width is his job)
-    if (dyy > dx) o.v = Math.min(o.v, k === 10 || k === 13 ? 6 : dyy > 8 ? 4.5 : 2.1)
+    if (dyy > dx) o.v = Math.min(o.v, k === 10 || k === 13 ? 6 : dyy > 8 ? 3.6 : dyy > 3 ? 3.0 : 2.1)
     return o
   }
 
@@ -977,7 +998,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         if (nx.result === 'quick') return null
         const tY = nx.y < 35 ? 0 : 70; return { at: formLineout(s, nx.x, tY), fetch: who(nx.who, s, 2), spot: { x: nx.x, y: tY + (tY === 0 ? 0.6 : -0.6) } }
       }
-      case 'penaltyGoal': { const kk = who(nx.who, s, 10); return { at: formGoal(s, spot(nx)), fetch: kk, spot: spot(nx) } }
+      case 'penaltyGoal': { const kk = who(nx.who, s, 10); return { at: formGoal(s, goalSpot(nx)), fetch: kk, spot: goalSpot(nx) } }
       case 'kick': { const kk = who(nx.who, s, 10); return { at: formPenalty(s, spot(plays[nx.n - 1] ?? nx)), fetch: kk, spot: spot(plays[nx.n - 1] ?? nx) } }
       case 'tap': { const kk = who(undefined, s, 9); return { at: formPenalty(s, spot(nx)), fetch: kk, spot: spot(nx) } }
       default: return null
@@ -1161,7 +1182,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         let started = false
         return tau => {
           ctx = { k: 'hold' }
-          if (!started) { started = true; const out = { x: to.x, y: to.y < 35 ? -1.2 : 71.2 }; if (p.result === 'bounced') { if (holder < 0 && !fly) roll = { to: out, v: 8 } } else if (holder >= 0) drop(out) }
+          if (!started) { started = true; const out = p.out ? { x: p.out[0], y: p.out[1] } : { x: to.x, y: to.y < 35 ? -1.2 : 71.2 }; if (p.result === 'bounced') { if (holder < 0 && !fly) roll = { to: out, v: 8 } } else if (holder >= 0) drop(out) }
           return tau >= Math.min(plan0.act, 0.4) && !roll
         }
       }
@@ -1183,7 +1204,9 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
           ctx = { k: 'hold' }
           if (!started) { started = true; if (p.kind === 'deadBall' && holder < 0 && !fly) {
             // (it runs on over the dead-ball line and stops beyond it, as the words say: "it runs dead")
-            roll = { to: { x: lineOf(s) + d * (IN_GOAL + 2), y: clamp(ball.y, 1.5, 68.5) }, v: 6 }
+            // (to the record's `out` when it gives one; quickly enough to be over before the play is done)
+            const to2 = p.out ? { x: p.out[0], y: p.out[1] } : { x: lineOf(s) + d * (IN_GOAL + 2), y: clamp(ball.y, 1.5, 68.5) }
+            roll = { to: to2, v: Math.max(6, hyp(ball, to2) / Math.max(0.3, plan0.act - 0.2)) }
           } }
           return tau >= plan0.act
         }
@@ -1300,7 +1323,9 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         return tau => { ctx = { k: 'form', at, v: V_JOG }; ov[nine] = { x: M.x - d * 0.35, y: M.y, v: 6.5 }; pickUp(nine); return holder === nine && tau >= 0.6 }
       }
       case 'penaltyGoal': case 'conversion': case 'dropGoal': {
-        const K = p.kind === 'conversion' ? conSpot(s, p.y) : p.kind === 'dropGoal' ? { x: p.x - d * 1.8, y: p.y } : spot(p)
+        // (a penalty given on the line is kicked from 5 m out, as the law has it)
+        const K0 = p.kind === 'conversion' ? conSpot(s, p.y) : p.kind === 'dropGoal' ? { x: p.x - d * 1.8, y: p.y } : spot(p)
+        const K = p.kind === 'penaltyGoal' ? goalSpot(p) : K0
         const kk = who(p.who, s, 10)
         // (it crosses the try line between the uprights, 32.2 to 37.8, or outside them, and flies on 3 m)
         const posts = pastLine(K, { x: lineOf(s), y: p.good ? 35 : 35 + (p.y >= 35 ? 1 : -1) * 4.6 }, 3)
@@ -1325,10 +1350,18 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
       }
       case 'try': {
         const scorer = holder >= 0 && sideOfSlot(holder) === s ? holder : who(p.who, s, 11)
-        const at = { x: lineOf(s) + d * 1.2, y: inY(p.y) }
+        const close = q?.kind === 'carry' && (q.shape === 'pickAndGo' || q.result === 'overTheLine') && Math.abs(lineOf(s) - q.x) < 6
+        const at = { x: lineOf(s) + d * (close ? 0.6 : 1.2), y: inY(p.y) }
+        // (close range: two of his bound on driving him over, three of theirs on the line holding them)
+        const drivers = close ? nearestN(s, at, 2, [scorer], true) : [], wall = close ? nearestN(o, at, 3, [], false) : []
         let down0 = -1
         return tau => {
           ctx = { k: 'hold' }
+          if (close && down0 < 0) {
+            drivers.forEach((i, j) => { ov[i] = { x: B[scorer].x - d * 0.8, y: inY(B[scorer].y + (j ? 0.6 : -0.6)), v: V_CAP }; fl[i] |= 2 })
+            wall.forEach((i, j) => { ov[i] = { x: lineOf(s) + d * 0.2, y: inY(at.y + (j - 1) * 0.9), v: 6 }; if (hyp(B[i], B[scorer]) < 2.2) fl[i] |= 2 })
+            if (holder === scorer) fl[scorer] |= 2
+          }
           if (down0 < 0) {
             if (holder !== scorer && !fly) pickUp(scorer)
             ov[scorer] = { x: at.x - d * 0.35, y: at.y, v: 7, place: holder === scorer }
@@ -1344,13 +1377,23 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         // AN OFFLOAD: in the tackle the carrier slips it to the man on his shoulder (the record's `with`)
         const giver = holder >= 0 && sideOfSlot(holder) === s ? holder : who(p.who, s, 8)
         const recv = who(p.with?.[0], s, 12)
-        const at = spot(p), rSpot = { x: at.x - d * 0.5, y: inY(at.y + (at.y < 35 ? 1.2 : -1.2)) }
+        const at = spot(p)
+        // (his shoulder on the side away from the tacklers, where there is room for a man to run onto it: a
+        // receiver sent to a spot a tackler stands on is held off it by the others and never gets there)
+        let rSpot = { x: at.x - d * 0.5, y: inY(at.y + (at.y < 35 ? 1.2 : -1.2)) }
+        let placed = false
         let thrown = false
         return tau => {
+          if (!placed) {
+            placed = true
+            const room = (c: Pt) => { let m = Infinity; for (let i = 0; i < 30; i++) if (i !== giver && i !== recv && !off[i]) m = Math.min(m, hyp(B[i], c)); return m }
+            const cands = [1.2, -1.2, 1.8, -1.8].map(dy => ({ x: at.x - d * 0.5, y: inY(at.y + dy) })).filter(c => Math.abs(c.y - at.y) > 0.9)
+            rSpot = cands.reduce((a, c) => (room(c) > room(a) + 0.2 ? c : a), cands[0])
+          }
           ctx = { k: 'open', att: s, O: at, tOut: Infinity, lean: at.y < 35 ? 1 : -1 }
           ov[recv] = { x: rSpot.x, y: rSpot.y, v: V_CAP }
           if (holder === giver) ov[giver] = { x: B[giver].x, y: B[giver].y, v: 1, a: 30 }
-          if (!thrown && holder === giver && (hyp(B[recv], rSpot) < 0.8 || tau > 4)) { thrown = true; throwTo(recv, 0.3, 0.4); down[giver] = 0.8 }
+          if (!thrown && holder === giver && (hyp(B[recv], rSpot) < 0.8 || tau > 6)) { thrown = true; throwTo(recv, 0.3, 0.4); down[giver] = 0.8 }
           if (!thrown && holder < 0 && !fly) { pickUp(recv); ov[recv] = { x: ball.x, y: ball.y, v: V_CAP } }
           return holder === recv && tau >= 0.3
         }
@@ -1431,20 +1474,43 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     const thief = p.result === 'intercepted' ? who(p.vs?.[0], o, 13) : -1
     // the man who gives the last pass, when the record names him
     const giver = p.with?.[0] ? who(p.with[0], s, 9) : -1
-    const mids: Pt[] = []
+    let mids: Pt[] = []
     for (let k = 1; k < g.passes; k++) {
       const f = k / g.passes
       const to = thief >= 0 ? { x: g.A.x - d * 4, y: g.B.y } : g.R
       mids.push({ x: lerp(g.A.x - d * 1.5, to.x, f), y: inY(lerp(g.A.y, to.y, f)) })
     }
-    const chain: number[] = []
+    let chain: number[] = []
     for (const k of [9, 11, 12, 14, 8, 10, 13]) {
       if (chain.length >= mids.length) break
       const i = s * 15 + k
       if (i !== carrier && i !== giver && !off[i]) chain.push(i)
     }
     if (giver >= 0 && giver !== carrier && mids.length) chain[chain.length - 1] = giver
-    return { p, g, carrier, tk, mids: mids.slice(0, chain.length), chain, thief, giver: g.passes === 1 && giver !== carrier ? giver : -1 }
+    // THE SHAPE IT IS RUN IN (round 6: the record's `shape`, with the men in `via`). Each is drawn so a
+    // watcher can tell it from the others: a pod's three together, a tip-on short, the pull-back behind a
+    // front runner who carries on as the dummy, the miss pass over a man, the loop round the back, the
+    // switch cutting across, the kick pass in the air.
+    const L = Math.sign(g.B.y - g.A.y) || (openSide(g.A.y) >= 0 ? 1 : -1)
+    let Rs = thief >= 0 ? g.B : g.R
+    const sh = g.self || g.fwdPass || thief >= 0 ? undefined : p.shape
+    let podMates: number[] = [], decoy = -1, skipped = -1, loop = false, crossing = false, kickPass = false
+    const via = (p.via ?? []).map(id => who(id, s, 9)).filter(i => i !== carrier && !off[i])
+    if (sh && via.length >= 2 && via.length - 1 === chain.length && new Set(via).size === via.length) chain = via.slice(1)
+    const A0 = g.A, M = (dx: number, dy: number): Pt => ({ x: A0.x - d * dx, y: inY(A0.y + L * dy) })
+    const fwds = (n2: number, skip: number[]) => { const o2: number[] = []; for (const k of [3, 4, 5, 6, 7, 0, 1, 2]) { const i = s * 15 + k; if (o2.length < n2 && !off[i] && !skip.includes(i) && i !== carrier) o2.push(i) } return o2 }
+    if (sh === 'tipOn' && chain.length >= 1) { mids[mids.length - 1] = M(2, 3); Rs = M(1.4, 4.6) }
+    else if (sh === 'pod' || sh === 'oneOut') { Rs = M(2.5, sh === 'pod' ? 5 : 3.5); if (sh === 'pod') podMates = fwds(2, [...chain, giver]) }
+    else if (sh === 'podOff' && chain.length >= 1) { mids[mids.length - 1] = M(6, 7); Rs = M(3.5, 11); podMates = fwds(2, [...chain, giver]) }
+    else if (sh === 'pullBack' && chain.length >= 1) { mids[mids.length - 1] = M(1.6, 6); Rs = M(6.5, 8.5); decoy = chain[chain.length - 1] }
+    else if (sh === 'miss' && chain.length >= 1) {
+      const lm = mids[mids.length - 1]
+      Rs = { x: lm.x, y: inY(lm.y + L * 11) }
+      for (const k of [11, 12, 10, 13, 9, 7]) { const i = s * 15 + k; if (!off[i] && i !== carrier && !chain.includes(i)) { skipped = i; break } }
+    } else if ((sh === 'loop' || sh === 'wraparound') && chain.length >= 1) { const lm = mids[mids.length - 1]; Rs = { x: lm.x - d * 1.5, y: inY(lm.y + L * 3.5) }; loop = true }
+    else if (sh === 'switch' && chain.length >= 1) { const lm = mids[mids.length - 1]; Rs = { x: lm.x - d * 0.6, y: inY(lm.y + L * 1.2) }; crossing = true }
+    else if (sh === 'kickPass') kickPass = true
+    return { p, g, carrier, tk, mids: mids.slice(0, chain.length), chain, thief, giver: g.passes === 1 && giver !== carrier ? giver : -1, Rs, L, sh, podMates, decoy, skipped, loop, crossing, kickPass }
   }
   /** is the next play's main man where it needs him */
   const ready = (m: number): boolean => {
@@ -1452,7 +1518,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     if (!p) return true
     if (p.kind === 'carry' || p.kind === 'lineBreak') {
       const { g, carrier, chain, mids } = carryMen(m)
-      return (g.passes === 0 || hyp(B[carrier], g.R) < 3.5) && chain.every((i, j) => hyp(B[i], mids[j]) < 4)
+      return (g.passes === 0 || hyp(B[carrier], carryMen(m).Rs) < 3.5) && chain.every((i, j) => hyp(B[i], mids[j]) < 4)
     }
     if (p.kind === 'kick') {
       const g = kickGeo(plays, m), kk = who(p.who, p.side, p.kick === 'box' ? 9 : 10)
@@ -1461,11 +1527,13 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     return true
   }
   const carryCtl = (n: number): Ctl => {
-    const { p, g, carrier, tk, mids, chain: mids2, thief, giver } = carryMen(n)
+    const { p, g, carrier, tk, mids, chain: mids2, thief, giver, Rs, L, podMates, decoy, skipped, loop, crossing, kickPass } = carryMen(n)
     const s = p.side, o = other(s), d = g.dir
     // (an interception: the last pass is thrown for the carrier and taken by their man in the lane)
     const chain = [...mids2, thief >= 0 ? thief : carrier]
-    const spots = [...mids, thief >= 0 ? g.B : g.R]
+    const spots = [...mids, Rs]
+    let passedAt = -1
+    const latch = p.shape === 'pickAndGo' ? nearestN(s, g.A, 2, [carrier, ...mids2], true) : []
     let first = -1, next = 0, sent = 0
     let run: { from: Pt; T: number; a0: number; t0: number } | null = null
     let spilt = -1, fwdAt = -1, stolen = -1
@@ -1481,19 +1549,39 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         first = holder >= 0 && sideOfSlot(holder) === s ? holder
           : g.passes === 0 ? carrier
           : giver >= 0 && hyp(B[giver], ball) < 6 ? giver
-          : want >= 0 && sideOfSlot(want) === s && !mids2.includes(want) ? want : nearest(s, g.A, [carrier, ...mids2], false)
+          : want >= 0 && sideOfSlot(want) === s && !mids2.includes(want) ? want : nearest(s, g.A, [carrier, ...mids2, ...podMates, skipped, decoy], false)
       }
       if (holder !== first && holder < 0 && !fly && next === 0) { pickUp(first); ov[first] = { x: ball.x - d * 0.35, y: ball.y, v: V_CAP } }
       // the receivers into their places, the carrier into his (an intercepted carrier still runs his line)
       // (and a man keeps his place while the ball is in the air to him)
       chain.forEach((i, j) => { if ((j >= next || (fly && j === next - 1)) && i !== holder) ov[i] = { x: spots[j].x, y: spots[j].y, v: V_CAP } })
+      const lastPasser = mids2.length ? mids2[mids2.length - 1] : -1
+      if ((loop || crossing) && lastPasser >= 0 && holder !== carrier && !run) {
+        const lp = spots[spots.length - 2]
+        // the loop: he waits inside the man with it, then goes round the back of him; the switch: he waits
+        // outside, and the man with it drifts across towards him before he cuts back in
+        if (loop) ov[carrier] = holder === lastPasser || (fly && next === chain.length - 1) ? { x: lp.x - d * 2.6, y: inY(lp.y + L * 1.8), v: V_CAP } : { x: lp.x - d * 1.2, y: inY(lp.y - L * 1.6), v: V_CAP }
+        else { ov[carrier] = holder === lastPasser ? { x: Rs.x, y: Rs.y, v: V_CAP } : { x: lp.x - d * 1.2, y: inY(lp.y + L * 5), v: V_CAP }; if (holder === lastPasser) ov[lastPasser] = { x: lp.x, y: inY(lp.y + L * 3), v: 4.5 } }
+      }
+      // A PICK AND GO (round 6: it read as a static pile): one or two of his forwards latch on behind him
+      // and drive, bound to him, low; the defence meets them on its line
+      if (p.shape === 'pickAndGo' && run) latch.forEach((i, j) => { ov[i] = { x: B[carrier].x - d * 0.8, y: inY(B[carrier].y + (j ? 0.6 : -0.6)), v: V_CAP }; if (hyp(B[i], B[carrier]) < 1.6) fl[i] |= 2 })
+      // a pod: the two either side of him go with him into the line
+      if (podMates.length) podMates.forEach((i, j) => { if (i !== holder && i !== first) ov[i] = run ? { x: B[carrier].x - d * 0.9, y: inY(B[carrier].y + (j ? 1.7 : -1.7)), v: V_CAP } : { x: Rs.x - d * 0.8, y: inY(Rs.y + (j ? 1.7 : -1.7)), v: V_CAP } })
+      // the pull-back's front runner carries on hard at the line as the dummy; the miss pass's skipped man runs his line
+      if (decoy >= 0 && passedAt >= 0 && holder !== decoy && tau - passedAt < 1.4) ov[decoy] = { x: spots[spots.length - 2].x + d * 5, y: inY(spots[spots.length - 2].y + L * 1.2), v: 7.5 }
+      if (skipped >= 0 && skipped !== first && skipped !== holder && !run) { const lm = spots[spots.length - 2]; ov[skipped] = passedAt >= 0 ? { x: lm.x + d * 3, y: inY(lm.y + L * 5.5), v: 7 } : { x: lm.x - d * 0.5, y: inY(lm.y + L * 5.5), v: V_CAP } }
       if (thief >= 0 && holder !== carrier) ov[carrier] = { x: g.R.x === g.B.x ? g.B.x - d * 3 : g.R.x, y: g.B.y + (g.B.y < 35 ? 4 : -4), v: V_CAP }
       // the passes: each when its man is in place (or when he has kept them waiting long enough)
       if (!run && next < chain.length && !fly && holder >= 0 && holder !== chain[next] && tau >= g.pick && tau - sent >= 0.2) {
         const to = chain[next], dist = hyp(ball, B[to])
         const last = next === chain.length - 1
         if (hyp(B[to], spots[next]) < (last ? (thief >= 0 ? 0.8 : 1.5) : 2.5) || tau > g.pick + (last && thief >= 0 ? 8 : 4) + next) {
-          throwTo(to, clamp(dist / 17, 0.25, 0.95), Math.min(1.2, 0.4 + dist / 20))
+          const lastPass = next === chain.length - 1
+          if (lastPass) passedAt = tau
+          // (the kick pass goes up and over to the wing; the miss pass is long and a little higher)
+          if (lastPass && kickPass) throwTo(to, Math.max(0.9, dist / 15), Math.min(9, 3 + dist / 5))
+          else throwTo(to, clamp(dist / (lastPass && skipped >= 0 ? 19 : 17), 0.25, 0.95), Math.min(1.8, 0.4 + dist / (lastPass && skipped >= 0 ? 12 : 20)))
           next++; sent = tau
         }
       } else if (!run && next < chain.length && holder === chain[next]) next++
@@ -1527,11 +1615,38 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
         else ov[i] = { ...meet, v: Math.min(V_CAP, Math.max(5, hyp(B[i], meet) / Math.max(0.3, rem) + 1.5)) }
         if (rem < 0.35 && hyp(B[i], ball) < 2) fl[i] |= 2
       })
+      // PURPOSE OFF THE BALL (round 6; the clips' support runs at 6 m/s and their defenders at 5.3): two of
+      // his own trail him at pace, one either shoulder, and the nearest defenders not making the tackle come
+      // across to it from inside
+      if (run && !g.brk) {
+        const near = (side: Side, skip: number[], c: Pt, nmax: number) => {
+          const out: number[] = []
+          const cand: { i: number; d: number }[] = []
+          for (let k = 0; k < 15; k++) { const i = side * 15 + k; if (off[i] || skip.includes(i) || down[i] > 0 || ov[i]) continue; cand.push({ i, d: hyp(B[i], c) }) }
+          cand.sort((a, b) => a.d - b.d)
+          for (const c2 of cand) { if (out.length >= nmax || c2.d > 18) break; out.push(c2.i) }
+          return out
+        }
+        const cp = { x: B[carrier].x, y: B[carrier].y }
+        near(s, [carrier, ...chain], cp, 2).forEach((i, j) => {
+          ov[i] = { x: cp.x - d * 2.5, y: inY(cp.y + (j ? 2.4 : -2.4)), v: i % 15 >= 8 ? 8.5 : 7 }
+        })
+        const meet = { x: g.B.x + d * 1.5, y: g.B.y }
+        near(o, tk, meet, 2).forEach((i, j) => {
+          ov[i] = { x: meet.x + d * 0.5, y: inY(meet.y + (j ? 2.6 : -2.6)), v: 6.5 }
+        })
+      }
       // a break: the rest of their side turn and chase him
       if (g.brk && run) {
+        // (the 15 runs the angle to cut him off where the record has him stopped; the far wing comes across late)
+        const fb = o * 15 + 14, gone = tau - run.t0
+        if (!off[fb] && !tk.includes(fb)) ov[fb] = { x: g.B.x + d * 1.5, y: g.B.y, v: 9.2 }
         for (let k = 0; k < 15; k++) {
           const i = o * 15 + k
-          if (off[i] || tk.includes(i)) continue
+          if (off[i] || tk.includes(i) || i === fb) continue
+          // (the far wing holds his touchline a second before he comes across)
+          const farWing = (k === 10 || k === 13) && Math.abs(B[i].y - ball.y) > 25
+          if (farWing && gone < 1) continue
           const ahead = (B[i].x - ball.x) * d > 0
           ov[i] = ahead ? { x: lerp(B[i].x, g.B.x + d * 3, 0.5), y: lerp(B[i].y, g.B.y, 0.5), v: 8.5 } : { x: ball.x - d * (2 + (k % 4)), y: inY(ball.y + ((k % 5) - 2) * 2), v: 8.4 }
         }
@@ -1554,11 +1669,12 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     const put = (i: number, o2: Ov) => { if (i >= 0 && !off[i] && !ov[i] && i !== holder && i !== want && down[i] <= 0) ov[i] = o2 }
     if (p.kind === 'carry' || p.kind === 'lineBreak') {
       const { g, carrier, tk, mids, chain, thief } = carryMen(m)
-      put(carrier, { x: g.R.x, y: g.R.y, v: soon ? 7 : 5 })
+      const { Rs } = carryMen(m)
+      put(carrier, { x: Rs.x, y: Rs.y, v: soon ? 7 : 5 })
       if (thief >= 0) put(thief, { x: lerp(B[thief].x, g.B.x, soon ? 0.7 : 0.3), y: lerp(B[thief].y, g.B.y, soon ? 0.7 : 0.3), v: 8 })
       chain.forEach((i, j) => put(i, { x: mids[j].x, y: mids[j].y, v: soon ? 6 : 4.5 }))
       const B2 = { x: g.B.x + g.dir * 2.5, y: g.B.y }
-      tk.forEach(i => { const t2 = targetOf(i); put(i, { x: lerp(t2.x, B2.x, soon ? 0.6 : 0.35), y: lerp(t2.y, B2.y, soon ? 0.6 : 0.35), v: 5 }) })
+      tk.forEach(i => { const t2 = targetOf(i); put(i, { x: lerp(t2.x, B2.x, soon ? 0.3 : 0.12), y: lerp(t2.y, B2.y, soon ? 0.3 : 0.12), v: 5 }) })
     } else if (p.kind === 'kick' && plays[m - 1]) {
       const g = kickGeo(plays, m), kk = who(p.who, p.side, p.kick === 'box' ? 9 : 10)
       if (g.fromHand && p.kick !== 'box') put(kk, { x: g.A.x - g.dir * 7, y: inY(g.A.y + (g.A.y < 35 ? 3 : -3)), v: 8 })
@@ -1734,6 +1850,7 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
     // (under a kick everyone holds his lane, and so does the anchor: the side moves across once the ball is caught)
     if ((ctx as Ctx).k !== 'kick') updateAnchors((ctx as Ctx).k === 'form' || (ctx as Ctx).k === 'hold')
     bxs += (ball.x - bxs) * Math.min(1, DT / 0.9)
+    bys += clamp((ball.y - bys) * Math.min(1, DT / 1.2), -3 * DT, 3 * DT)
     // (a new passage, or a line far off where it should be, is taken up at once: only the phase-to-phase sway is held)
     if ((ctx as Ctx).k === 'open') { const want = rawLine(); dLine = Math.abs(want - dLine) > 12 ? want : dLine + clamp(want - dLine, -LINE_V * DT, LINE_V * DT) }
     // ---- the men
@@ -1833,13 +1950,15 @@ export function expectedAt(p: Play, next?: Play): { x?: number; y?: number; tol:
     case 'conversion': return { y: clamp(p.y, 5, 65), tol: 1.5 }
     // (struck 1.8 m behind the ruck the record puts it at)
     case 'dropGoal': return { x: p.x - dirOf(p.side) * 1.8, y: p.y, tol: 1.6 }
+    case 'penaltyGoal': return { ...goalSpot(p), tol: 1.6 }
     case 'try': case 'heldUp': return { x: p.x, y: clamp(p.y, 1, 69), tol: 2.5 }
     case 'notStraight': case 'restartError': case 'unplayable': case 'forwardPass': return { tol: Infinity }
     // (a forward pass is written where it was thrown from: it is caught a stride or two in front of that)
     case 'carry': return p.result === 'forwardPass' ? { x: p.x, y: p.y, tol: 4 } : { x: p.x, y: p.y, tol: 1.6 }
     // (an offload is taken a stride from the tackle the record puts it at)
     case 'offload': return { x: p.x, y: p.y, tol: 2.5 }
-    case 'kick': return p.result === 'outOnFull' ? { y: p.y, tol: 2 } : { x: p.x, y: p.y, tol: 1.6 }
+    // (round 6: a kick is marked where it truly came down)
+    case 'kick': return p.out && p.result === 'outOnFull' ? { x: p.out[0], y: p.out[1], tol: 1.6 } : p.out && (p.y <= 0.5 || p.y >= 69.5) ? { x: p.x, y: p.y, tol: 2.4 } : p.land ? { x: p.land[0], y: p.land[1], tol: 1.6 } : p.result === 'outOnFull' ? { y: p.y, tol: 2 } : { x: p.x, y: p.y, tol: 1.6 }
     case 'kickoff': return { x: p.x, tol: 2 }
     case 'knockOn': case 'maul': return { x: p.x, y: p.y, tol: 2.6 }
     // (the ball comes back to the No. 8's feet, 1.8 m behind the mark, and the 9 has it there)
@@ -2020,6 +2139,26 @@ export class RecordFeed {
  * whole-side slide: the mean sideways move of a side's men over two seconds, where the side is not
  * going towards a ball 5 m or more off its middle (a side drifting after a switch is meant).
  */
+/** THE SHAPE AT A RUCK (round 6: "about half the 30 are within 10 m across of the ball"). At recycled
+ *  rucks, sampled four times a second: how many of the 30 stand within 10 m across of the ball (median),
+ *  and how wide the attack and the defence are, second man to fourteenth (median, metres). */
+export function shapeAtRucks(bk: Baked): { near: number; attackWidth: number; defenceWidth: number; samples: number } {
+  const P = bk.plays, near: number[] = [], aw: number[] = [], dw: number[] = []
+  const med = (a: number[]) => { const b = [...a].sort((x, y) => x - y); return b.length ? b[b.length >> 1] : NaN }
+  for (let f = 0; f < bk.n; f += Math.round(FPS / 4)) {
+    const p = P[bk.seg[f]]
+    if (p.kind !== 'ruck' || p.result !== 'recycled') continue
+    const a = bk.poss[f], by = bk.ball[f * 3 + 1]
+    let c = 0
+    for (let i = 0; i < 30; i++) if (Math.abs(bk.pos[f * 62 + i * 2 + 1] - by) < 10) c++
+    near.push(c)
+    const ys = (s: number) => Array.from({ length: 15 }, (_, k) => bk.pos[f * 62 + (s * 15 + k) * 2 + 1]).sort((x, y) => x - y)
+    const ay2 = ys(a), dy2 = ys(1 - a)
+    aw.push(ay2[13] - ay2[1]); dw.push(dy2[13] - dy2[1])
+  }
+  return { near: med(near), attackWidth: med(aw), defenceWidth: med(dw), samples: near.length }
+}
+
 export function oddRuns(bk: Baked, sides?: [RecSide, RecSide]) {
   const P = bk.plays, W = 2 * FPS
   const slotOf = new Map<string, number>()

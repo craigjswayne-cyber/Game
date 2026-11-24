@@ -897,7 +897,10 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // (smaller than they were: the reference draws a man about a metre and a
       // half across and lets a pack overlap)
       // (in the painted ground the pitch is a smaller share of the panel, so the men are a touch smaller)
-      const R0 = Math.max(dim.art ? 5.2 : 6.5, sc * 1.45)
+      // (round 6: a size up, towards the 1.9.16 clips' 7.2 px: measured on seed 4242, a disc of 6.3 px has
+      // another over a third of it for 55% of the men in open play, against 49% at 5.2 px and 60% in the clips)
+      // (the preview's ?disc= sets it, for before-and-after stills)
+      const R0 = Math.max(dim.art ? ((globalThis as { __lpDisc?: number }).__lpDisc ?? 6.3) : 6.5, sc * 1.45)
       let R = R0
       const { home: H, away: A, names: N } = io.current
       const carrierId = feed ? (feed.who != null ? Number(feed.who) : undefined) : io.current.carrierId
@@ -983,7 +986,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       if (S.holder >= 0) dot(S.holder)
 
       // the ball: on the man's shoulder in hand, off its shadow in the air
-      const br = Math.max(3.6, R * 0.5) * (1 + S.ball.lift * 0.03)
+      // (in fast forward the ball is a little bigger and ringed, so it is not lost among the men)
+      const ffBall = !!feed?.ff
+      const br = Math.max(3.6, R * 0.5) * (1 + S.ball.lift * 0.03) * (ffBall ? 1.2 : 1)
       const inHand = S.holder >= 0 && !flying
       const bx = SX(S.ball.x, S.ball.y) + (inHand ? R * 0.7 : 0), by = SY(S.ball.x, S.ball.y) - (inHand ? R * 0.6 : 0)
       // a real ball: its shadow stays on the grass and softens as it climbs,
@@ -995,6 +1000,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       {
         const cy = by - S.ball.lift * sc * 0.45
+        if (ffBall) { g.beginPath(); g.arc(bx, cy, br * 1.55, 0, Math.PI * 2); g.lineWidth = 1.6; g.strokeStyle = 'rgba(255,255,255,.85)'; g.stroke() }
         g.beginPath(); g.ellipse(bx, cy, br * 0.72, br, 0.5, 0, Math.PI * 2)
         g.fillStyle = ink.ball; g.fill()
         const bg = g.createRadialGradient(bx - br * 0.3, cy - br * 0.4, br * 0.05, bx, cy, br * 1.05)
@@ -1131,7 +1137,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   return (
     <div className={`live-pitch${night ? '' : ' day'}`} data-testid="live-pitch" data-phase={feed ? (onGrass ?? phase).kind : phase.kind}>
       <canvas ref={canvas} className="lp-canvas" />
-      {chip && <div className="lp-chip" key={`c${now.at}`}><i style={{ background: (now.homeBall ? home : away).kit[0] }} />{chip}</div>}
+      {/* (never two labels on top of each other: the chip steps aside while a plate is up over the far stand) */}
+      {chip && !(plateUp && (banner || flash || NOTE.has(now.label))) && <div className="lp-chip" key={`c${now.at}`}><i style={{ background: (now.homeBall ? home : away).kit[0] }} />{chip}</div>}
       {/* WHAT JUST HAPPENED, AND WHOSE BALL IT IS (owner, 19 Nov 2026: "Suddenly
           northampton have the ball? Everything needs to be clear and explained
           visually"). A change of possession or a stoppage was only the small

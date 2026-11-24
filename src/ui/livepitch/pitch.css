@@ -4,10 +4,10 @@
    the play is down by the near touchline. It fades in and out (LivePitch sets its opacity on the feed's
    clock). A card is drawn under the team name. */
 .live-pitch .lp-banner, .live-pitch .lp-banner.low, .live-pitch .lp-banner.high, .live-pitch .lp-banner.note {
-  inset: auto auto 2.5% 50%; transform: translateX(-50%); padding: 3px 12px 4px; gap: 1px; max-width: 72%; min-width: 0;
-  border-radius: 10px; background: rgba(8, 12, 10, .8); text-shadow: none;
+  inset: auto auto 1% 50%; transform: translateX(-50%); padding: 3px 12px 4px; gap: 1px; max-width: 72%; min-width: 0;
+  border-radius: 10px; background: rgba(8, 12, 10, .94); text-shadow: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
 }
-.live-pitch .lp-banner.up, .live-pitch .lp-banner.note.up { inset: 2.5% auto auto 50%; }
+.live-pitch .lp-banner.up, .live-pitch .lp-banner.note.up { inset: 1% auto auto 50%; }
 .live-pitch .lp-banner b { font-size: .875rem; line-height: 1.05; }
 .live-pitch .lp-banner.good b { padding: 0 22px; }
 .live-pitch .lp-banner em { top: 3px; right: 8px; font-size: .625rem; }
