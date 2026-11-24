@@ -8,7 +8,7 @@
 // line, and a match does not repeat itself.
 import { describe, it, expect } from 'vitest'
 import { simSkeleton, simWithDecisions } from '../src/game/sim/skeleton'
-import { commentate, render, thin, feed, SILENT, SUMMARY, FALLBACK, BASE_KINDS, MUST, TICK, HOLDS, FAST, type Line, type Context } from '../src/game/sim/commentary'
+import { commentate, render, thin, feed, halvesOf as halves, SILENT, SUMMARY, FALLBACK, BASE_KINDS, MUST, TICK, HOLDS, FAST, type Line, type Context } from '../src/game/sim/commentary'
 import { SIM_EN as WORDS, MOVE_EN } from '../src/game/sim/commentary.en'
 import { SIM_EN, EN_FLAT } from '../src/game/sim/commentary.en'
 import type { Play, SimResult } from '../src/game/sim/record'
@@ -637,15 +637,31 @@ describe('the ticker: short lines, flashes, no silence in a try build-up', () =>
     expect(long).toEqual([])
   })
 
-  it('a ticker line is short: under 60 characters with 14-letter names and team names', () => {
+  it('a ticker line is 70 characters or fewer, a fuller line 90 or fewer or split in two that are (18-letter names, 14-letter teams)', () => {
     const long: string[] = []
-    const NAME = 'Abcdefghijklmn', longestMove = Math.max(...Object.values(MOVE_EN).map(x => x.length))
-    for (const b of TICK) for (const w of WORDS[b] ?? []) {
-      const t = w.replace(/\{(player|player2|oppPlayer|team|opp)\}/g, NAME).replace(/\{(m|d|phase|count)\}/g, '22')
-        .replace(/\{move_k\}/g, 'x'.repeat(longestMove)).replace(/\{kick_k\}/g, 'cross-field kick').replace(/\{zone_k\}/g, `inside the ${NAME} 22`)
-      if (t.length > 60) long.push(`${b}: ${t} (${t.length})`)
+    const NAME = 'Abcdefghijklmnopqr', TEAM = 'Abcdefghijklmn', longestMove = Math.max(...Object.values(MOVE_EN).map(x => x.length))
+    const longestCause = Math.max(...Object.keys(WORDS).filter(b => /^cause/.test(b)).map(b => WORDS[b][0].length))
+    for (const b of Object.keys(WORDS)) for (const w of WORDS[b] ?? []) {
+      if (/^(zone|cause|nth|kind|type|need)[A-Z]/.test(b)) continue
+      const t = w.replace(/\{(player|player2|oppPlayer)\}/g, NAME).replace(/\{(team|opp|home|away|winner)\}/g, TEAM).replace(/\{(m|d|phase|count|hs|as|ht|at|men|pct|hp|ap|made|taken|mins|margin|deficit|a|b|pts|lost|total)\}/g, '22')
+        .replace(/\{move_k\}/g, 'x'.repeat(longestMove)).replace(/\{kick_k\}/g, 'cross-field kick').replace(/\{zone_k\}/g, `inside the ${TEAM} 22`)
+        .replace(/\{cause_k\}/g, 'x'.repeat(longestCause)).replace(/\{(\w+)\}/g, 'xxxxxxxxxx')
+      if (TICK.has(b)) { if (t.length > 70) long.push(`${b}: ${t} (${t.length})`); continue }
+      if (t.length <= 90) continue
+      const h = halves(t)
+      if (!h || h[0].length > 90 || h[1].length > 90) long.push(`${b}: ${t} (${t.length})`)
     }
     expect(long).toEqual([])
+  })
+
+  it('a line over 90 characters on the ticker is shown as its two halves', () => {
+    let split = 0
+    for (const { lines } of runs) for (const l of lines) {
+      const t = render(l)
+      expect(t.length, l.key).toBeLessThanOrEqual(l.reg === 'tick' ? 90 : 120)
+      if (l.part) { split++; expect(t.length).toBeLessThanOrEqual(90) }
+    }
+    expect(split).toBeGreaterThan(0)
   })
 
   it('a try build-up never goes quiet: every play of the possession that scores has a line, and the last metres are said', () => {
@@ -711,11 +727,11 @@ describe('the ticker: short lines, flashes, no silence in a try build-up', () =>
     for (const { r, lines } of runs.slice(0, 100)) {
       const slots = scheduleOf(r), idx = new Map(slots.map((x, i) => [x.n, i]))
       const shown = feed(lines, slots)
-      const set = new Set(shown.map(x => x.line))
+      const set = new Set(shown.map(x => lines[x.i]))
       for (const l of lines) {
         if (l.flash) expect(set.has(l), `flash ${l.key} dropped`).toBe(true)
         const sp = slots[idx.get(l.n)!].speed
-        if (sp <= FAST) { life++; if (set.has(l)) lifeShown++; if (l.reg === 'tick') { lifeTick++; if (set.has(l)) lifeTickShown++ } } else { ff++; if (set.has(l)) ffShown++ }
+        if (sp <= FAST) { life++; if (set.has(l)) lifeShown++; if (l.reg === 'tick' && l.priority >= 0) { lifeTick++; if (set.has(l)) lifeTickShown++ } } else { ff++; if (set.has(l)) ffShown++ }
       }
       for (const x of slots) if (x.speed > FAST) ffTime += x.dur
       for (let i = 0; i < shown.length; i++) {
@@ -725,7 +741,7 @@ describe('the ticker: short lines, flashes, no silence in a try build-up', () =>
         if (i) {
           expect(x.at).toBeGreaterThanOrEqual(shown[i - 1].at)
           // the ticker keeps the order of the record (a flash keeps its own time in its window)
-          if (!x.line.flash && !shown[i - 1].line.flash) expect(lines.indexOf(x.line)).toBeGreaterThan(lines.indexOf(shown[i - 1].line))
+          if (!x.line.flash && !shown[i - 1].line.flash) expect(x.i).toBeGreaterThan(shown[i - 1].i)
           // in fast forward never more than three new lines a second, at life speed 0.6 s apart (a flash may be forced closer)
           const fastBoth = slots[k].speed > FAST && slots[idx.get(shown[i - 1].line.n)!].speed > FAST
           if (!x.line.flash && !shown[i - 1].line.flash) expect(x.at - shown[i - 1].at, `${x.line.key}`).toBeGreaterThanOrEqual((fastBoth ? 1 / 3 : 0.33) - 0.011)
@@ -743,6 +759,86 @@ describe('the ticker: short lines, flashes, no silence in a try build-up', () =>
     expect(ffShown / ffTime).toBeLessThanOrEqual(3)
     // (this schedule is harsher than the pitch's: six plays at life speed before every key moment, every ruck included)
     expect(quietMax).toBeLessThanOrEqual(4.05)
+  })
+})
+
+describe('round 6: shapes, shirt numbers, phase counts, the voice', () => {
+  const SHAPE: Record<string, string> = { oneOut: 'shOneOut', pod: 'shPod', tipOn: 'shTipOn', snipe: 'shSnipe', pullBack: 'shPullBack', podOff10: 'shPodTen',
+    miss: 'shMiss', loop: 'shLoop', wraparound: 'shWrap', switch: 'shSwitch', kickPass: 'shKickPass' }
+
+  it('every shape the record plays is said, by the man the record names', () => {
+    const seen = new Set<string>()
+    for (const { r, lines } of runs) for (const p of r.plays) {
+      if (p.kind !== 'carry' || !p.shape || !SHAPE[p.shape] || !['gainLine', 'held', 'drivenBack', 'overTheLine', 'knockedOn', 'forwardPass'].includes(p.result)) continue
+      // (the same shape by the same two men as the carry before is not said twice running: the carry line says it)
+      const pc = r.plays.slice(0, p.n).reverse().find(q => q.kind === 'carry')
+      if (pc && pc.shape === p.shape && pc.who === p.who && pc.with?.[0] === p.with?.[0]) continue
+      const ls = lines.filter(l => l.n === p.n)
+      const l = ls.find(x => baseOf(x.key) === SHAPE[p.shape!])
+      expect(l, `${p.shape} at ${p.n}`).toBeDefined()
+      if (l!.params.player2 !== undefined) expect(l!.params.player2).toBe(`P${p.with?.[0]}`)
+      seen.add(p.shape)
+    }
+    expect([...seen].sort()).toEqual(Object.keys(SHAPE).filter(k => seen.has(k)).sort())
+    expect(seen.size).toBeGreaterThanOrEqual(8)
+  })
+
+  it('quick and slow ball only when the record says so; a held-short break and an isolated turnover only where they happen', () => {
+    for (const { r, lines } of runs) for (const l of lines) {
+      const p = r.plays[l.n], b = baseOf(l.key)
+      if (b === 'tickRuckQuick') expect(p.speed).toBe('quick')
+      if (b === 'tickRuckSlow') expect(p.speed).toBe('slow')
+      if (b === 'turnoverIsolated') expect(prevOf(r.plays, l.n).kind).toBe('lineBreak')
+      if (b === 'yellowRepeated') expect(p.result).toBe('repeated')
+      if (b === 'tickRunOn') expect(['clean', 'interception', 'hauledDown']).toContain(p.result)
+      if (b === 'tickChase') expect(['heldShort']).toContain(p.result)
+    }
+  })
+
+  it('a man named with his shirt number in the last six lines is named without it; a flash and a first mention keep it', () => {
+    const numbered = (id: string) => `N${id.replace(/\W/g, '')} (${((id.length * 3 + id.charCodeAt(id.length - 1)) % 15) + 1})`
+    for (const { r } of runs.slice(0, 20)) {
+      const lines = commentate(r, { teams: TEAMS, player: numbered })
+      const seen = new Set<string>()
+      lines.forEach((l, i) => {
+        for (const k of ['player', 'player2', 'oppPlayer']) {
+          const v = l.params[k]
+          if (typeof v !== 'string') continue
+          const bare = v.replace(/ \(\d+\)$/, '')
+          if (v === bare) {
+            expect(l.flash, `${l.key} drops the number on a flash`).toBeNull()
+            expect(seen.has(bare), `${bare} first mention without a number`).toBe(true)
+            const recent = lines.slice(Math.max(0, i - 6), i).some(q => Object.values(q.params).some(x => typeof x === 'string' && x.startsWith(bare + ' (')))
+            expect(recent, `${bare} without a number at line ${i}`).toBe(true)
+          }
+          seen.add(bare)
+        }
+      })
+    }
+  })
+
+  it('the ticker never says a bare phase number unless the phase before it was shown', () => {
+    for (const { r, lines } of runs.slice(0, 60)) {
+      let at = 0
+      const slots = r.plays.map(p => { const speed = 4 + (p.n % 7); const dur = Math.max(0.2, (p.live + Math.min(p.dead, 3)) / speed); const x = { n: p.n, start: at, dur, speed }; at += dur; return x })
+      let last = -1
+      for (const x of feed(lines, slots)) {
+        // (a count, "6 phases now", is a phase line shown too)
+        const t = render(x.line), m = /\b[Pp]hase (\d+)\b/.exec(t), c = /\b(\d+) phases\b/.exec(t)
+        if (m) { const ph = Number(m[1]); if (ph > 1 && ph !== last) expect(ph, `"${t}" after phase ${last}`).toBe(last + 1); last = ph }
+        else if (c) last = Number(c[1])
+      }
+    }
+  })
+
+  it('two matches read differently: the sentences (names and numbers taken out) are under 60% alike on average', () => {
+    const tm = (ls: Line[]) => { const m = new Map<string, number>(); for (const l of ls) { const t = render(l).replace(/P\d:\w+/g, '#').replace(/\d+/g, '0'); m.set(t, (m.get(t) ?? 0) + 1) } return m }
+    const cos = (a: Map<string, number>, b: Map<string, number>) => { let d = 0, na = 0, nb = 0; for (const [k, v] of a) { na += v * v; d += v * (b.get(k) ?? 0) } for (const v of b.values()) nb += v * v; return d / Math.sqrt(na * nb) }
+    const ms = runs.slice(0, 20).map(x => tm(x.lines))
+    let sum = 0, n = 0
+    for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) { sum += cos(ms[i], ms[j]); n++ }
+    console.log(`words alike between matches: ${(100 * sum / n).toFixed(1)}`)
+    expect(sum / n).toBeLessThan(0.6)
   })
 })
 
@@ -828,7 +924,7 @@ describe('the feed fits the pitch, and a match does not repeat itself', () => {
     }
     expect(short.sort()).toEqual([])
     // the commonest ticker lines: at least eight wordings in use
-    for (const b of ['tickCarry', 'tickTackle', 'tickPass', 'tickRuck', 'kickBox', 'kickLong', 'catchKick']) expect(per.get(b)?.keys.size ?? 0, b).toBeGreaterThanOrEqual(8)
+    for (const b of ['tickCarry', 'tickTackle', 'tickRuck', 'shOneOut', 'shPod', 'kickBox', 'kickLong', 'catchKick'].map(b => (b === 'tickRuck' ? 'tickRuckQuick' : b))) expect(per.get(b)?.keys.size ?? 0, b).toBeGreaterThanOrEqual(8)
   })
 
   it('is the same on a re-run', () => {

@@ -68,10 +68,18 @@ export interface Line {
   reg: 'tick' | 'full'
   /** set by thin() when it fits the lines to the pitch's schedule: the second of viewing the line goes up */
   at?: number
+  /** a sentence too long for the ticker (over 90 characters) is shown as two lines: which half this is */
+  part?: 1 | 2
 }
 
 /** a line as the ticker shows it: when (viewing seconds, on the pitch's schedule) and for how long */
-export interface Shown { line: Line; at: number; hold: number }
+export interface Shown {
+  line: Line
+  at: number
+  hold: number
+  /** its index in the lines given to feed() (the line itself may be a copy: a phase number said as a count) */
+  i: number
+}
 
 export interface Names {
   teams: [string, string]
@@ -155,8 +163,11 @@ export const BASE_KINDS: Record<string, PlayKind[]> = {
   dropGlHeld: ['goalLineDropout'], dropGlTouched: ['goalLineDropout'], dropGl: ['goalLineDropout'],
   catchKo: ['catch'], regatherKo: ['catch'], catchKick: ['catch'], regatherKick: ['catch'], catchDrop: ['catch'], regatherDrop: ['catch'], chargeRegather: ['catch'],
   carryBig: ['carry'], carryBack: ['carry'], offload: ['offload'],
-  tickPass: ['carry', 'lineBreak'], tickHands: ['carry', 'lineBreak'], tickCarry: ['carry'], tickGain: ['carry'], tickHeld: ['carry'], tickTackle: ['carry'], tickNear: ['carry'], tickLine: ['carry'], tickOver: ['carry'],
-  tickLaunch: ['carry', 'lineBreak'], tickFirst: ['carry', 'lineBreak'], tickRuck: ['ruck'], tickRuckNear: ['ruck'], tickRuckWhistle: ['ruck'], tickRuckStuck: ['ruck'], tickContest: ['catch'], tickScrumWon: ['scrum'], pickGo: ['carry'], carryTouch: ['carry'], intercepted: ['carry'], phases: ['ruck'], turnover: ['ruck'],
+  tickPass: ['carry', 'lineBreak'], tickHands: ['carry', 'lineBreak'], tickCarry: ['carry'], tickCarryOn: ['carry'], tickToTouch: ['kick'], tickGain: ['carry'], tickHeld: ['carry'], tickTackle: ['carry'], tickNear: ['carry'], tickLine: ['carry'], tickOver: ['carry'],
+  tickLaunch: ['carry', 'lineBreak'], tickFirst: ['carry', 'lineBreak'],
+  shOneOut: ['carry', 'lineBreak'], shPod: ['carry', 'lineBreak'], shTipOn: ['carry', 'lineBreak'], shSnipe: ['carry', 'lineBreak'], shPullBack: ['carry', 'lineBreak'],
+  shPodTen: ['carry', 'lineBreak'], shMiss: ['carry', 'lineBreak'], shLoop: ['carry', 'lineBreak'], shWrap: ['carry', 'lineBreak'], shSwitch: ['carry', 'lineBreak'], shKickPass: ['carry', 'lineBreak'],
+  tickRuckQuick: ['ruck'], tickRuckSlow: ['ruck'], tickRuckNext: ['ruck'], phaseCount: ['ruck'], tickRunOn: ['lineBreak'], tickChase: ['lineBreak'], tickHalfway: ['lineBreak', 'carry'], tickIntoTwentyTwo: ['lineBreak', 'carry'], turnoverIsolated: ['ruck'], yellowRepeated: ['yellowCard'], tickScrumSet: ['scrum'], tickRuck: ['ruck'], tickRuckNear: ['ruck'], tickRuckWhistle: ['ruck'], tickRuckStuck: ['ruck'], tickContest: ['catch'], tickScrumWon: ['scrum'], pickGo: ['carry'], carryTouch: ['carry'], intercepted: ['carry'], phases: ['ruck'], turnover: ['ruck'],
   breakClean: ['lineBreak'], breakHauled: ['lineBreak'], breakLastGasp: ['lineBreak'], interceptRun: ['lineBreak'], interceptHauled: ['lineBreak'],
   forwardPass: ['forwardPass'], unplayableRuck: ['unplayable'], unplayableMaul: ['unplayable'],
   koKnock: ['knockOn'], highKnock: ['knockOn'], chaseKnock: ['knockOn'], contactKnock: ['knockOn'],
@@ -212,6 +223,8 @@ const PRI: Record<string, number> = {
   handlingCount: 0, outFullCount: 0, turnoversCount: 0, tryType: 0, introVenue: 0, weatherKnock: 0, subFirst: 0, backFromBin: 0,
   phases: 0, loWon: 0, carryBack: 0, catchKick: 1, catchKo: 1, catchDrop: 1, maulOut: 1, maulNoGain: 1, freeKickKick: 1,
   winBy: 3, binBack: 3,
+  shOneOut: 1, shPod: 1, shTipOn: 1, shSnipe: 1, shPullBack: 1, shPodTen: 1, shMiss: 1, shLoop: 1, shWrap: 1, shSwitch: 1, shKickPass: 1,
+  tickCarryOn: -1, tickToTouch: -1, tickRuckQuick: 1, tickRuckSlow: 0, tickRuckNext: 0, phaseCount: 0, tickRunOn: 1, tickChase: 1, tickHalfway: 1, tickIntoTwentyTwo: 1, tickScrumSet: 0,
   tickPass: 1, tickHands: 1, tickCarry: 1, tickGain: 1, tickHeld: 1, tickTackle: 0, tickNear: 2, tickLine: 2, tickOver: 2, tickLaunch: 1, tickFirst: 1,
   tickRuck: 0, tickRuckNear: 1, tickRuckWhistle: 1, tickRuckStuck: 1, tickFlight: 0, tickRoll: 0, tickMaul: 1, tickMaulStop: 1, tickStop: 0, tickContest: 1, tickScrumWon: 1,
 }
@@ -219,6 +232,8 @@ const priorityOf = (base: string, level: Line['level']) => (level === 'key' || M
 
 /** the ticker register: short lines for the run of play */
 export const TICK = new Set([
+  'shOneOut', 'shPod', 'shTipOn', 'shSnipe', 'shPullBack', 'shPodTen', 'shMiss', 'shLoop', 'shWrap', 'shSwitch', 'shKickPass',
+  'tickCarryOn', 'tickToTouch', 'tickRuckQuick', 'tickRuckSlow', 'tickRuckNext', 'phaseCount', 'tickRunOn', 'tickChase', 'tickHalfway', 'tickIntoTwentyTwo', 'tickScrumSet',
   'tickPass', 'tickHands', 'tickCarry', 'tickGain', 'tickHeld', 'tickTackle', 'tickNear', 'tickLine', 'tickOver', 'tickLaunch', 'tickFirst', 'tickRuck', 'tickRuckNear', 'tickRuckWhistle', 'tickRuckStuck',
   'tickContest', 'tickScrumWon', 'carryBig', 'carryBack', 'pickGo', 'offload', 'catchKo', 'catchKick', 'catchDrop',
   'kickBox', 'kickLong', 'kickHigh', 'kickGrubber', 'kickCross', 'kickChip', 'kickOther', 'freeKickKick', 'tickFlight', 'tickRoll', 'tickMaul', 'tickMaulStop', 'tickStop',
@@ -235,12 +250,12 @@ const STATS = new Set(['statTackles', 'statCarries', 'statMetres', 'statTurnover
 
 /** placeholders the record may or may not fill (a man's name, the reason for a penalty): a wording is
  *  only used when each it holds is filled, and the wordings that say the most are used first */
-const NAME_PH = ['player', 'player2', 'oppPlayer', 'cause_k', 'move_k', 'zone_k'] as const
+const NAME_PH = ['player', 'player2', 'oppPlayer', 'cause_k', 'move_k', 'zone_k', 'phase'] as const
 const NEEDS: Record<string, string[][]> = Object.fromEntries(
   Object.entries(SIM_EN).map(([b, list]) => [b, list.map(s => NAME_PH.filter(k => s.includes(`{${k}}`)))]),
 )
-/** the passer is said in some wordings and not others: it does not decide which wordings may be used */
-const SECONDARY: Record<string, string> = { tickTackle: 'player', tickHeld: 'oppPlayer', tickLaunch: 'player', tryPickGo: 'player2', tryClose: 'player2', tryWide: 'player2', tryBreak: 'player2', breakClean: 'player2', breakHauled: 'player2', carryBig: 'player2' }
+/** a man said in some wordings and not others, even when he is the main one: he never decides which wordings may be used */
+const SECONDARY: Record<string, string> = { tickChase: 'player', turnoverIsolated: 'player', penRuckAtt: 'player', shPod: 'player2', shWrap: 'player2', shSwitch: 'player2', shOneOut: 'player2', tickTackle: 'player', tickHeld: 'oppPlayer', tickLaunch: 'player', tryPickGo: 'player2', tryClose: 'player2', tryWide: 'player2', tryBreak: 'player2', breakClean: 'player2', breakHauled: 'player2', carryBig: 'player2' }
 
 const mix = (a: number) => {
   a = Math.imul(a ^ (a >>> 16), 0x45d9f3b); a = Math.imul(a ^ (a >>> 16), 0x45d9f3b)
@@ -287,9 +302,27 @@ export const HOLDS = new Set<PlayKind>(['carry', 'offload', 'ruck', 'maul', 'lin
 /** a side holds the ball inside the other side's 22 at the end of this play; null for a play that says nothing either way */
 export const in22 = (p: Play, s: 0 | 1): boolean | null => (HOLDS.has(p.kind) ? p.ball === s && toLine(s, p.x) <= 22 : null)
 
-/** the ticker's first word on a carry: the called move, the run of passes, or the pass that put him in */
+/** the men a line must name when the record names them, beyond its main man */
+const REQUIRED: Record<string, string[]> = {
+  loStolen: ['oppPlayer'], loWon: ['player2'], turnover: ['oppPlayer'], turnoverIsolated: ['oppPlayer'], intercepted: ['oppPlayer'],
+  subMade: ['player2'], subInjury: ['player2'], subRefused: ['player2'], chargedDown: ['oppPlayer'], carryTouch: ['oppPlayer'],
+  breakHauled: ['oppPlayer'], breakLastGasp: ['oppPlayer'], interceptHauled: ['oppPlayer'], contactKnock: ['oppPlayer'],
+}
+
+/** the fewest wordings a match keeps for a line in its voice (see commentate) */
+const VOICE_MIN = 3
+
+/** the phase-play shapes (round 5 record): the line that says how the ball got to him */
+const SHAPE_BASE: Record<string, string> = {
+  oneOut: 'shOneOut', pod: 'shPod', tipOn: 'shTipOn', snipe: 'shSnipe', pullBack: 'shPullBack', podOff10: 'shPodTen',
+  miss: 'shMiss', loop: 'shLoop', wraparound: 'shWrap', switch: 'shSwitch', kickPass: 'shKickPass',
+}
+
+/** the ticker's first word on a carry: the called move, the shape, the run of passes, or the pass that put him in */
 function howItCame(p: Play, player: string, player2: string): { base: string; params: Record<string, string | number | undefined> } | null {
-  if (p.shape === 'launch') return p.move && MOVE_EN[p.move] ? { base: 'tickLaunch', params: { player, move_k: `moves.say.${p.move}` } } : { base: 'tickFirst', params: { player } }
+  if (p.shape === 'launch') return p.move && MOVE_EN[p.move] ? { base: 'tickLaunch', params: { player, move_k: `moves.say.${p.move}` } } : { base: 'tickFirst', params: { player, zone_k: zoneKey(p.side, p.x) } }
+  const sh = p.shape ? SHAPE_BASE[p.shape] : undefined
+  if (sh) return { base: sh, params: { player, player2 } }
   if ((p.passes ?? 0) >= 2) return { base: 'tickHands', params: { player, zone_k: zoneKey(p.side, p.x) } }
   if (player2) return { base: 'tickPass', params: { player, player2 } }
   return null
@@ -317,6 +350,14 @@ export function commentate(result: SimResult, names: Names, context: Context = {
   // ---- the wording memory: each line uses every wording before it repeats one, and no sentence twice in twelve lines
   const used = new Map<string, number[]>()
   const recent: string[] = []
+  // ---- THE VOICE (owner, 24 Nov: "the games shouldn't feel repetitive"): each match, seeded from its sides and its
+  // record, favours about two in five of each line's wordings, so two matches read differently
+  const voice = mix(strHash(T.join('|')) ^ Math.imul(plays.length, 7919) ^ Math.imul(result.score[0] * 61 + result.score[1], 104729))
+  const inVoice = (base: string, i: number) => mix(voice ^ strHash(base) ^ Math.imul(i + 1, 0x9e3779b1)) % 100 < 40
+  // ---- a man named with his shirt number in the last six lines is named without it (a flash, or his first mention, keeps it)
+  const lastNamed = new Map<string, number>()
+  /** every sentence said so far this match */
+  const said = new Set<string>()
 
   // ---- what the record has told us so far
   const bins: { side: 0 | 1; until: number; who?: string; at: [number, number] }[] = []
@@ -342,6 +383,7 @@ export function commentate(result: SimResult, names: Names, context: Context = {
   const outFull = both(), handling = both(), turnWon = both()
   const entry = { n: both(), pts: both(), lastSaid: both(), inside: [false, false], from: [[0, 0], [0, 0]] as [number, number][] }
   let lastLate = -Infinity, lateScore = ''
+  let lastLead = ''
   let penChoices = 0, knockCount = 0, statAt = -99, statClock = -Infinity
   /** a man's numbers are said at most once every eight plays */
   const statOk = (n: number) => n - statAt >= 8
@@ -352,7 +394,7 @@ export function commentate(result: SimResult, names: Names, context: Context = {
     let j = 0
     const say = (base: string, level: Line['level'], side: 0 | 1 | null, extra: Record<string, string | number | undefined> = {}) => {
       const priority = priorityOf(base, level)
-      if (opts.density === 'fast' && priority === 0) return
+      if (opts.density === 'fast' && priority <= 0) return
       // a man's numbers and a side's counts: one every twenty seconds of the clock at most
       if (STATS.has(base) && clock - statClock < 20) return
       // a note is never said straight after another of its own kind (the line that says what happened always is)
@@ -362,21 +404,45 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       const params: Record<string, string | number> = {}
       if (side !== null) { params.team = T[side]; params.opp = T[other(side)] }
       for (const [k, v] of Object.entries(extra)) if (v !== undefined && v !== '') params[k] = v
+      // ("phase 1" says nothing after a break or a set piece: only a count of 2 or more is said)
+      if (typeof params.phase === 'number' && params.phase < 2) delete params.phase
       const list = SIM_EN[base]
       if (!list) throw new Error(`commentary: no words for ${base}`)
-      const sec = SECONDARY[base]
-      // (where on the field is said in some wordings and not others: it never decides which may be used)
-      const prim = (i: number) => NEEDS[base][i].filter(k => k !== sec && k !== 'zone_k').length
       const ok = list.map((_, i) => i).filter(i => NEEDS[base][i].every(k => params[k] !== undefined))
       if (!ok.length) return
-      const most = Math.max(...ok.map(prim))
+      // a wording must name the main man, give a penalty's reason and offender, and name the roles REQUIRED holds;
+      // the other men and the place it may give or not (the more ways to say a line, the less two matches read alike)
+      const need = [...(REQUIRED[base] ?? []), 'player', 'cause_k', ...(/^(pen|free)/.test(base) ? ['oppPlayer'] : [])].filter(k => params[k] !== undefined && k !== SECONDARY[base])
+      const full = ok.filter(i => need.every(k => (NEEDS[base][i] as string[]).includes(k)))
+      // (when no wording names them all, those that name the most)
+      const most = Math.max(...ok.map(i => NEEDS[base][i].length))
       const u = used.get(base) ?? list.map(() => 0)
-      const c = ok.filter(i => prim(i) === most)
-        .sort((a, b) => u[a] - u[b] || mix(n * 131 + j * 17 + a * 7 + strHash(base)) - mix(n * 131 + j * 17 + b * 7 + strHash(base)))
+      const all = full.length ? full : ok.filter(i => NEEDS[base][i].length === most)
+      // the match's own wordings first (at least four of them, topped up in the voice's order), the rest only when those clash
+      const rank = (i: number) => mix(voice ^ strHash(base) ^ Math.imul(i + 1, 0x9e3779b1))
+      const mine = all.filter(i => inVoice(base, i))
+      for (const i of [...all].sort((a, b) => rank(a) - rank(b))) { if (mine.length >= Math.min(VOICE_MIN, all.length)) break; if (!mine.includes(i)) mine.push(i) }
+      const byUse = (xs: number[]) => xs.sort((a, b) => u[a] - u[b] || mix(n * 131 + j * 17 + a * 7 + strHash(base)) - mix(n * 131 + j * 17 + b * 7 + strHash(base)))
+      const others = byUse(all.filter(i => !mine.includes(i)))
+      byUse(mine)
+      // the shirt number: dropped for a man named with it in the last six lines
+      const flashing = flashOf(base, level) !== null
+      for (const k of ['player', 'player2', 'oppPlayer']) {
+        const v = params[k]
+        if (typeof v !== 'string') continue
+        const m = /^(.*) \((\d+)\)$/.exec(v)
+        const seen = lastNamed.get(v)
+        if (m && !flashing && seen !== undefined && out.length - seen <= 6) params[k] = m[1]
+        else lastNamed.set(v, out.length)
+      }
       // (the sentence itself: two wordings that leave out different values can read the same)
-      const sig = (i: number) => fill(list[i], params)
-      let i = c.find(x => !recent.includes(sig(x)))
-      if (i === undefined) { if (note) return; i = c[0] }
+      const sig = (i: number) => fill(list[i], params).replace(/ \(\d+\)/g, '')
+      // a sentence not yet said this match first (the match's own wordings, then the others), then one not said lately
+      const fresh = (x: number) => !said.has(sig(x))
+      const order = [...mine.filter(fresh), ...others.filter(fresh), ...mine, ...others]
+      let i = order.find(x => !recent.includes(sig(x)))
+      if (i === undefined) { if (note) return; i = order[0] }
+      said.add(sig(i))
       u[i]++; used.set(base, u)
       recent.push(sig(i)); if (recent.length > 12) recent.shift()
       j++
@@ -384,7 +450,14 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       const flash = flashOf(base, level), reg = TICK.has(base) ? 'tick' as const : 'full' as const
       // how long it stays up: a flash by its kind, a ticker line 1.2 s, a sentence by its length (about 18 letters a second)
       const len = fill(list[i], params).length
-      out.push({ n, t: clock, key: `sim.${base}${i + 1}`, params, level, side, priority, flash, hold: flash ? HOLD[flash] : reg === 'tick' ? 1.2 : Math.round(Math.min(4.5, Math.max(2, len / 18)) * 10) / 10, reg })
+      const hold = flash ? HOLD[flash] : reg === 'tick' ? 1.2 : Math.round(Math.min(4.5, Math.max(2, len / 18)) * 10) / 10
+      const line: Line = { n, t: clock, key: `sim.${base}${i + 1}`, params, level, side, priority, flash, hold, reg }
+      // over 90 characters: two lines, what happened and who, then the consequence (the flash stays on the first)
+      const halves = len > 90 ? halvesOf(fill(list[i], params)) : null
+      if (halves) {
+        out.push({ ...line, part: 1, hold: flash ? hold : Math.max(2, Math.round(halves[0].length / 18 * 10) / 10) })
+        out.push({ ...line, part: 2, flash: null, level: level === 'key' ? 'normal' : level, hold: Math.max(2, Math.round(halves[1].length / 18 * 10) / 10) })
+      } else out.push(line)
     }
     /** the play before, stepping back over substitutions (made while the ball is dead, between a stoppage and its restart) */
     const prev = (() => { let i = n - 1; while (i >= 0 && plays[i].kind === 'substitution') i--; return plays[i] as Play | undefined })()
@@ -439,8 +512,13 @@ export function commentate(result: SimResult, names: Names, context: Context = {
         else if (p.result === 'overTheLine') { const lead = howItCame(p, player, player2); if (lead) say(lead.base, 'minor', s, lead.params); say('tickOver', 'normal', s, { player }) }
         else if (p.result === 'gainLine' || p.result === 'held' || p.result === 'drivenBack') {
           // THE TICKER: how the ball got to him (the move, the pass, the hands), then what came of it
-          const lead = howItCame(p, player, player2)
+          let lead = howItCame(p, player, player2)
+          const leadSig = lead ? `${lead.base}|${player}|${player2}` : ''
+          if (lead && leadSig === lastLead) lead = null
+          lastLead = leadSig
           if (lead) say(lead.base, 'minor', s, lead.params)
+          // (a filler, true of any carry, for a carry shown long at life speed: the first line to go)
+          say('tickCarryOn', 'minor', s, { player, zone_k: zoneKey(s, p.x) })
           if (d <= 10 && d >= 0.5) say(p.shape === 'pickAndGo' || (!p.passes && d <= 5) ? 'pickGo' : d <= 3 ? 'tickLine' : 'tickNear', 'normal', s, { player, d: Math.max(1, Math.round(d)) })
           else if (g >= 10) say('carryBig', 'normal', s, { player, player2: lead ? '' : player2, m: Math.round(g) })
           else if (g <= -2.5) say('carryBack', 'minor', s, { player, oppPlayer })
@@ -455,27 +533,44 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       case 'ruck': {
         if (p.result === 'recycled') {
           const ph = p.phase ?? 0, d = toLine(s, p.x)
-          if (d <= 10) say('tickRuckNear', 'minor', s, { phase: ph, d: Math.max(1, Math.round(d)), player: nm(p.who) })
+          // (the carry has just said how far out: the ruck line then says how the ball came back, not the distance again)
+          const lastOut = out[out.length - 1]
+          const saidD = lastOut && lastOut.n === n - 1 && lastOut.params.d === Math.max(1, Math.round(d))
+          if (d <= 10 && !saidD) say('tickRuckNear', 'minor', s, { phase: ph, d: Math.max(1, Math.round(d)), player: nm(p.who) })
           else if (ph >= 5 && (ph - 5) % 3 === 0) say('phases', 'minor', s, { phase: ph, zone_k: zoneKey(s, p.x) })
+          else if (p.speed === 'quick') say('tickRuckQuick', 'minor', s, { phase: ph, zone_k: zoneKey(s, p.x), player: nm(p.who) })
+          else if (p.speed === 'slow') say('tickRuckSlow', 'minor', s, { phase: ph, zone_k: zoneKey(s, p.x), player: nm(p.who) })
           else say('tickRuck', 'minor', s, { phase: ph, zone_k: zoneKey(s, p.x), player: nm(p.who) })
         } else if (p.result === 'penaltyWon' || p.result === 'penaltyLost') say('tickRuckWhistle', 'minor', s, { player: nm(p.who) })
         else if (p.result === 'unplayable') say('tickRuckStuck', 'minor', s, { player: nm(p.who) })
         else if (p.result === 'turnover') {
           const inside = p.x <= 22 || p.x >= 78
-          say('turnover', inside ? 'key' : 'normal', s, { oppPlayer: nm(p.vs?.[0]) })
+          const broke = prev?.kind === 'lineBreak' && prev.side === s
+          say(broke ? 'turnoverIsolated' : 'turnover', inside ? 'key' : 'normal', s, { oppPlayer: nm(p.vs?.[0]), player: broke ? nm(p.who) : undefined })
         }
         break
       }
       case 'lineBreak': {
         const player = nm(p.who), oppPlayer = nm(p.vs?.[0]), player2 = nm(p.with?.[0])
         if (p.result !== 'interception' && p.result !== 'interceptionHauled') { const lead = howItCame(p, player, player2); if (lead && lead.base !== 'tickPass') say(lead.base, 'minor', s, lead.params) }
-        if (p.result === 'interception') say('interceptRun', 'key', s, { player })
-        else if (p.result === 'interceptionHauled') say('interceptHauled', 'key', s, { player, oppPlayer, zone_k: zoneKey(s, p.x) })
-        else if (p.result === 'clean') say('breakClean', 'key', s, { player, player2 })
+        // the run itself, from where it started to where it ended (the record has both): halfway, the 22
+        const from = prev ? toLine(s, prev.x) : 100, to = toLine(s, p.x)
+        const crossings = () => { if (from > 50 && to <= 50) say('tickHalfway', 'minor', s, { player }); if (from > 22 && to <= 22) say('tickIntoTwentyTwo', 'minor', s, { player }) }
+        // a long run is long on screen: a word for about every 15 metres of it
+        const runOn = (base: string, extra: Record<string, string>) => {
+          const k = Math.min(2, Math.max(1, Math.round((from - to) / 15)))
+          say(base, 'minor', s, extra)
+          if (k > 1) say('tickRunOn', 'minor', s, { player: extra.player })
+        }
+        if (p.result === 'interception') { say('interceptRun', 'key', s, { player }); crossings(); runOn('tickRunOn', { player }) }
+        else if (p.result === 'interceptionHauled') { crossings(); say('interceptHauled', 'key', s, { player, oppPlayer, zone_k: zoneKey(s, p.x) }) }
+        else if (p.result === 'clean') { say('breakClean', 'key', s, { player, player2 }); crossings(); runOn('tickRunOn', { player }) }
+        else if (p.result === 'heldShort') { crossings(); say('tickChase', 'minor', s, { player, oppPlayer }); say('breakLastGasp', 'key', s, { player, oppPlayer, d: Math.max(1, Math.round(toLine(s, p.x))) }) }
         else {
           const d = toLine(s, p.x)
           if (d <= 5) say('breakLastGasp', 'key', s, { player, oppPlayer, d: Math.max(1, Math.round(d)) })
-          else say('breakHauled', 'key', s, { player, player2, oppPlayer, m: Math.round(p.gain ?? 0) })
+          else { crossings(); say('tickRunOn', 'minor', s, { player }); say('breakHauled', 'key', s, { player, player2, oppPlayer, m: Math.round(p.gain ?? 0) }) }
+          // (the run first, then the key line that brings him down: nothing after it reads as if he were still going)
         }
         break
       }
@@ -491,8 +586,8 @@ export function commentate(result: SimResult, names: Names, context: Context = {
             say(p.kick === 'grubber' ? 'tickRoll' : 'tickFlight', 'minor', s, { zone_k: zoneKey(s, p.x) })
             break
           }
-          case 'touch': say('kickTouch', 'normal', s, { player, m }); break
-          case 'penaltyToTouch': say('penTouch', 'normal', s, { player, m, zone_k: zoneKey(s, p.x) }); break
+          case 'touch': say('kickTouch', 'normal', s, { player, m }); say('tickToTouch', 'minor', s, { zone_k: zoneKey(s, p.x) }); break
+          case 'penaltyToTouch': say('penTouch', 'normal', s, { player, m, zone_k: zoneKey(s, p.x) }); say('tickToTouch', 'minor', s, { zone_k: zoneKey(s, p.x) }); say('tickToTouch', 'minor', s, { zone_k: zoneKey(s, p.x) }); break
           case 'fiftyTwentyTwo': say('fiftyTwentyTwo', 'normal', s, { player }); break
           case 'outOnFull': say('outFull', 'normal', s, { player }); break
           case 'dead': say('kickDead', 'normal', s, { player }); break
@@ -504,14 +599,14 @@ export function commentate(result: SimResult, names: Names, context: Context = {
         const player = nm(p.who)
         const base = p.result === 'underTheRestart' ? 'koKnock' : p.result === 'underTheHighBall' ? 'highKnock' : p.result === 'inTheChase' ? 'chaseKnock' : 'contactKnock'
         say(base, 'normal', s, { player, oppPlayer: base === 'contactKnock' ? nm(p.vs?.[0]) : undefined })
-        say('tickStop', 'minor', s)
+        say('tickStop', 'minor', s, { zone_k: zoneKey(s, p.x) })
         if (context.weather === 'Rain' || context.weather === 'Damp' || context.weather === 'Snow') { if (++knockCount % 3 === 2) say('weatherKnock', 'minor', null) }
         break
       }
       // the passer and the man it was meant for, only when the record names both (`who` alone may be either)
-      case 'forwardPass': say('forwardPass', 'normal', s, p.with?.[0] ? { player: nm(p.who), player2: nm(p.with[0]) } : {}); say('tickStop', 'minor', s); break
+      case 'forwardPass': say('forwardPass', 'normal', s, p.with?.[0] ? { player: nm(p.who), player2: nm(p.with[0]) } : {}); say('tickStop', 'minor', s, { zone_k: zoneKey(s, p.x) }); break
       case 'unplayable': say(prev?.kind === 'maul' ? 'unplayableMaul' : 'unplayableRuck', 'normal', s); break
-      case 'restartError': say(p.result === 'outOnFull' ? 'restartOut' : 'restartNotTen', 'normal', s, { player: prev?.kind === 'kickoff' && prev.side === s ? nm(prev.who) : '' }); say('tickStop', 'minor', s); break
+      case 'restartError': say(p.result === 'outOnFull' ? 'restartOut' : 'restartNotTen', 'normal', s, { player: prev?.kind === 'kickoff' && prev.side === s ? nm(prev.who) : '' }); say('tickStop', 'minor', s, { zone_k: zoneKey(s, p.x) }); break
       case 'intoTouch': {
         if (p.result === 'bounced') say('bouncedOut', 'normal', s, { player: prev?.kind === 'kick' && prev.side === s ? nm(prev.who) : '' })
         break
@@ -571,7 +666,7 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       case 'yellowCard': {
         bins.push({ side: s, until: p.until ?? p.t - p.live - p.dead + K.BIN_S, who: p.who, at: [p.score[0], p.score[1]] })
         say('flashYellow', 'key', s, { player: nm(p.who) })
-        say(p.result === 'cynical' ? 'yellowCynical' : p.result === 'penaltyTry' ? 'yellowPenTry' : 'yellowFoul', 'normal', s, { player: nm(p.who), men: onField(s) })
+        say(p.result === 'cynical' ? 'yellowCynical' : p.result === 'penaltyTry' ? 'yellowPenTry' : p.result === 'repeated' ? 'yellowRepeated' : 'yellowFoul', 'normal', s, { player: nm(p.who), men: onField(s) })
         break
       }
       case 'redCard': {
@@ -634,6 +729,7 @@ export function commentate(result: SimResult, names: Names, context: Context = {
           : prev?.kind === 'restartError' && prev.side === o ? 'scrumRestart'
           : before?.kind === 'penalty' && before.side === s ? 'scrumChoice' : 'scrum'
         say(reason, 'normal', s)
+        say('tickScrumSet', 'minor', s, { zone_k: zoneKey(s, p.x) })
         if (p.result === 'won') say('tickScrumWon', 'minor', s, { zone_k: zoneKey(s, p.x) })
         if (p.result === 'againstTheHead') say('scrumAgainstHead', 'normal', s, { oppPlayer: nm(p.vs?.[0]) })
         else if (p.result === 'freeKick') say('scrumFree', 'normal', s)
@@ -862,6 +958,16 @@ export function thin(lines: Line[], slots: SlotLike[], gap?: number): Line[] {
   return lines.filter((_, i) => keep[i])
 }
 
+/** a long sentence in two: at the first full stop (or ! or ?) after the first fifteen letters, else at a colon */
+export function halvesOf(t: string): [string, string] | null {
+  const m = /[.!?] (?=\S)/g
+  let x: RegExpExecArray | null
+  while ((x = m.exec(t))) if (x.index >= 15 && x.index < t.length - 10) return [t.slice(0, x.index + 1), t.slice(x.index + 2)]
+  const c = t.indexOf(': ')
+  if (c >= 15 && c < t.length - 10) return [t.slice(0, c) + '.', t.charAt(c + 2).toUpperCase() + t.slice(c + 3)]
+  return null
+}
+
 const ONE: Record<string, string> = { tries: 'try', penalties: 'penalty', carries: 'carry', men: 'man' }
 
 /**
@@ -901,7 +1007,8 @@ export function feed(lines: Line[], slots: SlotLike[], opts: FeedOpts = {}): Sho
     if (i === undefined) return null
     const a = sl[i], nx = sl[i + 1]
     // (up to 0.8 s into the next play at most, so the words never fall more than a play behind the picture)
-    const lo = a.start, hi = nx ? nx.start + Math.min(nx.dur, 0.8) : a.start + Math.max(a.dur, 4)
+    // (in fast forward, inside its own play; at life speed up to 0.8 s into the next: never more than a play behind the picture)
+    const lo = a.start, hi = a.speed > FAST && nx ? Math.max(a.start + a.dur, a.start + 0.05) : nx ? nx.start + Math.min(nx.dur, 0.8) : a.start + Math.max(a.dur, 4)
     const k = seen.get(l.n) ?? 0, m = perPlay.get(l.n)!
     seen.set(l.n, k + 1)
     const want = a.start + (a.dur * k) / m
@@ -950,11 +1057,25 @@ export function feed(lines: Line[], slots: SlotLike[], opts: FeedOpts = {}): Sho
   const times = tick.map(k => k.t).sort((a, b) => a - b)
   tick.sort((a, b) => a.c.idx - b.c.idx).forEach((k, i) => { k.t = times[i] })
   keep.sort((a, b) => a.t - b.t || a.c.idx - b.c.idx)
+  // a bare phase number only when the phase before it was shown too; otherwise the count ("8 phases now")
+  let lastPhase = -1, lastPhaseN = -99
+  for (const k of keep) {
+    const l = k.c.l, ph = l.params.phase
+    const w0 = EN_FLAT[l.key] ?? ''
+    if (typeof ph !== 'number' || !w0.includes('{phase}')) continue
+    // (a count, "6 phases", is a phase line shown: it sets the number the next bare one must follow)
+    if (/[Pp]hase \{phase\}/.test(w0) && ph > 1 && (l.n - lastPhaseN > 4 || (ph !== lastPhase + 1 && ph !== lastPhase))) {
+      const w = SIM_EN.phaseCount.map((_, i) => i).filter(i => (SIM_EN.phaseCount[i].match(/\{(\w+)\}/g) ?? []).every(x => l.params[x.slice(1, -1)] !== undefined))
+      if (w.length) k.c = { ...k.c, l: { ...l, key: `sim.phaseCount${w[mix(l.n * 31 + ph) % w.length] + 1}` } }
+    }
+    // (the phase before must be a line of this passage: within a few plays, not one from before a try or a kick)
+    lastPhase = ph; lastPhaseN = l.n
+  }
   // a line stays up until the next one comes: a ticker line for up to 3 s, a sentence up to 5 s, a flash up to 6 s
   return keep.map((k, i) => {
     const next = keep[i + 1]
     const hold = !next ? k.c.l.hold : Math.max(k.c.l.hold, Math.min(k.c.l.flash ? 6 : k.c.l.reg === 'tick' ? 3 : 5, next.t - k.t))
-    return { line: k.c.l, at: k.t, hold }
+    return { line: k.c.l, at: k.t, hold, i: k.c.idx }
   })
 }
 
@@ -964,8 +1085,12 @@ export const text = (line: Line): string => render(line)
 /** a line in English */
 export function render(line: Line): string {
   // (English: one of a thing, not "1 metres")
-  const s = fill(EN_FLAT[line.key] ?? line.key, line.params).replace(/\b1 (metres|minutes|points|tackles|visits|times|lineouts|turnovers|phases|tries|penalties|carries|men)\b/g,
+  const whole = fill(EN_FLAT[line.key] ?? line.key, line.params)
+  const halves = line.part ? halvesOf(whole) : null
+  const s = (halves ? halves[line.part! - 1] : whole).replace(/\b1 (metres|minutes|points|tackles|visits|times|lineouts|turnovers|phases|tries|penalties|carries|men)\b/g,
     (_, w: string) => `1 ${ONE[w] ?? w.slice(0, -1)}`)
+    // ("an 8-metre drive", "an 11-point lead")
+    .replace(/\b([Aa]) (8\d*|11|18)(?=[- ])/g, '$1n $2')
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
