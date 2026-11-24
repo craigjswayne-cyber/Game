@@ -20,6 +20,8 @@ import '../tokens.css'
 import '../theme.css'
 import { LivePitch, type PitchSide } from './LivePitch'
 import { RecordFeed, schedule, type Slot } from './fromRecord'
+import { Ticker, type TickLine } from './Ticker'
+import { Compare, installFakeClock } from './Compare'
 import { newGame } from '../../game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek } from '../../game/season'
 import { mulberry32 } from '../../game/rng'
@@ -36,8 +38,8 @@ import { useFeedGlide } from '../screens/matchday/feedGlide'
 import en from '../../locales/en.json'
 
 /** the commentary agent's module, if it is there (src/game/sim/commentary.ts) */
-interface CLine { n: number; key: string; params: Record<string, string | number>; level: 'key' | 'normal' | 'minor'; side: 0 | 1 | null }
-type CMod = { commentate(r: SimResult, names: { teams: [string, string]; player(id: string): string }): CLine[]; render(l: CLine): string; thin?(lines: CLine[], slots: Slot[], gap?: number): CLine[] }
+interface CLine { n: number; key: string; params: Record<string, string | number>; level: 'key' | 'normal' | 'minor'; side: 0 | 1 | null; flash?: 'try' | 'goal' | 'card' | 'key' | null; hold?: number }
+type CMod = { commentate(r: SimResult, names: { teams: [string, string]; player(id: string): string }): CLine[]; render(l: CLine): string; thin?(lines: CLine[], slots: Slot[], gap?: number): CLine[]; feed?(lines: CLine[], slots: Slot[]): { line: CLine; at: number; hold: number }[] }
 const commentaryModule = import.meta.glob<CMod>('../../game/sim/commentary.ts')
 
 const q = new URLSearchParams(location.search)
@@ -45,6 +47,7 @@ const SEED = Number(q.get('rec') ?? 4242)
 const FROM = Number(q.get('from') ?? 0)
 const X = Number(q.get('x') ?? 1)
 const CAPTURE = q.get('cap') === '1'
+const COMPARE = q.get('compare') === '1'
 
 const tr = (k: string, v?: Record<string, string | number>) => {
   let x: unknown = en
@@ -126,6 +129,7 @@ function App() {
   const feed = useMemo(() => new RecordFeed(plays, m.sides, [fx.homeId, fx.awayId], id => names.get(id)), [m, names])
   const slots: Slot[] = useMemo(() => schedule(plays, m.sides), [m])
   const [lines, setLines] = useState<{ n: number; text: string; level: string; side: 0 | 1 | null }[] | null>(null)
+  const [ticks, setTicks] = useState<TickLine[] | null>(null)
   useEffect(() => {
     const load = commentaryModule['../../game/sim/commentary.ts']
     if (!load) return
@@ -134,6 +138,14 @@ function App() {
       // (thinned to what a reader can take in at the speed each play is shown: the commentary agent's thin())
       const ls = mod.thin ? mod.thin(all, slots) : all
       setLines(ls.map(l => ({ n: l.n, text: mod.render(l), level: l.level, side: l.side })))
+      // THE TICKER: the commentary's own feed() places each line in viewing seconds (its play on screen)
+      const shown = mod.feed ? mod.feed(all, slots) : ls.map(l => ({ line: l, at: slots[l.n]?.start ?? 0, hold: l.level === 'key' ? 3 : 1.2 }))
+      setTicks(shown.map(x => {
+        const k = plays[x.line.n]?.kind
+        const flash = x.line.flash !== undefined ? x.line.flash : k === 'try' || k === 'penaltyTry' ? 'try' : k === 'yellowCard' || k === 'redCard' ? 'card' : null
+        return { n: x.line.n, text: mod.render(x.line), at: x.at, hold: x.hold, flash, side: x.line.side, card: k === 'redCard' ? 'r' : k === 'yellowCard' ? 'y' : undefined,
+          minute: Math.min(80, Math.floor((plays[x.line.n]?.clock ?? plays[x.line.n]?.t ?? 0) / 60) + 1) }
+      }))
     }).catch(() => setLines(null))
   }, [m, slots])
   const [n, setN] = useState(0)
@@ -205,7 +217,7 @@ function App() {
         night={m.night} wet={fx.weather === 'Rain'} snow={fx.weather === 'Snow'} boards={boards}
         tr={tr} teams={{ home: teams[0], away: teams[1] }} names={id => names.get(String(id))} />
       <div className="now-strip">
-        <div className="comm-feed" aria-live="off">
+        {ticks ? <Ticker lines={ticks} feed={feed} kits={m.kits} /> : <div className="comm-feed" aria-live="off">
           <div className="comm-list" ref={feedRef}>
             {rows.map((l, j) => {
               const age = rows.length - 1 - j, cls = clsOf(l), [fill, edge] = kitOf(l.side)
@@ -220,7 +232,7 @@ function App() {
               </div>
             })}
           </div>
-        </div>
+        </div>}
         <div className="live-stats brief" data-testid="live-stats">
           {stats.map(r => {
             const share = r.v[0] + r.v[1] > 0 ? r.v[0] / (r.v[0] + r.v[1]) : 0.5
@@ -236,4 +248,14 @@ function App() {
     </div>
   </div>
 }
-createRoot(document.getElementById('root')!).render(<App />)
+function CompareApp() {
+  const m = useMemo(() => buildMatch(SEED), [])
+  const names = useMemo(() => new Map([...m.sides[0].players, ...m.sides[1].players].map(p => [p.id, p.name])), [m])
+  const ids: [string, string] = [m.fx.homeId, m.fx.awayId]
+  return <div className="app day lp-cap"><style>{'.lp-cap *, .lp-cap *::before, .lp-cap *::after { animation: none !important; transition: none !important; }'}</style>
+    <Compare plays={m.plays} sides={m.sides} ids={ids} kits={m.kits} names={id => names.get(id)}
+      homeSide={pitchSide(m.sides[0], m.kits.home)} awaySide={pitchSide(m.sides[1], m.kits.away)}
+      teams={{ home: teamShort(m.game, m.fx.homeId), away: teamShort(m.game, m.fx.awayId) }} tr={tr} /></div>
+}
+if (COMPARE) installFakeClock()
+createRoot(document.getElementById('root')!).render(COMPARE ? <CompareApp /> : <App />)

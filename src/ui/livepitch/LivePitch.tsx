@@ -25,7 +25,8 @@ import { manUpAt, phaseAt, readLine, type Banner, type Phase } from './phase'
 import { direct, type Beat } from './script'
 import { PitchSim } from './sim'
 import type { PitchTac } from './agents'
-import type { RecordFeed } from './fromRecord'
+import { IN_GOAL, type RecordFeed } from './fromRecord'
+import './pitch.css'
 
 export interface PitchSide {
   /** the lineup by shirt index, as the engine holds it */
@@ -43,7 +44,9 @@ export interface PitchSide {
 /** in-goal metres drawn each end; the ground round the pitch: SIDE metres
  *  along each touchline (run-off, boards, a strip of crowd) and END metres
  *  behind each dead-ball line (boards and a stand) */
-const GOAL = 8
+const GOAL = IN_GOAL
+/** how long a score or card plate stays up on the record's clock (viewing seconds) */
+const BANNER_S = 2.8
 /** THE GROUND IS A PICTURE (owner, 17 Nov 2026, sent a painted stadium to use).
  *  When the pitch is on its side the stadium is this picture and only the
  *  men, the ball and the lettering are drawn over it. These are where the
@@ -268,7 +271,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // the last frame before a cut, dissolved out over the new one
     const ghost = document.createElement('canvas')
     let grassSeen: Phase | null = null
-    let flashSeen = 0, flashAtView = -1
+    let flashSeen = 0, flashAtView = -1, bannerAtView = -1
     let reachedSent = -1
     let seenCuts = S.cuts, dissolve = 0
     /** 0..1: how much the fast-forward mark is showing */
@@ -771,9 +774,22 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       if (feed) bw.want = feed.banner
       if (bw.want && S.landed && !S.pending && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at) {
         bw.shownAt = bw.want.at
+        if (feed) bannerAtView = feed.view
         setBanner(bw.want)
         if ((bw.want.kind === 'try' || bw.want.kind === 'pentry') && !reduce) burst(S.ball.x, S.ball.y, bw.want.teamId === homeId)
-      } else if (bw.shownAt !== -1 && (!bw.want || S.phase?.at !== bw.shownAt)) { bw.shownAt = -1; setBanner(null) }
+      } else if (bw.shownAt !== -1 && (feed ? feed.view - bannerAtView > BANNER_S || feed.view < bannerAtView : (!bw.want || S.phase?.at !== bw.shownAt))) { bw.shownAt = -1; bannerAtView = -1; setBanner(null) }
+      // THE PLATES FADE IN AND OUT on the feed's own clock (a frame-exact recording sees the same), and
+      // never stand still at full strength to the last frame and then vanish
+      if (feed) {
+        const root = canvas.current?.parentElement
+        const fade = (el: Element | null | undefined, at: number, life: number) => {
+          if (!el || at < 0) return
+          const a = feed.view - at
+          ;(el as HTMLElement).style.opacity = Math.max(0, Math.min(1, a / 0.25, (life - a) / 0.4)).toFixed(3)
+        }
+        fade(root?.querySelector('[data-testid="lp-banner"]'), bannerAtView, BANNER_S)
+        fade(root?.querySelector('[data-testid="lp-flash"]'), flashAtView, 2.3)
+      }
       for (const c of confetti) { c.vy += 26 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.life -= dt; c.rot += c.spin * dt }
       confetti = confetti.filter(c => c.life > 0)
       const sn = seen.current
@@ -1134,12 +1150,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         </div>
       )}
       {banner && bSide && (
-        <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}${(banner.teamId === homeId) ? ' low' : ' high'}`} key={`b${banner.at}`} data-testid="lp-banner">
+        <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}${(banner.teamId === homeId) ? ' low' : ' high'}${plateUp ? ' up' : ''}`} key={`b${banner.at}`} data-testid="lp-banner">
           {pts != null && <em>+{pts}</em>}
           {/* a long verdict (PENALTY GOAL, CARTELLINO GIALLO) is set smaller so it stays inside the touchlines */}
           <b style={bannerSize(tr(`lp.b.${banner.kind}`), !!good)}>{tr(`lp.b.${banner.kind}`)}</b>
           <span>{banner.teamId === homeId ? teams.home : teams.away}{banner.name ? ` · ${banner.name}` : ''} · {Math.min(80, banner.min)}'
             <i style={{ background: barInk(bSide.kit) }} /></span>
+          {(banner.kind === 'yc' || banner.kind === 'rc') && <i className={`lp-bcard ${banner.kind}`} />}
         </div>
       )}
     </div>

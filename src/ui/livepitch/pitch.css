@@ -1,0 +1,18 @@
+/* THE PLATES ON THE PITCH (round 5; owner, 19 Nov 2026: "any pop up like a yellow card or try should be
+   smaller, centralised and down the bottom of the pitch"; coordinator, 24 Nov: they must not hide the
+   play). One small plate, centred, over the near boards below the touchline, or over the far stand when
+   the play is down by the near touchline. It fades in and out (LivePitch sets its opacity on the feed's
+   clock). A card is drawn under the team name. */
+.live-pitch .lp-banner, .live-pitch .lp-banner.low, .live-pitch .lp-banner.high, .live-pitch .lp-banner.note {
+  inset: auto auto 2.5% 50%; transform: translateX(-50%); padding: 3px 12px 4px; gap: 1px; max-width: 72%; min-width: 0;
+  border-radius: 10px; background: rgba(8, 12, 10, .8); text-shadow: none;
+}
+.live-pitch .lp-banner.up, .live-pitch .lp-banner.note.up { inset: 2.5% auto auto 50%; }
+.live-pitch .lp-banner b { font-size: .875rem; line-height: 1.05; }
+.live-pitch .lp-banner.good b { padding: 0 22px; }
+.live-pitch .lp-banner em { top: 3px; right: 8px; font-size: .625rem; }
+.live-pitch .lp-banner span { font-size: .5625rem; margin-top: 1px; }
+.live-pitch .lp-banner span i { margin-top: 2px; width: 20px; }
+.live-pitch .lp-banner.yc b::before, .live-pitch .lp-banner.rc b::before { display: none; }
+.live-pitch .lp-bcard { display: block; width: 10px; height: 14px; margin: 3px auto 0; border-radius: 2px; transform: rotate(-8deg); background: var(--gold-fill, #f2c200); box-shadow: 0 2px 5px rgba(0, 0, 0, .5); }
+.live-pitch .lp-bcard.rc { background: var(--danger-fill, #c8102e); }
