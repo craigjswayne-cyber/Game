@@ -9,7 +9,7 @@
 // table against its sources is scripts/simshape.ts.
 import { describe, expect, it } from 'vitest'
 import { MatchSim, simSkeleton, simWithDecisions } from '../src/game/sim/skeleton'
-import { evenWorld, NEUTRAL_STYLE, type PlayStyle, type World } from '../src/game/sim/world'
+import { evenWorld, NEUTRAL_STYLE, type Decision, type PlayStyle, type World } from '../src/game/sim/world'
 import { LAW_TABLE, Laws, lawMachine } from '../src/game/sim/law'
 import type { Play } from '../src/game/sim/record'
 import { getInitialSnapshot, getNextSnapshot } from 'xstate'
@@ -279,3 +279,99 @@ describe('team identity (round 4): two styles, the same strengths, two different
     expect(Math.abs(a.kick - b.kick) + Math.abs(a.width - b.width) + Math.abs(a.offload - b.offload) + Math.abs(a.maul - b.maul)).toBeGreaterThan(0.05)
   }, 60000)
 })
+
+describe('the manager decides the match (round 5: "this can\'t be a preset result")', () => {
+  // one real fixture, the manager's own side; every change is made on a copy of the game
+  const g0 = newGame('leicester', 'T', 4242)
+  let fx0: Fixture | null | undefined = null
+  for (let i = 0; i < 12 && !fx0; i++) { fx0 = userFixtureThisWeek(g0); if (!fx0) processWeekAndAdvance(g0) }
+  const base = worldFromMatch(g0, fx0!, mulberry32(1))
+  const us: 0 | 1 = base.home.teamId === g0.userClubId ? 0 : 1
+  const sheet = (us === 0 ? base.home : base.away).players
+  const lineup = Array.from({ length: 23 }, (_, i) => Number(sheet.find(p => p.shirt === i + 1)?.id))
+  const worldWith = (change: (g: typeof g0) => void) => {
+    const g = structuredClone(g0)
+    const tac = g.clubs[g.userClubId].tactic as unknown as Record<string, unknown>
+    tac.lineup = lineup.slice(); tac.userPicked = true
+    change(g)
+    return worldFromMatch(g, g.fixtures.find(f => f.id === fx0!.id)!, mulberry32(1)).world
+  }
+  const N = 300
+  const play = (w: World, seed: number, at?: number, d?: Decision[]) => {
+    const m = new MatchSim({ seed, world: w })
+    if (at != null) { m.runUntil({ clock: at }); for (const x of d ?? []) m.apply(x) }
+    return m.runUntil().result()
+  }
+  const sum = (w: World, f: (r: ReturnType<typeof play>) => number, at?: number, d?: (s: 0 | 1) => Decision[]) => {
+    let t = 0
+    for (let i = 0; i < N; i++) t += f(play(w, 7000 + i, at, d?.(us)))
+    return t / N
+  }
+  const margin = (r: ReturnType<typeof play>) => r.score[us] - r.score[us === 0 ? 1 : 0]
+
+  // each kind of decision, made at 40:00 or 60:00: everything before it as it was, the match after it moved
+  // (the last number: in how many of 120 matches the rest must differ; a penalty call only bites in a
+  // match where a kickable penalty comes after the call)
+  const kinds: [string, number, (s: 0 | 1) => Decision[], (r: ReturnType<typeof play>, at: number) => number, number?][] = [
+    ['tactics (kicking 20 to 90)', 2400, s => [{ kind: 'tactics', side: s, set: { kicking: 90 } }], (r, at) => r.plays.filter(p => p.t >= at && p.side === us && p.kind === 'kick').length],
+    ['half-time talk (criticise)', 2400, s => [{ kind: 'talk', side: s, tone: 'criticise' }], r => margin(r)],
+    ['substitution (No. 8 off)', 3600, s => [{ kind: 'substitution', side: s, off: lineup[7].toString(), on: lineup[19].toString() }], (r, at) => r.plays.filter(p => p.t >= at && (p.who === lineup[19].toString() || p.with?.includes(lineup[19].toString()))).length],
+    ['the bench to the game', 3600, s => [{ kind: 'bench', side: s, auto: true }], (r, at) => r.plays.filter(p => p.t >= at && p.kind === 'substitution' && p.side === us).length],
+    ['penalties to the corner', 3600, s => [{ kind: 'penaltyCall', side: s, call: 'corner' }], (r, at) => r.plays.filter(p => p.t >= at && p.side === us && p.kind === 'penaltyGoal').length, 55],
+  ]
+  for (const [name, at, dec, stat, most] of kinds) {
+    it(`a decision at ${at / 60}:00 changes the match from then on, and nothing before it: ${name}`, () => {
+      let differ = 0, before = 0, after = 0
+      for (let i = 0; i < 120; i++) {
+        const seed = 8000 + i
+        const a = play(base.world, seed), m = new MatchSim({ seed, world: base.world }).runUntil({ clock: at })
+        const cut = m.plays.length, tCut = m.st.t
+        for (const d of dec(us)) m.apply(d)
+        const b = m.runUntil().result()
+        expect(JSON.stringify(b.plays.slice(0, cut))).toBe(JSON.stringify(a.plays.slice(0, cut)))
+        if (JSON.stringify(b.plays.slice(cut)) !== JSON.stringify(a.plays.slice(cut))) differ++
+        before += stat(a, tCut); after += stat(b, tCut)
+      }
+      expect(differ).toBeGreaterThan(most ?? 100)
+      // and it moves what it should (the talk's direction is the old engine's own talk model: only that it moves)
+      expect(after).not.toBe(before)
+    }, 60000)
+  }
+
+  it('out-of-position selection costs: the loosehead and the left wing swapped', () => {
+    const ok = sum(worldWith(() => {}), margin)
+    const swapped = sum(worldWith(g => { const lu = g.clubs[g.userClubId].tactic.lineup; const t = lu[0]; lu[0] = lu[10]; lu[10] = t }), margin)
+    expect(ok - swapped).toBeGreaterThan(2)
+  }, 120000)
+
+  it('tired men cost: the fifteen at 70% condition against fresh', () => {
+    const fresh = sum(worldWith(g => { for (const id of lineup.slice(0, 15)) g.players[id].cond = 100 }), margin)
+    const tired = sum(worldWith(g => { for (const id of lineup.slice(0, 15)) g.players[id].cond = 70 }), margin)
+    expect(fresh - tired).toBeGreaterThan(3)
+  }, 120000)
+
+  it('poor discipline costs: aggression 95 gives away more penalties and more cards than 20', () => {
+    const pens = (r: ReturnType<typeof play>) => r.plays.filter(p => (p.kind === 'penalty' || p.kind === 'freeKick') && p.side !== us).length
+    const cards = (r: ReturnType<typeof play>) => r.plays.filter(p => (p.kind === 'yellowCard' || p.kind === 'redCard') && p.side === us).length
+    const clean = worldWith(g => { g.clubs[g.userClubId].tactic.aggression = 20 }), dirty = worldWith(g => { g.clubs[g.userClubId].tactic.aggression = 95 })
+    expect(sum(dirty, pens)).toBeGreaterThan(sum(clean, pens) * 1.04)
+    expect(sum(dirty, cards)).toBeGreaterThan(sum(clean, cards) * 1.4)
+  }, 120000)
+
+  it('the named man matters: the carrier, the tackler and the kicker are the men themselves', () => {
+    const w = base.world
+    const field = w.lineup!(us).field
+    const forms = field.filter(Boolean).map(id => w.man!(us, id, 0))
+    // the side's men differ from one another, and the average man is the side
+    expect(Math.max(...forms.map(f => f.carry)) / Math.min(...forms.map(f => f.carry))).toBeGreaterThan(1.1)
+    const mean = forms.reduce((a, f) => a + f.tackle, 0) / forms.length
+    expect(mean).toBeGreaterThan(0.95); expect(mean).toBeLessThan(1.05)
+    // a man who has played sixty minutes has worse legs than one fresh off the bench
+    const starter = w.man!(us, field[7], 3600)
+    w.decide!({ kind: 'substitution', side: us, off: field[5], on: w.lineup!(us).bench[4] || w.lineup!(us).bench[3] }, 3600)
+    const fresh = w.man!(us, w.lineup!(us).field[5], 3600)
+    expect(fresh.tackle / w.man!(us, w.lineup!(us).field[5], 0).tackle).toBeGreaterThan(starter.tackle / w.man!(us, field[7], 0).tackle)
+    w.newMatch!()
+  })
+})
+

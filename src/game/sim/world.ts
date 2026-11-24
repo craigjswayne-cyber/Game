@@ -62,12 +62,17 @@ export interface PlayStyle {
   matchup: number
   /** the old engine's own lean on this side's tries from its attack and the other side's defence (styles.ts) */
   tryF: number
+  /** the same tick's lean on the penalties this side wins at the gain line, and on how often it is turned over */
+  penF: number
+  turnF: number
+  /** how readily its men are carded (the aggression dial), 1 for the plain side */
+  cards: number
 }
 
 export const NEUTRAL_STYLE: PlayStyle = {
   atk: '', def: '', kick: 1, kickZone: [1, 1, 1],
   kickMix: { box: 1, long: 1, touch: 1, upAndUnder: 1, grubber: 1, crossField: 1, chip: 1, clearance: 1 },
-  width: 0.30, tempo: 1, offload: 1, maul: 1, pick: 1, corner: 0.3, quick: 1, blitz: 0, narrow: 0, launch: 1, matchup: 0, tryF: 1,
+  width: 0.30, tempo: 1, offload: 1, maul: 1, pick: 1, corner: 0.3, quick: 1, blitz: 0, narrow: 0, launch: 1, matchup: 0, tryF: 1, penF: 1, turnF: 1, cards: 1,
 }
 
 /** THE MANAGER'S HAND (spec 1.2): what can change during a match. MatchSim.apply takes these. */
@@ -87,8 +92,9 @@ export type Decision =
   | { kind: 'bench'; side: 0 | 1; auto: boolean }
   /** the side's tactics changed: the fields given, as on the club's tactic */
   | { kind: 'tactics'; side: 0 | 1; set: Record<string, unknown> }
-  /** a team talk (half-time tone, as the game's own talks) */
-  | { kind: 'talk'; side: 0 | 1; tone: string }
+  /** a team talk: the half-time tone (teamtalk.ts HtTone), or with `pre` the pre-match one (PreTone),
+   *  given before the kick-off */
+  | { kind: 'talk'; side: 0 | 1; tone: string; pre?: boolean }
 
 export interface World {
   /** side s's strength at a contest at clock second t. 1 is an average side in this game; 1.1 is clearly better. */
@@ -129,6 +135,16 @@ export interface World {
   newMatch?(): void
   /** the manager's own side, whose bench the game leaves to him (MatchSim starts with it off) */
   managed?: 0 | 1 | null
+  /** ONE MAN AGAINST ANOTHER: the named man's own carrying, tackling, kicking, handling and rucking
+   *  at clock second t, against his own side's average man (1), with his form, his condition and his
+   *  legs (tired now, or fresh off the bench) in it. Absent: every man is his side. */
+  man?(s: 0 | 1, id: string, t: number): ManForm
+  /** the side's legs: the average tank of its fifteen now, 0 to 1 (absent: nobody tires) */
+  legs?(s: 0 | 1, t: number): number
+}
+
+/** a man against his own side's average, at each thing he can be asked to do (1 is his side's average) */
+export interface ManForm { carry: number; tackle: number; kick: number; hands: number; ruck: number
 }
 
 /** stage 1: two sides with no players, of the strengths given (1 is average) */

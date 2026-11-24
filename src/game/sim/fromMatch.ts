@@ -22,16 +22,17 @@ import { beginMatch } from '../match/begin'
 import { mkSide } from '../match/setup'
 import { sideEnergy } from '../match/energy'
 import { fieldChanged, goalKicker, recomputeSideUnits } from '../match/field'
-import { applyTeamTalk, makeSubstitution } from '../match/control'
+import { applyPreTalk, applyTeamTalk, makeSubstitution } from '../match/control'
 import { benchTank } from '../match/subs'
+import { styleWx } from '../conditions'
 import { kickChance } from '../match/kicking'
 import { clutchKick } from '../habits'
 import { clamp } from '../rng'
 import { teamName } from '../match/selection'
 import type { SideCtx } from '../match/side'
 import type { LiveCtx } from '../match/live'
-import { NEUTRAL_STYLE, type Contest, type Decision, type PlayStyle, type World } from './world'
-import { ATK_FX, MATCHUP, stylesOf, type AtkStyle, type DefStyle } from '../styles'
+import { NEUTRAL_STYLE, type Contest, type Decision, type ManForm, type PlayStyle, type World } from './world'
+import { MATCHUP, styleTick, stylesOf, type AtkStyle, type DefStyle } from '../styles'
 import { callsOf } from '../moves'
 import type { Tactic } from '../model'
 
@@ -39,6 +40,8 @@ import type { Tactic } from '../model'
 export interface SimSide {
   teamId: string
   name: string
+  /** the club's captain (player id), when it has one */
+  captain?: string
   players: { id: string; name: string; shirt: number }[]
 }
 
@@ -101,6 +104,7 @@ export const HFA_SHARE = 0.45
  *  recovery, or the old engine's steeper last quarter (LATE_FLOOR). Those
  *  belong to the simulation once it runs its own tanks per man. */
 export const FADE_W = 0.22
+export const LATE_FLOOR = 0.55, LATE_FROM_S = 3360
 export const END_TANK = 0.27
 
 /** the units a strength is read from, and the league's mean of each */
@@ -204,9 +208,11 @@ export const UNIT_EXP: Record<UnitKey, number> = { scrum: 1.43, lineout: 1.15, b
  *  of 50 + STYLE_KICK doubles it), the style dial's reach on how often it goes wide (the share runs
  *  from 1 - STYLE_WIDTH / 2 to 1 + STYLE_WIDTH / 2 of the average), and its reach on mauls and the
  *  pick and go. Set so two clubs look different and still score what the old engine says they do. */
-export const STYLE_KICK = 80, STYLE_WIDTH = 0.45, STYLE_PACK = 0.4
-/** the old engine's own try lean for each defence (styles.ts DEF_FX tryF, which it does not export) */
-const DEF_FX_TRY: Record<DefStyle, number> = { drift: 1.015, blitz: 0.96, pendulum: 1.04, man: 0.985, choke: 0.99 }
+/** HOW MUCH THE MAN NAMED IN A PLAY MATTERS against his side's average (round 5, owner: "everything
+ *  in the game is affected by the decisions of the manager"): his own rating for the job relative to
+ *  his side's, to this power, and how much his own tank (tired, or fresh off the bench) moves him */
+export const MAN_W = 0.5, MAN_FADE = 0.5
+export const STYLE_KICK = 80, STYLE_WIDTH = 0.45, STYLE_PACK = 0.4, STYLE_MAUL = 1.0
 
 export interface FromMatchOpts {
   /** for measuring only: change the kicked-off sides (on the private copy) before the world reads them */
@@ -245,12 +251,19 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
   // replacement brings fresh legs and the fade is the fifteen men on the field now
   const tank0 = sides.map(side => shirts[sides.indexOf(side)].map(id => (id == null ? 70 : side.energy.get(id) ?? 70) / 100))
   const onAt = [Array(15).fill(0), Array(15).fill(0)] as [number[], number[]]
-  const fade = (s: 0 | 1, t: number) => {
+  /** the side's average tank now, 0 to 1 */
+  const legsOf = (s: 0 | 1, t: number) => {
     const side = sides[s], rate = (1 - END_TANK) * side.tempoF * side.drainF
     let e = 0
     for (let i = 0; i < 15; i++) e += tank0[s][i] * Math.max(0, 1 - Math.min(1, Math.max(0, t - onAt[s][i]) / 4800) * rate)
-    e /= 15
-    return (1 - FADE_W + FADE_W * e) / (1 - FADE_W + FADE_W * (mean.energy / 100))
+    return e / 15
+  }
+  // THE LAST QUARTER (round 5, as tick.ts eF): from the 56th minute a tank counts for far more
+  // (LATE_FLOOR 0.55 + 0.45 x tank, against 0.78 + 0.22 x tank before it), which is what makes the
+  // bench matter in the old engine: a side that never changes is a side on empty legs
+  const fade = (s: 0 | 1, t: number) => {
+    const e = legsOf(s, t), w = t >= LATE_FROM_S ? 1 - LATE_FLOOR : FADE_W
+    return (1 - w + w * e) / (1 - FADE_W + FADE_W * (mean.energy / 100))
   }
   /** the bench men already used, who cannot come on again */
   const used: [Set<number>, Set<number>] = [new Set(), new Set()]
@@ -262,7 +275,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
   const shirts0 = shirts.map(a => a.slice()) as typeof shirts
   const tank00 = tank0.map(a => a.slice())
   let saved: { sides: unknown[]; tactics: unknown[]; ctx: Record<string, unknown> } | null = null
-  const CTX_KEYS = ['subsUsed', 'lastSub', 'talkUsed', 'htTone', 'htReads', 'lastMin'] as const
+  const CTX_KEYS = ['subsUsed', 'lastSub', 'talkUsed', 'htTone', 'htReads', 'lastMin', 'preTalk', 'preReads'] as const
   const keep = () => {
     if (saved) return
     saved = {
@@ -348,6 +361,12 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
     }
     if (d.kind === 'talk') {
       if (!isUserSide(s)) return 'only the manager gives a talk'
+      // before the kick-off it is the pre-match talk (teamtalk.ts PRE_TONES), after it the half-time one
+      if (d.pre) {
+        const said = applyPreTalk(clone, ctx, d.tone as Parameters<typeof applyPreTalk>[2])
+        recomputeSideUnits(clone, ctx, side)
+        return said && ctx.preTalk !== d.tone ? said : ''
+      }
       const said = applyTeamTalk(clone, ctx, d.tone as Parameters<typeof applyTeamTalk>[2])
       recomputeSideUnits(clone, ctx, side)
       return said && ctx.htTone !== d.tone ? said : ''
@@ -464,9 +483,9 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
       tempo: 1.18 - 0.36 * tempoD / 100,
       // (divided by the world's mean, 1.2, so the average club offloads as the even world does)
       offload: A({ offload: 2.6, width: 1.2, direct: 0.8, kick: 0.8 }) / 1.2,
-      maul: pack * A({ direct: 1.15, pods: 1.1, width: 0.8, offload: 0.85 }) * (zones.opp22 === 'drive' ? 1.6 : zones.opp22 === 'spread' ? 0.7 : 1),
+      maul: (1 + STYLE_MAUL * (50 - styleD) / 100) * A({ direct: 1.15, pods: 1.1, width: 0.8, offload: 0.85 }) * (zones.opp22 === 'drive' ? 1.6 : zones.opp22 === 'spread' ? 0.7 : 1),
       pick: pack * A({ direct: 1.2, width: 0.8 }) * (zones.opp22 === 'drive' ? 1.5 : 1),
-      corner: Math.max(0, Math.min(0.75, 0.12 + appetite * 0.35 + (50 - styleD) / 250 + (zones.opp22 === 'drive' ? 0.15 : 0))),
+      corner: Math.max(0, Math.min(0.85, 0.08 + appetite * 0.45 + (50 - styleD) / 150 + (zones.opp22 === 'drive' ? 0.2 : 0))),
       quick: 0.5 + tempoD / 100,
       blitz: Math.max(-1, Math.min(1, (dial(tac.defLine) - 50) / 40 + (def === 'blitz' ? 0.3 : def === 'drift' ? -0.3 : 0))),
       narrow: Math.max(-1, Math.min(1, (50 - dial(tac.defWidth)) / 40 + (def === 'choke' ? 0.25 : 0))),
@@ -474,12 +493,80 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
       launch: move ? 1.1 : 0.8,
       ...(move ? { launchMove: move } : {}),
       matchup: atk && oppSty?.def ? MATCHUP[atk as AtkStyle]?.[oppSty.def as DefStyle] ?? 0 : 0,
-      tryF: (ATK_FX[atk as AtkStyle]?.tryF ?? 1) * (DEF_FX_TRY[oppSty?.def as DefStyle] ?? 1),
+      // THE OLD ENGINE'S OWN STYLE TICK (styles.ts styleTick): its try lean for this attack against
+      // that defence, with the matchup, how well each XV fits its style, the pack and the weather in
+      // it. (Its leans on the penalty count and on turnovers were tried here as well, round 5, and
+      // taken out: through this simulation's own breakdown they moved the per-fixture margin gap to
+      // the old engine from 3.4 to 4.0 points, rms, on the parity pairings.)
+      ...(() => {
+        const o = sides[s === 0 ? 1 : 0], su = side.units, ou = o.units
+        const tk = styleTick(side.sty, o.sty, { attSet: su.scrum + su.lineout, defSet: ou.scrum + ou.lineout, attack: su.attack, defence: ou.defence }, styleWx(ctx.weather, ctx.surface))
+        return { tryF: tk.tryF, penF: 1, turnF: 1 }
+      })(),
+      // how readily this side's men are carded (setup.ts cardRisk: the aggression dial), against the plain 0.012
+      cards: (side.cardRisk ?? 0.012) / 0.012,
     }
   }
   let styles: [PlayStyle, PlayStyle] = [buildStyle(0), buildStyle(1)]
 
+  // ---- ONE MAN AGAINST ANOTHER -------------------------------------------
+  // The units are the side; these are the men inside it. Each man's own
+  // attributes for a job, through the same match-day multipliers the units
+  // use (condition, form, sharpness: selection.ts teamUnits), against the
+  // average of his own starting fifteen, raised to MAN_W so the best carrier
+  // in a side is a better carrier without the side as a whole moving. Then his
+  // own legs: his tank from when he came on, against the side's average now.
+  type Job = keyof ManForm
+  const JOBS: Job[] = ['carry', 'tackle', 'kick', 'hands', 'ruck']
+  const rawMan = (id: number): Record<Job, number> => {
+    const p = clone.players[id]
+    if (!p) return { carry: 1, tackle: 1, kick: 1, hands: 1, ruck: 1 }
+    const a = p.a, f = (0.78 + 0.22 * (p.cond ?? 100) / 100) * (0.9 + 0.02 * (p.form ?? 5)) * (0.945 + 0.055 * ((p.sharp ?? 70) / 100))
+    return {
+      carry: (a.str * 0.3 + a.pac * 0.3 + a.agi * 0.2 + a.han * 0.2) * f,
+      tackle: (a.tac * 0.6 + a.pos * 0.2 + a.wor * 0.2) * f,
+      kick: a.kic * f,
+      hands: (a.han * 0.7 + a.pas * 0.3) * f,
+      ruck: (a.ruc * 0.7 + a.str * 0.3) * f,
+    }
+  }
+  const rawCache = new Map<number, Record<Job, number>>()
+  const rawOf = (id: number) => { let r = rawCache.get(id); if (!r) { r = rawMan(id); rawCache.set(id, r) } return r }
+  // EACH JOB AGAINST THE MEN WHO DO IT: the average is weighted the way the pickers name men for that
+  // job (a carry is mostly the back row, a kick the 10), so the man the simulation names is, on
+  // average, exactly his side (1), and the side as a whole stays what its units say
+  const JOB_W: Record<Job, number[]> = {
+    carry: W_CARRY_TIGHT.map((x, i) => x * 0.7 + W_CARRY_WIDE[i] * 0.3),
+    hands: W_CARRY_TIGHT.map((x, i) => x * 0.7 + W_CARRY_WIDE[i] * 0.3),
+    tackle: W_TACKLE_TIGHT.map((x, i) => x * 0.7 + W_TACKLE_WIDE[i] * 0.3),
+    kick: W_KICK_OPEN.map((x, i) => x + W_KICK_BOX[i] * 0.5),
+    ruck: W_JACKAL,
+  }
+  const sideAvg = ([0, 1] as const).map(s => Object.fromEntries(JOBS.map(j => {
+    let num = 0, den = 0
+    shirts0[s].forEach((id, i) => { if (id == null) return; const w = JOB_W[j][i]; num += w * Math.pow(rawOf(id)[j], MAN_W); den += w })
+    return [j, den ? Math.pow(num / den, 1 / MAN_W) : 1]
+  })) as Record<Job, number>)
+  const tankAt = (s: 0 | 1, slot: number, t: number) => {
+    const side = sides[s], rate = (1 - END_TANK) * side.tempoF * side.drainF
+    return tank0[s][slot] * Math.max(0, 1 - Math.min(1, Math.max(0, t - onAt[s][slot]) / 4800) * rate)
+  }
+  const man = (s: 0 | 1, id: string, t: number): ManForm => {
+    const n = Number(id), slot = shirts[s].indexOf(n)
+    if (!id || slot < 0) return { carry: 1, tackle: 1, kick: 1, hands: 1, ruck: 1 }
+    const r = rawOf(n)
+    let e = 0
+    for (let i = 0; i < 15; i++) e += tankAt(s, i, t)
+    e /= 15
+    // his legs against his side's: a tired man tackles, carries and rucks worse; his hands and boot a little
+    const legs = (1 - MAN_FADE + MAN_FADE * tankAt(s, slot, t)) / (1 - MAN_FADE + MAN_FADE * e)
+    const rel = (j: Job) => Math.pow(r[j] / sideAvg[s][j], MAN_W)
+    return { carry: rel('carry') * legs, tackle: rel('tackle') * legs, kick: rel('kick') * Math.sqrt(legs), hands: rel('hands') * Math.sqrt(legs), ruck: rel('ruck') * legs }
+  }
+
   const world: MatchWorld = {
+    man,
+    legs: legsOf,
     style: s => styles[s],
     managed: ctx.userSideId == null ? null : sides[0].teamId === ctx.userSideId ? 0 : 1,
     weather: ctx.weather,
@@ -537,6 +624,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
 
   const simSide = (side: SideCtx): SimSide => ({
     teamId: side.teamId,
+    captain: clone.clubs[side.teamId]?.captain != null ? String(clone.clubs[side.teamId]!.captain) : undefined,
     name: teamName(clone, side.teamId),
     players: side.lineup.flatMap((id, i) => {
       const p = id != null ? clone.players[id] : null

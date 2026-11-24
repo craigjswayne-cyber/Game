@@ -21,7 +21,8 @@
 import type { Rng } from '../rng'
 import { Laws, type LawEvent, type LawState } from './law'
 import type { KickType, PenaltyCall, Play, PlayKind, SimResult } from './record'
-import { evenWorld, NEUTRAL_STYLE, type Contest, type Decision, type PlayStyle, type World } from './world'
+import { evenWorld, NEUTRAL_STYLE, type Contest, type Decision, type ManForm, type PlayStyle, type World } from './world'
+const NO_MAN: ManForm = { carry: 1, tackle: 1, kick: 1, hands: 1, ruck: 1 }
 
 export interface SkeletonOpts {
   seed: number
@@ -34,7 +35,7 @@ export interface SkeletonOpts {
 /** every number the shape of a match hangs on, in one place */
 export const K = {
   // seconds of ball in play
-  CARRY_S: 3.3, RUCK_S: 4.9, KICK_S: 6.2, CATCH_S: 2.2, SCRUM_S: 6, LINEOUT_S: 4, MAUL_S: 9, RESTART_S: 6.5, BREAK_S: 5,
+  CARRY_S: 3.3, RUCK_S: 4.7, KICK_S: 6.2, CATCH_S: 2.2, SCRUM_S: 6, LINEOUT_S: 4, MAUL_S: 9, RESTART_S: 6.5, BREAK_S: 5,
   // seconds of dead time before a restart
   SCRUM_DEAD: 58, SCRUM_RESET_DEAD: 28, LINEOUT_DEAD: 31, PENALTY_DEAD: 18, GOAL_DEAD: 55, TRY_DEAD: 48, CON_DEAD: 48, KICKOFF_DEAD: 22, DROPOUT_DEAD: 24,
   // the decision: how often the side with the ball kicks, by where it is
@@ -42,7 +43,7 @@ export const K = {
   // the carry
   WIDE: 0.30, WIDE_BLIND: 0.2, GAIN_TIGHT: 2.5, GAIN_TIGHT_SD: 2.4, GAIN_WIDE: 4.3, GAIN_WIDE_SD: 5.2,
   LINE_NEAR: 8, LINE_GAIN: 0.6,
-  P_BREAK: 0.019, BREAK_MIN: 14, BREAK_SPAN: 40,
+  P_BREAK: 0.0175, BREAK_MIN: 14, BREAK_SPAN: 40,
   P_KNOCK_ON: 0.042, P_FORWARD: 0.004, P_INTO_TOUCH: 0.011, P_HELD_UP: 0.15,
   // an interception on a wide carry: how often, and how often the man who took it is away
   P_INTERCEPT: 0.006, INTERCEPT_AWAY: 0.45,
@@ -70,6 +71,13 @@ export const K = {
   CON_WIDE: 0.34, CON_WIDE_MEAN: 0.54, PEN_FAR: 0.008, PEN_FAR_MEAN: 15.0, PEN_WIDE: 0.16, PEN_WIDE_MEAN: 0.54,
   // cards: a man in the bin for ten minutes, and what being a man down costs each contest
   P_YELLOW: 0.05, P_RED: 0.006, BIN_S: 600, SHORT_COST: 0.09,
+  // the referee's patience: from this many penalties conceded a side has been warned, and a card is this much likelier
+  WARN_AT: 6, WARN_CARD: 2,
+  // the in-goal's depth behind each goal line (as the pitch draws it, fromRecord.ts IN_GOAL), and how far
+  // past a touchline or dead-ball line a ball that is out is written (Play.out)
+  IN_GOAL: 8, OUT_BY: 1.5,
+  // quick and slow ruck ball: how often it is quick for an average side, and what it does to the next phase
+  P_QUICK_BALL: 0.45, QUICK_GAIN: 1.1, SLOW_GAIN: 0.92, SLOW_KICK: 1.15,
   // a drop at goal, taken from in range when a possession has gone a few phases; and a kick charged down
   DROP_RANGE: 36, DROP_PHASE: 3, P_DROP: 0.007, DROP_GOOD: 0.45, P_CHARGE: 0.011,
   // ROUND 4 (variety). A drop at goal is six times as likely with the scores level or a kick
@@ -78,11 +86,14 @@ export const K = {
   // offloads out of the tackle (times the side's style), and twice as often off a man hauled down after a break
   P_OFFLOAD: 0.05,
   // near their line: the pick and go (times the side's style), from inside this many metres
-  PICK_ZONE: 6, P_PICK: 0.5,
+  PICK_ZONE: 6, P_PICK: 0.3,
   // a quick lineout and a quick tap (times the side's style)
   P_QUICK_LINEOUT: 0.10, QUICK_TAP_DEAD: 4,
   // fatigue late in each half: in the last ten minutes of a half a break is up to this much likelier
   LATE_BREAK: 0.25,
+  // and in the last twenty minutes, from the legs (tick.ts TIRED_DEF, TIRED_ATT): an empty defence gives up
+  // up to this much more, an empty attack makes up to this much less
+  TIRED_DEF: 0.8, TIRED_ATT: 0.3,
   // momentum: a try, a turnover or a break lifts the side a little, fading over about four minutes
   MOM_TRY: 0.04, MOM_TURN: 0.025, MOM_BREAK: 0.015, MOM_MAX: 0.08, MOM_DECAY: 240,
   // a man hurt in a tackle (a model choice: no sourced rate), and the bench: each replacement's
@@ -98,11 +109,57 @@ export const K = {
   // Each is taken back off the side's own carry, so a style changes how a side plays and leaves
   // what it wins to the old engine's own style leans (PlayStyle.tryF, matchup) and to the men.
   // Without it, the per-fixture margin gap to the old engine went from 2.3 to 3.4 points (rms).
-  COMP_KICK: 0.123, COMP_WIDTH: -0.086, COMP_PACK: -0.025, COMP_OFFLOAD: -0.053, COMP_TEMPO: 0.008, COMP_BLITZ: -0.115, COMP_NARROW: -0.037, COMP_QUICK: 0.018,
+  COMP_KICK: 0.123, COMP_WIDTH: -0.086, COMP_PACK: -0.074, COMP_OFFLOAD: -0.053, COMP_TEMPO: 0.080, COMP_BLITZ: -0.115, COMP_NARROW: -0.037, COMP_QUICK: 0.018, COMP_CORNER: -0.061,
+  // (round 5, re-measured after the driving maul, quick ruck ball and the corner call came in: the pack
+  // -0.025 to -0.074, tempo 0.008 to 0.080, and the corner -0.061 a unit of its lean)
 } as const
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 const r1 = (v: number) => Math.round(v * 10) / 10
+
+/**
+ * THE PHASE-PLAY SHAPES (round 5): how the ball gets to the carrier, and what it does to his odds.
+ * g: times the gain; b: times the line-break chance; k: times the knock-on chance; t: times the
+ * turnover chance at the ruck after; i: times the interception chance (wide shapes only); passes:
+ * the hands it goes through. Which shape is played is the side's style, where it is, the phase
+ * count and how the defence is set (MatchSim.pickShape).
+ */
+export const SHAPES: Record<string, { wide: boolean; g: number; b: number; k: number; t: number; i: number; passes: number }> = {
+  oneOut:     { wide: false, g: 0.95, b: 0.75, k: 0.8, t: 1.0, i: 0, passes: 1 },
+  pod:        { wide: false, g: 1.0, b: 0.6, k: 0.7, t: 0.85, i: 0, passes: 1 },
+  tipOn:      { wide: false, g: 1.08, b: 0.9, k: 1.35, t: 1.0, i: 0, passes: 2 },
+  snipe:      { wide: false, g: 1.15, b: 1.6, k: 0.9, t: 1.25, i: 0, passes: 0 },
+  pullBack:   { wide: false, g: 1.05, b: 1.3, k: 1.2, t: 1.0, i: 0, passes: 3 },
+  podOff10:   { wide: true, g: 1.0, b: 0.9, k: 0.9, t: 1.0, i: 0.7, passes: 2 },
+  miss:       { wide: true, g: 1.15, b: 1.15, k: 1.1, t: 1.0, i: 1.8, passes: 3 },
+  loop:       { wide: true, g: 1.1, b: 1.35, k: 1.3, t: 1.0, i: 1.0, passes: 3 },
+  wraparound: { wide: true, g: 1.05, b: 1.25, k: 1.2, t: 1.0, i: 1.0, passes: 3 },
+  switch:     { wide: true, g: 1.0, b: 1.4, k: 1.25, t: 1.1, i: 0.8, passes: 2 },
+  kickPass:   { wide: true, g: 1.3, b: 1.7, k: 1.8, t: 1.0, i: 1.5, passes: 1 },
+}
+const SHAPE_STYLE: Record<string, Partial<Record<string, number>>> = {
+  direct: { oneOut: 1.6, pod: 1.3, tipOn: 1.3, miss: 0.6, loop: 0.6, wraparound: 0.7 },
+  pods: { pod: 1.8, podOff10: 1.5, pullBack: 1.5 },
+  width: { miss: 1.8, loop: 1.6, wraparound: 1.5, pullBack: 1.2, oneOut: 0.6, pod: 0.7 },
+  kick: { kickPass: 2.5, pod: 1.2, oneOut: 1.2 },
+  offload: { tipOn: 1.8, switch: 1.8, loop: 1.3 },
+}
+
+/** each attacking style's own average over its usual shapes (halfway, second phase, a plain defence),
+ *  which every shape it plays is divided by: a style chooses how a side plays, the men decide what it
+ *  wins (round 5: without it, the per-fixture margin gap to the old engine grew by about half a point) */
+const SHAPE_NORM: Record<string, Record<'true' | 'false', { g: number; b: number; k: number; t: number; i: number }>> = {}
+for (const atk of ['', 'direct', 'pods', 'width', 'kick', 'offload']) {
+  SHAPE_NORM[atk] = {} as Record<'true' | 'false', { g: number; b: number; k: number; t: number; i: number }>
+  for (const wide of [true, false]) {
+    const S2 = SHAPE_STYLE[atk] ?? {}
+    const base: [string, number][] = wide ? [['podOff10', 1], ['miss', 0.8], ['loop', 0.4], ['wraparound', 0.4], ['switch', 0.35], ['kickPass', 0.12]]
+      : [['oneOut', 1], ['pod', 1], ['tipOn', 0.5], ['pullBack', 0.4], ['snipe', 0.1]]
+    const ws = base.map(([id, w]) => w * (S2[id] ?? 1)), tot = ws.reduce((a, b) => a + b, 0)
+    const avg = (k: 'g' | 'b' | 'k' | 't' | 'i') => base.reduce((a, [id], n) => a + ws[n] * SHAPES[id][k], 0) / tot
+    SHAPE_NORM[atk][String(wide) as 'true' | 'false'] = { g: avg('g'), b: avg('b'), k: avg('k'), t: avg('t'), i: Math.max(0.01, avg('i')) }
+  }
+}
 
 /** what happens next: the step the match is waiting on */
 export type Next =
@@ -168,6 +225,14 @@ export interface SimState {
   subPlan?: [number[], number[]] | null
   /** men hurt and off, waiting for the replacement */
   hurt?: [string[], string[]]
+  /** penalties each side has given away (the referee's patience) */
+  conceded?: [number, number]
+  /** the next restart comes from a penalty option, so the full-time whistle waits for it */
+  penaltyOn?: boolean
+  /** dead time waited since the last play, written as the next play's `pre` */
+  preAcc?: number
+  /** the last ruck's ball: quick or slow ('' when the phase did not come off a ruck) */
+  ruckSpeed?: '' | 'quick' | 'slow'
 }
 
 /** where to stop: the first moment between two steps at or after it */
@@ -348,10 +413,25 @@ export class MatchSim {
   /** a side's strength at a contest now: a man down costs every contest; momentum lifts it a little */
   private S = (s: 0 | 1, c: Contest) => this.world.str(s, c, this.st.t) * Math.max(0.55, 1 - K.SHORT_COST * this.short(s)) * (c === 'goal' || c === 'discipline' ? 1 : 1 + this.mom(s))
   private sty = (s: 0 | 1): PlayStyle => this.world.style?.(s) ?? NEUTRAL_STYLE
+  /** which shape this phase is run in, on one draw */
+  private pickShape(wide: boolean, d: number, me: PlayStyle, them: PlayStyle): string {
+    const st = this.st, ph = st.phase, S2 = SHAPE_STYLE[me.atk] ?? {}, wet = this.wet()
+    const w = (id: string, base: number) => [id, base * (S2[id] ?? 1)] as [string, number]
+    const opp22 = d <= 22
+    const list: [string, number][] = wide ? [
+      w('podOff10', 1.0), w('miss', 0.8 * (opp22 ? 0.8 : 1) * (1 + Math.max(0, them.narrow))), w('loop', 0.4), w('wraparound', 0.4 * (1 + Math.max(0, them.narrow))),
+      w('switch', 0.35 * (ph >= 4 ? 1.3 : 1) * (1 + Math.max(0, -them.blitz))), w('kickPass', d <= 45 && !wet ? 0.12 * (opp22 ? 1.5 : 1) * (1 + Math.max(0, them.blitz)) : 0),
+    ] : [
+      w('oneOut', 1.0 * (opp22 ? 1.5 : 1)), w('pod', 1.0), w('tipOn', 0.5), w('snipe', ph >= 3 ? 0.25 * (opp22 ? 1.5 : 1) * (ph >= 4 ? 1.6 : 1) * (1 + Math.max(0, -them.blitz)) : 0),
+      w('pullBack', d > 8 ? 0.4 * (opp22 ? 1.2 : 1) * (1 + Math.max(0, them.blitz)) : 0),
+    ]
+    return this.choose(this.rng(), list)
+  }
+  private man = (s: 0 | 1, id: string | undefined): ManForm => (id && this.world.man ? this.world.man(s, id, this.st.t) : NO_MAN)
   /** the style's own levers taken back off the side's carry (K.COMP_*) */
   private comp(y: PlayStyle) {
     return Math.pow(y.kick, K.COMP_KICK) * Math.pow(y.width / NEUTRAL_STYLE.width, K.COMP_WIDTH) * Math.pow(y.maul * y.pick, K.COMP_PACK) *
-      Math.pow(y.offload, K.COMP_OFFLOAD) * Math.pow(y.tempo, K.COMP_TEMPO) * Math.pow(y.quick, K.COMP_QUICK) * Math.exp(K.COMP_BLITZ * y.blitz + K.COMP_NARROW * y.narrow)
+      Math.pow(y.offload, K.COMP_OFFLOAD) * Math.pow(y.tempo, K.COMP_TEMPO) * Math.pow(y.quick, K.COMP_QUICK) * Math.exp(K.COMP_BLITZ * y.blitz + K.COMP_NARROW * y.narrow + K.COMP_CORNER * (y.corner - NEUTRAL_STYLE.corner))
   }
   /** rain or snow: a wet ball. Damp is a little of both. */
   private wet = () => (this.world.weather === 'Rain' || this.world.weather === 'Snow' ? 1 : this.world.weather === 'Damp' ? 0.4 : 0)
@@ -425,21 +505,26 @@ export class MatchSim {
     st.t += live + dead; st.clock += live + dead
     const p: Play = { n: st.plays.length, t: Math.round(st.t), clock: Math.round(st.clock), kind, side, ball: st.ball, x: r1(st.x), y: r1(st.y), result, live, dead, score: [st.score[0], st.score[1]] }
     if (more) for (const k in more) { const v = (more as Record<string, unknown>)[k]; if (v !== undefined && v !== '') (p as unknown as Record<string, unknown>)[k] = v }
+    // the dead time waited before this play (a set piece forming, a penalty being taken), all of it
+    if (st.preAcc) { p.pre = r1(st.preAcc); st.preAcc = 0 }
     st.plays.push(p)
   }
   /** dead time before a set piece: on the clock, and written on the play as `pre` */
-  private wait(s: number) { this.st.t += s; this.st.clock += s; return s }
+  private wait(s: number) { this.st.t += s; this.st.clock += s; this.st.preAcc = (this.st.preAcc ?? 0) + s; return s }
 
   /** half-time and full time are blown when the ball next goes dead */
   private whistle(): Next | null {
     const st = this.st
-    if (st.half === 0 && st.clock >= 2400) {
+    // (a penalty given before the whistle can still be played after it: its scrum or its lineout is taken, Law 5.7)
+    const on = !!st.penaltyOn
+    st.penaltyOn = false
+    if (st.half === 0 && st.clock >= 2400 && !on) {
       this.emit('halfTime', 0, 'halfTime', 'HALF', 0, 0)
       // the referee's clock starts the second half at forty minutes; the record's t runs on
       st.clock = 2400; st.half = 1
       return { k: 'kickoff', by: this.other(st.firstKO) }
     }
-    if (st.half === 1 && st.clock >= 4800) { this.emit('fullTime', 0, 'fullTime', null, 0, 0); return { k: 'end' } }
+    if (st.half === 1 && st.clock >= 4800 && !on) { this.emit('fullTime', 0, 'fullTime', null, 0, 0); return { k: 'end' } }
     return null
   }
 
@@ -493,7 +578,7 @@ export class MatchSim {
     st.x = this.adv(by, from, 26 + rng() * 16); st.y = 8 + rng() * 54; st.ball = by; st.passerId = ''
     this.emit(goalLine ? 'goalLineDropout' : 'dropout22', by, 'kicked', 'DROPOUT', K.RESTART_S, 0, { kick: 'restart', who: W.kicker(by, false, pick), land: [r1(st.x), r1(st.y)] })
     // (the dead time is before it: the sides walking back)
-    st.plays[st.plays.length - 1].dead = K.DROPOUT_DEAD; this.wait(K.DROPOUT_DEAD)
+    st.plays[st.plays.length - 1].dead = K.DROPOUT_DEAD; st.t += K.DROPOUT_DEAD; st.clock += K.DROPOUT_DEAD
     if (rng() < 0.88) { st.ball = this.other(by); st.phase = 1; st.carrierId = W.catcher(st.ball, pick); this.emit('catch', st.ball, 'caught', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }) }
     else { st.ball = by; st.phase = 1; st.carrierId = W.catcher(by, pick); this.emit('catch', by, 'regathered', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }) }
     return { k: 'phase' }
@@ -605,13 +690,19 @@ export class MatchSim {
     const st = this.st, W = this.world, rng = this.rng, pick = this.pick
     const off = this.other(to)
     st.ball = to; st.passerId = ''; st.carrierId = ''
-    this.emit(free ? 'freeKick' : 'penalty', to, 'awarded', 'PENALTY', 0, K.PENALTY_DEAD, { cause, offender })
+    // (a penalty's dead time is the call's: a quick tap is taken at once, anything else waits; MatchSim.penaltyCall)
+    this.emit(free ? 'freeKick' : 'penalty', to, 'awarded', 'PENALTY', 0, free ? K.PENALTY_DEAD : 0, { cause, offender })
     const d = this.toLine(to, st.x)
+    if (!free) st.conceded = [st.conceded?.[0] ?? 0, st.conceded?.[1] ?? 0], st.conceded[off]++
+    // the referee's patience: a side giving away penalty after penalty has been warned, and the next
+    // man goes (as concedePenalty does in the old engine); an aggressive side's men are carded more
+    const repeat = !free && (st.conceded?.[off] ?? 0) >= K.WARN_AT ? K.WARN_CARD : 1
+    const cardF = this.sty(off).cards * repeat
     if (!free) {
       const c = rng()
       // (the man carded is the offender when the record names him)
-      if (c < K.P_RED) this.card(off, true, 'foulPlay', offender || W.forward(off, pick))
-      else if (c < K.P_RED + K.P_YELLOW + (d < 22 ? K.P_YELLOW_22 : 0)) this.card(off, false, d < 22 ? 'cynical' : 'foulPlay', offender || W.forward(off, pick))
+      if (c < K.P_RED * this.sty(off).cards) this.card(off, true, 'foulPlay', offender || W.forward(off, pick))
+      else if (c < K.P_RED * this.sty(off).cards + (K.P_YELLOW + (d < 22 ? K.P_YELLOW_22 : 0)) * cardF) this.card(off, false, repeat > 1 ? 'repeated' : d < 22 ? 'cynical' : 'foulPlay', offender || W.forward(off, pick))
     }
     // A PENALTY TRY (Law 8.3): foul play on their own line that stopped a probable try. Seven
     // points, no conversion, and the offender goes to the bin if he has not gone already.
@@ -653,12 +744,9 @@ export class MatchSim {
     // stopped). Near their line it is a tap and go for the line: the pick and go follows.
     const tap = (): Next => {
       st.phase = 1; st.launch = ''
-      const pen = st.plays[st.plays.length - 1]
-      const quick = pen.kind === 'penalty' && pen.dead > K.QUICK_TAP_DEAD
-      if (quick) {
-        const saved = pen.dead - K.QUICK_TAP_DEAD
-        pen.dead = K.QUICK_TAP_DEAD; st.t -= saved; st.clock -= saved; pen.t = Math.round(st.t); pen.clock = Math.round(st.clock)
-      }
+      // (quick when nobody has been carded: the referee has not stopped the game)
+      const quick = st.plays[st.plays.length - 1].kind === 'penalty'
+      this.wait(quick ? K.QUICK_TAP_DEAD : K.PENALTY_DEAD)
       st.carrierId = W.carrier(to, d <= 10 ? false : pick() < 0.3, pick)
       this.emit('tap', to, d <= 10 ? 'tapAndGo' : quick ? 'quickTap' : 'tapped', 'PLAY', 2, 0, { who: st.carrierId })
       return { k: 'phase' }
@@ -669,27 +757,28 @@ export class MatchSim {
       const gain = Math.min(d - 5, 22 + rng() * 16)
       const before = st.x
       st.x = this.adv(to, st.x, Math.max(2, gain)); st.y = st.y < 35 ? 0 : 70
-      this.emit('kick', to, 'penaltyToTouch', 'TOUCH', K.KICK_S, 0, { kick: 'touch', gain: r1(Math.abs(st.x - before)), who: W.kicker(to, false, pick), land: [r1(st.x), r1(st.y)] })
+      this.emit('kick', to, 'penaltyToTouch', 'TOUCH', K.KICK_S, 0, { kick: 'touch', gain: r1(Math.abs(st.x - before)), who: W.kicker(to, false, pick), land: [r1(st.x), r1(st.y)], out: [r1(st.x), st.y < 35 ? -K.OUT_BY : 70 + K.OUT_BY] })
       return { k: 'lineout', to }
     }
-    if (call === 'posts' && d <= K.GOAL_RANGE) return posts()
-    if (call === 'corner') return corner()
+    const waitThen = (f: () => Next) => { this.wait(K.PENALTY_DEAD); st.penaltyOn = true; const n = f(); if (n.k !== 'scrum' && n.k !== 'lineout') st.penaltyOn = false; return n }
+    if (call === 'posts' && d <= K.GOAL_RANGE) return waitThen(posts)
+    if (call === 'corner') return d <= 5 ? tap() : waitThen(corner)
     if (call === 'tap') return tap()
-    if (call === 'scrum') return { k: 'scrum', to }
+    if (call === 'scrum') return waitThen(() => ({ k: 'scrum', to }))
     // the game's own call. The scoreboard and the clock (as aiPenaltyCall does in the old
     // engine): more than a kick behind in the last ten minutes, three points will not do; level
     // or ahead in the last twenty, take them every time
     const behind = st.score[off] - st.score[to]
     // a side that backs its pack goes to the corner from their 22 more than one that takes the points
     const sty = this.sty(to)
-    const lean = d <= 22 ? clamp(1 - (sty.corner - NEUTRAL_STYLE.corner), 0.3, 1.3) : 1
+    const lean = d <= 22 ? clamp(1 - 2 * (sty.corner - NEUTRAL_STYLE.corner), 0.2, 1.5) : 1
     const take = st.clock >= K.LATE_CHASE_S && behind > 3 ? 0 : st.clock >= K.LATE_POSTS_S && behind <= 0 ? 1 : (K.GOAL_TAKE + (d < 30 ? K.GOAL_TAKE_NEAR : 0)) * lean
-    if (d <= K.GOAL_RANGE && u < take) return posts()
+    if (d <= K.GOAL_RANGE && u < take) return waitThen(posts)
     const v = rng()
     // the quick tap: a high-tempo side, a side chasing the game, and close to their line
     if (v < K.PEN_TAP * sty.quick * (this.chasing(to) ? 2 : 1) * (d <= 10 ? 2.5 : 1)) return tap()
-    if (v < K.PEN_TAP + K.PEN_SCRUM && d < 30) return { k: 'scrum', to }
-    return corner()
+    if (v < K.PEN_TAP + K.PEN_SCRUM && d < 30) return waitThen(() => ({ k: 'scrum', to }))
+    return d <= 5 ? tap() : waitThen(corner)
   }
 
   /** a kick from hand by the side with the ball */
@@ -707,7 +796,7 @@ export class MatchSim {
       : d > 50
         ? this.choose(u, [['box', K.KICK_BOX * m.box * (1 + 0.3 * wet)], ['long', K.KICK_LONG * m.long * hold], ['upAndUnder', (1 - K.KICK_BOX - K.KICK_LONG - K.KICK_TOUCH) * m.upAndUnder * (1 + 0.3 * wet)], ['touch', K.KICK_TOUCH * m.touch * hold]])
         : this.choose(u, [['grubber', 0.32 * m.grubber], ['upAndUnder', 0.30 * m.upAndUnder * (1 + 0.3 * wet)], ['touch', 0.20 * m.touch * hold], ['chip', 0.09 * m.chip * (1 - 0.5 * wet)], ['crossField', 0.09 * m.crossField * (1 - 0.5 * wet) * (d < 40 ? 1.5 : 0.5)]])
-    const kickerId = W.kicker(s, type === 'box', pick), boot = Math.sqrt(this.S(s, 'kicking'))
+    const kickerId = W.kicker(s, type === 'box', pick), boot = Math.sqrt(this.S(s, 'kicking')) * this.man(s, kickerId).kick
     const dist = boot * (type === 'clearance' ? 28 + rng() * 18 : type === 'long' ? 34 + rng() * 18 : type === 'touch' ? 22 + rng() * 16
       : type === 'grubber' ? 11 + rng() * 10 : type === 'chip' ? 6 + rng() * 8 : type === 'crossField' ? 12 + rng() * 14 : 17 + rng() * 11)
     // charged down: it comes off a defender's hands and they are on to it first
@@ -728,9 +817,16 @@ export class MatchSim {
     const land: [number, number] = [r1(clamp(st.x, 0, 100)), r1(st.y)]
     // over their goal line: dead, or touched down. A 22 drop-out from a long kick, a goal-line one when a short kick is made dead.
     if (this.toLine(s, st.x) <= 0) {
-      st.x = s === 0 ? 100 : 0
+      // WHERE IT REALLY WENT (owner, 24 Nov: "it said the ball went dead, but on screen it did not
+      // cross the dead-ball line"). The record's x stops at the goal line (x 0 to 100); `land` is where
+      // it came down, in-goal or beyond, and the dead ball's `out` is where it ended: over the dead-ball
+      // line (K.IN_GOAL behind the goal line) when it ran dead, in-goal where a defender touched it down
+      const over = Math.abs(st.x - (s === 0 ? 100 : 0)), line = s === 0 ? 100 : 0, dir = s === 0 ? 1 : -1
+      land[0] = r1(line + dir * Math.max(0.5, Math.min(over, K.IN_GOAL + 6)))
+      const outX = type === 'grubber' ? line + dir * Math.min(Math.max(1, over), K.IN_GOAL - 1) : line + dir * Math.max(K.IN_GOAL + 1.5, Math.min(over, K.IN_GOAL + 6))
+      st.x = line
       this.emit('kick', s, 'dead', 'KICK', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land })
-      this.emit('deadBall', s, type === 'grubber' ? 'touchedDown' : 'ranDead', 'DEAD', 0, 0)
+      this.emit('deadBall', s, type === 'grubber' ? 'touchedDown' : 'ranDead', 'DEAD', 0, 0, { out: [r1(outX), r1(st.y)] })
       return { k: 'dropout', by: o2, goalLine: type === 'grubber' }
     }
     const toTouch = type === 'clearance' || type === 'touch'
@@ -740,14 +836,14 @@ export class MatchSim {
         // (land: where it crossed the touchline on its way, before it would have come down)
         const over: [number, number] = [r1(clamp(from + (st.x - from) * 0.8, 0, 100)), st.y < 35 ? 0 : 70]
         st.x = from; st.y = st.y < 35 ? 0 : 70
-        this.emit('kick', s, 'outOnFull', 'TOUCH', K.KICK_S, 0, { kick: type, who: kickerId, land: over })
+        this.emit('kick', s, 'outOnFull', 'TOUCH', K.KICK_S, 0, { kick: type, who: kickerId, land: over, out: [over[0], over[1] === 0 ? -K.OUT_BY : 70 + K.OUT_BY] })
         return { k: 'lineout', to: o2 }
       }
       st.y = st.y < 35 ? 0 : 70
       land[1] = st.y
       // THE 50:22 (Law 18): from his own half, bouncing into touch in their 22, his side throws. Every time.
       const fifty = !fromFree && d > 50 && this.toLine(s, st.x) < 22
-      this.emit('kick', s, fifty ? 'fiftyTwentyTwo' : 'touch', 'TOUCH', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land })
+      this.emit('kick', s, fifty ? 'fiftyTwentyTwo' : 'touch', 'TOUCH', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land, out: [land[0], st.y === 0 ? -K.OUT_BY : 70 + K.OUT_BY] })
       return { k: 'lineout', to: fifty ? s : o2 }
     }
     this.emit('kick', s, 'inPlay', 'KICK', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land })
@@ -772,7 +868,7 @@ export class MatchSim {
     }
     // it bounces into touch
     st.y = st.y < 35 ? 0 : 70
-    this.emit('intoTouch', s, 'bounced', 'TOUCH', 0, 0)
+    this.emit('intoTouch', s, 'bounced', 'TOUCH', 0, 0, { out: [r1(clamp(st.x, 0, 100)), st.y === 0 ? -K.OUT_BY : 70 + K.OUT_BY] })
     return { k: 'lineout', to: o2 }
   }
 
@@ -787,6 +883,9 @@ export class MatchSim {
     st.offloaded = false
     const launch = st.phase === 1 && st.launch ? st.launch : ''
     st.launch = ''
+    const ball = st.ruckSpeed ?? ''
+    st.ruckSpeed = ''
+    const qb = ball === 'quick' ? K.QUICK_GAIN : ball === 'slow' ? K.SLOW_GAIN : 1
     if (!offloaded) {
       // a drop at goal: from in range after a few phases, and far likelier with the scores level or a kick behind late on
       const late = st.clock >= K.LATE_CHASE_S && this.lead(s) <= 0 && this.lead(s) >= -3 ? K.DROP_LATE : 1
@@ -804,7 +903,7 @@ export class MatchSim {
       const base = d > 78 ? K.KICK_OWN22 : d > 50 ? K.KICK_OWNHALF : d > 22 ? K.KICK_OPPHALF : K.KICK_OPP22
       const lean = me.kick * me.kickZone[zone] * (chase ? (d > 50 ? 0.45 : 0.6) : hold && d > 40 ? 1.35 : 1) * (up < 0 ? 1.25 : up > 0 ? 0.85 : 1) * (1 + 0.2 * wet)
       // (nobody kicks it away on their line: inside ten metres they keep it in hand)
-      if (d > 10 && rng() < base * lean + K.KICK_PER_PHASE * Math.max(0, st.phase - K.KICK_PHASE_FROM)) return this.kick()
+      if (d > 10 && rng() < base * lean * (ball === 'slow' ? K.SLOW_KICK : 1) + K.KICK_PER_PHASE * Math.max(0, st.phase - K.KICK_PHASE_FROM)) return this.kick()
     }
     // TIGHT OR WIDE. On their line a pack side picks and goes; elsewhere the side's own width, wider
     // a man up or chasing the game, narrower a man down or on a wet ball
@@ -813,40 +912,61 @@ export class MatchSim {
     const wide = !pickGo && rng() < widthP
     // the defence: a narrow defence gives up the outside and holds the inside, a blitz holds the
     // gain line and gives up more breaks and intercepts
-    const edge = this.vs(s, 'carry', 'tackle') * this.comp(me) * (wide ? 1 + 0.12 * them.narrow : 1 - 0.12 * them.narrow) * (1 - 0.1 * them.blitz)
+    const edge = qb * this.vs(s, 'carry', 'tackle') * this.comp(me) * (wide ? 1 + 0.12 * them.narrow : 1 - 0.12 * them.narrow) * (1 - 0.1 * them.blitz)
     // (on their own line a defence is at its tightest: every metre is fought for)
     const near = d <= K.LINE_NEAR ? K.LINE_GAIN : 1
-    let gain = wide ? this.gauss(K.GAIN_WIDE * edge * near, K.GAIN_WIDE_SD * near) : this.gauss(K.GAIN_TIGHT * edge * near, K.GAIN_TIGHT_SD * near)
+    // the shape it is run in (a pick and go, a launch play off set-piece ball and an offload's run are their own)
+    const shapeId = offloaded || pickGo || launch ? '' : this.pickShape(wide, d, me, them)
+    const SH0 = shapeId ? SHAPES[shapeId] : null, NRM = SHAPE_NORM[me.atk] ?? SHAPE_NORM['']
+    const nr = NRM[String(wide) as 'true' | 'false']
+    const SH = SH0 ? { ...SH0, g: SH0.g / nr.g, b: SH0.b / nr.b, k: SH0.k / nr.k, t: SH0.t / nr.t, i: wide ? SH0.i / nr.i : 0 } : null
+    let gain = (wide ? this.gauss(K.GAIN_WIDE * edge * near, K.GAIN_WIDE_SD * near) : this.gauss(K.GAIN_TIGHT * edge * near, K.GAIN_TIGHT_SD * near)) * (SH?.g ?? 1)
     const passer = st.carrierId
-    st.carrierId = offloaded ? passer : W.carrier(s, wide, pick)
+    // (a snipe is the scrum-half himself)
+    st.carrierId = offloaded ? passer : shapeId === 'snipe' ? W.kicker(s, true, pick) || W.carrier(s, false, pick) : W.carrier(s, wide, pick)
     const who = st.carrierId, tk = this.ids(W.tacklers(o2, wide, pick))
+    // THE MEN IN IT: the carrier's own carrying and legs against the first tackler's (World.man)
+    const mc = this.man(s, who), mt = this.man(o2, tk[0])
+    gain *= 1 + (mc.carry / mt.tackle - 1) * (gain > 0 ? 1 : -1)
     // the pass that put him in: from the last man on the ball (the scrum-half off a ruck), and how
     // many hands it went through (a wide ball goes through the ten and often a centre)
-    const passes = offloaded ? 0 : wide ? 2 + Math.floor(pick() * 3) : pickGo ? 0 : pick() < 0.7 ? 1 : 0
-    st.passerId = passes && passer && passer !== who ? passer : ''
+    const passes = SH ? SH.passes : offloaded ? 0 : wide ? 2 + Math.floor(pick() * 3) : pickGo ? 0 : pick() < 0.7 ? 1 : 0
+    // the men the ball went through on its way to him: the scrum-half, the fly-half, a decoy or a looping centre
+    const via: string[] = []
+    if (SH && passes > 0) {
+      const nine = W.kicker(s, true, pick), ten = W.kicker(s, false, pick)
+      if (shapeId === 'oneOut' || shapeId === 'pod') via.push(nine)
+      else if (shapeId === 'tipOn') via.push(nine, W.carrier(s, false, pick))
+      else if (shapeId === 'pullBack') via.push(nine, W.carrier(s, false, pick), ten)
+      else if (shapeId === 'loop') via.push(nine, ten, W.carrier(s, true, pick), ten)
+      else if (shapeId === 'kickPass') via.push(ten)
+      else via.push(nine, ten, ...(passes > 2 ? [W.carrier(s, true, pick)] : []))
+    }
+    const hands = via.filter(x => x && x !== who)
+    st.passerId = hands.length ? hands[hands.length - 1] : passes && passer && passer !== who ? passer : ''
     const pass = st.passerId ? { with: [st.passerId], passes } : passes ? { passes } : {}
-    const shape = pickGo ? { shape: 'pickAndGo' } : launch && me.launchMove ? { shape: 'launch', move: me.launchMove } : launch ? { shape: 'launch' } : offloaded ? { shape: 'offload' } : {}
+    const shape = pickGo ? { shape: 'pickAndGo' } : launch && me.launchMove ? { shape: 'launch', move: me.launchMove } : launch ? { shape: 'launch' } : offloaded ? { shape: 'offload' } : shapeId ? { shape: shapeId, ...(hands.length ? { via: hands } : {}) } : {}
     // a wide carry never ends behind where it started (a man going backwards with it is a picture nobody believes)
     gain = clamp(gain, wide ? 0 : -5, 22)
     const x0 = st.x
     // (a wide ball goes to the open side, the side of the ruck with the more room, four times in five)
-    st.y = clamp(st.y + (wide ? (rng() < (st.y < 35 ? K.WIDE_BLIND : 1 - K.WIDE_BLIND) ? -1 : 1) * (10 + rng() * 22) : (rng() - 0.5) * (pickGo ? 4 : 9)), wide ? -1 : 4, wide ? 71 : 66)
+    st.y = clamp(st.y + (wide ? (rng() < (st.y < 35 ? K.WIDE_BLIND : 1 - K.WIDE_BLIND) ? -1 : 1) * (10 + rng() * 22) * (shapeId === 'kickPass' ? 1.4 : shapeId === 'switch' ? 0.6 : 1) : (rng() - 0.5) * (pickGo ? 4 : 9)), wide ? -1 : 4, wide ? 71 : 66)
     const u = rng()
     const moved = () => r1(Math.abs(clamp(st.x, 0, 100) - x0)) * (this.toLine(s, st.x) <= this.toLine(s, x0) ? 1 : -1)
     const info = { phase: st.phase, who, ...pass, ...shape }
     // out over the touchline with it
     if (wide && (st.y <= 0 || st.y >= 70)) {
-      if (rng() < 0.45) { st.x = this.adv(s, st.x, Math.max(0, gain)); st.y = st.y <= 0 ? 0 : 70; this.emit('carry', s, 'intoTouch', 'PLAY', K.CARRY_S, 0, { gain: moved(), vs: tk, ...info }); this.emit('intoTouch', s, 'carried', 'TOUCH', 0, 0, { who }); return { k: 'lineout', to: o2 } }
+      if (rng() < 0.45) { st.x = this.adv(s, st.x, Math.max(0, gain)); st.y = st.y <= 0 ? 0 : 70; this.emit('carry', s, 'intoTouch', 'PLAY', K.CARRY_S, 0, { gain: moved(), vs: tk, ...info }); this.emit('intoTouch', s, 'carried', 'TOUCH', 0, 0, { who, out: [r1(clamp(st.x, 0, 100)), st.y === 0 ? -K.OUT_BY : 70 + K.OUT_BY] }); return { k: 'lineout', to: o2 } }
       st.y = clamp(st.y, 3, 67)
     }
     // (in the field of play, never on the touchline itself)
     st.y = clamp(st.y, 0.5, 69.5)
     // a wet ball is a slippery one
-    const pKnock = K.P_KNOCK_ON / Math.sqrt(this.S(s, 'handling')) * (1 + 0.3 * wet)
+    const pKnock = K.P_KNOCK_ON / Math.sqrt(this.S(s, 'handling')) / mc.hands * (1 + 0.3 * wet) * (SH?.k ?? 1)
     if (u < pKnock) { this.emit('carry', s, 'knockedOn', 'PLAY', K.CARRY_S * 0.6, 0, { vs: tk, ...info }); this.emit('knockOn', s, 'inContact', 'STOP', 0, 0, { who, vs: tk.slice(0, 1) }); return { k: 'scrum', to: o2 } }
     if (u < pKnock + K.P_FORWARD) { this.emit('carry', s, 'forwardPass', 'PLAY', K.CARRY_S * 0.6, 0, info); this.emit('forwardPass', s, 'forward', 'STOP', 0, 0, { who: st.passerId || who, with: st.passerId ? [who] : undefined }); return { k: 'scrum', to: o2 } }
     // AN INTERCEPTION (owner's key moments): a wide pass read by a defender, who is sometimes gone
-    if (wide && rng() < K.P_INTERCEPT * (1 + 0.9 * them.blitz) * (1 - 0.2 * wet)) {
+    if (wide && rng() < K.P_INTERCEPT * (1 + 0.9 * them.blitz) * (1 - 0.2 * wet) * (SH ? SH.i : 1)) {
       const thief = W.catcher(o2, pick) || tk[0] || ''
       st.ball = o2; st.phase = 1; st.carrierId = thief; st.passerId = ''
       this.emit('carry', s, 'intercepted', 'PLAY', K.CARRY_S * 0.6, 0, { phase: st.phase, who, vs: this.ids([thief]), passes })
@@ -862,8 +982,13 @@ export class MatchSim {
     // THE BREAK: the carry against the tackle, the defence's line speed, the style matchup, the
     // move called off first-phase ball, tired legs late in each half, and an offload's run on
     const halfClock = st.clock - st.half * 2400
-    const tired = 1 + K.LATE_BREAK * clamp((halfClock - 1800) / 600, 0, 1.5)
-    const pBreak = K.P_BREAK * edge * me.tryF * (1 + 0.25 * them.blitz) * (1 + 0.05 * me.matchup) * (launch ? me.launch : 1) * tired * (pickGo ? 0.3 : 1) * (offloaded ? 1.8 : 1)
+    // (the first half's last ten minutes from the clock; the last twenty of the match from the legs
+    // themselves, as the old engine does it: a tired defence gives up more, a tired attack makes less)
+    const tired = st.half === 0 || !W.legs ? 1 + K.LATE_BREAK * clamp((halfClock - 1800) / 600, 0, 1.5)
+      : st.clock >= 3600 ? (1 + K.TIRED_DEF * (1 - W.legs(o2, st.t))) * (1 - K.TIRED_ATT * (1 - W.legs(s, st.t))) : 1
+    // (a blitz is beaten by the ball behind it, a drift by a change of direction)
+    const shapeB = !SH ? 1 : SH.b * (shapeId === 'pullBack' || shapeId === 'kickPass' ? 1 + 0.3 * Math.max(0, them.blitz) : shapeId === 'switch' || shapeId === 'snipe' ? 1 + 0.3 * Math.max(0, -them.blitz) : 1)
+    const pBreak = K.P_BREAK * shapeB * edge * (mc.carry / mt.tackle) * me.tryF * (1 + 0.25 * them.blitz) * (launch ? me.launch : 1) * tired * (pickGo ? 0.3 : 1) * (offloaded ? 1.8 : 1)
     let broke = false
     if (u < pKnock + K.P_FORWARD + pBreak) {
       broke = true
@@ -911,25 +1036,31 @@ export class MatchSim {
     // the breakdown: quick ball for a high-tempo side; a blitz forces a few more turnovers
     const r = rng(), def = 1 / this.vs(s, 'breakdown')
     // the defence gives away fewer penalties when it is disciplined, and so does the side with the ball
-    const penFor = K.P_PEN_ATTACK / this.S(o2, 'discipline'), penAgainst = K.P_PEN_DEFENCE * def / this.S(s, 'discipline')
-    const pTurn = K.P_TURNOVER * def * (1 + 0.15 * them.blitz)
+    const penFor = K.P_PEN_ATTACK * me.penF / this.S(o2, 'discipline'), penAgainst = K.P_PEN_DEFENCE * def / this.S(s, 'discipline')
     // (the carrier, unless he has just been hurt and is off)
     const carrier = st.carrierId
-    if (r < pTurn) { const jk = W.jackal(o2, pick); st.ball = o2; st.phase = 1; st.carrierId = jk; st.passerId = ''; this.bump(o2, K.MOM_TURN); this.emit('ruck', s, 'turnover', 'PLAY', K.RUCK_S * 0.7, 0, { who: carrier, vs: this.ids([jk]) }); return { k: 'phase' } }
+    // the man over the ball, and his own work at the breakdown
+    const jk = W.jackal(o2, pick)
+    const pTurn = K.P_TURNOVER * def * (1 + 0.15 * them.blitz) * this.man(o2, jk).ruck * (SH?.t ?? 1) * me.turnF
+    if (r < pTurn) { st.ball = o2; st.phase = 1; st.carrierId = jk; st.passerId = ''; this.bump(o2, K.MOM_TURN); this.emit('ruck', s, 'turnover', 'PLAY', K.RUCK_S * 0.7, 0, { who: carrier, vs: this.ids([jk]) }); return { k: 'phase' } }
     if (r < pTurn + penFor) {
-      const jk = W.jackal(o2, pick)
       this.emit('ruck', s, 'penaltyWon', 'PLAY', K.RUCK_S * 0.7, 0, { who: carrier, vs: this.ids([jk]) })
       return { k: 'penalty', to: s, free: false, cause: this.oneOf(['handsInRuck', 'offside', 'notRollingAway', 'highTackle']), offender: jk }
     }
     if (r < pTurn + penFor + penAgainst) {
-      const jk = W.jackal(o2, pick)
       this.emit('ruck', s, 'penaltyLost', 'PLAY', K.RUCK_S * 0.7, 0, { who: carrier, vs: this.ids([jk]) })
       const c = this.oneOf(['holdingOn', 'sealingOff', 'obstruction'] as const)
       return { k: 'penalty', to: o2, free: false, cause: c, offender: c === 'holdingOn' && st.carrierId ? carrier : W.forward(s, pick) }
     }
     if (r < pTurn + penFor + penAgainst + K.P_UNPLAYABLE) { this.emit('ruck', s, 'unplayable', 'PLAY', K.RUCK_S, 0, { who: carrier }); this.emit('unplayable', s, 'scrum', 'STOP', 0, 0); return { k: 'scrum', to: s } }
     const ruckS = K.RUCK_S * me.tempo * (up < 0 ? 1.1 : 1) * (hold ? 1.1 : 1)
-    this.emit('ruck', s, 'recycled', 'PLAY', ruckS, 0, { phase: st.phase, who: carrier })
+    // QUICK OR SLOW BALL: won by the breakdown and the tempo the side plays at, slowed by a jackal who
+    // got a hand on it. Quick ball is a defence not set (more ground, more breaks next phase); slow
+    // ball is a defence set and waiting (less ground, and the scrum-half is likelier to kick it)
+    const pQuick = clamp(K.P_QUICK_BALL * Math.pow(this.vs(s, 'breakdown'), 2) / me.tempo / Math.max(0.5, this.man(o2, jk).ruck), 0.1, 0.8)
+    const quickBall = rng() < pQuick
+    st.ruckSpeed = quickBall ? 'quick' : 'slow'
+    this.emit('ruck', s, 'recycled', 'PLAY', ruckS * (quickBall ? 0.7 : 1.3), 0, { phase: st.phase, who: carrier, speed: st.ruckSpeed })
     st.phase++
     return { k: 'phase' }
   }

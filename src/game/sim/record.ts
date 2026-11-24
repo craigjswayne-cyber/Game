@@ -84,8 +84,17 @@ export interface Play {
    *  ball, 'offload' the man who took an offload running on), and the called move it came from */
   shape?: string
   move?: string
+  /** a carry run in a shape: the men the ball went through before him, in order (with[0] is the last of them) */
+  via?: string[]
   /** a catch: the kick was chased and contested in the air */
   contested?: boolean
+  /** WHERE THE BALL ENDED, TRULY OUT, on every boundary event (kick to touch, out on the full, into
+   *  touch, dead ball): past the touchline (y below 0 or above 70) or past the dead-ball line (x below
+   *  -8 or above 108; the in-goal is 8 m deep). A ball touched down in-goal has its in-goal spot here.
+   *  The play's own x and y stay on the field's edge (0 to 100, 0 to 70), where the restart is taken from. */
+  out?: [number, number]
+  /** a ruck that is recycled: quick ball (under about three seconds) or slow */
+  speed?: 'quick' | 'slow'
   /** the score after it */
   score: [number, number]
 }
