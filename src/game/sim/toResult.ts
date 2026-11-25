@@ -130,6 +130,8 @@ export class Sim2Session {
   private broke: [boolean, boolean] = [false, false]
   private moved: [boolean, boolean] = [false, false]
   private tryCause: [EvCause, EvCause] = ['phase', 'phase']
+  /** seconds of the clock each side has had the ball in each zone (own 22, middle, their 22) */
+  private zoneSec: [number[], number[]] = [[0, 0, 0], [0, 0, 0]]
 
   constructor(state: GameState, fx: Fixture, seed: number, opts: Sim2Opts = {}) {
     this.state = state
@@ -360,8 +362,12 @@ export class Sim2Session {
       this.lastBall = b
     }
     {
-      const up = p.ball === 0 ? p.x : 100 - p.x
-      evOf(this.side(p.ball)).zone[zoneIdx(up)] += 1
+      // EvCount.zone is in the old engine's ticks (four minutes of the clock each: evidence.ts shows
+      // zone * 4 as minutes). Each play's clock time, its dead time and the wait before it, goes to
+      // the side with the ball in the zone it is in, kept to the quarter-tick (a whole minute).
+      const up = p.ball === 0 ? p.x : 100 - p.x, k = zoneIdx(up), b = p.ball
+      this.zoneSec[b][k] += p.live + p.dead + (p.pre ?? 0)
+      evOf(this.side(b)).zone[k] = Math.round(this.zoneSec[b][k] / 60) / 4
     }
     const setScore = () => { ctx.home.score = p.score[0]; ctx.away.score = p.score[1] }
     const who = this.man(p.who)

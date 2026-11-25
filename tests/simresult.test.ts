@@ -197,6 +197,26 @@ describe('toResult: the new engine as the game result', () => {
     expect(waited).toBeGreaterThan(0)
   }, 120_000)
 
+  it('fills the half-time evidence in the old engine units: nothing time-like past 40 minutes', () => {
+    for (let i = 0; i < 6; i++) {
+      const b = fresh()
+      const s = startSim2(b.g, b.fx, 600 + i, { assistantBench: true })
+      for (let k = 0; k < 3000 && !s.ctx.htEv; k++) { if (s.pending) s.answerDefault(); s.runUntil({ play: s.plays.length + 1 }) }
+      const ev = s.ctx.htEv!
+      expect(ev).toBeDefined()
+      expect(ev.min).toBeLessThanOrEqual(40)
+      for (const sd of ev.side) {
+        // zone is in ticks of four minutes, as the old engine counts it (evidence.ts shows zone * 4)
+        for (const z of sd.zone) expect(z * 4).toBeLessThanOrEqual(40)
+        expect(sd.zone.reduce((a, z) => a + z, 0) * 4).toBeLessThanOrEqual(41)
+      }
+      const both = ev.side[0].zone.reduce((a, z) => a + z, 0) + ev.side[1].zone.reduce((a, z) => a + z, 0)
+      expect(both * 4).toBeGreaterThan(30)
+      expect(both * 4).toBeLessThanOrEqual(46)
+      expect(s.ctx.marginHist?.length ?? 0).toBeLessThanOrEqual(10)
+    }
+  })
+
   it('plays the same match again from its save, to the same place', () => {
     const a = fresh(), pre = structuredClone(a.g)
     const s = startSim2(a.g, a.fx, 4242, { assistantBench: true })

@@ -86,10 +86,12 @@ export const K = {
   // around the average spot of a kick in this simulation (measured, scripts/tmp/gp/shape.ts), so a
   // world that knows the kicker's own chance (World.goalP) keeps it on average
   CON_WIDE: 0.34, CON_WIDE_MEAN: 0.54, PEN_FAR: 0.008, PEN_FAR_MEAN: 15.0, PEN_WIDE: 0.16, PEN_WIDE_MEAN: 0.54,
-  // cards: a man in the bin for ten minutes, and what being a man down costs each contest. (Round 8:
-  // kept. The old engine sends off nobody in three seasons; the sources have 0.12 to 0.18 red cards a
-  // match, which this gives. Lowered to the old engine's count, the realism row failed at 0.05.)
-  P_YELLOW: 0.05, P_RED: 0.013, BIN_S: 600, SHORT_COST: 0.09,
+  // cards: a man in the bin for ten minutes, and what being a man down costs each contest.
+  // P_RED IS THE GAME'S OWN RATE (owner, 25 Nov 22:27: the current game's, not real rugby's): the old
+  // engine sends a man straight off 0.038 times a match, both sides together, on the week's 56 league
+  // fixtures (scripts/tmp/gp/reds.ts, 600 matches); at 0.013 this gave 0.132. A second yellow is a red
+  // as well (card(), Law 9), on top of this.
+  P_YELLOW: 0.05, P_RED: 0.0032, BIN_S: 600, SHORT_COST: 0.09,
   // THE CAPTAIN (a design choice, round 6): his side gives away this much fewer penalties in its own 22 a
   // unit of leadership, lifts the carry this much when behind, and a poor one gets a late close call wrong
   // this often a unit. CHEMISTRY: knock-ons this much fewer a unit (-0.5 to 0.5). A CALLED MOVE: first-phase gain.
@@ -484,7 +486,11 @@ export class MatchSim {
         // the game's own changes are only written when they are made
         if (why && (d.auto || d.injury)) continue
         if (d.injury) st.hurt![d.side] = st.hurt![d.side].filter(id => id !== d.off)
-        st.plays.push({ n: st.plays.length, t: Math.round(st.t), clock: Math.round(st.clock), kind: 'substitution', side: d.side, ball: st.ball,
+        // the dead time already waited before the change is written on it as `pre`, as emit() does for
+        // every other stoppage, so the next play does not carry it past the change (harmonycheck R28)
+        const pre = st.preAcc ? r1(st.preAcc) : undefined
+        st.preAcc = 0
+        st.plays.push({ n: st.plays.length, t: Math.round(st.t), clock: Math.round(st.clock), kind: 'substitution', side: d.side, ball: st.ball, ...(pre ? { pre } : {}),
           x: r1(st.x), y: r1(st.y), result: why ? 'refused' : 'made', who: d.off, with: [d.on], live: 0, dead: 0, score: [st.score[0], st.score[1]], ...(why ? { cause: why } : d.injury ? { cause: 'injury' } : d.auto ? { cause: 'tactical' } : {}), ...(d.chosen && !why ? { callBy: 'manager' as const } : {}) })
       } else if (this.world.decide) {
         // what a tactics change replaced, as the World had it, for the record (Play.tactics)
