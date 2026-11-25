@@ -1045,3 +1045,31 @@
 /* (20 Nov 2026: a DROP GOAL plate filled the whole pitch. Its kind class is "dg", and the tactics
    board has a .dg rule of its own: full width, three by two. The plate is sized by what is in it.) */
 .live-pitch .lp-banner { display: flex; width: auto; height: auto; aspect-ratio: auto; }
+
+/* THE WATCHED EXTENDED MATCH ON THE NEW ENGINE (round 8, Sim2Live.tsx) */
+.live-wrap.sim2 .speed-controls [data-ctl="speed"] { font-size: .75rem; padding-left: 4px; padding-right: 4px; white-space: nowrap; }
+.live-wrap.sim2 .now-strip { position: relative; }
+/* (over the top of the ticker, not above it: a queued change never moves the page) */
+.sim2-queued { position: absolute; left: 14px; right: 14px; top: 0; z-index: 5; padding: 6px 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, .4); border-radius: 8px; background: var(--surface-1); color: var(--text-secondary); font-size: .8125rem; border-left: 3px solid var(--gold-fill); }
+.sim2-queued.refused { border-left-color: var(--danger-fill); }
+.sim2-call { position: fixed; left: 10px; right: 10px; bottom: calc(10px + var(--ad-inset, 0px)); z-index: 40; padding: 12px 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, .5); }
+.sim2-call h3 { font-size: 1rem; margin: 0 0 2px; }
+.sim2-timer { height: 4px; margin: 8px 0; border-radius: 2px; background: var(--surface-2, rgba(255,255,255,.12)); overflow: hidden; }
+.sim2-timer i { display: block; height: 100%; background: var(--gold-fill); transform-origin: left; animation: sim2-timer linear both; }
+@keyframes sim2-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.sim2-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.sim2-opts .btn { display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 44px; }
+.sim2-sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 12px; max-height: 58vh; overflow-y: auto; }
+.sim2-man { display: flex; width: 100%; gap: 6px; justify-content: flex-start; margin-bottom: 4px; font-size: .8125rem; padding: 6px 8px; min-height: 36px; text-align: left; }
+.sim2-man .num { flex: 0 0 22px; font-weight: 800; color: var(--info); }
+/* (no scrolling during play, from a 360 x 640 phone up: the pitch keeps its size, the ticker its own, and
+   the stats take what is left, losing their last rows on a short screen rather than pushing the page) */
+.live-wrap.sim2 { overflow: hidden; }
+.live-wrap.sim2 .live-pitch { flex: none; }
+.live-wrap.sim2 .now-strip { flex: 1 1 0; min-height: 0; overflow: hidden; }
+.live-wrap.sim2 .now-strip .live-stats.brief { flex: 1 1 0; min-height: 0; overflow: hidden; margin-top: 6px; }
+@media (max-height: 700px) {
+  .live-wrap.sim2 .lp-ticker { height: 110px; }
+  .live-wrap.sim2 .now-strip .live-stats.brief .ls-row { padding: 2px 0; }
+  .live-wrap.sim2 .speed-controls .btn { min-height: 40px; }
+}

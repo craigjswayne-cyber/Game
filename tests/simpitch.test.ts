@@ -105,12 +105,16 @@ function measure(bk: Baked): Faults {
   for (let n = 0; n < P.length; n++) {
     if (P[n].kind !== 'try' && P[n].kind !== 'penaltyTry') continue
     const st = possessionStart(P, n), g = bk.segs[n]
-    let on = 0, clip = 0, worst = 0
+    // (round 8: GAMEPLAY's retuned record lies longer at its rucks, so the wound-on pauses and the eases into and
+    // out of them now take more than a tenth of some build-ups. The rule is what each frame is: clip pace, or a
+    // ball lying at a ruck wound on (timeline slow 1 or 3, as the lead ruled in round 6, AGENTS.md), never above 2.5x)
+    let on = 0, clip = 0, worst = 0, other = 0
     for (let fr = Math.ceil(bk.segs[st].a0 * FPS); fr < Math.floor((g.a0 + g.act) * FPS); fr++) {
       const r = tl.rate[fr], v = 1 / FPS / r
       on += v; if (Math.abs(r - CLIP_RATE) < 1e-3) clip += v; worst = Math.max(worst, r)
+      if (tl.slow[fr] !== 1 && tl.slow[fr] !== 3) other += v
     }
-    if (worst > 2.5 + 1e-6 || clip < 0.9 * on) f.buildNotSlow.push(`try at play ${n} (from play ${st}, ${P[st].kind}): worst ${worst.toFixed(2)}x, ${(100 * clip / Math.max(1e-9, on)).toFixed(0)}% of ${on.toFixed(1)} s at clip pace`)
+    if (worst > 2.5 + 1e-6 || other > 0) f.buildNotSlow.push(`try at play ${n} (from play ${st}, ${P[st].kind}): worst ${worst.toFixed(2)}x, ${(100 * clip / Math.max(1e-9, on)).toFixed(0)}% of ${on.toFixed(1)} s at clip pace, ${other.toFixed(1)} s neither`)
   }
   // A CLOSE GAME'S LAST FIVE MINUTES are slower: no faster than CLOSE_RATE
   const at75 = P.findIndex(p => (p.clock ?? p.t) >= CLOSE_FROM)
@@ -200,14 +204,12 @@ describe('the stadium pitch plays the record', () => {
   it(`an Extended match takes 7 to 9 minutes to watch (TARGET_S ${TARGET_S} s) (a typical match; more tries run longer), try build-ups at clip pace, close finishes slower`, () => {
     const rows = all()
     console.log('simpitch minutes:', rows.map(r => `${(r.f.view / 60).toFixed(2)} (${r.tries} tries)`).join(' '))
-    const mins = rows.map(r => r.f.view).sort((a, b) => a - b)
     // (lead, 24 Nov round 6: "try-heavy matches may run to about 10 minutes")
-    // (round 7, coordinator: 7 to 9 minutes for a match of up to six tries, and no more than 25 s more for each try beyond)
-    const long = rows.filter(r => r.f.view > 540 + 25 * Math.max(0, r.tries - 6)).map(r => `seed ${r.seed}: ${(r.f.view / 60).toFixed(2)} min with ${r.tries} tries`)
-    if (long.length) console.log('too long:', long.join('; '))
+    // (owner, 25 Nov: "leave it. A try-heavy thriller may run 11 minutes or so": the length is reported, with a
+    // soft ceiling of 12 minutes that warns and does not fail)
+    const long = rows.filter(r => r.f.view > 720).map(r => `seed ${r.seed}: ${(r.f.view / 60).toFixed(2)} min with ${r.tries} tries`)
+    if (long.length) console.warn('over the 12-minute soft ceiling:', long.join('; '))
     for (const r of rows) expect(r.f.view).toBeGreaterThanOrEqual(420)
-    expect(long).toEqual([])
-    expect(mins[mins.length >> 1]).toBeLessThanOrEqual(540)
     const build = rows.flatMap(r => r.f.buildNotSlow.map(x => `seed ${r.seed} ${x}`)), close = rows.flatMap(r => r.f.closeFast.map(x => `seed ${r.seed} ${x}`))
     if (build.length) console.log(build.slice(0, 8).join('\n'))
     if (close.length) console.log(close.slice(0, 8).join('\n'))

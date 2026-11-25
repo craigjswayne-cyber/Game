@@ -33,6 +33,7 @@ import { WEATHER_ICON, weatherWord } from './weather'
 import { Veil } from '../../Veil'
 import type { PitchTac } from '../../livepitch/agents'
 import { LivePitch, type PitchSide } from '../../livepitch/LivePitch'
+import { Sim2Live, SIM2_EXTENDED } from './Sim2Live'
 import { direct } from '../../livepitch/script'
 import { NAMES as SPONSOR_NAMES } from '../../../game/commercial'
 
@@ -102,7 +103,17 @@ const KICK_STYLE_LABEL: Record<string, string> = {
   attack: 'tacticsScreen.kickAttack', balanced: 'tacticsScreen.kickBalanced',
 }
 
+/** THE WATCHED EXTENDED MATCH ON THE NEW ENGINE (round 8, Sim2Live.tsx), behind one switch. Skip, Key
+ *  and the highlights ticker stay on this screen and the old engine. */
 export function Live() {
+  const live = useStore(s => s.liveMatch)
+  const prefs = readMatchPrefs()
+  const highlightsOn = (() => { try { return /[?&]hl=1\b/.test(location.search) || !navigator.webdriver } catch { return true } })()
+  if (SIM2_EXTENDED && live && prefs.highlights === 'extended' && highlightsOn && live.mode !== 'highlights' && live.sim2 && !live.resumed) return <Sim2Live />
+  return <LiveOld />
+}
+
+function LiveOld() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   useStore(s => s.tick)

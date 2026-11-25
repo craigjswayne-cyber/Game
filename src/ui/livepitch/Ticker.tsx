@@ -53,7 +53,7 @@ export function Ticker({ lines, feed, kits }: { lines: TickLine[]; feed: RecordF
     const tick = () => {
       const v = feed.view
       // the newest line whose time has come (lines are in time order: walk on or back from the last)
-      let i = curRef.current
+      let i = Math.min(curRef.current, sorted.length - 1)
       while (i + 1 < sorted.length && sorted[i + 1].at <= v) i++
       while (i >= 0 && sorted[i].at > v) i--
       if (i !== curRef.current) { curRef.current = i; setCur(i) }

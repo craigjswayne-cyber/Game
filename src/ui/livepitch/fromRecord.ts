@@ -361,7 +361,7 @@ export function condense(plays: Play[], level: number): { stretches: Stretch[]; 
   let byL = condenseCache.get(plays)
   if (!byL) condenseCache.set(plays, byL = new Map())
   const hit = byL.get(level)
-  if (hit) return hit
+  if (hit && hit.of.length === plays.length) return hit
   const [head, tail, least] = LEVELS[clamp(level, 0, CONDENSE_MAX)]
   const of = new Int32Array(plays.length).fill(-1)
   const stretches: Stretch[] = []
@@ -412,7 +412,8 @@ export function plan(plays: Play[], level = 0): Seg[] {
   let byL = planCache.get(plays)
   if (!byL) planCache.set(plays, byL = new Map())
   const hit = byL.get(level)
-  if (hit) return hit
+  // (a record still being played grows: what was planned for fewer plays is planned again)
+  if (hit && hit.length === plays.length) return hit
   const cd = condense(plays, level)
   const segs: Seg[] = []
   let a = 0
@@ -669,6 +670,32 @@ type Ov = { x: number; y: number; v: number; place?: boolean; a?: number }
 
 /** BAKE THE WHOLE MATCH. Deterministic: the same record and sides give the same frames. */
 export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Baked {
+  const b = makeBaker(plays, sides, level)
+  b.run(Infinity, { final: true })
+  return b.result()
+}
+
+/** A BAKER THAT CAN BE FED (round 8, the live match screen). The same bake, but it can stop where the
+ *  record runs out and go on when more plays arrive: `plays` is the session's own array, pushed to as the
+ *  match is simulated, and `run` bakes as many frames as it is allowed. A play is only started once
+ *  `ahead` more plays are known (the men read the next plays), and its walk to the next set piece only
+ *  once the next play is known; `final` lifts both at the end of the match. Nothing already baked is
+ *  ever baked again, so the picture is continuous across every join. */
+export interface Baker {
+  /** bake up to `frames` more frames: 'done' at the end of a final record, 'need' when it wants more plays */
+  run(frames: number, o?: { final?: boolean; ahead?: number }): 'done' | 'need' | 'budget'
+  /** the plays have grown: plan the new ones (and re-plan those not yet started) */
+  more(): void
+  /** what has been baked so far, as a Baked whose arrays are views of the live ones */
+  live(): Baked
+  /** the finished bake, its arrays cut to length */
+  result(): Baked
+  /** frames baked so far */
+  readonly frames: number
+  /** the play being baked */
+  readonly at: number
+}
+export function makeBaker(plays: Play[], sides?: [RecSide, RecSide], level = 0): Baker {
   // (the plan's times are the least each play takes: the bake waits for the men the record names, so it writes its own)
   const segs = plan(plays, level).map(g => ({ ...g }))
   const cd = condense(plays, level)
@@ -1877,11 +1904,23 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
   }
   // ---- THE LOOP
   const px = B.map(b => b.x), py = B.map(b => b.y)
-  let si = 0, f = 0, inDead = false, deadT0 = 0, deadReady = false
-  let ctl: Ctl = segs.length ? ctlOf(0) : () => true, dctl: Ctl | null = null
-  if (segs.length) segs[0].a0 = 0
-  for (; si < segs.length; f++) {
+  let si = 0, f = 0, inDead = false, deadT0 = 0, deadReady = false, started = false, holdAct = false
+  let ctl: Ctl = () => true, dctl: Ctl | null = null
+  /** (streaming) may play k be started: enough of the plays after it are known */
+  let gate = { final: true, ahead: 0 }
+  const canStart = (k: number) => k < segs.length && (gate.final || plays.length > k + gate.ahead)
+  const enterDead = (g: Seg) => { inDead = true; deadT0 = t; dctl = g.dead > 0 ? deadCtl(plays[g.n]) : null }
+  const frame = (): 'frame' | 'need' | 'done' => {
+    if (!started) {
+      if (!canStart(0)) return segs.length || !gate.final ? 'need' : 'done'
+      started = true; segs[0].a0 = 0; ctl = ctlOf(0)
+    }
+    if (si >= segs.length) return 'done'
     t = f * DT
+    // (the play is done, but where the men walk next is not known yet: wait for the next play)
+    if (holdAct) { if (!gate.final && plays.length <= si + 1) return 'need'; holdAct = false; enterDead(segs[si]) }
+    // (the walk is over, but the next play may not be started yet)
+    if (inDead && si + 1 < plays.length + 1 && !gate.final && !canStart(si + 1) && (deadReady || t + DT - deadT0 >= (dctl ? segs[si].dead + 4 : segs[si].dead) - 1e-9)) return 'need'
     if (f >= cap) grow()
     const g = segs[si]
     ov.fill(null); fl.fill(0)
@@ -1894,7 +1933,11 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
       const done = ctl(tau) === true
       prepare(g.n + 1, true); prepare(g.n + 2, false)
       // (a play that cannot finish, a man who never arrives, is cut short rather than waited on for ever)
-      if (done || tau >= g.act * 3 + 6) { g.act = tau; g.mark = markAt >= 0 ? markAt : t; inDead = true; deadT0 = t; dctl = g.dead > 0 ? deadCtl(plays[g.n]) : null }
+      if (done || tau >= g.act * 3 + 6) {
+        g.act = tau; g.mark = markAt >= 0 ? markAt : t
+        if (!gate.final && plays.length <= g.n + 1) holdAct = true
+        else enterDead(g)
+      }
     } else if (dctl) deadReady = dctl(t - deadT0) === true
     // ---- the lateral anchors: slow in open play and under a kick, quick when nobody is in his shape
     // (under a kick everyone holds his lane, and so does the anchor: the side moves across once the ball is caught)
@@ -1980,9 +2023,33 @@ export function bake(plays: Play[], sides?: [RecSide, RecSide], level = 0): Bake
       si++; inDead = false; markAt = -1; dctl = null; deadReady = false
       if (si < segs.length) { segs[si].a0 = g.a1; if (fadesIn(plays, si)) cutTo(si, f + 1); ctl = ctlOf(si) }
     }
+    f++
+    return 'frame'
   }
-  const N = f
-  return { plays, segs, cuts: cutFrames, n: N, pos: pos.slice(0, N * 62), ball: ballA.slice(0, N * 3), holder: holderA.slice(0, N), poss: possA.slice(0, N), seg: segA.slice(0, N), flags: flags.slice(0, N * 30) }
+  return {
+    run(frames, o = {}) {
+      gate = { final: o.final ?? false, ahead: o.ahead ?? 3 }
+      for (let c = 0; c < frames; c++) {
+        const r = frame()
+        if (r !== 'frame') return r
+      }
+      return 'budget'
+    },
+    more() {
+      // the plays after the one being baked are planned again with what is now known; those started keep their times
+      const fresh = plan(plays, level)
+      for (let k = 0; k < fresh.length; k++) {
+        if (k >= segs.length) segs.push({ ...fresh[k] })
+        else if (k > si || (k === si && !started)) Object.assign(segs[k], { ...fresh[k], a0: segs[k].a0 })
+        else if (k === si && !inDead) { segs[k].dead = fresh[k].dead; segs[k].key = fresh[k].key }
+        else if (k === si) segs[k].key = fresh[k].key
+      }
+    },
+    live: () => ({ plays, segs, cuts: cutFrames, n: f, pos: pos.subarray(0, f * 62), ball: ballA.subarray(0, f * 3), holder: holderA.subarray(0, f), poss: possA.subarray(0, f), seg: segA.subarray(0, f), flags: flags.subarray(0, f * 30) }),
+    result: () => ({ plays, segs, cuts: cutFrames, n: f, pos: pos.slice(0, f * 62), ball: ballA.slice(0, f * 3), holder: holderA.slice(0, f), poss: possA.slice(0, f), seg: segA.slice(0, f), flags: flags.slice(0, f * 30) }),
+    get frames() { return f },
+    get at() { return si },
+  }
 }
 
 // =====================================================================
@@ -2092,8 +2159,10 @@ export interface FeedBanner { kind: 'try' | 'pentry' | 'con' | 'conMiss' | 'pen'
  * schedule turns that into anim time; the bake gives the picture.
  */
 export class RecordFeed {
-  readonly bk: Baked
-  readonly tl: Timeline
+  /** the bake being read: the whole match's, or (StreamFeed) the part baked so far */
+  get bk(): Baked { return this.src() }
+  private src: () => Baked
+  readonly tl!: Timeline
   /** seconds on screen since the kick-off */
   view = 0
   b: { x: number; y: number; vx: number; vy: number }[] = Array.from({ length: 30 }, () => ({ x: 50, y: 35, vx: 0, vy: 0 }))
@@ -2125,20 +2194,29 @@ export class RecordFeed {
   banner: FeedBanner | null = null
   /** the play on screen now, by its index in the record */
   n = 0
-  constructor(public plays: Play[], sides?: [RecSide, RecSide], private ids: [string, string] = ['home', 'away'], private nameOf?: (id: string) => string | undefined) {
-    this.bk = bakeOf(plays, sides)
-    this.tl = timeline(this.bk)
-    this.read()
+  constructor(public plays: Play[], sides?: [RecSide, RecSide], private ids: [string, string] = ['home', 'away'], private nameOf?: (id: string) => string | undefined, live?: () => Baked) {
+    if (live) this.src = live
+    else {
+      const bk = bakeOf(plays, sides)
+      this.src = () => bk
+      this.tl = timeline(bk)
+      this.read()
+    }
   }
+  /** (overridden by StreamFeed) the anim second the screen is at, and its speed and kind there */
+  protected animNow(): number { return animAt(this.tl, this.view) }
+  protected rateAt(fa: number): number { return this.tl.rate[fa] ?? 1 }
+  protected slowAt(fa: number): number { return this.tl.slow[fa] }
   get length(): number { return this.tl.total }
+  protected isDone(): boolean { return this.view >= this.length - 1e-6 }
   /** the clock on dt seconds; the picture is read once, when it is drawn (sync) */
   step(dt: number) { if (this.done) return; this.view = Math.min(this.length, this.view + dt); this.dirty = true; this.done = this.view >= this.length - 1e-6 }
-  private dirty = false
+  protected dirty = false
   /** read the picture at the clock, if it has moved since it was last read (LivePitch calls this before drawing) */
   sync() { if (this.dirty) { this.dirty = false; this.read() } }
   seek(v: number) { this.view = clamp(v, 0, this.length); this.read() }
-  private read() {
-    const a = animAt(this.tl, this.view)
+  protected read() {
+    const a = this.animNow()
     const fr = frameAt(this.bk, a)
     { const f = Math.round(a * FPS); let c = 0; for (const x of this.bk.cuts) if (x <= f) c++; this.cuts = c }
     for (let i = 0; i < 30; i++) {
@@ -2150,7 +2228,7 @@ export class RecordFeed {
     this.ball.x = fr.ball.x; this.ball.y = fr.ball.y; this.ball.lift = fr.ball.lift
     this.holder = fr.holder
     const n = fr.n, p = this.plays[n], seg = this.bk.segs[n]
-    { const fa = clamp(Math.floor(a * FPS), 0, this.bk.n - 1); this.speed = this.tl.rate[fa] ?? 1; this.buildUp = this.tl.slow[fa] === 1 || this.tl.slow[fa] === 3 }
+    { const fa = clamp(Math.floor(a * FPS), 0, this.bk.n - 1); this.speed = this.rateAt(fa); const sl = this.slowAt(fa); this.buildUp = sl === 1 || sl === 3 }
     this.condensed = !!seg.condensed
     if (!this.phase || this.phase.at !== n) {
       // (lp.lineBreak is asked for in the locales, requests.md: until it is there the chip says it in English)
@@ -2170,7 +2248,7 @@ export class RecordFeed {
     this.phase.homeBall = fr.poss === 0
     this.n = n
     this.landed = a >= seg.mark
-    this.done = this.view >= this.length - 1e-6
+    this.done = this.isDone()
   }
   private bannerOf(n: number): FeedBanner | null {
     const p = this.plays[n]
