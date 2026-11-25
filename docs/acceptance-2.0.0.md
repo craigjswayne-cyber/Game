@@ -66,32 +66,41 @@ Three allowances are mine, not the owner's, and he should confirm them: up to 10
 | 46 | "Perfect speed, perfect movement" of the 1.9.16 highlight clips (AGENTS.md) | The new pitch feels as good | Eyes list, 1 and 6 | NEEDS HIS EYES |
 | 47 | "Vertical phone, full pitch in view, no moving camera; fast-forward between key moments, slow for key moments" (AGENTS.md; 20 Nov, 22:51) | So on screen | Recording list | RETIRED 22 Nov in part: the pace half is replaced by items 50 to 53; the screen half (full pitch in view, still camera) is item 62 |
 
-| 48 | "8 mins is fine." (22 Nov, 22:13); "More than 10 tries makes the match longer: that's okay, that's fine" (24 Nov) | 7 to 9 minutes up to 6 tries, and about 25 s more for each try beyond (lead, 24 Nov: "try-heavy matches may run to about 10 minutes") | P01-length | FAIL (real 4242 11.27 min with 9 tries, ceiling 10.25; a close finish) |
+| 48 | "8 mins is fine" (22 Nov); "try-heavy matches may run to about 10 minutes" (lead, 24 Nov); on 25 Nov, match length: "1.C" (leave it; a try-heavy thriller may run 11 minutes or so; do not shorten lead-ins or the close finish) | Reported, not judged; a warning only above 12 minutes | P01-length | REPORT (8.0 to 9.1 minutes on 7 fixtures; none over 12) |
 | 49 | "Everything else is on fast forward BUT still happening, not just being ignored." (22 Nov, 22:13) | Every play is shown: none condensed, every play with the ball in play has time on screen | P02-every-play | PASS |
-| 50 | "For build ups to tries and key moments the game should be normal speed" (22 Nov, 22:13): key moments. "Normal speed" redefined 24 Nov: "the normal speed of what was released in 1.9.16 and 1.9.17... it feels natural, the right speed" (life speed as the rule RETIRED 24 Nov) | Every key moment (spec section 8, read from the record by the checker) at the highlight clips' pace as the pitch publishes it (CLIP_RATE), every frame within 15% of it | P03-key-1x | FAIL (line breaks shown at 3.0x: real 10 play 390, real 11 play 229) |
+| 50 | "For build ups to tries and key moments the game should be normal speed" (22 Nov); "normal speed" is the 1.9.16 clips' pace (24 Nov); line breaks, 25 Nov decision 2: "Only big ones" | Every key moment at the clips' pace (CLIP_RATE), every frame within 15%; of the line breaks only the big ones (fromRecord.ts bigBreak(): 20 m or more, ending in the 22, or leading to a try); the rest at about 3x with their label | P03-key-1x | PASS (big breaks at clip pace) |
 | 51 | Same: build-ups. "No shortening of build-ups" (24 Nov; the 35 s cap RETIRED) | Every play of the possession that ends in a try, from its first play, at clip pace; a ball lying at a ruck may be wound on up to 2.5x (lead, 24 Nov 16:35); any play faster than 2.5x fails | P04-buildup-1x | PASS (no play over 2.5x in any build-up) |
 | 52 | "then everything else is on fast forward" (22 Nov, 22:13) | 80% of all other frames at 1.5x or more | P05-ff | PASS |
 | 53 | "If a [close] game the last few mins should be slower." (22 Nov, 22:13) | Margin 7 or fewer at 75:00: the rest of the match at 2.2x or less; margin 15 or more: not slowed (median over 2.2x) | P06-close | PASS (close finishes at 2.0x) |
 | 54 | "I believe we can get there with smoothness." (22 Nov, 22:13); "It feels jumpy not smooth" (22 Nov, quoted in fromRecord.ts) | No step in speed: never more than 10% faster or slower between two screen frames | P07-ease | PASS (largest 6%) |
 | 55 | Same | Small, even steps on screen at 60 frames a second and 3.3 px a metre: men's step 99th percentile 5 px or less in fast forward; change in step 99th percentile 1 px or less; ball's step 99th percentile 14 px or less | S01-steps | PASS (men 3.8 px, change 0.68 px, ball 9.2 px) |
 | 56 | Same | No shaking: a man's step reverses between two screen frames (both 0.3 px or more) for under 0.5 men on average, 3 or more at once in under 1% of frames (men bound in a ruck, scrum or maul, lifted, or off are left out) | S02-jitter | PASS |
-| 57 | "Players just randomly travel a strange angle" (22 Nov, quoted in tests/simpitch.test.ts) | The lead's scripts/tmp/oddruns.ts, as fromRecord.ts oddRuns(): 196 or fewer odd runs a match (15% of the 1,309 measured before), no side sliding 5 m or more sideways in two seconds, wings in their lane 90% of the time, a flat defensive line at 80% of rucks | S03-positions | PASS (this run; 5.1 m in the run before) |
+| 57 | "Players just randomly travel a strange angle" (22 Nov, quoted in tests/simpitch.test.ts) | The lead's scripts/tmp/oddruns.ts, as fromRecord.ts oddRuns(): 196 or fewer odd runs a match (15% of the 1,309 measured before), no side sliding 5 m or more sideways in two seconds, wings in their lane 90% of the time, a flat defensive line at 80% of rucks | S03-positions | PASS |
 | 58 | "We need more commentary notes to keep it engaging and clear." (22 Nov, 22:13): clear | Readable: no more than one new line every 1.4 s, no more than 7 in any 10 s | W01-load | RETIRED 24 Nov (replaced by items 67 to 71: "a lot faster paced, a bit like the old Football Manager") |
 | 59 | Same: engaging | Never more than 15 s on screen with no new line | W02-gaps | RETIRED 24 Nov (replaced by item 68, 1.2 s) |
 | 60 | Same: clear | Every key moment has a line on screen while it happens | W03-key-words | PASS (199 of 199) |
 | 61 | "The games shouldn't feel repetitive." (22 Nov, 22:13): within a match | No more than 15% of lines word for word an earlier line, and no wording three times running | W04-repeat | PASS (worst 5%) |
-| 62 | Same: across matches | Sameness score (below) 60 or less over 20 pairings, 70 or less over 20 matches of one pairing | W05-sameness | PASS (55.3 and 55.0; see round 6 on club identity) |
+| 62 | Same: across matches | Sameness score (below) 60 or less over 20 pairings, 70 or less over 20 matches of one pairing | W05-sameness | PASS (54.9 and 56.3) |
 | 63 | "Full pitch in view, no moving camera" (AGENTS.md), and the smoothness he will judge | So on screen, and smooth to his eye | Eyes list, all ten | NEEDS HIS EYES |
-| 64 | "A moment early on said the ball went dead, but on screen it did not cross the dead-ball line. Check and fix." (24 Nov): the record | The record says where the ball went: a kick that ran dead lands beyond the try line (it cannot be drawn over the dead-ball line if the record lands it on the try line); a kick to touch lands on a touchline; a try is on the line | B01-record-bounds | PASS (one contradiction seen at 19:00, real 6 play 263, gone in the last run) |
-| 65 | Same: the picture | On screen the ball crosses the line the record says and stops beyond it: past the dead-ball line (8 m beyond the try line, as drawn), past the touchline for touch, out on the full and carried into touch; over the try line at a try; a kick at goal that is over passes between the posts (5.6 m apart) above the bar (3 m), one that misses does not (Law 1) | B02-picture-bounds | PASS (ran dead 6 of 6 past the dead-ball line; touchdowns in-goal 3 of 3) |
-| 66 | "Make sure everything in the game is affected by the decisions of the manager. This can't be a preset result." (24 Nov) | Every lever the engine takes (World strength, substitution, tactics kicking / aggression / tempo, team talks, penalty calls): every play before the call the same, the match different after it, and its measure moved the way rugby says, judged by a paired t of 2 or more over paired seeds | M01-levers (and `harmonycheck.ts levers 40`) | PASS (every lever leaves the past alone; three doc rows confirmed at 400 pairs, one disputed) |
-| 67 | "Significantly increase the amount of commentary notes, so it's a lot faster paced, a bit like the old Football Manager" (24 Nov): every play of a try | Every play of a try build-up has its own line | T01-build-said | FAIL (1 of 121 build-up plays) |
-| 68 | Same: "flicking through" | No dead air while the ball is in play: never over 1.2 s with nothing on screen (a held line counts, lead 24 Nov 15:05), and at clip pace no line (other than a flash) up over 2.5 s | T02-tick | FAIL (no dead air; a line held 2.6 to 3.7 s at clip pace 0 to 15 times a match) |
+| 64 | "A moment early on said the ball went dead, but on screen it did not cross the dead-ball line. Check and fix." (24 Nov): the record | The record says where the ball went: a kick that ran dead lands beyond the try line (it cannot be drawn over the dead-ball line if the record lands it on the try line); a kick to touch lands on a touchline; a try is on the line | B01-record-bounds | PASS |
+| 65 | Same: the picture | On screen the ball crosses the line the record says and stops beyond it: past the dead-ball line (8 m beyond the try line, as drawn), past the touchline for touch, out on the full and carried into touch; over the try line at a try; a kick at goal that is over passes between the posts (5.6 m apart) above the bar (3 m), one that misses does not (Law 1) | B02-picture-bounds | PASS |
+| 66 | "Make sure everything in the game is affected by the decisions of the manager. This can't be a preset result." (24 Nov) | Every lever the engine takes (World strength, substitution, tactics kicking / aggression / tempo, team talks, penalty calls): every play before the call the same, the match different after it, and its measure moved the way rugby says, judged by a paired t of 2 or more over paired seeds | M01-levers (and `harmonycheck.ts levers 40`) | PASS (all 12 levers act from the call; doc rows checked in round 6) |
+| 67 | "Significantly increase the amount of commentary notes, so it's a lot faster paced, a bit like the old Football Manager" (24 Nov): every play of a try | Every play of a try build-up has its own line | T01-build-said | PASS (run lines cover their plays) |
+| 68 | Same: "flicking through" | No dead air while the ball is in play: never over 1.2 s with nothing on screen (a held line counts, lead 24 Nov 15:05), and at clip pace no line (other than a flash) up over 2.5 s | T02-tick | PASS |
 | 69 | Same: "then it flashes when there's a key [moment], a try or a penalty goal" | Every try, goal and card has its line (never thinned out), and it stays up at least 2 s before the next line | T03-flash | PASS |
-| 70 | "It must fit what is shown on the pitch" (24 Nov) | The line on screen is never about a play still to come, and more than one play behind for under 2% of the time the ball is in play | T04-in-step | FAIL (2.2% to 4.1%, all of it in fast forward) |
-| 71 | Same: a ticker can be read | Ticker lines 70 characters or fewer, fuller lines 90, flash lines 48 (lead, 24 Nov 15:05) | T05-short | FAIL (key flashes over 48, up to 88 characters) |
-| 72 | "Check all the fundamentals of the game, making sure it's as realistic as possible from what you can see and from what data you have" (24 Nov) | Our per-match figures on real fixtures within the range the sources give, widened by 20%; no source, no verdict | Realism table below (`harmonycheck.ts realism`) | FAIL (4 of 40 out of line on 120 balanced fixtures, small) |
+| 70 | "It must fit what is shown on the pitch" (24 Nov) | The line on screen is never about a play still to come, and more than one play behind for under 2% of the time the ball is in play | T04-in-step | PASS |
+| 71 | Same: a ticker can be read | Ticker lines 70 characters or fewer, fuller lines 90, flash lines 48 (lead, 24 Nov 15:05) | T05-short | PASS |
+| 72 | "Check all the fundamentals of the game, making sure it's as realistic as possible from what you can see and from what data you have" (24 Nov) | Our per-match figures on real fixtures within the range the sources give, widened by 20%; no source, no verdict | Realism table below (`harmonycheck.ts realism`) | FAIL (7 of 40 on 30 balanced fixtures: drop goals 0, kicks from hand 36, carries 181, tries from scrums 24%, penalty taps 2.8%, drop-goal success, penalties 12.7 by his choice) |
 | 73 | "A card costs" (coordinator, 24 Nov, on the manager's levers) | A side with a man in the bin does worse a minute than with 15 | M02-card-cost | PASS |
+| 74 | The captain effect (owner, 25 Nov, decision 3: yes, it stays) | A captain's leadership changes his side's discipline in its own 22 and a late call, as docs/match-sim-manager-levers.md describes | Accepted design | ACCEPTED (25 Nov) |
+| 75 | Out-of-position costs as in round 7 (owner, 25 Nov, decision 4: yes, they stay) | A man out of position costs his side as measured in docs/match-sim-manager-levers.md | Accepted design | ACCEPTED (25 Nov) |
+| 76 | Home advantage (owner, 25 Nov: "Leave it": it stays at the game's band, 51% to 57%) | Home wins in the game's band | F01 realism table (balanced set) | PASS (55.8% home wins on 120 balanced fixtures, round 6) |
+| 77 | Disc size of v7 (owner, 25 Nov, decision 6: yes, it is fine) | | Accepted | ACCEPTED (25 Nov) |
+| 78 | GO: "wire the new engine and pitch into the real match screen (Extended), with the manager's decisions, on the work branch only" (owner, 25 Nov, decision 7: yes): the stored result | The result the game stores for a watched Extended match is the match that was watched: score, tries, every scorer and his minute, cards, substitutions, injuries, and the season stats they feed | W01-stored (20 managed matches, scripted decisions: posts, a tactics change at 30:00, the No. 8 off at 50:00) | FAIL (1 of 20: seed 11, a try at minute 43 stored at 45) |
+| 79 | Same: "This can't be a preset result" (24 Nov), through the real session | A decision at 50:00 through the session leaves every play before it the same and changes the match after it | W02-session-decisions | PASS (20 of 20 changed after the call, none before) |
+| 80 | Same: the rest of the game untouched | With the new engine playing the managed match, every other fixture of that week has the same result as with the old engine's watched match; scripts/fingerprint.ts still passes | W03-rest-untouched, W04-fingerprint | PASS (220 other fixtures identical; fingerprint passes) |
+| 81 | Same: the season still works | A season with every home match watched on the new engine: table, cards, injuries, condition, morale, money and player stats within 10% of the old engine; the saved game reads back and plays on the same | W05-season (`harmonycheck.ts season 3`) | FAIL (the managed side makes no substitutions; injuries -72%, morale -19%, money -15%, appearances -17%; save and load fine) |
+| 82 | Same: player ratings | The adapter's match ratings by position on the old engine's scale and spread (mean within 10%, spread within 25%) | W06-ratings (`season 3`) | PASS (every position within 10% on mean, 25% on spread) |
 
 ## The four test failures of round 2, judged (22 Nov)
 
@@ -143,22 +152,22 @@ The record breaks no law the checks know (R01 to R40 and B01 all pass, 24 Nov). 
 
 Mean 11.53, median 11, 5th percentile 7, 95th percentile 17. 3 matches have fewer than 6 and 9 have more than 17: 12 of 320 (3.8%) outside his 6 to 17. The question for him stands: is 6 to 17 a band every match must sit in, or the range the average should sit in?
 
-## Eyes list (refreshed 24 Nov, round 6)
+## Eyes list (refreshed 25 Nov, round 8)
 
-Open each link on the dev server; `from` is seconds on screen. Found with `npx vite-node scripts/harmonycheck.ts eyes` on the working tree as it stood at 19:20 (engine saved 19:05, pitch 19:21); if either changes again, re-run `eyes`, as the seconds and the plays move.
+Open each link on the dev server; `from` is seconds on screen. These are the preview's record of the fixture (the same match the game would play for that seed and fixture); when ANIMATION's live screen lands the same moments should look the same there. Found with `npx vite-node scripts/harmonycheck.ts eyes` on the working tree at 14:10.
 
 | | Moment | Where | Link | What to look for |
 |---|---|---|---|---|
-| 1 | A try build-up at clip pace | Real 4242 (Leicester RFC v Glasgow RFC), minute 19, play 130 | `/lp-record.html?rec=4242&from=103` | The whole move, from its first phase, at the 1.9.16 clips' pace; only a ball lying at a ruck wound on; a ticker line for every phase |
+| 1 | A try build-up at clip pace | Real 4242 (Leicester RFC v Glasgow RFC), minute 37, play 305 | `/lp-record.html?rec=4242&from=193` | The whole move, from its first phase, at the 1.9.16 clips' pace; only a ball lying at a ruck wound on; a ticker line for every phase |
 | 2 | A line break run down by the cover | Real 4242 (Leicester RFC v Glasgow RFC), minute 2, play 21 | `/lp-record.html?rec=4242&from=5` | The break at clip pace, the cover chasing across and the named man making the tackle |
-| 3 | A maul | Real 4242 (Leicester RFC v Glasgow RFC), minute 21, play 143 | `/lp-record.html?rec=4242&from=126` | The lineout, the maul forming round the jumper, driven, and the ball out or the drive over |
+| 3 | A maul | Real 4242 (Leicester RFC v Glasgow RFC), minute 27, play 211 | `/lp-record.html?rec=4242&from=132` | The lineout, the maul forming round the jumper, driven, and the ball out or the drive over |
 | 4 | A switch or loop | Real 4242 (Leicester RFC v Glasgow RFC), minute 1, play 7 | `/lp-record.html?rec=4242&from=0` | The runner changing angle (switch) or the passer going round (loop), and the ticker naming it |
-| 5 | A close finish | Real 4242 (Leicester RFC v Glasgow RFC), minute 76, play 549 | `/lp-record.html?rec=4242&from=571` | From 75:00 slower, at about 2x, to the whistle |
-| 6 | A card period | Real 4242 (Leicester RFC v Glasgow RFC), minute 52, play 374 | `/lp-record.html?rec=4242&from=387` | The card flashes, 14 men for ten minutes, the return said and seen |
-| 7 | An interception | Real 4242 (Leicester RFC v Glasgow RFC), minute 73, play 525 | `/lp-record.html?rec=4242&from=519` | The pass, the interceptor, the ball turning round with no jump, the flash |
-| 8 | A dead ball | Real 1 (Leicester RFC v RC La Rochelle), minute 58, play 372 | `/lp-record.html?rec=1&from=253` | The kick goes over the try line and the dead-ball line before the 22 drop-out |
-| 9 | The ticker in fast forward | Real 4242 (Leicester RFC v Glasgow RFC), minute 14, play 91 | `/lp-record.html?rec=4242&from=91` | Lines flicking through, each about the play on screen or the one before |
-| 10 | A flash: a penalty goal | Real 4242 (Leicester RFC v Glasgow RFC), minute 34, play 236 | `/lp-record.html?rec=4242&from=240` | The flash with the kick, up long enough to read, the ball between the posts over the bar |
+| 5 | A close finish | Real 4242 (Leicester RFC v Glasgow RFC), minute 76, play 626 | `/lp-record.html?rec=4242&from=465` | From 75:00 slower, at about 2x, to the whistle |
+| 6 | A card period | Real 4242 (Leicester RFC v Glasgow RFC), minute 45, play 409 | `/lp-record.html?rec=4242&from=293` | The card flashes, 14 men for ten minutes, the return said and seen |
+| 7 | An interception | Real 3 (Leicester RFC v Cape Town RFC), minute 73, play 496 | `/lp-record.html?rec=3&from=441` | The pass, the interceptor, the ball turning round with no jump, the flash |
+| 8 | A dead ball | Real 4242 (Leicester RFC v Glasgow RFC), minute 36, play 298 | `/lp-record.html?rec=4242&from=189` | The kick goes over the try line and the dead-ball line before the 22 drop-out |
+| 9 | The ticker in fast forward | Real 4242 (Leicester RFC v Glasgow RFC), minute 12, play 83 | `/lp-record.html?rec=4242&from=68` | Lines flicking through, each about the play on screen or the one before |
+| 10 | A flash: a penalty goal | Real 4242 (Leicester RFC v Glasgow RFC), minute 19, play 152 | `/lp-record.html?rec=4242&from=94` | The flash with the kick, up long enough to read, the ball between the posts over the bar |
 
 ## Round 5 (24 Nov): realism, levers, boundaries, ticker
 
@@ -254,6 +263,62 @@ The questions asked, answered:
 - Clubs reading as different: YES in how they play, NO in what results. Over 8 pairings x 12 match seeds, the share of each figure's spread explained by which two clubs are playing (intraclass correlation): mauls 0.63 (5.6 to 16.6 a match by pairing), offloads 0.58 (3.3 to 13.3), kicks from hand 0.42 (33 to 53), carries 0.42, passes a carry 0.33, home margin 0.25, line breaks 0.20, tries 0.05, penalties 0.02. The sameness score does not see this (one pairing 55.0, twenty pairings 55.3) because it compares outcomes (try types, scoring order, wordings), and outcomes barely depend on the clubs. A watcher would see Saracens maul and kick and another side offload; he would not see the scorelines or the try types tell them apart.
 
 Realism on 120 balanced league fixtures (prem 16, top14 16, urc 16, srp 16, champ 16, prod2 16, jl1 8, natl1 8, mrc 8): 4 of 40 sourced figures out of line, all small: drop-goal success 43.8% (real 35%), tries from a restart 7.4% (6%), tries from a penalty tap 2.9% (2%), and penalties 12.1 a match (Test rugby 17 to 22.9; the owner chose 11 to 12). Now in line: line breaks 12.3, offloads 10.9, mauls 8.6, scrum penalties 3.6, turnovers 10.7, red cards 0.13, replacements 15.9, home wins 55.8% with a margin of +4.4 (the round 5 "no home advantage" came from sampling only Leicester's fixtures). Carries are 184 a match against 228 to 230, inside the widened band but low.
+
+## Round 8 (25 Nov): the owner's decisions, and the wiring
+
+His decisions of 25 Nov, as checks: match length "1.C" (P01 is now a report, a warning only above 12 minutes); line breaks "Only big ones" (P03 asks clip pace only of `bigBreak()` breaks); the captain effect yes, out-of-position costs yes (accepted design, items 74 and 75); home advantage "Leave it" (the game's band, item 76); disc size yes (item 77); wiring yes (items 78 to 82). T01 and T04 now count every play from a run line's `run[0]` to `run[1]` as said.
+
+The wiring checks (W01 to W06) call the session as GAMEPLAY wrote it: `startSim2(state, fx, seed, opts)`, `runUntil`, `pending` and `answer`, `apply`, `finish()`, with `sim2Seed` for the game's own seed. `npx vite-node scripts/harmonycheck.ts wiring 20` runs W01 to W04 (about 30 s); `season 3` runs W05 and W06 (about 6 minutes) and the main run reads its last result from scripts/tmp/harmony-season.json.
+
+What they found on the adapter as it stood at 14:04:
+- W01: in 19 of 20 managed matches with scripted decisions the stored fixture is the watched match exactly: score, tries, every scorer and his minute (stoppage time stored as 40 and 80, as the game does), cards, substitutions (named by the man on), injuries, and the scorers' season tries in competitive matches. One minute is wrong: seed 11, the try at play 285 (minute 43) is stored at minute 45. Earlier drafts stored every second-half event at minute 40; that is fixed.
+- W02: through the session, a tactics call at 50:00 leaves every play before it the same and changes all 20 matches after it.
+- W03: in four managed weeks, all 220 other fixtures have the same result whether the managed match was played by the old engine or the new: the new engine does not move the week's dice. W04: fingerprint passes.
+- W05, three seasons for Leicester with every home match watched, new engine against old (figures a season):
+
+| Figure | Old engine | New engine | Change | Flag |
+|---|---|---|---|---|
+| points | 45.00 | 42.67 | -5% |  |
+| position | 6.33 | 5.67 | -11% | OFF BY MORE THAN 10% |
+| yellow | 9.67 | 9.67 | +0% |  |
+| red | 0.00 | 1.33 | +133% | OFF BY MORE THAN 10% |
+| injuriesInMatch | 8.33 | 2.33 | -72% | OFF BY MORE THAN 10% |
+| injuredNow | 2.33 | 1.00 | -57% | OFF BY MORE THAN 10% |
+| bannedNow | 0.00 | 0.00 | +0% |  |
+| condition | 91.66 | 90.75 | -1% |  |
+| morale | 6.19 | 5.01 | -19% | OFF BY MORE THAN 10% |
+| balance | 3755252.00 | 3183579.33 | -15% | OFF BY MORE THAN 10% |
+| apps | 565.67 | 470.00 | -17% | OFF BY MORE THAN 10% |
+| tries | 83.67 | 74.67 | -11% | OFF BY MORE THAN 10% |
+| playerPoints | 669.00 | 644.67 | -4% |  |
+| Position | Old: ratings n, mean, sd | New: n, mean, sd |
+|---|---|---|
+| LP | 76, 6.21, 1.14 | 39, 6.11, 1.20 |
+| HK | 76, 6.21, 1.13 | 38, 6.17, 1.16 |
+| TP | 76, 6.26, 1.17 | 38, 6.06, 1.19 |
+| LK | 114, 6.24, 1.12 | 77, 6.29, 1.18 |
+| FL | 114, 6.28, 1.22 | 78, 6.29, 1.31 |
+| SH | 68, 6.18, 1.22 | 39, 5.99, 1.15 |
+| FH | 72, 6.36, 1.20 | 38, 6.50, 1.37 |
+| CE | 112, 6.29, 1.17 | 76, 6.29, 1.44 |
+| WG | 76, 6.39, 1.22 | 76, 6.37, 1.38 |
+| N8 | 38, 6.30, 1.23 | 38, 6.13, 1.30 |
+| FB | 38, 6.32, 1.25 | 38, 6.17, 1.10 |
+
+  Save and load: the saved text reads back (save.ts readImport) and plays the next three weeks the same as the game that was not saved. The biggest cause found: the manager's side never uses its bench in the session, even with `assistantBench: true` (seed 301: 0 changes for Leicester, 8 for the opponent), while the old engine's watched match does. The in-match injuries are also far fewer (the traced match had none). Three seasons is a small sample for the table figures (position, red cards); the bench and injury gaps are far beyond it.
+- W06: the adapter's match ratings by position are within 10% of the old engine's means and 25% of its spreads in every position.
+
+## Final status (25 November 2026, round 8, 14:20)
+
+Run: `npx vite-node scripts/harmonycheck.ts` on eb4952ae and the working tree (toResult.ts 14:04, commentary 13:41, pitch 13:24). HARMONY FAILED on 3 of 81 rules: 78 pass, none not run. Quick test 32 of 32. `wiring 20`, `season 3`.
+
+Checklist totals: 63 PASS, 3 FAIL (items 72, 78, 81), 1 REPORT (48), 3 ACCEPTED (74, 75, 77), 7 NEEDS HIS EYES (3, 5, 7, 19, 36, 46, 63), 5 RETIRED (34, 35, 47, 58, 59). 82 items.
+
+What truly fails:
+1. Item 81, W05 (GAMEPLAY): the managed side never uses its bench in the session, even with the assistant holding it (seed 301); a season on the new engine has 17% fewer appearances, 72% fewer in-match injuries, morale 19% lower and 15% less money than on the old.
+2. Item 78, W01 (GAMEPLAY): one stored minute wrong in 20 managed matches (seed 11, play 285, minute 43 stored as 45).
+3. Item 72, F01 (GAMEPLAY): on 30 balanced fixtures, no drop goals, kicks from hand 36 a match (real 46 to 60), carries 181 (228 to 230), tries from scrums 24% (16% to 20%).
+Not run: nothing. The live screen itself is not tested by machine yet: the checks drive the session the screen is to use.
 
 ## Final status (24 November 2026, round 6, 19:25)
 

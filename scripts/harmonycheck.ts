@@ -86,9 +86,9 @@ export const RULES: Rule[] = [
   { id: 'A01-schedule-cover', title: 'the schedule covers every Play once, in order', owner: 'ANIMATION', kind: 'match' },
   { id: 'A02-schedule-time', title: 'the schedule never goes back in time', owner: 'ANIMATION', kind: 'match' },
   { id: 'A03-fades', title: 'fades only on lineouts, conversions, kicks at goal and after half-time', owner: 'ANIMATION', kind: 'match' },
-  { id: 'P01-length', title: 'an Extended match takes 7 to 9 minutes to watch up to 6 tries, and about 25 s more a try beyond (owner, 22 and 24 Nov; lead)', owner: 'ANIMATION', kind: 'rate' },
+  { id: 'P01-length', title: 'match length is reported (owner, 25 Nov: "Leave it"); a warning only above 12 minutes', owner: 'ANIMATION', kind: 'rate' },
   { id: 'P02-every-play', title: 'every play is shown: none condensed, every play with ball in play has time on screen', owner: 'ANIMATION', kind: 'match' },
-  { id: 'P03-key-1x', title: 'every key moment at the highlight clips\' pace (every frame within 15% of it)', owner: 'ANIMATION', kind: 'match' },
+  { id: 'P03-key-1x', title: 'every key moment at the highlight clips\' pace (every frame within 15% of it); of the line breaks only the big ones, bigBreak() (owner, 25 Nov)', owner: 'ANIMATION', kind: 'match' },
   { id: 'P04-buildup-1x', title: 'the whole possession that ends in each try, from its first play: no play of it faster than 2.5x (clip pace, a ruck pause wound on at most 2.5x)', owner: 'ANIMATION', kind: 'match' },
   { id: 'P05-ff', title: 'fast forward elsewhere: 80% of the other frames at 1.5x or more', owner: 'ANIMATION', kind: 'match' },
   { id: 'P06-close', title: 'margin 7 or fewer at 75:00: the rest at no more than 2.2x; margin 15 or more: not slowed (median over 2.2x)', owner: 'ANIMATION', kind: 'match' },
@@ -108,6 +108,12 @@ export const RULES: Rule[] = [
   { id: 'T03-flash', title: 'ticker: every try, goal and card line is there and stays up 2 s before the next line', owner: 'COMMENTARY', kind: 'match' },
   { id: 'T04-in-step', title: 'ticker: the line on screen is never about a play still to come, and is more than one play behind for under 2% of the time the ball is in play', owner: 'COMMENTARY', kind: 'match' },
   { id: 'T05-short', title: 'ticker: ticker lines 70 characters or fewer, fuller lines 90, flash lines 48', owner: 'COMMENTARY', kind: 'match' },
+  { id: 'W01-stored', title: 'wiring: the result the game stores is the match that was watched (score, scorers and minutes, cards, substitutions, injuries, season tries), 20 managed matches with scripted decisions', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'W02-session-decisions', title: 'wiring: through the session, a call at 50:00 leaves everything before it the same and changes the match after it', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'W03-rest-untouched', title: 'wiring: with the new engine playing the managed match, every other fixture of that week is the same result as on the old engine', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'W04-fingerprint', title: 'wiring: scripts/fingerprint.ts still prints FINGERPRINT PASSED', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'W05-season', title: 'wiring: a season with every home match watched on the new engine stays within 10% of the old engine on table, cards, injuries, condition, morale, money and player stats; a save read back plays on (`season 3`)', owner: 'GAMEPLAY', kind: 'rate' },
+  { id: 'W06-ratings', title: 'wiring: match ratings from the adapter on the old engine\'s scale and spread by position, means within 10% and spreads within 25% (`season 3`)', owner: 'GAMEPLAY', kind: 'rate' },
   { id: 'F01-realism', title: 'fundamentals: every sourced real-rugby figure (docs/match-sim-sources.md) within the sources\' range widened by 20%', owner: 'GAMEPLAY', kind: 'rate' },
   { id: 'M01-levers', title: 'every manager lever leaves every play before the call the same and changes the match after it (which way and how much: `levers 80`, paired t)', owner: 'GAMEPLAY', kind: 'rate' },
   { id: 'M02-card-cost', title: 'a yellow card costs the carded side: worse points margin a minute in the bin than out of it', owner: 'GAMEPLAY', kind: 'rate' },
@@ -917,6 +923,8 @@ interface Pitch {
   BUILD_MAX?: number
   /** the measured pace of the 1.9.16/1.9.17 highlight clips, as a rate against the bake's clock (owner, 24 Nov) */
   CLIP_RATE?: number; CLIP_PACE?: number; HIGHLIGHT_RATE?: number
+  /** owner, 25 Nov ("Only big ones"): which line breaks slow to clip pace */
+  bigBreak?: (plays: Play[], n: number) => boolean
 }
 /** "normal speed" is now the highlight clips' pace (owner, 24 Nov), as the pitch publishes it; 1 until it does */
 /** the fastest any play of a try's possession may run: a ruck pause wound on (lead's ruling, 24 Nov) */
@@ -957,6 +965,8 @@ export function checkPitch(A: Pitch, m: Match): PitchReport {
   let keyPlays = 0, keySlow = 0, keyWorst: PitchReport['keyWorst']
   for (let n = 0; n < P.length; n++) {
     if (!isKeyPlay(P, n)) continue
+    // (owner, 25 Nov, "Only big ones": a line break is a key moment only when it is a big one, bigBreak() in fromRecord.ts)
+    if (P[n].kind === 'lineBreak' && A.bigBreak && !A.bigBreak(P, n)) continue
     const g = segOf(n); if (!g) continue
     keyPlays++
     let worst = 0, off = 0, all = 0
@@ -1343,7 +1353,9 @@ export function checkTicker(A: Pitch, m: Match, lines: LineLike[], text: (l: Lin
   const times = lineTimes(lines, sch)
   const order = lines.map((_, i) => i).sort((a, b) => times[a] - times[b] || lines[a].n - lines[b].n)
   // build-ups: every play from the start of the move to the try
-  const said = new Set(lines.map(l => l.n))
+  // a run line (commentary round 7) covers every play from run[0] to run[1] (coordinator, round 8)
+  const said = new Set<number>()
+  for (const l of lines) { const r = (l as unknown as { run?: [number, number] }).run; if (r) for (let k = r[0]; k <= r[1]; k++) said.add(k); else said.add(l.n) }
   let buildPlays = 0, buildSaid = 0, buildMissed: number | undefined
   for (const p of P) if (p.kind === 'try') {
     for (let n = possessionStart(P, p.n); n <= p.n; n++) { buildPlays++; if (said.has(n)) buildSaid++; else buildMissed ??= n }
@@ -1401,10 +1413,11 @@ export function checkTicker(A: Pitch, m: Match, lines: LineLike[], text: (l: Lin
     const f = frameAtView(v)
     if (!live[f] || k < 0) continue
     samples++
-    const onScreen = bk.seg[f], shown = lines[order[k]].n
+    const lr = (lines[order[k]] as unknown as { run?: [number, number] }).run
+    const onScreen = bk.seg[f], shown = lr ? lr[1] : lines[order[k]].n, shownFrom = lr ? lr[0] : shown
     const ff = tl.rate[f] > 1.5
     if (ff) samplesFF++; else samplesClip++
-    if (shown > onScreen) { ahead++; aheadAt ??= shown }
+    if (shownFrom > onScreen) { ahead++; aheadAt ??= shownFrom }
     else if (shown < onScreen - 1) { behind++; behindAt ??= onScreen; if (ff) behindFF++; else behindClip++ }
   }
   // length, by register (lead's ruling 24 Nov 15:05): flash lines 48, ticker lines 70, fuller lines 90
@@ -1680,6 +1693,291 @@ export function realism(ours: Record<string, number>, targets: Target[]): { rows
     if (!ok) misses.push(`${t.what}: ours ${fmt(v, 2)}, real ${t.lo === t.hi ? fmt(t.lo, 2) : `${fmt(t.lo, 2)} to ${fmt(t.hi, 2)}`} (${t.source})`)
   }
   return { rows, misses }
+}
+
+// ------------------------------------------------------------ round 8: the wiring (stage 6)
+//
+// AGENTS.md ROUND 8: "When the user watches a managed match in Extended, the match IS the new
+// engine's match ... its final record becomes the result the game stores. ... Everything behind one
+// switch (SIM2_EXTENDED)". These checks are written against the plan before the adapter exists. They
+// load src/game/sim/toResult.ts with a dynamic import and report "not run" until it is there. The
+// names they look for (any one of each) are in WIRING_API; the request to GAMEPLAY says the same.
+
+export const WIRING_API = {
+  play: ['playManaged', 'playManagedMatch', 'simManaged'],
+  start: ['startSim2', 'startManaged', 'startSession', 'newSession', 'managedSession'],
+  flag: ['SIM2_EXTENDED'],
+}
+
+/** what a session must offer (any MatchSim-like object with a finish that writes the result into the game) */
+interface Session { sim?: { plays: Play[]; runUntil(s: unknown): unknown; apply(d: unknown): void; done: boolean; result(): SimResult }; plays?: readonly Play[]; runUntil?(s: unknown): unknown; apply?(d: unknown): unknown; answer?(c: string): void; pending?: { options: string[] } | null; done?: boolean; finish(): unknown; result?(): SimResult }
+type Adapter = Record<string, unknown>
+type PlayFn = (state: unknown, fx: unknown, opts?: { seed?: number; assistantBench?: boolean; decisions?: { at: Record<string, number | boolean>; decision: unknown }[] }) => { result?: SimResult; plays?: Play[] } | SimResult
+type StartFn = (state: unknown, fx: unknown, opts?: { seed?: number; assistantBench?: boolean }) => Session
+
+async function loadAdapter(): Promise<{ A: Adapter | null; why: string; play?: PlayFn; start?: StartFn; flag?: unknown }> {
+  let A: Adapter
+  try { A = await import('../src/game/sim/toResult' as string) as unknown as Adapter } catch (e) { return { A: null, why: `src/game/sim/toResult.ts not there (${(e as Error).message.split('\n')[0].slice(0, 80)})` } }
+  const pick = (names: string[]) => names.map(n => A[n]).find(v => v !== undefined)
+  let play = pick(WIRING_API.play) as PlayFn | undefined
+  const rawStart = pick(WIRING_API.start) as ((...a: unknown[]) => Session) | undefined
+  // startSim2(state, fx, seed, opts) takes the seed in place; sim2Seed(state, fx) is the game's own
+  const seedOf = A.sim2Seed as ((g: unknown, f: unknown) => number) | undefined
+  const start: StartFn | undefined = rawStart ? (g, f, o) => rawStart(g, f, o?.seed ?? (seedOf ? seedOf(g, f) : 1), o?.assistantBench ? { assistantBench: true } : {}) : undefined
+  // no one-call play: play a session to the end, the decisions at their moments, every penalty call answered
+  if (!play && start) play = (g, f, o) => {
+    const ss = start(g, f, { seed: o?.seed, assistantBench: o?.assistantBench })
+    const run = (st: unknown) => { for (let k = 0; k < 300; k++) { ss.runUntil!(st); const pd = ss.pending; if (pd) ss.answer!(pd.options.includes('posts') ? 'posts' : 'corner'); else break } }
+    for (const d of o?.decisions ?? []) { run(d.at); ss.apply!(d.decision) }
+    for (let k = 0; k < 300 && !ss.done; k++) run({})
+    ss.finish()
+    return { plays: [...(ss.plays ?? [])], result: ss.sim?.result() }
+  }
+  let flag = pick(WIRING_API.flag)
+  if (flag === undefined) { try { const F = await import('../src/game/sim/flags' as string) as Adapter; flag = F.SIM2_EXTENDED } catch { /* elsewhere */ } }
+  const why = !play && !start ? `toResult.ts has none of ${[...WIRING_API.play, ...WIRING_API.start].join(', ')}` : ''
+  return { A, why, play, start, flag }
+}
+
+const recOf = (r: { result?: SimResult; plays?: Play[] } | SimResult): SimResult => {
+  const x = r as { result?: SimResult; plays?: Play[]; score?: [number, number]; tries?: [number, number] }
+  if (x.result) return x.result
+  return { plays: x.plays ?? [], score: x.score ?? [0, 0], tries: x.tries ?? [0, 0] }
+}
+
+interface GameLike { fixtures: { id: number; week: number; homeId: string; awayId: string; played: boolean; homeScore: number; awayScore: number; homeTries: number; awayTries: number; events?: { min: number; type: string; teamId: string; playerId?: number }[]; motm?: number }[]; players: Record<number, { id: number; ratings?: number[]; stats: { apps: number; tries: number; points: number }; injury: unknown; bans: number; cond: number; morale: number; pos?: string }>; clubs: Record<string, { players: number[]; balance: number }>; userClubId: string; week: number; season: number; comps: Record<string, { type: string; table: { teamId: string; pts: number }[]; teamIds: string[] }> }
+
+/**
+ * W01 THE STORED RESULT IS THE WATCHED MATCH. 20 managed matches (Leicester's first fixture in new
+ * games on seeds 1 to 20) with scripted decisions: a tactics change at 30:00, the No. 8 off for the
+ * No. 20 at 50:00, every penalty to the posts. The game's fixture afterwards against the record.
+ */
+export async function checkStored(ad: Awaited<ReturnType<typeof loadAdapter>>, N = 20): Promise<RateRow> {
+  if (!ad.play) return { id: 'W01-stored', ok: false, failing: -1, msg: `not run: ${ad.why || 'no play function (' + WIRING_API.play.join(', ') + ')'}` }
+  const { newGame } = await import('../src/game/newgame')
+  const { processWeekAndAdvance, userFixtureThisWeek } = await import('../src/game/season')
+  let bad = 0, first: RateRow['first'], why = ''
+  for (let seed = 1; seed <= N; seed++) {
+    const g = newGame('leicester', 'T', seed) as unknown as GameLike
+    let fx = userFixtureThisWeek(g as never) as unknown as GameLike['fixtures'][number] | undefined
+    for (let i = 0; i < 12 && !fx; i++) { processWeekAndAdvance(g as never); fx = userFixtureThisWeek(g as never) as never }
+    if (!fx) continue
+    const us = fx.homeId === g.userClubId ? 0 : 1, uid = us === 0 ? fx.homeId : fx.awayId
+    const sh = g.clubs[uid].players
+    const statsBefore = new Map(Object.values(g.players).map(p => [String(p.id), { tries: p.stats.tries, apps: p.stats.apps }]))
+    let rec: SimResult
+    try {
+      const off8 = (g as unknown as { clubs: Record<string, { tactic: { lineup: number[] } }> }).clubs[uid].tactic.lineup[7], on20 = (g as unknown as { clubs: Record<string, { tactic: { lineup: number[] } }> }).clubs[uid].tactic.lineup[19]
+      rec = recOf(ad.play(g, fx, { seed, decisions: [
+        { at: { clock: 0 }, decision: { kind: 'penaltyCall', side: us, call: 'posts' } },
+        { at: { clock: 1800 }, decision: { kind: 'tactics', side: us, set: { kicking: 70 } } },
+        { at: { clock: 3000, dead: true }, decision: { kind: 'substitution', side: us, off: String(off8), on: String(on20) } },
+      ] }))
+      void sh
+    } catch (e) { bad++; first ??= { seed, n: -1 }; why ||= `playManaged threw: ${(e as Error).message.split('\n')[0]}`; continue }
+    const f = g.fixtures.find(x => x.id === fx!.id)!
+    const P = rec.plays, problems: string[] = []
+    if (!f.played) problems.push('fixture not marked played')
+    if (f.homeScore !== rec.score[0] || f.awayScore !== rec.score[1]) problems.push(`score stored ${f.homeScore}-${f.awayScore}, watched ${rec.score.join('-')}`)
+    if (f.homeTries !== rec.tries[0] || f.awayTries !== rec.tries[1]) problems.push(`tries stored ${f.homeTries}-${f.awayTries}, watched ${rec.tries.join('-')}`)
+    const ev = f.events ?? []
+    // the game writes stoppage time as 40 and 80 (the old engine's minutes run 1 to 40 and 41 to 80)
+    const htAt = P.find(q => q.kind === 'halfTime')?.n ?? Infinity
+    const minOf = (p: Play) => Math.min(p.n < htAt ? 40 : 80, Math.floor((p.clock ?? p.t) / 60) + 1)
+    const teamOf = (s: 0 | 1) => (s === 0 ? f.homeId : f.awayId)
+    // (a SUB event is any commentary line; a substitution is one whose key is comm.sub..., naming the man on)
+    const want = (kind: string, type: string, pred: (p: Play) => boolean = () => true, evPred: (e: { k?: string }) => boolean = () => true, who: (p: Play) => string | undefined = p => p.who) => {
+      // (a penalty try is stored as a TRY too)
+      const ps = P.filter(p => (p.kind === kind || (kind === 'try' && p.kind === 'penaltyTry')) && pred(p)), es = ev.filter(e => e.type === type && evPred(e as { k?: string }))
+      if (ps.length !== es.length) { problems.push(`${type}: ${es.length} stored, ${ps.length} watched`); return }
+      ps.forEach((p, i) => {
+        const e = es[i]
+        if (e.teamId !== teamOf(p.side)) problems.push(`${type} ${i + 1}: team ${e.teamId}, watched ${teamOf(p.side)}`)
+        const w = who(p)
+        if (w && e.playerId != null && String(e.playerId) !== w) problems.push(`${type} ${i + 1}: player ${e.playerId}, watched ${w}`)
+        if (Math.abs(e.min - minOf(p)) > 1) problems.push(`${type} ${i + 1}: minute ${e.min}, watched ${minOf(p)}`)
+      })
+    }
+    want('try', 'TRY'); want('yellowCard', 'YC'); want('redCard', 'RC')
+    want('substitution', 'SUB', p => p.result === 'made', e => /^comm\.sub/.test(e.k ?? ''), p => p.with?.[0])
+    want('injury' as Play['kind'], 'INJ')
+    // each try scorer's season tries went up by one per try
+    const scored = new Map<string, number>()
+    for (const p of P) if (p.kind === 'try' && p.who) scored.set(p.who, (scored.get(p.who) ?? 0) + 1)
+    // (only a competitive club match goes on a man's record: match/side.ts onRecord, compId 'fr' is a friendly)
+    const onRec = (fx as unknown as { compId: string }).compId !== 'fr'
+    if (onRec) for (const [id, n] of scored) { const pl = g.players[Number(id)]; const b = statsBefore.get(id); if (pl && b && g.clubs[(fx as unknown as { homeId: string }).homeId] && pl.stats.tries - b.tries !== n) problems.push(`player ${id} scored ${n} watched, season tries +${pl.stats.tries - b.tries}`) }
+    if (problems.length) { bad++; first ??= { seed, n: -1 }; why ||= problems.slice(0, 3).join('; ') }
+  }
+  return { id: 'W01-stored', ok: bad === 0, failing: bad, first, msg: bad ? `${bad} of ${N} managed matches stored differently from what was watched; first: ${why}` : `${N} managed matches: score, tries, scorers and minutes, cards, substitutions, injuries and season tries all as watched` }
+}
+
+/** W02 NOTHING IS PRESET, through the session: a call at 50:00 leaves every play before it the same and changes the match after it */
+export async function checkSessionDecisions(ad: Awaited<ReturnType<typeof loadAdapter>>, N = 20): Promise<RateRow> {
+  if (!ad.start) return { id: 'W02-session-decisions', ok: false, failing: -1, msg: `not run: ${ad.why || 'no session function (' + WIRING_API.start.join(', ') + ')'}` }
+  const { newGame } = await import('../src/game/newgame')
+  const { processWeekAndAdvance, userFixtureThisWeek } = await import('../src/game/season')
+  let broke = 0, changed = 0, n = 0, why = ''
+  for (let seed = 1; seed <= N; seed++) {
+    const mk = () => { const g = newGame('leicester', 'T', seed); let fx = userFixtureThisWeek(g); for (let i = 0; i < 12 && !fx; i++) { processWeekAndAdvance(g); fx = userFixtureThisWeek(g) } return { g, fx } }
+    try {
+      const a = mk(), b = mk()
+      if (!a.fx || !b.fx) continue
+      const us = a.fx.homeId === a.g.userClubId ? 0 : 1
+      const sa = ad.start(a.g, a.fx, { seed }), sb = ad.start(b.g, b.fx, { seed })
+      const run = (x: Session, st: unknown) => { for (let k = 0; k < 300; k++) { x.runUntil!(st); const pd = x.pending; if (pd) x.answer!(pd.options.includes('posts') ? 'posts' : 'corner'); else break } }
+      const plays = (x: Session) => [...(x.plays ?? x.sim?.plays ?? [])]
+      run(sa, { clock: 3000 }); run(sb, { clock: 3000 })
+      const at = plays(sb).length
+      const d = { kind: 'tactics', side: us, set: { tempo: 90, kicking: 85 } }
+      sb.apply!(d)
+      for (let k = 0; k < 300 && !sa.done; k++) run(sa, {})
+      for (let k = 0; k < 300 && !sb.done; k++) run(sb, {})
+      sa.finish(); sb.finish()
+      n++
+      if (JSON.stringify(plays(sa).slice(0, at)) !== JSON.stringify(plays(sb).slice(0, at))) broke++
+      if (JSON.stringify(plays(sa).slice(at)) !== JSON.stringify(plays(sb).slice(at))) changed++
+    } catch (e) { why ||= (e as Error).message.split('\n')[0] }
+  }
+  if (!n) return { id: 'W02-session-decisions', ok: false, failing: -1, msg: `not run: the session would not play (${why})` }
+  return { id: 'W02-session-decisions', ok: broke === 0 && changed >= n * 0.8, failing: broke + (changed >= n * 0.8 ? 0 : 1), msg: `${n} matches through the session: ${broke} changed before the call at 50:00, ${changed} changed after it` }
+}
+
+/**
+ * W03 THE REST OF THE GAME IS UNTOUCHED. The same game played two ways in its first managed week: the
+ * old engine's watched match (simMatch with the match's own dice, as the live screen plays it) then the
+ * week; and the new engine's managed match then the week. Every other fixture of the week must be the
+ * same, result for result: the new engine must not move the week's dice.
+ */
+export async function checkRestUntouched(ad: Awaited<ReturnType<typeof loadAdapter>>, seeds = [1, 2, 3, 4]): Promise<RateRow> {
+  if (!ad.play) return { id: 'W03-rest-untouched', ok: false, failing: -1, msg: `not run: ${ad.why || 'no play function'}` }
+  const { newGame } = await import('../src/game/newgame')
+  const { processWeekAndAdvance, userFixtureThisWeek, matchRng } = await import('../src/game/season')
+  const { simMatch } = await import('../src/game/matchEngine')
+  let diff = 0, checked = 0, first: RateRow['first'], why = ''
+  for (const seed of seeds) {
+    const mk = () => { const g = newGame('leicester', 'T', seed); let fx = userFixtureThisWeek(g); for (let i = 0; i < 12 && !fx; i++) { processWeekAndAdvance(g); fx = userFixtureThisWeek(g) } return { g, fx } }
+    const A = mk(), B = mk()
+    if (!A.fx || !B.fx) continue
+    simMatch(A.g, A.fx, matchRng(A.g), true)
+    try { ad.play(B.g, B.fx, {}) } catch (e) { why ||= (e as Error).message.split('\n')[0]; continue }
+    const week = A.g.week
+    processWeekAndAdvance(A.g); processWeekAndAdvance(B.g)
+    for (const fa of A.g.fixtures.filter(f => f.week === week && f.id !== A.fx!.id)) {
+      const fb = B.g.fixtures.find(f => f.id === fa.id)!
+      checked++
+      if (fa.homeScore !== fb.homeScore || fa.awayScore !== fb.awayScore || fa.homeTries !== fb.homeTries) { diff++; first ??= { seed, n: fa.id }; why ||= `fixture ${fa.id} (${fa.homeId} v ${fa.awayId}): ${fa.homeScore}-${fa.awayScore} on the old engine's week, ${fb.homeScore}-${fb.awayScore} after the new engine's match` }
+    }
+  }
+  if (!checked) return { id: 'W03-rest-untouched', ok: false, failing: -1, msg: `not run: ${why || 'no week compared'}` }
+  return { id: 'W03-rest-untouched', ok: diff === 0, failing: diff, first, msg: diff ? `${diff} of ${checked} other fixtures in the managed week changed; first: ${why}` : `${checked} other fixtures in ${seeds.length} managed weeks identical either way` }
+}
+
+/** W04 the switch off leaves the game as main has it: scripts/fingerprint.ts still prints FINGERPRINT PASSED */
+export async function checkFingerprint(): Promise<RateRow> {
+  try {
+    const { execFileSync } = await import('node:child_process')
+    const out = execFileSync('npx', ['vite-node', 'scripts/fingerprint.ts'], { encoding: 'utf8', timeout: 240000, stdio: ['ignore', 'pipe', 'pipe'] })
+    const ok = /FINGERPRINT PASSED/.test(out)
+    return { id: 'W04-fingerprint', ok, failing: ok ? 0 : 1, msg: ok ? 'scripts/fingerprint.ts: FINGERPRINT PASSED' : `scripts/fingerprint.ts: ${out.trim().split('\n').slice(-2).join(' / ')}` }
+  } catch (e) { const o = (e as { stdout?: string }).stdout ?? ''; return { id: 'W04-fingerprint', ok: false, failing: 1, msg: `scripts/fingerprint.ts failed: ${(o || (e as Error).message).trim().split('\n').slice(-2).join(' / ')}` } }
+}
+
+/** a season's figures for the user's club, to compare engines */
+function seasonSummary(g: GameLike, events: { yc: number; rc: number; inj: number }) {
+  const club = g.clubs[g.userClubId], ps = club.players.map(id => g.players[id]).filter(Boolean)
+  const league = Object.values(g.comps).find(c => c.type === 'league' && c.teamIds.includes(g.userClubId))
+  const rows = league ? [...league.table].sort((a, b) => b.pts - a.pts) : []
+  const pos = rows.findIndex(r => r.teamId === g.userClubId) + 1
+  const mean = (f: (p: GameLike['players'][number]) => number) => ps.reduce((a, p) => a + f(p), 0) / Math.max(1, ps.length)
+  return {
+    points: rows.find(r => r.teamId === g.userClubId)?.pts ?? NaN, position: pos,
+    yellow: events.yc, red: events.rc, injuriesInMatch: events.inj,
+    injuredNow: ps.filter(p => p.injury).length, bannedNow: ps.filter(p => p.bans > 0).length,
+    condition: mean(p => p.cond), morale: mean(p => p.morale), balance: club.balance,
+    apps: ps.reduce((a, p) => a + p.stats.apps, 0), tries: ps.reduce((a, p) => a + p.stats.tries, 0), playerPoints: ps.reduce((a, p) => a + p.stats.points, 0),
+  }
+}
+
+/**
+ * `season [seasons]`: W05 and W06. Whole seasons for Leicester with every HOME match watched: on the
+ * old engine (simMatch with the match's dice, as the live screen) and on the new (the adapter), the
+ * rest of each week as the game plays it. The season's figures compared engine against engine; a
+ * figure whose mean moves more than 10% is flagged. Half way, the game is saved to text and read back
+ * (save.ts readImport), and the loaded copy must finish the season exactly as the original. And the
+ * managed side's match ratings (player.ratings) by position, old engine against new.
+ */
+async function seasonDump(argv: string[]) {
+  const NS = Number(argv[0] ?? 3)
+  const ad = await loadAdapter()
+  const { newGame } = await import('../src/game/newgame')
+  const { processWeekAndAdvance, userFixtureThisWeek, matchRng } = await import('../src/game/season')
+  const { simMatch } = await import('../src/game/matchEngine')
+  const { readImport } = await import('../src/game/save')
+  const out: Record<string, unknown> = { when: new Date().toISOString(), seasons: NS }
+  if (!ad.play) { out.notRun = ad.why || 'no play function'; console.log(`season: not run: ${out.notRun}`); }
+  const engines: ('old' | 'new')[] = ad.play ? ['old', 'new'] : ['old']
+  const sums: Record<string, Record<string, number>[]> = { old: [], new: [] }
+  const ratings: Record<string, Record<string, number[]>> = { old: {}, new: {} }
+  let saveFail = ''
+  for (const eng of engines) for (let s = 1; s <= NS; s++) {
+    const g0 = newGame('leicester', 'T', 300 + s) as unknown as GameLike
+    const startSeason = g0.season
+    const ev = { yc: 0, rc: 0, inj: 0 }
+    const playWeek = (g: GameLike, count: boolean) => {
+      const fx = userFixtureThisWeek(g as never) as unknown as GameLike['fixtures'][number] | undefined
+      if (fx && fx.homeId === g.userClubId && !fx.played) {
+        const before = new Map(g.clubs[g.userClubId].players.map(id => [id, JSON.stringify(g.players[id]?.ratings ?? [])]))
+        if (eng === 'old') simMatch(g as never, fx as never, matchRng(g as never), true)
+        // (the assistant has the bench, as simMatch gives the old engine's side: like for like)
+        else ad.play!(g, fx, { assistantBench: true })
+        const f = g.fixtures.find(x => x.id === fx.id)!
+        if (count) for (const e of f.events ?? []) { if (e.teamId !== g.userClubId) continue; if (e.type === 'YC') ev.yc++; if (e.type === 'RC') ev.rc++; if (e.type === 'INJ') ev.inj++ }
+        // only the men who played this match (a rating added by it; the list keeps the last ten)
+        if (count) for (const id of g.clubs[g.userClubId].players) { const p = g.players[id]; const n1 = p?.ratings?.length ?? 0; const r = p?.ratings?.[n1 - 1]; if (r != null && p.pos && JSON.stringify(p.ratings) !== before.get(id)) (ratings[eng][p.pos] ??= []).push(r) }
+      }
+      processWeekAndAdvance(g as never)
+    }
+    let g = g0, half = false
+    for (let w = 0; w < 60 && g.season === startSeason; w++) {
+      // the league is over when every league fixture of the user's club is played: measure then, before the rollover
+      const lg = Object.values(g.comps).find(c => c.type === 'league' && c.teamIds.includes(g.userClubId))
+      const left = g.fixtures.filter(f => !f.played && (f.homeId === g.userClubId || f.awayId === g.userClubId) && lg && g.comps[(f as unknown as { compId: string }).compId] === lg).length
+      if (!left) break
+      if (!half && w === 15 && s === 1) {
+        half = true
+        // SAVE AND LOAD: the text the game saves, read back (save.ts readImport), must play the next three
+        // weeks exactly as an untouched copy of the same game does
+        try {
+          const loaded = readImport(JSON.stringify(g)) as unknown as GameLike | null
+          if (!loaded) saveFail ||= `${eng} engine, season ${s}, week ${g.week}: readImport refused the saved game`
+          else {
+            const same = structuredClone(g)
+            const from = g.week
+            for (let k = 0; k < 3; k++) { playWeek(loaded, false); playWeek(same, false) }
+            const res = (x: GameLike) => JSON.stringify(x.fixtures.filter(f => f.week >= from && f.week < from + 3).map(f => [f.id, f.played, f.homeScore, f.awayScore, f.homeTries, f.awayTries]))
+            if (res(loaded) !== res(same)) saveFail ||= `${eng} engine, season ${s}: after a save and load at week ${from} the next three weeks play differently from the game that was not saved`
+          }
+        } catch (e) { saveFail ||= `${eng} engine: save or load threw: ${(e as Error).message.split('\n')[0]}` }
+      }
+      playWeek(g, true)
+    }
+    sums[eng].push(seasonSummary(g, ev))
+  }
+  const keys = Object.keys(sums.old[0] ?? {})
+  const avg = (rows: Record<string, number>[], k: string) => rows.reduce((a, r) => a + r[k], 0) / Math.max(1, rows.length)
+  const cmp = keys.map(k => { const a = avg(sums.old, k), b = engines.includes('new') ? avg(sums.new, k) : NaN; const rel = Math.abs(a) > 1e-9 ? (b - a) / Math.abs(a) : b - a; return { k, old: a, new: b, rel, flag: Number.isFinite(b) && Math.abs(rel) > 0.10 } })
+  out.compare = cmp; out.saveFail = saveFail || null
+  const posStats = (xs: number[]) => { const m = xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length); return { n: xs.length, mean: m, sd: Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / Math.max(1, xs.length - 1)) } }
+  out.ratings = Object.fromEntries(Object.keys(ratings.old).map(pos => [pos, { old: posStats(ratings.old[pos] ?? []), new: posStats(ratings.new[pos] ?? []) }]))
+  console.log(`season: ${NS} seasons per engine (${engines.join(' and ')}), Leicester, every home match watched`)
+  console.log('| Figure | Old engine | New engine | Change | Flag |\n|---|---|---|---|---|')
+  for (const c of cmp) console.log(`| ${c.k} | ${fmt(c.old, 2)} | ${fmt(c.new, 2)} | ${Number.isFinite(c.rel) ? `${c.rel >= 0 ? '+' : ''}${fmt(100 * c.rel, 0)}%` : '-'} | ${c.flag ? 'OFF BY MORE THAN 10%' : ''} |`)
+  console.log(`save and load: ${saveFail || 'the saved text reads back and plays on'}`)
+  console.log('| Position | Old: ratings n, mean, sd | New: n, mean, sd |\n|---|---|---|')
+  for (const [pos, r] of Object.entries(out.ratings as Record<string, { old: { n: number; mean: number; sd: number }; new: { n: number; mean: number; sd: number } }>)) console.log(`| ${pos} | ${r.old.n}, ${fmt(r.old.mean, 2)}, ${fmt(r.old.sd, 2)} | ${r.new.n}, ${fmt(r.new.mean, 2)}, ${fmt(r.new.sd, 2)} |`)
+  const { writeFileSync } = await import('node:fs')
+  writeFileSync('scripts/tmp/harmony-season.json', JSON.stringify(out, null, 1))
 }
 
 // ------------------------------------------------------------ the run
@@ -1988,7 +2286,17 @@ async function spotDump(argv: string[]) {
   writeFileSync('scripts/tmp/harmony-spot.json', JSON.stringify({ when: new Date().toISOString(), pairs: N, rows: out }, null, 1))
 }
 
+/** `wiring [matches]`: W01 to W04 only */
+async function wiringDump(argv: string[]) {
+  const N = Number(argv[0] ?? 20)
+  const ad = await loadAdapter()
+  for (const row of [await checkStored(ad, N), await checkSessionDecisions(ad, Math.min(N, 20)), await checkRestUntouched(ad), await checkFingerprint()])
+    console.log(`${row.id.padEnd(24)}${row.failing < 0 ? 'not run' : row.ok ? 'PASS' : `FAIL (${row.failing})`}  ${row.msg}${row.first ? ` [seed ${row.first.seed}]` : ''}`)
+}
+
 async function main() {
+  if (process.argv.includes('wiring')) return wiringDump(process.argv.slice(process.argv.indexOf('wiring') + 1))
+  if (process.argv.includes('season')) return seasonDump(process.argv.slice(process.argv.indexOf('season') + 1))
   if (process.argv.includes('clubs')) return clubsDump(process.argv.slice(process.argv.indexOf('clubs') + 1))
   if (process.argv.includes('spot')) return spotDump(process.argv.slice(process.argv.indexOf('spot') + 1))
   if (process.argv.includes('realism')) return realismDump(process.argv.slice(process.argv.indexOf('realism') + 1))
@@ -2012,6 +2320,7 @@ async function main() {
   const all = [...matches, ...reals]
 
   // per-rule tallies
+  const notRunWhy = new Map<string, string>()
   type Tally = { failing: number; first?: { label: string; seed: number; n: number; msg: string }; count: number; ran: boolean }
   const T = new Map<string, Tally>(RULES.map(r => [r.id, { failing: 0, count: 0, ran: false }]))
   /** with --why: each rule's failures grouped by their message with the numbers taken out */
@@ -2167,8 +2476,8 @@ async function main() {
     if (views.length) {
       const mean = views.reduce((a, b) => a + b, 0) / views.length
       // more than 10 tries may run longer (owner, 24 Nov): only the 7 minute floor then
-      // 7 to 9 minutes up to 6 tries, and about 25 s more for each try beyond (lead's ruling, 24 Nov)
-      const out = views.filter((v, i) => v < 420 || v > 540 + 25 * Math.max(0, viewTries[i] - 6) + 5).length
+      // (owner, 25 Nov: "leave it": the length is reported, with a warning above 12 minutes)
+      const out = views.filter(v => v > 720).length
       const t = T.get('P01-length')!; t.ran = true; t.failing = out
       t.first = { label: `${views.length} real fixtures`, seed: -1, n: -1, msg: `${views.map((v, i) => `${fmt(v / 60, 2)} (${viewTries[i]} tries)`).join(', ')} min (mean ${fmt(mean / 60, 2)})` }
     }
@@ -2195,6 +2504,28 @@ async function main() {
     const t2 = T.get('M02-card-cost')!; t2.ran = true; t2.failing = cc.inBin < cc.outBin ? 0 : 1
     t2.first = { label: `${cc.cards} yellow cards`, seed: -1, n: -1, msg: `carded side's points margin a minute: ${cc.inBin >= 0 ? '+' : ''}${fmt(cc.inBin, 3)} in the bin, ${cc.outBin >= 0 ? '+' : ''}${fmt(cc.outBin, 3)} out of it (${fmt(cc.minutesIn, 0)} minutes in the bin)` }
   } catch (e) { r4.push(`  levers not checked: ${(e as Error).message.split('\n')[0]}`) }
+
+  // THE WIRING (round 8): loaded when the adapter exists; "not run" until then
+  {
+    const ad = await loadAdapter()
+    const put = (row: RateRow) => { const t = T.get(row.id)!; if (row.failing < 0) { t.ran = false; notRunWhy.set(row.id, row.msg); return } t.ran = true; t.failing = row.ok ? 0 : Math.max(1, row.failing); t.first = { label: 'wiring', seed: row.first?.seed ?? -1, n: row.first?.n ?? -1, msg: row.msg } }
+    try { put(await checkStored(ad)) } catch (e) { notRunWhy.set('W01-stored', `threw: ${(e as Error).message.split('\n')[0]}`) }
+    try { put(await checkSessionDecisions(ad)) } catch (e) { notRunWhy.set('W02-session-decisions', `threw: ${(e as Error).message.split('\n')[0]}`) }
+    try { put(await checkRestUntouched(ad)) } catch (e) { notRunWhy.set('W03-rest-untouched', `threw: ${(e as Error).message.split('\n')[0]}`) }
+    put(await checkFingerprint())
+    // W05 and W06 come from the last `harmonycheck.ts season` run (several minutes), if it had the new engine
+    try {
+      const { readFileSync } = await import('node:fs')
+      const j = JSON.parse(readFileSync('scripts/tmp/harmony-season.json', 'utf8')) as { notRun?: string; when: string; compare?: { k: string; old: number; new: number; rel: number; flag: boolean }[]; saveFail?: string | null; ratings?: Record<string, { old: { n: number; mean: number; sd: number }; new: { n: number; mean: number; sd: number } }> }
+      if (j.notRun) { notRunWhy.set('W05-season', `last season run (${j.when}): ${j.notRun}`); notRunWhy.set('W06-ratings', `last season run (${j.when}): ${j.notRun}`) }
+      else {
+        const off = (j.compare ?? []).filter(c => c.flag)
+        put({ id: 'W05-season', ok: !off.length && !j.saveFail, failing: off.length + (j.saveFail ? 1 : 0), msg: `season run ${j.when}: ${off.length ? off.map(c => `${c.k} ${fmt(c.old, 1)} -> ${fmt(c.new, 1)}`).join('; ') : 'every figure within 10%'}${j.saveFail ? `; ${j.saveFail}` : ''}` })
+        const badPos = Object.entries(j.ratings ?? {}).filter(([, r]) => r.new.n && (Math.abs(r.new.mean - r.old.mean) > 0.1 * r.old.mean || r.new.sd > 1.25 * r.old.sd || r.new.sd < 0.75 * r.old.sd))
+        put({ id: 'W06-ratings', ok: !badPos.length, failing: badPos.length, msg: badPos.length ? badPos.map(([p, r]) => `${p}: ${fmt(r.old.mean, 2)}±${fmt(r.old.sd, 2)} old, ${fmt(r.new.mean, 2)}±${fmt(r.new.sd, 2)} new`).join('; ') : 'every position within 10% on mean and 25% on spread' })
+      }
+    } catch { notRunWhy.set('W05-season', 'no season run yet (npx vite-node scripts/harmonycheck.ts season 3)'); notRunWhy.set('W06-ratings', 'no season run yet') }
+  }
 
   // FUNDAMENTALS against the sources, on a balanced set of league fixtures (`realism 120` for a steadier table)
   let balanced: RealFixture[] = []
@@ -2265,7 +2596,7 @@ async function main() {
     const st = !t.ran ? 'not run' : t.failing ? String(t.failing) : '0'
     if (!t.ran) notRun++; else if (t.failing) { failing++; failed = true } else passing++
     const first = t.first ? `${t.first.label}${t.first.n >= 0 ? ` #${t.first.n}` : ''}` : ''
-    const why = t.first ? t.first.msg : !t.ran ? '' : r.title
+    const why = t.first ? t.first.msg : !t.ran ? notRunWhy.get(r.id) ?? '' : r.title
     console.log(pad(r.id, 22) + pad(r.owner, 11) + pad(st, 9) + pad(first, 36) + why)
   }
   {
