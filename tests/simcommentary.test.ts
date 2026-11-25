@@ -214,7 +214,8 @@ describe('the commentary is true to the record', () => {
         const v = l.params[k]
         if (v === undefined) continue
         const id = String(v).slice(1)
-        expect(cands.some(q => q.who === id || q.vs?.includes(id) || q.with?.includes(id) || q.offender === id), `${l.key} names ${id} at ${pair(p)}`).toBe(true)
+        // (round 9: a line break's `beat`, the defender he went past, is a man of that play too)
+        expect(cands.some(q => q.who === id || q.vs?.includes(id) || q.with?.includes(id) || q.offender === id || (q.kind === 'lineBreak' && q.beat?.includes(id))), `${l.key} names ${id} at ${pair(p)}`).toBe(true)
       }
     }
   })

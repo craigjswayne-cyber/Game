@@ -405,10 +405,10 @@ interface DecPlay {
 /** the half-time and full-time blocks name the man who stood out, the scorer who decided it and the player of
  *  the match. harmonycheck C05 asks a named man to be in the line's own play (the whistle), so until the
  *  overseer lets a summary at the whistle name a man from earlier in the match, this one switch turns them off */
-export const NAMED_SUMMARY = false
+export const NAMED_SUMMARY = true
 /** the defender a line break beat (Play.beat), by name: harmonycheck C05 does not read `beat` yet, so until it does
  *  the line says a tackle was missed without naming the man */
-export const NAMED_BEAT = false
+export const NAMED_BEAT = true
 /** why the game refused the manager's change (Play.cause on a refused substitution, fromMatch.ts decide()) */
 const REFUSED_WHY: Record<string, string> = { 'not on the field': 'sim.whyNotOn1', 'in the bin or sent off': 'sim.whyBinned1', 'not on the bench': 'sim.whyNotBench1', refused: 'sim.whyLaws1' }
 const decOf = (q: Play | undefined) => q as (Play & DecPlay) | undefined
