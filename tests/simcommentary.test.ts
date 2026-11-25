@@ -203,6 +203,13 @@ describe('the commentary is true to the record', () => {
       const p = r.plays[l.n]
       const q1 = prevOf(r.plays, l.n), q2 = q1 ? prevOf(r.plays, q1.n) : undefined
       const cands = (SET.has(p.kind) ? [p, q1, q2] : [p, ...(['catch', 'intoTouch', 'heldUp'].includes(p.kind) ? [q1] : [])]).filter(Boolean) as Play[]
+      // (round 8: the half-time and full-time story names the man who stood out, and the score that decided it,
+      // from earlier in the match: he must be a man the record has in a play by then)
+      if ((p.kind === 'halfTime' || p.kind === 'fullTime') && SUMMARY.has(baseOf(l.key))) {
+        const before = r.plays.slice(0, l.n)
+        for (const k of ['player', 'player2', 'oppPlayer']) { const v = l.params[k]; if (v !== undefined) { const id = String(v).slice(1); expect(before.some(q => q.who === id || q.vs?.includes(id) || q.with?.includes(id)), `${l.key} names ${id}`).toBe(true) } }
+        continue
+      }
       for (const k of ['player', 'player2', 'oppPlayer']) {
         const v = l.params[k]
         if (v === undefined) continue
@@ -288,7 +295,8 @@ describe('the commentary is true to the record', () => {
   it('says the substitutions, made and refused', () => {
     const seen = new Set<string>()
     for (const { r, lines } of runs) for (const l of lines) if (r.plays[l.n].kind === 'substitution') seen.add(baseOf(l.key))
-    expect([...seen].sort()).toEqual(['subMade', 'subRefused'])
+    // (round 8: the manager's own change gets a word on why, where the record supports one)
+    expect([...seen].filter(b => !/^subWhy/.test(b)).sort()).toEqual(['subMade', 'subRefused'])
   })
 })
 
@@ -649,8 +657,8 @@ describe('the ticker: short lines, flashes, no silence in a try build-up', () =>
     const NAME = 'Abcdefghijklmnopqr', TEAM = 'Abcdefghijklmn', longestMove = Math.max(...Object.values(MOVE_EN).map(x => x.length))
     const longestCause = Math.max(...Object.keys(WORDS).filter(b => /^cause/.test(b)).map(b => WORDS[b][0].length))
     for (const b of Object.keys(WORDS)) for (const w of WORDS[b] ?? []) {
-      if (/^(zone|cause|nth|kind|type|need)[A-Z]/.test(b)) continue
-      const t = w.replace(/\{(player|player2|oppPlayer)\}/g, NAME).replace(/\{(team|opp|home|away|winner)\}/g, TEAM).replace(/\{(m|d|phase|count|hs|as|ht|at|men|pct|hp|ap|made|taken|mins|margin|deficit|a|b|pts|lost|total|back|left|gap)\}/g, '22')
+      if (/^(zone|cause|nth|kind|type|need|how|tone|who)[A-Z]/.test(b)) continue
+      const t = w.replace(/\{(player|player2|oppPlayer)\}/g, NAME).replace(/\{(team|opp|home|away|winner)\}/g, TEAM).replace(/\{(m|d|phase|count|hs|as|ht|at|men|pct|hp|ap|made|taken|mins|margin|deficit|a|b|pts|lost|total|back|left|gap|min|mins|pp|tp|tk|car|opts)\}/g, '22')
         .replace(/\{move_k\}/g, 'x'.repeat(longestMove)).replace(/\{kick_k\}/g, 'cross-field kick').replace(/\{zone_k\}/g, `inside the ${TEAM} 22`)
         .replace(/\{cause_k\}/g, 'x'.repeat(longestCause)).replace(/\{(\w+)\}/g, 'xxxxxxxxxx')
       // (a flash: 48 or fewer, the man with his shirt number)
@@ -1069,6 +1077,127 @@ describe('round 7: flash headlines, runs in fast forward, quiet moments, how a t
       const pq = t.filter(x => /presents quickly/.test(x)).length, quick = lines.filter(l => baseOf(l.key) === 'tickRuckQuick').length
       expect(pq).toBeLessThanOrEqual(Math.max(2, Math.ceil(quick / 6)))
       for (let i = 1; i < t.length; i++) if (/^Lightning ruck/.test(t[i])) expect(t.slice(Math.max(0, i - 6), i).some(x => /^Lightning ruck/.test(x))).toBe(false)
+    }
+  })
+})
+
+describe("round 8: the manager's decisions, and the half-time and full-time story", () => {
+  const toLineT = (s: 0 | 1, x: number) => (s === 0 ? 100 - x : x)
+  /** a match with the manager's calls written in, as GAMEPLAY's record will carry them */
+  const withCalls = (r: SimResult, seed: number): SimResult => {
+    const plays = r.plays.map(p => ({ ...p })) as (Play & Record<string, unknown>)[]
+    let k = 0
+    for (const p of plays) if (p.kind === 'penalty') p.callBy = (['manager', 'standing', 'captain'] as const)[k++ % 3]
+    const ko = plays.find((p, i) => p.kind === 'kickoff' && plays[i - 1]?.kind === 'halfTime')
+    if (ko) ko.talk = { side: seed % 2, tone: ['calm', 'faith', 'praise', 'demand', 'criticise', 'fire'][seed % 6] }
+    const sc = plays.find(p => p.kind === 'scrum' && p.clock! > 1500)
+    if (sc) sc.tactics = { side: 0, set: { style: 85, tempo: 55 }, was: { style: 40, tempo: 50 } }
+    return { ...r, plays }
+  }
+  const sample = runs.slice(0, 80).map(x => ({ ...x, r2: withCalls(x.r, x.seed) })).map(x => ({ ...x, l2: commentate(x.r2, names, x.ctx) }))
+
+  it('every penalty call is acknowledged by who made it, and "turn down the three" only when the posts were in range', () => {
+    let said = 0
+    for (const { r2, l2 } of sample) for (const l of l2) {
+      const b = baseOf(l.key)
+      if (!/^(mgr|capCall)/.test(b)) continue
+      said++
+      // the play that carries the call out, and the penalty before it
+      let i = l.n - 1
+      while (i >= 0 && r2.plays[i].kind !== 'penalty') i--
+      const pen = r2.plays[i] as Play & { callBy?: string }
+      expect(pen.callBy).toBe(b.startsWith('capCall') ? 'captain' : pen.callBy === 'captain' ? 'x' : pen.callBy)
+      const kind = r2.plays[l.n].kind
+      const ch = b.replace(/^(mgrTurn|mgr|capCall)/, '')
+      expect({ Posts: 'penaltyGoal', Corner: 'kick', Tap: 'tap', Scrum: 'scrum' }[ch]).toBe(kind)
+      if (b.startsWith('mgrTurn')) expect(toLineT(pen.side, pen.x)).toBeLessThanOrEqual(50)
+      if (b === 'mgrCorner' || b === 'mgrTap' || b === 'mgrScrum') expect(toLineT(pen.side, pen.x)).toBeGreaterThan(50)
+    }
+    expect(said).toBeGreaterThan(200)
+  })
+
+  it('a call pays off or backfires only as the record has it, within ten minutes', () => {
+    const seen = new Set<string>()
+    for (const { r2, l2 } of sample) for (const l of l2) {
+      const b = baseOf(l.key), p = r2.plays[l.n]
+      if (!/^call/.test(b)) continue
+      seen.add(b)
+      if (b === 'callPaysTry') expect(['try', 'penaltyTry']).toContain(p.kind)
+      if (b === 'callCornerLost') { expect(p.kind).toBe('lineout'); expect(p.result === 'stolen' || p.side !== l.side).toBe(true) }
+      if (b === 'callScrumLost') expect(p.result).toBe('againstTheHead')
+      if (b === 'callPostsGood') expect(p.good).toBe(true)
+      if (b === 'callPostsMiss') expect(p.good).toBe(false)
+      // the call it ties back to: a call line for this side in the ten minutes before
+      const call = l2.find(x => /^(mgr|capCall)/.test(baseOf(x.key)) && x.side === l.side && x.n <= l.n && (p.clock ?? p.t) - (r2.plays[x.n].clock ?? r2.plays[x.n].t) <= 600)
+      expect(call, `${b} at ${l.n}`).toBeDefined()
+    }
+    expect(seen.size).toBeGreaterThanOrEqual(3)
+  })
+
+  it('a tactics change is said where it takes effect, in the words of the dial that moved; the half-time talk as the half starts', () => {
+    for (const { r2, l2, seed } of sample) {
+      const sc = r2.plays.find(p => (p as Record<string, unknown>).tactics)
+      if (sc) { const l = l2.find(x => baseOf(x.key) === 'tacChange'); expect(l?.n).toBe(sc.n); expect(l?.params.what_k).toBe('sim.howWider1'); expect(render(l!)).toMatch(/wider now/) }
+      const ko = r2.plays.find(p => (p as Record<string, unknown>).talk)
+      if (ko) {
+        const l = l2.find(x => baseOf(x.key) === 'talkHt')
+        expect(l?.n).toBe(ko.n); expect(l?.side).toBe(seed % 2)
+        // its effect only when the record has one: seven clear in the first ten minutes of the half
+        const w = l2.find(x => baseOf(x.key) === 'talkWorks')
+        const at = r2.plays.find(q => q.n > ko.n && (q.clock ?? 0) >= 3000)
+        const s = (seed % 2) as 0 | 1
+        if (at) {
+          const a = at.score[s] - ko.score[s], b = at.score[1 - s] - ko.score[1 - s]
+          expect(!!w, `seed ${seed}: ${a} to ${b}`).toBe(a >= 7 && a - b >= 7)
+        }
+      }
+    }
+  })
+
+  it("the manager's own changes: a word on why only where the record supports it, and the replacement's moment tied back", () => {
+    let subs = 0, why = 0
+    for (const { r, lines } of runs) for (const l of lines) {
+      const b = baseOf(l.key), p = r.plays[l.n]
+      if (b === 'subMade' && !p.cause) subs++
+      if (/^subWhy/.test(b)) { why++; expect(p.kind).toBe('substitution'); expect(p.cause).toBeUndefined() }
+      if (b === 'subWhyLegs') { expect((p.clock ?? 0)).toBeGreaterThanOrEqual(2700); expect(Number(l.params.tk) + Number(l.params.car)).toBeGreaterThanOrEqual(10) }
+      if (b === 'subWhyBin') expect(r.plays.some(q => q.kind === 'yellowCard' && q.side === p.side && q.n < l.n && (q.until ?? 0) > p.t)).toBe(true)
+      if (/^sub(Try|Steal|Pen|Miss)$/.test(b)) {
+        const id = String(l.params.player).slice(1)
+        const on = r.plays.find(q => q.kind === 'substitution' && q.result === 'made' && !q.cause && q.with?.[0] === id && q.n < l.n)
+        expect(on, `${b} for ${id}`).toBeDefined()
+        expect((p.clock ?? p.t) - (on!.clock ?? on!.t)).toBeLessThanOrEqual(600)
+        if (b === 'subTry') expect(p.who).toBe(id)
+        if (b === 'subPen') expect(p.offender).toBe(id)
+        if (b === 'subSteal') expect(p.vs?.[0]).toBe(id)
+      }
+    }
+    expect(subs).toBeGreaterThanOrEqual(40)
+    expect(why).toBeGreaterThan(20)
+  })
+
+  it('half-time and full time: the ball and where it was played as the record has it, the score that decided it, the standout', () => {
+    for (const { r, lines } of runs.slice(0, 80)) {
+      const P = r.plays
+      for (const l of lines) {
+        const b = baseOf(l.key), p = P[l.n]
+        if (b === 'halfBall') {
+          let poss = [0, 0], inOpp = [0, 0], live = 0
+          for (let i = 0; i <= l.n; i++) { const q = P[i]; poss[i > 0 ? P[i - 1].ball : q.side] += q.live; if (q.live > 0) { live += q.live; if (q.x > 50) inOpp[0] += q.live; else if (q.x < 50) inOpp[1] += q.live } }
+          const s = l.side as 0 | 1
+          expect(Math.abs(Number(l.params.pp) - Math.round(100 * poss[s] / (poss[0] + poss[1])))).toBeLessThanOrEqual(1)
+          expect(l.params.tp).toBe(Math.round(100 * inOpp[s] / live))
+        }
+        if (b === 'decidedTry' || b === 'decidedKick' || b === 'decidedFront') {
+          expect(p.kind).toBe('fullTime')
+          const win = p.score[0] > p.score[1] ? 0 : 1
+          // ahead from that minute to the end
+          const from = P.findIndex(q => Math.floor((q.clock ?? q.t) / 60) + 1 === l.params.min && q.score[win] > q.score[1 - win])
+          expect(from).toBeGreaterThanOrEqual(0)
+          for (let i = from; i <= l.n; i++) expect(P[i].score[win], `seed ${l.n}`).toBeGreaterThan(P[i].score[1 - win])
+        }
+        if (b === 'standTries') { const id = String(l.params.player).slice(1); expect(P.slice(0, l.n).filter(q => q.kind === 'try' && q.who === id).length).toBe(l.params.count) }
+      }
     }
   })
 })

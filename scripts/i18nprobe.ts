@@ -156,7 +156,11 @@ for (const { code, label } of LANGS) {
   const theirs = new Set(leaves(d))
 
   // `_f` siblings are optional per language - langparity checks the ones a language has
-  const gaps = [...enKeys].filter(k => !SIBLING.test(k) && !theirs.has(k))
+  // THE ONE EXEMPTION (round 8, 25 Nov, as in langparity.ts): the commentary's `sim.` group is English only
+  // until it is translated; a language that has the group at all is held to all of it
+  const awaiting = (k: string) => k.startsWith('sim.') && !('sim' in d)
+  const gaps = [...enKeys].filter(k => !SIBLING.test(k) && !theirs.has(k) && !awaiting(k))
+  if ([...enKeys].some(awaiting)) console.log(`  note  ${label}: ${[...enKeys].filter(awaiting).length} sim. keys awaiting translation`)
   ok(gaps.length === 0, `${label} has every key English has${gaps.length ? ` (${gaps.length} missing: ${gaps.slice(0, 6).join(', ')})` : ''}`)
 
   const stale = [...theirs].filter(k => !SIBLING.test(k) && !enKeys.has(k))

@@ -32,8 +32,17 @@ const phs = (s: string) => [...s.matchAll(PH)].map(m => m[1]).sort().join(',')
 const isPlural = (v: unknown): v is Record<string, string> =>
   !!v && typeof v === 'object' && 'other' in (v as object) && Object.values(v as object).every(x => typeof x === 'string')
 
+// ---- THE ONE EXEMPTION (round 8, 25 Nov): the match commentary's `sim` group is English only for now ----
+// The live pitch's commentary moved into en.json (src/game/sim/commentary.en.ts reads it back) before it is
+// translated. Until it is, the other five files may leave the whole `sim` group out; a language that starts
+// it is held to it in full like any other group. Delete this block when the five files have it.
+const AWAITING = new Set(['sim'])
+const awaitingCount = (o: unknown): number => (typeof o === 'string' || isPlural(o) ? 1 : o && typeof o === 'object' ? Object.values(o).reduce((a: number, v) => a + awaitingCount(v), 0) : 0)
+for (const g of AWAITING) console.log(`  note  ${g}: ${awaitingCount(EN[g])} English keys awaiting translation (exempt in fr, es, it, ja, af)`)
+
 for (const lang of ['fr', 'es', 'it', 'ja', 'af']) {
   const D = load(lang)
+  for (const g of AWAITING) if (!(g in D)) D[g] = EN[g]
   const errs: string[] = []
   const walk = (e: unknown, o: unknown, path: string) => {
     if (errs.length > 25) return
