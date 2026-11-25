@@ -43,10 +43,11 @@ import { blowFullTime } from '../match/finalize'
 import { drainEnergy, FW_POS } from '../match/energy'
 import { cameOn, fieldChanged } from '../match/field'
 import { pickInjury } from '../match/injuries'
-import { pushLine, type LiveCtx } from '../match/live'
+import { pushLine, userDials, type LiveCtx } from '../match/live'
+import { buildEvidence } from '../evidence'
 import { teamShort } from '../match/selection'
 import type { SideCtx } from '../match/side'
-import { onRecord } from '../match/side'
+import { onRecord, evOf, zoneIdx, EV_CAUSES, type EvCause } from '../match/side'
 import { benchTank } from '../match/subs'
 import { noteKick } from '../match/kicking'
 import type { SimResult as OldResult } from '../match/lines'
@@ -64,7 +65,7 @@ export const SIM2_EXTENDED = true
 export const ADAPTER_SALT = 0x51a2ad
 
 /** what was asked of a session, in order: enough to play it again to the same place */
-export type Sim2Op = { run: Stop } | { apply: Decision } | { answer: PenaltyCall }
+export type Sim2Op = { run: Stop } | { apply: Decision } | { answer: PenaltyCall } | { cover: string }
 export interface Sim2Save { v: 1; fxId: number; seed: number; userSideId: string | null; preTalk: string | null; ops: Sim2Op[] }
 
 export interface Sim2Opts {
@@ -75,14 +76,17 @@ export interface Sim2Opts {
   /** the game's bench for the manager's side as well (the assistant has it). Off: as in a watched
    *  old-engine match, his replacements are his own and only an injury is covered for him. */
   assistantBench?: boolean
+  /** the bench covers his injuries like for like at once. Off (the default, as in a watched
+   *  old-engine match): the match waits at the dead ball for him to choose (pendingInjury). */
+  autoInjury?: boolean
   /** for tests and measuring only: the match dice in place of the week's (matchRng), called twice
    *  for two identical streams (the World's private kick-off and the game's own) */
   dice?: () => Rng
 }
 
 /** per man, counted off the record: what goes into his mark */
-interface ManLine { carries: number; metres: number; tackles: number; breaks: number; turnovers: number; takes: number; knocks: number; pens: number; tries: number }
-const NO_LINE = (): ManLine => ({ carries: 0, metres: 0, tackles: 0, breaks: 0, turnovers: 0, takes: 0, knocks: 0, pens: 0, tries: 0 })
+interface ManLine { carries: number; metres: number; tackles: number; missed: number; breaks: number; turnovers: number; takes: number; knocks: number; pens: number; tries: number }
+const NO_LINE = (): ManLine => ({ carries: 0, metres: 0, tackles: 0, missed: 0, breaks: 0, turnovers: 0, takes: 0, knocks: 0, pens: 0, tries: 0 })
 
 /**
  * THE MARK FROM THE RECORD. The old engine's mark is 6 (with a small fixed jitter), plus what its
@@ -93,7 +97,7 @@ const NO_LINE = (): ManLine => ({ carries: 0, metres: 0, tackles: 0, breaks: 0, 
  * 56 league fixtures of a week each position's average mark and its spread are the old engine's
  * (scripts/tmp/gp/rates.ts; tests/simresult.test.ts holds it to 0.2 and 0.25).
  */
-export const RATE_W: Record<keyof ManLine, number> = { carries: 0.02, metres: 0.012, tackles: 0.03, breaks: 0.18, turnovers: 0.15, takes: 0.04, knocks: -0.12, pens: -0.12, tries: 0 }
+export const RATE_W: Record<keyof ManLine, number> = { carries: 0.02, metres: 0.012, tackles: 0.03, missed: -0.08, breaks: 0.18, turnovers: 0.15, takes: 0.04, knocks: -0.12, pens: -0.12, tries: 0 }
 /** the average of the weighted counts for a man in each position over a full match (see RATE_W) */
 export const RATE_MEAN: Record<string, number> = { LP: 0.70, HK: 0.92, TP: 0.57, LK: 0.87, FL: 1.14, N8: 1.26, SH: 0.67, FH: 0.57, CE: 0.83, WG: 0.48, FB: 0.42 }
 /** and how far a man's mark moves for each unit of it: more for a back, whose afternoon the old
@@ -120,6 +124,12 @@ export class Sim2Session {
   private finished: OldResult | null = null
   private readonly lines: [Map<string, ManLine>, Map<string, ManLine>] = [new Map(), new Map()]
   private readonly bins: { s: 0 | 1; id: number; back: number }[] = []
+  /** where each side's possession came from, and what it has done (the points' causes: EvCount.pts) */
+  private lastBall: 0 | 1 | null = null
+  private from: ['turn' | 'set' | 'phase', 'turn' | 'set' | 'phase'] = ['phase', 'phase']
+  private broke: [boolean, boolean] = [false, false]
+  private moved: [boolean, boolean] = [false, false]
+  private tryCause: [EvCause, EvCause] = ['phase', 'phase']
 
   constructor(state: GameState, fx: Fixture, seed: number, opts: Sim2Opts = {}) {
     this.state = state
@@ -142,8 +152,10 @@ export class Sim2Session {
     if (this.us != null) {
       // the manager answers his own kickable penalties; his bench is his own unless he hands it over
       this.sim.apply({ kind: 'penaltyCall', side: this.us, call: 'ask' })
-      if (!opts.assistantBench) this.sim.apply({ kind: 'bench', side: this.us, auto: false })
+      // (MatchSim leaves a managed side's bench to the manager; the assistant's, when he has it)
+      this.sim.apply({ kind: 'bench', side: this.us, auto: !!opts.assistantBench })
       if (opts.preTalk) this.sim.apply({ kind: 'talk', side: this.us, tone: opts.preTalk, pre: true })
+      if (!opts.autoInjury && !opts.assistantBench) this.sim.apply({ kind: 'injuryCall', side: this.us, ask: true })
     }
     if (opts.assistantBench) this.ctx.assistantSubs = true
   }
@@ -152,6 +164,12 @@ export class Sim2Session {
   get plays(): readonly Play[] { return this.sim.plays }
   /** a kickable penalty waiting for the manager's call, or null */
   get pending() { return this.sim.pending }
+  /** a man hurt on his side, waiting for him to name who comes on (options, and `like`: the game's pick) */
+  get pendingInjury() { return this.sim.pendingInjury }
+  /** the man of the match, as the record names men (player id as a string), once finish() has run */
+  get motm(): string | undefined { return this.finished?.motmId != null ? String(this.finished.motmId) : undefined }
+  /** the side the user manages (0 home, 1 away), as SimResult.managed */
+  get managed(): 0 | 1 | undefined { return this.us ?? undefined }
   /** the final whistle has gone in the record */
   get done(): boolean { return this.sim.done }
   /** the score in the record */
@@ -200,6 +218,13 @@ export class Sim2Session {
     this.sim.answer(call)
   }
 
+  /** his man for the hurt man the match is waiting on: any of pendingInjury.options */
+  cover(on: string): void {
+    if (this.finished || !this.sim.pendingInjury) return
+    this.ops.push({ cover: on })
+    this.sim.answerInjury(on)
+  }
+
   /** the call the game makes for him (the old engine's skip): the posts when they are in range */
   defaultCall(): PenaltyCall {
     const p = this.sim.pending
@@ -221,6 +246,8 @@ export class Sim2Session {
     if (this.finished) return this.finished
     for (let guard = 0; guard < 40 && !this.sim.done; guard++) {
       if (this.sim.pending) this.answer(this.defaultCall())
+      const inj = this.sim.pendingInjury
+      if (inj) this.cover(inj.like)
       this.runUntil({})
     }
     this.sync()
@@ -256,6 +283,7 @@ export class Sim2Session {
     ctx.home.spScrums = 0; ctx.away.spScrums = 0
     this.ticks++
     ctx.tick = this.ticks
+    ;(ctx.marginHist ??= []).push(ctx.home.score - ctx.away.score)
     if (this.ticks === 10) {
       for (const side of [ctx.home, ctx.away]) for (const id of side.onPitch) {
         const e = side.energy.get(id)
@@ -283,18 +311,43 @@ export class Sim2Session {
     const clock = p.clock ?? p.t
     // the game's clock: the fatigue ticks this play has passed, the men back from the bin
     while (this.ticks < 20 && (this.ticks + 1) * 240 <= clock) this.tick()
-    const min = Math.max(1, Math.min(80, Math.ceil(clock / 60)))
+    // the minute as the record's clock reads it: the second it is in, held at 40 in a first half's
+    // added time (the old engine's own whistle rule, live.ts clockTo)
+    const half2 = ctx.seg >= 1 && p.kind !== 'halfTime'
+    const min = Math.max(1, Math.min(half2 ? 80 : 40, Math.floor(clock / 60) + 1))
     for (let i = this.bins.length - 1; i >= 0; i--) if (this.bins[i].back <= min) this.back(this.bins.splice(i, 1)[0])
     ctx.lastMin = Math.max(ctx.lastMin, min)
     ctx.field = Math.max(0, Math.min(100, p.x))
     const s = p.side, side = this.side(s), o: 0 | 1 = s === 0 ? 1 : 0, other = this.side(o)
     // possession: seconds of ball in play with the ball (matchStats reads the share)
     this.side(p.ball).poss += p.live
+    // THE EVIDENCE (evidence.ts, the half-time and full-time panels): where the ball came from,
+    // the zones it was played in, the turnovers by zone, the breaks and the called moves
+    if (p.ball !== this.lastBall) {
+      const b = p.ball
+      this.from[b] = (p.kind === 'ruck' && p.result === 'turnover') || p.result === 'interception' || p.result === 'interceptionHauled' ? 'turn'
+        : p.kind === 'scrum' || p.kind === 'lineout' ? 'set' : 'phase'
+      this.broke[b] = false; this.moved[b] = false
+      if (this.lastBall != null && this.from[b] === 'turn') {
+        const upB = b === 0 ? p.x : 100 - p.x
+        evOf(this.side(b)).turnWon[zoneIdx(upB)] += 1
+        evOf(this.side(this.lastBall)).turnLost[zoneIdx(100 - upB)] += 1
+        evOf(this.side(b)).lastTurn = this.ticks
+      }
+      this.lastBall = b
+    }
+    {
+      const up = p.ball === 0 ? p.x : 100 - p.x
+      evOf(this.side(p.ball)).zone[zoneIdx(up)] += 1
+    }
     const setScore = () => { ctx.home.score = p.score[0]; ctx.away.score = p.score[1] }
     const who = this.man(p.who)
     switch (p.kind) {
       case 'try': case 'penaltyTry': {
         setScore()
+        const cause: EvCause = p.kind === 'penaltyTry' ? 'pen' : this.broke[s] ? 'break' : this.from[s] === 'turn' ? 'turn' : this.moved[s] ? 'move' : 'phase'
+        this.tryCause[s] = cause
+        evOf(side).pts[EV_CAUSES.indexOf(cause)] += p.kind === 'penaltyTry' ? 7 : 5
         side.tries += 1
         if (side.firstTryMin == null) { side.firstTryMin = min; if (who) side.firstTryBy = who.id }
         if (who && p.kind === 'try') {
@@ -317,6 +370,7 @@ export class Sim2Session {
         setScore()
         const good = !!p.good
         noteKick(ctx, side, good)
+        if (good) evOf(side).pts[EV_CAUSES.indexOf(p.kind === 'conversion' ? this.tryCause[s] : p.kind === 'penaltyGoal' ? 'pen' : 'kick')] += p.kind === 'conversion' ? 2 : 3
         const rec = onRecord(state, ctx, side)
         if (p.kind === 'conversion') {
           if (who && rec) who.stats.conA = (who.stats.conA ?? 0) + 1
@@ -346,7 +400,7 @@ export class Sim2Session {
         side.ratings.set(who.id, (side.ratings.get(who.id) ?? 6) - 0.7)
         pushLine(state, ctx, min, 'YC', side, 'comm.yellowCard', { player: who.name, team: teamShort(state, side.teamId) }, who.id)
         fieldChanged(state, ctx, side, min)
-        this.bins.push({ s, id: who.id, back: Math.ceil((p.until ?? clock + 600) / 60) })
+        this.bins.push({ s, id: who.id, back: min + Math.round(((p.until ?? p.t + 600) - p.t) / 60) })
         break
       }
       case 'redCard': {
@@ -411,6 +465,12 @@ export class Sim2Session {
         pushLine(state, ctx, 40, 'HT', null, 'comm.halfTime', {
           home: teamShort(state, ctx.fx.homeId), away: teamShort(state, ctx.fx.awayId), hs: ctx.home.score, ascore: ctx.away.score,
         })
+        // the half-time panel's numbers, as blowHalfTime leaves them
+        if (ctx.userSideId) {
+          const ev = buildEvidence(state, ctx)
+          if (ev) ctx.htEv = ev
+          ctx.htDials = userDials(state, ctx)
+        }
         break
       case 'scrum': {
         side.spScrums = (side.spScrums ?? 0) + 1
@@ -438,15 +498,24 @@ export class Sim2Session {
           else l.breaks++
           l.metres += Math.max(0, p.gain ?? 0)
         }
+        const ev = evOf(side)
+        if (p.kind === 'lineBreak') { ev.breaks += 1; this.broke[s] = true } else ev.carries += 1
+        if (p.move) {
+          const c = (ev.calls[p.move] ??= [0, 0, 0, 0, 0])
+          c[0] += 1; c[1] += p.gain ?? 0
+          this.moved[s] = true
+        }
+        // the man he beat: a missed tackle (field.ts keeps them for the season's success rate)
+        for (const b of p.beat ?? []) {
+          const bl = this.line(o, b); if (bl) bl.missed++
+          const bm = this.man(b)
+          if (bm) (other.missed ??= new Map()).set(bm.id, (other.missed.get(bm.id) ?? 0) + 1)
+        }
         for (const t of p.vs ?? []) {
           const tl = this.line(o, t)
           if (tl) tl.tackles++
           const tm = this.man(t)
           if (tm) (other.tackles ??= new Map()).set(tm.id, (other.tackles.get(tm.id) ?? 0) + 1)
-        }
-        if (p.kind === 'lineBreak' && p.result !== 'interception' && p.result !== 'interceptionHauled') {
-          // a clean break beat the man in front of him: the first tackler of the other side's line
-          // is not named in the record, so the miss is counted for the side only through `breaks`
         }
         break
       }
@@ -457,6 +526,7 @@ export class Sim2Session {
       case 'penalty': case 'freeKick': {
         // the offender is of the other side
         const l = this.line(o, p.offender); if (l) l.pens++
+        other.consPens = (other.consPens ?? 0) + 1
         break
       }
       case 'kick':
@@ -498,6 +568,7 @@ export function replaySim2(state: GameState, save: Sim2Save, opts: Omit<Sim2Opts
   for (const op of save.ops) {
     if ('run' in op) s.runUntil(op.run)
     else if ('apply' in op) s.apply(op.apply)
+    else if ('cover' in op) s.cover(op.cover)
     else s.answer(op.answer)
   }
   return s

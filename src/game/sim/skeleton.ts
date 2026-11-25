@@ -32,6 +32,10 @@ export interface SkeletonOpts {
   world?: World
 }
 
+/** who covers which shirt from the bench: 16 the hooker, 17 a loosehead, 18 a tighthead, 19 a lock,
+ *  20 the back row, 21 the scrum-half, 22 the fly-half or a centre, 23 the back three or a centre */
+const BENCH_FOR: number[][] = [[2], [1], [3], [4, 5], [6, 7, 8], [9], [10, 12, 13], [11, 14, 15, 13, 12]]
+
 /** every number the shape of a match hangs on, in one place */
 export const K = {
   // seconds of ball in play
@@ -81,7 +85,9 @@ export const K = {
   // around the average spot of a kick in this simulation (measured, scripts/tmp/gp/shape.ts), so a
   // world that knows the kicker's own chance (World.goalP) keeps it on average
   CON_WIDE: 0.34, CON_WIDE_MEAN: 0.54, PEN_FAR: 0.008, PEN_FAR_MEAN: 15.0, PEN_WIDE: 0.16, PEN_WIDE_MEAN: 0.54,
-  // cards: a man in the bin for ten minutes, and what being a man down costs each contest
+  // cards: a man in the bin for ten minutes, and what being a man down costs each contest. (Round 8:
+  // kept. The old engine sends off nobody in three seasons; the sources have 0.12 to 0.18 red cards a
+  // match, which this gives. Lowered to the old engine's count, the realism row failed at 0.05.)
   P_YELLOW: 0.05, P_RED: 0.013, BIN_S: 600, SHORT_COST: 0.09,
   // THE CAPTAIN (a design choice, round 6): his side gives away this much fewer penalties in its own 22 a
   // unit of leadership, lifts the carry this much when behind, and a poor one gets a late close call wrong
@@ -114,9 +120,10 @@ export const K = {
   TIRED_DEF: 0.8, TIRED_ATT: 0.3,
   // momentum: a try, a turnover or a break lifts the side a little, fading over about four minutes
   MOM_TRY: 0.04, MOM_TURN: 0.025, MOM_BREAK: 0.015, MOM_MAX: 0.08, MOM_DECAY: 240,
-  // a man hurt in a tackle (a model choice: no sourced rate), and the bench: each replacement's
-  // minute is drawn between these, the front row first
-  P_INJURY: 0.002, SUB_FROM: 2880, SUB_SPAN: 1080,
+  // a man hurt in a tackle, and the bench: each replacement's minute is drawn between these, the
+  // front row first. (Round 8: 0.002 to 0.0095, the old engine's rate: 1.66 men off injured a match,
+  // both sides, on the managed fixture (1.6 here at 0.0095); at 0.002 a season of watched matches had 72% fewer injuries.)
+  P_INJURY: 0.0095, SUB_FROM: 2880, SUB_SPAN: 1080,
   // a carry driven back this far is a dominant tackle
   DRIVEN_BACK: -1.5,
   // A STYLE IS A WAY OF PLAYING, NOT A STRENGTH. What each lever is worth to the margin here
@@ -267,6 +274,27 @@ export interface SimState {
   turnPhases?: number
   /** the last ruck's ball: quick or slow ('' when the phase did not come off a ruck) */
   ruckSpeed?: '' | 'quick' | 'slow'
+  /** written on the next play: the penalty call carried out and who made it, a tactics change
+   *  taking effect, a team talk heard (Play.call, callBy, tactics, talk) */
+  tag?: Partial<Pick<Play, 'call' | 'callBy' | 'tactics'>>
+  talkTag?: { side: 0 | 1; tone: string; pre?: boolean } | null
+  /** each side's injuries are the manager's to cover (an 'injuryCall' decision), the man he named
+   *  for each hurt man, and the hurt man the match is waiting on (pendingInjury) */
+  injAsk?: [boolean, boolean]
+  injPick?: Record<string, string>
+  injWait?: { side: 0 | 1; who: string } | null
+}
+
+/** a man hurt on the manager's side, waiting for him to choose who comes on (MatchSim.pendingInjury) */
+export interface PendingInjury {
+  kind: 'injury'
+  side: 0 | 1
+  /** the hurt man */
+  who: string
+  /** the bench men who can come on, and the like for like the game would send (the default) */
+  options: string[]
+  like: string
+  t: number
 }
 
 /** where to stop: the first moment between two steps at or after it */
@@ -351,9 +379,41 @@ export class MatchSim {
       .filter(o => o !== 'corner' || d > 5) as PenaltyCall[]
     return { kind: 'penalty', side: n.to, x: st.x, y: st.y, toLine: d, t: st.t, options }
   }
+  /** a man hurt on a side whose injuries the manager covers: the match waits at the dead ball */
+  get pendingInjury(): PendingInjury | null {
+    const st = this.st, w = st.injWait
+    if (!w || st.next.k === 'end') return null
+    const lu = this.world.lineup?.(w.side)
+    if (!lu) return null
+    const options = lu.bench.filter(Boolean)
+    if (!options.length) return null
+    return { kind: 'injury', side: w.side, who: w.who, options, like: this.likeFor(w.side, w.who) || options[0], t: st.t }
+  }
+  /** the manager's man for the hurt man the match is waiting on (any of pendingInjury.options) */
+  answerInjury(on: string): void {
+    const p = this.pendingInjury
+    if (!p) throw new Error('no injury is waiting')
+    if (!p.options.includes(on)) throw new Error(`${on} is not on the bench`)
+    ;(this.st.injPick ??= {})[p.who] = on
+    this.st.injWait = null
+    this.benches()
+  }
+  /** the nearest like for like on the bench for a man in a shirt */
+  private likeFor(s: 0 | 1, id: string): string {
+    const lu = this.world.lineup?.(s)
+    if (!lu) return ''
+    const shirt = lu.field.indexOf(id) + 1
+    const want = shirt <= 0 ? 0 : BENCH_FOR.findIndex(f => f.includes(shirt))
+    const order = want < 0 ? [0, 1, 2, 3, 4, 5, 6, 7] : [want, ...[0, 1, 2, 3, 4, 5, 6, 7].filter(i => i !== want).sort((a, b) => Math.abs(a - want) - Math.abs(b - want))]
+    const b = order.find(i => lu.bench[i])
+    return b != null ? lu.bench[b] : ''
+  }
   /** a copy of the whole state, to put the match down and pick it up later (with the same World) */
   save(): SimState { return structuredClone(this.st) }
-  result(): SimResult { return { plays: this.st.plays, score: this.st.score, tries: this.st.tries } }
+  result(): SimResult {
+    const m = this.world.managed
+    return { plays: this.st.plays, score: this.st.score, tries: this.st.tries, ...(m === 0 || m === 1 ? { managed: m } : {}) }
+  }
 
   /** answer the call the match is stopped for */
   answer(call: PenaltyCall): void {
@@ -392,7 +452,7 @@ export class MatchSim {
     const reached = () =>
       (stop.play == null || st.plays.length >= stop.play) && (stop.t == null || st.t >= stop.t) && (stop.clock == null || st.clock >= stop.clock) &&
       (stop.play != null || stop.t != null || stop.clock != null) && (!stop.dead || st.next.k !== 'phase')
-    for (let guard = 0; guard < 5000 && !this.done && !this.pending && !reached(); guard++) this.step()
+    for (let guard = 0; guard < 5000 && !this.done && !this.pending && !this.pendingInjury && !reached(); guard++) this.step()
     return this
   }
 
@@ -403,6 +463,7 @@ export class MatchSim {
       else if (d.kind === 'strength') this.world = boosted(this.world, d.side, d.factor, d.contests)
       else if (d.kind === 'penaltyCall') this.st.calls[d.side] = d.call
       else if (d.kind === 'bench') this.st.bench![d.side] = d.auto
+      else if (d.kind === 'injuryCall') { (this.st.injAsk ??= [false, false])[d.side] = d.ask; if (!d.ask && this.st.injWait?.side === d.side) this.st.injWait = null }
       else if (d.kind === 'substitution') {
         // only with the ball dead, before a restart: never in open play, and not while a penalty
         // (whose offender is already named) is being given and taken
@@ -415,7 +476,14 @@ export class MatchSim {
         if (d.injury) st.hurt![d.side] = st.hurt![d.side].filter(id => id !== d.off)
         st.plays.push({ n: st.plays.length, t: Math.round(st.t), clock: Math.round(st.clock), kind: 'substitution', side: d.side, ball: st.ball,
           x: r1(st.x), y: r1(st.y), result: why ? 'refused' : 'made', who: d.off, with: [d.on], live: 0, dead: 0, score: [st.score[0], st.score[1]], ...(why ? { cause: why } : d.injury ? { cause: 'injury' } : d.auto ? { cause: 'tactical' } : {}) })
-      } else if (this.world.decide) this.world.decide(d, this.st.t, this.st.score)
+      } else if (this.world.decide) {
+        // what a tactics change replaced, as the World had it, for the record (Play.tactics)
+        const was: Record<string, unknown> = {}
+        if (d.kind === 'tactics') { const tac = this.world.tactic?.(d.side); for (const k of Object.keys(d.set)) was[k] = tac?.[k] }
+        const why = this.world.decide(d, this.st.t, this.st.score)
+        if (!why && d.kind === 'tactics') this.st.tag = { ...this.st.tag, tactics: { side: d.side, set: d.set, was } }
+        if (!why && d.kind === 'talk') this.st.talkTag = { side: d.side, tone: d.tone, ...(d.pre ? { pre: true } : {}) }
+      }
     }
     this.queue = keep
   }
@@ -499,7 +567,7 @@ export class MatchSim {
     if (!W.lineup || !W.decide) return
     const nk = st.next.k
     if (nk === 'phase' || nk === 'penalty' || nk === 'penaltyCall' || nk === 'end') return
-    const FOR: number[][] = [[2], [1], [3], [4, 5], [6, 7, 8], [9], [10, 12, 13], [11, 14, 15, 13, 12]]
+    const FOR = BENCH_FOR
     if (!st.subPlan) {
       const order = [0.15, 0.05, 0.25, 0.45, 0.55, 0.7, 0.8, 0.9]
       st.subPlan = [0, 1].map(() => order.map(o => Math.round(K.SUB_FROM + K.SUB_SPAN * Math.min(1, Math.max(0, o + (this.pick() - 0.5) * 0.3))))) as [number[], number[]]
@@ -508,6 +576,13 @@ export class MatchSim {
       const lu = W.lineup(s)
       // a hurt man first, whoever runs the bench: the nearest like for like still on the bench
       for (const id of st.hurt![s]) {
+        // the manager's own side, when he covers its injuries: his man, or the match waits for him
+        if (st.injAsk?.[s] && lu.bench.some(Boolean)) {
+          const on = st.injPick?.[id]
+          if (on && lu.bench.includes(on)) { this.queue.push({ kind: 'substitution', side: s, off: id, on, injury: true }); continue }
+          if (!st.injWait) st.injWait = { side: s, who: id }
+          continue
+        }
         const shirt = lu.field.indexOf(id) + 1
         const want = shirt <= 0 ? 0 : FOR.findIndex(f => f.includes(shirt))
         const order = want < 0 ? [0, 1, 2, 3, 4, 5, 6, 7] : [want, ...[0, 1, 2, 3, 4, 5, 6, 7].filter(i => i !== want).sort((a, b) => Math.abs(a - want) - Math.abs(b - want))]
@@ -539,6 +614,8 @@ export class MatchSim {
     st.t += live + dead; st.clock += live + dead
     const p: Play = { n: st.plays.length, t: Math.round(st.t), clock: Math.round(st.clock), kind, side, ball: st.ball, x: r1(st.x), y: r1(st.y), result, live, dead, score: [st.score[0], st.score[1]] }
     if (more) for (const k in more) { const v = (more as Record<string, unknown>)[k]; if (v !== undefined && v !== '') (p as unknown as Record<string, unknown>)[k] = v }
+    if (st.tag) { Object.assign(p, st.tag); st.tag = undefined }
+    if (st.talkTag && kind === 'kickoff') { p.talk = st.talkTag; st.talkTag = null }
     // the dead time waited before this play (a set piece forming, a penalty being taken), all of it
     if (st.preAcc) { p.pre = r1(st.preAcc); st.preAcc = 0 }
     st.plays.push(p)
@@ -766,6 +843,11 @@ export class MatchSim {
     const off = this.other(to), d = this.toLine(to, st.x)
     const standing = st.calls[to]
     const call: PenaltyCall | null = st.answer ?? (standing === 'auto' || standing === 'ask' ? null : standing)
+    // who made it (Play.callBy): the manager answering, his standing order, or the side's own call on
+    // a side somebody manages; nothing on a side nobody manages
+    const by: Play['callBy'] = st.answer ? 'manager' : standing !== 'auto' && standing !== 'ask' ? 'standing'
+      : this.world.managed === to ? 'captain' : undefined
+    const tagged = (c: PenaltyCall, f: () => Next): Next => { st.tag = { ...st.tag, call: c, ...(by ? { callBy: by } : {}) }; return f() }
     st.answer = null
     const u = rng()
     const posts = () => {
@@ -799,10 +881,10 @@ export class MatchSim {
       return { k: 'lineout', to }
     }
     const waitThen = (f: () => Next) => { this.wait(K.PENALTY_DEAD); st.penaltyOn = true; const n = f(); if (n.k !== 'scrum' && n.k !== 'lineout') st.penaltyOn = false; return n }
-    if (call === 'posts' && d <= K.GOAL_RANGE) return waitThen(posts)
-    if (call === 'corner') return d <= 5 ? tap() : waitThen(corner)
-    if (call === 'tap') return tap()
-    if (call === 'scrum') return waitThen(() => ({ k: 'scrum', to }))
+    if (call === 'posts' && d <= K.GOAL_RANGE) return tagged('posts', () => waitThen(posts))
+    if (call === 'corner') return d <= 5 ? tagged('tap', tap) : tagged('corner', () => waitThen(corner))
+    if (call === 'tap') return tagged('tap', tap)
+    if (call === 'scrum') return tagged('scrum', () => waitThen(() => ({ k: 'scrum', to })))
     // the game's own call. The scoreboard and the clock (as aiPenaltyCall does in the old
     // engine): more than a kick behind in the last ten minutes, three points will not do; level
     // or ahead in the last twenty, take them every time
@@ -814,12 +896,12 @@ export class MatchSim {
     // THE CAPTAIN'S CALL in a close finish: a poor leader sometimes gets it wrong (the corner when the
     // three would win it, the posts when only a try will do)
     if (st.clock >= K.LATE_CHASE_S && Math.abs(behind) <= 7 && sty.lead < 0 && (take === 0 || take === 1) && rng() < -sty.lead * K.CAPTAIN_WRONG) take = 1 - take
-    if (d <= K.GOAL_RANGE && u < take) return waitThen(posts)
+    if (d <= K.GOAL_RANGE && u < take) return tagged('posts', () => waitThen(posts))
     const v = rng()
     // the quick tap: a high-tempo side, a side chasing the game, and close to their line
-    if (v < K.PEN_TAP * sty.quick * (this.chasing(to) ? 2 : 1) * (d <= 10 ? 1.5 : 1)) return tap()
-    if (v < K.PEN_TAP + K.PEN_SCRUM && d < 30) return waitThen(() => ({ k: 'scrum', to }))
-    return d <= 5 ? tap() : waitThen(corner)
+    if (v < K.PEN_TAP * sty.quick * (this.chasing(to) ? 2 : 1) * (d <= 10 ? 1.5 : 1)) return tagged('tap', tap)
+    if (v < K.PEN_TAP + K.PEN_SCRUM && d < 30) return tagged('scrum', () => waitThen(() => ({ k: 'scrum', to })))
+    return d <= 5 ? tagged('tap', tap) : tagged('corner', () => waitThen(corner))
   }
 
   /** a kick from hand by the side with the ball */
@@ -1044,10 +1126,10 @@ export class MatchSim {
       if (rng() < K.BREAK_LONG_P) gain += rng() * K.BREAK_LONG
       st.x = this.adv(s, st.x, gain)
       this.bump(s, K.MOM_BREAK)
-      if (this.toLine(s, st.x) <= 0) { this.bump(s, K.MOM_TRY); this.emit('lineBreak', s, 'clean', 'PLAY', K.BREAK_S, 0, { gain: moved(), ...info }); return this.scoreTry(s, 'break') }
+      if (this.toLine(s, st.x) <= 0) { this.bump(s, K.MOM_TRY); this.emit('lineBreak', s, 'clean', 'PLAY', K.BREAK_S, 0, { gain: moved(), beat: tk.slice(0, 1), ...info }); return this.scoreTry(s, 'break') }
       // the cover: hauled down in the open, or held up short of the line by the last man
       st.isolated = true
-      this.emit('lineBreak', s, this.toLine(s, st.x) <= 5 ? 'heldShort' : 'hauledDown', 'PLAY', K.BREAK_S, 0, { gain: moved(), vs: this.ids([W.catcher(o2, pick)]), ...info })
+      this.emit('lineBreak', s, this.toLine(s, st.x) <= 5 ? 'heldShort' : 'hauledDown', 'PLAY', K.BREAK_S, 0, { gain: moved(), vs: this.ids([W.catcher(o2, pick)]), beat: tk.slice(0, 1), ...info })
     } else {
       st.x = this.adv(s, st.x, gain)
       if (this.toLine(s, st.x) >= 99) st.x = s === 0 ? 1 : 99

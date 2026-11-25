@@ -32,6 +32,7 @@ function sim2Step(game: import('../../game/model').GameState, s: Sim2Session, au
   let took = 0
   for (let guard = 0; guard < 2000; guard++) {
     if (s.pending) { if (!auto) break; s.answer(s.defaultCall()); took++ }
+    if (s.pendingInjury) { if (!auto) break; s.cover(s.pendingInjury.like) }
     if (s.done) { if (ctx.seg !== 3) { s.finish(); settleKnockout(game, ctx) } break }
     if (ctx.awaiting) break
     s.runUntil({ play: s.plays.length + 1 })
@@ -438,6 +439,7 @@ export const matchSlice = (set: SetState, get: GetState) => ({
       // the old match screen has no panel for the new engine's call: the game's own pick, so it
       // never hangs (a screen that asks him answers session.pending before it gets here)
       if (s2.pending) s2.answer(s2.defaultCall())
+      if (s2.pendingInjury) s2.cover(s2.pendingInjury.like)
       if (ctx.awaiting || ctx.seg === 3) {
         set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: false, done: ctx.seg === 3 }, tick: s.tick + 1 } : {})
         return
@@ -475,7 +477,7 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     if (!game || !liveMatch) return
     const { ctx, cursor } = liveMatch
     if (liveMatch.sim2) {
-      if (cursor < ctx.events.length || ctx.awaiting || ctx.seg === 3 || liveMatch.sim2.pending) return
+      if (cursor < ctx.events.length || ctx.awaiting || ctx.seg === 3 || liveMatch.sim2.pending || liveMatch.sim2.pendingInjury) return
       sim2Step(game, liveMatch.sim2)
       set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch } } : {})
       get().noteProgress()
@@ -603,6 +605,14 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return t('touch.playResumed')
     const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
+    // the new engine's injury: his man comes on at once (the record writes it, made or refused)
+    const s2 = liveMatch.sim2
+    if (s2?.pendingInjury) {
+      s2.cover(s2.pendingInjury.options.includes(String(inId)) ? String(inId) : s2.pendingInjury.like)
+      set(st => ({ liveMatch: st.liveMatch ? { ...st.liveMatch, playing: true } : null, tick: st.tick + 1 }))
+      get().noteProgress()
+      return ''
+    }
     const msg = coverInjury(game, liveMatch.ctx, hurtId, inId)
     // only a change that happened is a command: a refused tap replays as nothing
     if (!msg) get().noteCmd({ kind: 'inj', hurtId, inId })

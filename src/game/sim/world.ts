@@ -107,6 +107,9 @@ export type Decision =
   /** a team talk: the half-time tone (teamtalk.ts HtTone), or with `pre` the pre-match one (PreTone),
    *  given before the kick-off */
   | { kind: 'talk'; side: 0 | 1; tone: string; pre?: boolean }
+  /** whether the manager chooses who covers each of a side's injuries (MatchSim.pendingInjury):
+   *  off, the bench sends the nearest like for like at once */
+  | { kind: 'injuryCall'; side: 0 | 1; ask: boolean }
 
 export interface World {
   /** side s's strength at a contest at clock second t. 1 is an average side in this game; 1.1 is clearly better. */
@@ -136,6 +139,8 @@ export interface World {
   /** a substitution, a tactics change or a team talk, made at clock second t on the World's own
    *  sides: '' when it is done, else why not. A World without it has no bench and no dials. */
   decide?(d: Decision, t: number, score?: [number, number]): string
+  /** side s's tactic as it stands now (a copy), for what a tactics change replaced */
+  tactic?(s: 0 | 1): Record<string, unknown>
   /** how each side plays (absent: NEUTRAL_STYLE) */
   style?(s: 0 | 1): PlayStyle
   /** the day's weather (model Weather: 'Dry' | 'Damp' | 'Rain' | 'Wind' | 'Snow') */

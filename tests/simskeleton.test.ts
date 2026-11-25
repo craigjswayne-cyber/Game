@@ -216,8 +216,11 @@ describe('the manager\'s hand (spec stage 3: a match that can be stopped, change
     const userSide: 0 | 1 = home.teamId === g.userClubId ? 0 : 1
     const sheet = userSide === 0 ? home : away
     // the No. 8 off, the bench back-rower (shirt 19 or 20) on
-    const off = sheet.players.find(p => p.shirt === 8)!.id
     const m = new MatchSim({ seed: 6, world }).runUntil({ clock: 3000 })
+    // the No. 8 if he is still out there (a hurt man is off and replaced), else the first man on the field
+    const lu0 = world.lineup!(userSide)
+    const no8 = sheet.players.find(p => p.shirt === 8)!.id
+    const off = lu0.field.includes(no8) && !lu0.off[lu0.field.indexOf(no8)] ? no8 : lu0.field.find((id, i) => i >= 3 && i <= 7 && id && !lu0.off[i])!
     // a back-rower off the bench if one is left (a hurt man may already have taken shirt 20), else anyone
     const bench = world.lineup!(userSide).bench
     const on = bench[4] || bench[3] || bench.find(Boolean)!
@@ -226,7 +229,7 @@ describe('the manager\'s hand (spec stage 3: a match that can be stopped, change
     const r = m.runUntil().result()
     // (the manager's change: a hurt man may have been replaced before it)
     const k = r.plays.findIndex(p => p.kind === 'substitution' && p.who === off)
-    expect(r.plays[k]).toMatchObject({ result: 'made', who: off, with: [on] })
+    expect(r.plays[k], JSON.stringify(r.plays[k])).toMatchObject({ result: 'made', who: off, with: [on] })
     const later = r.plays.slice(k + 1).filter(p => p.side === userSide || p.ball === userSide)
     expect(later.some(p => p.who === off || p.with?.includes(off))).toBe(false)
     expect(r.plays.slice(k + 1).some(p => p.who === on || p.with?.includes(on) || p.vs?.includes(on))).toBe(true)

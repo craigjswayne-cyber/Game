@@ -95,6 +95,17 @@ export interface Play {
   out?: [number, number]
   /** a ruck that is recycled: quick ball (under about three seconds) or slow */
   speed?: 'quick' | 'slow'
+  /** a line break: the defender he beat (a missed tackle) */
+  beat?: string[]
+  /** the play that carries out a penalty option (penaltyGoal, kick/penaltyToTouch, tap, scrum): the
+   *  call made, and who made it ('manager' answering the prompt, 'standing' his standing order,
+   *  'captain' the side's own call on a managed side). Absent on a side nobody manages: callBy. */
+  call?: PenaltyCall
+  callBy?: 'manager' | 'standing' | 'captain'
+  /** the first play after a tactics change took effect: the fields set, and what they were */
+  tactics?: { side: 0 | 1; set: Record<string, unknown>; was: Record<string, unknown> }
+  /** a kick-off after a team talk: the tone (pre: the pre-match talk, on the first kick-off) */
+  talk?: { side: 0 | 1; tone: string; pre?: boolean }
   /** the score after it */
   score: [number, number]
 }
@@ -103,4 +114,6 @@ export interface SimResult {
   plays: Play[]
   score: [number, number]
   tries: [number, number]
+  /** the side the user manages, when one is */
+  managed?: 0 | 1
 }

@@ -479,8 +479,9 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
       if (isUserSide(s) && !d.auto && !hurt) {
         // the manager's own side: the old engine's makeSubstitution, with every law it checks
         // (the front row, the bin, the count) and its bill for a shirt that does not fit
-        makeSubstitution(clone, ctx, outId, inId)
-        if (side.lineup[slot] !== inId) return 'refused'
+        const said = makeSubstitution(clone, ctx, outId, inId)
+        // refused: the game's own reason, as the old screen shows it
+        if (side.lineup[slot] !== inId) return said || 'refused'
       } else {
         side.lineup[slot] = inId; side.lineup[benchAt] = outId
         side.onPitch.delete(outId); side.onPitch.add(inId)
@@ -807,6 +808,7 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
     forward: (s, rng) => pickBy(s, W_FORWARD, rng),
     carded: (s, id, until) => { off[s].set(id, until) },
     decide,
+    tactic: s => structuredClone((clone.clubs[sides[s].teamId]?.tactic ?? {}) as unknown as Record<string, unknown>),
     // THE OLD ENGINE'S OWN KICK (kicking.ts kickChance, with the clutch
     // habit, as scoring.ts and takePenaltyShot use them): the kicker's goal
     // kicking, form and nerve, the kicking coach and facility (goalBonus) and

@@ -161,3 +161,31 @@ Not yet right:
 - Attack width is far too costly for a pack-heavy squad (-19 against the old engine's -14), and on average across these two squads direct beats width by 7 points, about the same as the old engine's lean. Width also gives away 2.5 to 4.5 more points a match whatever the squad.
 - Spreading it in their 22 still beats driving for both squads (+3 and +5). Driving gives only about 0.7 more mauls a match, and a maul or pick and go near their line converts too seldom here. That is the same shortfall as in tries from lineouts.
 - A zero-ruck try step (more tries off set-piece strike moves and turnover ball) was not tried this round.
+
+## Round 8 (25 November): the managed match on the new engine
+
+A watched Extended match is now played by the new engine (src/game/sim/toResult.ts), and its record becomes the game's result. Changes that affect the levers:
+
+- **The manager's bench is his own,** as in a watched old-engine match. The assistant runs it only when he has handed it over (`assistantBench`, the game's own instant and resume paths). Before this fix, the assistant's bench never ran for the managed side, so a season of watched matches had 17% fewer appearances than the old engine.
+- **He chooses who covers an injury.** The match waits at the next dead ball. The default is the game's like-for-like pick.
+- **Injuries happen at the old engine's rate.** A man is hurt in contact at 0.0095 a carry, up from 0.002: about 1.6 men off injured a match, both sides, against the old engine's 1.66.
+- **A line break names the defender beaten.** His mark is charged a missed tackle, and his season's tackle success rate counts it.
+
+Three seasons of Leicester, every home match watched, new engine against old (`harmonycheck.ts season 3`), figures a season:
+
+| Figure | Old engine | New engine, before round 8 | New engine, now |
+|---|---|---|---|
+| Appearances | 566 | 470 (-17%) | 581 (+3%) |
+| In-match injuries | 8.3 | 2.3 (-72%) | 9.3 (+12%) |
+| Morale | 6.2 | 5.0 (-19%) | 5.6 (-9%) |
+| Balance | 3.76m | 3.18m (-15%) | 3.48m (-7%) |
+| League points | 45.0 | 42.7 | 49.3 |
+| Tries | 83.7 | 74.7 | 75.0 (-10%) |
+| Yellow cards | 9.7 | not measured | 12.3 |
+| Red cards | 0.0 | 1.3 | 1.0 |
+
+Red cards are left at the sourced rate: about 0.12 a match against the sources' 0.12 to 0.18. At the old engine's count of none, the realism row fails.
+
+Not fixed this round (measured at 1,200 pairs on the squads of the round 7 table):
+- **Attack style, direct v width:** -18.9 for a pack-heavy squad, +0.3 for a backs-heavy one. Taking the width preset's style dial back to 50 still leaves -12.5. A narrow ruck commitment or a balanced kicking style makes no real difference. The cost is in how width plays (fewer mauls, wide carries), and width gives away 3 to 4 points a match whatever the squad.
+- **Their 22, drive v spread:** spreading it still wins by about 3 for both squads. A stronger near-line maul for a strong pack (gain times the maul contest to the power 2.5 inside the 22) moved nothing, because driving adds only about 0.6 mauls a match. That change was taken out again.

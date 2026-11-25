@@ -89,7 +89,11 @@ describe('toResult: the new engine as the game result', () => {
         expect(sd.sent).toBe(P.filter(p => p.kind === 'redCard' && p.side === side).length)
         expect(r.events.filter(e => e.type === 'YC' && e.teamId === team).length).toBe(sd.yellowUntil.size)
         const made = P.filter(p => p.kind === 'substitution' && p.result === 'made' && p.side === side)
-        for (const m of made) expect(sd.lineup.slice(0, 15).includes(Number(m.who)), 'replaced man off the field').toBe(made.some(n => n.with?.[0] === m.who))
+        // a man is in the XV at the end when the last change that named him brought him on
+        for (const m of made) {
+          const last = [...made].reverse().find(n => n.who === m.who || n.with?.[0] === m.who)!
+          expect(sd.lineup.slice(0, 15).includes(Number(m.who)), 'replaced man off the field').toBe(last.with?.[0] === m.who)
+        }
         expect(r.events.filter(e => e.type === 'SUB' && e.teamId === team && (e.k === 'comm.subFromBench' || e.k === 'comm.subComesOn')).length).toBe(made.length)
         // a man hurt in the record is injured in the game
         for (const p of P.filter(q => q.kind === 'injury' && q.side === side)) expect(b.g.players[Number(p.who)].injury).toBeTruthy()
@@ -148,6 +152,50 @@ describe('toResult: the new engine as the game result', () => {
     // a red card's ban is on the man
     for (const p of s.plays.filter(q => q.kind === 'redCard')) expect(b.g.players[Number(p.who)].stats.rc).toBeGreaterThan(0)
   })
+
+  it('stores every key line at the record clock minute (first-half added time held at 40)', () => {
+    for (let i = 0; i < 8; i++) {
+      const b = fresh()
+      const { s } = newMatch(b.g, b.fx, 900 + i)
+      const P = s.plays, ht = P.findIndex(p => p.kind === 'halfTime')
+      const minOf = (p: (typeof P)[number]) => Math.min(p.n < ht ? 40 : 80, Math.floor((p.clock ?? p.t) / 60) + 1)
+      const kinds: Record<string, string> = { try: 'TRY', penaltyTry: 'TRY', yellowCard: 'YC', redCard: 'RC', injury: 'INJ' }
+      for (const [kind, type] of Object.entries(kinds)) {
+        const want = P.filter(p => p.kind === kind).map(minOf)
+        const got = s.ctx.events.filter(e => e.type === type && (type !== 'TRY' || true)).map(e => e.min)
+        if (type === 'TRY') expect(got, `tries in match ${i}`).toEqual(P.filter(p => p.kind === 'try' || p.kind === 'penaltyTry').map(minOf))
+        else expect(got, `${kind} in match ${i}`).toEqual(want)
+      }
+    }
+  })
+
+  it('waits for the manager to cover an injury, and a beaten defender is a missed tackle', () => {
+    let waited = 0
+    for (let i = 0; i < 12 && !waited; i++) {
+      const b = fresh()
+      const s = startSim2(b.g, b.fx, 300 + i)
+      for (let k = 0; k < 2000 && !s.done; k++) {
+        if (s.pending) s.answer(s.defaultCall())
+        const inj = s.pendingInjury
+        if (inj) {
+          waited++
+          expect(inj.options).toContain(inj.like)
+          const pick = inj.options[inj.options.length - 1]
+          s.cover(pick)
+          s.runUntil({ play: s.plays.length + 30 })
+          expect(s.plays.some(p => p.kind === 'substitution' && p.who === inj.who && p.with?.[0] === pick && p.result === 'made')).toBe(true)
+          continue
+        }
+        s.runUntil({ play: s.plays.length + 30 })
+      }
+      s.finish()
+      const beaten = s.plays.filter(p => p.kind === 'lineBreak' && p.beat?.length)
+      expect(beaten.length).toBeGreaterThan(0)
+      const missed = [...(s.ctx.home.missed ?? new Map()).values(), ...(s.ctx.away.missed ?? new Map()).values()].reduce((a, c) => a + c, 0)
+      expect(missed).toBe(beaten.reduce((a, p) => a + (p.beat?.length ?? 0), 0))
+    }
+    expect(waited).toBeGreaterThan(0)
+  }, 120_000)
 
   it('plays the same match again from its save, to the same place', () => {
     const a = fresh(), pre = structuredClone(a.g)
