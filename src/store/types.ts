@@ -37,6 +37,9 @@ export interface Store {
   nav: NavEntry[]
   liveMatch: {
     ctx: LiveCtx
+    /** the new engine's match, when this one is played on it (sim/toResult.ts SIM2_EXTENDED):
+     *  its ctx is the one above, kept up to date play by play */
+    sim2?: import('../game/sim/toResult').Sim2Session
     fixture: Fixture
     events: MatchEvent[]
     cursor: number

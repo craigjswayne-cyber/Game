@@ -15,12 +15,30 @@ import {
   type LiveStamp, type MatchCmdBody, type MatchResume,
 } from '../../game/resume'
 import { fileFindings } from '../../game/matchfindings'
+import { SIM2_EXTENDED, replaySim2, sim2Seed, startSim2, type Sim2Session } from '../../game/sim/toResult'
 import { fileEvidence } from '../../game/evidence'
 import { noteUse } from '../../game/usage'
 import type { GetState, SetState, Store } from '../types'
 
 /** Where in which match the last in-match tactics change was counted (usage.ts). */
 let lastLiveTactics = ''
+
+/** THE NEW ENGINE'S HEARTBEAT (round 8): play on a play at a time until the game's match has a new
+ *  line, the half-time room opens, a kickable penalty waits for him, or the whistle goes (then the
+ *  game's own full time, at once). A penalty is answered here with the game's own pick only when
+ *  `auto` is set (Skip): the match screen answers it itself through session.answer. */
+function sim2Step(game: import('../../game/model').GameState, s: Sim2Session, auto = false): number {
+  const ctx = s.ctx, from = ctx.events.length
+  let took = 0
+  for (let guard = 0; guard < 2000; guard++) {
+    if (s.pending) { if (!auto) break; s.answer(s.defaultCall()); took++ }
+    if (s.done) { if (ctx.seg !== 3) { s.finish(); settleKnockout(game, ctx) } break }
+    if (ctx.awaiting) break
+    s.runUntil({ play: s.plays.length + 1 })
+    if (!auto && ctx.events.length > from) break
+  }
+  return took
+}
 
 export const matchSlice = (set: SetState, get: GetState) => ({
   liveMatch: null,
@@ -77,6 +95,29 @@ export const matchSlice = (set: SetState, get: GetState) => ({
       // kept untouched for a later copy to another slot or a file; the replay
       // below mutates `base`, exactly as the match mutated the career
       const clean = structuredClone(base)
+      // a new-engine match (sim/toResult.ts): played again to where it was, the assistant has the
+      // rest of it, and the whistle is the game's own; then exactly what finishMatch does
+      if (rec.sim2) {
+        const s2 = replaySim2(base, rec.sim2)
+        if (!s2) continue
+        const own2: MatchResume = { ...rec, pre: clean }
+        if (c.from !== slot) await putResume(slot, own2, true).catch(() => {})
+        if (get().game !== g) return false
+        const fromMin2 = s2.ctx.lastMin
+        if (s2.us != null) s2.apply({ kind: 'bench', side: s2.us, auto: true })
+        s2.finish()
+        settleKnockout(base, s2.ctx)
+        fileFindings(base, s2.ctx)
+        fileEvidence(base, s2.ctx)
+        notePlayedOut(base, s2.fx, fromMin2)
+        countForPro(base, s2.fx)
+        base.newsFrom = base.nextId
+        settleWeek(base, get)
+        set(s => ({ game: base, matchRec: own2, liveMatch: null, resuming: false, tick: s.tick + 1 }))
+        get().dropResume()
+        landOnNextWeek(base, set, get, [], true)
+        return true
+      }
       const out = replayMatch(base, rec)
       if (!out) continue
       const own: MatchResume = { ...rec, pre: clean }
@@ -265,22 +306,29 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     // structuredClone, not a JSON round trip (1.9.1): the same copy IndexedDB
     // would make, at a fraction of the main-thread time on a 7MB career
     const pre = structuredClone(g)
-    const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
+    // THE NEW ENGINE PLAYS A WATCHED EXTENDED MATCH (round 8, sim/toResult.ts): the same kick-off
+    // (beginMatch, the dressing room) inside startSim2, and the record written into this ctx
+    const sim2 = SIM2_EXTENDED && (mode ?? 'full') === 'full'
+      ? startSim2(g, fx, sim2Seed(g, fx), { userSideId: userTeamId, preTalk: preTalk ?? null })
+      : undefined
+    const ctx = sim2 ? sim2.ctx : beginMatch(g, fx, matchRng(g), true, userTeamId)
     // he is watching, so his injuries wait for his pick (1.9.1)
     ctx.manualInj = true
     // spoken or not, the room is opened once (teamtalk.ts, SAYING NOTHING)
-    const preTalkMsg = openDressingRoom(g, ctx, preTalk)
+    const preTalkMsg = sim2 ? sim2.preTalkMsg : openDressingRoom(g, ctx, preTalk)
     const rec: MatchResume = {
       v: 1, pre, stream: 'match', inj: 'manual', fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
       mode: mode ?? 'full', tick: 0, cursor: 0, cmds: [],
       season: g.season, week: g.week, savedAt: Date.now(),
       seed: g.seed, saveName: g.saveName,
       opp: teamName(g, fx.homeId === userTeamId ? fx.awayId : fx.homeId),
+      ...(sim2 ? { sim2: sim2.save() } : {}),
     }
     set(s => ({
       liveMatch: {
         ctx, fixture: fx, events: ctx.events, cursor: 0, playing: true, speed: 1,
         mode: mode ?? 'full', done: false, talkMsg: null, preTalkMsg,
+        ...(sim2 ? { sim2 } : {}),
       },
       matchRec: rec,
       tick: s.tick + 1,
@@ -309,6 +357,7 @@ export const matchSlice = (set: SetState, get: GetState) => ({
       tick: liveMatch.ctx.tick,
       cursor: liveMatch.cursor,
       cmds: [...resume.cmds, { ...cmd, at: liveMatch.ctx.tick }],
+      ...(liveMatch.sim2 ? { sim2: liveMatch.sim2.save() } : {}),
     }
     set({ matchRec: rec })
     void putResume(saveSlot, rec).catch(() => {})
@@ -319,8 +368,10 @@ export const matchSlice = (set: SetState, get: GetState) => ({
   noteProgress: () => {
     const { matchRec: resume, liveMatch, saveSlot } = get()
     if (!resume || !liveMatch) return
-    if (resume.tick === liveMatch.ctx.tick && resume.cursor === liveMatch.cursor) return
-    const rec: MatchResume = { ...resume, tick: liveMatch.ctx.tick, cursor: liveMatch.cursor }
+    const ops = liveMatch.sim2 ? liveMatch.sim2.save() : undefined
+    if (resume.tick === liveMatch.ctx.tick && resume.cursor === liveMatch.cursor
+      && (!ops || JSON.stringify(ops.ops) === JSON.stringify(resume.sim2?.ops))) return
+    const rec: MatchResume = { ...resume, tick: liveMatch.ctx.tick, cursor: liveMatch.cursor, ...(ops ? { sim2: ops } : {}) }
     set({ matchRec: rec })
     void putResume(saveSlot, rec).catch(() => {})
   },
@@ -381,6 +432,22 @@ export const matchSlice = (set: SetState, get: GetState) => ({
       get().noteProgress()
       return
     }
+    // the new engine's match: a play at a time to the next line (sim2Step)
+    if (liveMatch.sim2) {
+      const s2 = liveMatch.sim2
+      // the old match screen has no panel for the new engine's call: the game's own pick, so it
+      // never hangs (a screen that asks him answers session.pending before it gets here)
+      if (s2.pending) s2.answer(s2.defaultCall())
+      if (ctx.awaiting || ctx.seg === 3) {
+        set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: false, done: ctx.seg === 3 }, tick: s.tick + 1 } : {})
+        return
+      }
+      sim2Step(game, s2)
+      if (ctx.events.length > cursor) cursor += 1
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor } } : {})
+      get().noteProgress()
+      return
+    }
     // a man down and waiting for the manager's pick holds the clock too (1.9.1)
     if (ctx.awaiting || ctx.seg === 3 || ctx.decision || ctx.injWait?.length) {
       set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: false, done: ctx.seg === 3 }, tick: s.tick + 1 } : {})
@@ -407,6 +474,13 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     const { game, liveMatch } = get()
     if (!game || !liveMatch) return
     const { ctx, cursor } = liveMatch
+    if (liveMatch.sim2) {
+      if (cursor < ctx.events.length || ctx.awaiting || ctx.seg === 3 || liveMatch.sim2.pending) return
+      sim2Step(game, liveMatch.sim2)
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch } } : {})
+      get().noteProgress()
+      return
+    }
     if (cursor < ctx.events.length || ctx.awaiting || ctx.seg === 3 || ctx.decision || ctx.injWait?.length) return
     // the same loop advanceLive runs, stopping short of revealing the line
     let r: ReturnType<typeof stepTick> = 'play'
@@ -422,6 +496,15 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     const { game, liveMatch } = get()
     if (!game || !liveMatch) return
     const { ctx } = liveMatch
+    if (liveMatch.sim2) {
+      const took2 = sim2Step(game, liveMatch.sim2, true)
+      set(s => s.liveMatch ? {
+        liveMatch: { ...s.liveMatch, cursor: ctx.events.length, playing: false, done: ctx.seg === 3, skipTook: took2 },
+        tick: s.tick + 1,
+      } : {})
+      get().noteProgress()
+      return
+    }
     let r: ReturnType<typeof stepTick> = 'play'
     // EVERY DECISION THIS TAKES ON THE MANAGER'S BEHALF IS STILL A DECISION, and a
     // resume has to make the same ones. Skipping ahead answers each kickable
@@ -446,6 +529,15 @@ export const matchSlice = (set: SetState, get: GetState) => ({
   /** The touchline call on a kickable penalty. */
   decide: (choice) => {
     const { game, liveMatch } = get()
+    if (game && liveMatch?.sim2?.pending) {
+      // the new engine's kickable penalty: 'posts' or 'corner' (or 'tap', 'scrum') as the screen offers
+      const s2 = liveMatch.sim2
+      const call = s2.pending!.options.includes(choice as never) ? choice as never : s2.defaultCall()
+      s2.answer(call)
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: true }, tick: s.tick + 1 } : {})
+      get().noteProgress()
+      return ''
+    }
     if (!game || !liveMatch || !liveMatch.ctx.decision) return ''
     get().noteCmd({ kind: 'decide', choice })
     const msg = resolveDecision(game, liveMatch.ctx, choice)
@@ -463,7 +555,8 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     if (!game || !liveMatch || liveMatch.ctx.awaiting !== 'HT') return
     get().noteCmd({ kind: 'talk', talk: kind })
     noteUse('talk')
-    const msg = applyTeamTalk(game, liveMatch.ctx, kind)
+    const s2 = liveMatch.sim2
+    const msg = s2 && s2.us != null ? s2.apply({ kind: 'talk', side: s2.us, tone: kind }) : applyTeamTalk(game, liveMatch.ctx, kind)
     set(s => ({ liveMatch: s.liveMatch ? { ...s.liveMatch, talkMsg: msg } : null, tick: s.tick + 1 }))
   },
 
@@ -483,7 +576,11 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
     get().noteCmd({ kind: 'sub', outId, inId })
     noteUse('sub')
-    const msg = makeSubstitution(game, liveMatch.ctx, outId, inId)
+    const s2 = liveMatch.sim2
+    // the new engine makes it at the next dead ball and writes it into the record, made or refused
+    const msg = s2 && s2.us != null
+      ? (s2.apply({ kind: 'substitution', side: s2.us, off: String(outId), on: String(inId) }), '')
+      : makeSubstitution(game, liveMatch.ctx, outId, inId)
     set(s => ({
       liveMatch: s.liveMatch && wasCaughtUp
         ? { ...s.liveMatch, cursor: s.liveMatch.ctx.events.length }
@@ -564,7 +661,13 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     // every step; the count is one per pause in play the manager used.
     const at = `${liveMatch.fixture.id}:${liveMatch.cursor}`
     if (at !== lastLiveTactics) { lastLiveTactics = at; noteUse('liveTactics') }
-    applyTacticsChange(game, liveMatch.ctx)
+    const s2 = liveMatch.sim2
+    if (s2 && s2.us != null) {
+      // the dials and plans, not the team sheet (which the new engine changes only by substitution)
+      const set2: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(t)) if (!Array.isArray(v)) set2[k] = structuredClone(v)
+      s2.apply({ kind: 'tactics', side: s2.us, set: set2 })
+    } else applyTacticsChange(game, liveMatch.ctx)
     set(s => ({ tick: s.tick + 1 }))
   },
 
@@ -609,6 +712,8 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     // Results each called this, and the second, with the match already gone,
     // turned a second week. Instant Result now ends on this button too.
     if (!g || !live) return
+    // a new-engine match not yet blown up: the whistle and the game's own finalizeMatch first
+    if (live.sim2 && live.ctx.seg !== 3) live.sim2.finish()
     const resultsKey = live ? resultsParam(live.fixture.compId, g.week) : null
     // the tactical loop's findings and the evidence, before the week turns (#181)
     if (live) {

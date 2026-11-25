@@ -113,6 +113,9 @@ export interface MatchResume {
   /** how much of the commentary the manager had read */
   cursor: number
   cmds: MatchCmd[]
+  /** a match played by the new engine (sim/toResult.ts, SIM2_EXTENDED): what was asked of it, so
+   *  replaySim2 plays it again to the same place. The old-engine fields above are then unused. */
+  sim2?: import('./sim/toResult').Sim2Save
   /** for the "is this record about the save I just loaded" check */
   season: number
   week: number

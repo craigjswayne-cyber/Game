@@ -302,6 +302,11 @@ export interface FromMatchOpts {
   /** for tuning only: exponents to use in place of UNIT_EXP, and a home share in place of HFA_SHARE */
   exp?: Partial<Record<UnitKey, number>>
   hfaShare?: number
+  /** the dice the private kick-off is dealt from, and the team being managed: given by the live
+   *  session (toResult.ts) so the copy kicks off exactly as the game's own match does (the same
+   *  weather, the same sheets, the same match-day form) */
+  beginRng?: Rng
+  userSideId?: string | null
 }
 
 export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: FromMatchOpts = {}): { world: MatchWorld; home: SimSide; away: SimSide } {
@@ -313,7 +318,9 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
   const mean = leagueMeans(clone, fxc)
   // beginMatch draws from the dice it is given (the gate, the kick seed):
   // they are ours, seeded off the caller's, never the week's
-  const ctx = beginMatch(clone, fxc, mulberry32((Math.floor(rng() * 4294967296) >>> 0) || 1), false)
+  const ctx = opts.beginRng
+    ? beginMatch(clone, fxc, opts.beginRng, false, opts.userSideId === undefined ? clone.userClubId : opts.userSideId)
+    : beginMatch(clone, fxc, mulberry32((Math.floor(rng() * 4294967296) >>> 0) || 1), false)
   opts.tweak?.(ctx)
   const sides: [SideCtx, SideCtx] = [ctx.home, ctx.away]
 
