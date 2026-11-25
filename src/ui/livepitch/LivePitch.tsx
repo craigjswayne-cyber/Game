@@ -254,7 +254,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     const ink = readInk()
     const lp = { ground: tokenColor('--lp-ground'), stand: tokenColor('--lp-stand'), light: tokenColor('--lp-board-light'), dark: tokenColor('--lp-board-dark'), boardInk: tokenColor('--lp-board-ink') }
-    const gold = tokenColor('--gold-fill')
+    const gold = tokenColor('--gold-fill'), cardRed = tokenColor('--danger-fill')
     const refKit = refereeColour([...home.kit, ...away.kit], [ink.refPink, ink.refOrange, ink.refCyan])
     let raf = 0, last = performance.now(), acc = 0
     // upright on a phone held upright; on its side when the box is wider than
@@ -1032,15 +1032,20 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       // A SIDE THAT IS SHORT SAYS SO (19 Nov 2026: playing against fourteen
       // could not be seen). A small plate by the touchline where its man is
       // sitting: a card and the number it is down to.
+      // (round 10: the card is red when a man of theirs has been sent off, a second yellow included, as the
+      // scoreboard shows it under the team name; the record's plays as far as the pitch has got)
+      const recP = (S as { plays?: { kind: string; side: number | null }[] }).plays, recAt = (S as { phase?: { at: number } }).phase?.at ?? -1
       for (const [a0, side] of [[0, H], [15, A]] as [number, PitchSide][]) {
         let n = 0; for (let k = 0; k < 15; k++) if (S.off[a0 + k]) n++
         if (!n) continue
+        let sentOff = false
+        if (recP) for (let k = 0; k <= recAt && k < recP.length && !sentOff; k++) sentOff = recP[k].kind === 'redCard' && recP[k].side === (a0 === 0 ? 0 : 1)
         // (off the grass, in front of the stand: it sat on the touchline and covered play there, seen 20 Nov 2026)
         const px = SX(50 + (a0 === 0 ? -15 : 15), -4.2), py = SY(50, -4.2)
         // (a size up, with the rest of the text on the pitch: owner, 19 Nov 2026)
         const tw = 60, th = 26
         g.fillStyle = 'rgba(10,14,20,.86)'; g.beginPath(); g.roundRect(px - tw / 2, py - th / 2, tw, th, 13); g.fill()
-        g.save(); g.translate(px - 17, py); g.rotate(-0.16); g.fillStyle = gold; g.fillRect(-5, -7.5, 10, 15); g.restore()
+        g.save(); g.translate(px - 17, py); g.rotate(-0.16); g.fillStyle = sentOff ? cardRed : gold; g.fillRect(-5, -7.5, 10, 15); g.restore()
         g.fillStyle = side.kit[0]; g.beginPath(); g.arc(px - 1, py, 4.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = ink.white; g.lineWidth = 1.2; g.stroke()
         g.font = '800 15px system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = ink.white
         g.fillText(String(15 - n), px + 7, py + 0.5)

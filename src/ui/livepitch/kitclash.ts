@@ -7,13 +7,13 @@
 //
 // The home side wears its own kit. The away side wears, in this order, the first that does not clash:
 //   its own (first colour, second as trim); its second colour (first as trim); white, the panel ink, slate,
-//   then gold (the --kit-spare-* tokens), each trimmed in its own first colour (or its second, when the first
-//   is too near the neutral itself).
+//   gold, then the game's away red (the --kit-spare-* and --kit-away tokens), each trimmed in its own first
+//   colour (or its second, when the first is too near the neutral itself). When the rims are close too, the
+//   away rim changes (rimmed, below), and a kit whose rim can be made clear is taken before one that cannot.
 // The thresholds were set on every ordered pair of the game's 113 clubs (scripts/tmp/kitpairs.ts): at 25,
 // navy against black (Bath v Exeter, 25.6) passed and should not; at 30 it changes. Judged this way, 1,724 of
-// the 12,656 pairings could not be told apart with the kits the screen used before; after, 37, all Ealing
-// at home (a dark green shirt that reads as its white trim): the away side goes to gold, 29.8 against the
-// white trim, a gold disc against a dark one ringed in white.
+// the 12,656 pairings could not be told apart with the kits the screen used before round 9; now none, and no
+// pairing has the two rims under 30 either (round 10).
 import { hex6 } from '../kit'
 
 /** the grass the discs are drawn on: the day ground's mown stripes, sampled from the art (47,113,0 and
@@ -82,6 +82,8 @@ export function kitDistance(h: Kit, a: Kit): number {
   return lightness(h[0]) < DARK_L && lightness(a[0]) < DARK_L ? Math.min(d, colourGap(h[1], a[1])) : d
 }
 export const clashes = (h: Kit, a: Kit) => kitDistance(h, a) < CLASH_DE
+/** a rim this far from its own shirt shows as a rim */
+export const RIM_DE = 20
 
 export interface Neutrals { white: string; ink: string; slate: string; gold: string; home: string; away: string }
 export type Worn = { home: Kit; away: Kit; change: 'own' | 'second' | 'neutral' | 'nearest' }
@@ -94,11 +96,25 @@ export function wornKits(nt: Neutrals, home: string[] | undefined, away: string[
   const tries: [Kit, Worn['change']][] = [
     [[a[0], a[1] ?? nt.white], 'own'],
     ...(a[1] ? [[[a[1], a[0]], 'second'] as [Kit, Worn['change']]] : []),
-    ...[nt.white, nt.ink, nt.slate, nt.gold].map(n => [[n, trimFor(n)], 'neutral'] as [Kit, Worn['change']]),
+    // (the game's own away colour, --kit-away, last: Ealing's dark green reads as its white trim, and white,
+    // gold and slate all sit too near white for it, the ink too near the green)
+    ...[nt.white, nt.ink, nt.slate, nt.gold, nt.away].map(n => [[n, trimFor(n)], 'neutral'] as [Kit, Worn['change']]),
   ]
-  for (const [k, why] of tries) if (!clashes(h, k)) return { home: h, away: k, change: why }
+  // A RIM OF ITS OWN (round 10: Leicester v Munster, a dark disc ringed in red against a white one ringed in
+  // red). When the two rims are close as well, the away side's rim is the first of its own colours, then the
+  // neutrals, that is clear of the home rim, shows on its own shirt and keeps the two kits apart.
+  const rimmed = (k: Kit): Kit => {
+    if (colourGap(h[1], k[1]) >= CLASH_DE) return k
+    const r = [...a, nt.ink, nt.white, nt.gold, nt.slate, nt.away].find(c => colourGap(c, h[1]) >= CLASH_DE && colourGap(c, k[0]) >= RIM_DE && !clashes(h, [k[0], c]))
+    return r ? [k[0], r] : k
+  }
+  const rimClear = (k: Kit) => colourGap(h[1], k[1]) >= CLASH_DE
+  // (a kit whose rim can be made clear first; only when none can, the first that does not clash: Queensland
+  // Reds, maroon ringed in white, against Pau's green, which shows as its white rim, go to Pau's white)
+  for (const [k, why] of tries) { const r = rimmed(k); if (!clashes(h, r) && rimClear(r)) return { home: h, away: r, change: why } }
+  for (const [k, why] of tries) if (!clashes(h, k)) return { home: h, away: rimmed(k), change: why }
   // (nothing clears: the furthest of them)
   let best = tries[0][0], bd = -1
   for (const [k] of tries) { const d = kitDistance(h, k); if (d > bd) { bd = d; best = k } }
-  return { home: h, away: best, change: 'nearest' }
+  return { home: h, away: rimmed(best), change: 'nearest' }
 }

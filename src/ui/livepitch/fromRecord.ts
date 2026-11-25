@@ -276,8 +276,10 @@ function actOf(plays: Play[], n: number): { act: number; mark: number } {
     case 'intoTouch': return p.result === 'bounced' ? { act: 0.3 + Math.abs(p.y - (plays[n - 1]?.y ?? p.y)) / 8, mark: 0.3 + Math.abs(p.y - (plays[n - 1]?.y ?? p.y)) / 8 } : { act: 0.4, mark: 0.4 }
     case 'knockOn': return plays[n - 1]?.kind === 'carry' ? { act: 0.4, mark: 0.4 } : { act: 0.6, mark: 0.6 }
     case 'yellowCard': case 'redCard': return { act: 2.6, mark: 2.6 }
-    case 'halfTime': return { act: 2.0, mark: 2.0 }
-    case 'fullTime': return { act: 2.5, mark: 2.5 }
+    // (round 10, COMMENTARY: the half-time and full-time summaries and the second-half talk line went by in
+    // 2.5 s of fast forward; held 4 s, at clip pace as key moments, so they can be read)
+    case 'halfTime': return { act: 4.0, mark: 4.0 }
+    case 'fullTime': return { act: 4.0, mark: 4.0 }
     default: return { act: 0.5, mark: 0.5 }
   }
 }
@@ -322,7 +324,7 @@ export function bigBreak(plays: Play[], n: number): boolean {
 }
 function keyOf(plays: Play[], n: number): boolean {
   const p = plays[n], nx = plays[n + 1]
-  if (['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'yellowCard', 'redCard', 'heldUp'].includes(p.kind)) return true
+  if (['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'yellowCard', 'redCard', 'heldUp', 'halfTime', 'fullTime'].includes(p.kind)) return true
   // (round 7: about eleven line breaks a match now; the big ones are key, the rest are shown at BREAK_RATE)
   if (p.kind === 'lineBreak') return bigBreak(plays, n)
   const in22 = p.x < 22 || p.x > 78
@@ -855,7 +857,12 @@ export function makeBaker(plays: Play[], sides?: [RecSide, RecSide], level = 0):
     }
     if (k === 14) return { x: bx - d * 13, y: inY(A + os * 13) }
     const BACK: Record<number, [number, number]> = { 8: [1.5, 1], 9: [6, 11], 11: [7.5, 20], 12: [9, 30] }
-    const t2 = BACK[k] ?? POD[k] ?? [3, 0]
+    let t2 = BACK[k] ?? POD[k] ?? [3, 0]
+    // THE BACKS USE THE OPEN FIELD (round 10: the frozen engine's rucks sit nearer the touchlines, seed 2 a median
+    // 16.5 m in, and with the 10, 12 and 13 at fixed gaps the 13 stood 42 m across with 20 m of grass outside him,
+    // the attack under 35 m wide). With more open side than the middle of the field gives (42 m), they spread
+    // into it, up to 1.4 times as wide; in the middle of the field nothing changes.
+    if (k === 9 || k === 11 || k === 12) { const space = os >= 0 ? 66 - A : A - 4; t2 = [t2[0], t2[1] * clamp(space / 42, 1, 1.4)] }
     // (the forwards' pods are set off the ruck itself, followed over a second or so; the backs off the slower anchor)
     return { x: bx - d * t2[0], y: clamp((k < 8 ? bys : A) + os * t2[1], 4, 66) }
   }
@@ -1161,6 +1168,10 @@ export function makeBaker(plays: Play[], sides?: [RecSide, RecSide], level = 0):
   }
 
   const ctlOf = (n: number): Ctl => {
+    // A REPLACEMENT TAKES THE PLACE OF THE MAN HE REPLACED (round 10, seed 16: No. 23 came on for a hurt lock,
+    // was named the lineout jumper at play 477, and the static bench map had him on the wing, so the throw
+    // went 15 m across the field to him). From the change on, his id is the replaced man's slot.
+    { const q = plays[n]; if (q.kind === 'substitution' && q.result === 'made' && q.who && q.with?.[0]) { const sl = idSlot.get(q.who); if (sl != null) { idSlot.set(q.with[0], sl); idSlot.delete(q.who) } } }
     if (cd.of[n] >= 0) return travelCtl(n)
     const p = plays[n], s = p.side, d = dirOf(s), o = other(s), q = plays[n - 1]
     const nx = plays[n + 1]

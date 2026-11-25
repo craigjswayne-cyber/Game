@@ -59,16 +59,8 @@ export interface Session {
 
 /** THE REAL MATCH: GAMEPLAY's session (store kickOff, liveMatch.sim2), as the screen needs it */
 export function fromSim2(s: Sim2Session, game: GameState): Session {
-  // the sides as they kicked off: the game's lineups now, with the changes made so far undone (a change
-  // swaps the two men's places in the lineup, toResult.ts)
-  const lus = [s.ctx.home.lineup.slice(), s.ctx.away.lineup.slice()]
-  for (let k = s.plays.length - 1; k >= 0; k--) {
-    const p = s.plays[k]
-    if (p.kind !== 'substitution' || p.result !== 'made' || (p.side !== 0 && p.side !== 1) || !p.who || !p.with?.[0]) continue
-    const lu = lus[p.side], a = lu.indexOf(Number(p.with[0])), b = lu.indexOf(Number(p.who))
-    if (a >= 0) lu[a] = Number(p.who)
-    if (b >= 0) lu[b] = Number(p.with[0])
-  }
+  // the sides as they kicked off (the session's own kickoffTeams: shirts 1 to 23)
+  const lus = s.kickoffTeams
   const side = (i: 0 | 1): SimSide => {
     const teamId = (i === 0 ? s.ctx.home : s.ctx.away).teamId
     const club = game.clubs[teamId]
@@ -86,17 +78,8 @@ export function fromSim2(s: Sim2Session, game: GameState): Session {
     get done() { return s.done },
     nextPassage() { if (!s.done && !s.pending && !s.pendingInjury) s.runUntil({ play: s.plays.length + 1, dead: true }) },
     apply: d => { s.apply(d) },
-    // left to him: the captain's own call (the engine's, on the score and the clock): this one penalty
-    // handed to the side, played, then asked again from the next. Through the session's own apply and
-    // runUntil, so a replay after a reload makes the same call
-    answer: call => {
-      const p = s.pending
-      if (!p) return
-      if (call) { s.answer(call); return }
-      s.apply({ kind: 'penaltyCall', side: p.side, call: 'auto' })
-      s.runUntil({ play: s.plays.length + 1 })
-      s.apply({ kind: 'penaltyCall', side: p.side, call: 'ask' })
-    },
+    // left to him (or the timer ran out): the captain's own call, by the score and the clock (the session's)
+    answer: call => { if (!s.pending) return; if (call) s.answer(call); else s.answerDefault() },
     cover: on => s.cover(on),
     lineup: i => s.world.lineup?.(i) ?? null,
     playOut() {

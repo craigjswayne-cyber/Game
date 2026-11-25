@@ -27,6 +27,7 @@
 //     this screen would have to show the match from kick-off again to reach where it was.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../../store'
+import { HalfTimeWord } from './Panels'
 import { t, compLabel } from '../../../game/i18n'
 import { teamShort } from '../../../game/matchEngine'
 import { SLIDER_INFO } from '../../../game/tactics'
@@ -101,6 +102,8 @@ export function Sim2Live() {
     const was = live.resumed ? Number(readView(fixture.id) ?? -1) : -1
     if (was > 0) feed.startAt(was)
     else feed.pump(40)
+    // (the headless checks, ?hl=1 only: scripts/tmp/sim2run.mjs reads the session's record to find its moments)
+    try { if (/[?&]hl=1\b/.test(location.search)) (window as unknown as { __sim2?: unknown }).__sim2 = { session, feed } } catch { /* no window */ }
     return { session, feed, from: was > 0 ? feed.n : 0 }
   }, [fixture.id])
   const names = useMemo(() => new Map([...session.sides[0].players, ...session.sides[1].players].map(p => [p.id, p.name])), [session])
@@ -315,6 +318,21 @@ export function Sim2Live() {
             <div className="fact-label">{t('matchday.halfTime')}</div>
             {stats.map(r => <div key={r.label} className="meta" style={{ display: 'flex', gap: 8 }}><b style={{ flex: '0 0 44px' }}>{r.v[0]}{r.pct ? '%' : ''}</b><span style={{ flex: 1, textAlign: 'center' }}>{r.label}</span><b style={{ flex: '0 0 44px', textAlign: 'right' }}>{r.v[1]}{r.pct ? '%' : ''}</b></div>)}
           </div>
+          {/* THE ASSISTANT'S WORD, as the old half-time screen gives it (Panels.tsx): what is working and what is
+              hurting, off the first half's evidence (the session fills ctx.htEv from the record), and the dial that
+              answers it. Its tap opens the tactics sheet at that dial (the old screen scrolls to its own panel). */}
+          <div onClickCapture={e => {
+            const b = (e.target as HTMLElement).closest<HTMLElement>('[data-ht-lever]')
+            if (!b) return
+            const dial = b.dataset.htLever
+            setSheet('tactics')
+            window.setTimeout(() => {
+              const row = document.querySelector<HTMLElement>(`.settings-sheet [data-dial="${dial}"]`)
+              if (!row) return
+              row.scrollIntoView({ block: 'center' }); row.style.outline = '2px solid var(--gold)'
+              window.setTimeout(() => { row.style.outline = '' }, 1600)
+            }, 60)
+          }}><HalfTimeWord /></div>
           <div className="card" style={{ margin: '8px 14px' }}>
             <div className="fact-label">{t('sim2.talk')}</div>
             <div className="sim2-opts">
