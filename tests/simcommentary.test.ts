@@ -657,7 +657,7 @@ describe('the ticker: short lines, flashes, no silence in a try build-up', () =>
     const NAME = 'Abcdefghijklmnopqr', TEAM = 'Abcdefghijklmn', longestMove = Math.max(...Object.values(MOVE_EN).map(x => x.length))
     const longestCause = Math.max(...Object.keys(WORDS).filter(b => /^cause/.test(b)).map(b => WORDS[b][0].length))
     for (const b of Object.keys(WORDS)) for (const w of WORDS[b] ?? []) {
-      if (/^(zone|cause|nth|kind|type|need|how|tone|who)[A-Z]/.test(b)) continue
+      if (/^(zone|cause|nth|kind|type|need|how|tone|who|why)[A-Z]/.test(b)) continue
       const t = w.replace(/\{(player|player2|oppPlayer)\}/g, NAME).replace(/\{(team|opp|home|away|winner)\}/g, TEAM).replace(/\{(m|d|phase|count|hs|as|ht|at|men|pct|hp|ap|made|taken|mins|margin|deficit|a|b|pts|lost|total|back|left|gap|min|mins|pp|tp|tk|car|opts)\}/g, '22')
         .replace(/\{move_k\}/g, 'x'.repeat(longestMove)).replace(/\{kick_k\}/g, 'cross-field kick').replace(/\{zone_k\}/g, `inside the ${TEAM} 22`)
         .replace(/\{cause_k\}/g, 'x'.repeat(longestCause)).replace(/\{(\w+)\}/g, 'xxxxxxxxxx')
@@ -1200,4 +1200,48 @@ describe("round 8: the manager's decisions, and the half-time and full-time stor
       }
     }
   })
+})
+
+describe("round 9: a real watched match through the session, the manager's decisions as the record carries them", () => {
+  it('says each call, change, talk and refusal at the play that carries it, and the defender a break beat', async () => {
+    const { newGame } = await import('../src/game/newgame')
+    const { processWeekAndAdvance, userFixtureThisWeek } = await import('../src/game/season')
+    const { startSim2 } = await import('../src/game/sim/toResult')
+    const g = newGame('leicester', 'T', 4242)
+    let fx: ReturnType<typeof userFixtureThisWeek> = null
+    for (let i = 0; i < 30; i++) { fx = userFixtureThisWeek(g); if (fx && g.comps[fx.compId]?.table?.length) break; fx = null; processWeekAndAdvance(g) }
+    const s = startSim2(g, fx!, 4242, {})
+    const us = s.us as 0 | 1, side = () => (us === 0 ? s.ctx.home : s.ctx.away)
+    let tac = false, talk = false, subs = 0, calls = 0
+    for (let k = 0; k < 4000 && !s.done; k++) {
+      if (s.pending) { const o = s.pending.options; s.answer((calls++ % 2 ? o[0] : o[o.length - 1])) }
+      const inj = s.pendingInjury
+      if (inj) { s.cover(inj.options[inj.options.length - 1]); continue }
+      const last = s.plays[s.plays.length - 1], clock = last?.clock ?? 0
+      if (!tac && clock > 1500) { s.apply({ kind: 'tactics', side: us, set: { style: 85 } }); tac = true }
+      if (!talk && last?.kind === 'halfTime') { s.apply({ kind: 'talk', side: us, tone: 'demand' }); talk = true }
+      if (subs < 2 && clock > 3000 + subs * 500) {
+        const sd = side(), off = sd.lineup.slice(0, 15).filter(Boolean)[[6, 0][subs]], on = sd.lineup.slice(15).filter(x => x != null && !sd.onPitch.has(x))[subs]
+        if (off != null && on != null) s.apply({ kind: 'substitution', side: us, off: String(off), on: String(on) })
+        // and one the game refuses: a man already off
+        if (subs === 1 && off != null && on != null) s.apply({ kind: 'substitution', side: us, off: String([...s.plays].reverse().find(q => q.kind === 'substitution' && q.side === us && q.result === 'made')!.who), on: String(on) })
+        subs++
+      }
+      s.runUntil({ play: s.plays.length + 1, dead: true })
+    }
+    s.finish()
+    const ls = commentate({ plays: [...s.plays], score: s.score, tries: [0, 0], managed: s.managed } as SimResult, { teams: ['Home', 'Away'], player: id => `P${id}` })
+    const at = (n: number) => ls.filter(l => l.n === n).map(l => baseOf(l.key))
+    let checked = 0
+    for (const p of s.plays) {
+      const q = p as Play & { callBy?: string; tactics?: unknown; talk?: { pre?: boolean } }
+      if (q.callBy) { checked++; expect(at(p.n).some(b => (q.callBy === 'captain' ? /^capCall/ : /^mgr/).test(b)), `call at ${p.n}`).toBe(true) }
+      if (q.tactics) { checked++; expect(at(p.n)).toContain('tacChange') }
+      if (q.talk && !q.talk.pre) { checked++; expect(at(p.n)).toContain('talkHt') }
+      if (p.kind === 'substitution' && p.result === 'refused' && p.cause === 'not on the field') { checked++; expect(at(p.n)).toContain('subRefusedWhy'); expect(render(ls.find(l => l.n === p.n)!)).toMatch(/is not on the field/) }
+      if (p.kind === 'lineBreak' && p.beat?.length) expect(at(p.n)).toContain('tickBeaten')
+    }
+    expect(s.managed).toBe(us)
+    expect(checked).toBeGreaterThanOrEqual(4)
+  }, 120_000)
 })

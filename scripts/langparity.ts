@@ -32,17 +32,23 @@ const phs = (s: string) => [...s.matchAll(PH)].map(m => m[1]).sort().join(',')
 const isPlural = (v: unknown): v is Record<string, string> =>
   !!v && typeof v === 'object' && 'other' in (v as object) && Object.values(v as object).every(x => typeof x === 'string')
 
-// ---- THE ONE EXEMPTION (round 8, 25 Nov): the match commentary's `sim` group is English only for now ----
+// ---- THE ONE EXEMPTION (round 8, 25 Nov): the new match engine's words are English only for now ----
 // The live pitch's commentary moved into en.json (src/game/sim/commentary.en.ts reads it back) before it is
-// translated. Until it is, the other five files may leave the whole `sim` group out; a language that starts
-// it is held to it in full like any other group. Delete this block when the five files have it.
-const AWAITING = new Set(['sim'])
+// translated, and so did the new Extended match screen's own words (round 9). Until they are, the other five
+// files may leave these out; a language that has one is held to it like any other key. Delete this block
+// when the five files have them.
+const AWAITING = ['sim', 'sim2', 'matchday.statPossession', 'matchday.statTerritory', 'matchday.statTries', 'matchday.statTackles', 'matchday.statPensConceded', 'matchday.optScrum']
+const at = (o: unknown, path: string) => path.split('.').reduce<unknown>((x, k) => (x && typeof x === 'object' ? (x as Record<string, unknown>)[k] : undefined), o)
 const awaitingCount = (o: unknown): number => (typeof o === 'string' || isPlural(o) ? 1 : o && typeof o === 'object' ? Object.values(o).reduce((a: number, v) => a + awaitingCount(v), 0) : 0)
-for (const g of AWAITING) console.log(`  note  ${g}: ${awaitingCount(EN[g])} English keys awaiting translation (exempt in fr, es, it, ja, af)`)
+console.log(`  note  ${AWAITING.reduce((a, g) => a + awaitingCount(at(EN, g)), 0)} English keys awaiting translation (${AWAITING.join(', ')}; exempt in fr, es, it, ja, af)`)
 
 for (const lang of ['fr', 'es', 'it', 'ja', 'af']) {
   const D = load(lang)
-  for (const g of AWAITING) if (!(g in D)) D[g] = EN[g]
+  for (const g of AWAITING) {
+    const parts = g.split('.'), last = parts.pop()!
+    const host = parts.reduce<Record<string, unknown>>((x, k) => (x[k] ??= {}) as Record<string, unknown>, D)
+    if (!(last in host)) host[last] = at(EN, g)
+  }
   const errs: string[] = []
   const walk = (e: unknown, o: unknown, path: string) => {
     if (errs.length > 25) return

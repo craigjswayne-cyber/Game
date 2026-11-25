@@ -158,7 +158,7 @@ const ANY: PlayKind[] = ['kickoff', 'dropout22', 'goalLineDropout', 'scrum', 'li
 const SCORES: PlayKind[] = ['conversion', 'penaltyGoal', 'dropGoal', 'penaltyTry']
 const STOPS: PlayKind[] = ['penalty', 'freeKick', 'scrum', 'lineout', 'kickoff', 'dropout22', 'goalLineDropout']
 /** words put inside other lines, never lines of their own */
-const INNER = /^(zone|cause|nth|kind|type|need|how|tone|who)[A-Z]/
+const INNER = /^(zone|cause|nth|kind|type|need|how|tone|who|why)[A-Z]/
 
 /** the kinds of Play each base may be written for */
 export const BASE_KINDS: Record<string, PlayKind[]> = {
@@ -173,7 +173,7 @@ export const BASE_KINDS: Record<string, PlayKind[]> = {
   tickLaunch: ['carry', 'lineBreak'], tickFirst: ['carry', 'lineBreak'],
   shOneOut: ['carry', 'lineBreak'], shPod: ['carry', 'lineBreak'], shTipOn: ['carry', 'lineBreak'], shSnipe: ['carry', 'lineBreak'], shPullBack: ['carry', 'lineBreak'],
   shPodTen: ['carry', 'lineBreak'], shMiss: ['carry', 'lineBreak'], shLoop: ['carry', 'lineBreak'], shWrap: ['carry', 'lineBreak'], shSwitch: ['carry', 'lineBreak'], shKickPass: ['carry', 'lineBreak'],
-  tickRuckQuick: ['ruck'], tickRuckSlow: ['ruck'], tickRuckNext: ['ruck'], phaseCount: ['ruck'], tickRunOn: ['lineBreak'], tickChase: ['lineBreak'], tickHalfway: ['lineBreak', 'carry'], tickIntoTwentyTwo: ['lineBreak', 'carry'], turnoverIsolated: ['ruck'], yellowRepeated: ['yellowCard'], tickScrumSet: ['scrum'], tickRuck: ['ruck'], tickRuckNear: ['ruck'], tickRuckWhistle: ['ruck'], tickRuckStuck: ['ruck'], tickContest: ['catch'], tickScrumWon: ['scrum'], pickGo: ['carry'], carryTouch: ['carry'], intercepted: ['carry'], phases: ['ruck'], turnover: ['ruck'],
+  tickRuckQuick: ['ruck'], tickRuckSlow: ['ruck'], tickRuckNext: ['ruck'], phaseCount: ['ruck'], tickRunOn: ['lineBreak'], tickBeaten: ['lineBreak'], subRefusedWhy: ['substitution'], subCover: ['substitution'], tickChase: ['lineBreak'], tickHalfway: ['lineBreak', 'carry'], tickIntoTwentyTwo: ['lineBreak', 'carry'], turnoverIsolated: ['ruck'], yellowRepeated: ['yellowCard'], tickScrumSet: ['scrum'], tickRuck: ['ruck'], tickRuckNear: ['ruck'], tickRuckWhistle: ['ruck'], tickRuckStuck: ['ruck'], tickContest: ['catch'], tickScrumWon: ['scrum'], pickGo: ['carry'], carryTouch: ['carry'], intercepted: ['carry'], phases: ['ruck'], turnover: ['ruck'],
   breakClean: ['lineBreak'], breakHauled: ['lineBreak'], breakLastGasp: ['lineBreak'], interceptRun: ['lineBreak'], interceptHauled: ['lineBreak'],
   forwardPass: ['forwardPass'], unplayableRuck: ['unplayable'], unplayableMaul: ['unplayable'],
   koKnock: ['knockOn'], highKnock: ['knockOn'], chaseKnock: ['knockOn'], contactKnock: ['knockOn'],
@@ -231,7 +231,7 @@ export const MUST = new Set([
   'kickTouch', 'penTouch', 'fiftyTwentyTwo', 'outFull', 'kickDead', 'bouncedOut', 'ranDead', 'touchedDown',
   'scrumKnock', 'scrumForward', 'scrumNotStraight', 'scrumUnplayable', 'scrumRestart', 'scrumChoice', 'scrum', 'scrumAgainstHead', 'scrumFree',
   'loTouch', 'loPen', 'loFifty', 'loFull', 'loBounced', 'loCarried', 'loFreeTouch', 'loQuick', 'lo', 'loStolen', 'loNotStraight', 'loPenalty',
-  'maulDown', 'penRuckDef', 'penRuckAtt', 'penScrum', 'penMaul', 'penLineout', 'penKick', 'pen', 'freeScrum', 'freeLineout', 'free', 'tapPen', 'tapFree', 'tapNear', 'tapQuick', 'injured', 'subInjury',
+  'maulDown', 'penRuckDef', 'penRuckAtt', 'penScrum', 'penMaul', 'penLineout', 'penKick', 'pen', 'freeScrum', 'freeLineout', 'free', 'tapPen', 'tapFree', 'tapNear', 'tapQuick', 'injured', 'subInjury', 'subRefusedWhy',
   'scoreLine', 'binBack', 'subMade', 'subRefused', 'halfTime', 'fullTime', 'winBy', 'draw', 'turnover', 'chargedDown',
   // the manager's decisions and what came of them (round 8): every one acknowledged
   'mgrPosts', 'mgrTurnCorner', 'mgrTurnTap', 'mgrTurnScrum', 'mgrCorner', 'mgrTap', 'mgrScrum', 'capCallPosts', 'capCallCorner', 'capCallTap', 'capCallScrum',
@@ -246,7 +246,7 @@ const PRI: Record<string, number> = {
   phases: 0, loWon: 0, carryBack: 0, catchKick: 1, catchKo: 1, catchDrop: 1, maulOut: 1, maulNoGain: 1, freeKickKick: 1,
   winBy: 3, binBack: 3,
   shOneOut: 1, shPod: 1, shTipOn: 1, shSnipe: 1, shPullBack: 1, shPodTen: 1, shMiss: 1, shLoop: 1, shWrap: 1, shSwitch: 1, shKickPass: 1,
-  tickCarryOn: -1, tickToTouch: -1, tickRuckQuick: 1, tickRuckSlow: 0, tickRuckNext: 0, phaseCount: 0, tickRunOn: 1, tickChase: 1, tickHalfway: 1, tickIntoTwentyTwo: 1, tickScrumSet: 0,
+  tickCarryOn: -1, tickToTouch: -1, tickRuckQuick: 1, tickRuckSlow: 0, tickRuckNext: 0, phaseCount: 0, tickRunOn: 1, tickBeaten: 1, tickChase: 1, tickHalfway: 1, tickIntoTwentyTwo: 1, tickScrumSet: 0,
   tickPass: 1, tickHands: 1, tickCarry: 1, tickGain: 1, tickHeld: 1, tickTackle: 0, tickNear: 2, tickLine: 2, tickOver: 2, tickLaunch: 1, tickFirst: 1,
   tickRuck: 0, tickRuckNear: 1, tickRuckWhistle: 1, tickRuckStuck: 1, tickFlight: 0, tickRoll: 0, tickMaul: 1, tickMaulStop: 1, tickStop: 0, tickContest: 1, tickScrumWon: 1,
 }
@@ -255,7 +255,7 @@ const priorityOf = (base: string, level: Line['level']) => (level === 'key' || M
 /** the ticker register: short lines for the run of play */
 export const TICK = new Set([
   'shOneOut', 'shPod', 'shTipOn', 'shSnipe', 'shPullBack', 'shPodTen', 'shMiss', 'shLoop', 'shWrap', 'shSwitch', 'shKickPass',
-  'tickCarryOn', 'tickToTouch', 'tickRuckQuick', 'tickRuckSlow', 'tickRuckNext', 'phaseCount', 'tickRunOn', 'tickChase', 'tickHalfway', 'tickIntoTwentyTwo', 'tickScrumSet',
+  'tickBeaten', 'tickCarryOn', 'tickToTouch', 'tickRuckQuick', 'tickRuckSlow', 'tickRuckNext', 'phaseCount', 'tickRunOn', 'tickChase', 'tickHalfway', 'tickIntoTwentyTwo', 'tickScrumSet',
   'tickPass', 'tickHands', 'tickCarry', 'tickGain', 'tickHeld', 'tickTackle', 'tickNear', 'tickLine', 'tickOver', 'tickLaunch', 'tickFirst', 'tickRuck', 'tickRuckNear', 'tickRuckWhistle', 'tickRuckStuck',
   'tickContest', 'tickScrumWon', 'carryBig', 'carryBack', 'pickGo', 'offload', 'catchKo', 'catchKick', 'catchDrop',
   'kickBox', 'kickLong', 'kickHigh', 'kickGrubber', 'kickCross', 'kickChip', 'kickOther', 'freeKickKick', 'tickFlight', 'tickRoll', 'tickMaul', 'tickMaulStop', 'tickStop',
@@ -406,6 +406,11 @@ interface DecPlay {
  *  the match. harmonycheck C05 asks a named man to be in the line's own play (the whistle), so until the
  *  overseer lets a summary at the whistle name a man from earlier in the match, this one switch turns them off */
 export const NAMED_SUMMARY = false
+/** the defender a line break beat (Play.beat), by name: harmonycheck C05 does not read `beat` yet, so until it does
+ *  the line says a tackle was missed without naming the man */
+export const NAMED_BEAT = false
+/** why the game refused the manager's change (Play.cause on a refused substitution, fromMatch.ts decide()) */
+const REFUSED_WHY: Record<string, string> = { 'not on the field': 'sim.whyNotOn1', 'in the bin or sent off': 'sim.whyBinned1', 'not on the bench': 'sim.whyNotBench1', refused: 'sim.whyLaws1' }
 const decOf = (q: Play | undefined) => q as (Play & DecPlay) | undefined
 /** a tactics change in a few words: the dial that moved most, and which way (a change under 15 of 100 is not said) */
 const TAC_WORDS: [string, string, string][] = [
@@ -690,9 +695,12 @@ export function commentate(result: SimResult, names: Names, context: Context = {
           say(base, 'minor', s, extra)
           if (k > 1) say('tickRunOn', 'minor', s, { player: extra.player })
         }
+        // the defender he beat (a missed tackle), named once harmonycheck reads `beat`
+        const beaten = () => { if (p.beat?.length) say('tickBeaten', 'minor', s, { player, oppPlayer: NAMED_BEAT ? nm(p.beat[0]) : undefined }) }
+        if (p.result !== 'interception' && p.result !== 'interceptionHauled' && p.result !== 'clean') beaten()
         if (p.result === 'interception') { say('interceptRun', 'key', s, { player }); crossings(); runOn('tickRunOn', { player }) }
         else if (p.result === 'interceptionHauled') { crossings(); say('interceptHauled', 'key', s, { player, oppPlayer, zone_k: zoneKey(s, p.x) }) }
-        else if (p.result === 'clean') { say('breakClean', 'key', s, { player, player2 }); crossings(); runOn('tickRunOn', { player }) }
+        else if (p.result === 'clean') { say('breakClean', 'key', s, { player, player2 }); beaten(); crossings(); runOn('tickRunOn', { player }) }
         else if (p.result === 'heldShort') { crossings(); say('tickChase', 'minor', s, { player, oppPlayer }); say('breakLastGasp', 'key', s, { player, oppPlayer, d: Math.max(1, Math.round(toLine(s, p.x))) }) }
         else {
           const d = toLine(s, p.x)
@@ -806,7 +814,10 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       }
       case 'injury': { say('injured', 'normal', s, { player: nm(p.who) }); if (p.who) offIds.add(p.who); break }
       case 'substitution': {
-        say(p.result !== 'made' ? 'subRefused' : p.cause === 'injury' ? 'subInjury' : 'subMade', 'normal', s, { player: nm(p.who), player2: nm(p.with?.[0]) })
+        const why_k = p.result !== 'made' && p.cause ? REFUSED_WHY[p.cause] : undefined
+        say(p.result !== 'made' ? (why_k ? 'subRefusedWhy' : 'subRefused') : p.cause === 'injury' ? 'subInjury' : 'subMade', 'normal', s, { player: nm(p.who), player2: nm(p.with?.[0]), why_k })
+        // the manager's own pick to cover an injury (the record marks it: callBy 'manager')
+        if (p.result === 'made' && p.cause === 'injury' && (p as Play & { callBy?: string }).callBy === 'manager') say('subCover', 'minor', s, { player: nm(p.who), player2: nm(p.with?.[0]) })
         // the manager's own change (no cause: the game's bench writes 'tactical', a forced one 'injury'): why it reads sensible
         if (p.result === 'made' && !p.cause && p.who && p.with?.[0]) {
           const v = stat.get(p.who), started = !cameOn.has(p.who)

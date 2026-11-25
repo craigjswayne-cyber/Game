@@ -156,11 +156,13 @@ for (const { code, label } of LANGS) {
   const theirs = new Set(leaves(d))
 
   // `_f` siblings are optional per language - langparity checks the ones a language has
-  // THE ONE EXEMPTION (round 8, 25 Nov, as in langparity.ts): the commentary's `sim.` group is English only
+  // THE ONE EXEMPTION (round 8, 25 Nov, as in langparity.ts): the commentary's `sim.` group, the new match
+  // screen's `sim2.` group and its six matchday keys are English only
   // until it is translated; a language that has the group at all is held to all of it
-  const awaiting = (k: string) => k.startsWith('sim.') && !('sim' in d)
+  const AWAIT_KEYS = new Set(['matchday.statPossession', 'matchday.statTerritory', 'matchday.statTries', 'matchday.statTackles', 'matchday.statPensConceded', 'matchday.optScrum'])
+  const awaiting = (k: string) => (k.startsWith('sim.') && !('sim' in d)) || (k.startsWith('sim2.') && !('sim2' in d)) || (AWAIT_KEYS.has(k) && !theirs.has(k))
   const gaps = [...enKeys].filter(k => !SIBLING.test(k) && !theirs.has(k) && !awaiting(k))
-  if ([...enKeys].some(awaiting)) console.log(`  note  ${label}: ${[...enKeys].filter(awaiting).length} sim. keys awaiting translation`)
+  if ([...enKeys].some(awaiting)) console.log(`  note  ${label}: ${[...enKeys].filter(awaiting).length} keys of the new match engine awaiting translation`)
   ok(gaps.length === 0, `${label} has every key English has${gaps.length ? ` (${gaps.length} missing: ${gaps.slice(0, 6).join(', ')})` : ''}`)
 
   const stale = [...theirs].filter(k => !SIBLING.test(k) && !enKeys.has(k))
