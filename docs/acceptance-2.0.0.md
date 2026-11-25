@@ -60,7 +60,7 @@ Three allowances are mine, not the owner's, and he should confirm them: up to 10
 | 40 | Same: the manager's penalty call | Posts gives a kick at goal, corner a kick to touch, tap a tap, scrum a scrum | R38-dec-call (52 calls over 8 real fixtures, all obeyed; fixed by the lead in 9e09f0a8) | PASS |
 | 41 | Same: a tactics change | Every play before it the same; the match changes after it | R39-dec-tactics (8 of 8 the same before, 8 of 8 changed after) | PASS |
 | 42 | Same: a half-time team talk | The first half the same; the second changes | R40-dec-talk (8 of 8 the same before, 8 of 8 changed after) | PASS |
-| 43 | "There is still no connection with players, commentary & graphics" (20 Nov, 22:06) | Every man named in a play is on the side it says and on the field (through substitutions); every man named in the words is in that play, or the one it gives as the reason, or is its offender | R26-names, C05-line-player | PASS |
+| 43 | "There is still no connection with players, commentary & graphics" (20 Nov, 22:06) | Every man named in a play is on the side it says and on the field (through substitutions); every man named in the words is in that play, or the one it gives as the reason, or is its offender | R26-names, C05-line-player (round 9: also items 83 and 84's rulings) | PASS |
 | 44 | "Everything that happens is clear on the pitch and in words" (AGENTS.md) | Every score, card, penalty, scrum, lineout, kick-off, half-time and full time has a line; every line points at a real play, in order; its side, its kind and its score agree with the play | C01, C02, C03, C04, C08 | PASS |
 | 45 | The shape of a real match (spec section 4, approved 20 Nov) | Ball in play 32 to 38 min, tries 6.0 to 6.6, points 48 to 53, scrums 11 to 17, lineouts 22 to 29 | R34-shape-rates (36.5 min, 6.52, 50.2, 14.1, 24.8) | PASS |
 | 46 | "Perfect speed, perfect movement" of the 1.9.16 highlight clips (AGENTS.md) | The new pitch feels as good | Eyes list, 1 and 6 | NEEDS HIS EYES |
@@ -90,17 +90,19 @@ Three allowances are mine, not the owner's, and he should confirm them: up to 10
 | 69 | Same: "then it flashes when there's a key [moment], a try or a penalty goal" | Every try, goal and card has its line (never thinned out), and it stays up at least 2 s before the next line | T03-flash | PASS |
 | 70 | "It must fit what is shown on the pitch" (24 Nov) | The line on screen is never about a play still to come, and more than one play behind for under 2% of the time the ball is in play | T04-in-step | PASS |
 | 71 | Same: a ticker can be read | Ticker lines 70 characters or fewer, fuller lines 90, flash lines 48 (lead, 24 Nov 15:05) | T05-short | PASS |
-| 72 | "Check all the fundamentals of the game, making sure it's as realistic as possible from what you can see and from what data you have" (24 Nov) | Our per-match figures on real fixtures within the range the sources give, widened by 20%; no source, no verdict | Realism table below (`harmonycheck.ts realism`) | FAIL (7 of 40 on 30 balanced fixtures: drop goals 0, kicks from hand 36, carries 181, tries from scrums 24%, penalty taps 2.8%, drop-goal success, penalties 12.7 by his choice) |
+| 72 | "Check all the fundamentals of the game, making sure it's as realistic as possible from what you can see and from what data you have" (24 Nov) | Our per-match figures on real fixtures within the range the sources give, widened by 20%; no source, no verdict | Realism table below (`harmonycheck.ts realism`) | FAIL (round 9: 4 of 40 on 30 balanced fixtures: tries from turnovers 16%, from restarts 8.7%, from tapped penalties 3.6%, penalties 12.0 by his choice; drop goals, kicks from hand, carries and tries from scrums now in line) |
 | 73 | "A card costs" (coordinator, 24 Nov, on the manager's levers) | A side with a man in the bin does worse a minute than with 15 | M02-card-cost | PASS |
 | 74 | The captain effect (owner, 25 Nov, decision 3: yes, it stays) | A captain's leadership changes his side's discipline in its own 22 and a late call, as docs/match-sim-manager-levers.md describes | Accepted design | ACCEPTED (25 Nov) |
 | 75 | Out-of-position costs as in round 7 (owner, 25 Nov, decision 4: yes, they stay) | A man out of position costs his side as measured in docs/match-sim-manager-levers.md | Accepted design | ACCEPTED (25 Nov) |
 | 76 | Home advantage (owner, 25 Nov: "Leave it": it stays at the game's band, 51% to 57%) | Home wins in the game's band | F01 realism table (balanced set) | PASS (55.8% home wins on 120 balanced fixtures, round 6) |
 | 77 | Disc size of v7 (owner, 25 Nov, decision 6: yes, it is fine) | | Accepted | ACCEPTED (25 Nov) |
-| 78 | GO: "wire the new engine and pitch into the real match screen (Extended), with the manager's decisions, on the work branch only" (owner, 25 Nov, decision 7: yes): the stored result | The result the game stores for a watched Extended match is the match that was watched: score, tries, every scorer and his minute, cards, substitutions, injuries, and the season stats they feed | W01-stored (20 managed matches, scripted decisions: posts, a tactics change at 30:00, the No. 8 off at 50:00) | FAIL (1 of 20: seed 11, a try at minute 43 stored at 45) |
+| 78 | GO: "wire the new engine and pitch into the real match screen (Extended), with the manager's decisions, on the work branch only" (owner, 25 Nov, decision 7: yes): the stored result | The result the game stores for a watched Extended match is the match that was watched: score, tries, every scorer and his minute, cards, substitutions, injuries, and the season stats they feed | W01-stored (20 managed matches, scripted decisions: posts, a tactics change at 30:00, the No. 8 off at 50:00) | PASS (round 9, 717f62db: 20 of 20 exactly as watched) |
 | 79 | Same: "This can't be a preset result" (24 Nov), through the real session | A decision at 50:00 through the session leaves every play before it the same and changes the match after it | W02-session-decisions | PASS (20 of 20 changed after the call, none before) |
 | 80 | Same: the rest of the game untouched | With the new engine playing the managed match, every other fixture of that week has the same result as with the old engine's watched match; scripts/fingerprint.ts still passes | W03-rest-untouched, W04-fingerprint | PASS (220 other fixtures identical; fingerprint passes) |
-| 81 | Same: the season still works | A season with every home match watched on the new engine: table, cards, injuries, condition, morale, money and player stats within 10% of the old engine; the saved game reads back and plays on the same | W05-season (`harmonycheck.ts season 3`) | FAIL (the managed side makes no substitutions; injuries -72%, morale -19%, money -15%, appearances -17%; save and load fine) |
+| 81 | Same: the season still works | A season with every home match watched on the new engine: table, cards, injuries, condition, morale, money and player stats within 10% of the old engine, judged beyond the noise (round 9: a figure fails when it is off by 10% and its paired difference is outside the 95% band); the saved game reads back and plays on the same | W05-season (`harmonycheck.ts season N`); yellow cards a match on both engines from the same state (`harmonycheck.ts cards 5`) | FAIL on red cards only (8 seasons: 0.25 a season on the old engine, 1.75 on the new, beyond the noise; GAMEPLAY's stated choice, the sources' 0.12 to 0.18 a match: a ruling is needed). Everything else is within 10% or inside the noise; yellow cards are not higher (613 paired matches, below); save and load fine |
 | 82 | Same: player ratings | The adapter's match ratings by position on the old engine's scale and spread (mean within 10%, spread within 25%) | W06-ratings (`season 3`) | PASS (every position within 10% on mean, 25% on spread) |
+| 83 | C05 ruling (coordinator, 25 Nov, round 9): "accept (a) a half-time or full-time summary line naming a man from earlier in the match (standout, deciding scorer, player of the match), checked true against the record so far, and (b) the defender named in a line break's `beat` field" | A whistle summary names a man who is in the record, and every number it gives (tries, turnovers won, tackles, carries and metres, the deciding score's man, kind and minute, the game's player of the match) is the record's; a beaten defender is in the play's `beat`, on the field and not in the bin | C05-line-player (`summaryClaimWrong`) | PASS (with both switches on in a trial copy: 50 named whistle lines and 225 named beaten defenders on 20 real fixtures, all true; 13 of 13 altered claims caught) |
+| 84 | The screen cannot drift from the session (coordinator, 25 Nov, round 9) | Sim2Live.tsx and stream.ts get plays and results only through the store's session, never by simulating on their own | W07-screen-session: import, source and run-time proof | PASS (committed tree and working tree) |
 
 ## The four test failures of round 2, judged (22 Nov)
 
@@ -307,6 +309,75 @@ What they found on the adapter as it stood at 14:04:
 
   Save and load: the saved text reads back (save.ts readImport) and plays the next three weeks the same as the game that was not saved. The biggest cause found: the manager's side never uses its bench in the session, even with `assistantBench: true` (seed 301: 0 changes for Leicester, 8 for the opponent), while the old engine's watched match does. The in-match injuries are also far fewer (the traced match had none). Three seasons is a small sample for the table figures (position, red cards); the bench and injury gaps are far beyond it.
 - W06: the adapter's match ratings by position are within 10% of the old engine's means and 25% of its spreads in every position.
+
+## Round 9 (25 Nov): C05 ruling, GAMEPLAY's fix table, yellow cards, the screen
+
+Run on the committed tree (73284195; src/game is clean, and the working tree differs only in ANIMATION's UI files and tests).
+
+**C05 (item 83).** A whistle summary (decidedTry, decidedKick, motm, standTries, standSteals, standTackles, standCarries) may name a man from earlier in the match. Its claim is held to the record up to the whistle (`summaryClaimWrong`): every count it gives must equal the record's, and so must the deciding score's man, kind and minute. A beaten defender in a play's `beat` counts as in that play, with the usual on-the-field checks. I tried it on a copy of commentary.ts with both switches on (`HARMONY_COMM=/abs/path/scripts/tmp/commentary-named.ts`). C05 passes on 300 seeds and 20 real fixtures, with 50 named whistle lines and 225 named beaten defenders. Every altered claim was caught (13 of 13). COMMENTARY is told to turn `NAMED_SUMMARY` and `NAMED_BEAT` on.
+
+**GAMEPLAY's fix table, `season 3` re-run (confirmed exactly).** Figures a season, old engine against new:
+- appearances 566 against 581;
+- in-match injuries 8.3 against 9.3;
+- morale 6.2 against 5.6;
+- balance 3.76m against 3.48m;
+- tries 83.7 against 75.0;
+- yellow cards 9.7 against 12.3.
+
+`wiring 20`: W01 20 of 20, W02 20 of 20, W03 220 of 220, fingerprint passes.
+
+**Noise.** Three seasons cannot tell 10% from nothing. Leicester's yellow cards on the old engine alone were 5, 15 and 9 in the three seasons. W05 now fails a figure only when it is off by more than 10% and its paired difference (seasons paired by seed) is outside the 95% band (t on n - 1 degrees of freedom). Re-run on 8 seasons:
+
+| Figure (a season) | Old engine | New engine | Change | 95% band of the difference | Verdict |
+|---|---|---|---|---|---|
+| points | 46.38 | 46.00 | -1% | 12.41 | |
+| position | 5.75 | 5.75 | +0% | 3.09 | |
+| yellow | 10.25 | 11.63 | +13% | 3.31 | within the noise |
+| red | 0.25 | 1.75 | +600% | 1.00 | OFF |
+| injuriesInMatch | 12.63 | 10.75 | -15% | 4.29 | within the noise |
+| injuredNow | 2.63 | 1.75 | -33% | 2.06 | within the noise |
+| bannedNow | 0.00 | 0.25 | | 0.39 | within the noise |
+| condition | 92.01 | 92.20 | +0% | 2.22 | |
+| morale | 6.40 | 5.91 | -8% | 1.41 | |
+| balance | 4,166,968 | 3,848,798 | -8% | 2,995,827 | |
+| apps | 564.13 | 567.25 | +1% | 27.22 | |
+| tries | 79.63 | 70.63 | -11% | 12.13 | within the noise (but -10% and -11% in both runs: worth watching) |
+| playerPoints | 636.00 | 620.00 | -3% | 103.08 | |
+
+Ratings (W06) on 8 seasons: every position within 10% on mean and 25% on spread. The new engine's means are 0.06 to 0.22 lower in every position. Save and load: fine.
+
+**Yellow cards, measured properly (`cards 5`).** 613 managed matches: new games for Leicester, Toulouse, Leinster and Northampton, five seeds each (901 and up), every managed match to the end of the league. Each match was played on both engines from the same state, with the assistant holding the bench on the new. Per match:
+
+| | Old engine | New engine | New - old (paired t) |
+|---|---|---|---|
+| Yellow cards, managed side | 0.775 | 0.612 | -0.163 (t -3.2) |
+| Yellow cards, opponent | 0.804 | 0.649 | -0.155 (t -3.2) |
+| Red cards, managed side | 0.018 | 0.078 | +0.060 (t 4.8) |
+| Red cards, opponent | 0.015 | 0.072 | +0.057 (t 4.9) |
+
+The managed side is carded less at home (0.63 against 0.76), less away (0.59 against 0.79), and less for every one of the four clubs. On the new engine both sides concede penalties at about the same rate (managed 5.29, opponent 5.59) and are carded at the same rate per penalty (0.116). The managed side's card price at kick-off is a little higher (cardRisk 0.0139 against 0.0129, its tactics' aggression), and the engine reads it.
+
+So the new engine does not card the managed side more. It cards both sides about 20% fewer yellows (1.26 a match in all, inside the sources' 0.53 to 2.40). The season's +28% and +13% are season-to-season drift: three or eight seasons of about 12 home matches each, with each engine's seasons running their own course. Red cards are up on both sides, as GAMEPLAY chose (0.15 a match, in the sources' 0.12 to 0.18; the old engine's 0.03 is below them).
+
+**The screen (item 84, W07).** Proof at three levels:
+- **Import and source:** Sim2Live.tsx and every one of the 39 UI files it reaches by import have no value import of skeleton, fromMatch, world, toResult, matchEngine's simulators, match/*, dice or rng. Their code names none of the simulator's entry points and never steps an engine (`.runUntil(`, `.step()`). The screen takes only `fromSim2`, `StreamFeed` and types from stream.ts, and makes its one session as `fromSim2(live.sim2!, …)` with `live = useStore(s => s.liveMatch)`. In stream.ts, MatchSim, worldFromMatch and mulberry32 appear only inside `standInSession`, and nothing in src calls it; only tests/simstream.test.ts does.
+- **Run time:** `fromSim2` over a `startSim2` session hands back the session's own plays array, through the screen's own calls (`playOut`), to the same result.
+- **Tested against breakage:** four planted breaches were each caught on a copy of the tree: a MatchSim import, the stand-in in place of the store's session, a MatchSim inside fromSim2, and a `.runUntil` on the screen.
+
+It passes on both the committed tree and the working tree.
+
+**My own check errors found this round.** R37 took the No. 8's injury replacement at minute 16 for the manager's substitution (seed 3). It now looks only from the call on, and accepts a refusal because he is already off. Yellow-card causes are in the play's `result`, not `cause`.
+
+## Final status (25 November 2026, round 9, 16:30)
+
+Run: `npx vite-node scripts/harmonycheck.ts` on 73284195 (src/game clean; ANIMATION's uncommitted UI changes in the tree). HARMONY FAILED on 2 of 82 rules: 80 pass, none not run. Quick test 32 of 32. `wiring 20` (W07 included), `season 8`, `cards 5`.
+
+Checklist totals: 66 PASS, 2 FAIL (items 72, 81), 1 REPORT (48), 3 ACCEPTED (74, 75, 77), 7 NEEDS HIS EYES (3, 5, 7, 19, 36, 46, 63), 5 RETIRED (34, 35, 47, 58, 59). 84 items.
+
+What truly fails:
+1. Item 81, W05: red cards, 1.75 a season against 0.25 (both sides carded red about four times as often). GAMEPLAY's deliberate choice, inside the sources' band. It needs a ruling: accept it as design, or hold it to the old engine.
+2. Item 72, F01 (GAMEPLAY), 30 balanced fixtures. Too many tries from turnovers (16%; real 11 to 12%), from restarts (8.7%; real 6%) and from tapped penalties (3.6%; real 2%). Penalties are 12 a match, which the owner chose.
+Not run: nothing. The eyes list stands as in round 8.
 
 ## Final status (25 November 2026, round 8, 14:20)
 
