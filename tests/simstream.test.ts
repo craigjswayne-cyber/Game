@@ -7,7 +7,7 @@ import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import type { Fixture } from '../src/game/model'
 import { FPS } from '../src/ui/livepitch/fromRecord'
 import { fromSim2, standInSession, StreamFeed } from '../src/ui/livepitch/stream'
-import { sim2Seed, startSim2 } from '../src/game/sim/toResult'
+import { replaySim2, sim2Seed, startSim2 } from '../src/game/sim/toResult'
 
 function setup(seed: number) {
   const g = newGame('leicester', 'T', seed)
@@ -128,4 +128,53 @@ describe('the live match stream', () => {
     expect(s2.ctx.seg).toBe(3)
     expect([s2.ctx.home.score, s2.ctx.away.score]).toEqual(score)
   }, 300_000)
+
+  it('picks a match up again after a reload at the right moment: open play, a penalty call waiting, half-time', () => {
+    const g = newGame('leicester', 'T', 11)
+    let fx: Fixture | null | undefined = null
+    for (let i = 0; i < 12 && !fx; i++) { fx = userFixtureThisWeek(g); if (!fx) processWeekAndAdvance(g) }
+    const pre = structuredClone(g)
+    const s2 = startSim2(g, fx!, sim2Seed(g, fx!), { userSideId: g.userClubId, preTalk: null })
+    const session = fromSim2(s2, g)
+    const feed = new StreamFeed(session, [fx!.homeId, fx!.awayId])
+    type Point = { what: string; n: number; score: [number, number]; clock: number; pending: string; record: string; done: string }
+    const points: Point[] = []
+    const take = (what: string) => {
+      const n = feed.n, P = session.plays
+      // the reload: the store's own replay of the session's save, on the game as it stood before kick-off
+      const base = structuredClone(pre)
+      const b2 = replaySim2(base, s2.save())!
+      const b = fromSim2(b2, base)
+      const fb = new StreamFeed(b, [fx!.homeId, fx!.awayId])
+      const at = fb.startAt(n)
+      expect(at).toBe(n)
+      expect(JSON.stringify(b.plays)).toBe(JSON.stringify(P))
+      expect(JSON.stringify(b.sides)).toBe(JSON.stringify(session.sides))
+      expect(JSON.stringify(b.lineup(session.managed!))).toBe(JSON.stringify(session.lineup(session.managed!)))
+      expect(JSON.stringify(b.pending)).toBe(JSON.stringify(session.pending))
+      expect(fb.blockedBy).toBe(feed.blockedBy)
+      // on from there, the replayed match plays out exactly as the first would
+      b.playOut()
+      points.push({ what, n, score: P[n].score, clock: P[n].clock ?? P[n].t, pending: JSON.stringify(session.pending), record: '', done: JSON.stringify(b.plays) })
+    }
+    let k = 0
+    for (; k < 400000 && !feed.done; k++) {
+      feed.pump(50); feed.step(1 / 60)
+      // (where the pitch is: the screen reads it every frame, LivePitch's draw)
+      feed.seek(feed.a)
+      const w = feed.waiting
+      if (!points.some(p => p.what === 'open') && feed.a > 400 && !w && session.plays[feed.n]?.kind === 'carry') take('open')
+      if (w === 'penalty' && !points.some(p => p.what === 'penalty')) take('penalty')
+      if (w === 'halfTime' && !points.some(p => p.what === 'halfTime')) take('halfTime')
+      if (w === 'penalty') { session.answer(null); feed.baker.more() }
+      if (w === 'injury') { session.cover(session.pendingInjury!.like); feed.baker.more() }
+      if (w === 'halfTime') feed.releaseHalfTime()
+    }
+    expect(session.done).toBe(true)
+    console.log('simstream resume:', JSON.stringify(points.map(p => ({ what: p.what, play: p.n, score: p.score, clock: p.clock }))))
+    expect(points.map(p => p.what).sort()).toEqual(['halfTime', 'open', 'penalty'])
+    const full = JSON.stringify(session.plays)
+    for (const p of points) expect(p.done).toBe(full)
+  }, 600_000)
 })
+

@@ -77,7 +77,7 @@ export function fromSim2(s: Sim2Session, game: GameState): Session {
       players: lus[i].flatMap((id, k) => { const p = id != null ? game.players[id] : null; return p ? [{ id: String(p.id), name: p.name, shirt: k + 1 }] : [] }),
     }
   }
-  return {
+  const out: Session = {
     get plays() { return s.plays as Play[] },
     sides: [side(0), side(1)],
     managed: s.us,
@@ -86,19 +86,29 @@ export function fromSim2(s: Sim2Session, game: GameState): Session {
     get done() { return s.done },
     nextPassage() { if (!s.done && !s.pending && !s.pendingInjury) s.runUntil({ play: s.plays.length + 1, dead: true }) },
     apply: d => { s.apply(d) },
-    // left to him: the game's own call (the posts when in range), as the old engine's skip
-    answer: call => s.answer(call ?? s.defaultCall()),
+    // left to him: the captain's own call (the engine's, on the score and the clock): this one penalty
+    // handed to the side, played, then asked again from the next. Through the session's own apply and
+    // runUntil, so a replay after a reload makes the same call
+    answer: call => {
+      const p = s.pending
+      if (!p) return
+      if (call) { s.answer(call); return }
+      s.apply({ kind: 'penaltyCall', side: p.side, call: 'auto' })
+      s.runUntil({ play: s.plays.length + 1 })
+      s.apply({ kind: 'penaltyCall', side: p.side, call: 'ask' })
+    },
     cover: on => s.cover(on),
     lineup: i => s.world.lineup?.(i) ?? null,
     playOut() {
       for (let guard = 0; guard < 400 && !s.done; guard++) {
-        if (s.pending) s.answer(s.defaultCall())
+        if (s.pending) out.answer(null)
         else if (s.pendingInjury) s.cover(s.pendingInjury.like)
         else s.runUntil({})
       }
     },
     result: () => s.sim.result(),
   }
+  return out
 }
 
 /** THE STAND-IN (the tests' session): the managed match on MatchSim, on the real sides */
@@ -240,6 +250,10 @@ export class StreamClock {
     // (held for the manager: the picture settles to clip pace as it gets there, so whatever comes next starts from it)
     if (held && n > C) this.rate[n - 1] = Math.min(this.rate[n - 1], CLIP_RATE)
     for (let f = n - 2; f >= C; f--) this.rate[f] = Math.min(this.rate[f], this.rate[f + 1] * Math.exp(k2 / FPS / this.rate[f + 1]))
+    // (and a slowing that would have to begin behind what is final, a try's build-up found after its first frames
+    // were fixed: eased down from the last final frame instead of a step. Everywhere else the pass above has
+    // eased it already and this changes nothing)
+    for (let f = Math.max(1, C); f < n; f++) this.rate[f] = Math.max(this.rate[f], this.rate[f - 1] * Math.exp(-k2 / FPS / this.rate[f - 1]))
     this.n = n
     this.committed = final ? n : Math.max(C, n - Math.round(COMMIT_LAG * FPS))
   }
@@ -321,6 +335,27 @@ export class StreamFeed extends RecordFeed {
     this.done = this.isDone()
   }
   seek(v: number) { this.a = Math.max(0, Math.min(v, this.shownTo / FPS)); this.dirty = true; this.read() }
+  /** A MATCH PICKED UP AGAIN (a reload, the session replayed to where it was): everything up to play `n`
+   *  baked without being shown, at the same rates the screen worked out the first time (the bake and the
+   *  clock see the same plays), and the screen stood at the start of play n. Returns the play it stands at. */
+  startAt(n: number): number {
+    n = Math.max(0, Math.min(n, this.session.plays.length - 1))
+    // (the first frame of play n as baked: the frame-to-play map, not segs[n].a0, which is only a plan until
+    // the bake has started the play)
+    const firstOf = () => { const bk = this.baker.live(); for (let f = 0; f < bk.n; f++) if (bk.seg[f] >= n) return f; return -1 }
+    let f0 = -1
+    for (let guard = 0; guard < 20000; guard++) {
+      f0 = firstOf()
+      if (f0 >= 0 && this.shownTo >= f0) break
+      const had = this.baker.live().n
+      // (pump bakes BAKE_AHEAD past where the screen is: the screen is moved along to what is final)
+      this.a = Math.max(this.a, this.shownTo / FPS)
+      this.pump(50)
+      if (this.baker.live().n === had && this.blockedBy) { f0 = firstOf(); break }
+    }
+    this.seek(f0 >= 0 ? Math.min(f0, this.shownTo) / FPS : this.shownTo / FPS)
+    return this.n
+  }
   protected read() { if (this.baker.frames > 0) super.read() }
   protected animNow(): number { return this.a }
   protected rateAt(fa: number): number { return (this.clock.rate[fa] || 1) * this.speedMul }

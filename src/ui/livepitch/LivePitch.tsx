@@ -1159,8 +1159,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       {banner && bSide && (
         <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}${(banner.teamId === homeId) ? ' low' : ' high'}${plateUp ? ' up' : ''}`} key={`b${banner.at}`} data-testid="lp-banner">
           {pts != null && <em>+{pts}</em>}
-          {/* a long verdict (PENALTY GOAL, CARTELLINO GIALLO) is set smaller so it stays inside the touchlines */}
-          <b style={bannerSize(tr(`lp.b.${banner.kind}`), !!good)}>{tr(`lp.b.${banner.kind}`)}</b>
+          {/* a long verdict (PENALTY GOAL, CARTELLINO GIALLO) is set smaller so it stays inside the touchlines; a
+              score is the size of every other plate (round 9: the ticker flash and the scoreboard carry the moment) */}
+          <b style={bannerSize(tr(`lp.b.${banner.kind}`), false)}>{tr(`lp.b.${banner.kind}`)}</b>
           <span>{banner.teamId === homeId ? teams.home : teams.away}{banner.name ? ` · ${banner.name}` : ''} · {Math.min(80, banner.min)}'
             <i style={{ background: barInk(bSide.kit) }} /></span>
           {(banner.kind === 'yc' || banner.kind === 'rc') && <i className={`lp-bcard ${banner.kind}`} />}

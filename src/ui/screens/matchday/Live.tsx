@@ -109,7 +109,7 @@ export function Live() {
   const live = useStore(s => s.liveMatch)
   const prefs = readMatchPrefs()
   const highlightsOn = (() => { try { return /[?&]hl=1\b/.test(location.search) || !navigator.webdriver } catch { return true } })()
-  if (SIM2_EXTENDED && live && prefs.highlights === 'extended' && highlightsOn && live.mode !== 'highlights' && live.sim2 && !live.resumed) return <Sim2Live />
+  if (SIM2_EXTENDED && live && prefs.highlights === 'extended' && highlightsOn && live.mode !== 'highlights' && live.sim2) return <Sim2Live />
   return <LiveOld />
 }
 

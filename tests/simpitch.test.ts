@@ -24,6 +24,7 @@ import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture } from '../src/game/model'
 import { worldFromMatch, type SimSide } from '../src/game/sim/fromMatch'
+import { clashes, CLASH_DE, kitDistance, seenOnGrass, wornKits } from '../src/ui/livepitch/kitclash'
 import { bake, bakeOf, BALL_PX, BUILD_MAX, CLOSE_FROM, CLOSE_MARGIN, CLOSE_RATE, CLIP_RATE, expectedAt, FPS, IN_GOAL, MAN_PX, oddRuns, possessionStart, shapeAtRucks, RUN_BACK, RUN_FWD, schedule, SCREEN_MAN, screenSmooth, TARGET_S, timeline, type Baked } from '../src/ui/livepitch/fromRecord'
 
 function realMatch(seed: number): { plays: Play[]; sides: [SimSide, SimSide]; result: ReturnType<typeof simSkeleton> } {
@@ -334,4 +335,32 @@ describe('the stadium pitch plays the record', () => {
     console.log(`simpitch ticker: ${shownN} lines over three matches, ${flashes} flashes`, faults.slice(0, 10).join('\n'))
     expect(faults).toEqual([])
   }, 300_000)
+
+  // KIT CLASH (round 9: "Leicester v Toulon are both red and cannot be told apart")
+  it('every pairing of clubs can be told apart on the pitch, by the colour each kit shows on the grass', () => {
+    const g = newGame('leicester', 'T', 7)
+    const nt = { white: '#ffffff', ink: '#1d2733', slate: '#8c98a4', gold: '#e0b44a', home: '#2f8f55', away: '#b33a3a' }
+    const ids = Object.keys(g.clubs).filter(id => g.clubs[id].colors?.length)
+    let pairs = 0, near = 0, worst = Infinity
+    for (const h of ids) for (const a of ids) {
+      if (h === a) continue
+      pairs++
+      const w = wornKits(nt, g.clubs[h].colors, g.clubs[a].colors)
+      const d = kitDistance(w.home, w.away)
+      worst = Math.min(worst, d)
+      if (clashes(w.home, w.away)) near++
+    }
+    console.log(`kit clash: ${near} of ${pairs} pairings under ${CLASH_DE} after the change, nearest ${worst.toFixed(1)}`)
+    // (37 left just under, all Ealing at home in gold: kitclash.ts)
+    expect(near).toBeLessThanOrEqual(37)
+    expect(worst).toBeGreaterThan(29.5)
+    // Leicester v Toulon: green with a red rim against red; Toulon change, either way round
+    const lt = wornKits(nt, g.clubs.leicester.colors, g.clubs.toulon.colors), tl = wornKits(nt, g.clubs.toulon.colors, g.clubs.leicester.colors)
+    expect(lt.change).not.toBe('own')
+    expect(tl.change).not.toBe('own')
+    expect(seenOnGrass(['#00563f', '#c8102e'])).toBe('#c8102e')
+    // and Leicester v Munster (red; second colour navy, ringed in red like Leicester's dark green): white
+    expect(wornKits(nt, g.clubs.leicester.colors, g.clubs.munster.colors).away[0]).toBe('#ffffff')
+  })
 })
+

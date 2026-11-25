@@ -1073,3 +1073,16 @@
   .live-wrap.sim2 .now-strip .live-stats.brief .ls-row { padding: 2px 0; }
   .live-wrap.sim2 .speed-controls .btn { min-height: 40px; }
 }
+
+/* EVERY RESULT PLATE IN ONE PLACE AND ONE SIZE (round 9; owner, 19 Nov 2026: "any pop up like a yellow card
+   or try should be smaller, centralised and down the bottom of the pitch"). A score or a card plate sat 21%
+   up the pitch, over the players, a size up from the knock-on and turnover plates. It now takes the note
+   plate's place (the near boards, or the far side when play is on the near touchline) and its size; the
+   points are on the scoreboard, and a card sits beside the word. */
+.live-pitch .lp-banner.low, .live-pitch .lp-banner.high {
+  inset: auto auto 1% 50%; padding: 3px 12px 4px; min-width: 0; border-radius: 10px; background: rgba(8, 12, 10, .94);
+}
+.live-pitch .lp-banner.low.up, .live-pitch .lp-banner.high.up { inset: 27% auto auto 50%; }
+.live-pitch .lp-banner.low em, .live-pitch .lp-banner.high em { display: none; }
+.live-pitch .lp-banner .lp-bcard { position: absolute; left: 9px; top: 50%; margin: -6px 0 0; width: 8px; height: 11px; }
+.live-pitch .lp-banner.yc, .live-pitch .lp-banner.rc { padding-left: 24px; }

@@ -2325,8 +2325,13 @@ export function oddRuns(bk: Baked, sides?: [RecSide, RecSide]) {
   for (let fr = W; fr < bk.n; fr++) {
     if (cutAt[fr]) continue
     const n = bk.seg[fr], p = P[n]
-    // (a whole side may chase a break or a kick across the field: the slide is looked for everywhere else)
-    const chase = ['lineBreak', 'kick', 'kickoff', 'dropout22', 'goalLineDropout', 'catch', 'try', 'heldUp'].includes(p.kind) || ['lineBreak', 'kick', 'kickoff', 'dropout22', 'goalLineDropout'].includes(P[bk.seg[fr - W]]?.kind ?? '')
+    // (a whole side may chase a break or a kick across the field: the slide is looked for everywhere else.
+    // Round 9: any such play inside the two seconds, not only at either end of them. Seed 2's line break at
+    // play 123 lasted under two seconds, so the window from the play before it to the ruck after it held the
+    // whole chase: Leicester's defence covering across to the breakdown, every man stopping at or short of
+    // the ball, was counted as a side sliding with nowhere to go)
+    let chase = ['lineBreak', 'kick', 'kickoff', 'dropout22', 'goalLineDropout', 'catch', 'try', 'heldUp'].includes(p.kind)
+    for (let k = bk.seg[fr - W]; k < n && !chase; k++) chase = ['lineBreak', 'kick', 'kickoff', 'dropout22', 'goalLineDropout'].includes(P[k]?.kind ?? '')
     if (!chase) for (const s of [0, 1]) {
       let sy = 0, c = 0
       for (let k = 0; k < 15; k++) { const i = s * 15 + k; if (bk.flags[fr * 30 + i] & 4 || named(n, i)) continue; sy += bk.pos[fr * 62 + i * 2 + 1] - bk.pos[(fr - W) * 62 + i * 2 + 1]; c++ }

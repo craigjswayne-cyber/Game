@@ -32,6 +32,7 @@ import type { Play, SimResult } from '../../game/sim/record'
 import { teamShort } from '../../game/matchEngine'
 import { NAMES as SPONSOR_NAMES } from '../../game/commercial'
 import { kitColours, kitInk, pageSpares } from '../kit'
+import { wornKits } from './kitclash'
 import { tokenColor } from '../highlight/draw'
 import { CrestT } from '../components'
 import { useFeedGlide } from '../screens/matchday/feedGlide'
@@ -80,10 +81,17 @@ function buildMatch(seed: number): Match {
   let fx: Fixture | null | undefined = null
   for (let i = 0; i < 12 && !fx; i++) { fx = userFixtureThisWeek(game); if (!fx) processWeekAndAdvance(game) }
   if (!fx) throw new Error('no fixture for the user in the first twelve weeks')
+  // (?home=&away=: a chosen pairing on that fixture, as for the kit-clash stills of round 9)
+  if (q.get('home') && game.clubs[q.get('home')!]) fx.homeId = q.get('home')!
+  if (q.get('away') && game.clubs[q.get('away')!]) fx.awayId = q.get('away')!
   const { world, home, away } = worldFromMatch(game, fx, mulberry32(seed))
   const result = simSkeleton({ seed, world })
   const white = tokenColor('--prop-ink')
-  const k = kitColours(pageSpares(tokenColor), game.clubs[fx.homeId]?.colors ?? [tokenColor('--kit-home'), white], game.clubs[fx.awayId]?.colors ?? [tokenColor('--kit-away'), white], false)
+  // the kits as the match screen picks them (kitclash.ts); ?oldkit=1 the rule before round 9
+  const hc = game.clubs[fx.homeId]?.colors, ac = game.clubs[fx.awayId]?.colors
+  const k = q.get('oldkit') === '1'
+    ? kitColours(pageSpares(tokenColor), hc ?? [tokenColor('--kit-home'), white], ac ?? [tokenColor('--kit-away'), white], false)
+    : wornKits({ white, ink: tokenColor('--kit-spare-ink'), slate: tokenColor('--kit-spare-slate'), gold: tokenColor('--kit-spare-gold'), home: tokenColor('--kit-home'), away: tokenColor('--kit-away') }, hc, ac)
   // day or night as the match screen decides it (Live.tsx pitchNight): two in three in the afternoon
   let h = 0
   for (const ch of String(fx.id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0
