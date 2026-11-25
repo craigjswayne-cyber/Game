@@ -97,7 +97,7 @@ export type Decision =
   | { kind: 'penaltyCall'; side: 0 | 1; call: 'posts' | 'corner' | 'tap' | 'scrum' | 'ask' | 'auto' }
   /** a replacement (player ids as the World names them); made at the next dead ball. `injury`:
    *  forced, for a man already taken off hurt. `auto`: the game's own bench, not the manager's. */
-  | { kind: 'substitution'; side: 0 | 1; off: string; on: string; injury?: boolean; auto?: boolean }
+  | { kind: 'substitution'; side: 0 | 1; off: string; on: string; injury?: boolean; auto?: boolean; chosen?: boolean }
   /** a man hurt in play: off the field now, replaced at the next dead ball if the bench allows */
   | { kind: 'injury'; side: 0 | 1; who: string }
   /** whether the game runs a side's bench (on by default for both; the manager's own side off when he does it) */

@@ -65,7 +65,7 @@ export const SIM2_EXTENDED = true
 export const ADAPTER_SALT = 0x51a2ad
 
 /** what was asked of a session, in order: enough to play it again to the same place */
-export type Sim2Op = { run: Stop } | { apply: Decision } | { answer: PenaltyCall } | { cover: string }
+export type Sim2Op = { run: Stop } | { apply: Decision } | { answer: PenaltyCall } | { cover: string } | { auto: true }
 export interface Sim2Save { v: 1; fxId: number; seed: number; userSideId: string | null; preTalk: string | null; ops: Sim2Op[] }
 
 export interface Sim2Opts {
@@ -148,6 +148,7 @@ export class Sim2Session {
     this.ctx.manualInj = true
     this.preTalkMsg = openDressingRoom(state, this.ctx, (opts.preTalk ?? null) as PreTone | null)
     this.us = this.world.managed ?? null
+    this.kickoffTeams = [this.ctx.home.lineup.slice(0, 23), this.ctx.away.lineup.slice(0, 23)]
     this.sim = new MatchSim({ seed: this.seed, world: this.world })
     if (this.us != null) {
       // the manager answers his own kickable penalties; his bench is his own unless he hands it over
@@ -225,11 +226,33 @@ export class Sim2Session {
     this.sim.answerInjury(on)
   }
 
-  /** the call the game makes for him (the old engine's skip): the posts when they are in range */
+  /** the call the side makes itself (the captain's, by the score and the clock: MatchSim's own call),
+   *  for the penalty the match is waiting on: what answerDefault() will do. Read off a copy of the
+   *  match played one step on, so nothing here is drawn from the match itself. */
   defaultCall(): PenaltyCall {
     const p = this.sim.pending
-    return !p || p.options.includes('posts') ? 'posts' : p.options[0]
+    if (!p) return 'posts'
+    if (this.peek && this.peek.t === p.t) return this.peek.call
+    const copy = new MatchSim({ seed: this.seed, world: this.world, from: this.sim.save() })
+    copy.answerAuto()
+    const n = copy.plays.length
+    // one step: the call itself (the bench and the World are not touched while a penalty is taken)
+    copy.step()
+    const call = copy.plays.slice(n).find(q => q.call)?.call ?? copy.save().tag?.call ?? (p.options.includes('posts') ? 'posts' : p.options[0])
+    this.peek = { t: p.t, call }
+    return call
   }
+  private peek: { t: number; call: PenaltyCall } | null = null
+
+  /** leave the waiting penalty to the side's own call (the captain's), as the game makes it when he skips */
+  answerDefault(): void {
+    if (this.finished || !this.sim.pending) return
+    this.ops.push({ auto: true })
+    this.sim.answerAuto()
+  }
+
+  /** the two sides as they kicked off, before any change: [home, away], player ids, shirts 1 to 23 */
+  readonly kickoffTeams: [(number | null)[], (number | null)[]]
 
   /** what to keep to play this match again to the same place (replaySim2) */
   save(): Sim2Save {
@@ -245,7 +268,7 @@ export class Sim2Session {
   finish(): OldResult {
     if (this.finished) return this.finished
     for (let guard = 0; guard < 40 && !this.sim.done; guard++) {
-      if (this.sim.pending) this.answer(this.defaultCall())
+      if (this.sim.pending) this.answerDefault()
       const inj = this.sim.pendingInjury
       if (inj) this.cover(inj.like)
       this.runUntil({})
@@ -410,10 +433,11 @@ export class Sim2Session {
         side.onPitch.delete(who.id)
         side.binned.delete(who.id)
         who.stats.rc += 1
-        // the ban the old engine gives a straight red (2 or 3 matches), on the adapter's dice
-        who.bans += 2 + Math.floor(this.arng() * 2)
+        // the ban the old engine gives: a straight red 2 or 3 matches (on the adapter's dice), a second
+        // yellow 0 or 1, read off the man and the minute as discipline.ts giveYellow does
+        who.bans += p.result === 'secondYellow' ? (who.id + min) % 2 : 2 + Math.floor(this.arng() * 2)
         side.ratings.set(who.id, (side.ratings.get(who.id) ?? 6) - 2)
-        pushLine(state, ctx, min, 'RC', side, 'comm.redCard', { player: who.name, team: teamShort(state, side.teamId) }, who.id)
+        pushLine(state, ctx, min, 'RC', side, p.result === 'secondYellow' ? 'comm.secondYellow' : 'comm.redCard', { player: who.name, team: teamShort(state, side.teamId) }, who.id)
         fieldChanged(state, ctx, side, min)
         break
       }
@@ -569,6 +593,7 @@ export function replaySim2(state: GameState, save: Sim2Save, opts: Omit<Sim2Opts
     if ('run' in op) s.runUntil(op.run)
     else if ('apply' in op) s.apply(op.apply)
     else if ('cover' in op) s.cover(op.cover)
+    else if ('auto' in op) s.answerDefault()
     else s.answer(op.answer)
   }
   return s

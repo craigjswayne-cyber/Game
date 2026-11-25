@@ -189,3 +189,31 @@ Red cards are left at the sourced rate: about 0.12 a match against the sources' 
 Not fixed this round (measured at 1,200 pairs on the squads of the round 7 table):
 - **Attack style, direct v width:** -18.9 for a pack-heavy squad, +0.3 for a backs-heavy one. Taking the width preset's style dial back to 50 still leaves -12.5. A narrow ruck commitment or a balanced kicking style makes no real difference. The cost is in how width plays (fewer mauls, wide carries), and width gives away 3 to 4 points a match whatever the squad.
 - **Their 22, drive v spread:** spreading it still wins by about 3 for both squads. A stronger near-line maul for a strong pack (gain times the maul contest to the power 2.5 inside the 22) moved nothing, because driving adds only about 0.6 mauls a match. That change was taken out again.
+
+## Round 9 (25 November, evening)
+
+Measured with scripts/tmp/gp/sources.ts: 2,000 paired matches a setting, Leicester v Glasgow, on the round 7 pack-heavy and backs-heavy squads. The script counts from the record where the points come from.
+
+**Attack style, direct v width.** Before this round, width cost a pack-heavy squad 18 win % and gave a backs-heavy one 4. What the record showed:
+- Width cut the side's mauls from 7.6 a match to 0.95, because the style's lean on the maul was squared.
+- With the mauls went the ground a lineout drive wins: 30 to 45 seconds a match less in their half, for either squad.
+- With the old engine's lean on the style taken out (the width field alone, no preset dials), it is only -5 / +1. Most of the rest comes from the preset's dials, mainly the style dial at 84, which the old engine charges a pack squad up to 6% of its attack for.
+
+Changes:
+- A style's maul lean counts once, not squared, and near their line every side drives some (`MAUL_NEAR_MIN` 0.7).
+- A tapped penalty and the break after a turnover pay less (`PEN_TAP` 0.07 to 0.04, `TURN_B` 1.8 to 1.3).
+- Set-piece strike moves in their 22 pay more (`LAUNCH_B_22` 12 to 14), so tries move toward the lineout.
+
+Now (2,000 pairs each):
+- Pack-heavy: win 60% to 47%. Points for 30.6 to 27.6, against 26.6 to 29.8. Ruck turnovers conceded +0.6 a match.
+- Backs-heavy: win 50% to 55%. Points for 27.0 to 31.4 (line breaks +1.9), against 27.5 to 29.4.
+- Averaged over the two squads, direct is still better by about 4, with a swing of 18 between them. Neither is yet in the target range (within 2 on average, a swing of 4 to 8).
+- Width still gives away about 2 to 3 points a match against either squad, through time spent in their half and ruck turnovers. The swing comes mostly from the old engine's style-misfit charge.
+
+**Their 22, drive v spread.** Driving gives 5 pick-and-goes a match in their 22 against 2.2, and 0.6 more mauls, but it scored no more tries, because a pick and go was decided by the backs' carrying against the tackle. Now it is decided by the two packs (the maul contest squared, `PICK_VS`). Drive v spread, now: pack-heavy 0.0, backs-heavy +2 win % for spread.
+
+**Why a managed side scored fewer tries over the season runs.** The session's default penalty answer was always the posts. Over 8 of Leicester's home fixtures × 15 seeds, a managed side answering every call with the posts scored 2.42 tries a match against 2.89 with the side's own call (16% fewer), and took 3.0 kicks at goal against 1.5. Only home matches were on the new engine, so the season figure was about 10% down. With nobody managed or through the session, Leicester scores the same (2.95 v 2.99, 8 fixtures × 30). The default is now the side's own call (`session.defaultCall()` and `answerDefault()`).
+
+**Try origins on the 30 balanced fixtures (harmonycheck):** from turnovers now inside the real 11 to 12%. From restarts 8.0% (real 6) and from tapped penalties 2.5% to 3.8% (real 2) wobble between runs. Carries sit at about 181, on the edge of the real band.
+
+**Red cards:** the rate is one constant, `K.P_RED` (0.013 of a penalty's card roll), about 0.12 a match. A second yellow is now a red (Law 9); it was a second yellow before.

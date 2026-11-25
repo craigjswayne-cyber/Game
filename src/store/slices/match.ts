@@ -31,7 +31,7 @@ function sim2Step(game: import('../../game/model').GameState, s: Sim2Session, au
   const ctx = s.ctx, from = ctx.events.length
   let took = 0
   for (let guard = 0; guard < 2000; guard++) {
-    if (s.pending) { if (!auto) break; s.answer(s.defaultCall()); took++ }
+    if (s.pending) { if (!auto) break; s.answerDefault(); took++ }
     if (s.pendingInjury) { if (!auto) break; s.cover(s.pendingInjury.like) }
     if (s.done) { if (ctx.seg !== 3) { s.finish(); settleKnockout(game, ctx) } break }
     if (ctx.awaiting) break
@@ -438,7 +438,7 @@ export const matchSlice = (set: SetState, get: GetState) => ({
       const s2 = liveMatch.sim2
       // the old match screen has no panel for the new engine's call: the game's own pick, so it
       // never hangs (a screen that asks him answers session.pending before it gets here)
-      if (s2.pending) s2.answer(s2.defaultCall())
+      if (s2.pending) s2.answerDefault()
       if (s2.pendingInjury) s2.cover(s2.pendingInjury.like)
       if (ctx.awaiting || ctx.seg === 3) {
         set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: false, done: ctx.seg === 3 }, tick: s.tick + 1 } : {})
@@ -534,8 +534,8 @@ export const matchSlice = (set: SetState, get: GetState) => ({
     if (game && liveMatch?.sim2?.pending) {
       // the new engine's kickable penalty: 'posts' or 'corner' (or 'tap', 'scrum') as the screen offers
       const s2 = liveMatch.sim2
-      const call = s2.pending!.options.includes(choice as never) ? choice as never : s2.defaultCall()
-      s2.answer(call)
+      if (s2.pending!.options.includes(choice as never)) s2.answer(choice as never)
+      else s2.answerDefault()
       set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: true }, tick: s.tick + 1 } : {})
       get().noteProgress()
       return ''

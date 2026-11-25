@@ -99,7 +99,8 @@ export interface Play {
   beat?: string[]
   /** the play that carries out a penalty option (penaltyGoal, kick/penaltyToTouch, tap, scrum): the
    *  call made, and who made it ('manager' answering the prompt, 'standing' his standing order,
-   *  'captain' the side's own call on a managed side). Absent on a side nobody manages: callBy. */
+   *  'captain' the side's own call on a managed side). Absent on a side nobody manages: callBy.
+   *  On a substitution for an injury, callBy 'manager' when he chose the man who came on. */
   call?: PenaltyCall
   callBy?: 'manager' | 'standing' | 'captain'
   /** the first play after a tactics change took effect: the fields set, and what they were */

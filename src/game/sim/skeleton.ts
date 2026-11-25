@@ -53,7 +53,7 @@ export const K = {
   // is turned over ISOLATED_TURN times as often
   P_BREAK: 0.044, BREAK_MIN: 6, BREAK_SPAN: 20, BREAK_LONG_P: 0.35, BREAK_LONG: 50, ISOLATED_TURN: 2.2,
   // first-phase ball off a won set piece and the first two phases after a turnover meet a defence not set
-  LAUNCH_B: 4.0, LAUNCH_B_22: 12.0, LAUNCH_B_OWN: 1.5, TURN_B: 1.8, LAUNCH_SCRUM: 0.6,
+  LAUNCH_B: 4.0, LAUNCH_B_22: 14.0, LAUNCH_B_OWN: 1.5, TURN_B: 1.3, LAUNCH_SCRUM: 0.6,
   // on their line the defence infringes and counter-rucks more: phase after phase there ends in a penalty or a turnover
   LINE_PEN: 1.3, LINE_TURN: 1.3,
   // the first two phases after catching the other side's kick (or a restart) meet a chasing line already up
@@ -72,6 +72,7 @@ export const K = {
   LINEOUT_WON: 0.87, LINEOUT_STOLEN: 0.07, LINEOUT_NOT_STRAIGHT: 0.025, LINEOUT_PEN: 0.035,
   // the driving maul (round 6, to the sources: about 10 a match): near their line, in the middle, and deep in
   // the side's own half, times the pack's lean squared; most make a few metres and the ball is used
+  MAUL_NEAR_MIN: 0.7, PICK_VS: 2,
   MAUL_FROM: 30, P_MAUL: 0.55, P_MAUL_MID: 0.40, P_MAUL_DEEP: 0.12, MAUL_GAIN: 4.5, MAUL_PEN: 0.10, MAUL_STOPPED: 0.08,
   SCRUM_PEN_FEED: 0.15, SCRUM_PEN_AGAINST: 0.08, SCRUM_FREE: 0.07, SCRUM_HEAD: 0.03, SCRUM_RESET: 0.22,
   // penalties. GOAL_TAKE set 21 Nov (was 0.66, +0.12 inside 30 m): the old engine takes about 3.5
@@ -79,7 +80,7 @@ export const K = {
   GOAL_RANGE: 50, GOAL_TAKE: 0.52, GOAL_TAKE_NEAR: 0.10, LATE_CHASE_S: 4200, LATE_POSTS_S: 3600,
   // a penalty try: how near the line, and how often foul play there is judged to have stopped one
   PT_NEAR: 10, PT_CLOSE: 5, P_PT_CLOSE: 0.30, P_PT_NEAR: 0.13,
-  PEN_TAP: 0.07, PEN_SCRUM: 0.05, FREE_TAP: 0.55, P_YELLOW_22: 0.13,
+  PEN_TAP: 0.04, PEN_SCRUM: 0.05, FREE_TAP: 0.55, P_YELLOW_22: 0.13,
   CON_GOOD: 0.77,
   // where the kick is from: each metre past 15 out and each step off the posts costs this much,
   // around the average spot of a kick in this simulation (measured, scripts/tmp/gp/shape.ts), so a
@@ -283,6 +284,10 @@ export interface SimState {
   injAsk?: [boolean, boolean]
   injPick?: Record<string, string>
   injWait?: { side: 0 | 1; who: string } | null
+  /** the men shown a yellow card this match (a second one is a red) */
+  yellowed?: string[]
+  /** the call the match is stopped for goes to the side's own call this once (MatchSim.answerAuto) */
+  autoOnce?: boolean
 }
 
 /** a man hurt on the manager's side, waiting for him to choose who comes on (MatchSim.pendingInjury) */
@@ -372,7 +377,7 @@ export class MatchSim {
   /** the manager's penalty call the match is stopped for, or null */
   get pending(): PendingCall | null {
     const st = this.st, n = st.next
-    if (n.k !== 'penaltyCall' || st.calls[n.to] !== 'ask' || st.answer) return null
+    if (n.k !== 'penaltyCall' || st.calls[n.to] !== 'ask' || st.answer || st.autoOnce) return null
     const d = n.to === 0 ? 100 - st.x : st.x
     // inside five metres nobody kicks to touch, so the corner is not offered
     const options: PenaltyCall[] = (d <= K.GOAL_RANGE ? ['posts', 'corner', 'tap', 'scrum'] : ['corner', 'tap', 'scrum'])
@@ -415,6 +420,11 @@ export class MatchSim {
     return { plays: this.st.plays, score: this.st.score, tries: this.st.tries, ...(m === 0 || m === 1 ? { managed: m } : {}) }
   }
 
+  /** leave the call the match is stopped for to the side's own call (the captain's), as the game makes it */
+  answerAuto(): void {
+    if (!this.pending) throw new Error('no penalty call is waiting')
+    this.st.autoOnce = true
+  }
   /** answer the call the match is stopped for */
   answer(call: PenaltyCall): void {
     const p = this.pending
@@ -475,7 +485,7 @@ export class MatchSim {
         if (why && (d.auto || d.injury)) continue
         if (d.injury) st.hurt![d.side] = st.hurt![d.side].filter(id => id !== d.off)
         st.plays.push({ n: st.plays.length, t: Math.round(st.t), clock: Math.round(st.clock), kind: 'substitution', side: d.side, ball: st.ball,
-          x: r1(st.x), y: r1(st.y), result: why ? 'refused' : 'made', who: d.off, with: [d.on], live: 0, dead: 0, score: [st.score[0], st.score[1]], ...(why ? { cause: why } : d.injury ? { cause: 'injury' } : d.auto ? { cause: 'tactical' } : {}) })
+          x: r1(st.x), y: r1(st.y), result: why ? 'refused' : 'made', who: d.off, with: [d.on], live: 0, dead: 0, score: [st.score[0], st.score[1]], ...(why ? { cause: why } : d.injury ? { cause: 'injury' } : d.auto ? { cause: 'tactical' } : {}), ...(d.chosen && !why ? { callBy: 'manager' as const } : {}) })
       } else if (this.world.decide) {
         // what a tactics change replaced, as the World had it, for the record (Play.tactics)
         const was: Record<string, unknown> = {}
@@ -579,7 +589,7 @@ export class MatchSim {
         // the manager's own side, when he covers its injuries: his man, or the match waits for him
         if (st.injAsk?.[s] && lu.bench.some(Boolean)) {
           const on = st.injPick?.[id]
-          if (on && lu.bench.includes(on)) { this.queue.push({ kind: 'substitution', side: s, off: id, on, injury: true }); continue }
+          if (on && lu.bench.includes(on)) { this.queue.push({ kind: 'substitution', side: s, off: id, on, injury: true, chosen: true }); continue }
           if (!st.injWait) st.injWait = { side: s, who: id }
           continue
         }
@@ -641,6 +651,9 @@ export class MatchSim {
 
   private card(off: 0 | 1, red: boolean, cause: string, who: string) {
     const st = this.st
+    // A SECOND YELLOW IS A RED (Law 9): a man already shown one this match is sent off
+    if (!red && who && (st.yellowed ??= []).includes(who)) { red = true; cause = 'secondYellow' }
+    if (!red && who) st.yellowed!.push(who)
     if (red) { st.sentOff[off]++; this.world.carded?.(off, who, Infinity); this.emit('redCard', off, cause, null, 0, 20, { who }); return }
     const until = st.t + K.BIN_S
     st.bin[off].push(until); this.world.carded?.(off, who, until)
@@ -772,7 +785,12 @@ export class MatchSim {
     const dl = this.toLine(to, st.x)
     const ms = this.sty(to).maul * (dl <= 22 ? this.sty(to).in22?.maul ?? 1 : 1)
     const pMaul = dl < K.MAUL_FROM * Math.max(1, ms) ? K.P_MAUL : dl < 70 ? K.P_MAUL_MID : K.P_MAUL_DEEP
-    if (rng() < Math.min(0.9, pMaul * ms * ms)) {
+    // A STYLE LEANS ON THE MAUL, IT DOES NOT GIVE IT UP (round 9). Squared, a wide side's lean (about
+    // 0.35) cut its mauls to an eighth: 7.6 a match to 0.95, and with them the ground a lineout drive
+    // wins, so width cost 30 to 45 seconds a match in their half for any squad (scripts/tmp/gp/sources.ts).
+    // Now the lean counts once, and near their line every side drives some (MAUL_NEAR_MIN).
+    const msEff = dl < K.MAUL_FROM ? Math.max(K.MAUL_NEAR_MIN, ms) : ms
+    if (rng() < Math.min(0.9, pMaul * msEff)) {
       st.launch = ''
       const before = st.x
       const gain = Math.max(0, this.gauss(K.MAUL_GAIN * this.vs(to, 'maul') * Math.pow(this.sty(to).fit?.tight ?? 1, dl <= 22 ? K.FIT_22 : 1), 3.5))
@@ -847,6 +865,7 @@ export class MatchSim {
     // a side somebody manages; nothing on a side nobody manages
     const by: Play['callBy'] = st.answer ? 'manager' : standing !== 'auto' && standing !== 'ask' ? 'standing'
       : this.world.managed === to ? 'captain' : undefined
+    st.autoOnce = false
     const tagged = (c: PenaltyCall, f: () => Next): Next => { st.tag = { ...st.tag, call: c, ...(by ? { callBy: by } : {}) }; return f() }
     st.answer = null
     const u = rng()
@@ -1037,7 +1056,10 @@ export class MatchSim {
     // the defence: a narrow defence gives up the outside and holds the inside, a blitz holds the
     // gain line and gives up more breaks and intercepts
     // (behind on the scoreboard, a good captain lifts them; the called move off first-phase ball is a drilled play)
-    const edge = qb * (this.lead(s) < 0 ? 1 + K.CAPTAIN_LIFT * me.lead : 1) * (launch && me.launchMove ? K.MOVE_GAIN : 1) * this.vs(s, 'carry', 'tackle') * this.comp(me) * (wide ? 1 + 0.12 * them.narrow : 1 - 0.12 * them.narrow) * (1 - (wide ? K.BLITZ_WIDE : K.BLITZ_TIGHT) * them.blitz) * (me.fit ? Math.pow(wide ? me.fit.wide : me.fit.tight, plan ? K.FIT_22 : 1) : 1)
+    // THE PICK AND GO IS THE PACK'S (round 9): on their line it is forwards against forwards, so its
+    // edge is the two packs' (the maul contest, to PICK_VS), not the backs' carrying against the tackle
+    const contact = pickGo ? Math.pow(this.vs(s, 'maul'), K.PICK_VS) : this.vs(s, 'carry', 'tackle')
+    const edge = qb * (this.lead(s) < 0 ? 1 + K.CAPTAIN_LIFT * me.lead : 1) * (launch && me.launchMove ? K.MOVE_GAIN : 1) * contact * this.comp(me) * (wide ? 1 + 0.12 * them.narrow : 1 - 0.12 * them.narrow) * (1 - (wide ? K.BLITZ_WIDE : K.BLITZ_TIGHT) * them.blitz) * (me.fit ? Math.pow(wide ? me.fit.wide : me.fit.tight, plan ? K.FIT_22 : 1) : 1)
     // (on their own line a defence is at its tightest: every metre is fought for)
     const near = d <= K.LINE_NEAR ? K.LINE_GAIN : 1
     // the shape it is run in (a pick and go, a launch play off set-piece ball and an offload's run are their own)
