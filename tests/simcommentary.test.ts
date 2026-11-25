@@ -1215,7 +1215,8 @@ describe("round 9: a real watched match through the session, the manager's decis
     const us = s.us as 0 | 1, side = () => (us === 0 ? s.ctx.home : s.ctx.away)
     let tac = false, talk = false, subs = 0, calls = 0
     for (let k = 0; k < 4000 && !s.done; k++) {
-      if (s.pending) { const o = s.pending.options; s.answer((calls++ % 2 ? o[0] : o[o.length - 1])) }
+      // (every third call left to the captain: the side's own call by the score and the clock)
+      if (s.pending) { const o = s.pending.options, c = calls++; if (c % 3 === 2) s.answerDefault(); else s.answer(c % 3 ? o[0] : o[o.length - 1]) }
       const inj = s.pendingInjury
       if (inj) { s.cover(inj.options[inj.options.length - 1]); continue }
       const last = s.plays[s.plays.length - 1], clock = last?.clock ?? 0
@@ -1236,13 +1237,32 @@ describe("round 9: a real watched match through the session, the manager's decis
     let checked = 0
     for (const p of s.plays) {
       const q = p as Play & { callBy?: string; tactics?: unknown; talk?: { pre?: boolean } }
-      if (q.callBy) { checked++; expect(at(p.n).some(b => (q.callBy === 'captain' ? /^capCall/ : /^mgr/).test(b)), `call at ${p.n}`).toBe(true) }
+      // (a penalty's call is on the play that carries it out; on a substitution, callBy 'manager' is his own pick to cover an injury)
+      if (q.callBy && p.kind !== 'substitution') { checked++; expect(at(p.n).some(b => (q.callBy === 'captain' ? /^capCall/ : /^mgr/).test(b)), `call at ${p.n}: ${p.kind}/${p.result} ${q.callBy}; said ${at(p.n)}`).toBe(true) }
+      if (p.kind === 'substitution' && q.callBy === 'manager') { checked++; expect(p.cause).toBe('injury'); expect(at(p.n)).toContain('subCover') }
       if (q.tactics) { checked++; expect(at(p.n)).toContain('tacChange') }
       if (q.talk && !q.talk.pre) { checked++; expect(at(p.n)).toContain('talkHt') }
       if (p.kind === 'substitution' && p.result === 'refused' && p.cause === 'not on the field') { checked++; expect(at(p.n)).toContain('subRefusedWhy'); expect(render(ls.find(l => l.n === p.n)!)).toMatch(/is not on the field/) }
       if (p.kind === 'lineBreak' && p.beat?.length) expect(at(p.n)).toContain('tickBeaten')
     }
     expect(s.managed).toBe(us)
+    // the captain's calls are said as his
+    expect(s.plays.filter(p => (p as Play & { callBy?: string }).callBy === 'captain').length).toBeGreaterThan(0)
     expect(checked).toBeGreaterThanOrEqual(4)
   }, 120_000)
+})
+
+describe('round 10: a second yellow is a red', () => {
+  it('says "a second yellow, and that is red" only for a man already shown a yellow', () => {
+    let seen = 0
+    for (const { r, lines } of runs) for (const p of r.plays) {
+      if (p.kind !== 'redCard') continue
+      const bases = lines.filter(l => l.n === p.n).map(l => baseOf(l.key))
+      const second = p.result === 'secondYellow'
+      if (second) { seen++; expect(r.plays.some(q => q.kind === 'yellowCard' && q.who === p.who && q.n < p.n)).toBe(true) }
+      expect(bases).toContain(second ? 'flashRedSecond' : 'flashRed')
+      expect(bases).toContain(second ? 'redSecond' : 'red')
+    }
+    expect(seen).toBeGreaterThan(0)
+  })
 })

@@ -11740,7 +11740,16 @@
   "whyLaws1": "the laws do not allow it",
   "subCover1": "The manager picks the cover: {player2} for {player}.",
   "subCover2": "{player2} is the manager's choice to replace {player}.",
-  "subCover3": "The bench sends {player2} on to cover for {player}."
+  "subCover3": "The bench sends {player2} on to cover for {player}.",
+  "flashRedSecond1": "Second yellow: red for {player}!",
+  "flashRedSecond2": "RED! Second yellow for {player}.",
+  "flashRedSecond3": "Second yellow for {team}: red!",
+  "flashRedSecond4": "Second yellow, so red: {player}!",
+  "redSecond1": "A second yellow for {player}, and that is red. {team} are down to {men}.",
+  "redSecond2": "{player} has already been in the bin: a second yellow means red. {team} have {men} for the rest.",
+  "redSecond3": "That is two yellows for {player}, so it is red. {team} down to {men}.",
+  "redSecond4": "Red for {player} on a second yellow. {team} will play the rest with {men}.",
+  "redSecond5": "{team} lose {player} for good: a second yellow, and that is red."
  },
  "sim2": {
   "subQueued": "{on} on for {off} at the next stoppage",

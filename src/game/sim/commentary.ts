@@ -204,7 +204,7 @@ export const BASE_KINDS: Record<string, PlayKind[]> = {
   heldUp: ['heldUp'], heldUpMaul: ['heldUp'], tryMid: ['try'], conOver: ['conversion'], conWide: ['conversion'],
   penAim: ['penaltyGoal'], penOver: ['penaltyGoal'], penWide: ['penaltyGoal'], dropOver: ['dropGoal'], dropWide: ['dropGoal'],
   flashTry: ['try'], flashPenTry: ['penaltyTry'], flashCon: ['conversion'], flashConMiss: ['conversion'], flashPen: ['penaltyGoal'], flashPenMiss: ['penaltyGoal'],
-  flashDrop: ['dropGoal'], flashDropMiss: ['dropGoal'], flashYellow: ['yellowCard'], flashRed: ['redCard'], scoreLine: ['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal'],
+  flashDrop: ['dropGoal'], flashDropMiss: ['dropGoal'], flashYellow: ['yellowCard'], flashRed: ['redCard'], flashRedSecond: ['redCard'], redSecond: ['redCard'], scoreLine: ['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal'],
   halfTime: ['halfTime'], fullTime: ['fullTime'], tries: ['halfTime', 'fullTime'], possession: ['halfTime', 'fullTime'], winBy: ['fullTime'], draw: ['fullTime'],
   // notes
   run: SCORES, firstScore: SCORES, leadTaken: SCORES, levelScores: SCORES, biggestLead: SCORES, comeback: SCORES, comebackLevel: SCORES, comebackLead: SCORES,
@@ -265,7 +265,7 @@ export const TICK = new Set([
 const flashOf = (base: string, level: Line['level']): Line['flash'] =>
   base === 'flashTry' || base === 'flashPenTry' ? 'try'
     : base === 'flashCon' || base === 'flashPen' || base === 'flashDrop' ? 'goal'
-    : base === 'flashYellow' || base === 'flashRed' ? 'card'
+    : base === 'flashYellow' || base === 'flashRed' || base === 'flashRedSecond' ? 'card'
     : level === 'key' ? 'key' : null
 const HOLD = { try: 4, goal: 3, card: 3.5, key: 2.5 } as const
 /** a key moment's flash is a short headline (48 letters or fewer); its full line follows as the detail */
@@ -808,8 +808,10 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       case 'redCard': {
         reds[s]++
         if (p.who) offIds.add(p.who)
-        say('flashRed', 'key', s, { player: nm(p.who) })
-        say('red', 'normal', s, { player: nm(p.who), men: onField(s) })
+        // a second yellow for the same man is a red (Law 9; Play.result 'secondYellow')
+        const second = p.result === 'secondYellow'
+        say(second ? 'flashRedSecond' : 'flashRed', 'key', s, { player: nm(p.who) })
+        say(second ? 'redSecond' : 'red', 'normal', s, { player: nm(p.who), men: onField(s) })
         break
       }
       case 'injury': { say('injured', 'normal', s, { player: nm(p.who) }); if (p.who) offIds.add(p.who); break }
@@ -957,8 +959,9 @@ export function commentate(result: SimResult, names: Names, context: Context = {
             const side = sideOf.get(best)!, player = nm(best)
             if (tr >= 2) say('standTries', 'minor', side, { player, count: tr })
             else if (v.to >= 2) say('standSteals', 'minor', side, { player, count: v.to })
-            else if (v.tk >= 8 && v.tk >= v.car * 1.5) say('standTackles', 'minor', side, { player, count: v.tk })
-            else if (v.car >= 5) say('standCarries', 'minor', side, { player, count: v.car, m: Math.round(v.m) })
+            // (a standout only on numbers that stand out: ten tackles, or carries that made forty metres)
+            else if (v.tk >= 10 && v.tk >= v.car * 1.5) say('standTackles', 'minor', side, { player, count: v.tk })
+            else if (v.car >= 5 && v.m >= 40) say('standCarries', 'minor', side, { player, count: v.car, m: Math.round(v.m) })
           }
         }
         if (!ft) { halfStart = Infinity; lastTerr = -Infinity; lastBall = -Infinity; inSecond = true }
@@ -1208,6 +1211,10 @@ const ONE: Record<string, string> = { tries: 'try', penalties: 'penalty', carrie
  *    spread through its slot, so the ticker keeps moving; a ticker line stays up until the next, up to 3 s
  * Returned in time order; the lines keep the order of the record.
  */
+/** lines the manager must see whatever the speed: his calls, changes, talks and what came of them, and the
+ *  half-time and full-time blocks (placed after the flashes, before every other line) */
+const SHOWN = /^sim\.(mgr|capCall|call[A-Z]|tacChange|talk|sub(Why|Try|Steal|Pen|Miss|Cover|RefusedWhy|Refused)|decided|motm|stand[A-Z]|halfBall|halfTime|fullTime|tries\d|winBy|draw|redSecond)/
+
 /** a slot faster than this is fast forward (life speed on the pitch reads about 1.1 in its schedule) */
 export const FAST = 1.5
 
@@ -1242,7 +1249,8 @@ export function feed(lines: Line[], slots: SlotLike[], opts: FeedOpts = {}): Sho
     // (or a little into the play after it, where the line before leaves no room sooner: it is then one play behind, no more)
     if (l.run) { const j = byN.get(l.run[1]) ?? i; return { l, idx, ord, lo: a.start, hi: Math.max(a.start + 0.05, sl[j].start + sl[j].dur + Math.min(sl[j + 1]?.dur ?? 0, 0.3)), want: a.start } }
     // (in fast forward, inside its own play; at life speed up to 0.8 s into the next: never more than a play behind the picture)
-    const lo = a.start, hi = a.speed > FAST && nx ? Math.max(a.start + a.dur, a.start + 0.05) : nx ? nx.start + Math.min(nx.dur, 0.8) : a.start + Math.max(a.dur, 4)
+    // (the manager's decisions and the half-time and full-time blocks may run up to 0.8 s into the next play even in fast forward)
+    const lo = a.start, hi = a.speed > FAST && nx && !SHOWN.test(l.key) ? Math.max(a.start + a.dur, a.start + 0.05) : nx ? nx.start + Math.min(nx.dur, 0.8) : a.start + Math.max(a.dur, 4)
     const k = seen.get(l.n) ?? 0, m = perPlay.get(l.n)!
     seen.set(l.n, k + 1)
     const want = a.start + (a.dur * k) / m
@@ -1274,7 +1282,8 @@ export function feed(lines: Line[], slots: SlotLike[], opts: FeedOpts = {}): Sho
   type C = NonNullable<typeof cand[number]>
   const best = new Map<number, number>()
   for (const c of cand) if (c) { const b = best.get(c.l.n); if (b === undefined || cand[b]!.l.priority < c.l.priority) best.set(c.l.n, cand.indexOf(c)) }
-  const tier = (c: C, k: number) => (c.l.flash ? 0 : best.get(c.l.n) === k ? 1 : 2)
+  // (flashes, then what the manager did and the story at the whistle, then each play's best line, then the rest)
+  const tier = (c: C, k: number) => (c.l.flash ? 0 : SHOWN.test(c.l.key) ? 0.5 : best.get(c.l.n) === k ? 1 : 2)
   // (a run line, standing for several plays, is placed with the lines that must be shown)
   const rank = (c: C) => (c.l.run ? 3 : c.l.priority)
   const order = cand.map((c, k) => ({ c, k })).filter(x => x.c).sort((a, b) => tier(a.c!, a.k) - tier(b.c!, b.k) || rank(b.c!) - rank(a.c!) || a.c!.ord - b.c!.ord)
