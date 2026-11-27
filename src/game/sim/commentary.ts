@@ -74,6 +74,8 @@ export interface Line {
   after?: boolean
   /** set by feed() in fast forward: one line for a run of plays, first to last, shown for the whole run */
   run?: [number, number]
+  /** the pre-match block: said before the kick-off (feed() shows it while the teams run out, before the first play) */
+  pre?: boolean
 }
 
 /** a line as the ticker shows it: when (viewing seconds, on the pitch's schedule) and for how long */
@@ -107,6 +109,53 @@ export interface Context {
   surface?: 'grass' | 'hybrid' | 'artificial'
   /** each side's captain, by the record's player id */
   captains?: [string | undefined, string | undefined]
+  // ---- the occasion in full (overnight run, 26 Nov; context.ts contextFromGame reads them off the game) ----
+  /** the derby's own name ('the East Midlands derby') */
+  derbyName?: string
+  compName?: string
+  /** a league fixture: its round, of how many */
+  round?: number
+  rounds?: number
+  /** a knockout tie: 'QF', 'SF', 'F', 'BAR' */
+  stage?: string
+  /** the league table before kick-off, in order, and the two clubs' ids (home, away) */
+  standings?: { id: string; pts: number; w: number; pd: number; tf: number; pf: number; p: number }[]
+  clubIds?: [string, string]
+  /** the first competitive match of the season for both sides */
+  firstMatch?: boolean
+  /** each side's last five results before this one, oldest first ('WWLDW') */
+  form?: [string, string]
+  /** the last time they met this season: the week, whether today's home side was at home, the score (today's home side first) */
+  lastMet?: { week: number; sameVenue: boolean; homeScore: number; awayScore: number }
+  /** the referee and what he is known for: 'fussy' (at the breakdown), 'jackal' (lets it go), 'scrumTight', 'shortFuse', 'flow', 'stopStart' */
+  referee?: { name: string; traits: string[] }
+  attendance?: number
+  capacity?: number
+  /** each man in the match by the record's id: his side, shirt, season and career so far, his kicks at goal this season */
+  men?: Record<string, ContextMan>
+  /** the team news worth saying */
+  news?: ContextNews[]
+  /** each side's next fixture */
+  next?: [{ opp: string; home: boolean; week: number } | undefined, { opp: string; home: boolean; week: number } | undefined]
+}
+
+export interface ContextMan {
+  side: 0 | 1
+  shirt: number
+  apps: number; tries: number; points: number
+  careerApps: number; careerTries: number; careerPoints: number
+  kickMade?: number; kickAtt?: number
+}
+/** debut: his first senior game; clubDebut: his first for this club; milestone: an n-th appearance; oldClub: against
+ *  a club he has played for; return: back after n weeks injured; absent: a leading man not in the 23 (named, not an id) */
+export interface ContextNews {
+  kind: 'debut' | 'clubDebut' | 'milestone' | 'oldClub' | 'return' | 'absent'
+  side: 0 | 1
+  id?: string
+  name?: string
+  starts?: boolean
+  n?: number
+  why?: 'injured' | 'suspended'
 }
 
 export interface CommentaryOpts {
@@ -146,7 +195,9 @@ export const SUMMARY = new Set([
   'ballTen', 'pensWarn', 'pensTotal', 'loRecord', 'scRecord', 'entries', 'outFullCount', 'handlingCount', 'turnoversCount', 'tryType',
   'introDerby', 'introCup', 'introTable', 'introVenue', 'wxDamp', 'wxRain', 'wxWind', 'wxSnow', 'surfArtificial', 'weatherKnock',
   'talkWorks', 'subWhyBin', 'subWhyPens', 'subWhyLegs', 'subWhyLate', 'decidedFront', 'decidedTry', 'decidedKick', 'halfBall', 'motm',
-  'standTries', 'standSteals', 'standTackles', 'standCarries',
+  'standTries', 'standSteals', 'standTackles', 'standCarries', 'refHotRepeat', 'penRepeat', 'refWarning', 'refWarningAnon', 'coachShort', 'coachChase', 'coachProtect', 'coachWet', 'coachScrum', 'coachFrontRow', 'postTackler', 'postJackal', 'postCulprit', 'windFirst', 'windSecond',
+  // the overnight run: the occasion, the men's stories, the co-commentator, the crowd, the story after the whistle
+  'preRunIn', 'preFull', 'preCrowd', 'preDerbyName', 'preCupStage', 'preRound', 'preFirst', 'preTop', 'preBottom', 'preClose', 'formAllWon', 'formAllLost', 'formSome', 'metHere', 'metThere', 'metDrew', 'newsDebutStart', 'newsDebutBench', 'newsClubStart', 'newsClubBench', 'newsMilestone', 'newsOldClub', 'newsReturn', 'newsAbsent', 'preRef', 'refKnown', 'careerTry', 'droughtEnds', 'seasonTries', 'oldClubScores', 'careerPoints', 'kickForm', 'crowdHomeRoar', 'crowdHomeCheer', 'crowdAway', 'crowdHush', 'crowdSiege', 'anaKicking', 'anaHands', 'anaWide', 'anaMiddle', 'anaCollide', 'anaStopped', 'anaJackal', 'tipBreakdown', 'anaScrumBad', 'tipScrum', 'anaPensRuck', 'tipPens', 'anaPensOffside', 'anaInTheirHalf', 'duelHalf', 'duelFull', 'postUp', 'postDown', 'postStay', 'postBonusTry', 'postBonusLose', 'postCupWon', 'postCupThrough', 'postStat', 'postMgrGood', 'postMgrBad', 'postMgrMixed', 'postNext', 'motmNums', 'debutFirst', 'clubFirst', 'returnFirst', 'debutHalf',
 ])
 
 /** bases used only when the record has an order this file does not expect: the tests hold them at zero */
@@ -158,7 +209,7 @@ const ANY: PlayKind[] = ['kickoff', 'dropout22', 'goalLineDropout', 'scrum', 'li
 const SCORES: PlayKind[] = ['conversion', 'penaltyGoal', 'dropGoal', 'penaltyTry']
 const STOPS: PlayKind[] = ['penalty', 'freeKick', 'scrum', 'lineout', 'kickoff', 'dropout22', 'goalLineDropout']
 /** words put inside other lines, never lines of their own */
-const INNER = /^(zone|cause|nth|kind|type|need|how|tone|who|why)[A-Z]/
+const INNER = /^(zone|cause|nth|kind|type|need|how|tone|who|why|stage|out|ord|where)[A-Z]|^(refFussy|refJackal|refScrumTight|refShortFuse|refFlow|refStopStart|refHotOffside|duelTries|duelBreaks|duelTurnovers|duelCarries|duelTackles|edgeBreaks|edgeTurnovers|edgePens)$/
 
 /** the kinds of Play each base may be written for */
 export const BASE_KINDS: Record<string, PlayKind[]> = {
@@ -192,7 +243,7 @@ export const BASE_KINDS: Record<string, PlayKind[]> = {
   hlBreak: ['lineBreak'], hlTurnover: ['ruck'], hlLastGasp: ['lineBreak'], hlHeldUp: ['heldUp'], hlHeldUpMaul: ['heldUp'], hlMaulOver: ['maul'], hlPicked: ['carry'], hlIntercept: ['lineBreak'],
   runPhases: ['carry', 'ruck', 'offload'], runQuick: ['carry', 'ruck', 'offload'], runGain: ['carry', 'ruck', 'offload'], runNoGain: ['carry', 'ruck', 'offload'], runBack: ['carry', 'ruck', 'offload'],
   runTwentyTwo: ['carry', 'ruck', 'offload'], runHalf: ['carry', 'ruck', 'offload'], runWide: ['carry', 'ruck', 'offload'], runStart: ['carry', 'ruck', 'offload'], runShort: ['carry', 'ruck', 'offload'],
-  fillOver: ['carry'], fillBreak: ['lineBreak'], fillRuck: ['ruck'], fillPhase: ['ruck'], fillDefence: ['ruck'], fillCarry: ['carry', 'offload'], fillKick: ['kick'], fillLineout: ['lineout'], fillScrum: ['scrum'], fillMaul: ['maul'], fillClock: ANY, fillGoal: ['conversion', 'penaltyGoal'],
+  fillOver: ['carry'], fillLoose: ['carry', 'knockOn'], fillBreak: ['lineBreak'], fillRuck: ['ruck'], fillPhase: ['ruck'], fillDefence: ['ruck'], fillCarry: ['carry', 'offload'], fillKick: ['kick'], fillLineout: ['lineout'], fillScrum: ['scrum'], fillMaul: ['maul'], fillClock: ANY, fillGoal: ['conversion', 'penaltyGoal'],
   mgrPosts: ['penaltyGoal'], mgrTurnCorner: ['kick'], mgrTurnTap: ['tap'], mgrTurnScrum: ['scrum'], mgrCorner: ['kick'], mgrTap: ['tap'], mgrScrum: ['scrum'],
   capCallPosts: ['penaltyGoal'], capCallCorner: ['kick'], capCallTap: ['tap'], capCallScrum: ['scrum'],
   callPaysTry: ['try', 'penaltyTry'], callCornerLost: ['lineout'], callScrumLost: ['scrum'], callPostsGood: ['penaltyGoal'], callPostsMiss: ['penaltyGoal'],
@@ -201,6 +252,10 @@ export const BASE_KINDS: Record<string, PlayKind[]> = {
   subTry: ['try'], subSteal: ['ruck', 'carry'], subPen: ['penalty'], subMiss: ['try'],
   decidedFront: ['fullTime'], decidedTry: ['fullTime'], decidedKick: ['fullTime'], halfBall: ['halfTime', 'fullTime'], motm: ['fullTime'],
   standTries: ['halfTime', 'fullTime'], standSteals: ['halfTime', 'fullTime'], standTackles: ['halfTime', 'fullTime'], standCarries: ['halfTime', 'fullTime'],
+  preRunIn: ['kickoff'], preFull: ['kickoff'], preCrowd: ['kickoff'], preDerbyName: ['kickoff'], preCupStage: ['kickoff'], preRound: ['kickoff'], preFirst: ['kickoff'], preTop: ['kickoff'], preBottom: ['kickoff'], preClose: ['kickoff'], formAllWon: ['kickoff'], formAllLost: ['kickoff'], formSome: ['kickoff'], metHere: ['kickoff'], metThere: ['kickoff'], metDrew: ['kickoff'], newsDebutStart: ['kickoff'], newsDebutBench: ['kickoff'], newsClubStart: ['kickoff'], newsClubBench: ['kickoff'], newsMilestone: ['kickoff'], newsOldClub: ['kickoff'], newsReturn: ['kickoff'], newsAbsent: ['kickoff'], preRef: ['kickoff'], refKnown: ['kickoff'], careerTry: ['try'], droughtEnds: ['try'], seasonTries: ['try'], oldClubScores: ['try'], careerPoints: ['try', 'conversion', 'penaltyGoal', 'dropGoal'], kickForm: ['conversion', 'penaltyGoal'], crowdHomeRoar: ['try'], crowdHomeCheer: ['try'], crowdAway: ['try'], crowdHush: ['penaltyGoal'], crowdSiege: ['ruck'], anaKicking: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaHands: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaWide: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaMiddle: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaCollide: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaStopped: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaJackal: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], tipBreakdown: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaScrumBad: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], tipScrum: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaPensRuck: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], tipPens: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaPensOffside: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], anaInTheirHalf: ['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime'], duelHalf: ['halfTime'], duelFull: ['fullTime'], postUp: ['fullTime'], postDown: ['fullTime'], postStay: ['fullTime'], postBonusTry: ['fullTime'], postBonusLose: ['fullTime'], postCupWon: ['fullTime'], postCupThrough: ['fullTime'], postStat: ['fullTime'], postMgrGood: ['fullTime'], postMgrBad: ['fullTime'], postMgrMixed: ['fullTime'], postNext: ['fullTime'], motmNums: ['fullTime'], debutFirst: ANY, debutHalf: ['halfTime'], clubFirst: ANY, returnFirst: ANY,
+windFirst: ['kickoff'], windSecond: ['kickoff'], windKickWith: ['kick'], windKickInto: ['kick'], windGoalWith: ['penaltyGoal', 'conversion'], windGoalInto: ['penaltyGoal', 'conversion'], windGoalMiss: ['penaltyGoal', 'conversion'], scShove: ['scrum'], scEight: ['scrum'], scBackRow: ['scrum'], scrumPushover: ['scrum'], tryPushover: ['try'], loOptFront: ['lineout'], loOptMiddle: ['lineout'], loOptTail: ['lineout'], koShort: ['kickoff'], koLong: ['kickoff'], coachFrontRow: ANY, postTackler: ['fullTime'], postJackal: ['fullTime'], postCulprit: ['fullTime'],
+  refHotRepeat: ['penalty'], penRepeat: ['penalty'], refWarning: ['penalty'], refWarningAnon: ['penalty'],
+  coachShort: ANY, coachChase: ANY, coachProtect: ANY, coachWet: ANY, coachScrum: ANY,
   heldUp: ['heldUp'], heldUpMaul: ['heldUp'], tryMid: ['try'], conOver: ['conversion'], conWide: ['conversion'],
   penAim: ['penaltyGoal'], penOver: ['penaltyGoal'], penWide: ['penaltyGoal'], dropOver: ['dropGoal'], dropWide: ['dropGoal'],
   flashTry: ['try'], flashPenTry: ['penaltyTry'], flashCon: ['conversion'], flashConMiss: ['conversion'], flashPen: ['penaltyGoal'], flashPenMiss: ['penaltyGoal'],
@@ -237,6 +292,7 @@ export const MUST = new Set([
   'mgrPosts', 'mgrTurnCorner', 'mgrTurnTap', 'mgrTurnScrum', 'mgrCorner', 'mgrTap', 'mgrScrum', 'capCallPosts', 'capCallCorner', 'capCallTap', 'capCallScrum',
   'callPaysTry', 'callCornerLost', 'callScrumLost', 'callPostsGood', 'callPostsMiss', 'tacChange', 'talkHt', 'talkPre', 'talkWorks',
   'subTry', 'subSteal', 'subPen', 'subMiss', 'decidedFront', 'decidedTry', 'decidedKick', 'motm',
+  'refWarning', 'refWarningAnon', 'coachShort', 'coachChase', 'coachProtect', 'coachWet', 'coachScrum', 'coachFrontRow', 'scrumPushover',
 ])
 /** priority 1 (a note worth hearing) and 0 (colour); every other line is 2 */
 const PRI: Record<string, number> = {
@@ -245,6 +301,7 @@ const PRI: Record<string, number> = {
   handlingCount: 0, outFullCount: 0, turnoversCount: 0, tryType: 0, introVenue: 0, weatherKnock: 0, subFirst: 0, backFromBin: 0,
   phases: 0, loWon: 0, carryBack: 0, catchKick: 1, catchKo: 1, catchDrop: 1, maulOut: 1, maulNoGain: 1, freeKickKick: 1,
   winBy: 3, binBack: 3,
+  crowdHomeRoar: 0, crowdHomeCheer: 0, crowdAway: 0, crowdHush: 0, crowdSiege: 0, anaKicking: 0, anaHands: 0, anaWide: 0, anaMiddle: 0, anaCollide: 0, anaStopped: 0, anaJackal: 0, tipBreakdown: 0, anaScrumBad: 0, tipScrum: 0, anaPensRuck: 0, tipPens: 0, anaPensOffside: 0, anaInTheirHalf: 0,
   shOneOut: 1, shPod: 1, shTipOn: 1, shSnipe: 1, shPullBack: 1, shPodTen: 1, shMiss: 1, shLoop: 1, shWrap: 1, shSwitch: 1, shKickPass: 1,
   tickCarryOn: -1, tickToTouch: -1, tickRuckQuick: 1, tickRuckSlow: 0, tickRuckNext: 0, phaseCount: 0, tickRunOn: 1, tickBeaten: 1, tickChase: 1, tickHalfway: 1, tickIntoTwentyTwo: 1, tickScrumSet: 0,
   tickPass: 1, tickHands: 1, tickCarry: 1, tickGain: 1, tickHeld: 1, tickTackle: 0, tickNear: 2, tickLine: 2, tickOver: 2, tickLaunch: 1, tickFirst: 1,
@@ -255,12 +312,13 @@ const priorityOf = (base: string, level: Line['level']) => (level === 'key' || M
 /** the ticker register: short lines for the run of play */
 export const TICK = new Set([
   'shOneOut', 'shPod', 'shTipOn', 'shSnipe', 'shPullBack', 'shPodTen', 'shMiss', 'shLoop', 'shWrap', 'shSwitch', 'shKickPass',
+  'scShove', 'scEight', 'scBackRow', 'loOptFront', 'loOptMiddle', 'loOptTail', 'koShort', 'koLong', 'windKickWith', 'windKickInto',
   'tickBeaten', 'tickCarryOn', 'tickToTouch', 'tickRuckQuick', 'tickRuckSlow', 'tickRuckNext', 'phaseCount', 'tickRunOn', 'tickChase', 'tickHalfway', 'tickIntoTwentyTwo', 'tickScrumSet',
   'tickPass', 'tickHands', 'tickCarry', 'tickGain', 'tickHeld', 'tickTackle', 'tickNear', 'tickLine', 'tickOver', 'tickLaunch', 'tickFirst', 'tickRuck', 'tickRuckNear', 'tickRuckWhistle', 'tickRuckStuck',
   'tickContest', 'tickScrumWon', 'carryBig', 'carryBack', 'pickGo', 'offload', 'catchKo', 'catchKick', 'catchDrop',
   'kickBox', 'kickLong', 'kickHigh', 'kickGrubber', 'kickCross', 'kickChip', 'kickOther', 'freeKickKick', 'tickFlight', 'tickRoll', 'tickMaul', 'tickMaulStop', 'tickStop',
   'runPhases', 'runQuick', 'runGain', 'runNoGain', 'runBack', 'runTwentyTwo', 'runHalf', 'runWide', 'runStart', 'runShort',
-  'fillOver', 'fillBreak', 'fillRuck', 'fillPhase', 'fillDefence', 'fillCarry', 'fillKick', 'fillLineout', 'fillScrum', 'fillMaul', 'fillClock', 'fillGoal',
+  'fillOver', 'fillLoose', 'fillBreak', 'fillRuck', 'fillPhase', 'fillDefence', 'fillCarry', 'fillKick', 'fillLineout', 'fillScrum', 'fillMaul', 'fillClock', 'fillGoal',
 ])
 const flashOf = (base: string, level: Line['level']): Line['flash'] =>
   base === 'flashTry' || base === 'flashPenTry' ? 'try'
@@ -385,6 +443,7 @@ export function tryHow(P: Play[], p: Play): { base: string; d: number; startD: n
   const wide = p.y < 15 || p.y > 55
   const d = Math.max(1, startD)
   if (p.result === 'maul') return { base: 'tryMaul', d, startD, wide }
+  if (p.result === 'pushover') return { base: 'tryPushover', d, startD, wide }
   if (p.result === 'interception') return { base: 'tryInterception', d, startD, wide }
   if (!['close', 'wide', 'break', 'pickAndGo'].includes(p.result)) return { base: 'tryCharge', d, startD, wide }
   if (last.kind === 'lineBreak' || startD >= 22) return { base: 'tryBreak', d, startD, wide }
@@ -409,6 +468,11 @@ export const NAMED_SUMMARY = true
 /** the defender a line break beat (Play.beat), by name: harmonycheck C05 does not read `beat` yet, so until it does
  *  the line says a tackle was missed without naming the man */
 export const NAMED_BEAT = true
+/** the overnight run's whistle lines that name a man from earlier in the match (the duel of the opposites, the
+ *  player of the match's numbers, the day's top tackler, jackal and penalty-giver, the debutant at the break):
+ *  harmonycheck C05 checks a fixed list of named whistle lines (NAMED_SUMMARY_BASES), so until these join it
+ *  this one switch keeps them off */
+export const NAMED_WHISTLE_MORE = false
 /** why the game refused the manager's change (Play.cause on a refused substitution, fromMatch.ts decide()) */
 const REFUSED_WHY: Record<string, string> = { 'not on the field': 'sim.whyNotOn1', 'in the bin or sent off': 'sim.whyBinned1', 'not on the bench': 'sim.whyNotBench1', refused: 'sim.whyLaws1' }
 const decOf = (q: Play | undefined) => q as (Play & DecPlay) | undefined
@@ -429,6 +493,20 @@ export function tacticsWords(t: NonNullable<DecPlay['tactics']>): string | undef
   if (!best && 'kickStyle' in t.set && t.set.kickStyle !== t.was?.kickStyle) best = 'howKickPlan'
   return best ? `sim.${best}1` : undefined
 }
+
+/** which of the referee's hot spots (RefereeView.hot) each penalty's cause falls under */
+const HOT_OF: Record<string, string> = {
+  notRollingAway: 'breakdown', holdingOn: 'breakdown', notReleasing: 'breakdown', sealingOff: 'breakdown',
+  offside: 'offside', handsInRuck: 'offside', offsideAtKick: 'offside', offsideAtLineout: 'offside',
+  collapsing: 'scrum', standingUp: 'scrum', notBinding: 'scrum', earlyEngagement: 'scrum',
+}
+/** what the referee is hot on (RefereeView.hot), in words */
+const HOT_WORD: Record<string, string> = { breakdown: 'sim.refFussy1', offside: 'sim.refHotOffside1', scrum: 'sim.refScrumTight1', cards: 'sim.refShortFuse1', flow: 'sim.refFlow1' }
+/** the other coach's change (Play.coach.mode), in words */
+const COACH_BASE: Record<string, string> = { exploitShort: 'coachShort', chase: 'coachChase', protect: 'coachProtect', wet: 'coachWet', targetScrum: 'coachScrum', frontRow: 'coachFrontRow' }
+
+/** the knockout stages the pre-match block can name */
+const STAGES = new Set(['QF', 'SF', 'F'])
 
 /** the record each commentate() result was written from, so feed() can write a line for a run of plays and a
  *  short true word for a quiet moment on the pitch's schedule (only for that array, as commentate() returned it) */
@@ -465,7 +543,9 @@ export function commentate(result: SimResult, names: Names, context: Context = {
   const reds = both()
   const onField = (side: 0 | 1) => 15 - reds[side] - bins.filter(x => x.side === side).length
   const offIds = new Set<string>()
-  const watchFirst = new Map<string, { base: 'backFromBin' | 'subFirst'; side: 0 | 1 }>()
+  const watchFirst = new Map<string, { base: string; side: 0 | 1 }>()
+  for (const nw of context.news ?? []) if (nw.id && (nw.kind === 'debut' || nw.kind === 'clubDebut' || nw.kind === 'return')) watchFirst.set(nw.id, { base: nw.kind === 'debut' ? 'debutFirst' : nw.kind === 'clubDebut' ? 'clubFirst' : 'returnFirst', side: nw.side })
+  const oldBoys = new Set((context.news ?? []).filter(x => x.kind === 'oldClub' && x.id).map(x => x.id!))
   let halfStart = 0, lastTerr = -Infinity, lastBall = -Infinity
   let runSide: 0 | 1 | null = null, runPts = 0, runSaid = 0
   let prevScore: [number, number] = [0, 0], seqStart: [number, number] = [0, 0]
@@ -496,6 +576,23 @@ export function commentate(result: SimResult, names: Names, context: Context = {
   /** a man's numbers are said at most once every eight plays */
   const statOk = (n: number) => n - statAt >= 8
 
+  let preBlock = false
+  const penCause = new Map<string, number>()
+  // ---- THE MATCH IN NUMBERS, each side's, for the co-commentator and the full-time story (overnight run)
+  type Tally = { kicks: number; car: number; gl: number; m: number; wide: number; breaks: number; tw: number; pens: number; pensRuck: number; pensScrum: number; pensOff: number; scrumBad: number; loLost: number; live: number; inOpp: number }
+  const tally = (): Tally => ({ kicks: 0, car: 0, gl: 0, m: 0, wide: 0, breaks: 0, tw: 0, pens: 0, pensRuck: 0, pensScrum: 0, pensOff: 0, scrumBad: 0, loLost: 0, live: 0, inOpp: 0 })
+  const tot: [Tally, Tally] = [tally(), tally()]
+  let win: [Tally, Tally] = [tally(), tally()], anaAt = 0, anaN = 0, drinks = 0
+  const today = new Map<string, { tries: number; pts: number; kMade: number; kAtt: number; breaks: number }>()
+  const td = (id: string) => { let v = today.get(id); if (!v) { v = { tries: 0, pts: 0, kMade: 0, kAtt: 0, breaks: 0 }; today.set(id, v) } return v }
+  const kickSaid = new Set<string>()
+  let mgrGood = 0, mgrBad = 0, sieged = false
+  const crowdBig = (context.attendance ?? 0) >= 10000
+  const ORD = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen']
+  const ordKey = (k: number) => (k >= 1 && k <= 16 ? `sim.ord${ORD[k]}1` : undefined)
+  const fmtN = (x: number) => String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  const manName = (id: string | undefined) => nm(id)
+
   for (const p of plays) {
     const n = p.n
     const clock = p.clock ?? p.t
@@ -510,7 +607,7 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       // a note is never said straight after another of its own kind (the line that says what happened always is)
       const note = SUMMARY.has(base) || base === 'phases'
       const last = out[out.length - 1]
-      if (note && last && last.key.slice(4).replace(/\d+$/, '') === base) return
+      if (note && !preBlock && last && last.key.slice(4).replace(/\d+$/, '') === base) return
       const params: Record<string, string | number> = {}
       if (side !== null) { params.team = T[side]; params.opp = T[other(side)] }
       for (const [k, v] of Object.entries(extra)) if (v !== undefined && v !== '') params[k] = v
@@ -572,7 +669,7 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       const said0 = fill(list[i], params), whole = after ? said0.replace(CRY, m => (m.startsWith('.') ? '.' : '')) : said0
       const len = whole.length
       const hold = flash ? HOLD[flash] : reg === 'tick' ? 1.2 : Math.round(Math.min(4.5, Math.max(2, len / 18)) * 10) / 10
-      const line: Line = { n, t: clock, key: `sim.${base}${i + 1}`, params, level, side, priority, flash, hold, reg, ...(after ? { after: true } : {}) }
+      const line: Line = { n, t: clock, key: `sim.${base}${i + 1}`, params, level, side, priority, flash, hold, reg, ...(after ? { after: true } : {}), ...(preBlock ? { pre: true } : {}) }
       // over 90 characters: two lines, what happened and who, then the consequence (the flash stays on the first)
       const halves = len > 90 ? halvesOf(whole.replace(/^./, c => c.toUpperCase())) : null
       if (halves) {
@@ -580,6 +677,174 @@ export function commentate(result: SimResult, names: Names, context: Context = {
         out.push({ ...line, part: 2, flash: null, level: level === 'key' ? 'normal' : level, hold: Math.max(2, Math.round(halves[1].length / 18 * 10) / 10) })
       } else out.push(line)
     }
+    /** the pre-match block: only what the context holds (contextFromGame reads it off the game) */
+    const preMatch = () => {
+      const c = context, H = T[0], A = T[1]
+      // the ground and the crowd
+      if (c.venue && c.attendance && c.capacity && c.attendance >= 0.95 * c.capacity) say('preFull', 'minor', null, { venue: c.venue, att: fmtN(c.attendance) })
+      else if (c.venue && c.attendance) say('preCrowd', 'minor', null, { venue: c.venue, att: fmtN(c.attendance) })
+      else if (c.venue) say('introVenue', 'minor', null, { venue: c.venue })
+      // the fixture and what is at stake
+      if (c.derbyName) say('preDerbyName', 'minor', null, { derby: c.derbyName, home: H, away: A })
+      else if (c.derby) say('introDerby', 'minor', null, { home: H, away: A })
+      if (c.cup) say(c.stage && STAGES.has(c.stage) ? 'preCupStage' : 'introCup', 'minor', null, { cup: c.cup, home: H, away: A, stage_k: c.stage && STAGES.has(c.stage) ? `sim.stage${c.stage}1` : undefined })
+      else if (c.compName && c.round && c.rounds) say('preRound', 'minor', null, { comp: c.compName, round: c.round, rounds: c.rounds, home: H, away: A })
+      if (c.firstMatch) say('preFirst', 'minor', null)
+      if (c.table && !c.cup) say('introTable', 'minor', null, { home: H, away: A, hp: c.table[0], ap: c.table[1] })
+      if (c.table && !c.cup && c.standings && c.clubIds) {
+        const rows = c.standings, last = rows.length
+        const at = c.clubIds.map(id => rows.find(r => r.id === id))
+        for (const sd of [0, 1] as const) {
+          const pos = c.table[sd], r = at[sd]
+          if (!r || r.p === 0) continue
+          // the run-in: five rounds or fewer left, in the top two
+          const left = c.rounds && c.round ? c.rounds - c.round + 1 : 99
+          if (left <= 5 && pos <= 2) say('preRunIn', 'minor', sd, { pos_k: ordKey(pos), left, gap: pos === 2 ? rows[0].pts - r.pts : undefined })
+          if (pos === 1) say('preTop', 'minor', sd, { gap: rows[1] ? r.pts - rows[1].pts : undefined })
+          else if (pos === last) say('preBottom', 'minor', sd, { gap: rows[last - 2] ? rows[last - 2].pts - r.pts : undefined })
+        }
+        if (at[0] && at[1] && at[0].p > 0 && Math.abs(at[0].pts - at[1].pts) <= 3) say('preClose', 'minor', null, { home: H, away: A, gap: Math.abs(at[0].pts - at[1].pts) || undefined })
+      }
+      // form, and the last meeting
+      if (c.form) for (const sd of [0, 1] as const) {
+        const f = c.form[sd], nn = f.length, w = [...f].filter(x => x === 'W').length
+        if (nn < 3) continue
+        say(w === nn ? 'formAllWon' : w === 0 && !f.includes('D') ? 'formAllLost' : 'formSome', 'minor', sd, { n: nn, w })
+      }
+      if (c.lastMet) {
+        const m = c.lastMet, wHome = m.homeScore > m.awayScore
+        say(m.homeScore === m.awayScore ? 'metDrew' : m.sameVenue ? 'metHere' : 'metThere', 'minor', null,
+          { week: m.week, winner: m.homeScore === m.awayScore ? undefined : wHome ? H : A, a: Math.max(m.homeScore, m.awayScore), b: Math.min(m.homeScore, m.awayScore) })
+      }
+      // the team news
+      // (the milestones, old boys and returns first; two debuts a side at most; five stories in all)
+      let said = 0
+      const RANK: Record<string, number> = { milestone: 0, oldClub: 1, return: 2, absent: 3, debut: 4, clubDebut: 5 }
+      const debuts = [0, 0]
+      for (const nw of [...(c.news ?? [])].sort((a, b) => RANK[a.kind] - RANK[b.kind])) {
+        if (said >= 5) break
+        if ((nw.kind === 'debut' || nw.kind === 'clubDebut') && debuts[nw.side]++ >= 2) continue
+        const who = nw.id ? manName(nw.id) : nw.name
+        if (!who) continue
+        const base = nw.kind === 'debut' ? (nw.starts ? 'newsDebutStart' : 'newsDebutBench') : nw.kind === 'clubDebut' ? (nw.starts ? 'newsClubStart' : 'newsClubBench')
+          : nw.kind === 'milestone' ? 'newsMilestone' : nw.kind === 'oldClub' ? 'newsOldClub' : nw.kind === 'return' ? 'newsReturn' : 'newsAbsent'
+        say(base, 'minor', nw.side, { player: who, n: nw.n, why_k: nw.why ? `sim.out${nw.why === 'injured' ? 'Injured' : 'Banned'}1` : undefined })
+        said++
+      }
+      // the referee
+      const rv = (result as SimResult & { referee?: { name: string; hot?: string } }).referee
+      if (rv) {
+        say('preRef', 'minor', null, { ref: rv.name })
+        const hk = rv.hot ? HOT_WORD[rv.hot] : undefined
+        if (hk) say('refKnown', 'minor', null, { ref: rv.name, what_k: hk })
+      } else if (c.referee) {
+        say('preRef', 'minor', null, { ref: c.referee.name })
+        const tr = c.referee.traits[0]
+        if (tr) say('refKnown', 'minor', null, { ref: c.referee.name, what_k: `sim.ref${tr.charAt(0).toUpperCase()}${tr.slice(1)}1` })
+      }
+      // the weather and the ground
+      if (c.weather && c.weather !== 'Dry') say(`wx${c.weather}`, 'minor', null)
+      if (c.surface === 'artificial') say('surfArtificial', 'minor', null)
+    }
+
+    /** the co-commentator: up to two short lines on what each side is doing and whether it works, from the spell since the
+     *  last word (win) or the match (tot); a pointer for the manager when his side is losing a part of the game */
+    const analyse = (_n: number, w: [Tally, Tally] = win) => {
+      const cands: [string, 0 | 1, Record<string, string | number | undefined>][] = []
+      const mg = result.managed
+      for (const sd of [0, 1] as const) {
+        const t = w[sd], u = w[other(sd)]
+        if (t.kicks >= 4 && t.car <= t.kicks * 4) cands.push(['anaKicking', sd, { k: t.kicks, c: t.car }])
+        else if (t.car >= 20 && t.kicks <= 2) cands.push(['anaHands', sd, { k: t.kicks, c: t.car }])
+        if (t.m >= 40 && t.wide >= 0.6 * t.m) cands.push(['anaWide', sd, { pct: Math.round(100 * t.wide / t.m) }])
+        else if (t.m >= 40 && t.wide <= 0.3 * t.m) cands.push(['anaMiddle', sd, { pct: Math.round(100 * (t.m - t.wide) / t.m) }])
+        if (t.car >= 12 && t.gl >= 0.65 * t.car) cands.push(['anaCollide', sd, { pct: Math.round(100 * t.gl / t.car) }])
+        else if (t.car >= 12 && t.gl <= 0.35 * t.car) cands.push(['anaStopped', sd, { pct: Math.round(100 * t.gl / t.car) }])
+        if (t.tw >= 3) cands.push(['anaJackal', sd, { n: t.tw }])
+        if (u.tw >= 3 && mg === sd) cands.push(['tipBreakdown', sd, {}])
+        if (t.scrumBad >= 2) { cands.push(['anaScrumBad', sd, { n: t.scrumBad }]); if (mg === sd) cands.push(['tipScrum', sd, {}]) }
+        if (t.pens >= 4 && t.pensRuck >= 3) { cands.push(['anaPensRuck', sd, { n: t.pensRuck, m: t.pens }]); if (mg === sd) cands.push(['tipPens', sd, {}]) }
+        else if (t.pens >= 4 && t.pensOff >= 2) cands.push(['anaPensOffside', sd, { n: t.pensOff, m: t.pens }])
+        if (t.live >= 240 && t.inOpp >= 0.65 * (t.live + u.live)) cands.push(['anaInTheirHalf', sd, { pct: Math.round(100 * t.inOpp / (t.live + u.live)) }])
+      }
+      // (a pointer first, then the rest in turn, two at most)
+      cands.sort((a, b) => Number(b[0].startsWith('tip')) - Number(a[0].startsWith('tip')))
+      const pick = cands.length ? [cands[anaN % cands.length], ...cands.filter((_, i) => i !== anaN % cands.length)] : []
+      for (const [base, sd, ps] of pick.slice(0, 2)) say(base, 'minor', sd, ps)
+      anaN++
+    }
+
+    /** the duel of opposite numbers (10 against 10, 9 against 9, 7 against 7): the pair with the clearest gap, by the record's counts */
+    const duel = (ft: boolean) => {
+      const by: Record<number, [string?, string?]> = {}
+      for (const [id, m] of Object.entries(context.men ?? {})) if ([7, 9, 10].includes(m.shirt)) (by[m.shirt] ??= [])[m.side] = id
+      const score = (id: string) => { const v = stat.get(id), d = today.get(id); return (d?.tries ?? 0) * 5 + (d?.breaks ?? 0) * 3 + (v?.to ?? 0) * 3 + (v?.car ?? 0) * 0.5 + (v?.tk ?? 0) * 0.3 }
+      let best: { a: string; b: string; shirt: number; gap: number } | null = null
+      for (const sh of [10, 9, 7]) {
+        const [h, a] = by[sh] ?? []
+        if (!h || !a || offIds.has(h) || offIds.has(a) || !nm(h) || !nm(a)) continue
+        const gap = score(h) - score(a)
+        if (Math.abs(gap) >= 4 && (!best || Math.abs(gap) > best.gap)) best = gap > 0 ? { a: h, b: a, shirt: sh, gap: Math.abs(gap) } : { a, b: h, shirt: sh, gap: Math.abs(gap) }
+      }
+      if (!best) return
+      const sa = stat.get(best.a), sb = stat.get(best.b), da = today.get(best.a), db = today.get(best.b)
+      const what: [string, number, number][] = [['Tries', da?.tries ?? 0, db?.tries ?? 0], ['Breaks', da?.breaks ?? 0, db?.breaks ?? 0], ['Turnovers', sa?.to ?? 0, sb?.to ?? 0], ['Carries', sa?.car ?? 0, sb?.car ?? 0], ['Tackles', sa?.tk ?? 0, sb?.tk ?? 0]]
+      // (the stat with the biggest weighted gap, two or more apart: a try counts five carries, a tackle a little over half one)
+      const W: Record<string, number> = { Tries: 5, Breaks: 3, Turnovers: 3, Carries: 1, Tackles: 0.6 }
+      const top = what.filter(x => x[1] - x[2] >= 2).sort((x, y) => (y[1] - y[2]) * W[y[0]] - (x[1] - x[2]) * W[x[0]])[0]
+      if (!top) return
+      const [w, a, b] = top
+      say(ft ? 'duelFull' : 'duelHalf', 'minor', context.men![best.a].side, { player: nm(best.a), oppPlayer: nm(best.b), shirt: best.shirt, a, b, what_k: `sim.duel${w}1` })
+    }
+    /** after the whistle: the table or the tie, the bonus points, the stat that tells the story, the manager's day, what is next */
+    const postMatch = () => {
+      const [hs, as] = p.score, c = context
+      const trs: [number, number] = [0, 0]
+      for (let i = 0; i <= n; i++) if (plays[i].kind === 'try' || plays[i].kind === 'penaltyTry') trs[plays[i].side]++
+      const winS: 0 | 1 | null = hs > as ? 0 : as > hs ? 1 : null
+      if (c.bonusPoints && c.standings && c.clubIds && c.table) {
+        const add = (sd: 0 | 1) => { const us = p.score[sd], them = p.score[other(sd)]; return (us > them ? 4 : us === them ? 2 : 0) + (trs[sd] >= 4 ? 1 : 0) + (us < them && them - us <= 7 ? 1 : 0) }
+        const rows = c.standings.map(r => ({ ...r }))
+        for (const sd of [0, 1] as const) {
+          const r = rows.find(x => x.id === c.clubIds![sd]); if (!r) continue
+          r.pts += add(sd); r.p++; if (winS === sd) r.w++; r.pd += p.score[sd] - p.score[other(sd)]; r.tf += trs[sd]; r.pf += p.score[sd]
+        }
+        rows.sort((a, b) => b.pts - a.pts || b.w - a.w || b.pd - a.pd || b.tf - a.tf || b.pf - a.pf)
+        const order = (result.managed != null ? [result.managed] : [0, 1]) as (0 | 1)[]
+        for (const sd of order) {
+          const now = rows.findIndex(r => r.id === c.clubIds![sd]) + 1, was = c.table[sd]
+          const pos_k = ordKey(now)
+          if (!pos_k || now <= 0) continue
+          say(now < was ? 'postUp' : now > was ? 'postDown' : 'postStay', 'minor', sd, { pos_k, pts: rows[now - 1].pts })
+          if (trs[sd] >= 4) say('postBonusTry', 'minor', sd)
+          if (winS === other(sd) && p.score[other(sd)] - p.score[sd] <= 7) say('postBonusLose', 'minor', sd)
+        }
+      } else if (c.cup && c.stage && winS !== null) say(c.stage === 'F' ? 'postCupWon' : 'postCupThrough', 'normal', winS, { cup: c.cup, loser: T[other(winS)] })
+      // the stat that tells the story: the winner's clearest edge
+      if (winS !== null) {
+        const a = tot[winS], b = tot[other(winS)]
+        const edges: [string, number, number, number][] = [['Breaks', a.breaks, b.breaks, a.breaks - b.breaks], ['Turnovers', a.tw, b.tw, a.tw - b.tw], ['Pens', a.pens, b.pens, b.pens - a.pens]]
+        const e = edges.filter(x => x[3] >= 3).sort((x, y) => y[3] - x[3])[0]
+        if (e) say('postStat', 'minor', winS, { what_k: `sim.edge${e[0]}1`, a: e[1], b: e[2], loser: T[other(winS)] })
+      }
+      // the duels of the day (SimResult.duels): the busiest tackler on the field, the jackal, the man the referee kept seeing
+      const du = (result as SimResult & { duels?: { jackal: { who: string; n: number }[]; tackler: { who: string; n: number }[]; culprit: { who: string; n: number }[] } }).duels
+      if (du && NAMED_SUMMARY && NAMED_WHISTLE_MORE) {
+        const top = (xs: { who: string; n: number }[]) => { const [a, b] = xs; return !a?.who ? b : !b?.who ? a : a.n === b.n ? undefined : a.n > b.n ? a : b }
+        const tk = top(du.tackler), jk = top(du.jackal), cu = top(du.culprit)
+        if (tk?.who && tk.n >= 12 && nm(tk.who)) say('postTackler', 'minor', sideOf.get(tk.who) ?? null, { player: nm(tk.who), n: tk.n })
+        if (jk?.who && jk.n >= 2 && nm(jk.who)) say('postJackal', 'minor', sideOf.get(jk.who) ?? null, { player: nm(jk.who), n: jk.n })
+        // (the man the referee kept seeing, named only when the record has him in a play: a tackle, a carry)
+        const inPlays = (id: string) => plays.some(q => q.who === id || q.vs?.includes(id) || q.with?.includes(id))
+        if (cu?.who && cu.n >= 3 && nm(cu.who) && inPlays(cu.who)) say('postCulprit', 'minor', sideOf.get(cu.who) ?? null, { player: nm(cu.who), n: cu.n })
+      }
+      // the manager's day, by what came of his own calls
+      if (result.managed != null && mgrGood + mgrBad > 0) say(mgrBad === 0 ? 'postMgrGood' : mgrGood === 0 ? 'postMgrBad' : 'postMgrMixed', 'minor', result.managed, { good: mgrGood, bad: mgrBad })
+      // what is next
+      const sd = (result.managed ?? 0) as 0 | 1, nx = c.next?.[sd]
+      if (nx) say('postNext', 'minor', sd, { opp: nx.opp, week: nx.week, where_k: nx.home ? 'sim.whereHome1' : 'sim.whereAway1' })
+    }
+
     /** the play before, stepping back over substitutions (made while the ball is dead, between a stoppage and its restart) */
     const prev = (() => { let i = n - 1; while (i >= 0 && plays[i].kind === 'substitution') i--; return plays[i] as Play | undefined })()
     /** the same, stepping back over cards too (a card comes between a penalty and what is done with it) */
@@ -601,11 +866,16 @@ export function commentate(result: SimResult, names: Names, context: Context = {
     // ---- the manager's decisions: a tactics change where it takes effect
     const dp = decOf(p)
     if (dp?.tactics) { const w = tacticsWords(dp.tactics); if (w) say('tacChange', 'normal', dp.tactics.side, { what_k: w }) }
+    // the other coach reads the game (Play.coach): said so the manager can read it too
+    const cch = (p as Play & { coach?: { side: 0 | 1; mode: string } }).coach
+    if (cch && COACH_BASE[cch.mode]) say(COACH_BASE[cch.mode], 'normal', cch.side)
 
     switch (p.kind) {
       case 'kickoff': {
         if (prev?.kind === 'halfTime') halfStart = p.clock !== undefined ? 2400 : p.t - p.live - p.dead
         const base = !prev ? 'koStart' : prev.kind === 'halfTime' ? 'koSecond' : 'koAfterScore'
+        // THE OCCASION, before a ball is kicked: a block of short lines while the teams run out (feed() puts them before the kick-off)
+        if (!prev) { preBlock = true; preMatch(); preBlock = false }
         say(base, 'normal', s, { player: nm(p.who) })
         // the half-time talk, in one line as the second half starts (the pre-match one before the first)
         const tk = dp?.talk
@@ -614,13 +884,14 @@ export function commentate(result: SimResult, names: Names, context: Context = {
           if (!tk.pre) talkWatch = { side: tk.side, at: [p.score[0], p.score[1]] }
         }
         say('tickFlight', 'minor', s, { zone_k: zoneKey(s, p.x) })
-        if (!prev) {
-          if (context.venue) say('introVenue', 'minor', null, { venue: context.venue })
-          if (context.cup) say('introCup', 'minor', null, { cup: context.cup, home: T[0], away: T[1] })
-          else if (context.derby) say('introDerby', 'minor', null, { home: T[0], away: T[1] })
-          if (context.table && !context.cup) say('introTable', 'minor', null, { home: T[0], away: T[1], hp: context.table[0], ap: context.table[1] })
-          if (context.weather && context.weather !== 'Dry') say(`wx${context.weather}`, 'minor', null)
-          if (context.surface === 'artificial') say('surfArtificial', 'minor', null)
+        const kopt = (p as Play & { option?: string }).option
+        if (kopt === 'short') say('koShort', 'minor', s)
+        else if (kopt === 'long') say('koLong', 'minor', s)
+        // the wind, as each half starts (SimResult.conditions: the end it blows to in the first half)
+        const wnd = (result as SimResult & { conditions?: { wind: { strength: number; toward: 0 | 1 } } }).conditions?.wind
+        if (wnd && wnd.strength >= 0.5 && (!prev || prev.kind === 'halfTime')) {
+          const behind: 0 | 1 = wnd.toward === 1 ? 0 : 1, now = prev ? other(behind) : behind
+          say(prev ? 'windSecond' : 'windFirst', 'minor', now)
         }
         break
       }
@@ -779,6 +1050,14 @@ export function commentate(result: SimResult, names: Names, context: Context = {
         else if (prev?.kind === 'lineout' && prev.result === 'penalty') say('penLineout', 'normal', s, { zone_k, cause_k, oppPlayer: nm(p.offender) })
         else if (prev?.kind === 'kick' && prev.result === 'inPlay') say('penKick', 'normal', s, { zone_k, cause_k, oppPlayer: nm(p.offender) })
         else say('pen', 'normal', s, { zone_k, cause_k, oppPlayer: nm(p.offender) })
+        // THE REFEREE (GAMEPLAY's RefereeView): the same offence again and again, and the captain warned
+        const ref = (result as SimResult & { referee?: { name: string; hot?: string } }).referee
+        if (p.cause) {
+          const key = `${o}|${p.cause}`, c = (penCause.get(key) ?? 0) + 1
+          penCause.set(key, c)
+          if (c === 3) say(ref?.hot && HOT_OF[p.cause] === ref.hot ? 'refHotRepeat' : 'penRepeat', 'minor', o, { n: c, cause_k, ref: ref?.name })
+        }
+        if ((p as Play & { warning?: boolean }).warning) say(ref?.name ? 'refWarning' : 'refWarningAnon', 'normal', o, { ref: ref?.name })
         // the count against them
         pensAt[o].push(p.t)
         const last15 = pensAt[o].filter(x => x > p.t - 900).length
@@ -861,6 +1140,8 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       case 'conversion': say(p.good ? 'flashCon' : 'flashConMiss', 'key', s, { player: nm(p.who) }); say('scoreLine', 'normal', null, score); break
       case 'penaltyGoal': {
         say('penAim', 'normal', s, { player: nm(p.who), m: toPosts(s, p.x, p.y) })
+        // (the ground goes quiet for the kick, before it is struck)
+        if ((context.attendance ?? 0) >= 5000 && context.venue) say('crowdHush', 'minor', s, { venue: context.venue })
         say(p.good ? 'flashPen' : 'flashPenMiss', 'key', s, { player: nm(p.who) })
         say('scoreLine', 'normal', null, score)
         break
@@ -880,6 +1161,12 @@ export function commentate(result: SimResult, names: Names, context: Context = {
           : before?.kind === 'penalty' && before.side === s ? 'scrumChoice' : 'scrum'
         say(reason, 'normal', s)
         say('tickScrumSet', 'minor', s, { zone_k: zoneKey(s, p.x) })
+        // the attacking scrum's option near the line (Play.option): the shove, the No. 8 pick, a back-row move
+        const sopt = (p as Play & { option?: string }).option
+        if (sopt === 'shove') say('scShove', 'minor', s)
+        else if (sopt === 'eightPick') say('scEight', 'minor', s)
+        else if (sopt === 'backRowMove') say('scBackRow', 'minor', s)
+        if (p.result === 'pushover') say('scrumPushover', 'normal', s)
         if (p.result === 'won') say('tickScrumWon', 'minor', s, { zone_k: zoneKey(s, p.x) })
         if (p.result === 'againstTheHead') say('scrumAgainstHead', 'normal', s, { oppPlayer: nm(p.vs?.[0]) })
         else if (p.result === 'freeKick') say('scrumFree', 'normal', s)
@@ -897,6 +1184,9 @@ export function commentate(result: SimResult, names: Names, context: Context = {
         if (p.result === 'quick') { say('loQuick', 'normal', s, { player: nm(p.who) }); break }
         say(reason, 'normal', s)
         if (p.result === 'won') say('loWon', 'minor', s, { player: nm(p.who), player2: nm(p.with?.[0]) })
+        // the call (Play.option): where the throw went
+        const lopt = (p as Play & { option?: string }).option
+        if (p.result === 'won' && lopt && ['front', 'middle', 'tail'].includes(lopt)) say(`loOpt${lopt.charAt(0).toUpperCase()}${lopt.slice(1)}`, 'minor', s)
         else if (p.result === 'stolen') say('loStolen', 'normal', s, { player: nm(p.who), oppPlayer: nm(p.vs?.[0]) })
         else if (p.result === 'notStraight') say('loNotStraight', 'normal', s, { player: nm(p.who) })
         else if (p.result === 'penalty') say('loPenalty', 'normal', s, { player: nm(p.who) })
@@ -950,7 +1240,11 @@ export function commentate(result: SimResult, names: Names, context: Context = {
         }
         const motm = (result as SimResult & { motm?: string }).motm
         if (!NAMED_SUMMARY) { /* (no names at the whistle) */ }
-        else if (ft && motm && nm(motm)) say('motm', 'normal', sideOf.get(motm) ?? null, { player: nm(motm) })
+        else if (ft && motm && nm(motm)) {
+          say('motm', 'normal', sideOf.get(motm) ?? null, { player: nm(motm) })
+          const v = stat.get(motm), d = today.get(motm)
+          if (NAMED_WHISTLE_MORE && v && (v.car + v.tk >= 5 || (d?.tries ?? 0) > 0)) say('motmNums', 'minor', sideOf.get(motm) ?? null, { player: nm(motm), car: v.car, tk: v.tk, tries: d?.tries || undefined })
+        }
         else {
           let best = '', bestV = 0
           for (const [id, v] of stat) { const tr = tryCount.get(id) ?? 0, val = tr * 12 + v.to * 5 + v.car + v.m / 8 + v.tk * 0.6; if (val > bestV && nm(id) && sideOf.has(id)) { bestV = val; best = id } }
@@ -964,6 +1258,16 @@ export function commentate(result: SimResult, names: Names, context: Context = {
             else if (v.car >= 5 && v.m >= 40) say('standCarries', 'minor', side, { player, count: v.car, m: Math.round(v.m) })
           }
         }
+        // the battle of the opposites, by shirt, with a verdict when one is clearly ahead
+        if (NAMED_SUMMARY && NAMED_WHISTLE_MORE && context.men) duel(ft)
+        // the debutant, at the break: how it is going, by the record's counts
+        if (!ft && NAMED_SUMMARY && NAMED_WHISTLE_MORE) for (const nw of context.news ?? []) {
+          if (nw.kind !== 'debut' || !nw.id || offIds.has(nw.id)) continue
+          const v = stat.get(nw.id)
+          if (v && v.car + v.tk >= 3 && nm(nw.id)) say('debutHalf', 'minor', nw.side, { player: nm(nw.id), car: v.car, tk: v.tk })
+        }
+        if (!ft) { analyse(n); anaAt = clock; win = [tally(), tally()] }
+        if (ft) postMatch()
         if (!ft) { halfStart = Infinity; lastTerr = -Infinity; lastBall = -Infinity; inSecond = true }
         break
       }
@@ -1018,7 +1322,7 @@ export function commentate(result: SimResult, names: Names, context: Context = {
         if (dc.callBy === 'captain') say(`capCall${ch}`, 'normal', s, { m })
         else say(ch === 'Posts' ? 'mgrPosts' : kickable ? `mgrTurn${ch}` : `mgr${ch}`, 'normal', s, { m })
         callWatch = { side: s, ch, who_k: dc.callBy === 'captain' ? 'sim.whoCaptain1' : 'sim.whoBench1', n, clock, seen: false }
-        if (ch === 'Posts') { say(p.good ? 'callPostsGood' : 'callPostsMiss', 'normal', s, { who_k: callWatch.who_k }); callWatch = null }
+        if (ch === 'Posts') { say(p.good ? 'callPostsGood' : 'callPostsMiss', 'normal', s, { who_k: callWatch.who_k }); if (dc.callBy !== 'captain') { if (p.good) mgrGood++; else mgrBad++ } callWatch = null }
       } else if (m <= 45) {
         penChoices++
         if (capOn && penChoices % 2 === 0) say(`cap${ch}`, 'minor', s)
@@ -1093,13 +1397,95 @@ export function commentate(result: SimResult, names: Names, context: Context = {
       }
     }
 
+    // ---- THE MATCH IN NUMBERS: each side's tally, over the match and since the co-commentator last spoke
+    for (const T2 of [tot, win]) {
+      const t = T2[s]
+      if (p.kind === 'kick' && !['penaltyToTouch'].includes(p.result) && !p.kick?.startsWith('restart')) t.kicks++
+      if (p.kind === 'carry' && ['gainLine', 'held', 'drivenBack', 'overTheLine'].includes(p.result)) {
+        t.car++; if (p.result === 'gainLine' || p.result === 'overTheLine') t.gl++
+        const g = Math.max(0, p.gain ?? 0); t.m += g; if (p.y < 20 || p.y > 50) t.wide += g
+      }
+      if (p.kind === 'lineBreak') { t.breaks++; const g = Math.max(0, p.gain ?? 0); t.m += g; if (p.y < 20 || p.y > 50) t.wide += g }
+      if (p.kind === 'ruck' && p.result === 'turnover') T2[o].tw++
+      if (p.kind === 'penalty') {
+        const c = T2[o]; c.pens++
+        if (prev?.kind === 'ruck') c.pensRuck++
+        else if (prev?.kind === 'scrum') { c.pensScrum++; c.scrumBad++ }
+        else if (p.cause && /offside/i.test(p.cause)) c.pensOff++
+      }
+      if (p.kind === 'scrum' && p.result === 'againstTheHead') t.scrumBad++
+      if (p.kind === 'lineout' && p.result === 'stolen') t.loLost++
+      if (p.live > 0) { const b = p.ball; T2[b].live += p.live; if ((b === 0 && p.x > 50) || (b === 1 && p.x < 50)) T2[b].inOpp += p.live }
+    }
+    // ---- the men today: tries, points, kicks at goal, breaks
+    if (p.kind === 'try' && p.who) { const v = td(p.who); v.tries++; v.pts += 5 }
+    if ((p.kind === 'conversion' || p.kind === 'penaltyGoal' || p.kind === 'dropGoal') && p.who) {
+      const v = td(p.who)
+      if (p.kind !== 'dropGoal') { v.kAtt++; if (p.good) v.kMade++ }
+      if (p.good) v.pts += p.kind === 'conversion' ? 2 : 3
+    }
+    if (p.kind === 'lineBreak' && p.who) td(p.who).breaks++
+
+    // ---- THE WIND where it bites (Play.wind, at half strength or more)
+    const pw = (p as Play & { wind?: 'with' | 'into' }).wind
+    if (pw) {
+      if (p.kind === 'kick' && pw === 'with' && (p.gain ?? 0) >= 35) say('windKickWith', 'minor', s)
+      else if (p.kind === 'kick' && pw === 'into' && (p.gain ?? 0) > 0 && (p.gain ?? 0) <= 25) say('windKickInto', 'minor', s)
+      else if (p.kind === 'penaltyGoal' || p.kind === 'conversion') {
+        const far = toPosts(s, p.x, p.y) >= 35
+        if (p.good && pw === 'with' && far) say('windGoalWith', 'minor', s)
+        else if (p.good && pw === 'into') say('windGoalInto', 'minor', s)
+        else if (!p.good && pw === 'into') say('windGoalMiss', 'minor', s)
+      }
+    }
+
+    // ---- PLAYER STORYLINES (overnight run): the scorer's season and career, the kicker's day against his season
+    const man = p.who ? context.men?.[p.who] : undefined
+    if (p.kind === 'try' && p.who && man && nm(p.who)) {
+      const v = td(p.who), player = nm(p.who)
+      const season = man.tries + v.tries, career = man.careerTries + v.tries
+      if (career > 0 && career % 25 === 0) say('careerTry', 'minor', s, { player, n: career })
+      else if (man.tries === 0 && v.tries === 1 && man.apps >= 5) say('droughtEnds', 'minor', s, { player, n: man.apps + 1 })
+      else if (man.tries >= 4) say('seasonTries', 'minor', s, { player, n: season })
+      if (oldBoys.has(p.who) && v.tries === 1) say('oldClubScores', 'minor', s, { player })
+    }
+    if (p.who && man && p.good && (p.kind === 'try' || p.kind === 'conversion' || p.kind === 'penaltyGoal' || p.kind === 'dropGoal')) {
+      const v = td(p.who), before = man.careerPoints + v.pts - (p.kind === 'try' ? 5 : p.kind === 'conversion' ? 2 : 3), after = man.careerPoints + v.pts
+      const mark = [500, 1000, 1500, 2000].find(x => before < x && after >= x)
+      if (mark && nm(p.who)) say('careerPoints', 'minor', s, { player: nm(p.who), n: fmtN(mark) })
+    }
+    if (p.who && man && (p.kind === 'conversion' || p.kind === 'penaltyGoal')) {
+      const v = td(p.who), key = `${p.who}|${inSecond ? 2 : 1}`
+      if (v.kAtt >= 3 && !kickSaid.has(key) && (man.kickAtt ?? 0) >= 5 && nm(p.who)) {
+        kickSaid.add(key)
+        say('kickForm', 'minor', s, { player: nm(p.who), made: v.kMade, att: v.kAtt, pct: Math.round(100 * (man.kickMade ?? 0) / man.kickAtt!) })
+      }
+    }
+    // ---- THE CROWD, on real events only, as big as the crowd that is there
+    if (context.attendance) {
+      // (a try that matters to the crowd: in a close game, or late)
+      if (p.kind === 'try' && (Math.abs(p.score[0] - p.score[1]) <= 7 || clock >= 3600)) say(s === 0 ? (crowdBig ? 'crowdHomeRoar' : 'crowdHomeCheer') : 'crowdAway', 'minor', s)
+      if (!sieged && p.kind === 'ruck' && p.result === 'recycled' && s === 0 && (p.phase ?? 0) >= 6 && toLine(0, p.x) <= 22 && clock >= 4200 && p.score[0] <= p.score[1] && p.score[1] - p.score[0] <= 7) {
+        sieged = true; say('crowdSiege', 'minor', 0)
+      }
+    }
+
+    // ---- THE CO-COMMENTATOR at natural breaks: after a score, at the stoppages near 20 and 60 minutes
+    const scored = p.kind === 'conversion' || p.kind === 'penaltyGoal' || p.kind === 'dropGoal'
+    const drinksNow = (p.kind === 'scrum' || p.kind === 'lineout' || p.kind === 'penalty') && ((drinks === 0 && clock >= 1200) || (drinks === 1 && clock >= 3600))
+    if ((scored || drinksNow) && clock - anaAt >= 420) {
+      if (drinksNow) drinks++
+      analyse(n)
+      anaAt = clock; win = [tally(), tally()]
+    }
+
     // ---- did the manager's decision pay off? (within ten minutes of clock, said once, tied back to the call)
     if (callWatch && n > callWatch.n) {
       const w = callWatch, wp = { who_k: w.who_k }
       if (clock - w.clock > DECIDE) callWatch = null
-      else if ((p.kind === 'try' || p.kind === 'penaltyTry') && p.side === w.side) { say('callPaysTry', 'normal', w.side, wp); callWatch = null }
-      else if (w.ch === 'Corner' && p.kind === 'lineout' && !w.seen) { w.seen = true; if (p.result === 'stolen' || p.side !== w.side) { say('callCornerLost', 'normal', w.side, wp); callWatch = null } }
-      else if (w.ch === 'Scrum' && p.kind === 'scrum' && !w.seen) { w.seen = true; if (p.result === 'againstTheHead') { say('callScrumLost', 'normal', w.side, wp); callWatch = null } }
+      else if ((p.kind === 'try' || p.kind === 'penaltyTry') && p.side === w.side) { say('callPaysTry', 'normal', w.side, wp); if (w.who_k === 'sim.whoBench1') mgrGood++; callWatch = null }
+      else if (w.ch === 'Corner' && p.kind === 'lineout' && !w.seen) { w.seen = true; if (p.result === 'stolen' || p.side !== w.side) { say('callCornerLost', 'normal', w.side, wp); if (w.who_k === 'sim.whoBench1') mgrBad++; callWatch = null } }
+      else if (w.ch === 'Scrum' && p.kind === 'scrum' && !w.seen) { w.seen = true; if (p.result === 'againstTheHead') { say('callScrumLost', 'normal', w.side, wp); if (w.who_k === 'sim.whoBench1') mgrBad++; callWatch = null } }
       else if (p.ball !== w.side && p.kind !== 'penalty' && p.kind !== 'lineout' && p.kind !== 'scrum') callWatch = null
     }
     for (let k = subWatch.length - 1; k >= 0; k--) {
@@ -1115,12 +1501,12 @@ export function commentate(result: SimResult, names: Names, context: Context = {
         while (q >= 0 && !['carry', 'lineBreak'].includes(plays[q].kind)) q--
         if (q === n - 1 && plays[q].side === p.side && plays[q].vs?.includes(w.on)) base = 'subMiss'
       }
-      if (base && player) { say(base, 'normal', w.side, { player, mins }); subWatch.splice(k, 1) }
+      if (base && player) { say(base, 'normal', w.side, { player, mins }); if (base === 'subTry' || base === 'subSteal') mgrGood++; else mgrBad++; subWatch.splice(k, 1) }
     }
     // the half-time talk, if the start of the half shows it: seven points or more clear in its first ten minutes
     if (talkWatch && clock >= 3000) {
       const w = talkWatch, a = p.score[w.side] - w.at[w.side], b = p.score[other(w.side)] - w.at[other(w.side)]
-      if (a >= 7 && a - b >= 7) say('talkWorks', 'normal', w.side, { pts: a, opts: b })
+      if (a >= 7 && a - b >= 7) { say('talkWorks', 'normal', w.side, { pts: a, opts: b }); mgrGood++ }
       talkWatch = null
     }
     if (p.who) sideOf.set(p.who, s)
@@ -1196,7 +1582,7 @@ export function halvesOf(t: string): [string, string] | null {
   return null
 }
 
-const ONE: Record<string, string> = { tries: 'try', penalties: 'penalty', carries: 'carry', men: 'man' }
+const ONE: Record<string, string> = { tries: 'try', penalties: 'penalty', carries: 'carry', men: 'man', losses: 'loss' }
 
 /**
  * THE TICKER (owner, 24 Nov 2026: "a lot faster paced, a bit like the old Football Manager, where it's
@@ -1213,7 +1599,10 @@ const ONE: Record<string, string> = { tries: 'try', penalties: 'penalty', carrie
  */
 /** lines the manager must see whatever the speed: his calls, changes, talks and what came of them, and the
  *  half-time and full-time blocks (placed after the flashes, before every other line) */
-const SHOWN = /^sim\.(mgr|capCall|call[A-Z]|tacChange|talk|sub(Why|Try|Steal|Pen|Miss|Cover|RefusedWhy|Refused)|decided|motm|stand[A-Z]|halfBall|halfTime|fullTime|tries\d|winBy|draw|redSecond)/
+const SHOWN = /^sim\.(mgr|capCall|call[A-Z]|tacChange|talk|sub(Why|Try|Steal|Pen|Miss|Cover|RefusedWhy|Refused)|decided|motm|stand[A-Z]|halfBall|halfTime|fullTime|tries\d|winBy|draw|redSecond|post[A-Z]|duel[A-Z]|coach[A-Z]|refWarning)/
+
+/** seconds each line of the pre-match block is up, before the kick-off */
+export const PRE_LINE = 1.8
 
 /** a slot faster than this is fast forward (life speed on the pitch reads about 1.1 in its schedule) */
 export const FAST = 1.5
@@ -1236,6 +1625,9 @@ export function feed(lines: Line[], slots: SlotLike[], opts: FeedOpts = {}): Sho
   // the lines to place, in the record's order (`ord`); in fast forward a run of plain open play is one line
   type In = { l: Line; idx: number; ord: number }
   let input: In[] = lines.map((l, idx) => ({ l, idx, ord: idx }))
+  // the pre-match block goes up before the first play, while the teams run out: 1.8 s a line
+  const pre = input.filter(x => x.l.pre)
+  input = input.filter(x => !x.l.pre)
   if (src) input = withRuns(input, src.plays, sl, byN, words)
   // each line's window, and the spot in it it would like (the lines of one play spread through its slot)
   const perPlay = new Map<number, number>()
@@ -1250,7 +1642,8 @@ export function feed(lines: Line[], slots: SlotLike[], opts: FeedOpts = {}): Sho
     if (l.run) { const j = byN.get(l.run[1]) ?? i; return { l, idx, ord, lo: a.start, hi: Math.max(a.start + 0.05, sl[j].start + sl[j].dur + Math.min(sl[j + 1]?.dur ?? 0, 0.3)), want: a.start } }
     // (in fast forward, inside its own play; at life speed up to 0.8 s into the next: never more than a play behind the picture)
     // (the manager's decisions and the half-time and full-time blocks may run up to 0.8 s into the next play even in fast forward)
-    const lo = a.start, hi = a.speed > FAST && nx && !SHOWN.test(l.key) ? Math.max(a.start + a.dur, a.start + 0.05) : nx ? nx.start + Math.min(nx.dur, 0.8) : a.start + Math.max(a.dur, 4)
+    // (the last play, full time, keeps the screen for its whole block: the result, the story, what is next)
+    const lo = a.start, hi = a.speed > FAST && nx && !SHOWN.test(l.key) ? Math.max(a.start + a.dur, a.start + 0.05) : nx ? nx.start + Math.min(nx.dur, 0.8) : a.start + Math.max(a.dur, 4, 0.8 * (perPlay.get(l.n) ?? 0))
     const k = seen.get(l.n) ?? 0, m = perPlay.get(l.n)!
     seen.set(l.n, k + 1)
     const want = a.start + (a.dur * k) / m
@@ -1329,6 +1722,9 @@ export function feed(lines: Line[], slots: SlotLike[], opts: FeedOpts = {}): Sho
   }
   // at clip pace a line is not left up long: a short true word about what the pitch shows comes after two seconds
   if (src) keep = withFill(keep, src, sl, slotAt, words) as typeof keep
+  const t0 = sl[0]?.start ?? 0
+  const before = pre.map((x, i) => ({ c: { l: x.l, idx: x.idx, ord: x.ord, lo: 0, hi: 0, want: 0 }, t: t0 - PRE_LINE * (pre.length - i) }))
+  keep = [...before, ...keep] as typeof keep
   // a line stays up until the next one comes: a ticker line for up to 3 s, a sentence up to 5 s, a flash up to 6 s
   return keep.map((k, i) => {
     const next = keep[i + 1]
@@ -1523,6 +1919,7 @@ function fillLine(P: Play[], n: number, words: FeedWords, T: [string, string], a
   if (p.kind === 'ruck' && p.result === 'recycled') { if ((p.phase ?? 0) >= 3) tries.push('fillPhase'); tries.push('fillRuck', 'fillDefence') }
   else if ((p.kind === 'carry' && ['gainLine', 'held', 'drivenBack'].includes(p.result)) || p.kind === 'offload') tries.push('fillCarry')
   else if (p.kind === 'carry' && p.result === 'overTheLine') tries.push('fillOver')
+  else if ((p.kind === 'carry' && p.result === 'knockedOn') || p.kind === 'knockOn') tries.push('fillLoose')
   else if (p.kind === 'lineBreak') tries.push('fillBreak')
   else if (p.kind === 'kick' && p.result === 'inPlay') tries.push('fillKick')
   else if (p.kind === 'lineout') tries.push('fillLineout')
@@ -1547,7 +1944,7 @@ export function render(line: Line): string {
   const w0 = fill(EN_FLAT[line.key] ?? line.key, line.params)
   const whole = line.after && CRY.test(w0) ? w0.replace(CRY, m => (m.startsWith('.') ? '.' : '')).replace(/^./, c => c.toUpperCase()) : w0
   const halves = line.part ? halvesOf(whole) : null
-  const s = (halves ? halves[line.part! - 1] : whole).replace(/\b1 (metres|minutes|points|tackles|visits|times|lineouts|turnovers|phases|tries|penalties|carries|men)\b/g,
+  const s = (halves ? halves[line.part! - 1] : whole).replace(/\b1 (metres|minutes|points|tackles|visits|times|lineouts|turnovers|phases|tries|penalties|carries|men|calls|decisions|kicks|breaks|wins|defeats|losses|offences|put-ins|rounds|weeks)\b/g,
     (_, w: string) => `1 ${ONE[w] ?? w.slice(0, -1)}`)
     // ("an 8-metre drive", "an 11-point lead")
     .replace(/\b([Aa]) (8\d*|11|18)(?=[- ])/g, '$1n $2')

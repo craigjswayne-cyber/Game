@@ -658,7 +658,7 @@ describe('the ticker: short lines, flashes, no silence in a try build-up', () =>
     const NAME = 'Abcdefghijklmnopqr', TEAM = 'Abcdefghijklmn', longestMove = Math.max(...Object.values(MOVE_EN).map(x => x.length))
     const longestCause = Math.max(...Object.keys(WORDS).filter(b => /^cause/.test(b)).map(b => WORDS[b][0].length))
     for (const b of Object.keys(WORDS)) for (const w of WORDS[b] ?? []) {
-      if (/^(zone|cause|nth|kind|type|need|how|tone|who|why)[A-Z]/.test(b)) continue
+      if (/^(zone|cause|nth|kind|type|need|how|tone|who|why|stage|out|ord|where)[A-Z]|^(refFussy|refJackal|refScrumTight|refShortFuse|refFlow|refStopStart|refHotOffside|duelTries|duelBreaks|duelTurnovers|duelCarries|duelTackles|edgeBreaks|edgeTurnovers|edgePens)$/.test(b)) continue
       const t = w.replace(/\{(player|player2|oppPlayer)\}/g, NAME).replace(/\{(team|opp|home|away|winner)\}/g, TEAM).replace(/\{(m|d|phase|count|hs|as|ht|at|men|pct|hp|ap|made|taken|mins|margin|deficit|a|b|pts|lost|total|back|left|gap|min|mins|pp|tp|tk|car|opts)\}/g, '22')
         .replace(/\{move_k\}/g, 'x'.repeat(longestMove)).replace(/\{kick_k\}/g, 'cross-field kick').replace(/\{zone_k\}/g, `inside the ${TEAM} 22`)
         .replace(/\{cause_k\}/g, 'x'.repeat(longestCause)).replace(/\{(\w+)\}/g, 'xxxxxxxxxx')
@@ -755,6 +755,8 @@ describe('the ticker: short lines, flashes, no silence in a try build-up', () =>
       for (let i = 0; i < shown.length; i++) {
         // (a run line: from its first play's start to a little into the play after its last)
         const x = shown[i], k = idx.get(x.line.n)!, a = slots[k], kb = idx.get(x.line.run?.[1] ?? x.line.n)!, nx = slots[kb + 1]
+        // (the pre-match block is up before the first play, while the teams run out)
+        if (x.line.pre) { expect(x.at).toBeLessThan(slots[0].start); continue }
         expect(x.at).toBeGreaterThanOrEqual(a.start - 1e-6)
         expect(x.at).toBeLessThanOrEqual((nx ? nx.start + Math.min(nx.dur, 0.8) : slots[kb].start + Math.max(slots[kb].dur, 4)) + 1e-6)
         if (i) {
@@ -985,7 +987,7 @@ describe('round 7: flash headlines, runs in fast forward, quiet moments, how a t
     const seen = new Set<string>()
     for (const { r, lines } of runs) for (const p of r.plays) {
       if (p.kind !== 'try') continue
-      const l = lines.find(x => x.n === p.n && /^try(Close|Wide|Break|Maul|PickGo|Charge|Interception|Mid)$/.test(baseOf(x.key)))
+      const l = lines.find(x => x.n === p.n && /^try(Close|Wide|Break|Maul|PickGo|Charge|Interception|Mid|Pushover)$/.test(baseOf(x.key)))
       expect(l, `try at ${p.n}`).toBeDefined()
       const b = baseOf(l!.key); seen.add(b)
       // (worked out here again: the carry, break or maul that scored, and where the ball was before it)
@@ -998,6 +1000,7 @@ describe('round 7: flash headlines, runs in fast forward, quiet moments, how a t
       if (b === 'tryMid') { expect(start, why).toBeGreaterThan(12); expect(start, why).toBeLessThan(22.5); expect(wide, why).toBe(false) }
       if (b === 'tryBreak') expect(last.kind === 'lineBreak' || start >= 21.5, why).toBe(true)
       if (b === 'tryMaul') expect(p.result).toBe('maul')
+      if (b === 'tryPushover') expect(p.result).toBe('pushover')
       // and nothing out wide when it went over in midfield, nothing close when it came from distance
       if (!wide) expect(render(l!), why).not.toMatch(/out wide|width/i)
       if (start > 12.5) expect(render(l!), why).not.toMatch(/close range|short range|from close in|from the base/i)
@@ -1050,7 +1053,7 @@ describe('round 7: flash headlines, runs in fast forward, quiet moments, how a t
   })
 
   it('at clip pace a quiet moment gets a short true word about the play on screen', () => {
-    const KIND: Record<string, string[]> = { fillRuck: ['ruck'], fillPhase: ['ruck'], fillDefence: ['ruck'], fillCarry: ['carry', 'offload'], fillOver: ['carry'], fillBreak: ['lineBreak'],
+    const KIND: Record<string, string[]> = { fillRuck: ['ruck'], fillPhase: ['ruck'], fillDefence: ['ruck'], fillCarry: ['carry', 'offload'], fillOver: ['carry'], fillLoose: ['carry', 'knockOn'], fillBreak: ['lineBreak'],
       fillKick: ['kick'], fillLineout: ['lineout'], fillScrum: ['scrum'], fillMaul: ['maul'], fillGoal: ['conversion', 'penaltyGoal'] }
     let fills = 0
     for (const { r, lines } of runs.slice(0, 6)) {
@@ -1263,6 +1266,155 @@ describe('round 10: a second yellow is a red', () => {
       expect(bases).toContain(second ? 'flashRedSecond' : 'flashRed')
       expect(bases).toContain(second ? 'redSecond' : 'red')
     }
-    expect(seen).toBeGreaterThan(0)
+    // (and on a record with one written in, if the 200 matches had none: a second yellow after the first man's yellow)
+    if (seen === 0) {
+      const src = runs.find(x => x.r.plays.some(q => q.kind === 'yellowCard' && q.who))!.r
+      const y = src.plays.find(q => q.kind === 'yellowCard' && q.who)!
+      const k = src.plays.findIndex(q => q.n > y.n + 20 && q.kind === 'penalty')
+      const plays = [...src.plays.slice(0, k + 1), { ...src.plays[k], kind: 'redCard' as const, side: y.side, result: 'secondYellow', who: y.who, live: 0, dead: 20 }, ...src.plays.slice(k + 1)].map((q, i) => ({ ...q, n: i }))
+      const ls = commentate({ ...src, plays }, names)
+      const bases = ls.filter(l => l.n === k + 1).map(l => baseOf(l.key))
+      expect(bases).toContain('flashRedSecond'); expect(bases).toContain('redSecond')
+    }
+  })
+})
+
+describe('overnight run: the occasion, the stories, the co-commentator, the crowd, the referee, the other coach, after the whistle', async () => {
+  const { newGame } = await import('../src/game/newgame')
+  const { processWeekAndAdvance, userFixtureThisWeek } = await import('../src/game/season')
+  const { worldFromMatch } = await import('../src/game/sim/fromMatch')
+  const { mulberry32 } = await import('../src/game/rng')
+  const { contextFromGame } = await import('../src/game/sim/context')
+  const { careerRows } = await import('../src/game/model/players')
+  const { beginMatch } = await import('../src/game/matchEngine')
+  const { matchRng } = await import('../src/game/season/dice')
+  type Real = { r: SimResult; lines: Line[]; ctx: Context; g: ReturnType<typeof newGame>; fx: NonNullable<ReturnType<typeof userFixtureThisWeek>> }
+  const real: Real[] = []
+  for (const [seed, wk] of [[4242, 14], [2, 9], [3, 20], [12, 5]] as const) {
+    const g = newGame('leicester', 'T', seed)
+    let fx: ReturnType<typeof userFixtureThisWeek> = null
+    for (let i = 0; i < 60; i++) { fx = userFixtureThisWeek(g); if (fx && g.comps[fx.compId]?.table?.length && g.week >= wk) break; fx = null; processWeekAndAdvance(g) }
+    if (!fx) continue
+    // (the game's own kick-off sets the crowd; on a copy, so the game is untouched)
+    const g2 = structuredClone(g), fx2 = g2.fixtures.find(f => f.id === fx!.id)!
+    beginMatch(g2, fx2, matchRng(g2), true)
+    const { world, home, away } = worldFromMatch(g, fx, mulberry32(seed))
+    const r = simSkeleton({ seed, world })
+    const lineup = (side: typeof home) => { const a: (string | null)[] = Array(23).fill(null); for (const p of side.players) if (p.shirt >= 1 && p.shirt <= 23) a[p.shirt - 1] = p.id; return a }
+    const ctx = contextFromGame(g2, fx2, [lineup(home), lineup(away)])
+    real.push({ r, lines: commentate(r, { teams: [home.name, away.name], player: id => `P${id}` }, ctx), ctx, g, fx })
+  }
+  const by = (lines: Line[], re: RegExp) => lines.filter(l => re.test(baseOf(l.key)))
+
+  it('the pre-match block: before the kick-off, every fact from the game', () => {
+    let said = 0
+    for (const { r, lines, ctx, g, fx } of real) {
+      const pre = lines.filter(l => l.pre)
+      expect(pre.length).toBeGreaterThanOrEqual(5)
+      expect(pre.length).toBeLessThanOrEqual(14)
+      for (const l of pre) { expect(l.n).toBe(0); said++ }
+      // form, worked out again from the fixtures
+      for (const l of by(pre, /^form/)) {
+        const id = l.side === 0 ? fx.homeId : fx.awayId
+        const last = g.fixtures.filter(f => f.played && f.week < fx.week && f.compId !== 'fr' && (f.homeId === id || f.awayId === id)).sort((a, b) => a.week - b.week).slice(-5)
+        const w = last.filter(f => (f.homeId === id ? f.homeScore > f.awayScore : f.awayScore > f.homeScore)).length
+        expect(l.params.n).toBe(last.length)
+        if (l.params.w !== undefined) expect(l.params.w).toBe(w)
+        if (baseOf(l.key) === 'formAllWon') expect(w).toBe(last.length)
+      }
+      for (const l of by(pre, /^newsDebut/)) { const p = g.players[Number(String(l.params.player).slice(1))]; expect(careerRows(p).reduce((a, c) => a + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)).toBe(0) }
+      for (const l of by(pre, /^newsMilestone/)) { const id = String(l.params.player).slice(1); expect(ctx.men![id].careerApps + 1).toBe(l.params.n) }
+      for (const l of by(pre, /^preTop/)) expect(ctx.table![l.side as 0 | 1]).toBe(1)
+      for (const l of by(pre, /^preRef|^refKnown/)) expect(l.params.ref).toBe((r as SimResult & { referee?: { name: string } }).referee?.name ?? ctx.referee?.name)
+      for (const l of by(pre, /^preCrowd|^preFull/)) expect(String(l.params.att).replace(/,/g, '')).toBe(String(ctx.attendance))
+      // what the game does not hold is never said
+      if (!ctx.lastMet) expect(by(pre, /^met/).length).toBe(0)
+    }
+    expect(said).toBeGreaterThan(20)
+  })
+
+  it("the men's stories: a scorer's season and career, the kicker's day against his season, the duel's verdict", () => {
+    for (const { r, lines, ctx } of real) {
+      const P = r.plays
+      for (const l of lines) {
+        const b = baseOf(l.key), id = String(l.params.player ?? '').slice(1), man = ctx.men?.[id]
+        const upTo = P.slice(0, l.n + 1)
+        if (b === 'seasonTries' || b === 'careerTry' || b === 'droughtEnds') {
+          const today = upTo.filter(q => q.kind === 'try' && q.who === id).length
+          expect(man).toBeDefined()
+          if (b === 'seasonTries') expect(l.params.n).toBe(man!.tries + today)
+          if (b === 'careerTry') { expect(l.params.n).toBe(man!.careerTries + today); expect(Number(l.params.n) % 25).toBe(0) }
+          if (b === 'droughtEnds') { expect(man!.tries).toBe(0); expect(today).toBe(1); expect(l.params.n).toBe(man!.apps + 1) }
+        }
+        if (b === 'kickForm') {
+          const k = upTo.filter(q => (q.kind === 'conversion' || q.kind === 'penaltyGoal') && q.who === id)
+          expect(l.params.att).toBe(k.length); expect(l.params.made).toBe(k.filter(q => q.good).length)
+          expect(l.params.pct).toBe(Math.round(100 * man!.kickMade! / man!.kickAtt!))
+        }
+        if (b === 'duelHalf' || b === 'duelFull') { expect([7, 9, 10]).toContain(l.params.shirt); expect(Number(l.params.a)).toBeGreaterThan(Number(l.params.b)) }
+        if (/^crowd/.test(b)) expect(ctx.attendance).toBeGreaterThan(0)
+        if (b === 'crowdHomeRoar' || b === 'crowdHomeCheer') { expect(P[l.n].kind).toBe('try'); expect(P[l.n].side).toBe(0) }
+        if (b === 'crowdAway') { expect(P[l.n].kind).toBe('try'); expect(P[l.n].side).toBe(1) }
+      }
+    }
+  })
+
+  it('the co-commentator: at a break only, a pointer only for the managed side, never a flash', () => {
+    let ana = 0
+    for (const { r, lines } of [...real, ...runs.slice(0, 40)]) for (const l of lines) {
+      const b = baseOf(l.key)
+      if (!/^(ana|tip)[A-Z]/.test(b)) continue
+      ana++
+      expect(['conversion', 'penaltyGoal', 'dropGoal', 'scrum', 'lineout', 'penalty', 'halfTime']).toContain(r.plays[l.n].kind)
+      expect(l.priority).toBe(0); expect(l.flash).toBeNull()
+      if (/^tip/.test(b)) expect(l.side).toBe(r.managed)
+      expect(render(l).length).toBeLessThanOrEqual(l.reg === 'tick' ? 70 : 90)
+    }
+    expect(ana).toBeGreaterThan(20)
+  })
+
+  it('the referee and the other coach, as the record has them', () => {
+    let refSaid = 0, coachSaid = 0
+    for (const { r, lines } of [...real, ...runs.slice(0, 60)]) for (const l of lines) {
+      const b = baseOf(l.key), p = r.plays[l.n] as Play & { warning?: boolean; coach?: { side: 0 | 1; mode: string } }
+      if (b === 'refWarning' || b === 'refWarningAnon') { refSaid++; expect(p.kind).toBe('penalty'); expect(p.warning).toBe(true); expect(l.side).toBe(1 - p.side) }
+      if (b === 'refHotRepeat' || b === 'penRepeat') {
+        expect(p.kind).toBe('penalty')
+        const same = r.plays.slice(0, l.n + 1).filter(q => q.kind === 'penalty' && q.side === p.side && q.cause === p.cause).length
+        expect(same).toBe(3)
+      }
+      if (/^coach[A-Z]/.test(b)) { coachSaid++; expect(p.coach?.side).toBe(l.side) }
+    }
+    expect(refSaid + coachSaid).toBeGreaterThan(0)
+  })
+
+  it('after the whistle: the table as the result leaves it, the bonus points, what is next', () => {
+    for (const { r, lines, ctx } of real) {
+      const ft = r.plays[r.plays.length - 1]
+      for (const l of lines.filter(x => x.n === ft.n)) {
+        const b = baseOf(l.key), sd = l.side as 0 | 1
+        if (b === 'postUp' || b === 'postDown' || b === 'postStay') {
+          const trs = r.plays.filter(q => (q.kind === 'try' || q.kind === 'penaltyTry') && q.side === sd).length
+          const us = ft.score[sd], them = ft.score[1 - sd]
+          const earned = (us > them ? 4 : us === them ? 2 : 0) + (trs >= 4 ? 1 : 0) + (us < them && them - us <= 7 ? 1 : 0)
+          expect(l.params.pts).toBe(ctx.standings!.find(x => x.id === ctx.clubIds![sd])!.pts + earned)
+        }
+        if (b === 'postBonusTry') expect(r.plays.filter(q => (q.kind === 'try' || q.kind === 'penaltyTry') && q.side === sd).length).toBeGreaterThanOrEqual(4)
+        if (b === 'postNext') { expect(l.params.opp).toBe(ctx.next![sd]!.opp); expect(l.params.week).toBe(ctx.next![sd]!.week) }
+      }
+      expect(lines.some(l => /^post(Up|Down|Stay)$/.test(baseOf(l.key)))).toBe(true)
+    }
+  })
+
+  it('feed(): the pre-match block before the first play, the full-time block kept whole', () => {
+    for (const { r, lines } of real) {
+      const sch = schedule(r.plays), shown = feed(lines, sch)
+      const pre = shown.filter(x => x.line.pre)
+      expect(pre.length).toBe(lines.filter(l => l.pre).length)
+      for (const x of pre) expect(x.at).toBeLessThan(sch[0].start)
+      const ftN = r.plays.length - 1
+      const ftWritten = lines.filter(l => l.n === ftN && /^sim\.(post|duel|motm|decided|halfBall|fullTime|winBy|draw)/.test(l.key)).length
+      expect(shown.filter(x => x.line.n === ftN && /^sim\.(post|duel|motm|decided|halfBall|fullTime|winBy|draw)/.test(x.line.key)).length).toBe(ftWritten)
+    }
   })
 })
