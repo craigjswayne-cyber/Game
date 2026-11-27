@@ -55,6 +55,8 @@ export function Ticker({ lines, feed, kits, hush }: { lines: TickLine[]; feed: R
 
   useEffect(() => {
     let raf = 0
+    // (reduced motion: the flash row is simply there, then gone)
+    const still = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     const tick = () => {
       const v = feed.view
       // the newest line whose time has come (lines are in time order: walk on or back from the last)
@@ -84,9 +86,12 @@ export function Ticker({ lines, feed, kits, hush }: { lines: TickLine[]; feed: R
         const fa = flashFor.current === i ? v - flashAt.current : Infinity
         const on = fa < Infinity ? clampN(1 - (fa - FLASH_S) / 0.35, 0, 1) : 0
         const sweep = clampN(fa / 0.3, 0, 1), se = 1 - (1 - sweep) * (1 - sweep)
-        fl.style.opacity = on.toFixed(3)
-        fl.style.clipPath = `inset(0 ${((1 - se) * 100).toFixed(1)}% 0 0)`
-        b.classList.toggle('flashing', on > 0.5)
+        // (polish round: the flash is an opaque row of its own, wiped in from the left and wiped away downwards, never
+        // faded over the lines under it, which read through it as a muddle; while it is up the older lines dim)
+        const wipe = still ? (on > 0 ? 0 : 1) : 1 - on * on * (3 - 2 * on)
+        fl.style.opacity = on > 0 ? '1' : '0'
+        fl.style.clipPath = `inset(${(wipe * 100).toFixed(1)}% ${still ? 0 : ((1 - se) * 100).toFixed(1)}% 0 0 round 8px)`
+        b.classList.toggle('flashing', on > 0)
       }
       raf = requestAnimationFrame(tick)
     }

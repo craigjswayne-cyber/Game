@@ -118,3 +118,14 @@ export function wornKits(nt: Neutrals, home: string[] | undefined, away: string[
   for (const [k] of tries) { const d = kitDistance(h, k); if (d > bd) { bd = d; best = k } }
   return { home: h, away: rimmed(best), change: 'nearest' }
 }
+
+// THE PATTERN WORN (polish round, 27 Nov 2026: the discs carry each club's hoops, stripes or quarters). A pattern puts
+// the kit's second colour across the body, so it has to stand off the other side as the fill does: a side wears its
+// club's pattern only in its own kit or its second (colours swapped), and only when the second colour in it is at
+// least CLASH_DE from the other side's fill and from what the other side shows on the grass. Otherwise it is plain.
+export type Pattern = 'solid' | 'hoops' | 'stripes' | 'quarters' | 'sash' | 'halves' | 'yoke' | 'flank'
+export function wornPattern(pattern: Pattern | undefined, worn: Kit, other: Kit, change: Worn['change'] | 'home'): Pattern {
+  if (!pattern || pattern === 'solid' || change === 'neutral' || change === 'nearest') return 'solid'
+  if (colourGap(worn[1], other[0]) < CLASH_DE || colourGap(worn[1], seenOnGrass(other)) < CLASH_DE) return 'solid'
+  return pattern
+}

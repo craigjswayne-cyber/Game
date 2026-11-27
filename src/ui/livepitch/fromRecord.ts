@@ -65,6 +65,7 @@
 import type { Play } from '../../game/sim/record'
 import { defenceShape } from '../clipPlays'
 import { ATT, DEF, LINEOUT_ORDER, LINEOUT_Y, SCRUM_FORM, backAcross, openSide } from '../highlight/plays'
+import { newPoses, posesAt } from './pose'
 
 export type Pt = { x: number; y: number }
 type Side = 0 | 1
@@ -2235,9 +2236,16 @@ export class RecordFeed {
   /** read the picture at the clock, if it has moved since it was last read (LivePitch calls this before drawing) */
   sync() { if (this.dirty) { this.dirty = false; this.read() } }
   seek(v: number) { this.view = clamp(v, 0, this.length); this.read() }
+  /** the anim second last read, and the poses drawn over the bake there (pose.ts: never the ball or its holder) */
+  anim = 0
+  readonly poses = newPoses()
+  /** set by LivePitch: no run-ups, lifts or gathering when the player asks for reduced motion */
+  reduceMotion = false
   protected read() {
     const a = this.animNow()
     const fr = frameAt(this.bk, a)
+    this.anim = a
+    posesAt(this.bk, a, this.poses, this.reduceMotion)
     { const f = Math.round(a * FPS); let c = 0; for (const x of this.bk.cuts) if (x <= f) c++; this.cuts = c }
     for (let i = 0; i < 30; i++) {
       const m = fr.men[i], b = this.b[i]

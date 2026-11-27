@@ -24,7 +24,10 @@ import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture } from '../src/game/model'
 import { worldFromMatch, type SimSide } from '../src/game/sim/fromMatch'
-import { clashes, CLASH_DE, colourGap, kitDistance, seenOnGrass, wornKits } from '../src/ui/livepitch/kitclash'
+import { clashes, CLASH_DE, colourGap, kitDistance, seenOnGrass, wornKits, wornPattern } from '../src/ui/livepitch/kitclash'
+import { kitPattern } from '../src/game/kits'
+import { covers, phoneView, placePlate, PLAY_M, type Box, type Disc } from '../src/ui/livepitch/plates'
+import { newPoses, posesAt } from '../src/ui/livepitch/pose'
 import { bake, bakeOf, BALL_PX, BUILD_MAX, CLOSE_FROM, CLOSE_MARGIN, CLOSE_RATE, CLIP_RATE, expectedAt, FPS, IN_GOAL, MAN_PX, oddRuns, possessionStart, shapeAtRucks, RUN_BACK, RUN_FWD, schedule, SCREEN_MAN, screenSmooth, TARGET_S, timeline, type Baked } from '../src/ui/livepitch/fromRecord'
 
 function realMatch(seed: number): { plays: Play[]; sides: [SimSide, SimSide]; result: ReturnType<typeof simSkeleton> } {
@@ -367,5 +370,115 @@ describe('the stadium pitch plays the record', () => {
     expect(lm.away[0]).not.toBe('#c8102e')
     expect(colourGap(lm.away[1], '#c8102e')).toBeGreaterThanOrEqual(CLASH_DE)
   })
-})
+  // THE PLATES (polish round, 27 Nov 2026; owner, 19 Nov: "smaller, centralised and down the bottom of the pitch"):
+  // every plate, for every frame it is up, goes where plates.ts placePlate puts it, and its box never covers the ball
+  // or a man within PLAY_M of the ball, as they are drawn on a 390-wide phone. Twenty fixtures.
+  it('no plate ever covers the ball or a man within 3 m of it, over twenty fixtures, and they sit at the foot', () => {
+    const v = phoneView(390), R0 = 6.3, PW = 200, PH = 38
+    const BANNER = new Set(['try', 'penaltyTry', 'conversion', 'penaltyGoal', 'dropGoal', 'yellowCard', 'redCard'])
+    const NOTE = new Set(['knockOn', 'forwardPass', 'intoTouch', 'penalty', 'freeKick', 'heldUp', 'dropout22', 'goalLineDropout'])
+    let plates = 0, frames = 0, moved = 0, top = 0, overMen = 0
+    const bad: string[] = []
+    for (const { seed, bk } of all()) {
+      const tl = timeline(bk), P = bk.plays
+      for (const g of bk.segs) {
+        const p = P[g.n]
+        const isPlate = BANNER.has(p.kind) || NOTE.has(p.kind) || (p.kind === 'ruck' && p.result === 'turnover') || (p.kind === 'kick' && (p.result === 'chargedDown' || p.result === 'outOnFull' || p.result === 'fiftyTwentyTwo' || p.result === 'touch'))
+        if (!isPlate) continue
+        const f0 = Math.max(0, Math.min(bk.n - 1, Math.round((BANNER.has(p.kind) ? g.mark : g.a0) * FPS)))
+        const v0 = tl.V[f0]
+        let prev: Box | null = null, first: Box | null = null
+        plates++
+        for (let f = f0; f < bk.n && tl.V[f] - v0 <= 2.8; f++) {
+          frames++
+          const h = bk.holder[f], bx = bk.ball[f * 3], by = bk.ball[f * 3 + 1], lift = bk.ball[f * 3 + 2]
+          const hand = h >= 0 && lift <= 0.4
+          const others: Disc[] = []
+          const play: Disc[] = [{ x: v.sx(bx) + (hand ? R0 * 1.12 * 0.7 : 0), y: v.sy(by) - (hand ? R0 * 1.12 * 0.6 : 0) - lift * v.sc * 0.45, r: Math.max(3.6, R0 * 0.5) * 1.3 }]
+          for (let i = 0; i < 30; i++) {
+            const mx = bk.pos[f * 62 + i * 2], my = bk.pos[f * 62 + i * 2 + 1]
+            ;(Math.hypot(mx - bx, my - by) <= PLAY_M ? play : others).push({ x: v.sx(mx), y: v.sy(my), r: R0 * 1.36 * 1.36 })
+          }
+          const box = placePlate(v.w, v.h, PW, PH, play, prev, others)
+          if (covers(box, others)) overMen++
+          if (!first) first = box
+          if (prev && (box.x !== prev.x || box.y !== prev.y)) moved++
+          if (box.y < v.h / 2) top++
+          if (covers(box, play) && bad.length < 10) bad.push(`seed ${seed} play ${g.n} ${p.kind}/${p.result} frame ${f}: ball (${bx.toFixed(1)}, ${by.toFixed(1)})`)
+          prev = box
+        }
+      }
+    }
+    console.log(`plates: ${plates} plates over ${frames} frames on a 390 phone; moved along the foot ${moved} times; at the top ${top} frames; covering the play ${bad.length}; over any other man ${overMen} frames`)
+    if (bad.length) console.log(bad.join('\n'))
+    expect(bad).toEqual([])
+    // (the foot is the place: the top is the last resort, for a lineout or a man put into touch on the near touchline
+    // with the play filling the foot; under one frame in a thousand)
+    expect(top / frames).toBeLessThan(0.001)
+    // (and over a man away from the ball only when nowhere at the foot is clear of every man: rare)
+    expect(overMen / frames).toBeLessThan(0.002)
+  }, 300_000)
 
+  // THE POSES (polish round): the goal kicker's run-up and follow-through, team-mates running in to a try scorer, the
+  // lineout lift, all drawn over the bake. They never move the ball or the man holding it (a ball on the tee is held by
+  // nobody, as drawn), never touch the bake, and never make a man jump.
+  it('draw-time poses never move the ball or its holder, and nobody posed moves faster than a man can run', () => {
+    const counts = { kick: 0, lift: 0, gather: 0 }
+    let worst = 0, where = '', holderMoved = 0, placedOdd = 0
+    for (const { seed, bk } of all().slice(0, 10)) {
+      const sum = (a: Float32Array) => { let t = 0; for (let k = 0; k < a.length; k += 7) t += a[k] * (k % 13 + 1); return t }
+      const before = [sum(bk.ball), sum(bk.pos)]
+      const cut = new Set(bk.cuts)
+      const pz = newPoses(), last = new Float32Array(60)
+      let had = false
+      for (let f = 0; f < bk.n; f++) {
+        posesAt(bk, f / FPS, pz)
+        const h = bk.holder[f], P = bk.plays[bk.seg[f]]
+        if (pz.placed && P.kind !== 'conversion' && P.kind !== 'penaltyGoal') placedOdd++
+        if (h >= 0 && !pz.placed && (pz.dx[h] !== 0 || pz.dy[h] !== 0)) holderMoved++
+        for (let i = 0; i < 30; i++) {
+          const x = bk.pos[f * 62 + i * 2] + pz.dx[i], y = bk.pos[f * 62 + i * 2 + 1] + pz.dy[i]
+          if (had && !cut.has(f) && (pz.dx[i] || pz.dy[i] || last[i * 2] !== bk.pos[(f - 1) * 62 + i * 2])) {
+            const sp = Math.hypot(x - last[i * 2], y - last[i * 2 + 1]) * FPS
+            if (sp > worst) { worst = sp; where = `seed ${seed} frame ${f} man ${i} ${P.kind}` }
+          }
+          last[i * 2] = x; last[i * 2 + 1] = y
+        }
+        if (pz.placed) counts.kick++
+        if (pz.lift.some(l => l > 0.5)) counts.lift++
+        if ((P.kind === 'try' || P.kind === 'penaltyTry') && pz.dx.some(d => d !== 0)) counts.gather++
+        had = true
+      }
+      expect([sum(bk.ball), sum(bk.pos)]).toEqual(before)
+    }
+    console.log(`poses over ten fixtures (frames): goal kicks on the tee ${counts.kick}, lineout lifts ${counts.lift}, team-mates running in ${counts.gather}; fastest posed man ${worst.toFixed(1)} m/s (${where})`)
+    expect(holderMoved).toBe(0)
+    expect(placedOdd).toBe(0)
+    expect(counts.kick).toBeGreaterThan(0)
+    expect(counts.lift).toBeGreaterThan(0)
+    expect(counts.gather).toBeGreaterThan(0)
+    expect(worst).toBeLessThanOrEqual(10.5)
+  }, 300_000)
+
+  // THE PATTERNS ON THE DISCS (polish round): a club's hoops, stripes or quarters are worn only where the second colour
+  // they put across the body stands off the other side as the fill does (kitclash.ts wornPattern)
+  it('a club pattern on the discs never brings two sides closer than the kit-clash rule allows', () => {
+    const g = newGame('leicester', 'T', 7)
+    const nt = { white: '#ffffff', ink: '#1d2733', slate: '#8c98a4', gold: '#e0b44a', home: '#2f8f55', away: '#b33a3a' }
+    const ids = Object.keys(g.clubs).filter(id => g.clubs[id].colors?.length)
+    let worn = 0, plain = 0, near = 0
+    for (const h of ids) for (const a of ids) {
+      if (h === a) continue
+      const w = wornKits(nt, g.clubs[h].colors, g.clubs[a].colors)
+      const ph = wornPattern(kitPattern(h), w.home, w.away, 'home'), pa = wornPattern(kitPattern(a), w.away, w.home, w.change)
+      for (const [pat, me, them] of [[ph, w.home, w.away], [pa, w.away, w.home]] as const) {
+        if (pat === 'solid') { plain++; continue }
+        worn++
+        if (colourGap(me[1], them[0]) < CLASH_DE || colourGap(me[1], seenOnGrass(them)) < CLASH_DE) near++
+      }
+    }
+    console.log(`patterns: worn by ${worn} sides of ${worn + plain} over every pairing; any too near the other side: ${near}`)
+    expect(near).toBe(0)
+    expect(worn).toBeGreaterThan(0)
+  })
+})

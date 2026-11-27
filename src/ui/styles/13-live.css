@@ -1009,42 +1009,35 @@
 .scoreboard .tname .tcards i { display: block; width: 8px; height: 11px; border-radius: 1.5px; background: var(--gold-fill); transform: rotate(-8deg); }
 .scoreboard .tname .tcards i.rc { background: var(--danger-fill); }
 
-/* THE WORD OVER THE PITCH IS SMALL, IN THE MIDDLE AND AT THE BOTTOM (owner,
-   19 Nov 2026: "any pop up like a yellow card or try should be smaller,
-   centralised and down the bottom of the pitch"). It was the size of the
-   pitch and sat across the play. It is one compact plate on the near
-   touchline now, the same place whichever end the score is at. */
-.live-pitch .lp-banner, .live-pitch .lp-banner.low, .live-pitch .lp-banner.high {
-  inset: auto auto 21% 50%; transform: translateX(-50%); padding: 6px 14px 7px; gap: 2px; max-width: 80%;
-  border-radius: 14px; background: rgba(8, 12, 10, .84); text-shadow: none;
-  animation: lp-banner-low .35s cubic-bezier(.2, .9, .3, 1.1) both;
+/* EVERY PLATE ON THE PITCH: SMALL, CENTRED, AT THE FOOT, ONE AT A TIME, NEVER OVER THE PLAY (owner, 19 Nov 2026:
+   "any pop up like a yellow card or try should be smaller, centralised and down the bottom of the pitch"; polish round,
+   27 Nov: a TRY plate had jumped to the middle of the pitch over the 22, a penalty try's to two places in turn). Where it
+   goes is worked out in one place, plates.ts placePlate, and set on the element each frame by LivePitch; here it only
+   has its look. A score, a card, a knock-on, a turnover: one size, the word over the side's name, the side's colour on
+   its left edge. */
+.live-pitch .lp-banner {
+  position: absolute; inset: 0 auto auto 0; transform: none; display: flex; flex-direction: column; align-items: center; gap: 1px;
+  width: auto; height: auto; aspect-ratio: auto; min-width: 0; max-width: 78%; padding: 4px 13px 5px;
+  border-radius: 10px; border-left: 3px solid var(--side-c, var(--gold-fill)); background: rgba(8, 12, 10, .92);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .38); text-shadow: none; text-align: center; white-space: nowrap; pointer-events: none;
+  animation: lp-plate-in .3s ease-out both; will-change: transform, opacity;
 }
-.live-pitch .lp-banner b { font-size: 1.0625rem; letter-spacing: 0; line-height: 1.05; }
-.live-pitch .lp-banner em { position: absolute; top: 6px; right: 12px; margin: 0; font-size: .75rem; }
-.live-pitch .lp-banner.good b { padding: 0 28px; }
-.live-pitch .lp-banner span { margin-top: 2px; padding: 0; background: none; font-size: .625rem; letter-spacing: .4px; white-space: nowrap; flex-wrap: nowrap; }
-/* (play is on the near touchline: the note plate sits on the far side instead, so it never covers what it names) */
-.live-pitch .lp-banner.note.up { inset: 27% auto auto 50%; }
-@keyframes lp-banner-low { from { opacity: 0; transform: translate(-50%, 8px); } }
-@media (prefers-reduced-motion: reduce) { .live-pitch .lp-banner { animation: none; } }
-/* (the note plate: quieter than a score, and gone after two seconds) */
-.live-pitch .lp-banner.note { animation: lp-banner-low .3s both, lp-note-out .35s 2s forwards; }
+.live-pitch .lp-banner b { display: block; width: 100%; padding: 0; font-size: .9375rem; letter-spacing: .2px; line-height: 1.05; text-align: center; }
+.live-pitch .lp-banner em { display: none; }
+.live-pitch .lp-banner span { display: block; width: 100%; max-width: none; margin: 1px 0 0; padding: 0; background: none; font-size: .5625rem; font-weight: 800; letter-spacing: .5px; line-height: 1.2; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .88; }
+.live-pitch .lp-banner span i { display: none; }
 .live-pitch .lp-banner.note b { text-transform: uppercase; color: var(--prop-ink); }
+.live-pitch .lp-banner.yc, .live-pitch .lp-banner.rc { padding-left: 24px; }
+.live-pitch .lp-banner.yc b, .live-pitch .lp-banner.rc b { display: block; }
+.live-pitch .lp-banner.yc b::before, .live-pitch .lp-banner.rc b::before { content: none; }
+.live-pitch .lp-banner .lp-bcard { position: absolute; left: 9px; top: 50%; margin: -6px 0 0; width: 8px; height: 11px; border-radius: 1.5px; transform: rotate(-8deg); background: var(--gold-fill); }
+.live-pitch .lp-banner .lp-bcard.rc { background: var(--danger-fill); }
+/* (the note plate goes after two seconds; on the record's feed its fades run on the feed's own clock instead) */
+.live-pitch .lp-banner.note { animation: lp-plate-in .3s both, lp-note-out .35s 2s forwards; }
+.live-pitch.fed .lp-banner { animation: none; opacity: 0; }
+@keyframes lp-plate-in { from { opacity: 0; } }
 @keyframes lp-note-out { to { opacity: 0; } }
-/* (owner, 20 Nov 2026: "Both graphics need some better alignments". The plate
-   hung over the touchline and the boards, and the kit dot pushed the name off
-   centre under the word. It sits inside the pitch, every row is centred on the
-   same axis, and the side is marked by a bar in its colour under the name.) */
-.live-pitch .lp-banner { align-items: center; text-align: center; min-width: 132px; padding: 8px 18px 9px; }
-.live-pitch .lp-banner b { display: block; width: 100%; text-align: center; padding: 0; }
-.live-pitch .lp-banner.good b { padding: 0; }
-.live-pitch .lp-banner em { position: static; order: -1; margin: 0 0 1px; font-size: .6875rem; line-height: 1; }
-.live-pitch .lp-banner span { display: block; width: 100%; max-width: none; text-align: center; gap: 0; }
-.live-pitch .lp-banner span i { display: block; width: 26px; height: 3px; border: 0; border-radius: 2px; margin: 4px auto 0; }
-.live-pitch .lp-banner.yc b, .live-pitch .lp-banner.rc b { display: flex; justify-content: center; }
-/* (20 Nov 2026: a DROP GOAL plate filled the whole pitch. Its kind class is "dg", and the tactics
-   board has a .dg rule of its own: full width, three by two. The plate is sized by what is in it.) */
-.live-pitch .lp-banner { display: flex; width: auto; height: auto; aspect-ratio: auto; }
+@media (prefers-reduced-motion: reduce) { .live-pitch .lp-banner { animation: none; } }
 
 /* THE WATCHED EXTENDED MATCH ON THE NEW ENGINE (round 8, Sim2Live.tsx) */
 .live-wrap.sim2 .speed-controls [data-ctl="speed"] { font-size: .75rem; padding-left: 4px; padding-right: 4px; white-space: nowrap; }
@@ -1073,19 +1066,6 @@
   .live-wrap.sim2 .now-strip .live-stats.brief .ls-row { padding: 2px 0; }
   .live-wrap.sim2 .speed-controls .btn { min-height: 40px; }
 }
-
-/* EVERY RESULT PLATE IN ONE PLACE AND ONE SIZE (round 9; owner, 19 Nov 2026: "any pop up like a yellow card
-   or try should be smaller, centralised and down the bottom of the pitch"). A score or a card plate sat 21%
-   up the pitch, over the players, a size up from the knock-on and turnover plates. It now takes the note
-   plate's place (the near boards, or the far side when play is on the near touchline) and its size; the
-   points are on the scoreboard, and a card sits beside the word. */
-.live-pitch .lp-banner.low, .live-pitch .lp-banner.high {
-  inset: auto auto 1% 50%; padding: 3px 12px 4px; min-width: 0; border-radius: 10px; background: rgba(8, 12, 10, .94);
-}
-.live-pitch .lp-banner.low.up, .live-pitch .lp-banner.high.up { inset: 27% auto auto 50%; }
-.live-pitch .lp-banner.low em, .live-pitch .lp-banner.high em { display: none; }
-.live-pitch .lp-banner .lp-bcard { position: absolute; left: 9px; top: 50%; margin: -6px 0 0; width: 8px; height: 11px; }
-.live-pitch .lp-banner.yc, .live-pitch .lp-banner.rc { padding-left: 24px; }
 
 /* THE BROADCAST BAR (overnight run). The score rolls to its new number; the strip along the foot is territory over
    the last ten minutes, each side's share in its colour, easing as the record moves (in place of the even split). */
@@ -1221,3 +1201,19 @@
 @media (prefers-reduced-motion: reduce) { .mc-block p { animation: none; } }
 /* (the coach's plate under the label at the top, never over it) */
 .coach-plate { top: 40px; max-width: 46%; }
+
+/* THE TEAM SHEETS, ONE SIDE AT A TIME (polish round, 27 Nov 2026: side by side they covered the whole pitch at 360 x
+   640). Across the foot of the pitch: the pack and the backs in two tight columns, the bench on one line; the stand and
+   the men standing in their places stay in view above. */
+.pre-sheets { left: 8px; right: 8px; bottom: 8px; }
+.pre-sheet { padding: 6px 10px 5px; }
+.pre-sheet-h { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.pre-cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
+.pre-cols .pre-man { line-height: 1.25; }
+.pre-bench { -webkit-line-clamp: 1; }
+@media (max-height: 700px) { .pre-cols .pre-man { font-size: .5625rem; line-height: 1.2; } .pre-sheet-h { font-size: .6875rem; } }
+
+/* THE OTHER COACH'S PLATE ON ONE SHORT LINE (polish round): who, then what, cut short rather than wrapping */
+.coach-plate { display: flex; align-items: baseline; gap: 6px; max-width: 64%; padding: 4px 10px 5px; white-space: nowrap; }
+.coach-plate b { flex: none; display: inline; }
+.coach-plate span { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: .6875rem; }

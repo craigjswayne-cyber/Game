@@ -26,6 +26,9 @@ import { direct, type Beat } from './script'
 import { PitchSim } from './sim'
 import type { PitchTac } from './agents'
 import { IN_GOAL, type RecordFeed } from './fromRecord'
+import { bodySprite, numberSprite, shadowSprite, OVER, type DiscKit, type Variant } from './discs'
+import { placePlate, PLAY_M, type Box, type Disc } from './plates'
+import type { Pattern } from './kitclash'
 import './pitch.css'
 
 export interface PitchSide {
@@ -35,6 +38,8 @@ export interface PitchSide {
   nums: number[]
   /** fill and edge */
   kit: [string, string]
+  /** the club's pattern as worn on the pitch (kitclash.ts wornPattern): plain when it would clash */
+  pattern?: Pattern
   /** each man's pace, 1 to 20, by shirt index (the players the manager picked) */
   pace?: (number | undefined)[]
   /** each man's tank, 0 to 100: an empty one is up to a tenth slower, so a fresh replacement is seen to be fresh */
@@ -163,7 +168,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   boards?: string[]
   /** THE RUN-OUT (overnight run): while the pre-match plays, p runs 0 to 1 and the men come out of the tunnel to
    *  their kick-off places (a mutable object, so the pitch does not render each frame for it) */
-  intro?: { p: number; to?: { x: number; y: number }[] }
+  intro?: { p: number; to?: { x: number; y: number }[]; cap?: [number, number] }
   /** the day's wind (the record's conditions): strength 0 to 1 and the end it blows to in the first half */
   wind?: { strength: number; toward: 0 | 1 }
   /** how full the ground is, 0 to 1 (the attendance over the capacity): a half-empty ground shows its empty seats */
@@ -173,11 +178,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
    *  is played before its line is shown, and the label has to match the grass */
   const [onGrass, setOnGrass] = useState<Phase | null>(null)
   const [flash, setFlash] = useState<{ label: string; home: boolean; n: number; vars?: Record<string, string | number> } | null>(null)
-  // THE PLATE KEEPS OUT OF THE WAY (20 Nov 2026, seen: a man was put into
-  // touch on the near touchline behind the plate that said so). When play
-  // is in the near third the plate goes to the far side of the pitch.
-  const [plateUp, setPlateUp] = useState(false)
-  const plateUpRef = useRef(false)
+  // (where a plate goes is plates.ts placePlate's alone: small, centred, at the foot, never over the play)
   /** the banner on screen, once its moment has landed */
   const [banner, setBanner] = useState<Banner | null>(null)
   const bannerRef = useRef<{ want: Banner | null; shownAt: number }>({ want: null, shownAt: -1 })
@@ -259,6 +260,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     if (!cv) return
     const S = feed ?? sim.current!
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (feed) feed.reduceMotion = !!reduce
     const ink = readInk()
     const lp = { ground: tokenColor('--lp-ground'), stand: tokenColor('--lp-stand'), light: tokenColor('--lp-board-light'), dark: tokenColor('--lp-board-dark'), boardInk: tokenColor('--lp-board-ink') }
     const gold = tokenColor('--gold-fill'), cardRed = tokenColor('--danger-fill')
@@ -279,7 +281,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // the last frame before a cut, dissolved out over the new one
     const ghost = document.createElement('canvas')
     let grassSeen: Phase | null = null
-    let flashSeen = 0, flashAtView = -1, bannerAtView = -1
+    let flashSeen = 0, flashAtView = -1, bannerAtView = -1, bannerDone = -1, bannerDoneAt = -1
     let reachedSent = -1
     let seenCuts = S.cuts, dissolve = 0
     /** 0..1: how much the fast-forward mark is showing */
@@ -298,12 +300,16 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // A TRY'S LIGHT (overnight run: "the current confetti looked scattered"). One soft band of the scoring side's
     // colour crosses the pitch once, the way the try line goes, over 0.9 s; the rings at the ball do the rest
     let sweep: { at: number; c: string; dir: number } | null = null
+    let ripple = -1
+    let scorerFor = -1, scorerSlot = -1
     const burst = (fx: number, _fy: number, isHome: boolean) => {
       const kit = (isHome ? io.current.home : io.current.away).kit
       // (a shirt too dark to light anything sweeps in its trim)
       const c = darkTrim(kit[0]) && kit[1] && !darkTrim(kit[1]) ? kit[1] : kit[0]
       // (towards the end it was scored at, as the screen has it: on its side home scores at the right)
       sweep = { at: performance.now(), c, dir: (fx > 50) === !dim.up ? 1 : -1 }
+      // A HOME TRY LIFTS THE GROUND (polish round): a wave of light runs along both stands, once
+      if (isHome) ripple = performance.now()
     }
     // field metres to screen: length up the screen (home attacks up), width across
     const STADIUM = pickGround(night, wet, snow, io.current.home.kit[0])
@@ -836,20 +842,20 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       }
       // the banner lands with the moment, not with the line
       while (S.says.length) io.current.onSay?.(S.says.shift()!)
-      {
-        // (where the ball is ON SCREEN: on the upright pitch the bottom of the screen is the home try line, not a touchline; 21 Nov 2026)
-        const sy = dim.h ? SY(S.ball.x, S.ball.y) / dim.h : 0
-        const up = plateUpRef.current ? sy > 0.55 : sy > 0.62
-        if (up !== plateUpRef.current) { plateUpRef.current = up; setPlateUp(up) }
-      }
       const bw = bannerRef.current
       if (feed) bw.want = feed.banner
-      if (bw.want && S.landed && !S.pending && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at) {
+      // (ONE PLATE, ONCE: a plate that has had its time is not put up again for the same play, which v11 did for a
+      // try whose play ran on past it; a recording that seeks back may show it again)
+      if (feed && bannerDone >= 0 && feed.view < bannerDoneAt) bannerDone = -1
+      if (bw.want && S.landed && !S.pending && S.phase?.at === bw.want.at && bw.shownAt !== bw.want.at && bw.want.at !== bannerDone) {
         bw.shownAt = bw.want.at
         if (feed) bannerAtView = feed.view
         setBanner(bw.want)
         if ((bw.want.kind === 'try' || bw.want.kind === 'pentry') && !reduce) burst(S.ball.x, S.ball.y, bw.want.teamId === homeId)
-      } else if (bw.shownAt !== -1 && (feed ? feed.view - bannerAtView > BANNER_S || feed.view < bannerAtView : (!bw.want || S.phase?.at !== bw.shownAt))) { bw.shownAt = -1; bannerAtView = -1; setBanner(null) }
+      } else if (bw.shownAt !== -1 && (feed ? feed.view - bannerAtView > BANNER_S || feed.view < bannerAtView : (!bw.want || S.phase?.at !== bw.shownAt))) {
+        if (feed && feed.view >= bannerAtView) { bannerDone = bw.shownAt; bannerDoneAt = bannerAtView }
+        bw.shownAt = -1; bannerAtView = -1; setBanner(null)
+      }
       // THE PLATES FADE IN AND OUT on the feed's own clock (a frame-exact recording sees the same), and
       // never stand still at full strength to the last frame and then vanish
       if (feed) {
@@ -861,6 +867,9 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         }
         fade(root?.querySelector('[data-testid="lp-banner"]'), bannerAtView, BANNER_S)
         fade(root?.querySelector('[data-testid="lp-flash"]'), flashAtView, 2.3)
+        // (the note plate: from when it came up, on the same clock)
+        const ne = root?.querySelector<HTMLElement>('[data-testid="lp-note"]')
+        if (ne) { const key = ne.dataset.k ?? ''; if (key !== noteKey) { noteKey = key; noteAtView = feed.view } fade(ne, noteAtView, 2.35) } else noteKey = ''
       }
       const sn = seen.current
       if (S.done && !sn.told) {
@@ -872,6 +881,23 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         } else { sn.told = true; io.current.onPlayed?.(sn.moved) }
       } else if (sn.pre && !sn.told && S.landed && !S.done) { sn.told = true; io.current.onPlayed?.(true) }
       draw()
+      placePlates()
+    }
+    // THE ONE PLACEMENT (plates.ts): whichever plate is up goes where placePlate says, kept there while it is clear
+    let noteKey = '', noteAtView = -1
+    const plateBox = new WeakMap<Element, Box>(), plateSize = new WeakMap<Element, [number, number]>()
+    const placePlates = () => {
+      const el = canvas.current?.parentElement?.querySelector<HTMLElement>('.lp-banner')
+      if (!el || !dim.w) return
+      // (its size read once, when it first shows: no layout read a frame after that)
+      let sz2 = plateSize.get(el)
+      if (!sz2) { sz2 = [el.offsetWidth, el.offsetHeight]; plateSize.set(el, sz2) }
+      const box = placePlate(dim.w, dim.h, sz2[0], sz2[1], playDiscs, plateBox.get(el), menDiscs)
+      plateBox.set(el, box)
+      // (it rises the last few pixels into place as it fades in)
+      const op = Number(el.style.opacity || '1'), rise = reduce ? 0 : (1 - Math.min(1, op * 1.4)) * 6
+      const tf = `translate(${box.x.toFixed(1)}px, ${(box.y + rise).toFixed(1)}px)`
+      if (el.style.transform !== tf) el.style.transform = tf
     }
     // FRAME-EXACT CAPTURE (2.0.0 preview): the recorder sets the feed's clock and asks for one frame
     if (feed) feed.redraw = () => render(1 / 30)
@@ -880,16 +906,42 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
      *  stand to his kick-off place, the referee first, then the home side, then the away side, each man a beat
      *  after the one before, eased in and slowing to his mark. Reduced motion: in place from the start */
     // the light on a man's disc, at unit size (dot scales it)
-    const discLights = new WeakMap<CanvasRenderingContext2D, CanvasGradient>()
-    const discLight = (g: CanvasRenderingContext2D) => {
-      let sh = discLights.get(g)
-      if (!sh) {
-        sh = g.createRadialGradient(-0.35, -0.45, 0.1, 0, 0, 1.05)
-        sh.addColorStop(0, 'rgba(255,255,255,.3)'); sh.addColorStop(0.55, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(0,0,0,.3)')
-        discLights.set(g, sh)
-      }
-      return sh
+    // THE DISCS AS SPRITES (discs.ts): each side's body and numbers drawn once, laid down a frame
+    // (held in slots, not looked up by name: no strings made a frame) 0..5 bodies (side x plain/has/scorer), 6..35 numbers, 36 the shadow
+    const sprites: (HTMLCanvasElement | undefined)[] = []
+    let spriteKey = ''
+    const sprite = (slot: number, make: () => HTMLCanvasElement) => sprites[slot] ?? (sprites[slot] = make())
+    const VARIANT: Variant[] = ['plain', 'has', 'scorer']
+    const discKitOf = (side: PitchSide): DiscKit => {
+      const light = isLight(side.kit[0])
+      // (a dark kit with a dark trim was hard to pick out on the grass: it gets a pale rim)
+      return { fill: side.kit[0], trim: side.kit[1], rim: !light && darkTrim(side.kit[1]) ? 'rgba(236,240,246,.9)' : side.kit[1], pattern: side.pattern ?? 'solid',
+        ink: light ? ink.dark : ink.white, edge: light ? 'rgba(255,255,255,.62)' : 'rgba(0,0,0,.55)' }
     }
+    const discKits = [discKitOf(io.current.home), discKitOf(io.current.away)]
+    const rimW = [io.current.home, io.current.away].map(sd => Math.max(1.3, 6.3 * (isLight(sd.kit[0]) ? 0.17 : 0.23)))
+    // each man's last place on screen, his eased screen velocity and the way he faces (home faces the end it attacks)
+    const lastX = new Float32Array(30).fill(NaN), lastY = new Float32Array(30).fill(NaN), vxs = new Float32Array(30), vys = new Float32Array(30)
+    const faceX = new Float32Array(30), faceY = new Float32Array(30)
+    let handK = 0
+    // what the plates must keep off (plates.ts): the ball and the men within 3 m of it, as drawn this frame
+    let playDiscs: Disc[] = [], menDiscs: Disc[] = []
+    const dX = new Float32Array(30), dY = new Float32Array(30), dR = new Float32Array(30), dFx = new Float32Array(30), dFy = new Float32Array(30), dOn = new Uint8Array(30)
+    // THE RUN-OUT IN TWO GROUPS (polish round, 27 Nov 2026: they came out single file). The referee first, then the two
+    // sides side by side out of the tunnel, each a loose jogging group three wide with its captain at the front; they
+    // run on to their own half and peel off to their kick-off places, the men with furthest to go first. All of it
+    // inside the pre-match's own time (intro.p 0 to 1). Reduced motion: in place from the start.
+    const TUN = { x: 50, y: -3.5 }
+    const runOrder = (() => {
+      // each man's rank in his group (captain 0, then by shirt) and his place in the peel (furthest first)
+      const rank = new Int8Array(30)
+      for (const s0 of [0, 15]) {
+        const cap = io.current.intro?.cap?.[s0 ? 1 : 0] ?? s0 + 1
+        let r = 1
+        for (let k = 0; k < 15; k++) { const i = s0 + k; rank[i] = i === cap ? 0 : r++ }
+      }
+      return rank
+    })()
     const runOut = (i: number, at: { x: number; y: number }): { x: number; y: number; hide?: boolean } => {
       const ip = io.current.intro?.p
       if (ip == null || ip >= 1 || reduce) return at
@@ -902,13 +954,32 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           if (bk && ff >= 0) at = { x: bk.pos[ff * 62 + i * 2], y: bk.pos[ff * 62 + i * 2 + 1] }
         }
       }
-      const order = i < 0 ? 0 : 1 + (i < 15 ? 0 : 16) + (i % 15)
-      const q = Math.max(0, Math.min(1, (ip - order * 0.018) / 0.42))
-      if (q <= 0) return { ...at, hide: true }
-      const e = 1 - (1 - q) ** 3
-      // (the tunnel mouth: halfway, just off the near touchline; they fan out a little as they come)
-      const tx = 50 + ((i % 15) - 7) * 0.25 * (q > 0 ? 1 : 0), ty = -5
-      return { x: tx + (at.x - tx) * e, y: ty + (at.y - ty) * e }
+      const ease = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u))
+      if (i < 0) {
+        // the referee jogs out ahead of them to the centre spot
+        const q = Math.min(1, ip / 0.3)
+        return { x: TUN.x + (at.x - TUN.x) * ease(q), y: TUN.y + (at.y - TUN.y) * ease(q) }
+      }
+      const home = i < 15, r = runOrder[i]
+      // the group's head: out of the tunnel, side by side, on to its own half
+      const G = { x: TUN.x + (home ? -14 : 14), y: 20 }
+      // (spaced so the discs, about four metres across on the phone, read as men in a group and not one blob)
+      const row = r === 0 ? 0 : 1 + Math.floor((r - 1) / 3), col = r === 0 ? 0 : ((r - 1) % 3) - 1
+      // (the head leaves at 0.06; each row a stride behind; the group jogs at a steady pace)
+      const gLen = Math.hypot(G.x - TUN.x, G.y - TUN.y), ux = (G.x - TUN.x) / gLen, uy = (G.y - TUN.y) / gLen
+      const head = (u: number) => Math.max(0, Math.min(gLen + 18, ((u - 0.04) / 0.5) * (gLen + 18)))
+      // he peels off to his place: the men with furthest to go first, between 0.3 and 0.5, and is there by 1
+      const far = Math.min(1, Math.hypot(at.x - G.x, at.y - G.y) / 45)
+      const peel = 0.3 + 0.2 * (1 - far)
+      const groupAt = (u: number) => {
+        const d = head(u) - row * 3.4
+        return { x: TUN.x + ux * Math.max(0, d) + (-uy) * col * 3.8, y: TUN.y + uy * Math.max(0, d) + ux * col * 3.8, out: d > 0 }
+      }
+      const gp = groupAt(Math.min(ip, peel))
+      if (!gp.out) return { ...at, hide: true }
+      if (ip <= peel) return gp
+      const q = ease((ip - peel) / (1 - peel))
+      return { x: gp.x + (at.x - gp.x) * q, y: gp.y + (at.y - gp.y) * q }
     }
     const draw = () => {
       const g = (dim.tilt ? flat : cv).getContext('2d')!
@@ -919,6 +990,19 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       if (dim.art && stadiumArt) {
         if (artLayer.width) g.drawImage(artLayer, 0, 0, w, h)
         else { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(stadiumArt, dim.ox, dim.oy, STADIUM.w * dim.art, STADIUM.h * dim.art) }
+        // the crowd's wave after a home try: a soft band of light along both stands, left to right, 1.6 s, no shader
+        if (ripple > 0) {
+          const a = (performance.now() - ripple) / 1600
+          if (a >= 1 || reduce) ripple = -1
+          else {
+            const bw = w * 0.42, x0 = -bw + a * (w + bw * 2) - bw * 0.5
+            const gr = g.createLinearGradient(x0, 0, x0 + bw, 0)
+            gr.addColorStop(0, 'rgba(255,250,225,0)'); gr.addColorStop(0.5, `rgba(255,250,225,${(0.3 * (1 - a * 0.5)).toFixed(3)})`); gr.addColorStop(1, 'rgba(255,250,225,0)')
+            g.save(); g.globalCompositeOperation = 'lighter'; g.fillStyle = gr
+            for (const [y0, y1] of [[70, 268], [870, 1050]]) { const t0 = dim.oy + y0 * dim.art, t1 = dim.oy + y1 * dim.art; g.fillRect(x0, t0, bw, t1 - t0) }
+            g.restore()
+          }
+        }
       } else if (dim.up) g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
       else {
         g.save(); g.translate(dim.ox + FIELD_L * sc, dim.oy); g.rotate(Math.PI / 2)
@@ -1011,20 +1095,23 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const flying = S.ball.lift > 0.4
       // a lineout jumper in the air is drawn larger: he is above the rest
       const up2 = S.lifted()
+      // (the run-out: the ball is with the referee until the kick-off)
+      const outNow = io.current.intro && io.current.intro.p < 1 && !reduce
+      // the poses over the bake (pose.ts), and who is drawn holding the ball (nobody while a goal kick sits on the tee)
+      const pz = feed?.poses
+      const holderD = pz?.placed ? -1 : S.holder
+      { const sk = `${R0}|${dpr}|${night}`; if (sk !== spriteKey) { sprites.length = 0; spriteKey = sk } }
       const dot = (i: number) => {
-        const side = i < 15 ? H : A, k = i % 15
+        const side = i < 15 ? H : A, k = i % 15, si = i < 15 ? 0 : 1
         const p0 = runOut(i, S.b[i])
-        if (p0.hide) return
+        if (p0.hide) { lastX[i] = NaN; dOn[i] = 0; return }
         // A SCRUM WON ON THE SHOVE MOVES (overnight run, drawn only): the bound men go a metre and a bit towards the
         // beaten pack as the result lands
         let p = scrumShove !== 0 && S.bound(i) ? { x: p0.x + scrumShove, y: p0.y } : p0
-        // (a try: his team-mates come in to him, a third of the way at most; the picture cuts to the conversion after)
-        if (gather && (i < 15) === gather.home && i !== gather.by && !S.bound(i)) {
-          const d = hyp2(p, gather), k = d < 30 ? gather.k * (1 - d / 30) : 0
-          if (k > 0) p = { x: p.x + (gather.x - p.x) * k, y: p.y + (gather.y - p.y) * k }
-        }
+        // THE POSES (pose.ts): a run-up, a lift, team-mates running in to a try scorer; never the man with the ball
+        if (pz && !outNow && (pz.dx[i] || pz.dy[i])) p = { x: p.x + pz.dx[i], y: p.y + pz.dy[i] }
         const x = SX(p.x, p.y), y = SY(p.x, p.y)
-        const has = i === S.holder
+        const has = i === holderD
         const scorer = has && S.phase?.kind === 'try' && S.landed
         // a man on the ground after a tackle: fainter until he is back up
         const floor = S.down[i] > 0 || S.off[i]
@@ -1033,31 +1120,60 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         // kept: ten men within a few metres of it is right, but at full size
         // they were one mass)
         const atRuck = S.atRuck(i)
-        sz[i] += ((S.bound(i) || floor ? (feed ? 0.92 : 0.56) : up2[0] === i || up2[1] === i ? 1.24 : atRuck ? 0.84 : 1) - sz[i]) * 0.18
+        const lift = pz ? pz.lift[i] : 0
+        // (the man with the ball a touch larger, so the eye finds him; a jumper in the air larger again)
+        sz[i] += ((S.bound(i) || floor ? (feed ? 0.92 : 0.56) : lift > 0.5 ? 1.36 : up2[0] === i || up2[1] === i ? 1.24 : has ? 1.12 : atRuck ? 0.84 : 1) - sz[i]) * 0.18
         R = R0 * sz[i]
         // (the hit: both men give a little, a dominant tackle more)
         { const pa = (fxNow - pulse[i]) / 340; if (pa >= 0 && pa < 1 && !reduce) R *= 1 + (pulseBig[i] ? 0.26 : 0.14) * Math.sin(pa * Math.PI) }
-        if (floor) g.globalAlpha = 0.6
-        // DEPTH (owner, 17 Nov 2026: "Add more depth"): a man stands on the
-        // grass, he is not printed on it. A soft shadow thrown down and to
-        // one side, and a light from above on the disc itself.
-        g.beginPath(); g.ellipse(x + R * 0.3, y + R * 0.62, R * 1.02, R * 0.78, 0, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.36)'; g.fill()
-        g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fillStyle = side.kit[0]; g.fill()
-        {
-          // (the light on the disc: one gradient made once at unit size and scaled to each man, not thirty made a
-          // frame: overnight run, frame cost)
-          g.setTransform(dpr * R, 0, 0, dpr * R, dpr * x, dpr * y); g.fillStyle = discLight(g)
-          g.beginPath(); g.arc(0, 0, 1, 0, Math.PI * 2); g.fill(); g.setTransform(dpr, 0, 0, dpr, 0, 0)
+        dX[i] = x; dY[i] = y; dR[i] = R * 1.36; dFx[i] = p.x; dFy[i] = p.y; dOn[i] = 1
+        // which way he is going, on screen, eased: the facing notch and the squash read from it
+        if (Number.isFinite(lastX[i])) {
+          let mx = x - lastX[i], my = y - lastY[i]
+          if (mx * mx + my * my > 900) { mx = 0; my = 0 }
+          vxs[i] = vxs[i] * 0.75 + mx * 0.25; vys[i] = vys[i] * 0.75 + my * 0.25
         }
-        g.lineWidth = has ? Math.max(2.4, R * 0.3) : Math.max(1.3, R * (isLight(side.kit[0]) ? 0.17 : 0.23))
-        // (a dark kit with a dark trim was hard to pick out on the grass: it gets a pale rim)
-        g.strokeStyle = scorer ? gold : has ? ink.white : (!isLight(side.kit[0]) && darkTrim(side.kit[1]) ? 'rgba(236,240,246,.9)' : side.kit[1]); g.stroke()
-        g.fillStyle = isLight(side.kit[0]) ? ink.dark : ink.white
-        // (owner, 19 Nov 2026: "make sure all text is clearly visible". The numbers are a size up.)
-        g.font = `800 ${Math.round(R * 1.2)}px system-ui, sans-serif`
-        g.textAlign = 'center'; g.textBaseline = 'middle'
+        lastX[i] = x; lastY[i] = y
+        const sp = Math.hypot(vxs[i], vys[i])
+        if (sp > 0.08) { faceX[i] += (vxs[i] / sp - faceX[i]) * 0.25; faceY[i] += (vys[i] / sp - faceY[i]) * 0.25 }
+        if (!faceX[i] && !faceY[i]) { const d0 = si === 0 ? 1 : -1, ax = SX(50 + d0 * 10, 35) - SX(50, 35), ay = SY(50 + d0 * 10, 35) - SY(50, 35), al = Math.hypot(ax, ay) || 1; faceX[i] = ax / al; faceY[i] = ay / al }
+        const fl0 = Math.hypot(faceX[i], faceY[i]) || 1, ux = faceX[i] / fl0, uy = faceY[i] / fl0
+        if (floor) g.globalAlpha = 0.6
+        // DEPTH: a soft shadow thrown down and to one side; under the floodlights two fainter ones, longer; a jumper's
+        // shadow stays on the grass, further off as he rises
+        const shd = sprite(36, () => shadowSprite(R0 * OVER * dpr)), sf = R / (R0 * OVER), sw = shd.width
+        const lo = lift * R * 1.15
+        if (night) {
+          g.globalAlpha *= 0.62
+          for (const sgn of [-1, 1]) { g.setTransform(sf * 1.05, 0, 0, sf * 1.15, dpr * (x + sgn * R * 0.62 + lo), dpr * (y + R * 0.78 + lo)); g.drawImage(shd, -sw / 2, -sw / 2) }
+          g.globalAlpha = floor ? 0.6 : 1
+        } else { g.globalAlpha *= 0.68; g.setTransform(sf * 1.05, 0, 0, sf, dpr * (x + R * 0.36 + lo), dpr * (y + R * 0.62 + lo)); g.drawImage(shd, -sw / 2, -sw / 2); g.globalAlpha = floor ? 0.6 : 1 }
+        // THE BODY in his kit, squashed a little along the way he is running so he reads as a moving body
+        const vi = scorer ? 2 : has ? 1 : 0
+        const dk = discKits[si]
+        const body = sprite(si * 3 + vi, () => bodySprite(dk, VARIANT[vi], R0 * OVER * dpr, rimW[si] * OVER * dpr, { white: ink.white, gold }))
+        const q = reduce ? 0 : Math.min(1, sp / 0.6), sa = 1 + 0.07 * q, sc2 = 1 - 0.05 * q
+        const m11 = sa * ux * ux + sc2 * uy * uy, m12 = (sa - sc2) * ux * uy, m22 = sa * uy * uy + sc2 * ux * ux
+        g.setTransform(sf * m11, sf * m12, sf * m12, sf * m22, dpr * x, dpr * y)
+        g.drawImage(body, -body.width / 2, -body.width / 2)
+        // the facing notch: a small point on his rim the way he faces
+        if (!floor && !(feed && S.bound(i))) {
+          g.setTransform(dpr, 0, 0, dpr, 0, 0)
+          const tipR = R * 1.3, baseR = R * 0.9, aw = 0.4
+          const ca = Math.cos(aw), sa2 = Math.sin(aw)
+          g.beginPath()
+          g.moveTo(x + ux * tipR, y + uy * tipR)
+          g.lineTo(x + (ux * ca - uy * sa2) * baseR, y + (uy * ca + ux * sa2) * baseR)
+          g.lineTo(x + (ux * ca + uy * sa2) * baseR, y + (uy * ca - ux * sa2) * baseR)
+          g.closePath(); g.fillStyle = has ? ink.white : dk.rim; g.fill(); g.lineWidth = 0.6; g.strokeStyle = 'rgba(0,0,0,.45)'; g.stroke()
+        }
         // (a man bound in a ruck or on the floor is one of a knot: no number on him)
-        if (sz[i] > 0.8 && !(feed && S.bound(i))) g.fillText(String(side.nums[k] ?? k + 1), x, y + 0.5)
+        if (sz[i] > 0.8 && !(feed && S.bound(i))) {
+          const ns = sprite(6 + si * 15 + k, () => numberSprite(dk, String(side.nums[k] ?? k + 1), R0 * OVER * dpr))
+          g.setTransform(sf, 0, 0, sf, dpr * x, dpr * (y + 0.3))
+          g.drawImage(ns, -ns.width / 2, -ns.width / 2)
+        }
+        g.setTransform(dpr, 0, 0, dpr, 0, 0)
         if (floor) g.globalAlpha = 1
         R = R0
       }
@@ -1089,18 +1205,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         const e = Math.min(1, (fxNow - fxLand) / 600)
         scrumShove = (won === 0 ? 1 : -1) * 1.3 * (1 - (1 - e) ** 2)
       }
-      // TEAM-MATES CONVERGE ON A TRY SCORER (overnight run, drawn only): only when a conversion follows, which comes in
-      // on a cut, so nobody is seen walking back
-      let gather: { x: number; y: number; home: boolean; by: number; k: number } | null = null
-      {
-        const P3 = (S as { plays?: RecP[] }).plays, at3 = S.phase?.at ?? -1
-        if (rp?.kind === 'try' && fxLand > 0 && !reduce && P3?.[at3 + 1]?.kind === 'conversion') {
-          const home = S.phase?.homeBall !== false, a0 = home ? 0 : 15
-          let by = -1, bd = 6
-          for (let i = a0; i < a0 + 15; i++) { const d = hyp2(S.b[i], S.ball); if (d < bd && !S.off[i]) { bd = d; by = i } }
-          if (by >= 0) gather = { x: S.b[by].x, y: S.b[by].y, home, by, k: Math.min(0.34, (fxNow - fxLand) / 1000 * 0.22) }
-        }
-      }
+      // (team-mates running in to a try scorer: pose.ts, drawn in dot)
       // A LINE BREAK LEAVES A TRAIL: a short fading streak behind the man through the gap, in his colour
       if (S.phase?.kind === 'break' && S.holder >= 0 && !reduce) {
         const hp = S.b[S.holder]; trail.push({ x: SX(hp.x, hp.y), y: SY(hp.x, hp.y) }); if (trail.length > 14) trail.shift()
@@ -1141,8 +1246,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           }
         }
       }
-      for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder && S.bound(i)) dot(i)
-      for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder && !S.bound(i)) dot(i)
+      for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== holderD && S.bound(i)) dot(i)
+      for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== holderD && !S.bound(i)) dot(i)
       R = R0
       // the referee: no number, the colour nobody wears
       const refP = runOut(-1, S.ref)
@@ -1150,16 +1255,17 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.beginPath(); g.arc(SX(refP.x, refP.y), SY(refP.x, refP.y), R * 0.78, 0, Math.PI * 2); g.fillStyle = refKit; g.fill()
         g.lineWidth = 1.4; g.strokeStyle = ink.dark; g.stroke()
       }
-      if (S.holder >= 0) dot(S.holder)
+      if (holderD >= 0) dot(holderD)
 
-      // (not in the run-out: it is with the referee until the kick-off)
-      const outNow = io.current.intro && io.current.intro.p < 1 && !reduce
       // the ball: on the man's shoulder in hand, off its shadow in the air
       // (in fast forward the ball is a little bigger and ringed, so it is not lost among the men)
       const ffBall = !!feed?.ff
       const br = Math.max(3.6, R * 0.5) * (1 + S.ball.lift * 0.03) * (ffBall ? 1.2 : 1)
-      const inHand = S.holder >= 0 && !flying
-      const bx = SX(S.ball.x, S.ball.y) + (inHand ? R * 0.7 : 0), by = SY(S.ball.x, S.ball.y) - (inHand ? R * 0.6 : 0)
+      const inHand = holderD >= 0 && !flying
+      // (the ball on his shoulder, eased on and off in a few hundredths of a second, never popped; the carrier is drawn
+      // a touch larger, so it sits on the larger disc)
+      handK += ((inHand ? 1 : 0) - handK) * (reduce ? 1 : 0.45)
+      const bx = SX(S.ball.x, S.ball.y) + handK * R0 * 1.12 * 0.7, by = SY(S.ball.x, S.ball.y) - handK * R0 * 1.12 * 0.6
       // a real ball: its shadow stays on the grass and softens as it climbs,
       // the ball itself is lit from above with a seam down it
       if (!inHand && !outNow) {
@@ -1178,6 +1284,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         bg.addColorStop(0, 'rgba(255,255,255,.75)'); bg.addColorStop(0.5, 'rgba(255,255,255,0)'); bg.addColorStop(1, 'rgba(0,0,0,.38)')
         g.fillStyle = bg; g.fill()
         g.lineWidth = 1; g.strokeStyle = ink.ballEdge; g.stroke()
+        playDiscs = [{ x: bx, y: cy, r: br * 1.1 }]; menDiscs = []
+        for (let i = 0; i < 30; i++) if (dOn[i]) (Math.hypot(dFx[i] - S.ball.x, dFy[i] - S.ball.y) <= PLAY_M ? playDiscs : menDiscs).push({ x: dX[i], y: dY[i], r: dR[i] })
         g.save(); g.translate(bx, cy); g.rotate(0.5 + spin); g.strokeStyle = 'rgba(0,0,0,.3)'; g.lineWidth = Math.max(0.6, br * 0.1)
         g.beginPath(); g.moveTo(0, -br * 0.6); g.lineTo(0, br * 0.6); g.stroke(); g.restore()
       }
@@ -1253,8 +1361,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       if (rp && (rp.kind === 'try' || rp.kind === 'penaltyTry') && fxLand > 0 && (rp as RecP & { who?: string }).who && !outNow) {
         const sid = Number((rp as RecP & { who?: string }).who), nm = io.current.names(sid)
         const a0 = S.phase?.homeBall === false ? 15 : 0
-        let best = -1, bd = 6
-        for (let i = a0; i < a0 + 15; i++) { const d = hyp2(S.b[i], S.ball); if (d < bd && !S.off[i]) { bd = d; best = i } }
+        // (the man nearest the ball when it went down, kept: not whoever fetches it for the conversion after)
+        if (scorerFor !== S.phase?.at) {
+          let bd = 6; scorerSlot = S.holder >= a0 && S.holder < a0 + 15 ? S.holder : -1
+          if (scorerSlot < 0) for (let i = a0; i < a0 + 15; i++) { const d = hyp2(S.b[i], S.ball); if (d < bd && !S.off[i]) { bd = d; scorerSlot = i } }
+          scorerFor = S.phase?.at ?? -1
+        }
+        const best = scorerSlot
         if (nm && best >= 0) {
           const p = S.b[best], label = nm.split(' ').slice(-1)[0]
           const fade = Math.min(1, (fxNow - fxLand) / 250)
@@ -1386,7 +1499,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     void document.fonts?.ready.then(() => { if (cv.isConnected) size() })
     raf = requestAnimationFrame(frame)
     return () => { cancelAnimationFrame(raf); ro.disconnect() }
-  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], night, wet, snow, feed])
+  }, [home.kit[0], home.kit[1], away.kit[0], away.kit[1], home.pattern, away.pattern, night, wet, snow, feed])
 
   // the chip says what the play is; a plain carry or tackle says nothing.
   // A called move is named, and named large, for as long as it is being run
@@ -1403,29 +1516,29 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   const good = banner && (banner.kind === 'try' || banner.kind === 'pentry' || banner.kind === 'con' || banner.kind === 'pen' || banner.kind === 'dg')
   const pts = banner ? ({ try: 5, pentry: 7, con: 2, pen: 3, dg: 3 } as Record<string, number>)[banner.kind] : undefined
   return (
-    <div className={`live-pitch${night ? '' : ' day'}`} data-testid="live-pitch" data-phase={feed ? (onGrass ?? phase).kind : phase.kind}>
+    <div className={`live-pitch${night ? '' : ' day'}${feed ? ' fed' : ''}`} data-testid="live-pitch" data-phase={feed ? (onGrass ?? phase).kind : phase.kind}>
       <canvas ref={canvas} className="lp-canvas" />
       {/* (never two labels on top of each other: the chip steps aside while a plate is up over the far stand) */}
-      {chip && !(plateUp && (banner || flash || NOTE.has(now.label))) && <div className="lp-chip" key={`c${now.at}`}><i style={{ background: (now.homeBall ? home : away).kit[0] }} />{chip}</div>}
+      {chip && <div className="lp-chip" key={`c${now.at}`}><i style={{ background: (now.homeBall ? home : away).kit[0] }} />{chip}</div>}
       {/* WHAT JUST HAPPENED, AND WHOSE BALL IT IS (owner, 19 Nov 2026: "Suddenly
           northampton have the ball? Everything needs to be clear and explained
           visually"). A change of possession or a stoppage was only the small
           label on the far stand. It is also said on the plate at the bottom,
           with the side that now has the ball. */}
       {!banner && flash && (
-        <div className={`lp-banner note${plateUp ? ' up' : ''}`} key={`f${flash.n}`} data-testid="lp-flash">
+        <div className="lp-banner note" key={`f${flash.n}`} data-testid="lp-flash" style={{ '--side-c': barInk((flash.home ? home : away).kit) } as React.CSSProperties}>
           <b style={bannerSize(tr(flash.label, flash.vars), false)}>{tr(flash.label, flash.vars)}</b>
           <span>{flash.home ? teams.home : teams.away}<i style={{ background: barInk((flash.home ? home : away).kit) }} /></span>
         </div>
       )}
       {!banner && !flash && NOTE.has(now.label) && (
-        <div className={`lp-banner note${plateUp ? ' up' : ''}`} key={`n${now.at}${now.label}`} data-testid="lp-note">
+        <div className="lp-banner note" key={`n${now.at}${now.label}`} data-k={`${now.at}${now.label}`} data-testid="lp-note" style={{ '--side-c': barInk((now.homeBall ? home : away).kit) } as React.CSSProperties}>
           <b style={bannerSize(tr(now.label), false)}>{tr(now.label)}</b>
           <span>{now.homeBall ? teams.home : teams.away}<i style={{ background: barInk((now.homeBall ? home : away).kit) }} /></span>
         </div>
       )}
       {banner && bSide && (
-        <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}${(banner.teamId === homeId) ? ' low' : ' high'}${plateUp ? ' up' : ''}`} key={`b${banner.at}`} data-testid="lp-banner">
+        <div className={`lp-banner ${banner.kind}${good ? ' good' : ''}`} key={`b${banner.at}`} data-testid="lp-banner" style={{ '--side-c': barInk(bSide.kit) } as React.CSSProperties}>
           {pts != null && <em>+{pts}</em>}
           {/* a long verdict (PENALTY GOAL, CARTELLINO GIALLO) is set smaller so it stays inside the touchlines; a
               score is the size of every other plate (round 9: the ticker flash and the scoreboard carry the moment) */}

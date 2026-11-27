@@ -44,7 +44,8 @@ import { CrestT } from '../../components'
 import { Glyph } from '../../glyphs'
 import { IcoFastForward, IcoPause, IcoPlay, IcoPeople } from '../../icons'
 import { luma } from '../../kit'
-import { wornKits, type Kit } from '../../livepitch/kitclash'
+import { wornKits, wornPattern, type Kit } from '../../livepitch/kitclash'
+import { kitPattern } from '../../../game/kits'
 import { tokenColor } from '../../HighlightClip'
 import { AdSlot } from '../../AdSlot'
 import { Veil } from '../../Veil'
@@ -107,7 +108,7 @@ export function Sim2Live() {
   const { fixture } = live
   const ids: [string, string] = [fixture.homeId, fixture.awayId]
   // the run-out's state: how far through it is, and where each man is going (set with the first bake, below)
-  const intro0 = useMemo(() => ({ p: live.resumed ? 1 : 0 } as { p: number; to?: { x: number; y: number }[] }), [fixture.id])
+  const intro0 = useMemo(() => ({ p: live.resumed ? 1 : 0 } as { p: number; to?: { x: number; y: number }[]; cap?: [number, number] }), [fixture.id])
   // ---- the session and the stream (once per match)
   const { session, feed, from } = useMemo(() => {
     const session: Session = fromSim2(live.sim2!, game)
@@ -127,6 +128,8 @@ export function Sim2Live() {
     try { if (/[?&]hl=1\b/.test(location.search)) (window as unknown as { __sim2?: unknown }).__sim2 = { session, feed } } catch { /* no window */ }
     return { session, feed, from: was > 0 ? feed.n : 0 }
   }, [fixture.id])
+  // (the captains lead their sides out: their slots, 0 to 29)
+  if (!intro0.cap) intro0.cap = [0, 1].map(sd => { const c = session.sides[sd as 0 | 1].captain, pl = session.sides[sd as 0 | 1].players.find(p => p.id === c && p.shirt <= 15); return pl ? sd * 15 + pl.shirt - 1 : sd * 15 + 1 }) as [number, number]
   const names = useMemo(() => new Map([...session.sides[0].players, ...session.sides[1].players].map(p => [p.id, p.name])), [session])
   const nameOf = (id?: string) => (id ? names.get(id) ?? '' : '')
   // the occasion for the commentary (COMMENTARY's context.ts: the table, the form, the referee, the crowd), read
@@ -138,8 +141,10 @@ export function Sim2Live() {
   const [preT, setPreT] = useState(live.resumed ? -1 : 0)
   // (as long as COMMENTARY's pre-match block needs, a line every 1.8 s, 11 to 21 s; set as the lines arrive)
   const preDur = useRef(PRE_END)
-  const preRun = () => preDur.current * 0.28, preSheets = () => preDur.current * 0.6
-  const preStage = preT < 0 ? -1 : preT < preRun() ? 0 : preT < preSheets() ? 1 : 2
+  // (polish round: the fixture card for the first 18%, the run-out from 12% to 64% (the two groups come out under the
+  // card's going), then the team sheets, home then away)
+  const preRun = () => preDur.current * 0.18, preSheets = () => preDur.current * 0.64
+  const preStage = preT < 0 ? -1 : preT < preRun() ? 0 : preT < preSheets() ? 1 : preT < preSheets() + (preDur.current - preSheets()) / 2 ? 2 : 3
   const endPre = () => {
     intro.current.p = 1; setPreT(-1)
     // (the match is shown from the kick-off formation the teams ran out to, not the walk out to it)
@@ -185,12 +190,13 @@ export function Sim2Live() {
     let raf = 0, last = performance.now(), t = 0, shown = 0
     const tick = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000); last = now; t += dt
-      intro.current.p = Math.max(0, Math.min(1, (t - preRun()) / (preSheets() - preRun() - 0.4)))
+      const r0 = preDur.current * 0.12
+      intro.current.p = Math.max(0, Math.min(1, (t - r0) / (preSheets() - r0 - 0.2)))
       // (the ticker reads the feed's viewing clock: the pre-match lines come in on it while the match waits)
       feed.view += dt
       if (t >= preDur.current) { endPre(); return }
       // (React hears only the change of stage, not every frame)
-      const st = t < preRun() ? 0 : t < preSheets() ? 1 : 2
+      const st = t < preRun() ? 0 : t < preSheets() ? 1 : t < preSheets() + (preDur.current - preSheets()) / 2 ? 2 : 3
       if (st !== shown) { shown = st; setPreT(t) }
       raf = requestAnimationFrame(tick)
     }
@@ -329,13 +335,15 @@ export function Sim2Live() {
   const kits = useMemo(() => {
     const nt = { white, ink: tokenColor('--kit-spare-ink'), slate: tokenColor('--kit-spare-slate'), gold: tokenColor('--kit-spare-gold'), home: tokenColor('--kit-home'), away: tokenColor('--kit-away') }
     const w = wornKits(nt, game.clubs[fixture.homeId]?.colors, game.clubs[fixture.awayId]?.colors)
-    return { home: w.home, away: w.away, slate: nt.slate }
+    // (each club's own pattern on its discs, where it does not bring the two sides closer: kitclash.ts wornPattern)
+    const pat = [wornPattern(kitPattern(fixture.homeId), w.home, w.away, 'home'), wornPattern(kitPattern(fixture.awayId), w.away, w.home, w.change)] as const
+    return { home: w.home, away: w.away, slate: nt.slate, pat }
   }, [fixture.id])
   const onPanel = (k: Kit): Kit => (luma(k[0]) >= 40 ? k : luma(k[1]) >= 40 ? [k[1], k[0]] : [kits.slate, k[0]])
   const panel = { home: onPanel(kits.home), away: onPanel(kits.away) }
   const pitchSide = (s: 0 | 1): PitchSide => {
     const xi = session.sides[s].players.filter(p => p.shirt <= 15).sort((a, b) => a.shirt - b.shirt)
-    return { lineup: Array.from({ length: 15 }, (_, i) => { const p = xi.find(z => z.shirt === i + 1); return p ? Number(p.id) : null }), nums: Array.from({ length: 15 }, (_, i) => i + 1), kit: s === 0 ? kits.home : kits.away }
+    return { lineup: Array.from({ length: 15 }, (_, i) => { const p = xi.find(z => z.shirt === i + 1); return p ? Number(p.id) : null }), nums: Array.from({ length: 15 }, (_, i) => i + 1), kit: s === 0 ? kits.home : kits.away, pattern: kits.pat[s] }
   }
   const night = useMemo(() => { let h = 0; for (const ch of String(fixture.id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % 3 === 0 }, [fixture.id])
   const boards = useMemo(() => [...new Set([...SPONSOR_NAMES.shirt, ...SPONSOR_NAMES.sleeve])].slice(0, 12), [])
@@ -445,26 +453,29 @@ export function Sim2Live() {
               <div className="pre-meta">{night ? t('lp.preLights') : t('lp.preDay')}{dayHot ? <> · {t('lp.preHot')}</> : null}{fixture.weather && fixture.weather !== 'Dry' ? <> · <Glyph name={WEATHER_ICON[fixture.weather]} /> {weatherWord(fixture.weather)}</> : null}</div>
             </div>
           )}
-          {preStage === 2 && (
-            <div className="pre-sheets" data-testid="pre-sheets">
-              {[0, 1].map(sd => {
-                const side = session.sides[sd as 0 | 1], cap = side.captain
-                const kick = goalKicker(game, sd === 0 ? live.ctx.home : live.ctx.away)
-                const xv = side.players.filter(p => p.shirt <= 15).sort((a, b) => a.shirt - b.shirt), bench = side.players.filter(p => p.shirt > 15).sort((a, b) => a.shirt - b.shirt)
-                const last = (nm: string) => nm.split(' ').slice(-1)[0]
-                return (
-                  <div key={sd} className="pre-sheet" style={{ '--side-c': (sd === 0 ? panel.home : panel.away)[0], animationDelay: `${sd * 0.12}s` } as React.CSSProperties}>
-                    <div className="pre-sheet-h">{teamShort(game, sd === 0 ? fixture.homeId : fixture.awayId)}</div>
-                    {xv.map(p => (
-                      <div key={p.id} className="pre-man"><i>{p.shirt}</i><span>{last(p.name)}</span>
-                        {p.id === cap && <em className="pre-mark">{t('lp.preCaptain')}</em>}{kick && String(kick.id) === p.id && <em className="pre-mark k">{t('lp.preKicker')}</em>}</div>
-                    ))}
-                    <div className="pre-bench"><b>{t('lp.preBench')}</b> {bench.map(p => last(p.name)).join(', ')}</div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+          {/* THE TEAM SHEETS, HOME THEN AWAY (polish round: at 360 x 640 the two sheets side by side covered the whole
+              stadium). One side at a time across the foot of the pitch, its fifteen in two tight columns (the pack, the
+              backs), the bench on one line: the stand and the men in their places stay in view above it. */}
+          {(preStage === 2 || preStage === 3) && (() => {
+            const sd = preStage === 2 ? 0 : 1
+            const side = session.sides[sd as 0 | 1], cap = side.captain
+            const kick = goalKicker(game, sd === 0 ? live.ctx.home : live.ctx.away)
+            const xv = side.players.filter(p => p.shirt <= 15).sort((a, b) => a.shirt - b.shirt), bench = side.players.filter(p => p.shirt > 15).sort((a, b) => a.shirt - b.shirt)
+            const last = (nm: string) => nm.split(' ').slice(-1)[0]
+            const man = (p: (typeof xv)[number]) => (
+              <div key={p.id} className="pre-man"><i>{p.shirt}</i><span>{last(p.name)}</span>
+                {p.id === cap && <em className="pre-mark">{t('lp.preCaptain')}</em>}{kick && String(kick.id) === p.id && <em className="pre-mark k">{t('lp.preKicker')}</em>}</div>
+            )
+            return (
+              <div className="pre-sheets" data-testid="pre-sheets">
+                <div key={sd} className="pre-sheet" data-side={sd} style={{ '--side-c': (sd === 0 ? panel.home : panel.away)[0] } as React.CSSProperties}>
+                  <div className="pre-sheet-h"><CrestT g={game} teamId={sd === 0 ? fixture.homeId : fixture.awayId} size={16} />{teamShort(game, sd === 0 ? fixture.homeId : fixture.awayId)}</div>
+                  <div className="pre-cols"><div>{xv.filter(p => p.shirt <= 8).map(man)}</div><div>{xv.filter(p => p.shirt > 8).map(man)}</div></div>
+                  <div className="pre-bench"><b>{t('lp.preBench')}</b> {bench.map(p => last(p.name)).join(', ')}</div>
+                </div>
+              </div>
+            )
+          })()}
           {coachNote && (
             <div className="coach-plate" key={coachNote.n} data-testid="coach-plate" style={{ '--side-c': (coachNote.side === 0 ? panel.home : panel.away)[0] } as React.CSSProperties}>
               <b>{t('lp.coachOf', { team: teamShort(game, coachNote.side === 0 ? fixture.homeId : fixture.awayId) })}</b>

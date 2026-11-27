@@ -12,7 +12,9 @@
 //   ?rec=<seed>   the seed (default 4242)
 //   &from=<s>     start this many seconds into the match
 //   &x=<k>        play k times quicker (for a quick look)
-//   &cap=1        frame-exact capture: nothing moves until window.__setT(seconds) is called
+//   &cap=1        frame-exact capture: nothing moves until window.__setT(seconds) is called (the page's
+//                 performance.now is that clock too, so the plates, rings and sweeps are frame-exact as well)
+//   &pre=<s>      the run-out before the kick-off, this many seconds (polish round): the recording's first s seconds
 // window.__lp holds the feed and the schedule, for the recorder (scripts/tmp/recframes.mjs).
 import { createRoot } from 'react-dom/client'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -32,7 +34,8 @@ import type { Play, SimResult } from '../../game/sim/record'
 import { teamShort } from '../../game/matchEngine'
 import { NAMES as SPONSOR_NAMES } from '../../game/commercial'
 import { kitColours, kitInk, pageSpares } from '../kit'
-import { wornKits } from './kitclash'
+import { wornKits, wornPattern } from './kitclash'
+import { kitPattern } from '../../game/kits'
 import { tokenColor } from '../highlight/draw'
 import { CrestT } from '../components'
 import { useFeedGlide } from '../screens/matchday/feedGlide'
@@ -49,6 +52,11 @@ const FROM = Number(q.get('from') ?? 0)
 const X = Number(q.get('x') ?? 1)
 const CAPTURE = q.get('cap') === '1'
 const COMPARE = q.get('compare') === '1'
+const PRE = Number(q.get('pre') ?? 0)
+// (frame-exact: the page's own clock is the recording's, so effects timed on performance.now keep to the frames)
+let capNow = 0
+if (CAPTURE) performance.now = () => capNow
+const intro = { p: PRE > 0 ? 0 : 1 } as { p: number; cap?: [number, number]; to?: { x: number; y: number }[] }
 if (q.get('disc')) (globalThis as { __lpDisc?: number }).__lpDisc = Number(q.get('disc'))
 
 const tr = (k: string, v?: Record<string, string | number>) => {
@@ -74,7 +82,7 @@ function plain(p: Play, teams: [string, string]): string {
 
 interface Match {
   game: GameState; fx: Fixture; plays: Play[]; result: SimResult; sides: [SimSide, SimSide]
-  kits: { home: [string, string]; away: [string, string] }; night: boolean
+  kits: { home: [string, string]; away: [string, string] }; night: boolean; pat: [ReturnType<typeof wornPattern>, ReturnType<typeof wornPattern>]
 }
 function buildMatch(seed: number): Match {
   const game = newGame('leicester', 'T', seed)
@@ -95,12 +103,17 @@ function buildMatch(seed: number): Match {
   // day or night as the match screen decides it (Live.tsx pitchNight): two in three in the afternoon
   let h = 0
   for (const ch of String(fx.id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0
-  return { game, fx, plays: result.plays, result, sides: [home, away], kits: { home: [k.home[0], k.home[1] ?? white], away: [k.away[0], k.away[1] ?? white] }, night: h % 3 === 0 }
+  const kh: [string, string] = [k.home[0], k.home[1] ?? white], ka: [string, string] = [k.away[0], k.away[1] ?? white]
+  const change = ('change' in k ? (k as { change: 'own' | 'second' | 'neutral' | 'nearest' }).change : 'own')
+  const pat: Match['pat'] = [wornPattern(kitPattern(fx.homeId), kh, ka, 'home'), wornPattern(kitPattern(fx.awayId), ka, kh, change)]
+  // (the captains lead the run-out)
+  intro.cap = [0, 1].map(sd => { const sdd = [home, away][sd], pl = sdd.players.find(p => p.id === sdd.captain && p.shirt <= 15); return pl ? sd * 15 + pl.shirt - 1 : sd * 15 + 1 }) as [number, number]
+  return { game, fx, plays: result.plays, result, sides: [home, away], kits: { home: kh, away: ka }, night: h % 3 === 0, pat }
 }
 
-const pitchSide = (sd: SimSide, kit: [string, string]): PitchSide => {
+const pitchSide = (sd: SimSide, kit: [string, string], pattern?: PitchSide['pattern']): PitchSide => {
   const xi = sd.players.filter(p => p.shirt <= 15).sort((a, b) => a.shirt - b.shirt)
-  return { lineup: Array.from({ length: 15 }, (_, i) => { const p = xi.find(z => z.shirt === i + 1); return p ? Number(p.id) : null }), nums: Array.from({ length: 15 }, (_, i) => i + 1), kit }
+  return { lineup: Array.from({ length: 15 }, (_, i) => { const p = xi.find(z => z.shirt === i + 1); return p ? Number(p.id) : null }), nums: Array.from({ length: 15 }, (_, i) => i + 1), kit, pattern }
 }
 
 /** the record so far, as the brief stats under the commentary */
@@ -168,9 +181,26 @@ function App() {
       if (feed.landed !== lRef.current) { lRef.current = feed.landed; setLanded(feed.landed) }
     }
     const w = window as unknown as Record<string, unknown>
-    w.__lp = { feed, slots, plays, firstTry: slots[plays.findIndex(p => p.kind === 'try' || p.kind === 'penaltyTry')]?.start ?? null, length: feed.length }
-    // the recorder's hook: the clock to this second, one frame drawn, the page brought up to it
-    w.__setT = (v: number) => { feed.frozen = true; feed.seek(v); feed.redraw(); sync() }
+    // (with a run-out the match is shown from the kick-off formation it runs out to, as the match screen does: the
+    // first frame where every man stands still in his place, off the centre spot)
+    let VF = 0
+    if (PRE > 0) {
+      const bk = feed.bk
+      for (let f = 2; f + 1 < bk.n && bk.seg[f] === 0; f++) {
+        let still = true
+        for (let i = 0; i < 30 && still; i++) still = Math.abs(bk.pos[(f + 1) * 62 + i * 2] - bk.pos[f * 62 + i * 2]) + Math.abs(bk.pos[(f + 1) * 62 + i * 2 + 1] - bk.pos[f * 62 + i * 2 + 1]) < 0.01
+        if (still && Math.abs(bk.pos[f * 62] - 50) + Math.abs(bk.pos[f * 62 + 1] - 35) > 1) { VF = feed.tl.V[f]; (intro as { to?: { x: number; y: number }[] }).to = Array.from({ length: 30 }, (_, i) => ({ x: bk.pos[f * 62 + i * 2], y: bk.pos[f * 62 + i * 2 + 1] })); break }
+      }
+    }
+    const shift = PRE - VF
+    w.__lp = { feed, slots, plays, shift, firstTry: (slots[plays.findIndex(p => p.kind === 'try' || p.kind === 'penaltyTry')]?.start ?? 0) + shift, length: feed.length + shift }
+    // the recorder's hook: the clock to this second, one frame drawn, the page brought up to it (the first PRE seconds
+    // the run-out, the match held at its kick-off)
+    w.__setT = (v: number) => {
+      feed.frozen = true; capNow = v * 1000
+      intro.p = PRE > 0 ? Math.max(0, Math.min(1, (v - 0.5) / Math.max(0.5, PRE - 1.2))) : 1
+      feed.seek(Math.max(VF, v - shift)); feed.redraw(); sync()
+    }
     const tick = () => { sync(); raf.current = requestAnimationFrame(tick) }
     raf.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf.current)
@@ -221,8 +251,8 @@ function App() {
         </div>
         <div className="minute">{minute}{weather}</div>
       </div>
-      <LivePitch feed={feed} events={[]} cursor={0} homeId={fx.homeId} speed={X}
-        home={pitchSide(m.sides[0], m.kits.home)} away={pitchSide(m.sides[1], m.kits.away)}
+      <LivePitch feed={feed} events={[]} cursor={0} homeId={fx.homeId} speed={X} intro={intro}
+        home={pitchSide(m.sides[0], m.kits.home, m.pat[0])} away={pitchSide(m.sides[1], m.kits.away, m.pat[1])}
         night={m.night} wet={fx.weather === 'Rain'} snow={fx.weather === 'Snow'} boards={boards}
         tr={tr} teams={{ home: teams[0], away: teams[1] }} names={id => names.get(String(id))} />
       <div className="now-strip">
