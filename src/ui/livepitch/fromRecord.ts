@@ -666,6 +666,9 @@ export interface Baked {
   flags: Uint8Array
   /** the frames the picture dissolves at (the owner's fades: before a lineout, a conversion, a kick at goal, after half-time) */
   cuts: number[]
+  /** per play, once it has been baked: the slot (0..29) of the man the record names (`who`), or -1. A try scorer's
+   *  name tag is drawn on this man and on no other (27 Nov: "Stooke" rode on the No. 10 fetching the ball) */
+  whoSlot?: number[]
 }
 
 interface Body { x: number; y: number; vx: number; vy: number; rest?: boolean }
@@ -713,6 +716,7 @@ export function makeBaker(plays: Play[], sides?: [RecSide, RecSide], level = 0):
 
   // ---- who is who: ids to slots
   const idSlot = new Map<string, number>()
+  const whoSlot: number[] = []
   sides?.forEach((sd, s) => { for (const p of sd.players) if (p.shirt >= 1 && p.shirt <= 15) idSlot.set(p.id, slot(s as Side, p.shirt)) })
   // a man off the bench is not in the fifteen at kick-off: he takes the shirt of the man the record last saw in his position
   sides?.forEach((sd, s) => { for (const p of sd.players) if (p.shirt > 15 && !idSlot.has(p.id)) idSlot.set(p.id, slot(s as Side, p.shirt > 23 ? 15 : p.shirt > 20 ? 9 + (p.shirt - 21) : p.shirt - 15)) })
@@ -1173,6 +1177,8 @@ export function makeBaker(plays: Play[], sides?: [RecSide, RecSide], level = 0):
     // was named the lineout jumper at play 477, and the static bench map had him on the wing, so the throw
     // went 15 m across the field to him). From the change on, his id is the replaced man's slot.
     { const q = plays[n]; if (q.kind === 'substitution' && q.result === 'made' && q.who && q.with?.[0]) { const sl = idSlot.get(q.who); if (sl != null) { idSlot.set(q.with[0], sl); idSlot.delete(q.who) } } }
+    // (the slot of the man the play names, as it stands when the play starts: the screen's name tags go by it)
+    { const q = plays[n]; whoSlot[n] = q.who ? idSlot.get(q.who) ?? -1 : -1 }
     if (cd.of[n] >= 0) return travelCtl(n)
     const p = plays[n], s = p.side, d = dirOf(s), o = other(s), q = plays[n - 1]
     const nx = plays[n + 1]
@@ -2064,8 +2070,8 @@ export function makeBaker(plays: Play[], sides?: [RecSide, RecSide], level = 0):
         else if (k === si) segs[k].key = fresh[k].key
       }
     },
-    live: () => ({ plays, segs, cuts: cutFrames, n: f, pos: pos.subarray(0, f * 62), ball: ballA.subarray(0, f * 3), holder: holderA.subarray(0, f), poss: possA.subarray(0, f), seg: segA.subarray(0, f), flags: flags.subarray(0, f * 30) }),
-    result: () => ({ plays, segs, cuts: cutFrames, n: f, pos: pos.slice(0, f * 62), ball: ballA.slice(0, f * 3), holder: holderA.slice(0, f), poss: possA.slice(0, f), seg: segA.slice(0, f), flags: flags.slice(0, f * 30) }),
+    live: () => ({ plays, segs, whoSlot, cuts: cutFrames, n: f, pos: pos.subarray(0, f * 62), ball: ballA.subarray(0, f * 3), holder: holderA.subarray(0, f), poss: possA.subarray(0, f), seg: segA.subarray(0, f), flags: flags.subarray(0, f * 30) }),
+    result: () => ({ plays, segs, whoSlot, cuts: cutFrames, n: f, pos: pos.slice(0, f * 62), ball: ballA.slice(0, f * 3), holder: holderA.slice(0, f), poss: possA.slice(0, f), seg: segA.slice(0, f), flags: flags.slice(0, f * 30) }),
     get frames() { return f },
     get at() { return si },
   }
@@ -2294,6 +2300,8 @@ export class RecordFeed {
   frozen = false
   /** set by LivePitch: draw one frame now, at the feed's clock */
   redraw: () => void = () => {}
+  /** the slot of the man play n names, as the bake has him (-1: nobody, or not baked yet) */
+  slotOfWho(n: number): number { return this.bk.whoSlot?.[n] ?? -1 }
   /** the man the current play names (the tag over the man on the ball shows when he has it) */
   get who(): string | undefined { return this.plays[this.n]?.who }
 }

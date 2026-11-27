@@ -481,4 +481,25 @@ describe('the stadium pitch plays the record', () => {
     expect(near).toBe(0)
     expect(worn).toBeGreaterThan(0)
   })
+  // THE SCORER'S NAME TAG (27 Nov: in the v12 clip "Stooke" rode on the No. 10 fetching the ball for the conversion; the
+  // tag went to whoever was nearest the ball). The screen now draws it on the bake's slot for the record's scorer
+  // (Baked.whoSlot, RecordFeed.slotOfWho) and on nobody else: that slot is the man who grounds the ball, on the scoring side.
+  it("the try scorer's tag is only ever on the scorer: the slot it is drawn on is the man the record names, grounding the ball", () => {
+    let tries = 0
+    const bad: string[] = []
+    for (const { seed, bk } of all()) {
+      bk.plays.forEach((p, n) => {
+        if (p.kind !== 'try') return
+        tries++
+        const sl = bk.whoSlot?.[n] ?? -1, f = Math.min(bk.n - 1, Math.round(bk.segs[n].mark * FPS))
+        // (he grounds it, or, from a driven maul, he is in the maul at the ball when it goes down: within 2 m)
+        const grounded = [f, f - 1, f - 2].some(k => k >= 0 && bk.holder[k] === sl) || (sl >= 0 && Math.hypot(bk.pos[f * 62 + sl * 2] - bk.ball[f * 3], bk.pos[f * 62 + sl * 2 + 1] - bk.ball[f * 3 + 1]) < 2)
+        if (sl < 0 || (sl < 15 ? 0 : 1) !== p.side || !grounded) bad.push(`seed ${seed} play ${n}: scorer ${p.who} at slot ${sl}, ball held by ${bk.holder[f]}`)
+      })
+    }
+    console.log(`scorer tags: ${tries} tries, ${bad.length} where the tag's man is not the scorer`)
+    if (bad.length) console.log(bad.slice(0, 8).join('\n'))
+    expect(tries).toBeGreaterThan(0)
+    expect(bad).toEqual([])
+  }, 300_000)
 })

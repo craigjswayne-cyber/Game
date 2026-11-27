@@ -1362,9 +1362,12 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         const sid = Number((rp as RecP & { who?: string }).who), nm = io.current.names(sid)
         const a0 = S.phase?.homeBall === false ? 15 : 0
         // (the man nearest the ball when it went down, kept: not whoever fetches it for the conversion after)
+        // (BY HIS ID, NOT BY WHO IS NEAREST: the bake's slot for the record's scorer; 27 Nov, the tag rode on the No. 10
+        // who was nearest the ball as he fetched it for the conversion. No slot known: no tag, never a wrong one)
         if (scorerFor !== S.phase?.at) {
-          let bd = 6; scorerSlot = S.holder >= a0 && S.holder < a0 + 15 ? S.holder : -1
-          if (scorerSlot < 0) for (let i = a0; i < a0 + 15; i++) { const d = hyp2(S.b[i], S.ball); if (d < bd && !S.off[i]) { bd = d; scorerSlot = i } }
+          const sl = feed ? feed.slotOfWho(S.phase?.at ?? -1) : -1
+          scorerSlot = sl >= a0 && sl < a0 + 15 ? sl : -1
+          if (!feed) { let bd = 6; for (let i = a0; i < a0 + 15; i++) { const d = hyp2(S.b[i], S.ball); if (d < bd && !S.off[i]) { bd = d; scorerSlot = i } } }
           scorerFor = S.phase?.at ?? -1
         }
         const best = scorerSlot
