@@ -217,3 +217,11 @@ Now (2,000 pairs each):
 **Try origins on the 30 balanced fixtures (harmonycheck):** from turnovers now inside the real 11 to 12%. From restarts 8.0% (real 6) and from tapped penalties 2.5% to 3.8% (real 2) wobble between runs. Carries sit at about 181, on the edge of the real band.
 
 **Red cards:** the rate is one constant, `K.P_RED` (0.013 of a penalty's card roll), about 0.12 a match. A second yellow is now a red (Law 9); it was a second yellow before.
+
+## Round 10 (overnight 26 to 27 November)
+
+No lever was retuned this round. Things that change how levers read:
+- **The referee now varies by fixture** (the game's own panel). A strict referee gives about twice the yellow cards of a lenient one, so the aggression dial costs more under a strict whistle. To keep the aggression lever's own size, the discipline contest now counts its price to the power 1.8 (`DISC_EXP`). The test "aggression 95 gives away more penalties and more cards than 20" passes again.
+- **The other coach now changes how his side plays when chasing, protecting, a man up or in rain.** Late-game levers (the bench from 50:00, a late tactics change) now meet an opposition that answers back.
+- **A man on a yellow plays more carefully.** Second yellows fell from 0.033 a match to 0.007, the old engine's rate.
+- **Attack style, direct v width, is unchanged: -13 win % for a pack-heavy squad, +3 for a backs-heavy one.** Taking back half of the old engine's style-misfit charge moved it by under 1, so that change was taken out.

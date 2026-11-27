@@ -32,6 +32,74 @@ export interface SkeletonOpts {
   world?: World
 }
 
+/** the other coach's changes (MatchSim.coachRead): what each does to the side's way of playing */
+export type CoachMode = 'exploitShort' | 'chase' | 'protect' | 'wet'
+export interface CoachPlan { mode: CoachMode; width: number; kick: number; tempo: number; quick: number; corner: number }
+const COACH: Record<CoachMode, Omit<CoachPlan, 'mode'>> = {
+  // a man up: wide and quick, at the gap the missing man leaves
+  exploitShort: { width: 1.3, kick: 0.85, tempo: 0.9, quick: 1.3, corner: 0.1 },
+  // behind late: ball in hand, quick taps, the corner rather than three
+  chase: { width: 1.15, kick: 0.75, tempo: 0.92, quick: 1.3, corner: 0.3 },
+  // ahead late: kick for the corners, slow it down, take the three
+  protect: { width: 0.9, kick: 1.2, tempo: 1.06, quick: 0.8, corner: -0.15 },
+  // rain: keep it tight and kick
+  wet: { width: 0.85, kick: 1.15, tempo: 1, quick: 0.9, corner: 0 },
+}
+const COACH_WHY: Record<CoachMode, string> = { exploitShort: 'manUp', chase: 'chasing', protect: 'protecting', wet: 'wetBall' }
+
+/**
+ * THE DUELS OF THE MATCH, counted off the record (round 10), for the words: each side's scrum battle
+ * (penalties and free kicks won at the scrum, and balls taken against the head), its breakdown (ruck
+ * turnovers won, and the man who won most), its lineout (throws stolen), and its top carrier by
+ * metres and top tackler. Ids as the record names men; '' when nobody.
+ */
+export interface Duels {
+  scrum: [number, number]
+  breakdown: [number, number]
+  jackal: [{ who: string; n: number }, { who: string; n: number }]
+  steals: [number, number]
+  carrier: [{ who: string; m: number }, { who: string; m: number }]
+  tackler: [{ who: string; n: number }, { who: string; n: number }]
+  /** the man who gave away most penalties for each side */
+  culprit: [{ who: string; n: number }, { who: string; n: number }]
+}
+export function duelsOf(P: readonly Play[]): Duels {
+  const scrum: [number, number] = [0, 0], breakdown: [number, number] = [0, 0], steals: [number, number] = [0, 0]
+  const cu = [new Map<string, number>(), new Map<string, number>()]
+  const jk = [new Map<string, number>(), new Map<string, number>()], cm = [new Map<string, number>(), new Map<string, number>()], tk = [new Map<string, number>(), new Map<string, number>()]
+  const add = (m: Map<string, number>, k: string | undefined, v = 1) => { if (k) m.set(k, (m.get(k) ?? 0) + v) }
+  for (const p of P) {
+    const s = p.side, o = (s === 0 ? 1 : 0) as 0 | 1
+    if (p.kind === 'scrum') {
+      if (p.result === 'penaltyWon') scrum[s]++
+      else if (p.result === 'penaltyLost' || p.result === 'againstTheHead') scrum[o]++
+    }
+    if (p.kind === 'ruck' && p.result === 'turnover') { breakdown[o]++; add(jk[o], p.vs?.[0]) }
+    if (p.kind === 'lineout' && p.result === 'stolen') steals[o]++
+    if ((p.kind === 'carry' || p.kind === 'lineBreak') && p.who) add(cm[s], p.who, Math.max(0, p.gain ?? 0))
+    if (p.kind === 'carry') for (const t of p.vs ?? []) add(tk[o], t)
+    if ((p.kind === 'penalty' || p.kind === 'freeKick') && p.offender) add(cu[o], p.offender)
+  }
+  const top = (m: Map<string, number>) => { let who = '', n = 0; for (const [k, v] of m) if (v > n) { who = k; n = v } return { who, n } }
+  const tj = jk.map(top) as [{ who: string; n: number }, { who: string; n: number }]
+  const tc = cm.map(m => { const t = top(m); return { who: t.who, m: Math.round(t.n) } }) as [{ who: string; m: number }, { who: string; m: number }]
+  return { scrum, breakdown, jackal: tj, steals, carrier: tc, tackler: tk.map(top) as [{ who: string; n: number }, { who: string; n: number }], culprit: cu.map(top) as [{ who: string; n: number }, { who: string; n: number }] }
+}
+
+/** the restart options: how far it goes (metres past halfway, from and a spread), and where the draw
+ *  falls (caught by the other side below `caught`, won back below `regather`, then the knock-on and
+ *  the errors as before) */
+const RESTART: Record<'short' | 'long' | 'contestable', { from: number; span: number; caught: number; regather: number }> = {
+  contestable: { from: 17, span: 14, caught: 0.82, regather: 0.91 },
+  short: { from: 10, span: 6, caught: 0.66, regather: 0.9 },
+  long: { from: 32, span: 14, caught: 0.92, regather: 0.93 },
+}
+
+/** a lineout call's chance of being stolen, and of its first phase breaking the line (mean 1 at the
+ *  calls' own mix away from their line: 0.3, 0.4, 0.3) */
+const LO_STEAL: Record<'front' | 'middle' | 'tail', number> = { front: 0.6, middle: 1, tail: 1.4 }
+const LO_LAUNCH: Record<'front' | 'middle' | 'tail', number> = { front: 0.8, middle: 1, tail: 1.2 }
+
 /** who covers which shirt from the bench: 16 the hooker, 17 a loosehead, 18 a tighthead, 19 a lock,
  *  20 the back row, 21 the scrum-half, 22 the fly-half or a centre, 23 the back three or a centre */
 const BENCH_FOR: number[][] = [[2], [1], [3], [4, 5], [6, 7, 8], [9], [10, 12, 13], [11, 14, 15, 13, 12]]
@@ -51,18 +119,18 @@ export const K = {
   // up to BREAK_SPAN metres, and one in BREAK_LONG_P runs on up to BREAK_LONG more; inside five metres
   // of the line the cover gets there ('heldShort'); a runner hauled down is isolated, so the next ruck
   // is turned over ISOLATED_TURN times as often
-  P_BREAK: 0.044, BREAK_MIN: 6, BREAK_SPAN: 20, BREAK_LONG_P: 0.35, BREAK_LONG: 50, ISOLATED_TURN: 2.2,
+  P_BREAK: 0.045, BREAK_MIN: 6, BREAK_SPAN: 20, BREAK_LONG_P: 0.35, BREAK_LONG: 50, ISOLATED_TURN: 2.2,
   // first-phase ball off a won set piece and the first two phases after a turnover meet a defence not set
-  LAUNCH_B: 4.0, LAUNCH_B_22: 14.0, LAUNCH_B_OWN: 1.5, TURN_B: 1.3, LAUNCH_SCRUM: 0.6,
+  LAUNCH_B: 4.0, LAUNCH_B_22: 13.0, LAUNCH_B_OWN: 1.5, TURN_B: 1.5, LAUNCH_SCRUM: 0.6,
   // on their line the defence infringes and counter-rucks more: phase after phase there ends in a penalty or a turnover
   LINE_PEN: 1.3, LINE_TURN: 1.3,
   // the first two phases after catching the other side's kick (or a restart) meet a chasing line already up
-  RETURN_B: 0.6,
+  RETURN_B: 0.5,
   P_KNOCK_ON: 0.042, P_FORWARD: 0.004, P_INTO_TOUCH: 0.011, P_HELD_UP: 0.25,
   // an interception on a wide carry: how often, and how often the man who took it is away
   P_INTERCEPT: 0.006, INTERCEPT_AWAY: 0.45,
   // the ruck
-  P_TURNOVER: 0.046, P_PEN_ATTACK: 0.017, P_PEN_DEFENCE: 0.01, P_UNPLAYABLE: 0.004,
+  P_TURNOVER: 0.046, P_PEN_ATTACK: 0.0163, P_PEN_DEFENCE: 0.01, P_UNPLAYABLE: 0.004,
   // kicks
   // what kind of kick: from the own 22 a clearance to touch or a long one; from the rest of the own half a box
   // kick, a long one, an up-and-under or one to touch
@@ -72,7 +140,13 @@ export const K = {
   LINEOUT_WON: 0.87, LINEOUT_STOLEN: 0.07, LINEOUT_NOT_STRAIGHT: 0.025, LINEOUT_PEN: 0.035,
   // the driving maul (round 6, to the sources: about 10 a match): near their line, in the middle, and deep in
   // the side's own half, times the pack's lean squared; most make a few metres and the ball is used
-  MAUL_NEAR_MIN: 0.7, PICK_VS: 2,
+  // THE WIND (round 10): a kick's length with it or into it (times 1 +- WIND_KICK at full strength),
+  // a long goal kick's chance, how much more a side kicks with it at its back, and from what strength
+  // the record says so on the kick (Play.wind)
+  WIND_KICK: 0.15, WIND_GOAL: 0.05, WIND_LEAN: 0.3, WIND_SAY: 0.5,
+  // an attacking scrum this close: the pack that is on top by this much shoves, and pushes over this often (times its edge squared)
+  SCRUM_5M: 7, SHOVE_AT: 1.05, P_PUSHOVER: 0.12, SECOND_YC_KEEP: 0.22, RANGE_EXP: 3, FR_EARLY_FROM: 1800,
+  MAUL_NEAR_MIN: 0.7, SCRUM_TARGET: 3, COACH_ON: true as boolean, PICK_VS: 2,
   MAUL_FROM: 30, P_MAUL: 0.55, P_MAUL_MID: 0.40, P_MAUL_DEEP: 0.12, MAUL_GAIN: 4.5, MAUL_PEN: 0.10, MAUL_STOPPED: 0.08,
   SCRUM_PEN_FEED: 0.15, SCRUM_PEN_AGAINST: 0.08, SCRUM_FREE: 0.07, SCRUM_HEAD: 0.03, SCRUM_RESET: 0.22,
   // penalties. GOAL_TAKE set 21 Nov (was 0.66, +0.12 inside 30 m): the old engine takes about 3.5
@@ -279,13 +353,19 @@ export interface SimState {
   ruckSpeed?: '' | 'quick' | 'slow'
   /** written on the next play: the penalty call carried out and who made it, a tactics change
    *  taking effect, a team talk heard (Play.call, callBy, tactics, talk) */
-  tag?: Partial<Pick<Play, 'call' | 'callBy' | 'tactics'>>
+  tag?: Partial<Pick<Play, 'call' | 'callBy' | 'tactics' | 'coach'>>
   talkTag?: { side: 0 | 1; tone: string; pre?: boolean } | null
   /** each side's injuries are the manager's to cover (an 'injuryCall' decision), the man he named
    *  for each hurt man, and the hurt man the match is waiting on (pendingInjury) */
   injAsk?: [boolean, boolean]
   injPick?: Record<string, string>
   injWait?: { side: 0 | 1; who: string } | null
+  /** the call at the last lineout won (front, middle, tail): its first phase */
+  loOpt?: 'front' | 'middle' | 'tail'
+  /** scrum penalties won by each side (the other coach goes after a scrum it is winning) */
+  scrumPens?: [number, number]
+  /** the other coach's current change for each side (coachRead), null when he plays his own game */
+  coach?: [CoachPlan | null, CoachPlan | null]
   /** the men shown a yellow card this match (a second one is a red) */
   yellowed?: string[]
   /** the call the match is stopped for goes to the side's own call this once (MatchSim.answerAuto) */
@@ -419,7 +499,10 @@ export class MatchSim {
   save(): SimState { return structuredClone(this.st) }
   result(): SimResult {
     const m = this.world.managed
-    return { plays: this.st.plays, score: this.st.score, tries: this.st.tries, ...(m === 0 || m === 1 ? { managed: m } : {}) }
+    const ref = this.world.referee
+    const wind = this.world.wind
+    return { duels: duelsOf(this.st.plays), plays: this.st.plays, score: this.st.score, tries: this.st.tries, ...(m === 0 || m === 1 ? { managed: m } : {}), ...(ref ? { referee: ref } : {}),
+      ...(this.world.weather || wind ? { conditions: { weather: this.world.weather ?? 'Dry', wind: wind ?? { strength: 0, toward: 1 }, ...(this.world.hot ? { hot: true } : {}) } } : {}) }
   }
 
   /** leave the call the match is stopped for to the side's own call (the captain's), as the game makes it */
@@ -452,6 +535,7 @@ export class MatchSim {
     if (this.done || this.pending) return false
     this.flush()
     this.benches()
+    { const nk = this.st.next.k; if (nk !== 'phase' && nk !== 'penalty' && nk !== 'penaltyCall' && nk !== 'end') this.coachRead() }
     this.st.next = this.play(this.st.next)
     this.st.law = this.L.state
     this.flush()
@@ -530,7 +614,44 @@ export class MatchSim {
   private short = (s: 0 | 1) => this.st.bin[s].filter(u => u > this.st.t).length + this.st.sentOff[s] + (this.st.hurt?.[s].length ?? 0)
   /** a side's strength at a contest now: a man down costs every contest; momentum lifts it a little */
   private S = (s: 0 | 1, c: Contest) => this.world.str(s, c, this.st.t) * Math.max(0.55, 1 - K.SHORT_COST * this.short(s)) * (c === 'goal' || c === 'discipline' ? 1 : 1 + this.mom(s))
-  private sty = (s: 0 | 1): PlayStyle => this.world.style?.(s) ?? NEUTRAL_STYLE
+  private styCache: [{ base: PlayStyle; c: CoachPlan; out: PlayStyle } | null, { base: PlayStyle; c: CoachPlan; out: PlayStyle } | null] = [null, null]
+  /** the side's way of playing: its own (World.style), with its coach's change for the state of the game on top */
+  private sty = (s: 0 | 1): PlayStyle => {
+    const b = this.world.style?.(s) ?? NEUTRAL_STYLE
+    const c = this.st.coach?.[s]
+    if (!c) return b
+    const k = this.styCache[s]
+    if (k && k.base === b && k.c === c) return k.out
+    const out: PlayStyle = { ...b, width: clamp(b.width * c.width, 0.12, 0.55), kick: b.kick * c.kick, tempo: b.tempo * c.tempo, quick: b.quick * c.quick, corner: clamp(b.corner + c.corner, 0, 0.9) }
+    this.styCache[s] = { base: b, c, out }
+    return out
+  }
+  /**
+   * THE OTHER COACH READS THE GAME (round 10, owner 18 Nov: "teams should adapt, e.g. exploit an
+   * opposition down to 14"). At every dead ball a side nobody manages looks at the score, the clock,
+   * the men and the weather and changes how it plays: a man up, it moves the ball wide and quickly;
+   * chasing late, it runs and goes for the corner; protecting a lead late, it kicks for the corners
+   * and slows it down; on a wet day, it kicks more and keeps it tight. Only choices: no strength is
+   * added (the style's own levers are taken back off the carry, comp()). Each change is written on
+   * the next play (Play.coach) with its reason, once, when it changes.
+   */
+  private coachRead() {
+    if (!K.COACH_ON) return
+    const st = this.st
+    for (const s of [0, 1] as const) {
+      if (this.world.managed === s) continue
+      const o = this.other(s), lead = this.lead(s)
+      let mode: CoachMode | '' = ''
+      if (this.short(o) > this.short(s)) mode = 'exploitShort'
+      else if ((st.clock >= 3300 && lead < -7) || (st.clock >= 4200 && lead < 0)) mode = 'chase'
+      else if (st.clock >= 3900 && lead > 0 && lead <= 14) mode = 'protect'
+      else if (this.wet() >= 1) mode = 'wet'
+      const cur = st.coach?.[s]?.mode ?? ''
+      if (mode === cur) continue
+      ;(st.coach ??= [null, null])[s] = mode ? { mode, ...COACH[mode] } : null
+      if (mode) st.tag = { ...st.tag, coach: { side: s, mode, reason: COACH_WHY[mode] } }
+    }
+  }
   /** which shape this phase is run in, on one draw */
   private pickShape(wide: boolean, d: number, me: PlayStyle, them: PlayStyle): string {
     const st = this.st, ph = st.phase, S2 = SHAPE_STYLE[me.atk] ?? {}, wet = this.wet()
@@ -552,6 +673,17 @@ export class MatchSim {
       Math.pow(y.offload, K.COMP_OFFLOAD) * Math.pow(y.tempo, K.COMP_TEMPO) * Math.pow(y.quick, K.COMP_QUICK) * Math.exp(K.COMP_BLITZ * y.blitz + K.COMP_NARROW * y.narrow + K.COMP_CORNER * (y.corner - NEUTRAL_STYLE.corner))
   }
   /** rain or snow: a wet ball. Damp is a little of both. */
+  /** THE WIND for side s now (World.wind): +strength kicking with it, -strength into it. The record's
+   *  x is fixed by side (side 0 attacks x = 100 all match), so the ends change over at half-time. */
+  private wind = (s: 0 | 1): number => {
+    const w = this.world.wind
+    if (!w || !w.strength) return 0
+    return w.strength * (w.toward === 1 ? 1 : -1) * (s === 0 ? 1 : -1) * (this.st.half === 0 ? 1 : -1)
+  }
+  private windTag = (s: 0 | 1): { wind?: 'with' | 'into' } => {
+    const w = this.wind(s)
+    return w >= K.WIND_SAY ? { wind: 'with' } : w <= -K.WIND_SAY ? { wind: 'into' } : {}
+  }
   private wet = () => (this.world.weather === 'Rain' || this.world.weather === 'Snow' ? 1 : this.world.weather === 'Damp' ? 0.4 : 0)
   private lead = (s: 0 | 1) => this.st.score[s] - this.st.score[this.other(s)]
   /** the scoreboard and the clock: chasing the game late, or protecting a lead */
@@ -606,6 +738,13 @@ export class MatchSim {
         if (b != null) this.queue.push({ kind: 'substitution', side: s, off: id, on: lu.bench[b], injury: true })
       }
       if (!st.bench![s]) continue
+      // THE BENCH BY NEED (the other coach, round 10): a front row being beaten at the scrum (two
+      // scrum penalties more given away than won) is changed now, not at the planned minute
+      if (this.world.managed !== s && st.clock >= K.FR_EARLY_FROM && (st.scrumPens?.[this.other(s)] ?? 0) - (st.scrumPens?.[s] ?? 0) >= 2) {
+        let moved = false
+        for (const i of [0, 1, 2]) if (st.subPlan[s][i] > st.clock + 60 && lu.bench[i]) { st.subPlan[s][i] = Math.round(st.clock); moved = true }
+        if (moved) st.tag = { ...st.tag, coach: { side: s, mode: 'frontRow', reason: 'scrumBeaten' } }
+      }
       st.subPlan[s].forEach((due, i) => {
         if (due < 0 || st.clock < due || !lu.bench[i]) return
         const shirts = FOR[i].filter(n => lu.field[n - 1] && !lu.off[n - 1])
@@ -658,7 +797,12 @@ export class MatchSim {
   private card(off: 0 | 1, red: boolean, cause: string, who: string) {
     const st = this.st
     // A SECOND YELLOW IS A RED (Law 9): a man already shown one this match is sent off
-    if (!red && who && (st.yellowed ??= []).includes(who)) { red = true; cause = 'secondYellow' }
+    // (and a man already on a yellow plays more carefully: most of the offences that would earn him a
+    // second go unpunished by a card, SECOND_YC_KEEP the old engine's rate of second yellows)
+    if (!red && who && (st.yellowed ??= []).includes(who)) {
+      if (this.rng() >= K.SECOND_YC_KEEP) return
+      red = true; cause = 'secondYellow'
+    }
     if (!red && who) st.yellowed!.push(who)
     if (red) { st.sentOff[off]++; this.world.carded?.(off, who, Infinity); this.emit('redCard', off, cause, null, 0, 20, { who }); return }
     const until = st.t + K.BIN_S
@@ -674,11 +818,11 @@ export class MatchSim {
     // the conversion is from in line with where it was scored: out wide is harder
     const wide = Math.abs(st.y - 35) / 35
     // a world that knows the kicker gives his own chance from an average spot; out wide is harder than that
-    const pCon = W.goalP ? W.goalP(s, 'con', st.t, st.score[s] - st.score[this.other(s)]) + K.CON_WIDE * (K.CON_WIDE_MEAN - wide)
-      : (K.CON_GOOD + 0.16 - wide * K.CON_WIDE) * Math.sqrt(this.S(s, 'goal'))
+    const pCon = (W.goalP ? W.goalP(s, 'con', st.t, st.score[s] - st.score[this.other(s)]) + K.CON_WIDE * (K.CON_WIDE_MEAN - wide)
+      : (K.CON_GOOD + 0.16 - wide * K.CON_WIDE) * Math.sqrt(this.S(s, 'goal'))) + K.WIND_GOAL * this.wind(s) * wide
     const good = this.rng() < clamp(pCon, 0.2, 0.98)
     if (good) st.score[s] += 2
-    this.emit('conversion', s, good ? 'over' : 'wide', 'CON', 0, K.CON_DEAD, { good, who: W.goalKicker(s) })
+    this.emit('conversion', s, good ? 'over' : 'wide', 'CON', 0, K.CON_DEAD, { good, who: W.goalKicker(s), ...this.windTag(s) })
     return { k: 'kickoff', by: this.other(s) }
   }
 
@@ -686,14 +830,19 @@ export class MatchSim {
     const w = this.whistle(); if (w) return w
     const st = this.st, W = this.world, rng = this.rng, pick = this.pick
     const rec = this.other(by)
-    st.x = this.adv(by, 50, 17 + rng() * 14); st.y = 8 + rng() * 54; st.ball = by; st.passerId = ''
+    // THE RESTART (round 10), by the score and the clock: chasing it late a side kicks short to its own
+    // pod to win it back; protecting a lead it kicks long and deep; otherwise a contestable kick to the
+    // ten-metre zone. (option on the kickoff play)
+    const opt: 'short' | 'long' | 'contestable' = this.chasing(by) ? 'short' : this.protecting(by) ? 'long' : 'contestable'
+    const R = RESTART[opt]
+    st.x = this.adv(by, 50, R.from + rng() * R.span); st.y = 8 + rng() * 54; st.ball = by; st.passerId = ''
     const u = rng()
     // a bad kick-off is written where it went: short of the ten-metre line, or out on the full
     if (u >= 0.98) st.y = st.y < 35 ? 0 : 70
-    else if (u >= 0.96) st.x = this.adv(by, 50, 3 + Math.abs(st.x - 50) * 0.2)
-    this.emit('kickoff', by, 'kicked', 'KICKOFF', K.RESTART_S, 0, { kick: 'restart', who: W.kicker(by, false, pick), land: [r1(st.x), r1(st.y)] })
-    if (u < 0.82) { st.ball = rec; st.phase = 1; st.turnPhases = -2; st.carrierId = W.jumper(rec, pick); this.emit('catch', rec, 'caught', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }); return { k: 'phase' } }
-    if (u < 0.91) { st.ball = by; st.phase = 1; st.carrierId = W.jumper(by, pick); this.emit('catch', by, 'regathered', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }); return { k: 'phase' } }
+    else if (u >= 0.96) st.x = this.adv(by, 50, 3 + Math.min(6, Math.abs(st.x - 50) * 0.2))
+    this.emit('kickoff', by, 'kicked', 'KICKOFF', K.RESTART_S, 0, { kick: 'restart', who: W.kicker(by, false, pick), land: [r1(st.x), r1(st.y)], option: opt })
+    if (u < R.caught) { st.ball = rec; st.phase = 1; st.turnPhases = -2; st.carrierId = W.jumper(rec, pick); this.emit('catch', rec, 'caught', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }); return { k: 'phase' } }
+    if (u < R.regather) { st.ball = by; st.phase = 1; st.carrierId = W.jumper(by, pick); this.emit('catch', by, 'regathered', 'PLAY', K.CATCH_S, 0, { who: st.carrierId }); return { k: 'phase' } }
     if (u < 0.96) { this.emit('knockOn', rec, 'underTheRestart', 'STOP', 0, 0, { who: W.jumper(rec, pick) }); return { k: 'scrum', to: by } }
     // not ten metres, or straight out: a scrum on halfway to the side that did not kick
     st.x = 50; st.y = 35
@@ -724,25 +873,46 @@ export class MatchSim {
     // the front rows' own legs: a tired front row against a fresh one off the bench
     const fr = (s2: 0 | 1) => { const f = W.lineup?.(s2).field; if (!f || !W.man) return 1; return (this.man(s2, f[0]).legs + this.man(s2, f[1]).legs + this.man(s2, f[2]).legs) / 3 }
     const u = rng(), feed = this.vs(to, 'scrum') * Math.pow(fr(to) / fr(this.other(to)), K.FRONT_LEGS)
-    const pf = K.SCRUM_PEN_FEED * feed, pa = K.SCRUM_PEN_AGAINST / feed
+    // the referee's view of the scrum (World.referee): a pedant blows more of them, either way
+    const rs = this.world.referee?.scrum ?? 1
+    const pf = K.SCRUM_PEN_FEED * feed * rs, pa = K.SCRUM_PEN_AGAINST / feed * rs
     const base = { pre, resets: resets || undefined }
     if (u < pf) {
       const off = W.forward(this.other(to), pick)
+      ;(this.st.scrumPens ??= [0, 0])[to]++
       this.emit('scrum', to, 'penaltyWon', 'SCRUM', K.SCRUM_S, 0, { ...base, vs: this.ids([off]) })
       return { k: 'penalty', to, free: false, cause: this.oneOf(['collapsing', 'standingUp', 'notBinding']), offender: off }
     }
     if (u < pf + pa) {
       const off = W.forward(to, pick)
+      ;(this.st.scrumPens ??= [0, 0])[this.other(to)]++
       this.emit('scrum', to, 'penaltyLost', 'SCRUM', K.SCRUM_S, 0, { ...base, who: off })
       return { k: 'penalty', to: this.other(to), free: false, cause: this.oneOf(['collapsing', 'standingUp', 'notBinding']), offender: off }
     }
-    if (u < pf + pa + K.SCRUM_FREE) {
+    if (u < pf + pa + K.SCRUM_FREE * rs) {
       this.emit('scrum', to, 'freeKick', 'SCRUM', K.SCRUM_S, 0, base)
       const fk = rng() < 0.5 ? to : this.other(to)
-      return { k: 'penalty', to: fk, free: true, cause: 'earlyEngagement', offender: W.forward(this.other(fk), pick) }
+      return { k: 'penalty', to: fk, free: true, cause: 'earlyEngagement', offender: (W.culprit ?? W.forward)(this.other(fk), pick) }
     }
-    if (u < pf + pa + K.SCRUM_FREE + K.SCRUM_HEAD / feed) { st.ball = this.other(to); st.phase = 1; this.emit('scrum', to, 'againstTheHead', 'SCRUM', K.SCRUM_S, 0, { ...base, vs: this.ids([W.forward(this.other(to), pick)]) }); return { k: 'phase' } }
+    if (u < pf + pa + K.SCRUM_FREE * rs + K.SCRUM_HEAD / feed) { st.ball = this.other(to); st.phase = 1; this.emit('scrum', to, 'againstTheHead', 'SCRUM', K.SCRUM_S, 0, { ...base, vs: this.ids([W.forward(this.other(to), pick)]) }); return { k: 'phase' } }
     st.phase = 1; st.launch = 'scrum'
+    // AN ATTACKING SCRUM ON THEIR LINE (round 10): a pack on top goes for the shove (the pushover, or the
+    // penalty try a collapse brings); otherwise the No. 8 picks it up, or the back row runs a move
+    const ds = this.toLine(to, st.x)
+    if (ds <= K.SCRUM_5M) {
+      const vsS = this.vs(to, 'scrum')
+      const option = vsS > K.SHOVE_AT ? 'shove' : pick() < 0.5 ? 'eightPick' : 'backRowMove'
+      if (option === 'shove' && rng() < K.P_PUSHOVER * vsS * vsS) {
+        this.emit('scrum', to, 'pushover', 'SCRUM', K.SCRUM_S, 0, { ...base, option })
+        const f = W.lineup?.(to).field
+        st.carrierId = f?.[7] || f?.[1] || ''
+        st.x = to === 0 ? 100 : 0
+        return this.scoreTry(to, 'pushover')
+      }
+      this.emit('scrum', to, 'won', 'SCRUM', K.SCRUM_S, 0, { ...base, option })
+      if (option === 'eightPick') { const f = W.lineup?.(to).field; if (f?.[7]) st.carrierId = f[7] }
+      return { k: 'phase' }
+    }
     this.emit('scrum', to, 'won', 'SCRUM', K.SCRUM_S, 0, base)
     return { k: 'phase' }
   }
@@ -777,15 +947,21 @@ export class MatchSim {
       return { k: 'penalty', to: pto, free, cause: free ? 'closingTheGap' : this.oneOf(['obstruction', 'offsideAtLineout']), offender: W.jumper(this.other(pto), pick) }
     }
     st.y = st.y < 35 ? 7 : 63
-    if (u < K.LINEOUT_NOT_STRAIGHT + K.LINEOUT_PEN + K.LINEOUT_STOLEN / this.vs(to, 'lineout')) {
+    // THE CALL (round 10): front, middle or tail, on the naming dice. The front is the safe ball and
+    // the platform for a drive near their line; the tail is the attacking ball, quicker to the backs
+    // and easier to steal. Mean-neutral: the three together steal and launch as the lineout did.
+    const dlo = this.toLine(to, st.x)
+    const opt = this.choose(pick(), [['front', dlo < 25 ? 0.45 : 0.3], ['middle', 0.4], ['tail', dlo < 25 ? 0.15 : 0.3]]) as 'front' | 'middle' | 'tail'
+    st.loOpt = opt
+    if (u < K.LINEOUT_NOT_STRAIGHT + K.LINEOUT_PEN + K.LINEOUT_STOLEN * LO_STEAL[opt] / this.vs(to, 'lineout')) {
       st.ball = this.other(to); st.phase = 1
       st.carrierId = W.jumper(this.other(to), pick)
-      this.emit('lineout', to, 'stolen', 'LINEOUT', K.LINEOUT_S, 0, { pre, who: W.thrower(to), vs: this.ids([st.carrierId]) })
+      this.emit('lineout', to, 'stolen', 'LINEOUT', K.LINEOUT_S, 0, { pre, who: W.thrower(to), vs: this.ids([st.carrierId]), option: opt })
       return { k: 'phase' }
     }
     st.phase = 1; st.launch = 'lineout'
     const jumper = W.jumper(to, pick)
-    this.emit('lineout', to, 'won', 'LINEOUT', K.LINEOUT_S, 0, { pre, who: W.thrower(to), with: this.ids([jumper]) })
+    this.emit('lineout', to, 'won', 'LINEOUT', K.LINEOUT_S, 0, { pre, who: W.thrower(to), with: this.ids([jumper]), option: opt })
     st.carrierId = jumper
     // close to their line it is driven (a pack side drives more of them, and from further out)
     const dl = this.toLine(to, st.x)
@@ -830,13 +1006,17 @@ export class MatchSim {
     const off = this.other(to)
     st.ball = to; st.passerId = ''; st.carrierId = ''
     // (a penalty's dead time is the call's: a quick tap is taken at once, anything else waits; MatchSim.penaltyCall)
-    this.emit(free ? 'freeKick' : 'penalty', to, 'awarded', 'PENALTY', 0, free ? K.PENALTY_DEAD : 0, { cause, offender })
-    const d = this.toLine(to, st.x)
     if (!free) st.conceded = [st.conceded?.[0] ?? 0, st.conceded?.[1] ?? 0], st.conceded[off]++
-    // the referee's patience: a side giving away penalty after penalty has been warned, and the next
-    // man goes (as concedePenalty does in the old engine); an aggressive side's men are carded more
-    const repeat = !free && (st.conceded?.[off] ?? 0) >= K.WARN_AT ? K.WARN_CARD : 1
-    const cardF = this.sty(off).cards * repeat
+    // the referee's patience (World.referee.warnAt, the game's own panel: 5 to 8): one short of it he
+    // has the captain over and warns him (Play.warning), and from it the next man is likely to go, as
+    // concedePenalty does in the old engine; an aggressive side's men are carded more, and so are a
+    // card-happy referee's
+    const ref = this.world.referee, warnAt = ref?.warnAt ?? K.WARN_AT
+    const n = st.conceded?.[off] ?? 0
+    this.emit(free ? 'freeKick' : 'penalty', to, 'awarded', 'PENALTY', 0, free ? K.PENALTY_DEAD : 0, { cause, offender, ...(!free && n === warnAt - 1 ? { warning: true } : {}) })
+    const d = this.toLine(to, st.x)
+    const repeat = !free && n >= warnAt ? K.WARN_CARD : 1
+    const cardF = this.sty(off).cards * repeat * (ref?.cards ?? 1)
     if (!free) {
       const c = rng()
       // (the man carded is the offender when the record names him)
@@ -877,12 +1057,16 @@ export class MatchSim {
     const u = rng()
     const posts = () => {
       const wide = Math.abs(st.y - 35) / 35, far = Math.max(0, d - 15)
-      const pPen = W.goalP ? W.goalP(to, 'pen', st.t, st.score[to] - st.score[off]) + K.PEN_FAR * (K.PEN_FAR_MEAN - far) + K.PEN_WIDE * (K.PEN_WIDE_MEAN - wide)
-        : (0.95 - K.PEN_FAR * far - wide * K.PEN_WIDE) * Math.sqrt(this.S(to, 'goal'))
+      // (the wind: with it a long kick carries, into it it falls short; the further out, the more)
+      // (a kicker's range: a big boot loses less for each metre out, a short one more; his own kicking
+      // against his side's, World.man, so the average kicker is the side's)
+      const gkr = W.goalKicker(to), range = Math.max(0.7, Math.min(1.4, 1 / Math.pow(this.man(to, gkr).kick, K.RANGE_EXP)))
+      const pPen = (W.goalP ? W.goalP(to, 'pen', st.t, st.score[to] - st.score[off]) + K.PEN_FAR * range * (K.PEN_FAR_MEAN - far) + K.PEN_WIDE * (K.PEN_WIDE_MEAN - wide)
+        : (0.95 - K.PEN_FAR * far - wide * K.PEN_WIDE) * Math.sqrt(this.S(to, 'goal'))) + K.WIND_GOAL * this.wind(to) * Math.min(2, far / 15)
       const good = rng() < clamp(pPen, 0.3, 0.97)
       const gk = W.goalKicker(to)
-      if (good) { st.score[to] += 3; this.emit('penaltyGoal', to, 'over', 'GOAL', 0, K.GOAL_DEAD, { good, who: gk }); return { k: 'kickoff', by: off } as Next }
-      this.emit('penaltyGoal', to, 'wide', 'GOALMISS', 0, K.GOAL_DEAD, { good, who: gk })
+      if (good) { st.score[to] += 3; this.emit('penaltyGoal', to, 'over', 'GOAL', 0, K.GOAL_DEAD, { good, who: gk, ...this.windTag(to) }); return { k: 'kickoff', by: off } as Next }
+      this.emit('penaltyGoal', to, 'wide', 'GOALMISS', 0, K.GOAL_DEAD, { good, who: gk, ...this.windTag(to) })
       return { k: 'dropout', by: off, goalLine: false } as Next
     }
     // A QUICK TAP: taken before the defence is back, when nobody has been carded (the game is not
@@ -923,6 +1107,12 @@ export class MatchSim {
     if (st.clock >= K.LATE_CHASE_S && Math.abs(behind) <= 7 && sty.lead < 0 && (take === 0 || take === 1) && rng() < -sty.lead * K.CAPTAIN_WRONG) take = 1 - take
     if (d <= K.GOAL_RANGE && u < take) return tagged('posts', () => waitThen(posts))
     const v = rng()
+    // A SCRUM IT HAS BEEN WINNING (the other coach, coachRead): three scrum penalties won and inside
+    // fifteen metres of their line, a side nobody manages takes the scrum to go after it again
+    if (this.world.managed !== to && (st.scrumPens?.[to] ?? 0) >= K.SCRUM_TARGET && (st.scrumPens?.[to] ?? 0) > (st.scrumPens?.[off] ?? 0) && d <= 15 && d > 5) {
+      st.tag = { ...st.tag, coach: { side: to, mode: 'targetScrum', reason: 'scrumOnTop' } }
+      return tagged('scrum', () => waitThen(() => ({ k: 'scrum', to })))
+    }
     // the quick tap: a high-tempo side, a side chasing the game, and close to their line
     if (v < K.PEN_TAP * sty.quick * (this.chasing(to) ? 2 : 1) * (d <= 10 ? 1.5 : 1)) return tagged('tap', tap)
     if (v < K.PEN_TAP + K.PEN_SCRUM && d < 30) return tagged('scrum', () => waitThen(() => ({ k: 'scrum', to })))
@@ -945,7 +1135,7 @@ export class MatchSim {
         ? this.choose(u, [['box', K.KICK_BOX * m.box * (1 + 0.3 * wet)], ['long', K.KICK_LONG * m.long * hold], ['upAndUnder', (1 - K.KICK_BOX - K.KICK_LONG - K.KICK_TOUCH) * m.upAndUnder * (1 + 0.3 * wet)], ['touch', K.KICK_TOUCH * m.touch * hold]])
         : this.choose(u, [['grubber', 0.32 * m.grubber], ['upAndUnder', 0.30 * m.upAndUnder * (1 + 0.3 * wet)], ['touch', 0.20 * m.touch * hold], ['chip', 0.09 * m.chip * (1 - 0.5 * wet)], ['crossField', 0.09 * m.crossField * (1 - 0.5 * wet) * (d < 40 ? 1.5 : 0.5)]])
     const kickerId = W.kicker(s, type === 'box', pick), boot = Math.sqrt(this.S(s, 'kicking')) * this.man(s, kickerId).kick
-    const dist = boot * (type === 'clearance' ? 28 + rng() * 18 : type === 'long' ? 34 + rng() * 18 : type === 'touch' ? 22 + rng() * 16
+    const dist = boot * (1 + K.WIND_KICK * this.wind(s)) * (type === 'clearance' ? 28 + rng() * 18 : type === 'long' ? 34 + rng() * 18 : type === 'touch' ? 22 + rng() * 16
       : type === 'grubber' ? 11 + rng() * 10 : type === 'chip' ? 6 + rng() * 8 : type === 'crossField' ? 12 + rng() * 14 : 17 + rng() * 11)
     // charged down: it comes off a defender's hands and they are on to it first
     if (!fromFree && type !== 'grubber' && rng() < K.P_CHARGE) {
@@ -973,7 +1163,7 @@ export class MatchSim {
       land[0] = r1(line + dir * Math.max(0.5, Math.min(over, K.IN_GOAL + 6)))
       const outX = type === 'grubber' ? line + dir * Math.min(Math.max(1, over), K.IN_GOAL - 1) : line + dir * Math.max(K.IN_GOAL + 1.5, Math.min(over, K.IN_GOAL + 6))
       st.x = line
-      this.emit('kick', s, 'dead', 'KICK', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land })
+      this.emit('kick', s, 'dead', 'KICK', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land , ...this.windTag(s) })
       this.emit('deadBall', s, type === 'grubber' ? 'touchedDown' : 'ranDead', 'DEAD', 0, 0, { out: [r1(outX), r1(st.y)] })
       return { k: 'dropout', by: o2, goalLine: type === 'grubber' }
     }
@@ -984,17 +1174,17 @@ export class MatchSim {
         // (land: where it crossed the touchline on its way, before it would have come down)
         const over: [number, number] = [r1(clamp(from + (st.x - from) * 0.8, 0, 100)), st.y < 35 ? 0 : 70]
         st.x = from; st.y = st.y < 35 ? 0 : 70
-        this.emit('kick', s, 'outOnFull', 'TOUCH', K.KICK_S, 0, { kick: type, who: kickerId, land: over, out: [over[0], over[1] === 0 ? -K.OUT_BY : 70 + K.OUT_BY] })
+        this.emit('kick', s, 'outOnFull', 'TOUCH', K.KICK_S, 0, { kick: type, who: kickerId, land: over, out: [over[0], over[1] === 0 ? -K.OUT_BY : 70 + K.OUT_BY] , ...this.windTag(s) })
         return { k: 'lineout', to: o2 }
       }
       st.y = st.y < 35 ? 0 : 70
       land[1] = st.y
       // THE 50:22 (Law 18): from his own half, bouncing into touch in their 22, his side throws. Every time.
       const fifty = !fromFree && d > 50 && this.toLine(s, st.x) < 22
-      this.emit('kick', s, fifty ? 'fiftyTwentyTwo' : 'touch', 'TOUCH', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land, out: [land[0], st.y === 0 ? -K.OUT_BY : 70 + K.OUT_BY] })
+      this.emit('kick', s, fifty ? 'fiftyTwentyTwo' : 'touch', 'TOUCH', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land, out: [land[0], st.y === 0 ? -K.OUT_BY : 70 + K.OUT_BY] , ...this.windTag(s) })
       return { k: 'lineout', to: fifty ? s : o2 }
     }
-    this.emit('kick', s, 'inPlay', 'KICK', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land })
+    this.emit('kick', s, 'inPlay', 'KICK', K.KICK_S, 0, { kick: type, gain: r1(Math.abs(st.x - from)), who: kickerId, land , ...this.windTag(s) })
     const v = rng()
     // a kick that is chased and contested in the air: either side can win it
     const contest = type === 'box' || type === 'upAndUnder' || type === 'grubber' || type === 'chip' || type === 'crossField'
@@ -1049,7 +1239,7 @@ export class MatchSim {
       // the men on the field (a man down kicks, a man up keeps it) and the weather
       const zone = d > 78 ? 0 : d > 22 ? 1 : 2
       const base = d > 78 ? K.KICK_OWN22 : d > 50 ? K.KICK_OWNHALF : d > 22 ? K.KICK_OPPHALF : K.KICK_OPP22
-      const lean = me.kick * me.kickZone[zone] * (chase ? (d > 50 ? 0.45 : 0.6) : hold && d > 40 ? 1.35 : 1) * (up < 0 ? 1.25 : up > 0 ? 0.85 : 1) * (1 + 0.2 * wet)
+      const lean = me.kick * (1 + K.WIND_LEAN * this.wind(s)) * me.kickZone[zone] * (chase ? (d > 50 ? 0.45 : 0.6) : hold && d > 40 ? 1.35 : 1) * (up < 0 ? 1.25 : up > 0 ? 0.85 : 1) * (1 + 0.2 * wet)
       // (nobody kicks it away on their line: inside ten metres they keep it in hand)
       if (d > 10 && rng() < base * lean * (ball === 'slow' ? K.SLOW_KICK : 1) + K.KICK_PER_PHASE * Math.max(0, st.phase - K.KICK_PHASE_FROM)) return this.kick()
     }
@@ -1144,7 +1334,7 @@ export class MatchSim {
     // (a blitz is beaten by the ball behind it, a drift by a change of direction)
     const shapeB = !SH ? 1 : SH.b * (shapeId === 'pullBack' || shapeId === 'kickPass' ? 1 + 0.3 * Math.max(0, them.blitz) : shapeId === 'switch' || shapeId === 'snipe' ? 1 + 0.3 * Math.max(0, -them.blitz) : 1)
     const tp = st.turnPhases ?? 0
-    const unset = (launch ? (d < 30 ? K.LAUNCH_B_22 : d < 50 ? K.LAUNCH_B : K.LAUNCH_B_OWN) * me.launch * (launch === 'scrum' ? K.LAUNCH_SCRUM : 1) : 1) * (tp > 0 ? K.TURN_B : tp < 0 ? K.RETURN_B : 1)
+    const unset = (launch ? (d < 30 ? K.LAUNCH_B_22 : d < 50 ? K.LAUNCH_B : K.LAUNCH_B_OWN) * me.launch * (launch === 'scrum' ? K.LAUNCH_SCRUM : LO_LAUNCH[st.loOpt ?? 'middle']) : 1) * (tp > 0 ? K.TURN_B : tp < 0 ? K.RETURN_B : 1)
     st.turnPhases = tp > 0 ? tp - 1 : tp < 0 ? tp + 1 : 0
     const pBreak = K.P_BREAK * shapeB * edge * (mc.carry / mt.tackle) * me.tryF * (1 + 0.25 * them.blitz) * unset * tired * (pickGo ? 0.3 : 1) * (offloaded ? 1.3 : 1)
     let broke = false
@@ -1199,7 +1389,11 @@ export class MatchSim {
     // the defence gives away fewer penalties when it is disciplined, and so does the side with the ball
     const onLine = this.toLine(s, st.x) <= 12
     // (a blitz gives away more at the breakdown; a good captain keeps his side onside in its own 22)
-    const penFor = K.P_PEN_ATTACK * me.penF * them.defPen / this.S(o2, 'discipline') * (onLine ? K.LINE_PEN : 1) * (d <= 22 ? 1 - K.CAPTAIN_PEN * them.lead : 1), penAgainst = K.P_PEN_DEFENCE * def / this.S(s, 'discipline')
+    // the referee (World.referee): the defence's offences at the ruck are his offside line, the side
+    // with the ball's (holding on, not releasing) his view of the tackle area
+    const ref = this.world.referee
+    const penFor = K.P_PEN_ATTACK * me.penF * them.defPen / this.S(o2, 'discipline') * (onLine ? K.LINE_PEN : 1) * (d <= 22 ? 1 - K.CAPTAIN_PEN * them.lead : 1) * (ref?.offside ?? 1),
+      penAgainst = K.P_PEN_DEFENCE * def / this.S(s, 'discipline') * (ref?.breakdown ?? 1)
     // (the carrier, unless he has just been hurt and is off)
     const carrier = st.carrierId
     // the man over the ball, and his own work at the breakdown
@@ -1216,7 +1410,7 @@ export class MatchSim {
     if (r < pTurn + penFor + penAgainst) {
       this.emit('ruck', s, 'penaltyLost', 'PLAY', K.RUCK_S * 0.7, 0, { who: carrier, vs: this.ids([jk]) })
       const c = this.oneOf(['holdingOn', 'sealingOff', 'obstruction'] as const)
-      return { k: 'penalty', to: o2, free: false, cause: c, offender: c === 'holdingOn' && st.carrierId ? carrier : W.forward(s, pick) }
+      return { k: 'penalty', to: o2, free: false, cause: c, offender: c === 'holdingOn' && st.carrierId ? carrier : (W.culprit ?? W.forward)(s, pick) }
     }
     if (r < pTurn + penFor + penAgainst + K.P_UNPLAYABLE) { this.emit('ruck', s, 'unplayable', 'PLAY', K.RUCK_S, 0, { who: carrier }); this.emit('unplayable', s, 'scrum', 'STOP', 0, 0); return { k: 'scrum', to: s } }
     const ruckS = K.RUCK_S * me.tempo * (up < 0 ? 1.1 : 1) * (hold ? 1.1 : 1)

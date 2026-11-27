@@ -29,11 +29,12 @@ import { kickChance } from '../match/kicking'
 import { clutchKick } from '../habits'
 import { clamp } from '../rng'
 import { specialistGaps, teamName, teamUnits } from '../match/selection'
+import { refFor } from '../match/referee'
 import { effAt } from '../attributes'
 import { fieldLineup } from '../match/side'
 import type { SideCtx } from '../match/side'
 import type { LiveCtx } from '../match/live'
-import { NEUTRAL_STYLE, type Contest, type Decision, type ManForm, type PlayStyle, type World } from './world'
+import { NEUTRAL_STYLE, type Contest, type Decision, type ManForm, type PlayStyle, type RefereeView, type World } from './world'
 import { MATCHUP, styleTick, stylesOf, type AtkStyle, type DefStyle } from '../styles'
 import { callsOf } from '../moves'
 import { chemKey, type Tactic } from '../model'
@@ -309,6 +310,35 @@ export interface FromMatchOpts {
   userSideId?: string | null
 }
 
+/** HOW EACH OF THE GAME'S REFEREES SHAPES THE PENALTIES (refFor: the panel, fixed per fixture). The
+ *  old engine reads his dials as one price on the whistle (refPenF, inside the discipline contest);
+ *  here they say which offences he blows: the tackle area (`breakdown`: 0.9 fussy to 1.1 lets the
+ *  jackal work), the offside line (`flow`: 0.98 stop-start to 1.04 lets it run), the scrum (0.85
+ *  dismissive to 1.15 pedant), and the card he reaches for. Each is set against the panel's mean and
+ *  the three penalty factors are scaled together to the share of penalties each area gives
+ *  (REF_SHARE), so a referee moves where the whistles come from and not how many there are. */
+export const DISC_EXP = 1.8
+/** the wind's strength by the fixture's weather (0 still, 1 a gale) */
+export const WIND_BY: Record<string, number> = { Wind: 1, Rain: 0.5, Snow: 0.5, Damp: 0.3, Dry: 0.15 }
+export const REF_EXP = { breakdown: 3, offside: 4, scrum: 2.5 }
+export const REF_SHARE = { breakdown: 0.45, offside: 0.3, scrum: 0.25 }
+export function refereeView(fxId: number): RefereeView {
+  const r = refFor(fxId)
+  const raw = {
+    breakdown: Math.pow(1 / r.breakdown, REF_EXP.breakdown),
+    offside: Math.pow(1 / r.flow, REF_EXP.offside),
+    scrum: Math.pow(r.scrum, REF_EXP.scrum),
+  }
+  const n = REF_SHARE.breakdown * raw.breakdown + REF_SHARE.offside * raw.offside + REF_SHARE.scrum * raw.scrum
+  const f = { breakdown: raw.breakdown / n, offside: raw.offside / n, scrum: raw.scrum / n }
+  // what he is hot on: the dial on which he is furthest on the fussy side of the average referee;
+  // nothing past 5% of it, and he lets the game flow
+  const dev: [string, number][] = [['breakdown', raw.breakdown - 1], ['offside', raw.offside - 1], ['scrum', raw.scrum - 1], ['cards', (r.cards - 1) / 2]]
+  dev.sort((a, b) => b[1] - a[1])
+  const hot = dev[0][1] > 0.05 ? dev[0][0] : 'flow'
+  return { name: r.name, style: r.style, ...f, cards: r.cards, warnAt: r.patience + 1, hot }
+}
+
 export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: FromMatchOpts = {}): { world: MatchWorld; home: SimSide; away: SimSide } {
   // the real game is copied whole and the copy is what kicks off
   const clone = structuredClone(state)
@@ -396,7 +426,8 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
   const onAt = [Array(15).fill(0), Array(15).fill(0)] as [number[], number[]]
   /** the side's average tank now, 0 to 1 */
   const legsOf = (s: 0 | 1, t: number) => {
-    const side = sides[s], rate = (1 - END_TANK) * side.tempoF * side.drainF
+    // (snow and a hot afternoon take more out of a man, as the old engine's drainEnergy has it)
+    const side = sides[s], rate = (1 - END_TANK) * side.tempoF * side.drainF * (ctx.weather === 'Snow' ? 1.1 : ctx.hot ? 1.08 : 1)
     let e = 0
     for (let i = 0; i < 15; i++) e += tank0[s][i] * Math.max(0, 1 - Math.min(1, Math.max(0, t - onAt[s][i]) / 4800) * rate)
     return e / 15
@@ -555,7 +586,9 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
       // defensive line and its ruck contest, and the home crowd's lean. The
       // league's mean price over this side's price is 1 for an average side
       // under an average whistle. Not through GAMMA: it is already a rate.
-      case 'discipline': return mean.penRisk / Math.max(1e-6, sides[s].penRisk)
+      // (to DISC_EXP: round 10, the referee's card and patience now take a man off a dirty side sooner,
+      // and a side a man down gives away fewer penalties at the ruck, which hid the dial's own price)
+      case 'discipline': return Math.pow(mean.penRisk / Math.max(1e-6, sides[s].penRisk), DISC_EXP)
     }
   }
   // FORM ACROSS A WHOLE XV (round 6): the units carry each man's form (0.9 + 0.02 x form), and a change
@@ -806,8 +839,16 @@ export function worldFromMatch(state: GameState, fx: Fixture, rng: Rng, opts: Fr
     thrower: s => inShirt(s, 2, W_FORWARD.map((x, i) => x * (i < 3 ? 2 : 1) + 0.01)),
     jumper: (s, rng) => pickBy(s, W_JUMP, rng),
     forward: (s, rng) => pickBy(s, W_FORWARD, rng),
+    // THE MAN WHO GIVES IT AWAY (round 10): a forward, the more likely the more aggressive he is (his
+    // own aggression attribute, squared against the average man's): discipline-prone men give away more
+    culprit: (s, rng) => pickBy(s, W_FORWARD.map((w, i) => { const id = shirts[s][i]; const a = id != null ? clone.players[id]?.a.agg ?? 10 : 10; return w * Math.pow(a / 10, 2) }), rng),
     carded: (s, id, until) => { off[s].set(id, until) },
     decide,
+    referee: refereeView(fxc.id),
+    // THE WIND, from the fixture: a gale on a windy day, a breeze in the rain, a little on any other;
+    // the end it blows towards fixed by the fixture's id (no draw)
+    hot: !!ctx.hot,
+    wind: { strength: WIND_BY[ctx.weather] ?? 0.15, toward: ((fxc.id * 2654435761) >>> 0) % 2 === 0 ? 1 : 0 },
     tactic: s => structuredClone((clone.clubs[sides[s].teamId]?.tactic ?? {}) as unknown as Record<string, unknown>),
     // THE OLD ENGINE'S OWN KICK (kicking.ts kickChance, with the clutch
     // habit, as scoring.ts and takePenaltyShot use them): the kicker's goal

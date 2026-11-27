@@ -262,3 +262,56 @@ Key moments (see section 8 for the owner's final list): tries, kicks at goal, ca
 
 1. Which of the new player numbers go on the match report.
 2. Club-level figures for rucks, scrums, lineouts, penalties and cards, and for the URC, Top 14, Super Rugby and the women's leagues (to be found during stage 1).
+
+## 10. What the engine models (27 November 2026)
+
+A plain list of what the new engine plays out, for anyone who wants to know what can happen in a match and why. Every item is in the match record, so the commentary and the pitch can show it.
+
+**The sides and the men**
+- Each side's strength at each part of the game (scrum, lineout, breakdown, carrying, tackling, kicking, goal kicking), built from the game's own team units, with home advantage.
+- The man named in each play is a real player: the carrier, the tacklers, the jackal, the kicker, the catcher, the thrower and the jumper. His own attributes make him better or worse at it, and his legs tire over the match.
+- A man out of position costs his side, more for an odd shirt than a near one, and most for a non-specialist at prop, hooker or nine.
+- A goal kicker's range comes from his own boot.
+- Discipline-prone men (high aggression) give away more of the penalties.
+- The captain's leadership: fewer penalties in his own 22, and the call on a late close penalty.
+- Partnerships that have played together make fewer handling errors.
+- Fatigue: each man's tank drains, and replacements bring fresh legs. The front rows' legs decide late scrums.
+
+**The manager**
+- His team sheet, tactics dials and plans (attack and defence style, kicking style, exit plan, the plan in their 22, line speed, width).
+- Substitutions made at the next dead ball. He chooses who covers an injury.
+- Half-time and pre-match team talks, which help or hurt for about twenty minutes depending on the score.
+- Every kickable penalty is his call: posts, corner, tap or scrum.
+
+**The other coach** (a side nobody manages)
+- A man up, it moves the ball wide and quickly.
+- Chasing late, it runs and goes to the corner.
+- Protecting a lead late, it kicks and takes the points.
+- In rain, it keeps the ball tight and kicks.
+- When its scrum is on top, it goes after it again near the line.
+- When its front row is being beaten, it brings the bench front row on early.
+- Each change is written in the record with its reason.
+
+**The referee**
+- Each referee in the game's own panel has his leanings: the tackle area, the offside line, the scrum, how quickly he reaches for a card, and how many repeat offences he allows before he warns the captain.
+- He changes which penalties come, not how many on average: 11 to 12 a match, 7 to 17 in nine matches out of ten.
+
+**The day**
+- Rain, snow and damp: a wet ball means more knock-ons, fewer offloads and more kicking.
+- Wind, from the fixture's weather: kicks with it go further and into it shorter, long goal kicks are harder into it, and the ends change at half-time.
+
+**The phases and set pieces**
+- Rucks, quick or slow ball, and turnovers at the breakdown, with the jackal named.
+- Carries tight and wide in shapes (one-out, pods, the pull-back, the loop, the switch and others), line breaks, offloads, interceptions and held-up tries.
+- Kicks of eight kinds: box, up and under, grubber, long, clearance, touch, cross-field and chip.
+- Mauls from lineouts, and the pick and go on their line, decided pack against pack.
+- Lineout calls (front, middle, tail), quick throws, steals and not-straight throws.
+- Scrums: resets, penalties, free kicks, against the head. At an attacking five-metre scrum a dominant pack shoves for the pushover; otherwise the No. 8 picks or the back row runs a move.
+- Restarts: contestable, short when chasing, long when protecting a lead. Drop-outs.
+- Penalties and free kicks with their cause and offender, quick taps, kicks to touch, kicks at goal, penalty tries and drop goals.
+- Yellow cards (ten minutes in the bin) and red cards, at the current game's rate; a second yellow is a red.
+
+**What the record keeps for the words**
+- The referee and what he is hot on, the weather and the wind.
+- The duels: the scrum battle, breakdown turnovers and the top jackal, lineout steals, the top carrier and tackler, and the man who gave away most penalties.
+- The manager's and the other coach's decisions, each with its reason.

@@ -353,6 +353,43 @@ describe('the manager decides the match (round 5: "this can\'t be a preset resul
     expect(fresh - tired).toBeGreaterThan(3)
   }, 120000)
 
+  it('the referee is named, has his leanings, and warns a side before the card for repeat offences', () => {
+    const r = play(base.world, 1)
+    expect(r.referee?.name).toBeTruthy()
+    expect(['breakdown', 'offside', 'scrum', 'cards', 'flow']).toContain(r.referee!.hot)
+    // over many matches: every 'repeated' yellow comes after that side's warning
+    let warned = 0, repeated = 0
+    for (let seed = 1; seed <= 60; seed++) {
+      const P = play(base.world, seed).plays
+      for (const [i, p] of P.entries()) {
+        if (p.warning) warned++
+        if (p.kind === 'yellowCard' && p.result === 'repeated') {
+          repeated++
+          expect(P.slice(0, i).some(q => q.warning && q.side !== p.side)).toBe(true)
+        }
+      }
+    }
+    expect(warned).toBeGreaterThan(0)
+  }, 60000)
+
+  it('the other coach reads the game: a man up he goes wide, and each change is written once with its reason', () => {
+    let seen = 0
+    for (let seed = 1; seed <= 60; seed++) {
+      const P = play(base.world, seed).plays
+      for (const [i, p] of P.entries()) {
+        if (!p.coach) continue
+        expect(p.coach.side).not.toBe(us)
+        expect(['manUp', 'chasing', 'protecting', 'wetBall', 'scrumOnTop', 'scrumBeaten']).toContain(p.coach.reason)
+        if (p.coach.mode === 'exploitShort') {
+          seen++
+          // the other side is a man short: a red card for it before, or a yellow inside the ten minutes
+          expect(P.slice(0, i).some(q => q.side !== p.coach!.side && (q.kind === 'redCard' || (q.kind === 'yellowCard' && p.t - q.t <= 620)))).toBe(true)
+        }
+      }
+    }
+    expect(seen).toBeGreaterThan(0)
+  }, 60000)
+
   it('poor discipline costs: aggression 95 gives away more penalties and more cards than 20', () => {
     const pens = (r: ReturnType<typeof play>) => r.plays.filter(p => (p.kind === 'penalty' || p.kind === 'freeKick') && p.side !== us).length
     const cards = (r: ReturnType<typeof play>) => r.plays.filter(p => (p.kind === 'yellowCard' || p.kind === 'redCard') && p.side === us).length

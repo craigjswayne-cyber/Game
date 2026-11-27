@@ -111,6 +111,27 @@ export type Decision =
    *  off, the bench sends the nearest like for like at once */
   | { kind: 'injuryCall'; side: 0 | 1; ask: boolean }
 
+/** THE REFEREE (round 10, owner 19 Nov: "different referees more or less pernickety without breaking
+ *  averages"): his own dials, from the game's panel (match/referee.ts refFor), as factors on the
+ *  penalties the simulation gives. They shift WHICH penalties come; the total is the old engine's. */
+export interface RefereeView {
+  name: string
+  style: string
+  /** times the penalties at the tackle and the ruck for holding on and not releasing (the tackle area) */
+  breakdown: number
+  /** times the defence's penalties at the ruck for offside and hands in the ruck (the offside line) */
+  offside: number
+  /** times the scrum's penalties and free kicks */
+  scrum: number
+  /** times the chance a penalty brings a card */
+  cards: number
+  /** penalties a side may give away before the next one is a likely yellow: he warns the captain
+   *  at this many (Play.warning) */
+  warnAt: number
+  /** what he is hot on: 'breakdown', 'offside', 'scrum', 'cards' or 'flow' (lets it run) */
+  hot: string
+}
+
 export interface World {
   /** side s's strength at a contest at clock second t. 1 is an average side in this game; 1.1 is clearly better. */
   str(s: 0 | 1, c: Contest, t: number): number
@@ -139,6 +160,15 @@ export interface World {
   /** a substitution, a tactics change or a team talk, made at clock second t on the World's own
    *  sides: '' when it is done, else why not. A World without it has no bench and no dials. */
   decide?(d: Decision, t: number, score?: [number, number]): string
+  /** the wind: strength 0 (still) to 1 (a gale), and the end it blows towards in the first half
+   *  (1: towards x = 100, behind side 0). Absent: still. */
+  wind?: { strength: number; toward: 0 | 1 }
+  /** a hot afternoon: legs go sooner */
+  hot?: boolean
+  /** the man who gives away a penalty nobody else is named for: weighted by his aggression. Absent: forward() */
+  culprit?(s: 0 | 1, rng: Rng): string
+  /** the referee: absent, an average one (every factor 1, warned at 6) */
+  referee?: RefereeView
   /** side s's tactic as it stands now (a copy), for what a tactics change replaced */
   tactic?(s: 0 | 1): Record<string, unknown>
   /** how each side plays (absent: NEUTRAL_STYLE) */

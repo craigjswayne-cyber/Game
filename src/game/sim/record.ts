@@ -95,6 +95,13 @@ export interface Play {
   out?: [number, number]
   /** a ruck that is recycled: quick ball (under about three seconds) or slow */
   speed?: 'quick' | 'slow'
+  /** a penalty: the referee has had the offending side's captain over: one more and a man goes
+   *  (the side is one short of his limit for repeat offences, RefereeView.warnAt) */
+  warning?: boolean
+  /** a lineout: the call, where the throw went ('front', 'middle', 'tail') */
+  option?: string
+  /** a kick from hand or at goal in a real wind: with it at his back, or into it */
+  wind?: 'with' | 'into'
   /** a line break: the defender he beat (a missed tackle) */
   beat?: string[]
   /** the play that carries out a penalty option (penaltyGoal, kick/penaltyToTouch, tap, scrum): the
@@ -105,6 +112,11 @@ export interface Play {
   callBy?: 'manager' | 'standing' | 'captain'
   /** the first play after a tactics change took effect: the fields set, and what they were */
   tactics?: { side: 0 | 1; set: Record<string, unknown>; was: Record<string, unknown> }
+  /** the first play after a side nobody manages changed how it plays for the state of the game:
+   *  mode 'exploitShort' (a man up: wide and quick), 'chase' (behind late: running, the corner),
+   *  'protect' (ahead late: kicking, the posts), 'wet' (rain: tight, kicking); reason 'manUp',
+   *  'chasing', 'protecting', 'wetBall'. Written once each time it changes. */
+  coach?: { side: 0 | 1; mode: string; reason: string }
   /** a kick-off after a team talk: the tone (pre: the pre-match talk, on the first kick-off) */
   talk?: { side: 0 | 1; tone: string; pre?: boolean }
   /** the score after it */
@@ -117,4 +129,11 @@ export interface SimResult {
   tries: [number, number]
   /** the side the user manages, when one is */
   managed?: 0 | 1
+  /** the duels of the match, counted off the plays (skeleton.ts duelsOf) */
+  duels?: import('./skeleton').Duels
+  /** the day: the weather and the wind (strength 0 to 1, the end it blows towards in the first half,
+   *  1 = towards x 100, behind the home side) */
+  conditions?: { weather: string; wind: { strength: number; toward: 0 | 1 }; hot?: boolean }
+  /** the referee and what he is hot on (world.ts RefereeView) */
+  referee?: import('./world').RefereeView
 }

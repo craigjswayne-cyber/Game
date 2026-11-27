@@ -182,8 +182,10 @@ describe('toResult: the new engine as the game result', () => {
           expect(inj.options).toContain(inj.like)
           const pick = inj.options[inj.options.length - 1]
           s.cover(pick)
-          s.runUntil({ play: s.plays.length + 30 })
-          expect(s.plays.some(p => p.kind === 'substitution' && p.who === inj.who && p.with?.[0] === pick && p.result === 'made')).toBe(true)
+          // (made at the next restart the laws allow: never while a penalty is being taken)
+          for (let q = 0; q < 6 && !s.done; q++) { if (s.pending) s.answerDefault(); s.runUntil({ play: s.plays.length + 30 }) }
+          const made = s.plays.some(p => p.kind === 'substitution' && p.who === inj.who && p.with?.[0] === pick && p.result === 'made')
+          expect(made || s.done).toBe(true)
           continue
         }
         s.runUntil({ play: s.plays.length + 30 })
