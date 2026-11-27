@@ -13,6 +13,7 @@
 // new line arrives: the canvas never waits on it.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RecordFeed } from './fromRecord'
+import { t } from '../../game/i18n'
 import './ticker.css'
 
 export interface TickLine {
@@ -28,6 +29,10 @@ export interface TickLine {
   /** yellow or red, for a card */
   card?: 'y' | 'r'
   minute: number
+  /** the commentary's weight: a key moment, the play by play, or colour (overnight run: each set apart) */
+  level?: 'key' | 'normal' | 'minor'
+  /** about a decision of the manager's own (his change, his call, his talk): marked in gold */
+  mine?: boolean
 }
 
 const ROWS = 3
@@ -38,7 +43,7 @@ const FLICK_FF = 0.12, FLICK_1X = 0.26
 /** how long a flash holds at full strength (viewing seconds) */
 const FLASH_S = 2
 
-export function Ticker({ lines, feed, kits }: { lines: TickLine[]; feed: RecordFeed; kits: { home: [string, string]; away: [string, string] } }) {
+export function Ticker({ lines, feed, kits, hush }: { lines: TickLine[]; feed: RecordFeed; kits: { home: [string, string]; away: [string, string] }; hush?: boolean }) {
   // the newest line in at the clock now (its index), kept in state so the rows render when it changes
   const [cur, setCur] = useState(-1)
   const curRef = useRef(-1)
@@ -94,14 +99,14 @@ export function Ticker({ lines, feed, kits }: { lines: TickLine[]; feed: RecordF
   const kit = (side: 0 | 1 | null) => (side === 1 ? kits.away : kits.home)
   const flashBg = now?.flash === 'card' ? (now.card === 'r' ? '#c8102e' : '#f2c200') : now ? kit(now.side)[0] : 'transparent'
   const flashInk = now?.flash === 'card' && now.card !== 'r' ? '#111' : inkOn(flashBg)
-  return <div className="lp-ticker" ref={bar} data-testid="lp-ticker">
+  return <div className={`lp-ticker${hush ? ' hush' : ''}`} ref={bar} data-testid="lp-ticker">
     <div className="lp-tick-flash" ref={flashEl} style={{ background: flashBg, color: flashInk, opacity: 0 }}>
       {now?.flash === 'card' && <i className={`lp-tick-card ${now.card === 'r' ? 'r' : 'y'}`} />}
-      <b>{now?.flash === 'try' ? 'TRY' : now?.flash === 'goal' ? 'GOAL' : now?.flash === 'card' ? (now.card === 'r' ? 'RED CARD' : 'YELLOW CARD') : ''}</b>
+      <b>{now?.flash === 'try' ? t('lp.b.try') : now?.flash === 'goal' ? t('lp.tkGoal') : now?.flash === 'card' ? t(now.card === 'r' ? 'lp.b.rc' : 'lp.b.yc') : ''}</b>
       <span>{now?.text}</span>
     </div>
     {rows.map((l, j) => <div key={j} ref={el => { rowEls.current[j] = el }} data-k={l ? `${l.n}:${l.at.toFixed(2)}` : ''}
-      className={`lp-tick-row r${j}${l?.flash ? ' big' : ''}`} style={l && l.side != null ? { borderLeftColor: kit(l.side)[0] } : undefined}>
+      className={`lp-tick-row r${j}${l?.flash ? ' big' : ''}${l?.level ? ` lv-${l.level}` : ''}${l?.mine ? ' mine' : ''}`} style={l && l.side != null ? { borderLeftColor: kit(l.side)[0] } : undefined}>
       {l && <><span className="min">{l.minute}'</span><span className="txt">{l.text}</span></>}
     </div>)}
   </div>

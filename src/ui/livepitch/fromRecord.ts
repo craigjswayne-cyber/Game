@@ -1886,17 +1886,24 @@ export function makeBaker(plays: Play[], sides?: [RecSide, RecSide], level = 0):
   }
 
   // ---- the opening: both sides formed up for the kick-off, the kicker on the ball
-  {
+  // (overnight run: done again when the first play starts, for the live stream, whose record is still empty
+  // when its baker is made: it began every match with thirty men on the centre spot walking out)
+  // (where each man was a frame ago: set here, before the opening, which places them)
+  const px = B.map(b => b.x), py = B.map(b => b.y)
+  let opened = false
+  const opening = () => {
     const p0 = plays[0]
-    if (p0 && p0.kind === 'kickoff') {
+    if (p0 && p0.kind === 'kickoff' && !opened) {
+      opened = true
       const kk = who(p0.who, p0.side, 10)
       const at = formKickoff(p0.side, kk)
-      for (let i = 0; i < 30; i++) { B[i].x = at[i].x; B[i].y = at[i].y }
+      for (let i = 0; i < 30; i++) { B[i].x = at[i].x; B[i].y = at[i].y; px[i] = B[i].x; py[i] = B[i].y }
       holder = kk; ball.x = B[kk].x; ball.y = B[kk].y
       poss = p0.side
     }
     ref.x = 50; ref.y = 44
   }
+  opening()
 
   // ---- A FADE: everybody at his place for the set piece, the ball with the man who puts it in play
   const cutFrames: number[] = []
@@ -1914,7 +1921,6 @@ export function makeBaker(plays: Play[], sides?: [RecSide, RecSide], level = 0):
     cutFrames.push(frame)
   }
   // ---- THE LOOP
-  const px = B.map(b => b.x), py = B.map(b => b.y)
   let si = 0, f = 0, inDead = false, deadT0 = 0, deadReady = false, started = false, holdAct = false
   let ctl: Ctl = () => true, dctl: Ctl | null = null
   /** (streaming) may play k be started: enough of the plays after it are known */
@@ -1924,6 +1930,7 @@ export function makeBaker(plays: Play[], sides?: [RecSide, RecSide], level = 0):
   const frame = (): 'frame' | 'need' | 'done' => {
     if (!started) {
       if (!canStart(0)) return segs.length || !gate.final ? 'need' : 'done'
+      if (!opened) opening()
       started = true; segs[0].a0 = 0; ctl = ctlOf(0)
     }
     if (si >= segs.length) return 'done'
@@ -2126,19 +2133,21 @@ export function expectedAt(p: Play, next?: Play): { x?: number; y?: number; tol:
 /** the chip on the pitch for each play (lp.* keys that already exist in the locales) */
 function chipOf(p: Play): string {
   switch (p.kind) {
-    case 'kickoff': return 'lp.kickoff'
+    // (overnight run: the set-piece call the record now carries, said on the label)
+    case 'kickoff': return p.option === 'short' ? 'lp.koShort' : p.option === 'long' ? 'lp.koLong' : 'lp.kickoff'
     case 'dropout22': return 'lp.dropout22'
     case 'goalLineDropout': return 'lp.dropout'
-    case 'scrum': return p.result === 'againstTheHead' ? 'lp.againstHead' : 'lp.scrum'
-    case 'lineout': return p.result === 'stolen' ? 'lp.lineoutStolen' : 'lp.lineout'
+    case 'scrum': return p.result === 'againstTheHead' ? 'lp.againstHead' : p.result === 'pushover' ? 'lp.pushover'
+      : p.option === 'shove' ? 'lp.scrumShove' : p.option === 'eightPick' ? 'lp.scrumEight' : p.option === 'backRowMove' ? 'lp.scrumMove' : 'lp.scrum'
+    case 'lineout': return p.result === 'stolen' ? 'lp.lineoutStolen' : p.option === 'front' ? 'lp.loFront' : p.option === 'middle' ? 'lp.loMiddle' : p.option === 'tail' ? 'lp.loTail' : 'lp.lineout'
     case 'maul': return 'lp.maul'
     case 'kick': return p.result === 'chargedDown' ? 'lp.chargeDown' : p.result === 'outOnFull' ? 'lp.outFull' : p.result === 'fiftyTwentyTwo' ? 'lp.fifty22'
       : p.kick === 'box' ? 'lp.boxKick' : p.kick === 'upAndUnder' ? 'lp.upAndUnder' : p.kick === 'grubber' ? 'lp.grubber' : p.result === 'touch' || p.result === 'penaltyToTouch' ? 'lp.kickTouch' : 'lp.kick'
     case 'catch': return 'lp.catch'
-    case 'penalty': case 'freeKick': return 'lp.penalty'
+    case 'penalty': case 'freeKick': return p.warning ? 'lp.penWarning' : 'lp.penalty'
     case 'tap': return 'lp.quickTap'
-    case 'penaltyGoal': return 'lp.goalKick'
-    case 'conversion': return 'lp.con'
+    case 'penaltyGoal': return p.wind === 'with' ? 'lp.goalKickWith' : p.wind === 'into' ? 'lp.goalKickInto' : 'lp.goalKick'
+    case 'conversion': return p.wind === 'with' ? 'lp.conWith' : p.wind === 'into' ? 'lp.conInto' : 'lp.con'
     case 'dropGoal': return 'lp.drop'
     case 'knockOn': return 'lp.knockOn'
     case 'forwardPass': return 'lp.forwardPass'

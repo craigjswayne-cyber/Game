@@ -143,6 +143,8 @@ export const STREAM_FF = 9
 export const COMMIT_LAG = 36
 /** how far ahead of the viewer the bake is kept (anim seconds) */
 export const BAKE_AHEAD = 42
+/** frames baked at a time (a pump bakes as many chunks as its time allows) */
+export const BAKE_CHUNK = 8
 
 export class StreamClock {
   rate = new Float32Array(4096)
@@ -281,15 +283,25 @@ export class StreamFeed extends RecordFeed {
   /** bake (and simulate) ahead of the screen, for up to `ms` milliseconds of work */
   pump(ms = 6): void {
     const t0 = performance.now()
+    let last: { r: string; blocked: boolean } | null = null
+    const settle = () => {
+      // (the speeds worked out once a pump, not after every chunk: one pass over the frames not yet final)
+      if (!last) return
+      const { r, blocked } = last
+      this.clock.update(this.baker.live(), r === 'done' || (r === 'need' && blocked), r === 'need' && blocked)
+      last = null
+    }
     for (let guard = 0; guard < 200 && performance.now() - t0 < ms; guard++) {
       const bk = this.baker.live()
       if (bk.n / FPS >= this.a + BAKE_AHEAD && !this.baker.frames) break
       if (bk.n / FPS >= this.a + BAKE_AHEAD) break
       const blocked = this.blockedBy
       const final = blocked === 'fullTime'
-      const r = this.baker.run(Math.round(FPS * 2), { final, ahead: blocked ? 0 : 1 })
+      // (a few frames at a time: a chunk cannot be split, and 60 frames cost up to 50 ms here, four times that on
+      // a phone; the time budget above then holds each screen frame to its share. Overnight run)
+      const r = this.baker.run(BAKE_CHUNK, { final, ahead: blocked ? 0 : 1 })
       // (when the engine is waiting for the manager no more frames will come until he answers: all of it may be shown)
-      this.clock.update(this.baker.live(), r === 'done' || (r === 'need' && !!blocked), r === 'need' && !!blocked)
+      last = { r, blocked: !!blocked }
       if (r === 'need') {
         if (blocked) break
         const before = this.session.plays.length
@@ -299,6 +311,7 @@ export class StreamFeed extends RecordFeed {
       }
       if (r === 'done') break
     }
+    settle()
     this.dirty = true
   }
   /** frames the screen may show */
@@ -318,6 +331,19 @@ export class StreamFeed extends RecordFeed {
     this.done = this.isDone()
   }
   seek(v: number) { this.a = Math.max(0, Math.min(v, this.shownTo / FPS)); this.dirty = true; this.read() }
+  /** THE KICK-OFF FORMATION (overnight run): the first frame of the bake where every man has walked to his place
+   *  for the kick-off (the stream's bake starts them on the centre spot and walks them out), or -1 if the bake
+   *  has not got there. The pre-match runs the teams out to it and the match is shown from it. */
+  formationFrame(): number {
+    const bk = this.baker.live()
+    for (let f = 2; f + 1 < bk.n && bk.seg[f] === 0; f++) {
+      let still = true
+      for (let i = 0; i < 30 && still; i++) still = Math.abs(bk.pos[(f + 1) * 62 + i * 2] - bk.pos[f * 62 + i * 2]) + Math.abs(bk.pos[(f + 1) * 62 + i * 2 + 1] - bk.pos[f * 62 + i * 2 + 1]) < 0.01
+      // (and away from the centre spot: the men have left it)
+      if (still && Math.abs(bk.pos[f * 62] - 50) + Math.abs(bk.pos[f * 62 + 1] - 35) > 1) return f
+    }
+    return -1
+  }
   /** A MATCH PICKED UP AGAIN (a reload, the session replayed to where it was): everything up to play `n`
    *  baked without being shown, at the same rates the screen worked out the first time (the bake and the
    *  clock see the same plays), and the screen stood at the start of play n. Returns the play it stands at. */

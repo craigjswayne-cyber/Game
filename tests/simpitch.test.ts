@@ -325,7 +325,9 @@ describe('the stadium pitch plays the record', () => {
       shownN += shown.length
       for (const x of shown) {
         const a = sch[x.line.n], b = sch[x.line.n + 1]
-        if (x.at < a.start - 1e-6) faults.push(`seed ${seed} line at play ${x.line.n} (${x.line.key}) at ${x.at.toFixed(2)} s, before its play (${a.start.toFixed(2)} s)`)
+        // (overnight run: a pre-match line, `pre`, is said before the kick-off on purpose: the match screen shows
+        // them through its pre-match sequence, the fixture card, the run-out and the team sheets)
+        if (x.at < a.start - 1e-6 && !(x.line as commentary.Line & { pre?: boolean }).pre) faults.push(`seed ${seed} line at play ${x.line.n} (${x.line.key}) at ${x.at.toFixed(2)} s, before its play (${a.start.toFixed(2)} s)`)
         if (b && x.at > b.start + b.dur + 1e-6) faults.push(`seed ${seed} line at play ${x.line.n} (${x.line.key}) at ${x.at.toFixed(2)} s, more than a play late`)
         if (x.line.flash) flashes++
       }

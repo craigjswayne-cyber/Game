@@ -32,3 +32,15 @@
 .lp-tick-card { position: absolute; right: 14px; top: 50%; width: 22px; height: 30px; margin-top: -15px; border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
 .lp-tick-card.y { background: #f2c200; border: 2px solid #111; }
 .lp-tick-card.r { background: #c8102e; border: 2px solid #fff; }
+/* (overnight run) THE WEIGHT OF A LINE: a key moment bold and bright, the play by play as it was, colour (the
+   numbers, the history, the crowd) quieter in italic. A line about the manager's own decision carries a gold
+   mark. While a kicker lines up a kick at goal the bar hushes: the older lines dim. */
+.lp-tick-row.lv-key .txt { font-weight: 700; color: var(--text-primary, #eef2f6); }
+.lp-tick-row.lv-minor .txt { font-style: italic; color: var(--text-muted, #7c8796); }
+.lp-tick-row.r0.lv-minor .txt { color: var(--text-secondary, #9aa4b2); }
+.lp-tick-row.mine { border-left-color: var(--gold-fill) !important; background: linear-gradient(90deg, var(--gold-tint, rgba(233,190,104,.12)), transparent 60%); }
+.lp-tick-row.mine .min::after { content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-fill); margin-left: 4px; vertical-align: middle; }
+.lp-ticker .lp-tick-row { transition: opacity .35s ease; }
+.lp-ticker.hush .lp-tick-row.r1, .lp-ticker.hush .lp-tick-row.r2 { opacity: .18; }
+.lp-ticker.hush .lp-tick-row.r0 { opacity: .7; }
+@media (prefers-reduced-motion: reduce) { .lp-ticker .lp-tick-row { transition: none; } }

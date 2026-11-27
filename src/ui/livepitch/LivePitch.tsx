@@ -126,7 +126,7 @@ try { const c = Number(new URLSearchParams(window.location.search).get('lpcap'))
 // (?lpbase=1 plays the match at life speed, for looking hard at the movement: owner, 20 Nov 2026)
 try { const b = Number(new URLSearchParams(window.location.search).get('lpbase')); if (b >= 0.5 && b <= 3) PitchSim.base = b } catch { /* no window: tests */ }
 
-export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false, onReached, onSay, feed }: {
+export function LivePitch({ events, cursor, homeId, home, away, paused, names, onPlayed, tr, teams, boards, intro, wind, crowd, speed = 1, realTime = false, tactics, night = true, wet = false, snow = false, onReached, onSay, feed }: {
   /** 2.0.0: play the new engine's record (fromRecord.ts) instead of acting out the commentary lines; events and cursor are then unused */
   feed?: RecordFeed
   /** snow on the ground */
@@ -161,6 +161,13 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
   teams: { home: string; away: string }
   /** the names on the advertising boards (the game's invented sponsors) */
   boards?: string[]
+  /** THE RUN-OUT (overnight run): while the pre-match plays, p runs 0 to 1 and the men come out of the tunnel to
+   *  their kick-off places (a mutable object, so the pitch does not render each frame for it) */
+  intro?: { p: number; to?: { x: number; y: number }[] }
+  /** the day's wind (the record's conditions): strength 0 to 1 and the end it blows to in the first half */
+  wind?: { strength: number; toward: 0 | 1 }
+  /** how full the ground is, 0 to 1 (the attendance over the capacity): a half-empty ground shows its empty seats */
+  crowd?: number
 }) {
   /** the play on the grass right now: usually the newest line's, but a score
    *  is played before its line is shown, and the label has to match the grass */
@@ -221,7 +228,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     seen.current.pre = false
   }
   const attackText = tr('lp.attack', { team: phase.homeBall ? teams.home : teams.away })
-  const io = useRef({ home, away, names, onPlayed, onSay, onReached, cursor, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf })
+  const io = useRef({ home, away, names, onPlayed, onSay, onReached, cursor, paused: !!paused, carrierId: phase.carrier as number | undefined, attackText, boards, intro, wind, crowd, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf })
   if (tactics) sim.current.tac = tactics
   // a quick man is up to a tenth quicker than average and a slow one a tenth slower
   const tank = (f: number | undefined) => 0.9 + 0.1 * Math.min(100, Math.max(0, f ?? 100)) / 100
@@ -245,7 +252,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     if (typeof location !== 'undefined' && location.pathname.includes('lp-preview')) for (const v of (new URLSearchParams(location.search).get('off') ?? '').split(',')) if (v) off[Number(v)] = true
     sim.current.off = off
   }
-  io.current = { home, away, names, onPlayed, onSay, onReached, cursor, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf }
+  io.current = { home, away, names, onPlayed, onSay, onReached, cursor, paused: !!paused, carrierId: (sim.current.phase ?? phase).carrier, attackText, boards, intro, wind, crowd, speed, realTime, ahead, aheadBeats: ahead ? beatsOf(ahead) : null, carrierOf }
 
   useEffect(() => {
     const cv = canvas.current
@@ -257,6 +264,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     const gold = tokenColor('--gold-fill'), cardRed = tokenColor('--danger-fill')
     const refKit = refereeColour([...home.kit, ...away.kit], [ink.refPink, ink.refOrange, ink.refCyan])
     let raf = 0, last = performance.now(), acc = 0
+    const perf = (() => { try { if (!/[?&]hl=1\b/.test(location.search)) return null; const p = { cost: new Float32Array(600), gap: new Float32Array(600), i: 0 }; (window as unknown as { __lpPerf?: unknown }).__lpPerf = p; return p } catch { return null } })()
     // upright on a phone held upright; on its side when the box is wider than
     // it is tall (a phone turned over, a tablet's wide column): the same
     // picture turned a quarter, the home side then attacking to the right
@@ -278,18 +286,24 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     let ffShown = 0, rateNow = 1
     // each man's drawn size, eased: he shrinks into a ruck and grows out of it, he does not pop
     const sz = new Float32Array(30).fill(1)
+    // ---- THE MOMENTS ON THE PITCH (overnight run): what the record's play is, when it began and when it landed
+    type RecP = { kind: string; result?: string; side: number | null; ball?: number; good?: boolean; x: number; y: number }
+    let fxAt = -1, fxLand = -1
+    const recPlay = (): RecP | undefined => { const P = (S as { plays?: RecP[] }).plays, at = S.phase?.at; return P && at != null ? P[at] : undefined }
+    // a line-breaker's trail, in screen pixels; a man's recoil when he goes to ground (the time, and how hard)
+    const trail: { x: number; y: number }[] = []
+    const pulse = new Float64Array(30), pulseBig = new Uint8Array(30), downWas = new Uint8Array(30)
     /** when the ball went down for a try, for the ring round it */
     let tryAt = -1, tryFor = -99
-    // confetti for a try, in screen pixels, in the scorers' colours
-    let confetti: { x: number; y: number; vx: number; vy: number; life: number; rot: number; spin: number; c: string }[] = []
-    const burst = (fx: number, fy: number, isHome: boolean) => {
+    // A TRY'S LIGHT (overnight run: "the current confetti looked scattered"). One soft band of the scoring side's
+    // colour crosses the pitch once, the way the try line goes, over 0.9 s; the rings at the ball do the rest
+    let sweep: { at: number; c: string; dir: number } | null = null
+    const burst = (fx: number, _fy: number, isHome: boolean) => {
       const kit = (isHome ? io.current.home : io.current.away).kit
-      const cols = [kit[0], kit[1], ink.white, tokenColor('--gold-fill')]
-      const cx = Math.max(2, Math.min(98, fx)), x0 = SX(cx, fy), y0 = SY(cx, fy)
-      for (let i = 0; i < 70; i++) {
-        const a = Math.random() * Math.PI * 2, v = 40 + Math.random() * 150
-        confetti.push({ x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 70, life: 1.6 + Math.random() * 1.4, rot: Math.random() * 6, spin: (Math.random() - 0.5) * 14, c: cols[i % cols.length] })
-      }
+      // (a shirt too dark to light anything sweeps in its trim)
+      const c = darkTrim(kit[0]) && kit[1] && !darkTrim(kit[1]) ? kit[1] : kit[0]
+      // (towards the end it was scored at, as the screen has it: on its side home scores at the right)
+      sweep = { at: performance.now(), c, dir: (fx > 50) === !dim.up ? 1 : -1 }
     }
     // field metres to screen: length up the screen (home attacks up), width across
     const STADIUM = pickGround(night, wet, snow, io.current.home.kit[0])
@@ -297,6 +311,60 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     const SX = (x: number, y: number) => dim.art ? dim.ox + (STADIUM.x0 + x * STADIUM.mx) * dim.art : dim.up ? dim.ox + (y + SIDE) * dim.sc : dim.ox + (x + GOAL + END) * dim.sc
     const SY = (x: number, y: number) => dim.art ? dim.oy + (STADIUM.y0 + y * STADIUM.my) * dim.art : dim.up ? dim.oy + (100 + GOAL + END - x) * dim.sc : dim.oy + (y + SIDE) * dim.sc
 
+    // THE PAINTED GROUND WITH ITS BOARDS (overnight run). The advertising bands down both touchlines are part
+    // of the picture but carried no names; the names passed in are lettered into each panel here, the size of the
+    // panel and clear of its edges, in any language (nothing is baked into the picture). Painted once a size into
+    // its own canvas, so a frame still lays one picture down.
+    const artLayer = document.createElement('canvas')
+    // the panels, in the picture's pixels: [left, right] along each band, and each band's top and bottom
+    const FAR_PANELS: [number, number][] = [[202, 278], [279, 361], [362, 445], [446, 526], [923, 1004], [1005, 1086], [1087, 1169], [1170, 1247]]
+    const NEAR_PANELS: [number, number][] = [[195, 274], [275, 362], [363, 466], [467, 565], [567, 672], [673, 773], [775, 881], [883, 979], [981, 1084], [1085, 1171], [1173, 1250]]
+    const FAR_BAND: [number, number] = [276, 289], NEAR_BAND: [number, number] = [851, 865]
+    const paintArt = () => {
+      if (!stadiumArt?.complete || !dim.art) return
+      const { w, h, dpr } = dim
+      artLayer.width = Math.round(w * dpr); artLayer.height = Math.round(h * dpr)
+      const g = artLayer.getContext('2d')!
+      g.setTransform(dpr, 0, 0, dpr, 0, 0)
+      g.fillStyle = lp.ground; g.fillRect(0, 0, w, h)
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'
+      g.drawImage(stadiumArt, dim.ox, dim.oy, STADIUM.w * dim.art, STADIUM.h * dim.art)
+      // THE CROWD AS BIG AS THE GATE (overnight run): the picture's stands are full; a ground with fewer in shows
+      // blocks of empty seats, in proportion, scattered the same way every time (seeded), never on the boards
+      const fill = io.current.crowd
+      if (fill != null && fill < 0.95) {
+        let sd = 0x9e3779b9 >>> 0
+        const rnd = () => { sd = (Math.imul(sd ^ (sd >>> 15), 0x2c1b3c6d) + 0x6d2b79f5) >>> 0; return sd / 4294967296 }
+        const empty = Math.min(0.75, 1 - fill)
+        g.fillStyle = night ? 'rgba(52,58,70,.78)' : 'rgba(118,124,136,.72)'
+        for (const [y0, y1] of [[70, 262], [874, 1050]] as [number, number][]) {
+          const n2 = Math.round(empty * (y1 - y0) * 1180 / (22 * 9))
+          for (let k = 0; k < n2; k++) {
+            const x = 120 + rnd() * 1190, y = y0 + rnd() * (y1 - y0)
+            g.fillRect(dim.ox + x * dim.art, dim.oy + y * dim.art, 22 * dim.art, 9 * dim.art)
+          }
+        }
+      }
+      const names = io.current.boards?.length ? io.current.boards : []
+      if (!names.length) return
+      const px = (x: number) => dim.ox + x * dim.art, py = (y: number) => dim.oy + y * dim.art
+      let k = 0
+      for (const [panels, band] of [[FAR_PANELS, FAR_BAND], [NEAR_PANELS, NEAR_BAND]] as [[number, number][], [number, number]][]) {
+        const top = py(band[0]), bh = py(band[1]) - top
+        if (bh < 5) continue
+        for (const [a, b] of panels) {
+          const x0 = px(a), pw = px(b) - x0
+          const name = names[k++ % names.length].toUpperCase()
+          let fs = bh * 0.68
+          g.font = `800 ${fs}px system-ui, sans-serif`
+          const tw = g.measureText(name).width
+          if (tw > pw * 0.86) { fs *= pw * 0.86 / tw; g.font = `800 ${fs}px system-ui, sans-serif` }
+          if (fs < 4.5) continue
+          g.fillStyle = 'rgba(255,255,255,.92)'; g.textAlign = 'center'; g.textBaseline = 'middle'
+          g.fillText(name, x0 + pw / 2, top + bh / 2 + 0.5)
+        }
+      }
+    }
     const paintField = () => {
       const { sc, dpr } = dim
       field.width = Math.round(FIELD_W * sc * dpr); field.height = Math.round(FIELD_L * sc * dpr)
@@ -709,6 +777,7 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         const crop = { x: 100, y: 75, w: 1248, h: 936 }
         const k = Math.min(w / crop.w, h / crop.h)
         dim = { w, h, dpr, sc: STADIUM.mx * k, up, tilt: false, art: k, ox: (w - crop.w * k) / 2 - crop.x * k, oy: (h - crop.h * k) / 2 - crop.y * k }
+        paintArt()
       } else if (sc > 0) paintField()
     }
     size()
@@ -721,8 +790,11 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       last = now
       // (a feed frozen for frame-exact capture is drawn only when it is told to: feed.redraw)
       if (feed?.frozen) { raf = requestAnimationFrame(frame); return }
+      const t0 = performance.now()
       advance(dt)
       render(dt)
+      // (what our own frame costs, for the frame-rate checks: ?hl=1 only, scripts/tmp/perf.mjs)
+      if (perf) { perf.cost[perf.i % 600] = performance.now() - t0; perf.gap[perf.i % 600] = dt * 1000; perf.i++ }
       raf = requestAnimationFrame(frame)
     }
     const advance = (dt: number) => {
@@ -790,8 +862,6 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         fade(root?.querySelector('[data-testid="lp-banner"]'), bannerAtView, BANNER_S)
         fade(root?.querySelector('[data-testid="lp-flash"]'), flashAtView, 2.3)
       }
-      for (const c of confetti) { c.vy += 26 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.life -= dt; c.rot += c.spin * dt }
-      confetti = confetti.filter(c => c.life > 0)
       const sn = seen.current
       if (S.done && !sn.told) {
         const nx = io.current.ahead
@@ -806,6 +876,40 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
     // FRAME-EXACT CAPTURE (2.0.0 preview): the recorder sets the feed's clock and asks for one frame
     if (feed) feed.redraw = () => render(1 / 30)
 
+    /** THE RUN-OUT: where a man is while the teams come out (intro.p 0 to 1): from the tunnel under the near
+     *  stand to his kick-off place, the referee first, then the home side, then the away side, each man a beat
+     *  after the one before, eased in and slowing to his mark. Reduced motion: in place from the start */
+    // the light on a man's disc, at unit size (dot scales it)
+    const discLights = new WeakMap<CanvasRenderingContext2D, CanvasGradient>()
+    const discLight = (g: CanvasRenderingContext2D) => {
+      let sh = discLights.get(g)
+      if (!sh) {
+        sh = g.createRadialGradient(-0.35, -0.45, 0.1, 0, 0, 1.05)
+        sh.addColorStop(0, 'rgba(255,255,255,.3)'); sh.addColorStop(0.55, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(0,0,0,.3)')
+        discLights.set(g, sh)
+      }
+      return sh
+    }
+    const runOut = (i: number, at: { x: number; y: number }): { x: number; y: number; hide?: boolean } => {
+      const ip = io.current.intro?.p
+      if (ip == null || ip >= 1 || reduce) return at
+      // (to the kick-off formation as the bake has it, frame 0: the feed is not read while the pre-match holds it)
+      if (i >= 0) {
+        const to = io.current.intro?.to?.[i]
+        if (to) at = to
+        else {
+          const ff = (feed as { formationFrame?: () => number } | undefined)?.formationFrame?.() ?? -1, bk = feed?.bk
+          if (bk && ff >= 0) at = { x: bk.pos[ff * 62 + i * 2], y: bk.pos[ff * 62 + i * 2 + 1] }
+        }
+      }
+      const order = i < 0 ? 0 : 1 + (i < 15 ? 0 : 16) + (i % 15)
+      const q = Math.max(0, Math.min(1, (ip - order * 0.018) / 0.42))
+      if (q <= 0) return { ...at, hide: true }
+      const e = 1 - (1 - q) ** 3
+      // (the tunnel mouth: halfway, just off the near touchline; they fan out a little as they come)
+      const tx = 50 + ((i % 15) - 7) * 0.25 * (q > 0 ? 1 : 0), ty = -5
+      return { x: tx + (at.x - tx) * e, y: ty + (at.y - ty) * e }
+    }
     const draw = () => {
       const g = (dim.tilt ? flat : cv).getContext('2d')!
       const { w, h, dpr, sc } = dim
@@ -813,8 +917,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       g.setTransform(dpr, 0, 0, dpr, 0, 0)
       g.fillStyle = lp.ground; g.fillRect(0, 0, w, h)
       if (dim.art && stadiumArt) {
-        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'
-        g.drawImage(stadiumArt, dim.ox, dim.oy, STADIUM.w * dim.art, STADIUM.h * dim.art)
+        if (artLayer.width) g.drawImage(artLayer, 0, 0, w, h)
+        else { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(stadiumArt, dim.ox, dim.oy, STADIUM.w * dim.art, STADIUM.h * dim.art) }
       } else if (dim.up) g.drawImage(field, dim.ox, dim.oy, FIELD_W * sc, FIELD_L * sc)
       else {
         g.save(); g.translate(dim.ox + FIELD_L * sc, dim.oy); g.rotate(Math.PI / 2)
@@ -909,7 +1013,16 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const up2 = S.lifted()
       const dot = (i: number) => {
         const side = i < 15 ? H : A, k = i % 15
-        const p = S.b[i]
+        const p0 = runOut(i, S.b[i])
+        if (p0.hide) return
+        // A SCRUM WON ON THE SHOVE MOVES (overnight run, drawn only): the bound men go a metre and a bit towards the
+        // beaten pack as the result lands
+        let p = scrumShove !== 0 && S.bound(i) ? { x: p0.x + scrumShove, y: p0.y } : p0
+        // (a try: his team-mates come in to him, a third of the way at most; the picture cuts to the conversion after)
+        if (gather && (i < 15) === gather.home && i !== gather.by && !S.bound(i)) {
+          const d = hyp2(p, gather), k = d < 30 ? gather.k * (1 - d / 30) : 0
+          if (k > 0) p = { x: p.x + (gather.x - p.x) * k, y: p.y + (gather.y - p.y) * k }
+        }
         const x = SX(p.x, p.y), y = SY(p.x, p.y)
         const has = i === S.holder
         const scorer = has && S.phase?.kind === 'try' && S.landed
@@ -922,6 +1035,8 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         const atRuck = S.atRuck(i)
         sz[i] += ((S.bound(i) || floor ? (feed ? 0.92 : 0.56) : up2[0] === i || up2[1] === i ? 1.24 : atRuck ? 0.84 : 1) - sz[i]) * 0.18
         R = R0 * sz[i]
+        // (the hit: both men give a little, a dominant tackle more)
+        { const pa = (fxNow - pulse[i]) / 340; if (pa >= 0 && pa < 1 && !reduce) R *= 1 + (pulseBig[i] ? 0.26 : 0.14) * Math.sin(pa * Math.PI) }
         if (floor) g.globalAlpha = 0.6
         // DEPTH (owner, 17 Nov 2026: "Add more depth"): a man stands on the
         // grass, he is not printed on it. A soft shadow thrown down and to
@@ -929,9 +1044,10 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.beginPath(); g.ellipse(x + R * 0.3, y + R * 0.62, R * 1.02, R * 0.78, 0, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.36)'; g.fill()
         g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fillStyle = side.kit[0]; g.fill()
         {
-          const sh = g.createRadialGradient(x - R * 0.35, y - R * 0.45, R * 0.1, x, y, R * 1.05)
-          sh.addColorStop(0, 'rgba(255,255,255,.3)'); sh.addColorStop(0.55, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(0,0,0,.3)')
-          g.fillStyle = sh; g.fill()
+          // (the light on the disc: one gradient made once at unit size and scaled to each man, not thirty made a
+          // frame: overnight run, frame cost)
+          g.setTransform(dpr * R, 0, 0, dpr * R, dpr * x, dpr * y); g.fillStyle = discLight(g)
+          g.beginPath(); g.arc(0, 0, 1, 0, Math.PI * 2); g.fill(); g.setTransform(dpr, 0, 0, dpr, 0, 0)
         }
         g.lineWidth = has ? Math.max(2.4, R * 0.3) : Math.max(1.3, R * (isLight(side.kit[0]) ? 0.17 : 0.23))
         // (a dark kit with a dark trim was hard to pick out on the grass: it gets a pale rim)
@@ -962,6 +1078,49 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         }
       }
       // (the dashed arrows for the lines being run are gone with the move lines: owner, 19 Nov 2026)
+      // ---- the moments: the play now, its start and its landing
+      const fxNow = performance.now(), rp = recPlay()
+      if (S.phase && S.phase.at !== fxAt) { fxAt = S.phase.at; fxLand = -1 }
+      if (S.landed && fxLand < 0) fxLand = fxNow
+      // (the shove: which way and how far the scrum has gone, metres up the field; see dot)
+      let scrumShove = 0
+      if (rp?.kind === 'scrum' && fxLand > 0 && !reduce && ['penaltyWon', 'penaltyLost', 'againstTheHead', 'pushover'].includes(rp.result ?? '')) {
+        const feeder = rp.side ?? 0, won = rp.result === 'penaltyWon' || rp.result === 'pushover' ? feeder : feeder === 0 ? 1 : 0
+        const e = Math.min(1, (fxNow - fxLand) / 600)
+        scrumShove = (won === 0 ? 1 : -1) * 1.3 * (1 - (1 - e) ** 2)
+      }
+      // TEAM-MATES CONVERGE ON A TRY SCORER (overnight run, drawn only): only when a conversion follows, which comes in
+      // on a cut, so nobody is seen walking back
+      let gather: { x: number; y: number; home: boolean; by: number; k: number } | null = null
+      {
+        const P3 = (S as { plays?: RecP[] }).plays, at3 = S.phase?.at ?? -1
+        if (rp?.kind === 'try' && fxLand > 0 && !reduce && P3?.[at3 + 1]?.kind === 'conversion') {
+          const home = S.phase?.homeBall !== false, a0 = home ? 0 : 15
+          let by = -1, bd = 6
+          for (let i = a0; i < a0 + 15; i++) { const d = hyp2(S.b[i], S.ball); if (d < bd && !S.off[i]) { bd = d; by = i } }
+          if (by >= 0) gather = { x: S.b[by].x, y: S.b[by].y, home, by, k: Math.min(0.34, (fxNow - fxLand) / 1000 * 0.22) }
+        }
+      }
+      // A LINE BREAK LEAVES A TRAIL: a short fading streak behind the man through the gap, in his colour
+      if (S.phase?.kind === 'break' && S.holder >= 0 && !reduce) {
+        const hp = S.b[S.holder]; trail.push({ x: SX(hp.x, hp.y), y: SY(hp.x, hp.y) }); if (trail.length > 14) trail.shift()
+        const kc = (S.holder < 15 ? H : A).kit[0]
+        g.save(); g.lineCap = 'round'; g.strokeStyle = kc
+        for (let k = 1; k < trail.length; k++) { g.globalAlpha = (k / trail.length) * 0.5; g.lineWidth = R0 * (0.4 + 0.9 * k / trail.length); g.beginPath(); g.moveTo(trail[k - 1].x, trail[k - 1].y); g.lineTo(trail[k].x, trail[k].y); g.stroke() }
+        g.restore()
+      } else if (trail.length) trail.length = 0
+      // A TACKLE READS AS A TACKLE: the man going to ground and the nearest of the other side both give
+      for (let i = 0; i < 30; i++) {
+        const d = S.down[i] > 0 ? 1 : 0
+        if (d && !downWas[i] && !S.off[i]) {
+          const big = rp?.kind === 'carry' && rp.result === 'drivenBack' ? 1 : 0
+          pulse[i] = fxNow; pulseBig[i] = big
+          let best = -1, bd = 2.6
+          for (let j = i < 15 ? 15 : 0, e = j + 15; j < e; j++) { const dd = hyp2(S.b[i], S.b[j]); if (dd < bd && !S.off[j]) { bd = dd; best = j } }
+          if (best >= 0) { pulse[best] = fxNow; pulseBig[best] = big }
+        }
+        downWas[i] = d
+      }
       // the side with the ball on top, the man with it last of all
       const top = S.phase?.homeBall === false ? 15 : 0
       // A RUCK OR A MAUL IS ONE BOUND SHAPE (2.0.0 record pitch): a dark mat under the men bound in it,
@@ -975,16 +1134,26 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
           const pad = R0 * 1.6
           g.fillStyle = 'rgba(8,14,10,.42)'; g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1
           g.beginPath(); g.roundRect(x0 - pad, y0 - pad, x1 - x0 + pad * 2, y1 - y0 + pad * 2, pad); g.fill(); g.stroke()
+          // A TURNOVER FLIPS THE RUCK: its rim takes the colour of the side that won it, a beat brighter as it lands
+          if (rp?.kind === 'ruck' && rp.result === 'turnover' && fxLand > 0) {
+            const a = Math.min(1, (fxNow - fxLand) / 500)
+            g.strokeStyle = (rp.ball === 0 ? H : A).kit[0]; g.lineWidth = 2.2 + (reduce ? 0 : 1.6 * (1 - a)); g.stroke()
+          }
         }
       }
       for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder && S.bound(i)) dot(i)
       for (const st of [15 - top, top]) for (let i = st; i < st + 15; i++) if (i !== S.holder && !S.bound(i)) dot(i)
       R = R0
       // the referee: no number, the colour nobody wears
-      g.beginPath(); g.arc(SX(S.ref.x, S.ref.y), SY(S.ref.x, S.ref.y), R * 0.78, 0, Math.PI * 2); g.fillStyle = refKit; g.fill()
-      g.lineWidth = 1.4; g.strokeStyle = ink.dark; g.stroke()
+      const refP = runOut(-1, S.ref)
+      if (!refP.hide) {
+        g.beginPath(); g.arc(SX(refP.x, refP.y), SY(refP.x, refP.y), R * 0.78, 0, Math.PI * 2); g.fillStyle = refKit; g.fill()
+        g.lineWidth = 1.4; g.strokeStyle = ink.dark; g.stroke()
+      }
       if (S.holder >= 0) dot(S.holder)
 
+      // (not in the run-out: it is with the referee until the kick-off)
+      const outNow = io.current.intro && io.current.intro.p < 1 && !reduce
       // the ball: on the man's shoulder in hand, off its shadow in the air
       // (in fast forward the ball is a little bigger and ringed, so it is not lost among the men)
       const ffBall = !!feed?.ff
@@ -993,26 +1162,76 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
       const bx = SX(S.ball.x, S.ball.y) + (inHand ? R * 0.7 : 0), by = SY(S.ball.x, S.ball.y) - (inHand ? R * 0.6 : 0)
       // a real ball: its shadow stays on the grass and softens as it climbs,
       // the ball itself is lit from above with a seam down it
-      if (!inHand) {
+      if (!inHand && !outNow) {
         const k = Math.min(1, S.ball.lift / 12)
         g.beginPath(); g.ellipse(SX(S.ball.x, S.ball.y) + br * 0.3 + k * sc * 1.2, SY(S.ball.x, S.ball.y) + br * 0.5, br * (0.95 + k * 0.4), br * (0.6 + k * 0.2), 0, 0, Math.PI * 2)
         g.fillStyle = `rgba(0,0,0,${(0.4 - k * 0.2).toFixed(2)})`; g.fill()
       }
-      {
+      if (!outNow) {
         const cy = by - S.ball.lift * sc * 0.45
         if (ffBall) { g.beginPath(); g.arc(bx, cy, br * 1.55, 0, Math.PI * 2); g.lineWidth = 1.6; g.strokeStyle = 'rgba(255,255,255,.85)'; g.stroke() }
-        g.beginPath(); g.ellipse(bx, cy, br * 0.72, br, 0.5, 0, Math.PI * 2)
+        // (in the air it spins: the ball turns end over end, and its seam with it; still in hand)
+        const spin = flying && !reduce ? performance.now() / 1000 * 7 : 0
+        g.beginPath(); g.ellipse(bx, cy, br * 0.72, br, 0.5 + spin, 0, Math.PI * 2)
         g.fillStyle = ink.ball; g.fill()
         const bg = g.createRadialGradient(bx - br * 0.3, cy - br * 0.4, br * 0.05, bx, cy, br * 1.05)
         bg.addColorStop(0, 'rgba(255,255,255,.75)'); bg.addColorStop(0.5, 'rgba(255,255,255,0)'); bg.addColorStop(1, 'rgba(0,0,0,.38)')
         g.fillStyle = bg; g.fill()
         g.lineWidth = 1; g.strokeStyle = ink.ballEdge; g.stroke()
-        g.save(); g.translate(bx, cy); g.rotate(0.5); g.strokeStyle = 'rgba(0,0,0,.3)'; g.lineWidth = Math.max(0.6, br * 0.1)
+        g.save(); g.translate(bx, cy); g.rotate(0.5 + spin); g.strokeStyle = 'rgba(0,0,0,.3)'; g.lineWidth = Math.max(0.6, br * 0.1)
         g.beginPath(); g.moveTo(0, -br * 0.6); g.lineTo(0, br * 0.6); g.stroke(); g.restore()
       }
 
+      // THE REFEREE'S MOMENT: his whistle (two rings off him), his signal (an arm: up for a try, out and up to the
+      // side for a penalty, bent for a free kick, level for a scrum), and a card shown rising from him
+      if (rp && fxLand > 0 && !reduce && !outNow) {
+        const age = (fxNow - fxLand) / 1000, rx = SX(S.ref.x, S.ref.y), ry = SY(S.ref.x, S.ref.y), rr = R0 * 0.78
+        const whistled = ['penalty', 'freeKick', 'knockOn', 'forwardPass', 'try', 'penaltyTry', 'yellowCard', 'redCard', 'halfTime', 'fullTime', 'heldUp'].includes(rp.kind)
+        if (whistled && age < 0.7) {
+          g.save(); g.strokeStyle = ink.white; g.lineWidth = 1.3
+          for (let k = 0; k < 2; k++) { const a = age / 0.7 - k * 0.25; if (a <= 0 || a >= 1) continue; g.globalAlpha = 1 - a; g.beginPath(); g.arc(rx, ry, rr * (1.3 + a * 2.2), -Math.PI * 0.8, -Math.PI * 0.2); g.stroke() }
+          g.restore()
+        }
+        if (whistled && age < 1.8) {
+          // (towards the side it goes to, as the screen has it: x grows to the right on its side, up the screen upright)
+          const to = rp.kind === 'knockOn' || rp.kind === 'forwardPass' ? (rp.side === 0 ? 1 : 0) : (rp.side ?? 0)
+          const fwd = SX(S.ref.x + (to === 0 ? 5 : -5), S.ref.y) - rx, fwdY = SY(S.ref.x + (to === 0 ? 5 : -5), S.ref.y) - ry
+          const fl = Math.hypot(fwd, fwdY) || 1, ux = fwd / fl, uy = fwdY / fl, L = rr * 2.3
+          const arm: [number, number][] = rp.kind === 'try' || rp.kind === 'penaltyTry' || rp.kind === 'heldUp' ? [[0, -L]]
+            : rp.kind === 'freeKick' ? [[ux * L * 0.55, uy * L * 0.55], [ux * L * 0.55, uy * L * 0.55 - L * 0.6]]
+            : rp.kind === 'knockOn' || rp.kind === 'forwardPass' ? [[ux * L, uy * L]]
+            : rp.kind === 'penalty' ? [[ux * L * 0.75, uy * L * 0.75 - L * 0.6]] : []
+          if (arm.length) {
+            const fade = Math.min(1, (1.8 - age) / 0.3, age / 0.12)
+            g.save(); g.globalAlpha = fade; g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = refKit; g.lineWidth = Math.max(2, rr * 0.42)
+            g.beginPath(); g.moveTo(rx, ry); let cx2 = rx, cy2 = ry; for (const [dx, dy] of arm) { cx2 += dx; cy2 += dy; g.lineTo(cx2, cy2) } g.stroke()
+            g.lineWidth = 1; g.strokeStyle = ink.dark; g.stroke(); g.restore()
+          }
+        }
+        if ((rp.kind === 'yellowCard' || rp.kind === 'redCard') && age < 1.9) {
+          const up2b = Math.min(1, age / 0.5), e = 1 - (1 - up2b) ** 3, fade = Math.min(1, (1.9 - age) / 0.4)
+          g.save(); g.globalAlpha = fade; g.translate(rx + rr * 0.9, ry - rr * (1.6 + e * 2.4)); g.rotate(-0.16)
+          g.fillStyle = rp.kind === 'redCard' ? cardRed : gold; g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 6
+          g.fillRect(-rr * 0.55, -rr * 0.78, rr * 1.1, rr * 1.56); g.restore()
+        }
+        // THE TOUCH JUDGES behind the posts: flags up for a kick that goes over, held across for one that misses
+        if ((rp.kind === 'conversion' || rp.kind === 'penaltyGoal' || rp.kind === 'dropGoal') && age < 2.4) {
+          const gx = rp.side === 0 ? 103.5 : -3.5
+          const fade = Math.min(1, (2.4 - age) / 0.4, age / 0.15)
+          g.save(); g.globalAlpha = fade
+          for (const gy of [30.4, 39.6]) {
+            const px2 = SX(gx, gy), py2 = SY(gx, gy)
+            g.beginPath(); g.arc(px2, py2, rr * 0.7, 0, Math.PI * 2); g.fillStyle = ink.dark; g.fill(); g.lineWidth = 1; g.strokeStyle = ink.white; g.stroke()
+            const up3 = rp.good !== false
+            const tipX = px2 + (up3 ? 0 : rr * 2.2), tipY = py2 - (up3 ? rr * 2.6 : 0)
+            g.beginPath(); g.moveTo(px2, py2); g.lineTo(tipX, tipY); g.lineWidth = 1.4; g.strokeStyle = ink.white; g.stroke()
+            g.fillStyle = gold; g.fillRect(tipX - (up3 ? 0 : rr * 0.9), tipY - (up3 ? 0 : rr * 0.7), rr * 0.9, rr * 0.7)
+          }
+          g.restore()
+        }
+      }
       // the man on the ball, by name, when he is the one the line names
-      if (inHand && carrierId != null) {
+      if (inHand && carrierId != null && !outNow) {
         const side = S.holder < 15 ? H : A
         if (side.lineup[S.holder % 15] === carrierId) {
           const nm = N(carrierId)
@@ -1027,6 +1246,26 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
             g.fillStyle = ink.white; g.textAlign = 'center'; g.textBaseline = 'middle'
             g.fillText(label, lx, ly + 0.5)
           }
+        }
+      }
+      // THE SCORER'S NAME, HELD (overnight run): the record's try scorer, over the man of his side nearest the ball,
+      // with a gold edge, for as long as the try is on the pitch
+      if (rp && (rp.kind === 'try' || rp.kind === 'penaltyTry') && fxLand > 0 && (rp as RecP & { who?: string }).who && !outNow) {
+        const sid = Number((rp as RecP & { who?: string }).who), nm = io.current.names(sid)
+        const a0 = S.phase?.homeBall === false ? 15 : 0
+        let best = -1, bd = 6
+        for (let i = a0; i < a0 + 15; i++) { const d = hyp2(S.b[i], S.ball); if (d < bd && !S.off[i]) { bd = d; best = i } }
+        if (nm && best >= 0) {
+          const p = S.b[best], label = nm.split(' ').slice(-1)[0]
+          const fade = Math.min(1, (fxNow - fxLand) / 250)
+          g.save(); g.globalAlpha = fade
+          g.font = `800 12px system-ui, sans-serif`
+          const tw = g.measureText(label).width + 14
+          const lx = Math.max(tw / 2 + 2, Math.min(w - tw / 2 - 2, SX(p.x, p.y))), ly = SY(p.x, p.y) - R0 - 14
+          g.fillStyle = 'rgba(10,14,20,.88)'; g.beginPath(); g.roundRect(lx - tw / 2, ly - 9, tw, 18, 9); g.fill()
+          g.strokeStyle = gold; g.lineWidth = 1.5; g.stroke()
+          g.fillStyle = ink.white; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, lx, ly + 0.5)
+          g.restore()
         }
       }
       // A SIDE THAT IS SHORT SAYS SO (19 Nov 2026: playing against fourteen
@@ -1050,6 +1289,24 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         g.font = '800 15px system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = ink.white
         g.fillText(String(15 - n), px + 7, py + 0.5)
       }
+      // THE WIND (overnight run, the record's conditions): a small arrow in the corner the way it blows, one to
+      // three strokes for its strength; the ends change at half-time. Not shown on a still day
+      const wd = io.current.wind
+      if (wd && wd.strength >= 0.3) {
+        const P2 = (S as { plays?: { clock?: number; t: number }[] }).plays, at2 = S.phase?.at ?? 0
+        const second = (P2?.[at2]?.clock ?? P2?.[at2]?.t ?? 0) >= 2400
+        const to = (wd.toward === 1) !== second ? 1 : -1
+        const ax = SX(50 + to * 10, 35) - SX(50, 35), ay2 = SY(50 + to * 10, 35) - SY(50, 35), al = Math.hypot(ax, ay2) || 1
+        const ux = ax / al, uy = ay2 / al, cx3 = 22, cy3 = h - 20, n3 = wd.strength >= 0.9 ? 3 : wd.strength >= 0.45 ? 2 : 1
+        g.save(); g.globalAlpha = 0.85
+        g.fillStyle = 'rgba(8,12,10,.7)'; g.beginPath(); g.arc(cx3, cy3, 13, 0, Math.PI * 2); g.fill()
+        g.strokeStyle = ink.white; g.lineWidth = 1.6; g.lineCap = 'round'
+        for (let k = 0; k < n3; k++) {
+          const o2 = (k - (n3 - 1) / 2) * 4.2, bx3 = cx3 + ux * o2, by3 = cy3 + uy * o2
+          g.beginPath(); g.moveTo(bx3 - ux * 3 - uy * 4, by3 - uy * 3 + ux * 4); g.lineTo(bx3, by3); g.lineTo(bx3 - ux * 3 + uy * 4, by3 - uy * 3 - ux * 4); g.stroke()
+        }
+        g.restore()
+      }
       // wound on: two chevrons in the corner while the quiet play goes by
       if (ffShown > 0.02) {
         const cx = w - 26, cy = 22
@@ -1059,10 +1316,16 @@ export function LivePitch({ events, cursor, homeId, home, away, paused, names, o
         for (const o of [-7, 2]) { g.beginPath(); g.moveTo(cx + o, cy - 5.5); g.lineTo(cx + o + 7, cy); g.lineTo(cx + o, cy + 5.5); g.closePath(); g.fill() }
         g.restore()
       }
-      for (const c of confetti) {
-        g.save(); g.translate(c.x, c.y); g.rotate(c.rot)
-        g.globalAlpha = Math.min(1, c.life); g.fillStyle = c.c
-        g.fillRect(-3, -1.6, 6, 3.2); g.restore()
+      if (sweep) {
+        const a = (performance.now() - sweep.at) / 900
+        if (a >= 1) sweep = null
+        else {
+          // (eased out; a band a third of the screen wide, brightest in its middle, under the plates and the men's names)
+          const e = 1 - (1 - a) ** 3, bw = w * 0.34, x0 = sweep.dir > 0 ? -bw + e * (w + bw) : w - e * (w + bw)
+          const gr = g.createLinearGradient(x0, 0, x0 + bw, 0)
+          gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, sweep.c); gr.addColorStop(1, 'rgba(255,255,255,0)')
+          g.save(); g.globalAlpha = 0.22 * (1 - a * 0.6); g.globalCompositeOperation = 'screen'; g.fillStyle = gr; g.fillRect(x0, 0, bw, h); g.restore()
+        }
       }
       // the dissolve of a cut: the old frame fading off the new one
       // THE WEATHER FALLS (owner, 18 Nov 2026: "can we incorporate weather?").
