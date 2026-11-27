@@ -368,6 +368,298 @@ It passes on both the committed tree and the working tree.
 
 **My own check errors found this round.** R37 took the No. 8's injury replacement at minute 16 for the manager's substitution (seed 3). It now looks only from the call on, and accepts a refusal because he is already off. Yellow-card causes are in the play's `result`, not `cause`.
 
+## Overnight audit, interim (27 Nov, 03:30 UTC; engine fe485f15, commentary 8d8a328f, screen 0a023fa1)
+
+In short (details in the sections below):
+- **Referees:**
+  - 12.14 penalties and free kicks a match (owner: 11 to 12), with 5th to 95th percentile 7 to 17 (inside 6 to 17);
+  - by referee, 10.4 to 13.7 a match;
+  - strict referees give 1.71 yellows a match, lenient 0.50;
+  - the warning comes one penalty short of his limit every time (0 faults in 480 matches).
+- **The other coach:** 1,772 changes in 480 matches, every one with a true reason at that moment and none for the managed side. Turned on and off over 300 paired managed matches it adds no strength the sample can see: +0.8 win points (plus or minus 5.3), margin -0.37 (t -0.5).
+- **Wind:**
+  - every kick, goal kick and conversion is tagged right for the end and the half;
+  - kicks go about 12% further with the wind and 11% shorter into it;
+  - goal kicks from 40 m and more go over 71% of the time with the wind against 59% into it.
+  - Fault: a penalty kicked to touch has no wind (772 in 480 matches; first seed 1100001, play 72).
+- **Set pieces:** lineout calls, scrum options within 7 m, the 5 m law, pushovers and kick-off calls are all right. Second yellows 0.008 a match and straight reds 0.035, at the old engine's rates.
+- **Bands (balanced set, 480 matches):** points 51.6 and home wins 56.4% are in. Tries 6.72 (95% interval 6.53 to 6.91) are just over 6.6, and penalties 12.14 just over 12.
+- **Commentary:** facts against the game state for 40 managed matches with `contextFromGame` (about 2,400 lines): 0 faults. The held-back named whistle lines pass C05's truth checks, and COMMENTARY is told to turn `NAMED_WHISTLE_MORE` on.
+- **Wiring:** `wiring 20` all pass; every kickable penalty prompts (89 of 89); a reload goes to Home with the match completed.
+- **Season** (16 paired seasons): yellow cards are 23% below the old engine, beyond the noise. The balance is 33% lower, just beyond the noise. It is not the match path (same state, same money); the seasons run apart. Everything else is within range.
+- **Licensing:** the strings themselves are clean. Real referees' and players' names are now on screen every match, with judgements attached ("strict", "the culprit"). Also flagged: "LIONS:" at internationals.ts:225, "Little" and "Greater Twickenham", "Sauvez Sapiac", the final venues, competitions that echo real ones, "Sarries" and "Quins", and 139 club and ground rows that are, or echo, real ones. Full list below.
+- **Screen at 03:10** (build of 01:01): the "Knock-on" plate at the top of the pitch lay over Munster's 11 and 13 at 2:00 (/tmp/ov/plate2.png); the animation agent is now putting every plate through one placement rule (plates.ts). Pre-match 10.6 s, and "Skip" gets the kick-off on screen in 0.6 s.
+- **The screen at 1f608b2b** (build of 05:24, seen in Chrome as a player, Leicester v Munster at Normal; pictures /tmp/ov/plate1 to 12.png and score1 to 3.png). Every plate (knock-on, penalty, yellow card, penalty goal, try, conversion, turnover, touch, drop-out) now sits small at the foot over the near stand, clear of the ball and the men: 12 of 12 seen. The try scorer's tag ("Hodnett") is on the man at the ball, the one the record and the plate name (John Hodnett, 15'). Skip gets the kick-off on screen in 0.5 s.
+- **The lead's question on 3 of 117 maul tries** (seeds 6, 10, 11: the picture grounds the ball with the maul's carrier, while the record names the man next to him): the record is the result and must win. With the engine frozen, the picture should put the named man on the ball at the grounding (the tag already follows the record). Until then it is a picture fault, not an accepted difference.
+- **Final runs (05:30 on 1f608b2b, repeated 06:11 on 23c6c06b with the same result):**
+  - Main run: 81 of 82 rules. Every pitch row (P01 to P07, S01 to S03) and every ticker row (T01 to T05) passes. Only F01 fails (30 fixtures: red cards and penalties are the owner's choice; drop goals, tries from kicks, turnovers and taps are GAMEPLAY's).
+  - `wiring 20`: W01 to W04 and W07 all pass (46 screen files).
+  - Quick test: 32 of 32.
+
+### Detail
+
+`npx vite-node scripts/harmonycheck.ts overnight 120 4 10 30`: 480 matches of the balanced set (120 fixtures, four seeds each) and 300 paired managed matches with the other coach on and off. Every figure is counted from the record, not from skeleton.ts's own sums. Output: scripts/tmp/harmony-overnight.json.
+
+**Referees.**
+- Penalties and free kicks: a mean of 12.14 a match, with the 5th to 95th percentile at 7 to 17 (owner: a mean of 11 to 12, spread inside 6 to 17). The mean is 0.14 above his band. The extremes are 2 and 23.
+- By referee the mean runs from 10.4 (Brace) to 13.7 (Barrett-Theron).
+- By style: strict referees give 1.71 yellows a match, fair 0.92 and lenient 0.50. A strict referee gives 3.4 times a lenient one's yellows; GAMEPLAY said about twice.
+- The warning comes at the side's penalty one short of his limit every time: 0 faults in 480 matches, and never on a free kick.
+
+**Cards.** Second yellows 0.008 a match (old engine 0.007). Straight reds 0.035 (owner's rate, 0.038).
+
+**Bands (balanced set).** Points 51.6 (48 to 53), home wins 56.4% (51 to 57), tries 6.72 (6.0 to 6.6): tries are 0.12 above the band.
+
+**The other coach.**
+- 1,772 changes in 480 matches: man up 603, chasing 548, protecting 329, front row 182, rain 98, scrum on top 12.
+- Every one has a true reason at that moment: 0 faults. That covers the score and the clock, a man binned, sent off or hurt and waiting for cover, the weather, and the scrum penalty counts.
+- The managed side never gets one.
+- On and off over 300 paired managed matches: the coached side's win rate is 58.0% off and 58.8% on (+0.8 points, 95% interval plus or minus 5.3), and its margin changes by -0.37 a match (t -0.5). Nothing before the first change differs. No strength is added that this sample can see.
+
+**Wind.**
+- Every kick from hand, penalty goal and conversion carries the right `with` or `into` tag for the wind, the end and the half: 0 faults. The ends change at half-time, and the direction is one value per match.
+- Lengths with the wind against into it: clearance 39.5 against 31.6 m (calm 35.4), box 23.7 against 19.2.
+- Penalty goals from 40 m and more: 71% with the wind against 59% into it.
+- Fault: a penalty kicked to touch (the corner or down the line, skeleton.ts corner()) has no wind on its length and no tag. That is 772 of them in 480 matches; first prem Exeter v Sarries, seed 1100001, play 72.
+
+**Heat.** 108 of 480 matches are hot days. The faster drain is not visible in the record beyond the flag.
+
+**Set pieces.**
+- Lineout calls: front 3,416 (stolen 4.4%, 20% inside their 25), middle 4,150 (7.6%, 14%), tail 2,845 (9.6%, 8%).
+- Scrum options come only within 7 m of their line: shove 43, eight pick 34, back-row move 26. Pushover tries come only from a shove, each followed by its try: 7 in all, 0.015 a match.
+- No scrum is set less than 5 m from a goal line (Law 19). Kick-off calls are right for the score and the clock.
+
+**Wiring and the season on the frozen engine.**
+- `wiring 20`: W01 20 of 20, W02 20 of 20, W03 220 of 220, fingerprint passes. W07 passes on ANIMATION's working tree, and now also reads the commentary worker the screen starts (43 files).
+- Every kickable penalty to the managed side stops the match for his call: 89 of 89 in 20 managed matches. The two penalties with no prompt were penalty tries.
+- `season 3` and `season 8`, and eight more seasons on seeds 309 to 316: 16 paired seasons in all, Leicester, every home match watched in Extended, with the other coach now reacting. Two figures are off by more than 10% beyond the noise:
+  - yellow cards 9.9 a season on the old engine against 7.6 on the new (-23%, 95% band 1.8). This matches round 9's 613 paired matches (0.61 against 0.78 a match). The owner ruled on red cards only.
+  - the club's balance at the league's end, 4.27m against 2.85m (-33%, band 1.35m).
+- Everything else is inside its band: points -7%, position, injuries, morale -7%, appearances, tries -5%. The ratings stay within W06 (new means 0.06 to 0.2 lower).
+- Save and load: fine.
+- In round 9, eight seasons on the same seeds had the balance at -8%. The old engine's figures are the same as then, so the move is the new engine's.
+- Where the money goes. It is not the match path: from the same state (seed 304, week 8), the old and the new engine's home match give the same week's money to the pound (2.19m). The new engine also scored 18-21 where the old scored 40-50.
+  - Ordinary home weeks earn the same on either engine, about 0.6m. The gap comes from a few lumpy weeks (a sportsman's dinner, a concert, a sale) that land in one engine's season and not the other's, because the seasons have run apart.
+  - So it is the knock-on of different seasons, just beyond the noise over 16 seasons. It is not a wiring fault, but it is worth watching.
+
+**The screen (interim, 01:30, ANIMATION's build of 01:01 on port 5191; re-run at 06:30).** Driven in Chrome as a player: a new career, Leicester, Extended, kick-off (/tmp/ov/screen.mjs).
+- The pre-match block runs 10.6 s before the kick-off. "Skip" ends it at once: the first play is on screen 0.6 s after the tap.
+- Plates: the event plates ("Knock-on", "Penalty") sit at the top of the pitch, and when play is there they cover men. At 2:00 the "KNOCK-ON / LEICESTER" plate lay over Munster's 11 and 13 (screenshot /tmp/ov/plate2.png). The ball was clear of it. Eyes item.
+- Frame gaps on this shared two-core machine: at full CPU the median gap is 16.7 ms (60 a second) and 13% of gaps run over 17.5 ms. With the CPU throttled four times, half the frames are late.
+
+**The commentary's facts (`ctxaudit 40`).** I ran 40 managed matches through the session, at points through the season, for four clubs. Each had the context built with `contextFromGame` at kick-off, and the commentary came from a copy with every switch on (scripts/tmp/commentary-named.ts). About 2,400 lines of 77 kinds were checked against the game state worked out separately.
+- **What was checked:** form, table positions and gaps, round, crowd and capacity, the last meeting, team news (debuts against career appearances before the match, milestones, returns, old clubs, absentees), the referee, the weather, the next fixture, and season and career tries.
+- **After full time:** the table and bonus points, against the points the game itself gives when the week is played on.
+- **Co-commentator:** its numbers over each spell, as the commentary resets it.
+- **Other lines:** pointers only to the managed side, and crowd lines only at real events.
+
+The whole match also went through checkLines with the team sheet (C01 to C09, including the new named whistle lines). Result: 0 checkLines failures. Three fact faults, all checks of mine, now fixed:
+- injury weeks read after the match;
+- debuts counted after the game had added this match;
+- "penalties conceded" counted with free kicks.
+
+C05 now also accepts:
+- pre-match lines naming a man in either 23;
+- the other coach's line on the side the record names;
+- a first touch on the man's own side;
+- the co-commentator, duels and full-time block as lines about the match so far.
+
+**Interim status (01:30 UTC).** Main run on fe485f15, 8d8a328f and ANIMATION's working tree: 81 of 82 rules pass. F01 (realism, 30 fixtures) is the one that fails, and red cards and penalties there are the owner's choice. The remaining items, to be re-run on ANIMATION's files at 06:30, are the pitch rows, the screen checks and the full run.
+
+### Licensing sweep (27 Nov, for the owner; nothing changed; part of the overnight audit, interim)
+
+What I swept: every English string a player can read in the new work and on the match screen (en.json `sim.`, `sim2.` and `lp.`: 2,295 keys), and the names those lines fill in. The names are clubs, grounds, competitions, final venues, referees, derbies and players.
+
+The judgements below come from my own knowledge of the real names; I have not checked them against a source. The lead should confirm each one before anything is renamed.
+
+**The strings themselves are clean.** None of the 2,295 keys holds a proper name. A scan for real clubs, grounds, competitions, broadcasters, kit makers, sponsors and "Lions" finds only "TMO" (lp.tmo, "TMO check"), which is the sport's own term. Every name on screen comes from the game's data.
+
+**Most exposed, now on screen every match:**
+1. **Real people.**
+   - **Referees:** the panel in src/game/match/referee.ts, lines 76 to 97, is real referees by name: Luke Pearce, Karl Dickson, Matthew Carley, Christophe Ridley, Angus Gardner, Nika Amashukeli, Andrea Piardi, Paul Williams, Ben O'Keeffe, Nic Berry, Hollie Davidson, Andrew Brace, Pierre Brousset, Sara Cox and Aimee Barrett-Theron. The new pre-match lines name him ("preRef", "refKnown"), and so do the warning and repeat-offence lines. Each one is also given a style the record acts on ("strict", "lenient", "short fuse"), so a real official is described as fussy or card-happy.
+   - **Players:** the squads in src/data/leagues/*.ts (about 4,000 entries) and the captains in src/data/captains.ts are real players. Every line naming a man uses them. The new lines go further: storylines, milestones, "the culprit" (most penalised) and duel verdicts say things about named real men.
+2. **"Lions":**
+   - src/game/season/internationals.ts:225, the news subject `LIONS: ... make the tour`;
+   - src/game/schedule.ts:503 and :896, the tours "British & Irish Isles Tour of ..." and "Women's British & Irish Isles Tour of ...", which echo the British & Irish Lions (id 'lions');
+   - en.json:3305 compLions, :3601 natLions and :5727 theLionsTour read "Isles Tour" (the keys say Lions; the text does not);
+   - src/game/save.ts:642 to 644 holds the old names, only to rename old saves.
+3. **Final venues** (src/game/model/competition.ts:50 to 56):
+   - "Greater Twickenham" (Twickenham Stadium);
+   - "Grand Stade de Paris" (Stade de France);
+   - "Cardiff National Stadium" (the Principality, once the Millennium, Stadium);
+   - "Marseille Stadium" (the Vélodrome);
+   - "Edinburgh Stadium" (Murrayfield);
+   - "Crocker Park" (Croke Park);
+   - "Greater London Stadium" (the London Stadium).
+4. **"Sauvez Sapiac":** en.json:3139 (also af.json:3138, ja.json:2993) and the challenge text en.json:5721. Stade Sapiac is Montauban's real ground, and the line reads as a real supporters' campaign.
+
+**Competitions** (src/game/newgame.ts:207 to 214, src/game/schedule.ts):
+- English Premier Division (the Premiership);
+- French Elite 14 and French Elite 2 (Top 14, Pro D2);
+- United Provinces Championship (United Rugby Championship);
+- Pacific Championship (Super Rugby Pacific);
+- Japan Division One (Japan Rugby League One);
+- English National One (National League 1);
+- Continental Cup, and The Hemispheric Championship at schedule.ts:756 (the Champions Cup);
+- Northern Championship at :564 (the Six Nations);
+- The Southern Championship at :585 (The Rugby Championship);
+- Pacific Islands Cup at :604 (the Pacific Nations Cup);
+- World Championship at :408 (the World Cup).
+
+These are generic descriptions rather than the real marks, but each points clearly at one competition. The preRound and introCup lines say them.
+
+**Derbies** (src/game/rivalries.ts:6 to 32, said by preDerbyName):
+- "The East Midlands Derby", "The West Country Derby", "The London Derby" and the rest are the descriptions the real fixtures go by;
+- "The Oldest Fixture - the Richmond Derby" (line 28) is the real Richmond v London Scottish fixture.
+
+**Sponsors** (src/game/commercial.ts:181): made up as far as I can tell. "Fenwick Dairies" shares a name with the Fenwick department stores; low risk.
+
+**Clubs and grounds the ticker names** (introVenue, preCrowd, preFull and every team name). Most clubs are their real city or province plus RFC or RC, which looks like the design's own choice. Listed here are the ones that go further than that, with the line each is defined on:
+
+| Club or ground (as the ticker shows it) | File and line | Is, or closely echoes |
+|---|---|---|
+| Ealing Sports Ground (ground of Ealing RFC) | src/data/leagues/champ.ts:118 | Trailfinders Sports Ground (Ealing) |
+| Castle Park (ground of Doncaster RFC) | src/data/leagues/champ.ts:119 | Castle Park (real, Doncaster Knights) |
+| Butts Lane Arena (ground of Coventry RFC) | src/data/leagues/champ.ts:120 | Butts Park Arena (Coventry) |
+| Goldington Road (ground of Bedford RFC) | src/data/leagues/champ.ts:121 | Goldington Road (real, Bedford Blues) |
+| Hartpury RFC (club) | src/data/leagues/champ.ts:124 | Hartpury University RFC (real) |
+| Gillmore's Ground (ground of Hartpury RFC) | src/data/leagues/champ.ts:124 | Gillman's Ground (Hartpury) |
+| Richmond RFC (club) | src/data/leagues/champ.ts:125 | Richmond FC (real) |
+| The Athletic Ground (ground of Richmond RFC) | src/data/leagues/champ.ts:125 | the Athletic Ground (real, Richmond and London Scottish) |
+| Kingsey Road (ground of Chinnor RFC) | src/data/leagues/champ.ts:126 | Kingsey Road (real, Chinnor) |
+| Sixwell Stadium (ground of Worcester RFC) | src/data/leagues/champ.ts:135 | Sixways (Worcester) |
+| Dellingham Park (ground of Ampthill RFC) | src/data/leagues/champ.ts:136 | Dillingham Park (Ampthill) |
+| Clifton Road (ground of Rotherham RFC) | src/data/leagues/champ.ts:138 | Clifton Lane (Rotherham Titans) |
+| Blackheath RFC (club) | src/data/leagues/champ.ts:141 | Blackheath FC (real) |
+| Well Hall (ground of Blackheath RFC) | src/data/leagues/champ.ts:141 | Well Hall (real, Blackheath) |
+| Kumagaya Rugby Stadium (ground of Saitama RFC) | src/data/leagues/jl1.ts:73 | Kumagaya Rugby Stadium (real) |
+| Mitsuzawa Stadium (ground of Yokohama RFC) | src/data/leagues/jl1.ts:77 | Mitsuzawa Stadium (real) |
+| Komazawa Stadium (ground of Setagaya RFC) | src/data/leagues/jl1.ts:81 | Komazawa Stadium (real) |
+| Sale FC (club) | src/data/leagues/natl1.ts:86 | Sale FC (a real club, exactly) |
+| Heywood Road (ground of Sale FC) | src/data/leagues/natl1.ts:86 | Heywood Road (real, Sale FC) |
+| Old Bath Road (ground of Reading RFC) | src/data/leagues/natl1.ts:87 | Old Bath Road (real, Reading) |
+| Brickfields (ground of Plymouth RFC) | src/data/leagues/natl1.ts:88 | Brickfields (real, Plymouth Albion) |
+| Billesley Common (ground of Birmingham RFC) | src/data/leagues/natl1.ts:89 | Billesley Common (real, Moseley) |
+| Silver Leys (ground of Bishop's Stortford RFC) | src/data/leagues/natl1.ts:91 | Silver Leys (real, Bishop's Stortford) |
+| London Caledonians RFC (club) | src/data/leagues/natl1.ts:93 | London Scottish (on its real ground, the Athletic Ground) |
+| The Athletic Ground (ground of London Caledonians RFC) | src/data/leagues/natl1.ts:93 | the Athletic Ground (real, Richmond and London Scottish) |
+| The Recreation Ground (ground of Camborne RFC) | src/data/leagues/natl1.ts:100 | the Recreation Ground (real, Camborne / Bath) |
+| Dings RFC (club) | src/data/leagues/natl1.ts:101 | Dings Crusaders RFC (real) |
+| Abbeydale Park (ground of Sheffield RFC) | src/data/leagues/natl1.ts:102 | Abbeydale Park (real, Sheffield) |
+| Recreational Sports Centre (ground of Bath RFC) | src/data/leagues/prem_a.ts:8 | the Recreation Ground (Bath) |
+| Ashford Gate (ground of Bristol RFC) | src/data/leagues/prem_a.ts:65 | Ashton Gate (Bristol Bears) |
+| Beachy Park (ground of Exeter RFC) | src/data/leagues/prem_a.ts:108 | Sandy Park (Exeter Chiefs) |
+| Kinshome (ground of Gloucester RFC) | src/data/leagues/prem_a.ts:157 | Kingsholm (Gloucester) |
+| Quins Rugby (club) | src/data/leagues/prem_a.ts:204 | Harlequins (its nickname, "Quins") |
+| Little Twickenham (ground of Quins Rugby) | src/data/leagues/prem_a.ts:206 | the Twickenham Stoop, and Twickenham |
+| Welford Street (ground of Leicester RFC) | src/data/leagues/prem_b.ts:8 | Welford Road (Leicester Tigers) |
+| The Gardens (ground of Northampton RFC) | src/data/leagues/prem_b.ts:87 | Franklin's Gardens (Northampton Saints) |
+| Salford City Stadium (ground of Sale RFC) | src/data/leagues/prem_b.ts:145 | Salford Community Stadium (Sale Sharks) |
+| Sarries RFC (club) | src/data/leagues/prem_b.ts:179 | Saracens (its nickname, "Sarries") |
+| Hendon Park (ground of Sarries RFC) | src/data/leagues/prem_b.ts:181 | the StoneX Stadium, Hendon (Saracens) |
+| Stade des Alpes (ground of RC Grenoble) | src/data/leagues/prod2.ts:315 | Stade des Alpes (real, Grenoble) |
+| Stade Sapiac (ground of RC Montauban) | src/data/leagues/prod2.ts:319 | Stade Sapiac (real, Montauban) |
+| Stade Amédée-Domergue (ground of RC Brive) | src/data/leagues/prod2.ts:354 | Stade Amédée-Domenech (Brive) |
+| Stade Raoul-Berrière (ground of RC Béziers) | src/data/leagues/prod2.ts:355 | Stade Raoul-Barrière (Béziers) |
+| Stade Maurice-Davy (ground of RC Provence) | src/data/leagues/prod2.ts:356 | Stade Maurice-David (Provence) |
+| Stade Charles-Mathieu (ground of RC Oyonnax) | src/data/leagues/prod2.ts:357 | Stade Charles-Mathon (Oyonnax) |
+| Stade Michel-Bendicourt (ground of RC Colomiers) | src/data/leagues/prod2.ts:358 | Stade Michel-Bendichou (Colomiers) |
+| Stade du Pré-Fleuri (ground of RC Nevers) | src/data/leagues/prod2.ts:359 | Stade du Pré-Fleuri (real, Nevers) |
+| Parc des Sports Aguillon (ground of RC Biarritz) | src/data/leagues/prod2.ts:360 | Parc des Sports Aguiléra (Biarritz) |
+| Stade Armandin (ground of RC Agen) | src/data/leagues/prod2.ts:361 | Stade Armandie (Agen) |
+| Stade Maurice-Boyer (ground of RC Dax) | src/data/leagues/prod2.ts:363 | Stade Maurice-Boyau (Dax) |
+| Parc des Sports et de l'Amitié (ground of AS Narbonne) | src/data/leagues/prod2.ts:372 | Parc des Sports et de l'Amitié (real, Narbonne) |
+| Stade Jean-Alaric (ground of RC Aurillac) | src/data/leagues/prod2.ts:374 | Stade Jean-Alric (Aurillac) |
+| Stade Chansy (ground of RC Angoulême) | src/data/leagues/prod2.ts:376 | Stade Chanzy (Angoulême) |
+| Edendale Park (ground of Auckland RFC) | src/data/leagues/srp_a.ts:8 | Eden Park (Auckland) |
+| Waikato Stadium (ground of Waikato RFC) | src/data/leagues/srp_a.ts:46 | Waikato Stadium (real, Chiefs) |
+| Addington Stadium (ground of Canterbury RFC) | src/data/leagues/srp_a.ts:82 | Addington (Christchurch, real) |
+| Wellington Stadium (ground of Wellington RFC) | src/data/leagues/srp_a.ts:158 | Wellington Regional Stadium (real) |
+| North Harbour Stadium (ground of Pacific RFC) | src/data/leagues/srp_a.ts:196 | North Harbour Stadium (real) |
+| Bruce Stadium (ground of Canberra RFC) | src/data/leagues/srp_b.ts:8 | Bruce Stadium (real, Brumbies) |
+| Moore Park Stadium (ground of New South Wales RFC) | src/data/leagues/srp_b.ts:88 | Allianz Stadium, Moore Park (Waratahs) |
+| Perth Oval (ground of Perth RFC) | src/data/leagues/srp_b.ts:125 | Perth Oval (real) |
+| Laucala Bay Stadium (ground of Fiji RFC) | src/data/leagues/srp_b.ts:162 | the National Stadium, Laucala Bay (Fiji) |
+| Stade Ernest-Vallon (ground of RC Toulouse) | src/data/leagues/top14_a.ts:8 | Stade Ernest-Wallon (Stade Toulousain) |
+| Stade Chaban-Delmar (ground of RC Bordeaux) | src/data/leagues/top14_a.ts:48 | Stade Chaban-Delmas (Bordeaux) |
+| Stade Marcel-Deslandes (ground of RC La Rochelle) | src/data/leagues/top14_a.ts:85 | Stade Marcel-Deflandre (La Rochelle) |
+| Stade Marcel-Michelot (ground of RC Clermont) | src/data/leagues/top14_a.ts:121 | Stade Marcel-Michelin (Clermont) |
+| Stade Meyol (ground of AS Toulon) | src/data/leagues/top14_a.ts:158 | Stade Mayol (Toulon) |
+| Stade Jean-Baudin (ground of AS Paris) | src/data/leagues/top14_a.ts:232 | Stade Jean-Bouin (Paris) |
+| Stade Pierre-Favre (ground of RC Castres) | src/data/leagues/top14_b.ts:8 | Stade Pierre-Fabre (Castres) |
+| Stade Jean-Daubert (ground of RC Bayonne) | src/data/leagues/top14_b.ts:44 | Stade Jean-Dauger (Bayonne) |
+| Stade de Gerland (ground of RC Lyon) | src/data/leagues/top14_b.ts:82 | Stade de Gerland (real, Lyon) |
+| Stade du Hameau (ground of RC Pau) | src/data/leagues/top14_b.ts:159 | Stade du Hameau (real, Pau) |
+| Stade Aimé-Giraud (ground of RC Perpignan) | src/data/leagues/top14_b.ts:196 | Stade Aimé-Giral (Perpignan) |
+| US Vannes (club) | src/data/leagues/top14_b.ts:231 | RC Vannes |
+| Stade de la Rabine (ground of US Vannes) | src/data/leagues/top14_b.ts:233 | Stade de la Rabine (real, Vannes) |
+| Leinster RFC (club) | src/data/leagues/urc_a.ts:6 | Leinster Rugby |
+| Lansdowne Road (ground of Leinster RFC) | src/data/leagues/urc_a.ts:8 | Lansdowne Road (real, now the Aviva Stadium) |
+| Munster RFC (club) | src/data/leagues/urc_a.ts:47 | Munster Rugby |
+| Thormond Park (ground of Munster RFC) | src/data/leagues/urc_a.ts:49 | Thomond Park (Munster) |
+| Ulster RFC (club) | src/data/leagues/urc_a.ts:87 | Ulster Rugby |
+| Ravenhill (ground of Ulster RFC) | src/data/leagues/urc_a.ts:89 | Ravenhill (real, Ulster) |
+| Connacht RFC (club) | src/data/leagues/urc_a.ts:128 | Connacht Rugby |
+| The Sportsground (ground of Connacht RFC) | src/data/leagues/urc_a.ts:130 | The Sportsground (real, Connacht) |
+| Scotsworth Stadium (ground of Glasgow RFC) | src/data/leagues/urc_a.ts:171 | Scotstoun (Glasgow Warriors) |
+| Stadio Monaco (ground of Treviso RFC) | src/data/leagues/urc_a.ts:249 | Stadio Monigo (Benetton) |
+| Stadio Sergio Lanfranco (ground of Parma RFC) | src/data/leagues/urc_a.ts:287 | Stadio Sergio Lanfranchi (Zebre) |
+| Loftus Field (ground of Pretoria RFC) | src/data/leagues/urc_b.ts:8 | Loftus Versfeld (Bulls) |
+| Green Point Stadium (ground of Cape Town RFC) | src/data/leagues/urc_b.ts:49 | Green Point Stadium (real, Cape Town) |
+| Kingsway Park (ground of Durban RFC) | src/data/leagues/urc_b.ts:90 | Kings Park (Sharks) |
+| Elliston Park (ground of Johannesburg RFC) | src/data/leagues/urc_b.ts:128 | Ellis Park (Lions) |
+| Cardiff Arms Field (ground of Cardiff RFC) | src/data/leagues/urc_b.ts:166 | Cardiff Arms Park |
+| St Helena's (ground of Swansea RFC) | src/data/leagues/urc_b.ts:202 | St Helen's (Swansea) |
+| Stradley Park (ground of Llanelli RFC) | src/data/leagues/urc_b.ts:240 | Stradey Park (Llanelli) |
+| Rodney Park (ground of Newport RFC) | src/data/leagues/urc_b.ts:277 | Rodney Parade (Newport) |
+| Ravenhill (ground of Belfast RFC) | src/data/leagues/w_celt.ts:50 | Ravenhill (real, Ulster) |
+| Donnybrook Park (ground of Dublin RFC) | src/data/leagues/w_celt.ts:90 | Donnybrook Stadium (Dublin) |
+| Stradley Park (ground of North Wales RFC) | src/data/leagues/w_celt.ts:209 | Stradey Park (Llanelli) |
+| Scotsworth Stadium (ground of Glasgow RFC) | src/data/leagues/w_celt.ts:252 | Scotstoun (Glasgow Warriors) |
+| Recreational Sports Centre (ground of Bath RFC) | src/data/leagues/w_champ.ts:68 | the Recreation Ground (Bath) |
+| Richmond RFC (club) | src/data/leagues/w_champ.ts:106 | Richmond FC (real) |
+| The Athletic Ground (ground of Richmond RFC) | src/data/leagues/w_champ.ts:108 | the Athletic Ground (real, Richmond and London Scottish) |
+| London Hibernians RFC (club) | src/data/leagues/w_champ.ts:154 | London Irish |
+| Exeter University RFC (club) | src/data/leagues/w_champ.ts:234 | Exeter University RFC (real) |
+| Claro Road (ground of Harrogate RFC) | src/data/leagues/w_champ.ts:556 | Claro Road (real, Harrogate) |
+| Novocastrians RFC (club) | src/data/leagues/w_champ.ts:594 | Novocastrians RFC (a real club, exactly) |
+| Crow Trees (ground of Blaydon RFC) | src/data/leagues/w_champ.ts:716 | Crow Trees (real, Blaydon) |
+| Shaw Lane (ground of Barnsley RFC) | src/data/leagues/w_champ.ts:796 | Shaw Lane (real, Barnsley) |
+| Stade Ernest-Vallon (ground of RC Toulouse) | src/data/leagues/w_e1.ts:65 | Stade Ernest-Wallon (Stade Toulousain) |
+| Stade Sainte-Germaine (ground of RC Bordeaux) | src/data/leagues/w_e1.ts:112 | Stade Sainte-Germaine (real, Le Bouscat) |
+| Stade Ernest-Argelas (ground of RC Blagnac) | src/data/leagues/w_e1.ts:167 | Stade Ernest-Argelès (Blagnac) |
+| Stade Sabathier (ground of RC Montpellier) | src/data/leagues/w_e1.ts:263 | Stade Sabathé (Montpellier) |
+| Stade des Alpes (ground of RC Grenoble) | src/data/leagues/w_e1.ts:303 | Stade des Alpes (real, Grenoble) |
+| Stade de Gerland (ground of RC Lyon) | src/data/leagues/w_e1.ts:351 | Stade de Gerland (real, Lyon) |
+| Stade Meyol (ground of AS Toulon) | src/data/leagues/w_e1.ts:398 | Stade Mayol (Toulon) |
+| Stade Marcel-Deslandes (ground of RC La Rochelle) | src/data/leagues/w_e1.ts:484 | Stade Marcel-Deflandre (La Rochelle) |
+| Stade Yves-Manoir (ground of RC Colombes) | src/data/leagues/w_e2.ts:43 | Stade Yves-du-Manoir (real, Colombes) |
+| Stade Jean-Baudin (ground of AS Paris) | src/data/leagues/w_e2.ts:83 | Stade Jean-Bouin (Paris) |
+| Stade Michel-Bendicourt (ground of RC Colomiers) | src/data/leagues/w_e2.ts:136 | Stade Michel-Bendichou (Colomiers) |
+| Stade Jean-Daubert (ground of RC Bayonne) | src/data/leagues/w_e2.ts:216 | Stade Jean-Dauger (Bayonne) |
+| Stade Amédée-Domergue (ground of RC Brive) | src/data/leagues/w_e2.ts:256 | Stade Amédée-Domenech (Brive) |
+| Stade du Hameau (ground of RC Pau) | src/data/leagues/w_e2.ts:301 | Stade du Hameau (real, Pau) |
+| Edendale Park (ground of Auckland RFC) | src/data/leagues/w_pac.ts:32 | Eden Park (Auckland) |
+| Waikato Stadium (ground of Waikato RFC) | src/data/leagues/w_pac.ts:75 | Waikato Stadium (real, Chiefs) |
+| Addington Stadium (ground of Canterbury RFC) | src/data/leagues/w_pac.ts:118 | Addington (Christchurch, real) |
+| Wellington Stadium (ground of Wellington RFC) | src/data/leagues/w_pac.ts:162 | Wellington Regional Stadium (real) |
+| Laucala Bay Stadium (ground of Fiji RFC) | src/data/leagues/w_pac.ts:205 | the National Stadium, Laucala Bay (Fiji) |
+| Perth Oval (ground of Perth RFC) | src/data/leagues/w_pac.ts:249 | Perth Oval (real) |
+| Moore Park Stadium (ground of New South Wales RFC) | src/data/leagues/w_pac.ts:290 | Allianz Stadium, Moore Park (Waratahs) |
+| Bruce Stadium (ground of Canberra RFC) | src/data/leagues/w_pac.ts:366 | Bruce Stadium (real, Brumbies) |
+| Gillmore’s Ground (ground of Gloucester RFC) | src/data/leagues/w_pwr.ts:57 | Gillman's Ground (Hartpury) |
+| Sarries RFC (club) | src/data/leagues/w_pwr.ts:100 | Saracens (its nickname, "Sarries") |
+| Hendon Park (ground of Sarries RFC) | src/data/leagues/w_pwr.ts:102 | the StoneX Stadium, Hendon (Saracens) |
+| Quins Rugby (club) | src/data/leagues/w_pwr.ts:208 | Harlequins (its nickname, "Quins") |
+| Little Twickenham (ground of Quins Rugby) | src/data/leagues/w_pwr.ts:210 | the Twickenham Stoop, and Twickenham |
+| Ealing Sports Ground (ground of Ealing RFC) | src/data/leagues/w_pwr.ts:264 | Trailfinders Sports Ground (Ealing) |
+| Beachy Park (ground of Exeter RFC) | src/data/leagues/w_pwr.ts:310 | Sandy Park (Exeter Chiefs) |
+| Loughborough RFC (club) | src/data/leagues/w_pwr.ts:365 | Loughborough Lightning |
+| Welford Street (ground of Leicester RFC) | src/data/leagues/w_pwr.ts:414 | Welford Road (Leicester Tigers) |
+| Heywood Road (ground of Sale RFC) | src/data/leagues/w_pwr.ts:471 | Heywood Road (real, Sale FC) |
+
+Club names that are also the name of a real club (city or town plus RFC): Doncaster RFC (src/data/leagues/champ.ts:119); Coventry RFC (src/data/leagues/champ.ts:120); Bedford RFC (src/data/leagues/champ.ts:121); Cornwall RFC (src/data/leagues/champ.ts:122); Nottingham RFC (src/data/leagues/champ.ts:123); Chinnor RFC (src/data/leagues/champ.ts:126); Caldy RFC (src/data/leagues/champ.ts:127); Ampthill RFC (src/data/leagues/champ.ts:136); Rotherham RFC (src/data/leagues/champ.ts:138); Reading RFC (src/data/leagues/natl1.ts:87); Plymouth RFC (src/data/leagues/natl1.ts:88); Bishop's Stortford RFC (src/data/leagues/natl1.ts:91); Cambridge RFC (src/data/leagues/natl1.ts:94); Bury St Edmunds RFC (src/data/leagues/natl1.ts:99); Camborne RFC (src/data/leagues/natl1.ts:100); Sheffield RFC (src/data/leagues/natl1.ts:102); Tonbridge RFC (src/data/leagues/natl1.ts:103); St Albans RFC (src/data/leagues/w_champ.ts:274); Beckenham RFC (src/data/leagues/w_champ.ts:314); Eastleigh RFC (src/data/leagues/w_champ.ts:354); Ivybridge RFC (src/data/leagues/w_champ.ts:394); Thurrock RFC (src/data/leagues/w_champ.ts:434); Lichfield RFC (src/data/leagues/w_champ.ts:474); Harrogate RFC (src/data/leagues/w_champ.ts:554); Kenilworth RFC (src/data/leagues/w_champ.ts:634); Cheltenham RFC (src/data/leagues/w_champ.ts:674); Blaydon RFC (src/data/leagues/w_champ.ts:714); Bury St Edmunds RFC (src/data/leagues/w_champ.ts:754); Barnsley RFC (src/data/leagues/w_champ.ts:794); Buckingham RFC (src/data/leagues/w_champ.ts:834).
+
 ## Final status (25 November 2026, round 9, 16:30)
 
 Run: `npx vite-node scripts/harmonycheck.ts` on 73284195 (src/game clean; ANIMATION's uncommitted UI changes in the tree). HARMONY FAILED on 2 of 82 rules: 80 pass, none not run. Quick test 32 of 32. `wiring 20` (W07 included), `season 8`, `cards 5`.

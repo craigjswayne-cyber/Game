@@ -131,6 +131,8 @@ export interface Match {
   xv?: [Set<string>, Set<string>]
   bench?: [Set<string>, Set<string>]
   names?: Map<string, string>
+  /** the occasion from the game (context.ts contextFromGame), when the match was built from one */
+  ctx?: ClaimCtx
   /** the two clubs' names (real fixtures), for the commentary */
   teams?: [string, string]
   /** each side's players with the shirt they started in, as the pitch wants them */
@@ -690,12 +692,30 @@ export async function checkDecisionsReal(fixtures: RealFixture[]): Promise<RateR
 const loadComm = (): Promise<unknown> => { const at = typeof process !== 'undefined' ? process.env.HARMONY_COMM : undefined; return at ? import(/* @vite-ignore */ at) : import('../src/game/sim/commentary') }
 
 /** summary lines at the whistle that may name a man from earlier in the match (C05 (a), round 9) */
-export const NAMED_SUMMARY_BASES = new Set(['decidedTry', 'decidedKick', 'motm', 'standTries', 'standSteals', 'standTackles', 'standCarries'])
+export const NAMED_SUMMARY_BASES = new Set(['decidedTry', 'decidedKick', 'motm', 'standTries', 'standSteals', 'standTackles', 'standCarries',
+  // COMMENTARY's held-back whistle lines (NAMED_WHISTLE_MORE, overnight 27 Nov), each with its claim checked below
+  'duelHalf', 'duelFull', 'motmNums', 'postTackler', 'postJackal', 'postCulprit', 'debutHalf'])
 
 /** is a whistle summary's claim about a man true of the record up to play n? Returns why not, or '' when true.
  *  Counted from the record here, not from commentary.ts: tries scored, turnovers won (a ruck turnover or an
  *  interception), tackles (a carry he is in `vs` of), carries (carries and line breaks, not intercepted) and their metres */
-export function summaryClaimWrong(P: Play[], n: number, base: string, params: Record<string, unknown>, ids: Set<string>, byName: Map<string, string>, motm?: string): string {
+/** what a man did up to play n, counted off the record */
+export function manCounts(P: Play[], n: number, id: string, from = 0) {
+  const upTo = P.slice(from, n + 1)
+  const carries = upTo.filter(q => (q.kind === 'carry' || q.kind === 'lineBreak') && q.who === id && q.result !== 'intercepted')
+  return {
+    tries: upTo.filter(q => (q.kind === 'try' || q.kind === 'penaltyTry') && q.who === id).length,
+    breaks: upTo.filter(q => q.kind === 'lineBreak' && q.who === id).length,
+    turnovers: upTo.filter(q => ((q.kind === 'ruck' && q.result === 'turnover') || (q.kind === 'carry' && q.result === 'intercepted')) && q.vs?.[0] === id).length,
+    jackals: upTo.filter(q => q.kind === 'ruck' && q.result === 'turnover' && q.vs?.[0] === id).length,
+    carries: carries.length,
+    metres: Math.round(carries.reduce((a, q) => a + Math.max(0, q.gain ?? 0), 0)),
+    tackles: upTo.filter(q => q.kind === 'carry' && q.vs?.includes(id)).length,
+    pens: upTo.filter(q => (q.kind === 'penalty' || q.kind === 'freeKick') && q.offender === id).length,
+  }
+}
+export interface ClaimCtx { men?: Record<string, { side: 0 | 1; shirt: number; careerApps?: number }>; news?: { kind: string; id?: string }[] }
+export function summaryClaimWrong(P: Play[], n: number, base: string, params: Record<string, unknown>, ids: Set<string>, byName: Map<string, string>, motm?: string, ctx?: ClaimCtx): string {
   const pn = params.player
   const id = typeof pn === 'string' ? (byName.get(pn) ?? ([...ids][0])) : [...ids][0]
   if (!id) return 'names a man the check cannot find'
@@ -710,6 +730,43 @@ export function summaryClaimWrong(P: Play[], n: number, base: string, params: Re
     const cs = upTo.filter(q => (q.kind === 'carry' || q.kind === 'lineBreak') && q.who === id && q.result !== 'intercepted')
     const mt = Math.round(cs.reduce((a, q) => a + Math.max(0, q.gain ?? 0), 0))
     return cs.length === num('count') && Math.abs(mt - num('m')) <= 1 ? '' : `says ${num('count')} carries for ${num('m')} m; the record has ${cs.length} for ${mt} m`
+  }
+  if (base === 'duelHalf' || base === 'duelFull') {
+    const opp = typeof params.oppPlayer === 'string' ? byName.get(params.oppPlayer) : undefined
+    if (!opp) return `names ${params.oppPlayer} as the opposite number, who the check cannot find`
+    const sh = num('shirt'), mA = ctx?.men?.[id], mB = ctx?.men?.[opp]
+    if (!mA || !mB) return 'a duel with no team sheet to check the shirts against'
+    if (mA.shirt !== sh || mB.shirt !== sh || mA.side === mB.side) return `calls ${pn} (${mA.side}, ${mA.shirt}) and ${params.oppPlayer} (${mB.side}, ${mB.shirt}) the two No. ${sh}s`
+    const W: Record<string, keyof ReturnType<typeof manCounts>> = { 'sim.duelTries1': 'tries', 'sim.duelBreaks1': 'breaks', 'sim.duelTurnovers1': 'turnovers', 'sim.duelCarries1': 'carries', 'sim.duelTackles1': 'tackles' }
+    const k = W[String(params.what_k)]
+    if (!k) return `an unknown duel measure ${params.what_k}`
+    const a = manCounts(P, n, id)[k], b = manCounts(P, n, opp)[k]
+    return a === num('a') && b === num('b') ? '' : `says ${num('a')} to ${num('b')} ${k}; the record has ${a} to ${b}`
+  }
+  if (base === 'motmNums') {
+    if (motm != null && motm !== id) return `gives the numbers of ${pn}, who is not the game's player of the match`
+    const c = manCounts(P, n, id), wrong: string[] = []
+    if (params.car != null && num('car') !== c.carries) wrong.push(`carries ${num('car')} (record ${c.carries})`)
+    if (params.tk != null && num('tk') !== c.tackles) wrong.push(`tackles ${num('tk')} (record ${c.tackles})`)
+    if (params.tries != null && num('tries') !== c.tries) wrong.push(`tries ${num('tries')} (record ${c.tries})`)
+    return wrong.join(', ')
+  }
+  if (base === 'postTackler' || base === 'postJackal' || base === 'postCulprit') {
+    const k = base === 'postTackler' ? 'tackles' : base === 'postJackal' ? 'jackals' : 'pens'
+    const mine = manCounts(P, n, id)[k]
+    if (mine !== num('n')) return `says ${num('n')} ${k}; the record has ${mine}`
+    // the most of anyone in the match
+    const men = new Set<string>(); for (const q of P.slice(0, n + 1)) for (const x of [q.who, q.offender, ...(q.vs ?? []), ...(q.with ?? [])]) if (x) men.add(x)
+    const best = [...men].filter(x => x !== id).map(x => [x, manCounts(P, n, x)[k]] as const).sort((a, b) => b[1] - a[1])[0]
+    return best && best[1] > mine ? `calls ${pn} the most (${mine} ${k}); ${best[0]} has ${best[1]}` : ''
+  }
+  if (base === 'debutHalf') {
+    const isDebut = ctx?.news?.some(x => x.kind === 'debut' && x.id === id) || ctx?.men?.[id]?.careerApps === 0
+    if (!isDebut) return `calls ${pn} a debutant; the team sheet has him with appearances before`
+    const c = manCounts(P, n, id), wrong: string[] = []
+    if (params.car != null && num('car') !== c.carries) wrong.push(`carries ${num('car')} (record ${c.carries})`)
+    if (params.tk != null && num('tk') !== c.tackles) wrong.push(`tackles ${num('tk')} (record ${c.tackles})`)
+    return wrong.join(', ')
   }
   if (base === 'decidedTry' || base === 'decidedKick') {
     const last = P[n], win: 0 | 1 = last.score[0] > last.score[1] ? 0 : 1
@@ -727,7 +784,11 @@ export function summaryClaimWrong(P: Play[], n: number, base: string, params: Re
   return ''
 }
 
-export const SUMMARY_BASES = new Set(['territory', 'possession', 'tries', 'run', 'binBack', 'winBy', 'draw', 'tryAgain'])
+export const SUMMARY_BASES = new Set([
+  // (overnight: the co-commentator's spell, the duels and the full-time block are about the match so far)
+  'anaKicking', 'anaHands', 'anaWide', 'anaMiddle', 'anaCollide', 'anaStopped', 'anaJackal', 'tipBreakdown', 'anaScrumBad', 'tipScrum', 'anaPensRuck', 'tipPens', 'anaPensOffside', 'anaInTheirHalf',
+  'duelHalf', 'duelFull', 'postUp', 'postDown', 'postStay', 'postBonusTry', 'postBonusLose', 'postCupWon', 'postCupThrough', 'postStat', 'postMgrGood', 'postMgrBad', 'postMgrMixed', 'postNext', 'motmNums', 'postTackler', 'postJackal', 'postCulprit', 'debutHalf', 'bonusTry',
+  'territory', 'possession', 'tries', 'run', 'binBack', 'winBy', 'draw', 'tryAgain'])
 
 export interface LineLike { n: number; key: string; params?: Record<string, unknown>; level?: unknown; side?: 0 | 1 | null; priority?: number }
 
@@ -765,7 +826,12 @@ export function checkLines(m: Match, lines: LineLike[], text: (l: LineLike) => s
     const any = (f: (q: Play) => boolean) => cands.some(f)
 
     // C02 side (summary lines are about the match so far, not this play)
-    if (!summary && l.side != null && l.side !== p.side && l.side !== p.ball && !cands.some(q => q.side === l.side))
+    // (the other coach's change is about the side the record names on Play.coach; a pre-match line is about the occasion)
+    const coachSide = (p as Play & { coach?: { side: 0 | 1 } }).coach?.side
+    // (a first touch is about the man: his side, from the team sheet, may be the defence's)
+    const manSide = (id: string) => (m.xv?.[0].has(id) || m.bench?.[0].has(id) ? 0 : m.xv?.[1].has(id) || m.bench?.[1].has(id) ? 1 : null)
+    const aboutMan = ['debutFirst', 'clubFirst', 'returnFirst', 'backFromBin'].includes(base) && Object.values(l.params ?? {}).some(v => typeof v === 'string' && byName.has(v) && manSide(byName.get(v)!) === l.side)
+    if (!summary && !aboutMan && !(l as LineLike & { pre?: boolean }).pre && l.side !== coachSide && l.side != null && l.side !== p.side && l.side !== p.ball && !cands.some(q => q.side === l.side))
       fail('C02-line-side', l.n, `"${s}" is about side ${l.side}; play ${p.kind}/${p.result} is about ${p.side}, ball with ${p.ball}`)
 
     // C03 the words name what the record has (in this play or, at a set piece, the reason for it)
@@ -798,10 +864,13 @@ export function checkLines(m: Match, lines: LineLike[], text: (l: LineLike) => s
     // the record up to the whistle (round 9 ruling), and the man need not be in the whistle's play or on the field
     const wSum = (p.kind === 'halfTime' || p.kind === 'fullTime') && NAMED_SUMMARY_BASES.has(base)
     if (wSum) {
-      const why = summaryClaimWrong(P, l.n, base, l.params ?? {}, ids, byName, (m.res as SimResult & { motm?: string }).motm)
+      const why = summaryClaimWrong(P, l.n, base, l.params ?? {}, ids, byName, (m.res as SimResult & { motm?: string }).motm, m.ctx)
       if (why) fail('C05-line-player', l.n, `"${s}" ${why}`)
     }
-    if (m.xv && !wSum) for (const id of ids) {
+    // a pre-match line names men from the team sheet (team news, milestones): in the 23, checked for truth by `ctxaudit`
+    const preLine = !!(l as LineLike & { pre?: boolean }).pre
+    if (preLine && m.xv) for (const id of ids) { if (!m.xv[0].has(id) && !m.xv[1].has(id) && !m.bench?.[0].has(id) && !m.bench?.[1].has(id)) fail('C05-line-player', l.n, `"${s}" (before kick-off) names ${names.get(id)}, who is not in either 23`) }
+    if (m.xv && !wSum && !preLine) for (const id of ids) {
       // (b) the defender a line break beat (Play.beat) is in that play
       const inPlay = cands.concat(cause ? [cause] : []).some(q => q.who === id || q.vs?.includes(id) || q.with?.includes(id) || q.offender === id || q.beat?.includes(id))
       if (!inPlay) fail('C05-line-player', l.n, `"${s}" names ${names.get(id)}, who is not in ${cands.map(q => `${q.kind}/${q.result}`).join(' < ')}`)
@@ -2016,7 +2085,9 @@ export async function checkScreenSession(ad?: Awaited<ReturnType<typeof loadAdap
   const queue = [LIVE]
   while (queue.length) {
     const f = queue.shift()!, src = read(f) ?? ''
-    for (const m of src.matchAll(/^(?:import|export)\s+(?!type\b)[\s\S]*?\s+from\s+['"](\.[^'"]+)['"]/gm)) {
+    // (a worker the screen starts, new Worker(new URL('./x.ts', import.meta.url)), is screen code too)
+    const refs = [...src.matchAll(/^(?:import|export)\s+(?!type\b)[\s\S]*?\s+from\s+['"](\.[^'"]+)['"]/gm), ...src.matchAll(/new\s+Worker\s*\(\s*new\s+URL\s*\(\s*['"](\.[^'"]+)['"]/g)]
+    for (const m of refs) {
       const base = path.posix.normalize(path.posix.join(path.posix.dirname(f), m[1]))
       if (!base.startsWith('src/ui/')) continue
       const hit = ['', '.ts', '.tsx', '/index.ts', '/index.tsx'].map(x => base + x).find(x => fs.existsSync(path.join(root, x)) && fs.statSync(path.join(root, x)).isFile())
@@ -2109,7 +2180,7 @@ async function seasonDump(argv: string[]) {
   const ratings: Record<string, Record<string, number[]>> = { old: {}, new: {} }
   let saveFail = ''
   for (const eng of engines) for (let s = 1; s <= NS; s++) {
-    const g0 = newGame('leicester', 'T', 300 + s) as unknown as GameLike
+    const g0 = newGame('leicester', 'T', Number(process.env.HARMONY_SEASON_SEED ?? 300) + s) as unknown as GameLike
     const startSeason = g0.season
     const ev = { yc: 0, rc: 0, inj: 0 }
     const playWeek = (g: GameLike, count: boolean) => {
@@ -2550,7 +2621,462 @@ async function cardsDump(argv: string[]) {
   fs.writeFileSync('scripts/tmp/harmony-cards.json', JSON.stringify({ when: new Date().toISOString(), rows }, null, 1))
 }
 
+/**
+ * THE OVERNIGHT ENGINE AUDIT (27 Nov, engine frozen at fe485f15), independent of skeleton.ts's own sums:
+ * every figure here is counted off the record. `overnight NF NS`: NF balanced fixtures (AI v AI, the
+ * referee fixed by fixture), NS match seeds each; then the other coach on and off over paired seeds on
+ * managed fixtures. Writes scripts/tmp/harmony-overnight.json.
+ */
+export interface AuditFault { what: string; label: string; n: number; msg: string }
+export function auditMatch(res: SimResult, label: string, managed: 0 | 1 | null): { faults: AuditFault[]; m: Record<string, unknown> } {
+  const P = res.plays, faults: AuditFault[] = []
+  const bad = (what: string, n: number, msg: string) => faults.push({ what, label, n, msg })
+  const ref = (res as SimResult & { referee?: { name: string; style: string; warnAt: number } }).referee
+  const cond = (res as SimResult & { conditions?: { weather: string; wind: { strength: number; toward: 0 | 1 }; hot?: boolean } }).conditions
+  const htN = P.find(p => p.kind === 'halfTime')?.n ?? Infinity
+  const other = (s: 0 | 1) => (s === 0 ? 1 : 0) as 0 | 1
+  // PENALTIES: kind penalty or freeKick; side is the side it was given to
+  const conceded: [number, number] = [0, 0], pens: [number, number] = [0, 0]
+  const warned: [number, number] = [0, 0]
+  for (const p of P) {
+    if (p.kind !== 'penalty' && p.kind !== 'freeKick') continue
+    const off = other(p.side); pens[off]++
+    if (p.kind === 'penalty') conceded[off]++
+    const w = (p as Play & { warning?: boolean }).warning
+    if (w) {
+      warned[off]++
+      if (p.kind !== 'penalty') bad('ref-warning', p.n, 'a warning on a free kick')
+      if (ref && conceded[off] !== ref.warnAt - 1) bad('ref-warning', p.n, `warning at the side's penalty ${conceded[off]}; his limit is ${ref.warnAt}, so it should come at ${ref.warnAt - 1}`)
+    } else if (ref && p.kind === 'penalty' && conceded[off] === ref.warnAt - 1) bad('ref-warning', p.n, `side ${off} reached ${conceded[off]} (one short of ${ref.warnAt}) with no warning`)
+  }
+  // CARDS
+  const yc: [number, number] = [0, 0], red: [number, number] = [0, 0], second: [number, number] = [0, 0]
+  for (const p of P) { if (p.kind === 'yellowCard') yc[p.side]++; if (p.kind === 'redCard') { if (p.result === 'secondYellow') second[p.side]++; else red[p.side]++ } }
+  // men short at time t, from the record: binned (until), sent off, hurt and not yet replaced
+  const shortAt = (s: 0 | 1, t: number, n: number) => {
+    let k = 0
+    for (const q of P) {
+      if (q.n >= n) break
+      if (q.side !== s) continue
+      if (q.kind === 'yellowCard' && q.t <= t && (q.until ?? 0) > t) k++
+      if (q.kind === 'redCard') k++
+    }
+    return k
+  }
+  // THE OTHER COACH: every recorded change has a true reason at that moment (the state after the play before it)
+  const coachSeen: Record<string, number> = {}
+  for (const p of P) {
+    const c = (p as Play & { coach?: { side: 0 | 1; mode: string; reason: string } }).coach
+    if (!c) continue
+    coachSeen[c.mode] = (coachSeen[c.mode] ?? 0) + 1
+    if (managed != null && c.side === managed) bad('coach-managed', p.n, `a coach change (${c.mode}) for the managed side`)
+    const prev = P[p.n - 1] ?? p, sc = prev.score, lead = sc[c.side] - sc[other(c.side)]
+    const clk = p.clock ?? p.t, clk0 = prev.clock ?? prev.t
+    const whyMap: Record<string, string> = { exploitShort: 'manUp', chase: 'chasing', protect: 'protecting', wet: 'wetBall', targetScrum: 'scrumOnTop', frontRow: 'scrumBeaten' }
+    if (whyMap[c.mode] !== c.reason) bad('coach-reason', p.n, `mode ${c.mode} with reason ${c.reason}`)
+    let ok = true, why = ''
+    if (c.mode === 'exploitShort') {
+      // binned or sent off from the record; a man hurt and waiting for cover is not in the record's bins, so allowed when an injury play is within the last minute
+      const up = shortAt(other(c.side), p.t, p.n) > shortAt(c.side, p.t, p.n) || shortAt(other(c.side), prev.t, p.n) > shortAt(c.side, prev.t, p.n)
+      // hurt and off, waiting for the replacement: an injury play, until the substitution that takes him off
+      const waiting = (s: 0 | 1) => { const w = new Set<string>(); for (const q of P) { if (q.n >= p.n) break; if (q.kind === 'injury' && q.side === s && q.who) w.add(q.who); if (q.kind === 'substitution' && q.result === 'made' && q.who) w.delete(q.who) } return w.size }
+      const hurt = shortAt(other(c.side), p.t, p.n) + waiting(other(c.side)) > shortAt(c.side, p.t, p.n) + waiting(c.side)
+      ok = up || hurt; why = `the other side is not a man down (bins and reds ${shortAt(other(c.side), p.t, p.n)} against ${shortAt(c.side, p.t, p.n)})`
+    } else if (c.mode === 'chase') { ok = (clk >= 3300 && lead < -7) || (clk >= 4200 && lead < 0); why = `lead ${lead} at ${Math.floor(clk / 60)}:${String(Math.round(clk % 60)).padStart(2, '0')}` }
+    else if (c.mode === 'protect') { ok = clk >= 3900 && lead >= 1 && lead <= 14; why = `lead ${lead} at ${Math.floor(clk / 60)} min` }
+    else if (c.mode === 'wet') { ok = cond?.weather === 'Rain' || cond?.weather === 'Snow'; why = `weather ${cond?.weather}` }
+    else if (c.mode === 'targetScrum' || c.mode === 'frontRow') {
+      const sp: [number, number] = [0, 0]
+      for (const q of P) { if (q.n >= p.n) break; if (q.kind === 'scrum' && q.result === 'penaltyWon') sp[q.side]++; if (q.kind === 'scrum' && q.result === 'penaltyLost') sp[other(q.side)]++ }
+      // (scrum penalties as the engine counts them: a scrum's penaltyWon or penaltyLost; a free kick at the scrum is not one)
+      const my = sp[c.side], th = sp[other(c.side)]
+      if (c.mode === 'targetScrum') {
+        const d = c.side === 0 ? 100 - p.x : p.x
+        ok = my >= 3 && my > th && (p as Play & { call?: string }).call === 'scrum' && d > 5 && d <= 15 || (my >= 3 && my > th && p.kind === 'scrum')
+        why = `scrum penalties ${my} against ${th}, ${Math.round(d)} m out, call ${(p as Play & { call?: string }).call ?? 'none'} on ${p.kind}`
+      } else { ok = Math.max(clk, clk0) >= 1800 - 60 && th - my >= 2; why = `scrum penalties won ${my}, given away ${th}, at ${Math.floor(clk / 60)} min` }
+    }
+    if (!ok) bad(`coach-${c.mode}`, p.n, why)
+  }
+  // THE WIND: the tag on every kick, goal kick and conversion is what the wind and the half say
+  const windRows: { kind: string; kick?: string; wind: number; len?: number; far?: number; good?: boolean }[] = []
+  let windWrong = 0
+  for (const p of P) {
+    if (!(p.kind === 'kick' || p.kind === 'penaltyGoal' || p.kind === 'conversion') || p.result === 'chargedDown') continue
+    const tag = (p as Play & { wind?: string }).wind
+    const w = cond?.wind ? cond.wind.strength * (cond.wind.toward === 1 ? 1 : -1) * (p.side === 0 ? 1 : -1) * (p.n > htN ? -1 : 1) : 0
+    const want = w >= 0.5 ? 'with' : w <= -0.5 ? 'into' : undefined
+    // (a penalty kicked to touch: the engine gives it no wind, in length or on the record: counted apart)
+    if (p.kind === 'kick' && p.result === 'penaltyToTouch') { if (want) bad('wind-penaltyTouch', p.n, `a penalty kicked to touch ${want} a wind of ${cond?.wind.strength}: no wind on its length or its record`) ; continue }
+    if (tag !== want) { windWrong++; if (windWrong <= 50) bad('wind-tag', p.n, `${p.kind} ${p.kick ?? ''}/${p.result} by side ${p.side} ${p.n > htN ? 'second' : 'first'} half: tagged ${tag ?? 'none'}, the wind says ${want ?? 'none'} (strength ${cond?.wind.strength}, toward ${cond?.wind.toward})`) }
+    const toLine = p.side === 0 ? 100 - p.x : p.x
+    if (p.kind === 'kick' && p.gain != null) windRows.push({ kind: 'kick', kick: p.kick, wind: w, len: p.gain })
+    if (p.kind === 'penaltyGoal') windRows.push({ kind: 'goal', wind: w, far: Math.hypot(toLine, Math.abs(p.y - 35)), good: p.good })
+  }
+  // SET PIECES: options, the 5 m law, the pushover
+  const lo: Record<string, { n: number; stolen: number; near: number }> = {}
+  const scrumOpt: Record<string, number> = {}
+  let pushovers = 0
+  for (const p of P) {
+    const opt = (p as Play & { option?: string }).option
+    if (p.kind === 'lineout' && (p.result === 'won' || p.result === 'stolen')) {
+      if (!opt) bad('lineout-option', p.n, 'a lineout with no call')
+      const o = (lo[opt ?? '?'] ??= { n: 0, stolen: 0, near: 0 }); o.n++; if (p.result === 'stolen') o.stolen++
+      const d = p.side === 0 ? 100 - p.x : p.x; if (d < 25) o.near++
+    }
+    if (p.kind === 'scrum') {
+      const d = p.side === 0 ? 100 - p.x : p.x, dOwn = p.side === 0 ? p.x : 100 - p.x
+      if (d < 5 - 0.01 || dOwn < 5 - 0.01) bad('scrum-5m', p.n, `a scrum ${Math.min(d, dOwn).toFixed(1)} m from a goal line (Law 19: at least 5 m)`)
+      if (opt) {
+        scrumOpt[opt] = (scrumOpt[opt] ?? 0) + 1
+        if (d > 7.01) bad('scrum-option', p.n, `scrum option ${opt} ${d.toFixed(1)} m out (only within 7 m of their line)`)
+      }
+      if (p.result === 'pushover') {
+        pushovers++
+        const t = P[p.n + 1]
+        if (!t || t.kind !== 'try' || t.result !== 'pushover' || t.side !== p.side) bad('pushover', p.n, `pushover not followed by its try (${t?.kind}/${t?.result})`)
+        if (opt !== 'shove') bad('pushover', p.n, `pushover from option ${opt}`)
+      }
+    }
+    if (p.kind === 'kickoff') {
+      const by = p.side, prev = P[p.n - 1] ?? p, lead = prev.score[by] - prev.score[other(by)], clk = p.clock ?? p.t
+      // (the call is made before the restart's own seconds go on the clock: judged at either clock, the play before's or the kick's)
+      const wantAt = (c: number) => { const chasing = (c >= 3600 && lead <= -8) || (c >= 4200 && lead < 0), protecting = c >= 3600 && lead > 0 && lead <= 20; return chasing ? 'short' : protecting ? 'long' : 'contestable' }
+      const want = wantAt(clk), want0 = wantAt(prev.clock ?? prev.t)
+      if (opt && opt !== want && opt !== want0) bad('kickoff-option', p.n, `kick-off ${opt}; lead ${lead} at ${Math.floor(clk / 60)} min says ${want}`)
+      if (!opt) bad('kickoff-option', p.n, 'a kick-off with no option')
+    }
+  }
+  const lastP = P[P.length - 1]
+  return { faults, m: { label, ref: ref?.name, style: ref?.style, warnAt: ref?.warnAt, pens: pens[0] + pens[1], pensSide: pens, conceded, warned, yc, red, second, coach: coachSeen, wind: windRows, windStrength: cond?.wind.strength ?? 0, weather: cond?.weather, hot: !!cond?.hot, lo, scrumOpt, pushovers, points: lastP.score[0] + lastP.score[1], tries: res.tries[0] + res.tries[1], home: lastP.score[0] > lastP.score[1] ? 1 : lastP.score[0] === lastP.score[1] ? 0.5 : 0, margin: lastP.score[0] - lastP.score[1] } }
+}
+
+async function overnightDump(argv: string[]) {
+  const NF = Number(argv[0] ?? 120), NS = Number(argv[1] ?? 4)
+  const { MatchSim, K } = await import('../src/game/sim/skeleton') as unknown as { MatchSim: new (o: { seed: number; world: World }) => { runUntil(s?: unknown): { result(): SimResult } }; K: Record<string, unknown> }
+  const t0 = Date.now()
+  const fx = await balancedFixtures(NF)
+  const rows: Record<string, unknown>[] = [], faults: AuditFault[] = []
+  for (const f of fx) for (let k = 0; k < NS; k++) {
+    const seed = f.seed + k * 7919
+    const res = new MatchSim({ seed, world: f.build().world }).runUntil().result()
+    const a = auditMatch(res, `${f.match.label} seed ${seed}`, null)
+    rows.push(a.m); faults.push(...a.faults)
+  }
+  console.error(`balanced ${rows.length} matches, ${Math.round((Date.now() - t0) / 1000)} s`)
+  const num = (k: string) => rows.map(r => r[k] as number)
+  const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / Math.max(1, a.length)
+  const pct = (a: number[], q: number) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(q * (s.length - 1)))] }
+  const out: Record<string, unknown> = { when: new Date().toISOString(), matches: rows.length }
+  console.log(`overnight audit: ${fx.length} balanced fixtures x ${NS} seeds = ${rows.length} matches`)
+  // referees
+  const pens = num('pens')
+  console.log(`penalties and free kicks a match: mean ${fmt(mean(pens), 2)}, 5th percentile ${pct(pens, 0.05)}, 95th ${pct(pens, 0.95)}, min ${pct(pens, 0)}, max ${pct(pens, 1)} (owner: mean 11 to 12, spread inside 6 to 17)`)
+  const byRef = new Map<string, Record<string, unknown>[]>()
+  for (const r of rows) byRef.set(String(r.ref), [...(byRef.get(String(r.ref)) ?? []), r])
+  console.log('| Referee | style | warnAt | matches | penalties a match | yellows a match | second yellows | warnings a match |\n|---|---|---|---|---|---|---|---|')
+  for (const [name, R] of [...byRef].sort((a, b) => mean(a[1].map(r => r.pens as number)) - mean(b[1].map(r => r.pens as number))))
+    console.log(`| ${name} | ${R[0].style} | ${R[0].warnAt} | ${R.length} | ${fmt(mean(R.map(r => r.pens as number)), 2)} | ${fmt(mean(R.map(r => (r.yc as number[])[0] + (r.yc as number[])[1])), 2)} | ${R.reduce((a, r) => a + (r.second as number[])[0] + (r.second as number[])[1], 0)} | ${fmt(mean(R.map(r => (r.warned as number[])[0] + (r.warned as number[])[1])), 2)} |`)
+  for (const st of ['strict', 'fair', 'lenient']) { const R = rows.filter(r => r.style === st); if (R.length) console.log(`  ${st}: ${R.length} matches, ${fmt(mean(R.map(r => r.pens as number)), 2)} penalties, ${fmt(mean(R.map(r => (r.yc as number[])[0] + (r.yc as number[])[1])), 3)} yellows a match`) }
+  // the warning and the card after it
+  // cards
+  const ycAll = mean(rows.map(r => (r.yc as number[])[0] + (r.yc as number[])[1])), sy = mean(rows.map(r => (r.second as number[])[0] + (r.second as number[])[1])), rd = mean(rows.map(r => (r.red as number[])[0] + (r.red as number[])[1]))
+  console.log(`cards a match (both sides): yellow ${fmt(ycAll, 3)}, second yellow ${fmt(sy, 4)} (old engine 0.007), straight red ${fmt(rd, 4)} (old engine 0.038, the owner's rate)`)
+  // the bands
+  console.log(`bands: points ${fmt(mean(num('points')), 2)} (48 to 53), tries ${fmt(mean(num('tries')), 2)} (6.0 to 6.6), home wins ${fmt(100 * mean(num('home')), 1)}% (51 to 57), penalties ${fmt(mean(pens), 2)} (11 to 12)`)
+  // coach
+  const cm: Record<string, number> = {}
+  for (const r of rows) for (const [k, v] of Object.entries(r.coach as Record<string, number>)) cm[k] = (cm[k] ?? 0) + v
+  console.log(`the other coach's changes over ${rows.length} matches: ${Object.entries(cm).map(([k, v]) => `${k} ${v}`).join(', ')}`)
+  // wind
+  const W = rows.flatMap(r => r.wind as { kind: string; kick?: string; wind: number; len?: number; far?: number; good?: boolean }[])
+  for (const kick of ['clearance', 'long', 'touch', 'box', 'bomb', 'chip', 'grubber', 'restart']) {
+    const K2 = W.filter(w => w.kind === 'kick' && w.kick === kick && w.len != null)
+    if (K2.length < 30) continue
+    const wi = K2.filter(w => w.wind >= 0.5), into = K2.filter(w => w.wind <= -0.5), calm = K2.filter(w => Math.abs(w.wind) < 0.2)
+    console.log(`  ${kick} kicks: with the wind ${fmt(mean(wi.map(w => w.len!)), 1)} m (${wi.length}), into it ${fmt(mean(into.map(w => w.len!)), 1)} m (${into.length}), calm ${fmt(mean(calm.map(w => w.len!)), 1)} m (${calm.length})`)
+  }
+  const G = W.filter(w => w.kind === 'goal')
+  for (const [lo2, hi2] of [[0, 30], [30, 40], [40, 99]]) {
+    const g = G.filter(w => w.far! >= lo2 && w.far! < hi2), wi = g.filter(w => w.wind >= 0.5), into = g.filter(w => w.wind <= -0.5)
+    console.log(`  penalty goals ${lo2} to ${hi2} m: with the wind ${fmt(100 * mean(wi.map(w => (w.good ? 1 : 0))), 0)}% (${wi.length}), into it ${fmt(100 * mean(into.map(w => (w.good ? 1 : 0))), 0)}% (${into.length}), all ${fmt(100 * mean(g.map(w => (w.good ? 1 : 0))), 0)}% (${g.length})`)
+  }
+  console.log(`  hot days: ${rows.filter(r => r.hot).length} of ${rows.length}; weather: ${['Dry', 'Damp', 'Rain', 'Wind', 'Snow'].map(w => `${w} ${rows.filter(r => r.weather === w).length}`).join(', ')}`)
+  // set pieces
+  const lo: Record<string, { n: number; stolen: number; near: number }> = {}
+  for (const r of rows) for (const [k, v] of Object.entries(r.lo as Record<string, { n: number; stolen: number; near: number }>)) { const o = (lo[k] ??= { n: 0, stolen: 0, near: 0 }); o.n += v.n; o.stolen += v.stolen; o.near += v.near }
+  console.log(`lineout calls: ${Object.entries(lo).map(([k, v]) => `${k} ${v.n} (stolen ${fmt(100 * v.stolen / v.n, 1)}%, ${fmt(100 * v.near / v.n, 0)}% inside their 25)`).join('; ')}`)
+  const so: Record<string, number> = {}
+  for (const r of rows) for (const [k, v] of Object.entries(r.scrumOpt as Record<string, number>)) so[k] = (so[k] ?? 0) + v
+  console.log(`attacking scrums within 7 m: ${Object.entries(so).map(([k, v]) => `${k} ${v}`).join(', ')}; pushover tries ${rows.reduce((a, r) => a + (r.pushovers as number), 0)} (${fmt(rows.reduce((a, r) => a + (r.pushovers as number), 0) / rows.length, 3)} a match)`)
+  // faults
+  const byWhat = new Map<string, AuditFault[]>()
+  for (const f of faults) byWhat.set(f.what, [...(byWhat.get(f.what) ?? []), f])
+  console.log(`faults: ${faults.length}`)
+  for (const [w, F] of byWhat) console.log(`  ${w}: ${F.length}; first ${F[0].label} play ${F[0].n}: ${F[0].msg}`)
+  out.rows = rows; out.faults = faults
+  const fsm = await import('node:fs')
+  fsm.writeFileSync('scripts/tmp/harmony-overnight.json', JSON.stringify(out))
+  // THE OTHER COACH ON AND OFF: managed fixtures (only the side nobody manages has a coach), paired seeds
+  const NR = Number(argv[2] ?? 10), NP = Number(argv[3] ?? 30)
+  const reals = await realFixtures(Array.from({ length: NR }, (_, i) => i + 1))
+  const d: number[] = [], winOn: number[] = [], winOff: number[] = []
+  let changedBefore = 0
+  const cf: AuditFault[] = []
+  for (const f of reals) for (let k = 0; k < NP; k++) {
+    const seed = f.seed * 1000 + k
+    K.COACH_ON = true
+    const on = new MatchSim({ seed, world: f.build().world }).runUntil().result()
+    cf.push(...auditMatch(on, `${f.match.label} seed ${seed}`, f.userSide).faults.filter(x => x.what.startsWith('coach')))
+    K.COACH_ON = false
+    const off = new MatchSim({ seed, world: f.build().world }).runUntil().result()
+    K.COACH_ON = true
+    const opp = (f.userSide === 0 ? 1 : 0) as 0 | 1
+    const m = (r: SimResult) => { const s = r.plays[r.plays.length - 1].score; return s[opp] - s[f.userSide] }
+    const w = (r: SimResult) => { const x = m(r); return x > 0 ? 1 : x === 0 ? 0.5 : 0 }
+    d.push(m(on) - m(off)); winOn.push(w(on)); winOff.push(w(off))
+    const firstCoach = on.plays.findIndex(p => (p as Play & { coach?: unknown }).coach)
+    if (firstCoach > 0 && JSON.stringify(on.plays.slice(0, firstCoach)) !== JSON.stringify(off.plays.slice(0, firstCoach))) changedBefore++
+  }
+  const dm = mean(d), sd = Math.sqrt(d.reduce((a, x) => a + (x - dm) ** 2, 0) / Math.max(1, d.length - 1))
+  const wd = winOn.map((x, i) => x - winOff[i]), wm = mean(wd), wsd = Math.sqrt(wd.reduce((a, x) => a + (x - wm) ** 2, 0) / Math.max(1, wd.length - 1))
+  console.log(`the other coach on and off, ${d.length} paired matches on ${reals.length} managed fixtures (only the unmanaged side has a coach): its win rate ${fmt(100 * mean(winOff), 1)}% off, ${fmt(100 * mean(winOn), 1)}% on (${wm >= 0 ? '+' : ''}${fmt(100 * wm, 1)} points, 95% interval +-${fmt(196 * wsd / Math.sqrt(wd.length), 1)}); its margin ${dm >= 0 ? '+' : ''}${fmt(dm, 2)} a match (t ${fmt(dm / (sd / Math.sqrt(d.length)), 1)}); matches whose plays before the first coach change differ: ${changedBefore}`)
+  console.log(`coach faults on managed fixtures: ${cf.length}${cf.length ? `; first ${cf[0].label} play ${cf[0].n}: ${cf[0].msg}` : ''}`)
+  out.coachOnOff = { n: d.length, winOff: mean(winOff), winOn: mean(winOn), winDiff: wm, winCI: 1.96 * wsd / Math.sqrt(wd.length), margin: dm, t: dm / (sd / Math.sqrt(d.length)), changedBefore, faults: cf }
+  fsm.writeFileSync('scripts/tmp/harmony-overnight.json', JSON.stringify(out))
+  console.error(`done, ${Math.round((Date.now() - t0) / 1000)} s`)
+}
+
+/**
+ * THE COMMENTARY'S FACTS AGAINST THE GAME (overnight, 27 Nov). `ctxaudit N`: N managed matches at points through
+ * the season (four clubs), each through the session as the screen plays it, the context built with COMMENTARY's
+ * contextFromGame at kick-off, the lines from commentate() with it (HARMONY_COMM may point at a copy with switches on).
+ * Every pre-match, story, crowd, co-commentator and full-time line is checked against the game state worked out here
+ * on its own (form, table, team news, referee, weather, next fixture) or, after full time, against the table the
+ * game itself now holds; and the whole match through checkLines (C01 to C09) with the team sheet.
+ */
+async function ctxAuditDump(argv: string[]) {
+  const N = Number(argv[0] ?? 24)
+  const ad = await loadAdapter()
+  if (!ad.start) { console.log(`ctxaudit: not run: ${ad.why}`); return }
+  const { newGame } = await import('../src/game/newgame')
+  const { processWeekAndAdvance, userFixtureThisWeek } = await import('../src/game/season')
+  const { contextFromGame } = await import('../src/game/sim/context')
+  const { sortTable } = await import('../src/game/schedule')
+  const { refFor } = await import('../src/game/match/referee')
+  const { careerRows } = await import('../src/game/model/players')
+  const C = await loadComm() as { commentate: (r: SimResult, n: unknown, c?: unknown) => LineLike[]; render: (l: LineLike) => string; SUMMARY?: Set<string> }
+  // (the commentary's own list of lines about the match so far, as the main run reads it)
+  if (C.SUMMARY) for (const b of C.SUMMARY) SUMMARY_BASES.add(b)
+  type G = Parameters<typeof processWeekAndAdvance>[0]
+  type Fx = G['fixtures'][number]
+  const faults: { label: string; key: string; n: number; msg: string }[] = []
+  const seen = new Map<string, number>()
+  const ORD = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen']
+  const posOf = (k: unknown) => ORD.indexOf(String(k ?? '').replace(/^sim\.ord/, '').replace(/1$/, ''))
+  const fmtN = (x: number) => String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  let matches = 0, checkFails: Fail[] = []
+  const t0 = Date.now()
+  for (let i = 0; i < N; i++) {
+    const club = ['leicester', 'toulouse', 'leinster', 'northampton'][i % 4]
+    const g = newGame(club, 'T', 500 + i) as G
+    for (let w = 0; w < 2 + (i * 5) % 18; w++) processWeekAndAdvance(g)
+    let fx = userFixtureThisWeek(g) as Fx | undefined
+    for (let w = 0; w < 12 && (!fx || fx.played); w++) { processWeekAndAdvance(g); fx = userFixtureThisWeek(g) as Fx | undefined }
+    if (!fx) continue
+    const label = `${club} seed ${500 + i} week ${g.week} (${g.clubs[fx.homeId]?.name} v ${g.clubs[fx.awayId]?.name})`
+    const comp = g.comps[fx.compId]
+    const before = comp?.table ? sortTable(comp.table.map(r => ({ ...r }))) : []
+    // (each man's appearances, tries and career before the match: the game adds this match's at its own time)
+    const snap = new Map(Object.values(g.players).map(pl => [pl.id, { apps: pl.stats.apps, tries: pl.stats.tries, injWeeks: pl.injLog?.[pl.injLog.length - 1]?.weeks, career: careerRows(pl).reduce((a, c) => a + c.apps, 0) + (pl.hist?.apps ?? 0) + pl.stats.apps }]))
+    const ss = ad.start(g, fx, { assistantBench: true }) as Session & { kickoffTeams: [(number | null)[], (number | null)[]]; motm?: string; us?: 0 | 1 | null }
+    const ctx = contextFromGame(g as never, fx as never, ss.kickoffTeams as never) as Record<string, unknown> & { men?: Record<string, { side: 0 | 1; shirt: number; apps: number; tries: number; careerApps: number; careerTries: number; careerPoints: number; kickMade?: number; kickAtt?: number }>; news?: { kind: string; side: 0 | 1; id?: string; name?: string; starts?: boolean; n?: number; why?: string }[]; attendance?: number }
+    const run = (st: unknown) => { for (let k = 0; k < 300; k++) { ss.runUntil!(st); const pd = ss.pending; if (pd) ss.answer!(pd.options.includes('posts') ? 'posts' : 'corner'); else break } }
+    for (let k = 0; k < 300 && !ss.done; k++) run({})
+    ss.finish!()
+    matches++
+    const res = { ...ss.sim!.result(), motm: ss.motm } as SimResult & { motm?: string; managed?: 0 | 1; referee?: { name: string } ; conditions?: { weather: string } }
+    const P = res.plays, ids2: [string, string] = [fx.homeId, fx.awayId]
+    const names = new Map<string, string>()
+    for (const s of [0, 1] as const) for (const id of ss.kickoffTeams[s]) if (id != null && g.players[id]) names.set(String(id), g.players[id].name)
+    const byName = new Map([...names].map(([id, nm]) => [nm, id]))
+    const lines = C.commentate(res, { teams: [g.clubs[fx.homeId].name, g.clubs[fx.awayId].name], player: (id: string) => names.get(id) ?? '' }, ctx)
+    const fxAfter = g.fixtures.find(f => f.id === fx!.id)!
+    // the game's own points for this match: the week played on (applyToTable), each club's points before and after;
+    // the table the line means is the one before kick-off with only this match's points added (sortTable)
+    const ptsBefore = new Map(before.map(r => [r.teamId, r.pts]))
+    const fxClone = structuredClone(g); processWeekAndAdvance(fxClone)
+    const compAfter = fxClone.comps[fx.compId]
+    const gained = new Map([fx.homeId, fx.awayId].map(cid => [cid, (compAfter?.table.find(r => r.teamId === cid)?.pts ?? NaN) - (ptsBefore.get(cid) ?? NaN)]))
+    const after = sortTable(before.map(r => { const gp = gained.get(r.teamId); if (gp == null) return { ...r }; const us = r.teamId === fx!.homeId ? 0 : 1, sc = ss.sim!.result().plays.at(-1)!.score; return { ...r, pts: r.pts + gp, p: r.p + 1, w: r.w + (sc[us] > sc[1 - us] ? 1 : 0), pf: r.pf + sc[us], pa: r.pa + sc[1 - us], tf: r.tf + ss.sim!.result().tries[us] } }))
+    // the team sheet as a Match, for C01 to C09 and the named whistle lines
+    const xv = [0, 1].map(s => new Set(ss.kickoffTeams[s].slice(0, 15).filter(x => x != null).map(String))) as [Set<string>, Set<string>]
+    const bench = [0, 1].map(s => new Set(ss.kickoffTeams[s].slice(15, 23).filter(x => x != null).map(String))) as [Set<string>, Set<string>]
+    const mt: Match = { label, seed: 500 + i, res, xv, bench, names, ctx: ctx as ClaimCtx, teams: [g.clubs[fx.homeId].name, g.clubs[fx.awayId].name] }
+    checkFails = checkFails.concat(checkLines(mt, lines, C.render).map(f => ({ ...f, msg: `${label}: ${f.msg}` })))
+    // ---- the truth, worked out here
+    const formOf = (cid: string) => g.fixtures.filter(f => f.played && f.id !== fx!.id && f.week < fx!.week && (f.homeId === cid || f.awayId === cid) && f.compId !== 'fr').sort((a, b) => a.week - b.week).slice(-5)
+      .map(f => { const us = f.homeId === cid ? f.homeScore : f.awayScore, th = f.homeId === cid ? f.awayScore : f.homeScore; return f.decider ? (f.decider.winner === cid ? 'W' : 'L') : us > th ? 'W' : us < th ? 'L' : 'D' }).join('')
+    const posBefore = (cid: string) => before.findIndex(r => r.teamId === cid) + 1, posAfter = (cid: string) => after.findIndex(r => r.teamId === cid) + 1
+    const tries: [number, number] = [0, 0]; for (const p of P) if (p.kind === 'try' || p.kind === 'penaltyTry') tries[p.side]++
+    const fin = P[P.length - 1].score
+    const bad = (l: LineLike, msg: string) => faults.push({ label, key: l.key, n: l.n, msg })
+    const pid = (nm: unknown) => byName.get(String(nm ?? ''))
+    // the co-commentator's spells: a new one starts after each play where he may speak (a score, or the drinks near 20
+    // and 60 minutes, at least seven minutes since the last), and after half-time, whether or not a line is said
+    const spellStart = new Map<number, number>()
+    { let at = 0, drinks = 0, start = 0
+      for (const q of P) {
+        const clock = q.clock ?? q.t
+        spellStart.set(q.n, start)
+        const scored = q.kind === 'conversion' || q.kind === 'penaltyGoal' || q.kind === 'dropGoal'
+        const dn = (q.kind === 'scrum' || q.kind === 'lineout' || q.kind === 'penalty') && ((drinks === 0 && clock >= 1200) || (drinks === 1 && clock >= 3600))
+        if (q.kind === 'halfTime') { at = clock; start = q.n + 1 }
+        else if ((scored || dn) && clock - at >= 420) { if (dn) drinks++; at = clock; start = q.n + 1 }
+      } }
+    for (const l of lines) {
+      const base = l.key.replace(/^sim\./, '').replace(/\d+$/, ''), pr = (l.params ?? {}) as Record<string, unknown>, p = P[l.n]
+      seen.set(base, (seen.get(base) ?? 0) + 1)
+      const n = (k: string) => Number(pr[k])
+      switch (base) {
+        case 'preFull': case 'preCrowd': {
+          const venue = fx.venue?.name ?? g.clubs[fx.homeId].stadium, cap = fx.venue?.capacity ?? g.clubs[fx.homeId].capacity
+          if (pr.venue !== venue) bad(l, `venue ${pr.venue}; the game has ${venue}`)
+          if (pr.att !== fmtN(fxAfter.att ?? -1)) bad(l, `crowd ${pr.att}; the fixture has ${fxAfter.att}`)
+          if (base === 'preFull' && !((fxAfter.att ?? 0) >= 0.95 * cap)) bad(l, `says full: ${fxAfter.att} of ${cap}`)
+          break
+        }
+        case 'preRound': if (pr.comp !== comp?.name || n('round') !== fx.round + 1 || n('rounds') !== comp?.rounds) bad(l, `round ${pr.round} of ${pr.rounds} in ${pr.comp}; the game: ${fx.round + 1} of ${comp?.rounds} in ${comp?.name}`); break
+        case 'introTable': if (n('hp') !== posBefore(fx.homeId) || n('ap') !== posBefore(fx.awayId)) bad(l, `positions ${pr.hp} and ${pr.ap}; the table before: ${posBefore(fx.homeId)} and ${posBefore(fx.awayId)}`); break
+        case 'preTop': { const r = before[0], s2 = before[1]; if (r?.teamId !== ids2[l.side!] || (pr.gap != null && n('gap') !== r.pts - s2.pts)) bad(l, `top by ${pr.gap}; the table: ${r?.teamId} ${r?.pts}, then ${s2?.pts}`); break }
+        case 'preBottom': { const L = before.length, r = before[L - 1]; if (r?.teamId !== ids2[l.side!] || (pr.gap != null && n('gap') !== before[L - 2].pts - r.pts)) bad(l, `bottom by ${pr.gap}; the table says otherwise`); break }
+        case 'preClose': { const a = before.find(r => r.teamId === fx!.homeId), b = before.find(r => r.teamId === fx!.awayId); if (!a || !b || Math.abs(a.pts - b.pts) > 3 || (pr.gap != null && n('gap') !== Math.abs(a.pts - b.pts))) bad(l, `close, gap ${pr.gap}; the table: ${a?.pts} and ${b?.pts}`); break }
+        case 'preRunIn': { const left = (comp?.rounds ?? 0) - (fx.round + 1) + 1, pos = posBefore(ids2[l.side!]); if (n('left') !== left || posOf(pr.pos_k) !== pos) bad(l, `run-in: ${pr.left} left, position ${posOf(pr.pos_k)}; the game: ${left}, ${pos}`); break }
+        case 'formAllWon': case 'formAllLost': case 'formSome': {
+          const f = formOf(ids2[l.side!]), w = [...f].filter(x => x === 'W').length
+          const kind = w === f.length ? 'formAllWon' : w === 0 && !f.includes('D') ? 'formAllLost' : 'formSome'
+          if (n('n') !== f.length || n('w') !== w || kind !== base) bad(l, `form ${pr.w} of ${pr.n} (${base}); the results: ${f}`)
+          break
+        }
+        case 'metHere': case 'metThere': case 'metDrew': {
+          const met = g.fixtures.filter(f => f.played && f.id !== fx!.id && ((f.homeId === fx!.homeId && f.awayId === fx!.awayId) || (f.homeId === fx!.awayId && f.awayId === fx!.homeId))).sort((a, b) => b.week - a.week)[0]
+          if (!met) { bad(l, 'a last meeting the fixtures do not have'); break }
+          const hi = Math.max(met.homeScore, met.awayScore), lo2 = Math.min(met.homeScore, met.awayScore)
+          if (n('a') !== hi || n('b') !== lo2 || n('week') !== met.week) bad(l, `last met ${pr.a}-${pr.b} in week ${pr.week}; the fixture: ${met.homeScore}-${met.awayScore} in week ${met.week}`)
+          const winner = met.homeScore === met.awayScore ? undefined : g.clubs[met.homeScore > met.awayScore ? met.homeId : met.awayId].name
+          if (pr.winner !== winner) bad(l, `winner ${pr.winner}; the fixture's winner ${winner}`)
+          break
+        }
+        case 'newsDebutStart': case 'newsDebutBench': case 'newsClubStart': case 'newsClubBench': case 'newsMilestone': case 'newsOldClub': case 'newsReturn': {
+          const id = pid(pr.player); if (!id) { bad(l, `names ${pr.player}, not in the 23`); break }
+          const pl = g.players[Number(id)], k = ss.kickoffTeams[l.side!].map(x => (x == null ? '' : String(x))).indexOf(id)
+          if (k < 0) { bad(l, `${pr.player} is not in this side's 23`); break }
+          const starts = k < 15
+          // (career and season as they were before the match: this match's appearance taken back off)
+          const c0 = snap.get(Number(id))?.career ?? NaN
+          if (base.startsWith('newsDebut') && c0 !== 0) bad(l, `a debut for ${pr.player}, who had ${c0} appearances`)
+          if ((base === 'newsDebutStart' || base === 'newsClubStart') !== starts && !base.startsWith('newsMile') && !['newsOldClub', 'newsReturn'].includes(base)) bad(l, `${base} for ${pr.player}, shirt ${k + 1}`)
+          if (base === 'newsMilestone' && (c0 + 1 !== n('n') || !starts)) bad(l, `milestone ${pr.n} for ${pr.player}, whose career was ${c0} before`)
+          if (base === 'newsOldClub') { const opp = ids2[l.side === 0 ? 1 : 0]; if (!(pl.exClub === opp || careerRows(pl).some(r => r.clubId === opp && r.apps > 0))) bad(l, `${pr.player} never played for ${opp}`) }
+          if (base === 'newsReturn') { const w = snap.get(Number(id))?.injWeeks; if (w !== n('n')) bad(l, `back after ${pr.n} weeks; his last injury before the match: ${w}`) }
+          break
+        }
+        case 'newsAbsent': {
+          const clubPs = g.clubs[ids2[l.side!]].players.map(x => g.players[x])
+          const p2 = clubPs.find(x => x.name === pr.player)
+          if (!p2) bad(l, `absent ${pr.player}, not at the club`)
+          else if (ss.kickoffTeams[l.side!].includes(p2.id)) bad(l, `absent ${pr.player}, who is in the 23`)
+          break
+        }
+        case 'preRef': if (pr.ref !== refFor(fx.id).name || pr.ref !== res.referee?.name) bad(l, `referee ${pr.ref}; the fixture's ${refFor(fx.id).name}`); break
+        case 'wxDamp': case 'wxRain': case 'wxWind': case 'wxSnow': if (`wx${fxAfter.weather ?? res.conditions?.weather}` !== base) bad(l, `${base}; the fixture's weather ${fxAfter.weather}`); break
+        case 'careerTry': case 'seasonTries': case 'droughtEnds': {
+          const id = pid(pr.player), man = id ? ctx.men?.[id] : undefined
+          if (!man || p?.kind !== 'try' || p.who !== id) { bad(l, `${base} for ${pr.player} at ${p?.kind}`); break }
+          const today = P.slice(0, l.n + 1).filter(q => (q.kind === 'try' || q.kind === 'penaltyTry') && q.who === id).length
+          const pl = g.players[Number(id)]
+          void pl; const seasonBefore = snap.get(Number(id))?.tries ?? NaN
+          if (base === 'seasonTries' && n('n') !== seasonBefore + today) bad(l, `${pr.n} tries this season; the stats: ${seasonBefore} before, ${today} today`)
+          if (base === 'careerTry' && (n('n') !== man.careerTries + today || n('n') % 25 !== 0)) bad(l, `career try ${pr.n}; ${man.careerTries} before, ${today} today`)
+          if (base === 'droughtEnds' && (seasonBefore !== 0 || today !== 1)) bad(l, `first of the season for ${pr.player}; he had ${seasonBefore}`)
+          break
+        }
+        case 'debutFirst': case 'clubFirst': case 'returnFirst': case 'oldClubScores': {
+          const id = pid(pr.player), kind = { debutFirst: 'debut', clubFirst: 'clubDebut', returnFirst: 'return', oldClubScores: 'oldClub' }[base]
+          if (!ctx.news?.some(x => x.kind === kind && x.id === id)) bad(l, `${base} for ${pr.player}, not in the team news as ${kind}`)
+          break
+        }
+        case 'crowdHomeRoar': case 'crowdHomeCheer': case 'crowdAway': {
+          if (p?.kind !== 'try') bad(l, `${base} at ${p?.kind}`)
+          else if ((base === 'crowdAway') !== (p.side === 1)) bad(l, `${base} for a try by side ${p.side}`)
+          if (!(ctx.attendance ?? 0)) bad(l, `${base} with no crowd recorded`)
+          break
+        }
+        case 'crowdHush': if (p?.kind !== 'penaltyGoal' || (ctx.attendance ?? 0) < 5000) bad(l, `${base} at ${p?.kind} with a crowd of ${ctx.attendance}`); break
+        case 'crowdSiege': if (p?.kind !== 'ruck' || p.side !== 0 || (p.clock ?? p.t) < 4200) bad(l, `${base} at ${p?.kind} by side ${p?.side}`); break
+        case 'bonusTry': if (!comp || comp.type !== 'league' || P.slice(0, l.n + 1).filter(q => (q.kind === 'try' || q.kind === 'penaltyTry') && q.side === l.side).length !== 4) bad(l, 'a bonus-point try that is not the fourth in a league match'); break
+        case 'postUp': case 'postDown': case 'postStay': {
+          const cid = ids2[l.side!], now = posAfter(cid), was = posBefore(cid), row = after.find(r => r.teamId === cid)
+          if (posOf(pr.pos_k) !== now || n('pts') !== row?.pts) bad(l, `position ${posOf(pr.pos_k)} on ${pr.pts}; the game's table now: ${now} on ${row?.pts}`)
+          const want = now < was ? 'postUp' : now > was ? 'postDown' : 'postStay'
+          if (want !== base) bad(l, `${base}; the table moved ${was} to ${now}`)
+          break
+        }
+        case 'postBonusTry': case 'postBonusLose': {
+          const cid = ids2[l.side!], d = gained.get(cid) ?? NaN
+          const us = fin[l.side!], th = fin[l.side === 0 ? 1 : 0], match = us > th ? 4 : us === th ? 2 : 0
+          if (d - match < 1) bad(l, `${base}, but the game gave ${d} points for a ${us}-${th} result`)
+          break
+        }
+        case 'postNext': {
+          const cid = ids2[l.side!]
+          const nx = g.fixtures.filter(x => !x.played && x.id !== fx!.id && x.week > fx!.week && (x.homeId === cid || x.awayId === cid)).sort((a, b) => a.week - b.week)[0]
+          const opp = nx ? g.clubs[nx.homeId === cid ? nx.awayId : nx.homeId]?.name : undefined
+          if (!nx || pr.opp !== opp || n('week') !== nx.week || (pr.where_k === 'sim.whereHome1') !== (nx.homeId === cid)) bad(l, `next ${pr.opp} week ${pr.week} ${pr.where_k}; the fixtures: ${opp} week ${nx?.week} ${nx && nx.homeId === cid ? 'home' : 'away'}`)
+          break
+        }
+        case 'postStat': {
+          const ws = l.side!, os2 = (ws === 0 ? 1 : 0) as 0 | 1, w = String(pr.what_k)
+          const cnt = (s: 0 | 1) => w.includes('Breaks') ? P.filter(q => q.kind === 'lineBreak' && q.side === s).length : w.includes('Turnovers') ? P.filter(q => q.kind === 'ruck' && q.result === 'turnover' && q.side !== s).length : P.filter(q => q.kind === 'penalty' && q.side !== s).length
+          // ("penalties conceded": penalties, not free kicks, as the words say)
+          if (n('a') !== cnt(ws) || n('b') !== cnt(os2)) bad(l, `${w} ${pr.a} to ${pr.b}; the record ${cnt(ws)} to ${cnt(os2)}`)
+          break
+        }
+        default:
+          if (/^(ana|tip)/.test(base)) {
+            if (base.startsWith('tip') && l.side !== res.managed) bad(l, `a pointer for side ${l.side}; the managed side is ${res.managed}`)
+            // the spell since the last co-commentator word (or the half), counted here
+            const from = spellStart.get(l.n) ?? 0, to = l.n
+            const sp = P.slice(from, to + 1), s = l.side as 0 | 1, o = (s === 0 ? 1 : 0) as 0 | 1
+            // (a carry here: one that was tackled, held up short, driven back or got over the line; not a knock-on or an offload)
+            const car = sp.filter(q => q.kind === 'carry' && q.side === s && ['gainLine', 'held', 'drivenBack', 'overTheLine'].includes(q.result)), kicks = sp.filter(q => q.kind === 'kick' && q.side === s && q.result !== 'penaltyToTouch' && !q.kick?.startsWith('restart')).length
+            const near = (a: number, b: number, tol: number) => Math.abs(a - b) <= tol
+            if ((base === 'anaKicking' || base === 'anaHands') && !(near(n('k'), kicks, 1) && near(n('c'), car.length, 2))) bad(l, `${pr.k} kicks and ${pr.c} carries in the spell; the record ${kicks} and ${car.length} (plays ${from} to ${to})`)
+            if (base === 'anaJackal') { const tw = sp.filter(q => q.kind === 'ruck' && q.result === 'turnover' && q.side === o).length; if (!near(n('n'), tw, 1)) bad(l, `${pr.n} turnovers won in the spell; the record ${tw}`) }
+            if ((base === 'anaCollide' || base === 'anaStopped') && car.length) { const gl = car.filter(q => q.result === 'gainLine' || q.result === 'overTheLine').length; if (!near(n('pct'), Math.round(100 * gl / car.length), 8)) bad(l, `${pr.pct}% over the gain line; the record ${Math.round(100 * gl / car.length)}% of ${car.length}`) }
+            if (base === 'anaPensRuck' || base === 'anaPensOffside') { const pens = sp.filter(q => (q.kind === 'penalty' || q.kind === 'freeKick') && q.side === o).length; if (!near(n('m'), pens, 1)) bad(l, `${pr.m} penalties in the spell; the record ${pens}`) }
+          }
+      }
+    }
+    if (matches % 6 === 0) console.error(`${matches} matches, ${Math.round((Date.now() - t0) / 1000)} s`)
+  }
+  console.log(`ctxaudit: ${matches} managed matches through the session, with the game's context${process.env.HARMONY_COMM ? ` (commentary from ${process.env.HARMONY_COMM})` : ''}`)
+  console.log(`lines checked by kind: ${[...seen].filter(([k]) => /^(pre|intro|form|met|news|wx|surf|career|season|drought|oldClub|kick|crowd|ana|tip|duel|post|motm|debut|club|return|bonus|ref)/.test(k)).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', ')}`)
+  const byKey = new Map<string, typeof faults>()
+  for (const f of faults) { const b = f.key.replace(/^sim\./, '').replace(/\d+$/, ''); byKey.set(b, [...(byKey.get(b) ?? []), f]) }
+  console.log(`fact faults: ${faults.length}`)
+  for (const [k, F] of byKey) console.log(`  ${k}: ${F.length}; first ${F[0].label} play ${F[0].n}: ${F[0].msg}`)
+  const byRule = new Map<string, Fail[]>()
+  for (const f of checkFails) byRule.set(f.rule, [...(byRule.get(f.rule) ?? []), f])
+  console.log(`checkLines (C01 to C09, named whistle lines): ${checkFails.length} failures`)
+  for (const [k, F] of byRule) console.log(`  ${k}: ${F.length}; first play ${F[0].n}: ${F[0].msg}`)
+  const fsm = await import('node:fs')
+  fsm.writeFileSync('scripts/tmp/harmony-ctxaudit.json', JSON.stringify({ when: new Date().toISOString(), matches, seen: Object.fromEntries(seen), faults, checkFails }))
+}
+
 async function main() {
+  if (process.argv.includes('ctxaudit')) return ctxAuditDump(process.argv.slice(process.argv.indexOf('ctxaudit') + 1))
+  if (process.argv.includes('overnight')) return overnightDump(process.argv.slice(process.argv.indexOf('overnight') + 1))
   if (process.argv.includes('cards')) return cardsDump(process.argv.slice(process.argv.indexOf('cards') + 1))
   if (process.argv.includes('wiring')) return wiringDump(process.argv.slice(process.argv.indexOf('wiring') + 1))
   if (process.argv.includes('season')) return seasonDump(process.argv.slice(process.argv.indexOf('season') + 1))
