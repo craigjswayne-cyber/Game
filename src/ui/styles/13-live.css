@@ -1217,3 +1217,8 @@
 .coach-plate { display: flex; align-items: baseline; gap: 6px; max-width: 64%; padding: 4px 10px 5px; white-space: nowrap; }
 .coach-plate b { flex: none; display: inline; }
 .coach-plate span { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: .6875rem; }
+
+/* Half-time: the last play's plate goes as the half-time card comes up, and the squad button's icon keeps its size */
+.sim2-stage.ht .lp-banner { opacity: 0; transition: opacity .25s ease; }
+[data-ctl="ht-subs"] { display: inline-flex; align-items: center; gap: 6px; }
+[data-ctl="ht-subs"] svg { width: 18px; height: 18px; flex: none; }

@@ -437,7 +437,7 @@ export function Sim2Live() {
         <div className="sb-terr" aria-hidden="true"><i style={{ width: `${terr}%`, background: panel.home[0] }} /><i style={{ background: panel.away[0] }} /></div>
       </div>
       {!ended && (
-        <div className={`sim2-stage${preT >= 0 ? ' pre' : ''}`}>
+        <div className={`sim2-stage${preT >= 0 ? ' pre' : ''}${waiting === 'halfTime' ? ' ht' : ''}`}>
           <LivePitch feed={feed} events={[]} cursor={0} homeId={fixture.homeId} paused={paused} speed={SPEEDS[speed].x} intro={intro.current} wind={dayWind} crowd={(occasion as { attendance?: number; capacity?: number }).capacity ? Math.min(1, ((occasion as { attendance?: number }).attendance ?? 0) / (occasion as { capacity: number }).capacity) : undefined}
             home={pitchSide(0)} away={pitchSide(1)} night={night} wet={fixture.weather === 'Rain'} snow={fixture.weather === 'Snow'} boards={boards}
             tr={(k, v) => t(k, v)} teams={{ home: teamShort(game, fixture.homeId), away: teamShort(game, fixture.awayId) }} names={id => names.get(String(id))} />
